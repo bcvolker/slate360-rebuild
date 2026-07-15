@@ -134,29 +134,31 @@ export function SW360StartWalkButton({
   return (
     <div className="flex flex-col gap-2">
       {error ? <p className="text-xs font-semibold text-[var(--sw360-destructive)]">{error}</p> : null}
-      {showQuickWalk ? (
+      <div className={showQuickWalk ? "flex gap-2" : "flex flex-col gap-2"}>
+        {showQuickWalk ? (
+          <button
+            type="button"
+            disabled={busy}
+            onClick={() => void handleQuickWalk()}
+            className="flex min-h-[56px] flex-1 items-center justify-center gap-2 rounded-2xl bg-[var(--sw360-green-light)] px-2 text-center text-sm font-bold leading-tight text-white disabled:opacity-60"
+          >
+            {busy ? <Loader2 size={18} className="animate-spin" /> : null}
+            Quick walk
+          </button>
+        ) : null}
         <button
           type="button"
           disabled={busy}
-          onClick={() => void handleQuickWalk()}
-          className="flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl bg-[var(--sw360-green-light)] text-base font-bold text-white disabled:opacity-60"
+          onClick={handleStartInProject}
+          className={
+            showQuickWalk
+              ? "flex min-h-[56px] flex-1 items-center justify-center gap-2 rounded-2xl bg-[var(--sw360-charcoal)] px-2 text-center text-sm font-bold leading-tight text-white disabled:opacity-60"
+              : "flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl bg-[var(--sw360-green-light)] text-base font-bold text-white disabled:opacity-60"
+          }
         >
-          {busy ? <Loader2 size={18} className="animate-spin" /> : null}
-          Quick walk — start capturing now
+          {projects.length === 1 ? `Walk in ${projects[0].name}` : "Start a walk in a project"}
         </button>
-      ) : null}
-      <button
-        type="button"
-        disabled={busy}
-        onClick={handleStartInProject}
-        className={
-          showQuickWalk
-            ? "flex min-h-[44px] w-full items-center justify-center gap-2 rounded-xl border border-[var(--sw360-green-light)] text-sm font-bold text-[var(--sw360-green-light)] disabled:opacity-60"
-            : "flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl bg-[var(--sw360-green-light)] text-base font-bold text-white disabled:opacity-60"
-        }
-      >
-        {projects.length === 1 ? `Start a walk in ${projects[0].name}` : "Start a walk in a project"}
-      </button>
+      </div>
     </div>
   );
 }

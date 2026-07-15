@@ -6,8 +6,8 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { SW360StartWalkButton } from "@/components/sw360/SW360StartWalkButton";
 import { SW360BrandHero } from "@/components/sw360/SW360BrandHero";
 import { SW360RecentWalksScroller, type RecentWalkCard } from "@/components/sw360/SW360RecentWalksScroller";
-import { SW360WeekStrip } from "@/components/sw360/SW360WeekStrip";
-import { SW360PeopleStrip } from "@/components/sw360/SW360PeopleStrip";
+import { SW360CalendarPeopleRow } from "@/components/sw360/SW360CalendarPeopleRow";
+import { SW360BoundedList } from "@/components/sw360/SW360BoundedList";
 
 type ProjectRow = { id: string; name: string };
 type SessionJoinRow = {
@@ -24,12 +24,11 @@ function projectNameFromJoin(row: SessionJoinRow): string | null {
 }
 
 /**
- * SW360 Home — real data throughout. Reworked per Brian's on-device
- * feedback: no more single "Resume [walk]" banner claiming to know THE
- * relevant walk — a Recent walks scroller across projects instead, and
- * Start-a-walk routes to Projects (rather than an on-page picker) once
- * there's more than one project, since starting a walk FROM a project is
- * the intuitive path.
+ * SW360 Home order, per Brian's 2026-07-14 feedback: primary actions, then
+ * the two most job-relevant sections (Recent walks, Active projects) up
+ * top in bounded/expandable containers (no horizontal scroll, no unbounded
+ * growth), then attention/assignments, then the cross-cutting Calendar +
+ * People row at the bottom (they're org-wide, not "today's work").
  */
 export default async function SW360HomePage() {
   const context = await resolveServerOrgContext();
@@ -45,7 +44,7 @@ export default async function SW360HomePage() {
           .eq("org_id", orgId)
           .eq("status", "active")
           .order("created_at", { ascending: false })
-          .limit(6)
+          .limit(20)
       : Promise.resolve({ data: [] as ProjectRow[] }),
     orgId
       ? createAdminClient()
@@ -54,7 +53,7 @@ export default async function SW360HomePage() {
           .eq("org_id", orgId)
           .neq("status", "archived")
           .order("updated_at", { ascending: false })
-          .limit(8)
+          .limit(20)
       : Promise.resolve({ data: [] as SessionJoinRow[] }),
     loadWeekStrip(orgId),
     loadPeopleStrip(orgId),
@@ -77,9 +76,41 @@ export default async function SW360HomePage() {
 
       <SW360StartWalkButton projects={projects} showQuickWalk />
 
-      <SW360WeekStrip events={weekEvents} />
-
       <SW360RecentWalksScroller walks={recentWalks} />
+
+      <div>
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-xs font-bold uppercase tracking-wide text-[var(--sw360-charcoal)]/60">
+            Active projects
+          </p>
+          <Link href="/sw360/projects" className="text-xs font-bold text-[var(--sw360-green-light)]">
+            See all
+          </Link>
+        </div>
+        {projects.length === 0 ? (
+          <Link
+            href="/sw360/projects"
+            className="flex min-h-[80px] flex-col justify-center rounded-2xl border border-dashed border-[var(--sw360-charcoal)]/25 bg-white/40 px-5"
+          >
+            <p className="text-sm font-bold text-[var(--sw360-charcoal)]">Create your first project</p>
+            <p className="mt-0.5 text-xs text-[var(--sw360-charcoal)]/60">
+              A project keeps every walk, plan, and report for a job in one place.
+            </p>
+          </Link>
+        ) : (
+          <SW360BoundedList itemCount={projects.length} seeAllHref="/sw360/projects" rowHeightPx={52}>
+            {projects.map((p) => (
+              <Link
+                key={p.id}
+                href={`/sw360/projects/${p.id}`}
+                className="flex shrink-0 items-center rounded-xl border border-[var(--border)] bg-white/70 px-4 py-3"
+              >
+                <p className="truncate text-sm font-semibold text-[var(--sw360-charcoal)]">{p.name}</p>
+              </Link>
+            ))}
+          </SW360BoundedList>
+        )}
+      </div>
 
       {hasAttention ? (
         <div className="rounded-2xl border border-[var(--border)] bg-white/70 p-4">
@@ -124,41 +155,7 @@ export default async function SW360HomePage() {
         </div>
       ) : null}
 
-      <SW360PeopleStrip contacts={peopleContacts} />
-
-      <div>
-        <div className="mb-2 flex items-center justify-between">
-          <p className="text-xs font-bold uppercase tracking-wide text-[var(--sw360-charcoal)]/60">
-            Active projects
-          </p>
-          <Link href="/sw360/projects" className="text-xs font-bold text-[var(--sw360-green-light)]">
-            See all
-          </Link>
-        </div>
-        {projects.length === 0 ? (
-          <Link
-            href="/sw360/projects"
-            className="flex min-h-[80px] flex-col justify-center rounded-2xl border border-dashed border-[var(--sw360-charcoal)]/25 bg-white/40 px-5"
-          >
-            <p className="text-sm font-bold text-[var(--sw360-charcoal)]">Create your first project</p>
-            <p className="mt-0.5 text-xs text-[var(--sw360-charcoal)]/60">
-              A project keeps every walk, plan, and report for a job in one place.
-            </p>
-          </Link>
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {projects.slice(0, 4).map((p) => (
-              <Link
-                key={p.id}
-                href={`/sw360/projects/${p.id}`}
-                className="rounded-xl border border-[var(--border)] bg-white/70 p-3"
-              >
-                <p className="truncate text-sm font-semibold text-[var(--sw360-charcoal)]">{p.name}</p>
-              </Link>
-            ))}
-          </div>
-        )}
-      </div>
+      <SW360CalendarPeopleRow weekEventCount={weekEvents.length} peopleCount={peopleContacts.length} />
     </div>
   );
 }
