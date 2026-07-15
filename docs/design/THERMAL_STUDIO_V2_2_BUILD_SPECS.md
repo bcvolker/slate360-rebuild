@@ -443,6 +443,64 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum I (2026-07-14) — Grok collaboration round: drawing overlay, presentation recipes, signature, mobile parity
+
+New items from Grok's gap analysis + Brian's deliverable requirements. These amend
+existing G4 slices (owners noted); the frozen order is unchanged.
+
+## I1. Drawing/layout overlay pipeline (owner: PAN slice + share viewer work)
+
+Brian has consultant drawings (e.g. RDH drain layout for the ASU sun deck) to lay
+over the thermal panorama as a toggleable layer:
+- **Extraction (backend, prompt-driven):** new Modal helper that takes a PDF/image
+  drawing and outputs a TRANSPARENT overlay of linework only (no paper background):
+  PyMuPDF vector extraction where the PDF is vector; luminance-keyed alpha matte
+  fallback for raster scans. Output: PNG-with-alpha (+ optional SVG) in R2.
+- **Alignment: control points, NOT feature matching.** CAD linework and thermal
+  imagery share almost no visual features — SIFT/ORB alignment will not work.
+  Owner picks 3–4 corresponding points (drawing ↔ panorama) in a small alignment
+  UI; affine transform computed client-side, stored in metadata. Reusable pattern:
+  the walks-with-plans percent-coordinate math.
+- **Delivery:** the share viewer renders the overlay as a layer with an on/off
+  toggle AND an opacity slider (drains sit exactly where the plumes point — the
+  ASU money shot). `layer_config` on the token already reserves the storage.
+
+## I2. Per-finding presentation recipes (owner: S6/AI Review + report/link rendering)
+
+Brian's requirement: the pixels/palette/scale must be ADJUSTED so each finding
+actually SHOWS. A finding stores not just what/where but HOW TO SHOW IT:
+`presentation: { palette, span_lo, span_hi, isotherm?, local_contrast? }` —
+auto-computed at detection time (span tightened to the anomaly region ±2 °C,
+palette chosen for the pattern class), operator-overridable from Analyze ("Save
+this view for the finding"). Reports render each finding crop WITH its recipe;
+the share viewer applies the recipe when a finding is selected (and animates
+span back to global when deselected). This is the Enhance-here concept promoted
+into the deliverable.
+
+## I3. PDF branding completeness (owner: S7)
+
+Branding profile gains a **signature block**: signature image (transparent PNG) +
+name + cert line (ITC #) rendered at the report footer/sign-off page, above the
+existing disclaimer. Logo header already exists in report.py; add header-band
+placement option. Every element individually togglable per E5/E6.
+
+## I4. Share links: mobile parity is REQUIRED, not optional (owner: S7.5)
+
+The link is one responsive web page — same URL on desktop and phone. Desktop:
+tabs/chapter rail + collapsible sidebar + hover temps. Mobile (≤768px): chapter
+rail becomes a bottom tab bar; sidebar becomes a drag-up bottom sheet; hover-temp
+becomes tap-and-hold probe; pinch zoom/pan on the grid canvas; slider handle
+sized 44pt. The existing 390px audit (Addendum B) is the acceptance gate. No
+app install, no desktop-only fallback.
+
+## I5. External research handed to Grok (tracked)
+
+Grok is researching: Autel EVO makernote absolute decode; the
+rudrakshkapil/Integrated-RGB-Thermal-orthomosaicing repo (license + liftable
+co-registration); radiometric-safe seam blending; moisture-detection algorithms
+(ASTM C1153-style + spatial-coherence classifiers); PDF linework extraction
+recipes. Results land as future amendments — do NOT block G4 slices on them.
+
 # Addendum H (2026-07-10) — critique round 2: R1 appendix, second P0 fixed, honesty cuts, positioning
 
 ## H0. Positioning statement (read first, every session)
