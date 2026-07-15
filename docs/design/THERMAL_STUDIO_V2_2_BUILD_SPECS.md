@@ -443,6 +443,41 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum U (2026-07-15) — P1 KICKED OFF: decode complete, stitch proven; architect hypothesis H6
+
+## U1. Processing status (local validation lane, tools in .tmp/asu/tools/)
+
+- **Decode: COMPLETE, zero thermal failures.** 102MEDIA = 251 thermal frames (the
+  "failures" were MAX_*.JPG — the payload's PAIRED VISUAL camera frames, one per
+  thermal shot → free thermal↔visual pairs + potential RGB-assisted registration).
+  103MEDIA = 89 thermal + 89 visual. All frames carry GPS (Sun Devil Stadium
+  coords) → footprint/auto-pinning enabled. NPZ grids + contact sheets + per-frame
+  stats in deliverables/ (T3 artifacts).
+- **Stitch: registration model PROVEN.** Full homography chains diverged (nadir
+  flight → wrong model); switched to similarity transform (estimateAffinePartial2D,
+  scale/translation sanity gates) → 40-frame strip: 37/39 pairs, median 393
+  inliers, 3426×1145 clean mosaic, span 1.2–23.2 °C. QC render shows rooftop
+  equipment, EJ lines, and a repeating pattern of circular cool spots along the
+  deck centerline w/ subtle surrounding mottling (drains? — ANALYSIS DEFERRED per
+  S2 until PM drawings arrive; no claims yet).
+- **Scale-up path for the full 251-frame mosaic:** stitch per-strip (serpentine
+  legs), then cross-strip registration + GPS-anchored global adjustment to kill
+  accumulated drift (per-frame GPS makes this tractable). Worker `panorama.py`
+  should adopt the similarity model + sanity gates from the spike.
+
+## U2. Hypothesis H6 (the architect's theory — added to the N1 panel)
+
+Architect's theory: the waterproofing membrane under the 4″ topping slab is
+failing AND the DRAINS THEMSELVES leak — predicting ~4 ft-radius moisture halos
+around drains EVEN WITH NO RAIN (supply = drain leakage, not weather), possibly a
+~1/16″ water film, with unknown travel paths. Thermal test: drain-centered
+radial-ring ΔT profiles (signature = elevated retained-heat annulus out to ~4 ft,
+decaying with radius) + trend vectors for travel. This is a TIGHT-margin
+signature — per-finding presentation recipes (I2) + Enhance-here + sigma-relative
+local contrast are the required tooling; absolute calibration (verified) lets
+halo ΔTs be quoted in real °C. The hypothesis panel now tests RDH H1–H5 + H6,
+tagged by evidence like the rest.
+
 # Addendum T (2026-07-15) — processing logistics: where outputs live, QC without a UI, viewer-first order
 
 ## T1. Spheres located (corrects S1's "not in folder")
