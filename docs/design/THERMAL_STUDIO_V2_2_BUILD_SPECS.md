@@ -443,6 +443,24 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum V (2026-07-15) — FULL MOSAIC BUILT (same-day): 251 frames, radiometric, GPS-anchored
+
+`deliverables/mosaic_main_flight.npz` + `qc/mosaic_main_QC.jpg`: the COMPLETE deck,
+3097×2232 @ 4 cm/px, 251 frames across 10 serpentine legs, per-leg similarity
+chains Procrustes-anchored to per-frame GPS (Grok's pose-graph shape, simplified:
+chain-within-leg + GPS similarity fit per leg). **Envelope check PASSED** — every
+mosaic pixel is a real °C value inside the source-frame envelope (float32 grid,
+NaN outside coverage). 19/241 pair registrations fell back and were rescued by GPS
+anchoring. Overlap measured from the GPS track: median 3.61 m forward spacing vs
+~20 m frame footprint ≈ **82% forward overlap**; adjacent legs ~7–15 m apart vs
+~25 m swath ≈ **40–70% side overlap** — comfortably sufficient (median 393 RANSAC
+inliers/pair). Visible in QC: both building roofs w/ HVAC, EJ lines, the central
+deck field showing a double row of circular features with surrounding mottled
+texture (ANALYSIS DEFERRED per S2 — no claims until drawings arrive).
+Queued refinements: per-frame gain/offset seam compensation (visible strip
+banding), retry logic for the 19 fallback pairs, and porting the similarity model
+into worker panorama.py.
+
 # Addendum U (2026-07-15) — P1 KICKED OFF: decode complete, stitch proven; architect hypothesis H6
 
 ## U1. Processing status (local validation lane, tools in .tmp/asu/tools/)
