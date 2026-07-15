@@ -443,6 +443,20 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum AA (2026-07-15) — mosaic v5 MAX AREA shipped
+
+`qc/mosaic_v5_QC.jpg` + `mosaic_main_flight_v5.npz`: 104 transit/turn frames
+excluded from painting (kept as solve constraints — cured the south lay-over
+smear); three-pass composite (crisp interior -> uncropped grid-frame boundary
+reclaim [1.25M px recovered] -> transit frames as last-resort fill [95k px]).
+Coverage now extends to the full captured footprint. Honest notes for the
+deliverable: (1) peripheral reclaim strips are softer than the interior (single
+uncropped frames, acceptable); (2) the warm diagonal band at the SE is TIME, not
+error — the last legs flew ~40 min after the first as sunrise approached; the
+conditions banner must state the capture window, and the difference/compare
+chapters must not mix early vs late frames as if simultaneous; (3) stand parallax
+remains inherent (Addendum X) pending DEM orthorectification.
+
 # Addendum Z (2026-07-15) — north/south frame-level audit: covered concourse, not lost data
 
 Frame-level inspection (`qc/north_frames_check.jpg`, `qc/south_frames_check.jpg`)
