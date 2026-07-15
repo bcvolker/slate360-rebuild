@@ -443,6 +443,23 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum AC (2026-07-15) — ECC verdict: valuable as sequential rescue, unreliable as cross-matcher
+
+Final mosaic build (v5 files refreshed) uses a **two-population solve**: ORB-verified
+edges establish geometry; ECC-derived edges are admitted only where they agree
+within 0.8 m. Results:
+- ECC as SEQUENTIAL rescue: WORKS — sequential registration failures 19 → 9.
+- ECC as CROSS-LEG matcher: UNRELIABLE on this dataset — only **4/551** ECC cross
+  edges survived the geometry check (barely-overlapping pairs converge to false
+  optima with passable correlation scores). An earlier build that trusted them
+  regressed visibly (seam patchwork; median correction 1.54→3.23 m) and was
+  rejected. The validated-admission architecture keeps ECC's wins and locks out
+  its failures automatically — this gate is now a permanent pipeline feature.
+- ECC's remaining upside (per Grok's own framing): sub-pixel REFINEMENT of good
+  ORB pairs, and the thermal↔visual pair calibration — both queued.
+Final state: geometry ≈ best-known (v5-grade) + 10 rescued sequential pairs +
+connectivity median 12 with a single weak frame. Envelope OK. Ship it.
+
 # Addendum AB (2026-07-15) — blotches explained (display, not data), ECC rescue implemented
 
 ## AB1. "Bright yellow blotches" = display saturation, DATA FULLY INTACT (proven)
