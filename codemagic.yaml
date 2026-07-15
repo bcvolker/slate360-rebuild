@@ -185,27 +185,36 @@ workflows:
           fi
           cd ios/App
           agvtool new-version -all "$NEXT"
-      - name: Set display name + force light UI style + stamp git commit
+      - name: Set display name + force static dark-content status bar + stamp git commit
         script: |
           PLIST=ios/App/App/Info.plist
           /usr/libexec/PlistBuddy -c "Set :CFBundleDisplayName 'Site Walk 360'" "$PLIST"
-          # Documented Capacitor/iOS behavior: @capacitor/status-bar's setStyle()
-          # gets silently overridden by iOS system Dark Mode — the status bar
-          # falls back to light-content (white icons) regardless of what the JS
-          # plugin call requests. This is invisible on the legacy app (it WANTS
-          # white icons, so the override happens to match) but breaks SW360
-          # (wants dark icons on its light bone background) exactly matching
-          # Brian's report: icons stayed invisible across every JS-level fix
-          # attempt because the bug isn't in the JS at all. SW360 has no dark-
-          # surface screens yet, so force the whole app to iOS Light appearance
-          # regardless of the device's system dark/light setting — legacy build
-          # is untouched (this step only runs in the sitewalk360-ios workflow).
           /usr/libexec/PlistBuddy -c "Add :UIUserInterfaceStyle string Light" "$PLIST" \
             || /usr/libexec/PlistBuddy -c "Set :UIUserInterfaceStyle Light" "$PLIST"
+          # ROOT CAUSE FOUND 2026-07-14 by inspecting the actual shipped IPA's
+          # Info.plist: UIViewControllerBasedStatusBarAppearance=true was
+          # present, which means iOS hands status-bar-style control to the
+          # WKWebView's view controller (i.e. Capacitor's JS StatusBar.setStyle()
+          # bridge call) and IGNORES the static UIUserInterfaceStyle key above
+          # for status-bar purposes specifically. That explains why 4 separate
+          # fix attempts (hostname check, duplicate-mount removal, per-route
+          # reapply, then UIUserInterfaceStyle=Light) all had zero visible
+          # effect: every one of them either targeted the JS layer (which the
+          # OS was never fully honoring) or set a plist key iOS wasn't reading
+          # for this purpose. Fix: disable view-controller-based status bar
+          # control entirely and bake a single static style into the binary —
+          # this removes the JS/Capacitor bridge (and any of its timing/mount
+          # races) from the equation completely. SW360 has no dark-surface
+          # screens yet, so one static style is safe app-wide. Legacy build is
+          # untouched (this step only runs in the sitewalk360-ios workflow).
+          /usr/libexec/PlistBuddy -c "Add :UIViewControllerBasedStatusBarAppearance bool false" "$PLIST" \
+            || /usr/libexec/PlistBuddy -c "Set :UIViewControllerBasedStatusBarAppearance false" "$PLIST"
+          /usr/libexec/PlistBuddy -c "Add :UIStatusBarStyle string UIStatusBarStyleDarkContent" "$PLIST" \
+            || /usr/libexec/PlistBuddy -c "Set :UIStatusBarStyle UIStatusBarStyleDarkContent" "$PLIST"
           SHA=$(echo "$CM_COMMIT" | cut -c1-7)
           /usr/libexec/PlistBuddy -c "Add :SlateBuildCommit string $SHA" "$PLIST" \
             || /usr/libexec/PlistBuddy -c "Set :SlateBuildCommit $SHA" "$PLIST"
-          echo "Stamped SW360 CFBundleDisplayName + UIUserInterfaceStyle=Light + SlateBuildCommit=$SHA"
+          echo "Stamped SW360 CFBundleDisplayName + static UIStatusBarStyleDarkContent + SlateBuildCommit=$SHA"
       - name: Build .ipa
         # No archive-xcargs needed — the project file itself now declares
         # PRODUCT_BUNDLE_IDENTIFIER=com.slate360.sitewalk360 (set two steps

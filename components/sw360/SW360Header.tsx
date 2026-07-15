@@ -16,8 +16,17 @@ export function SW360Header({ initials }: { initials: string }) {
       className="flex min-h-[3.25rem] shrink-0 items-center justify-between border-b border-[var(--border)] bg-[var(--background)]/95 px-3 backdrop-blur-sm"
       style={{ paddingTop: SAFE_AREA_INSET_TOP }}
     >
-      <Link href="/sw360" className="text-[17px] font-black leading-none tracking-tight text-[var(--sw360-charcoal)]">
-        SITE WALK <span className="text-[var(--sw360-green-light)]">360</span>
+      <Link href="/sw360" className="flex items-center gap-1.5">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true" className="shrink-0">
+          <path
+            d="M12 2c-3.31 0-6 2.69-6 6 0 4.5 6 12 6 12s6-7.5 6-12c0-3.31-2.69-6-6-6Z"
+            fill="var(--sw360-charcoal)"
+          />
+          <circle cx="12" cy="8" r="2.25" fill="var(--sw360-green-light)" />
+        </svg>
+        <span className="text-[17px] font-black leading-none tracking-tight text-[var(--sw360-charcoal)]">
+          SITE WALK <span className="text-[var(--sw360-green-light)]">360</span>
+        </span>
       </Link>
       <Link
         href="/sw360/account"
