@@ -9,25 +9,36 @@ capture-v2 engine and backend wholesale — don't rebuild working logic. Rebuild
 layer to Field System tokens/style, consistently. Close every confirmed gap from the audit doc
 along the way. Never silently drop a feature the legacy build had, even an obscure one.
 
-## Phase 1 — Home screen redesign — SHIPPED 2026-07-14
+## Phase 1 — Home screen redesign — SHIPPED, CONFIRMED 2026-07-15
 
-Commits `fa68056a` (status bar root-cause fix + header icon), `dd2b417a` (layout/symmetry/
-bounded lists). Codemagic build triggered same day.
-- Status bar: real root cause found by inspecting the shipped IPA directly
-  (`UIViewControllerBasedStatusBarAppearance=true` was overriding every prior fix) — replaced
-  with a static baked-in `UIStatusBarStyleDarkContent`, removing the JS/Capacitor bridge from
-  the equation entirely.
-- Header: added a real icon mark (inline SVG pin+dot) next to the wordmark.
-- Symmetric primary buttons (Quick walk / Start a walk in a project).
-- Reordered: Recent walks + Active projects to the top in new bounded/expandable vertical
-  lists (`SW360BoundedList` — fixed height, "Show more" expands in place, "See all" routes to
-  the full screen); Calendar + People combined into one compact bottom row.
-- Back-button audit: confirmed clean (every drill-down screen already has one; only the 5
-  legitimate tab roots + login + a redirect-only page lack one, correctly).
+Commits `fa68056a`, `dd2b417a`, `65f825dd`, `641b50f7`. Three Codemagic builds across two
+rounds of on-device feedback.
 
-**Open verification:** needs Brian's eyes on the new build to confirm the status bar is
-actually fixed this time — this is the first fix diagnosed from the real shipped binary rather
-than guessed, so confidence is meaningfully higher than the previous 4 attempts, but only
+**Round 1** (`fa68056a`, `dd2b417a`): status bar root-cause fix (confirmed working on-device
+2026-07-15 — `UIViewControllerBasedStatusBarAppearance=true` was the real bug, found by
+inspecting the shipped IPA directly); header icon mark; symmetric primary buttons; Recent
+walks/Active projects moved to the top; Calendar+People combined at the bottom.
+
+**Round 2** (`65f825dd`, `641b50f7`, after Brian flagged the redesign still looked like
+"pills" and washed-out): replaced individually-carded list items with one bounded tinted
+container per section + full-width divided rows (`SW360ExpandableSection`); single bordered
+"N total · Open/Close" toggle instead of competing "Show more"/"See all" links; "This week"
+renamed "Schedule"; stronger contrast across every card (Needs attention, Assigned to you,
+Schedule/People, Reports list, Inbox); back buttons added to all 4 non-Home tab roots (Inbox/
+Capture/Reports/Projects); button label "Start a walk in a project" -> "Start a walk from a
+project"; Inbox's legacy `/projects/{id}/deliverables` link translated to the SW360 reports
+route. **Backend**: added the missing assignment-completion notification (assignee marks
+done -> assigner now gets a project_notifications row, previously didn't exist despite
+creation-time notifications already working); added a real two-way reply panel
+(`SW360DeliverableQAPanel`) wired to a previously-fully-built-but-zero-UI-callers
+authenticated Q&A route, so stakeholder feedback on a deliverable can now be read and replied
+to from inside SW360, not just received as a one-way alert. Logo/icon mark redesign still
+deferred per Brian.
+
+**Status: Phase 1 complete and confirmed** (status bar verified on-device). Remaining known
+gap: per-item viewer comments (`viewer_comments`, distinct from whole-deliverable questions)
+still have no owner-reply route — only the deliverable-question thread got two-way reply in
+this round.
 on-device confirms it.
 
 ## Phase 2 — Capture screen reskin (B2.5)
