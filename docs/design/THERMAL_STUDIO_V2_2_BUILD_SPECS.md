@@ -443,6 +443,89 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum N (2026-07-15) — ASU deliverable package: RDH hypothesis panel, signature/insignia, 3D capture plan
+
+## N1. The RDH hypothesis panel (the never-before-seen deliverable)
+
+Extracted RDH's Summary of Findings (report §3.6) — five specific failure claims,
+each a TESTABLE HYPOTHESIS for the thermal survey:
+| # | RDH claim | Thermal test signature |
+|---|-----------|------------------------|
+| H1 | EJ wing-flange↔waterproofing tie-in failed (adhesion/loose-laid) | Moisture concentrations ALONG the EJ line |
+| H2 | No membrane upturns at walls/interfaces → water into elevator shafts & rooms | Moisture signatures at wall bases / bldg 203+207 interfaces |
+| H3 | Negative TOPPING-slab slope → ponding at EJ → water travels into bldgs 203/207 | Plume trend vectors pointing from EJ toward the buildings |
+| H4 | Negative STRUCTURAL-slab slope → standing water at membrane (Hydralastic 836 not rated submerged) | Broad diffuse retained-moisture zones adjacent to EJ |
+| H5 | Drain installation BLOCKS drainage (membrane lapped over drain mat) | Wet halos AROUND drains (water arriving but not entering) |
+Deliverable feature: a **Hypotheses chapter** in the link — each RDH claim listed
+with the thermal evidence beside it, tagged **Supports / Neutral / Contradicts**
+(operator-assigned; AI proposes via the analyst chat with the RDH PDF as drag-drop
+grounding, Brian decides). Language stays evidentiary ("thermal patterns consistent
+with…"), never structural conclusions — Brian is the thermographer of record; RDH
+remains the engineer of record. This directly answers "offer theories based on an
+inspection report that may be right or wrong."
+Context anchors for water-travel analysis: EJ line + drains from the sheet-33 red
+overlay (proven); RDH says slope is negative TOWARD the EJ — trend vectors that
+agree with gravity+slope strengthen findings; ones that don't are flagged for review.
+
+## N2. Signature + Level III insignia (credibility block)
+
+- **Insignia: DRAFTED** — `public/branding/level3-thermographer-insignia.svg`:
+  circular professional mark, "BRIAN VOLKER · THERMOGRAPHY / ITC CERTIFIED ·
+  NO. 140957677 / LEVEL III INFRARED THERMOGRAPHER", mono/graphite style,
+  `currentColor` + opacity-ready for the watermark treatment on the viewer.
+  Deliberately a PERSONAL professional mark — not a reproduction of any official
+  ITC seal (don't imply ITC issued the stamp itself; the cert number is real).
+- **Signature: needs one input from Brian** — a photo/scan of his signature on
+  plain white paper (phone photo fine). Pipeline (same white-key technique proven
+  on the RDH sheets): key background → transparent PNG → stored in the branding
+  profile → rendered in the PDF sign-off block (I3) and, at low opacity beside the
+  insignia, in the link footer. RDH's own report closes with two P.E. signatures —
+  matching that credibility bar is the point.
+- **Placement:** PDF = signature + insignia + name + cert line at the closure page.
+  Link = insignia at footer/corner at ~15–25% opacity with the brand logo; both
+  per-deliverable togglable (E5).
+
+## N3. Branding recommendation
+
+Use **Slate360** as the publisher brand on the ASU deliverables (legal entity, the
+platform story if leadership asks "what is this tool"), with the Level III insignia
+carrying personal credibility. Site Walk 360 stays the field-documentation product
+brand — a thermography deliverable under a "site walk" brand invites confusion.
+Both remain one dropdown away per E5 (profiles: Slate360 / SiteWalk 360 / Unbranded).
+
+## N4. Dual-panorama deliverable (confirmed shape)
+
+Chapter A = **raw radiometric panorama**: neutral palette, full span, hover-temps,
+pan/zoom — untouched evidence. Chapter B = **analyzed panorama**: moisture-mask
+tint, contour plume callouts + trend chevrons, per-finding presentation recipes,
+drain/EJ overlay with opacity slider. Both render from the SAME stitched NPZ —
+"analysis" is a display layer, originals immutable (§1b law). A/B toggle or
+before/after slider between them is the wow moment.
+
+## N5. DJI Mini 5 Pro 3D capture plan (Brian's fallback if DroneDeploy can't)
+
+Brian's instinct (POI orbits + angled top-down grid + large orbit) is the RIGHT
+pattern for Gaussian splatting. Corrections/additions:
+- **DAYLIGHT REQUIRED** — 3D reconstruction uses RGB photos; the pre-dawn thermal
+  flight cannot double as the 3D flight. Fly 3D in good, even light (morning after
+  sun is up; harsh mid-day shadows are worse than gentle morning light).
+- Pattern: (1) top-down grid at ~70–80% overlap, gimbal at 45° (not nadir-only);
+  (2) 2 orbit rings at different heights/radii around the whole deck; (3) POI
+  orbits at key features (EJ crossings, drains of interest, building corners);
+  (4) a few context shots of adjacent facades. 150–300 photos total is the sweet
+  spot. Keep shutter fast/ISO low; avoid people/moving shadows.
+- Gaussian splat > mesh for presentation, agreed (photorealistic, renders in the
+  existing Spark viewer). Pipeline = J1 (COLMAP poses → splat, GPU worker) —
+  phase-2 after the thermal deliverable unless time allows.
+
+## N6. Q&A loop (already spec'd — confirming it closes Brian's ask)
+
+Stakeholders ask questions pinned to a specific image/finding in the link (E7);
+questions land in Brian's per-deliverable inbox; he can consult the analyst chat
+(with the RDH PDF + findings as grounding) before replying; replies thread back to
+the viewer. No ASU accounts needed. This is the "dialog → filtered through my
+thermal analysis program" flow.
+
 # Addendum M (2026-07-14) — PROVEN: a real radiometric file decodes to absolute °C from bytes
 
 Decoded Brian's real file `IRX_0110.JPG` end-to-end in pure Python (no exiftool),
