@@ -443,6 +443,46 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum R (2026-07-15) — ASU flight COMPLETE: dataset inventory + execution plan
+
+## R1. Dataset facts (verified on disk, C:\s360\.tmp\asu — 2,524 files, 19 GB)
+
+| Folder | Contents | Verified |
+|---|---|---|
+| `102MEDIA/` | 502 × `IRX_*.JPG` — main thermal flight | **Decodes ABSOLUTE °C** (13.1–24.2 on IRX_0500; same Planck set as the validated sample) |
+| `103MEDIA/` | 178 × `IRX_*.JPG` — second thermal set | **Decodes ABSOLUTE °C** (19.7–44.5 on IRX_0751) |
+| `DJI_202607150603_0015/` | 381 files — RGB splat flight A | `.MRK` per-photo position files present |
+| `DJI_202607150618_0016/` | 408 files — RGB splat flight B | " |
+| `DJI_202607150638_0017/` | 126 files — third DJI set | |
+| `DJI_202607150558_0014/` | 6 files — small set (likely pano shots) | |
+| `Low/ Under deck/ Panoramic/ Extra/` | EMPTY placeholders — handheld HIKMICRO + 360 content not yet copied in | |
+
+Entire thermal dataset = FLIR FFF absolute radiometry → calibrated °C moisture
+thresholds valid; no Autel-relative caveat needed for this survey.
+
+## R2. Execution decision (vs Grok's "master prompt" approach)
+
+Grok's phased outline is right; two corrections: (1) the interactive deliverable is
+NOT a standalone ad-hoc HTML folder — it is built on the repo's real share-viewer
+infrastructure (token links, grid streaming, Q&A) so it inherits hosting, security,
+analytics, and every spec'd chapter; deliverable OUTPUTS live in R2 + share tokens,
+with `.tmp/asu/deliverables/` only as a local archive. (2) Heavy processing runs on
+the Modal worker (extract/stitch/analyze at 680-frame scale), not ad-hoc local
+scripts — local runs are for validation spikes only.
+
+## R3. Phase plan for the ASU package (order of operations)
+
+P1 batch decode 102MEDIA→NPZ + stitch main radiometric panorama (worker
+panorama.py; gain/offset compensation per H-research; MAX_CANVAS review for 502
+frames — likely stitch in strips/sections then compose). P2 moisture detection +
+presentation recipes + contour callouts on the panorama; sq-ft via drawing scale.
+P3 alignments (J3 control points): RDH sheet-33 overlay, RGB ortho (from splat
+pipeline) → thermal↔visual slider. P4 GPU worker: COLMAP+gsplat on flights A+B →
+splat chapter + DEM slope/ponding layer (P4-addP). P5 the link: no-scroll tabbed
+chaptered viewer per spec (raw / analyzed / compare / map+overlay / 3D / 360s /
+hypotheses / Q&A) with insignia+branding. P6 PDF with signature block. 103MEDIA +
+handheld/360s slot in as insets when copied in.
+
 # Addendum Q (2026-07-15) — market positioning: a NEW BREED of interactive deliverable
 
 Brian's directive: market this as a new platform / new category he has created —
