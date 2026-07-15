@@ -443,6 +443,21 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum AE (2026-07-15) — rotation-inclusive pose solve SHIPPED (EJ/line continuity fix)
+
+Implemented per AD + Brian's go: stage 2 is now a full (dtheta, tx, ty) pose graph —
+small-angle linearized rotation + translation per frame, 2 Gauss-Newton iterations,
+same progressive prune ladder and ECC validated-admission (1/551 admitted). Results:
+- **Rotation corrections: median 1.95 deg, max 21.4 deg** — matching AD's measured
+  per-leg disagreements (the transit/weak frames take the largest corrections).
+- Verification renders: full QC noticeably tighter (canvas shrank 2884->2711 as
+  mis-rotated spread collapsed); `qc/line_continuity_check.jpg` shows long thin
+  rail/joint lines crossing multiple frame seams UNBROKEN; deck-field zoom shows
+  the drain band + mottling continuous. Envelope OK (offsets ±4.7 °C).
+- Remaining cosmetics: soft tone patches (vignette/AGC residual — future radial
+  gain flattening), the SE sunrise band (real, documented AA), stand parallax
+  (physics, post-splat ortho). Brian to eye-pass the refreshed mosaic_v5 files.
+
 # Addendum AD (2026-07-15) — EJ-kink ROOT CAUSE: per-leg rotation errors (measured, unfixed pending Brian's go)
 
 Brian: "why is the EJ line not straight?" Measured the per-leg rotations the
