@@ -443,6 +443,46 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum AB (2026-07-15) — blotches explained (display, not data), ECC rescue implemented
+
+## AB1. "Bright yellow blotches" = display saturation, DATA FULLY INTACT (proven)
+
+Investigated the v5 blotches (`qc/blotch_recovery_proof.jpg`): the QC render uses ONE
+global span (0.2–30.7 °C = 1st–99th percentile); any surface warmer than ~31 °C
+renders the same near-white yellow. The underlying float32 data is normal
+(blotch temps 20–32 °C, data max 59.8 °C — nowhere near sensor saturation; 224
+regions exceed the display ceiling). Re-rendering the same crops with a LOCAL span
+reveals full structure (trusses, texture, equipment). CONCLUSION: nothing to
+recover — the viewer's span/level control + per-finding presentation recipes (I2)
+make every region inspectable; the flat QC JPGs are inherently one-span previews.
+This is the strongest demo yet of WHY the interactive viewer beats static images.
+
+## AB2. Grok round-3 research — implementation status
+
+- **ECC intensity-based rescue: IMPLEMENTED** (`tools/stitch_spike.py ecc_fallback`)
+  — multi-scale findTransformECC (euclidean, half-res, 3 pyramid levels, cc≥0.25
+  gate + translation sanity) now catches every pair where ORB features fail
+  (uncooled thermal on low-texture deck = the exact failure case). Wired as the
+  fallback on ALL failure paths incl. the plausibility gate. Grok's "single
+  highest-ROI addition" — agreed and done.
+- **Thermal↔visual pair calibration + RGB-ortho-assisted refinement:** adopted as
+  DESIGN (fixed rigid mapping estimated once via ECC over many MAX/IRX pairs;
+  transfer visual-frame registrations to thermal siblings) — implementation queued
+  behind the COLMAP/GPU worker (needs the RGB ortho to exist).
+- **orthority (leftfield-geospatial): noted** as the reference for DEM
+  orthorectification (CPU-feasible per Grok); queued with P4.
+- **Kapil repo:** adopt the NGF idea, not the code (license unclear, ODM-coupled) —
+  matches our earlier verdict.
+
+## AB3. Future flights: the R&D is DONE — reruns are turnkey
+
+All of today's iterations are encoded in the pipeline (similarity model, GPS
+anchoring, dense graph + progressive pruning, offset compensation, winner-take-most
++ boundary reclaim, transit exclusion, ECC rescue). A future flight = drop folder →
+one command → decode + stitch + QC in ~15 min unattended. The port into the Modal
+worker (PAN slice) makes it a button. Revisions this week were one-time algorithm
+R&D, not a per-flight cost.
+
 # Addendum AA (2026-07-15) — mosaic v5 MAX AREA shipped
 
 `qc/mosaic_v5_QC.jpg` + `mosaic_main_flight_v5.npz`: 104 transit/turn frames
