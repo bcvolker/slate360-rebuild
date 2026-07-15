@@ -156,7 +156,7 @@ export function SW360StartWalkButton({
               : "flex min-h-[56px] w-full items-center justify-center gap-2 rounded-2xl bg-[var(--sw360-green-light)] text-base font-bold text-white disabled:opacity-60"
           }
         >
-          {projects.length === 1 ? `Walk in ${projects[0].name}` : "Start a walk in a project"}
+          {projects.length === 1 ? `Walk in ${projects[0].name}` : "Start a walk from a project"}
         </button>
       </div>
     </div>

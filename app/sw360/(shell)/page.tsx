@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AlertCircle } from "lucide-react";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { loadMobileAppHomeData } from "@/lib/mobile/load-app-home-data";
 import { loadWeekStrip, loadPeopleStrip } from "@/lib/sw360/load-home-strips";
@@ -7,7 +8,7 @@ import { SW360StartWalkButton } from "@/components/sw360/SW360StartWalkButton";
 import { SW360BrandHero } from "@/components/sw360/SW360BrandHero";
 import { SW360RecentWalksScroller, type RecentWalkCard } from "@/components/sw360/SW360RecentWalksScroller";
 import { SW360CalendarPeopleRow } from "@/components/sw360/SW360CalendarPeopleRow";
-import { SW360BoundedList } from "@/components/sw360/SW360BoundedList";
+import { SW360ExpandableSection } from "@/components/sw360/SW360ExpandableSection";
 
 type ProjectRow = { id: string; name: string };
 type SessionJoinRow = {
@@ -24,11 +25,12 @@ function projectNameFromJoin(row: SessionJoinRow): string | null {
 }
 
 /**
- * SW360 Home order, per Brian's 2026-07-14 feedback: primary actions, then
- * the two most job-relevant sections (Recent walks, Active projects) up
- * top in bounded/expandable containers (no horizontal scroll, no unbounded
- * growth), then attention/assignments, then the cross-cutting Calendar +
- * People row at the bottom (they're org-wide, not "today's work").
+ * SW360 Home order, per Brian's 2026-07-14/15 feedback: primary actions,
+ * then Recent walks / Active projects up top as bounded, tinted,
+ * expand-in-place containers (full-width rows, not pills; a single
+ * expand/collapse control, not a competing "See all" link), then
+ * attention/assignments with real visual weight, then the cross-cutting
+ * Calendar + People row at the bottom.
  */
 export default async function SW360HomePage() {
   const context = await resolveServerOrgContext();
@@ -78,16 +80,11 @@ export default async function SW360HomePage() {
 
       <SW360RecentWalksScroller walks={recentWalks} />
 
-      <div>
-        <div className="mb-2 flex items-center justify-between">
-          <p className="text-xs font-bold uppercase tracking-wide text-[var(--sw360-charcoal)]/60">
+      {projects.length === 0 ? (
+        <div>
+          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[var(--sw360-charcoal)]/60">
             Active projects
           </p>
-          <Link href="/sw360/projects" className="text-xs font-bold text-[var(--sw360-green-light)]">
-            See all
-          </Link>
-        </div>
-        {projects.length === 0 ? (
           <Link
             href="/sw360/projects"
             className="flex min-h-[80px] flex-col justify-center rounded-2xl border border-dashed border-[var(--sw360-charcoal)]/25 bg-white/40 px-5"
@@ -97,39 +94,43 @@ export default async function SW360HomePage() {
               A project keeps every walk, plan, and report for a job in one place.
             </p>
           </Link>
-        ) : (
-          <SW360BoundedList itemCount={projects.length} seeAllHref="/sw360/projects" rowHeightPx={52}>
-            {projects.map((p) => (
-              <Link
-                key={p.id}
-                href={`/sw360/projects/${p.id}`}
-                className="flex shrink-0 items-center rounded-xl border border-[var(--border)] bg-white/70 px-4 py-3"
-              >
-                <p className="truncate text-sm font-semibold text-[var(--sw360-charcoal)]">{p.name}</p>
-              </Link>
-            ))}
-          </SW360BoundedList>
-        )}
-      </div>
+        </div>
+      ) : (
+        <SW360ExpandableSection title="Active projects" itemCount={projects.length} rowHeightPx={52}>
+          {projects.map((p) => (
+            <Link
+              key={p.id}
+              href={`/sw360/projects/${p.id}`}
+              className="flex items-center border-b border-[var(--sw360-charcoal)]/8 px-4 py-3 last:border-b-0"
+              style={{ minHeight: 52 }}
+            >
+              <p className="truncate text-sm font-semibold text-[var(--sw360-charcoal)]">{p.name}</p>
+            </Link>
+          ))}
+        </SW360ExpandableSection>
+      )}
 
       {hasAttention ? (
-        <div className="rounded-2xl border border-[var(--border)] bg-white/70 p-4">
-          <p className="text-xs font-bold uppercase tracking-wide text-[var(--sw360-charcoal)]/60">
-            Needs attention
-          </p>
-          <div className="mt-2 flex flex-col gap-1.5 text-sm text-[var(--sw360-charcoal)]">
-            {unsentReports > 0 ? (
-              <Link href="/sw360/reports" className="flex items-center justify-between">
-                <span>{unsentReports} report{unsentReports === 1 ? "" : "s"} not sent yet</span>
-                <span className="text-[var(--sw360-green-light)]">→</span>
-              </Link>
-            ) : null}
-            {unanswered > 0 ? (
-              <Link href="/sw360/inbox" className="flex items-center justify-between">
-                <span>{unanswered} update{unanswered === 1 ? "" : "s"} in your Inbox</span>
-                <span className="text-[var(--sw360-green-light)]">→</span>
-              </Link>
-            ) : null}
+        <div className="overflow-hidden rounded-2xl border border-[var(--sw360-charcoal)]/12 bg-[var(--sw360-green-light)]/[0.07]">
+          <div className="border-l-4 border-[var(--sw360-green-light)] px-4 py-3">
+            <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[var(--sw360-charcoal)]/70">
+              <AlertCircle size={13} className="text-[var(--sw360-green-light)]" />
+              Needs attention
+            </p>
+            <div className="mt-2 flex flex-col gap-1.5 text-sm text-[var(--sw360-charcoal)]">
+              {unsentReports > 0 ? (
+                <Link href="/sw360/reports" className="flex items-center justify-between">
+                  <span>{unsentReports} report{unsentReports === 1 ? "" : "s"} not sent yet</span>
+                  <span className="text-[var(--sw360-green-light)]">→</span>
+                </Link>
+              ) : null}
+              {unanswered > 0 ? (
+                <Link href="/sw360/inbox" className="flex items-center justify-between">
+                  <span>{unanswered} update{unanswered === 1 ? "" : "s"} in your Inbox</span>
+                  <span className="text-[var(--sw360-green-light)]">→</span>
+                </Link>
+              ) : null}
+            </div>
           </div>
         </div>
       ) : null}
@@ -139,11 +140,11 @@ export default async function SW360HomePage() {
           <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[var(--sw360-charcoal)]/60">
             Assigned to you
           </p>
-          <div className="flex flex-col gap-2">
+          <div className="overflow-hidden rounded-2xl border border-[var(--sw360-charcoal)]/12 bg-[var(--sw360-silver)]/25">
             {home.assignments.slice(0, 4).map((a) => (
               <div
                 key={a.id}
-                className="flex items-center justify-between rounded-xl border border-[var(--border)] bg-white/70 px-4 py-3"
+                className="flex items-center justify-between border-b border-[var(--sw360-charcoal)]/8 px-4 py-3 last:border-b-0"
               >
                 <p className="text-sm font-semibold text-[var(--sw360-charcoal)]">{a.title}</p>
                 <span className="text-xs font-bold uppercase tracking-wide text-[var(--sw360-charcoal)]/50">

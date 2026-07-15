@@ -19,7 +19,7 @@ export function SW360CalendarPeopleRow({
     <div className="grid grid-cols-2 gap-3">
       <Link
         href="/sw360/calendar"
-        className="flex flex-col justify-between rounded-2xl border border-[var(--border)] bg-white/70 p-4"
+        className="flex flex-col justify-between rounded-2xl border border-[var(--sw360-charcoal)]/12 bg-[var(--sw360-silver)]/25 p-4"
       >
         <div className="flex items-center justify-between">
           <Calendar size={18} className="text-[var(--sw360-green-light)]" />
@@ -34,7 +34,7 @@ export function SW360CalendarPeopleRow({
       </Link>
       <Link
         href="/sw360/contacts"
-        className="flex flex-col justify-between rounded-2xl border border-[var(--border)] bg-white/70 p-4"
+        className="flex flex-col justify-between rounded-2xl border border-[var(--sw360-charcoal)]/12 bg-[var(--sw360-silver)]/25 p-4"
       >
         <div className="flex items-center justify-between">
           <Users size={18} className="text-[var(--sw360-green-light)]" />

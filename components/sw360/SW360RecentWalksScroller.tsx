@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { buildCaptureLaunchUrl } from "@/lib/site-walk/capture-v2-config";
-import { SW360BoundedList } from "@/components/sw360/SW360BoundedList";
+import { SW360ExpandableSection } from "@/components/sw360/SW360ExpandableSection";
 
 export type RecentWalkCard = {
   id: string;
@@ -10,38 +10,33 @@ export type RecentWalkCard = {
 };
 
 /**
- * Vertical, bounded list (not horizontal scroll — Brian's feedback: no
- * horizontal scrolling sections, no lists that grow and push the rest of
- * Home down). Shows 3 rows, "Show more" expands in place, "See all" routes
- * to the full walks list.
+ * Full-width divided rows inside one bounded, tinted container — not
+ * individual pill cards (Brian's feedback: pills were "extremely
+ * distracting"). Expand/collapse via SW360ExpandableSection.
  */
 export function SW360RecentWalksScroller({ walks }: { walks: RecentWalkCard[] }) {
   if (walks.length === 0) return null;
 
   return (
-    <div>
-      <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[var(--sw360-charcoal)]/60">
-        Recent walks
-      </p>
-      <SW360BoundedList itemCount={walks.length} seeAllHref="/sw360/projects" rowHeightPx={52}>
-        {walks.map((w) => (
-          <Link
-            key={w.id}
-            href={buildCaptureLaunchUrl({ session: w.id })}
-            className="flex shrink-0 items-center justify-between rounded-xl border border-[var(--border)] bg-white/70 px-4 py-3"
-          >
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-[var(--sw360-charcoal)]">{w.title}</p>
-              {w.projectName ? (
-                <p className="truncate text-xs text-[var(--sw360-charcoal)]/60">{w.projectName}</p>
-              ) : null}
-            </div>
-            <span className="ml-2 shrink-0 text-[10px] font-bold uppercase tracking-wide text-[var(--sw360-green-light)]">
-              {w.status === "completed" ? "View" : "Resume"}
-            </span>
-          </Link>
-        ))}
-      </SW360BoundedList>
-    </div>
+    <SW360ExpandableSection title="Recent walks" itemCount={walks.length} rowHeightPx={56}>
+      {walks.map((w, i) => (
+        <Link
+          key={w.id}
+          href={buildCaptureLaunchUrl({ session: w.id })}
+          className="flex items-center justify-between border-b border-[var(--sw360-charcoal)]/8 px-4 py-3 last:border-b-0"
+          style={{ minHeight: 56, borderTopWidth: i === 0 ? 0 : undefined }}
+        >
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-[var(--sw360-charcoal)]">{w.title}</p>
+            {w.projectName ? (
+              <p className="truncate text-xs text-[var(--sw360-charcoal)]/60">{w.projectName}</p>
+            ) : null}
+          </div>
+          <span className="ml-2 shrink-0 text-[10px] font-bold uppercase tracking-wide text-[var(--sw360-green-light)]">
+            {w.status === "completed" ? "View" : "Resume"}
+          </span>
+        </Link>
+      ))}
+    </SW360ExpandableSection>
   );
 }
