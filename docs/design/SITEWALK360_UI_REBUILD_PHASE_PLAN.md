@@ -73,19 +73,44 @@ Close these confirmed gaps:
 - Surface capture-time metadata (GPS/compass/weather) as read-only context, at minimum on the
   photo viewer overlay.
 
-## Phase 4 — Plan viewer + walk lifecycle reskin (B2.6 + remaining B2.4)
+## Phase 4 — Project workspace deepening (Brian, 2026-07-15)
+
+The project detail tabs exist (Walks/Plans/Docs/Team/Reports) but Brian wants them to carry a
+real project's full working life. Grounded in what the audits confirmed already exists:
+
+- **Merge Plans + Docs into one "Documents" tab.** UI-level merge only: one tab, with a
+  "Plans & drawings" group pinned at the top (plan sets are NOT ordinary files — they feed the
+  rasterize pipeline and the walk-with-plans pin canvas, so they keep their upload/status/
+  start-walk affordances) and the SlateDrop file browser below for everything else
+  (contracts/specs/permits). Frees a tab slot for Schedule or Activity later.
+- **Team tab becomes a real collaboration hub:** (1) linked contacts — the `contact_projects`
+  join table + `StakeholderPicker` pattern from the legacy setup wizard already associate
+  org_contacts with a project; surface that here so the project's people list includes
+  non-user stakeholders, not just accounts. (2) Per-project communication — the legacy
+  `ProjectInbox` component (real-time Supabase feed of project activity, fully built, ZERO
+  importers) is the natural engine for a project-scoped activity/comms feed. (3) Collaborator
+  assignment incl. **cross-company**: the pivot audit's strongest finding — cross-company
+  collaborator invites (email/SMS/QR, 14-day tokens, cross-org fast path, collaborator-aware
+  RLS) are ALREADY production-grade and already surfaced via CollaboratorInviteModal on this
+  tab; what's needed is making the invite/join experience first-class (roles shown, pending
+  states, resend) rather than a single button.
+- **Project settings depth:** port the legacy `DeliverableDefaultsForm` fields (client
+  name/email, project number, inspector license, scope of work, default report type) into the
+  SW360 project workspace so reports auto-fill — richer than what the tabs hold today.
+
+## Phase 5 — Plan viewer + walk lifecycle reskin (B2.6 + remaining B2.4)
 
 Landscape plan canvas, sheet navigation, pin popover, walk-start fork sheet (plan vs. camera
 choice), End Walk / Exit modal. All reused from the legacy engine, rebuilt visually.
 
-## Phase 5 — Assignment / verify / photo-proof loop reconnection (B3.6)
+## Phase 6 — Assignment / verify / photo-proof loop reconnection (B3.6)
 
 The highest-leverage gap in the whole audit: three pieces already exist (self-serve assignee
 progress, GC verify/reject, photo-proof capture) and only one is connected. Wire them into one
 state machine: open → in_progress → ready_for_review (photo proof required) → verified/rejected,
 assigner-only close. This is largely wiring + reskinning existing components, not new logic.
 
-## Phase 6 — Reports loop (B3.1-B3.4)
+## Phase 7 — Reports loop (B3.1-B3.4)
 
 PDF visual polish (color-coded status/priority table, per-company grouping — the underlying data
 already renders as text, this makes it a real table), branding per-deliverable overrides (org
@@ -93,32 +118,47 @@ defaults already work; the deliverable_branding override table is the missing la
 link lenses (presentation/oversight/action), fix the weather-in-PDF type-mismatch bug found in
 passing.
 
-## Phase 7 — Video capture + narration (B3.5)
+## Phase 8 — Video capture + narration (B3.5)
 
 Gated on the physical-iPhone MediaRecorder compatibility spike — **schedule this with Brian
 soon, nothing else in this phase can start first.** Spec already locked: 60s/720p capped,
 non-destructive `audio_mode: original|muted|narration`, narration = the stop's voice memo
 synced over muted video in the interactive link.
 
-## Phase 8 — App Store submission package (B4)
+## Phase 9 — App Store submission package (B4)
 
 Privacy manifest, legal pages (privacy/terms/support), permanent reviewer account with seeded
 data, captioned screenshots, physical-device acceptance pass, submit.
 
-## Phase 9 — Business layer (B5)
+## Phase 10 — Business layer: org tiers, oversight & admin (B5, expanded 2026-07-15)
 
-Org-member email invites, member visibility scoping (today everyone sees all org work), admin
-console, entitlement unification (FORBIDDEN ZONE — Claude prepares migrations, Brian approves/
-applies).
+Brian's requirements, mapped against the pivot audit's findings:
+- **Org-level oversight** (leaders see every walk their employees do): ironically the easy
+  half — today EVERY member already sees all org work because member visibility scoping is
+  missing entirely. The real build is the inverse: role-based scoping (Member = own walks +
+  membered projects; Admin/leader = org-wide), fixing the org-wide reads in
+  `lib/site-walk/load-hub-data.ts` / `lib/projects/access.ts`.
+- **Bulk seat licensing by email**: org-member email invites don't exist yet
+  (`/api/org/members/invite` only attaches pre-existing accounts) — needs an `org_member`
+  invitation type reusing the production-grade collaborator-invite plumbing (tokens, Resend,
+  pending state, accept path), plus a bulk paste-emails flow in the admin console.
+- **Permissions / admin-only sections**: the schema already has per-member `permissions` jsonb
+  (enterprise) with no admin surface. Billing/subscription/seat management must be gated to
+  admin role — regular employees never see payment surfaces. Account screen splits into
+  "everyone" (profile, sign-out) vs "admin" (branding, billing, seats, member management).
+- **Entitlement unification** (FORBIDDEN ZONE — prepare only, Brian approves/applies): the
+  dual legacy-tier vs modular systems conflict must be resolved before seats can be sold.
 
-## Phase 10 — Desktop web app + marketing site + monetization (B6)
+## Phase 11 — Desktop web app + marketing site + monetization (B6)
 
 `app.sitewalk360.app` as a real desktop surface (left rail, upload-first, report editor),
 `sitewalk360.app` marketing site, Stripe billing.
 
 ---
 
-**Total: 10 phases, 1 shipped, 9 remaining.** Phases 2-3 are the biggest lift (the actual
-capture/data-entry reskin, per Brian's direct request); Phases 5-6 are mostly reconnecting
-already-built pieces rather than new development; Phase 7 is blocked on a physical-device test
-only Brian can run; Phases 8-10 are later-stage packaging/business work.
+**Total: 11 phases — 1 complete, Phase 2 in progress, 9 ahead.** Phases 2-3 are the biggest
+lift (the actual capture/data-entry reskin); Phase 4 (project workspace) and Phase 6
+(assignment loop) are mostly reconnecting already-built pieces; Phase 8 is blocked on a
+physical-device test only Brian can run; Phases 9-11 are packaging/business work. Cross-company
+collaboration is NOT a future phase — the backend is already production-grade; Phase 4 just
+makes it first-class in the UI.
