@@ -1058,3 +1058,21 @@
   --foreground: var(--sw360-bone);
   --border: color-mix(in srgb, var(--sw360-bone) 14%, transparent);
 }
+
+/* Phase 2 (SITEWALK360_UI_REBUILD_PHASE_PLAN.md): the shared legacy
+   capture-v2 engine hardcodes --graphite-* tokens throughout (ghost mode,
+   angle strip, filmstrip, markup toolbar, top bar, bottom rail) and lives
+   entirely outside app/sw360/**, so it never picks up the block above.
+   Since it's pure CSS custom properties, remapping the handful of graphite
+   tokens it actually references to SW360's dark-surface equivalents here
+   re-themes the whole engine for free — no component edits, no risk of
+   missing one of the dozens of files that use them. Requires
+   data-app="sw360" on <html> itself (SW360HostThemeInit), since capture-v2
+   is outside the app/sw360/layout.tsx wrapper's scope. */
+[data-app="sw360"] {
+  --graphite-canvas: var(--sw360-charcoal);
+  --graphite-primary: var(--sw360-green-dark);
+  --graphite-text-header: var(--sw360-bone);
+  --graphite-text-body: var(--sw360-bone);
+  --graphite-muted: var(--sw360-silver);
+}

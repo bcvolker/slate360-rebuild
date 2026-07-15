@@ -8,6 +8,7 @@ import {
 import { finalizeCaptureV2Walk } from "@/lib/site-walk-v2/finalize-capture-v2-walk";
 import { loadCaptureV2StopDraftStore } from "@/lib/site-walk-v2/capture-stop-drafts";
 import { draftHasCaptureContent } from "@/lib/site-walk-v2/promote-capture-v2-drafts";
+import { isSW360Host } from "@/lib/site-walk/is-sw360-host";
 import type { CaptureV2Session } from "./session-types";
 
 type Args = {
@@ -33,7 +34,7 @@ export function useCaptureCanvasSessionExit({ session, onBeforeExit }: Args) {
     onBeforeExit?.();
     setExitOpen(false);
     setEndError(null);
-    router.push("/site-walk/walks");
+    router.push(isSW360Host() ? "/sw360/projects" : "/site-walk/walks");
   }, [onBeforeExit, router]);
 
   const endWalk = useCallback(async () => {

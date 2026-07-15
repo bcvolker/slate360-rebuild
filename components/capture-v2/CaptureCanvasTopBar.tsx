@@ -6,6 +6,7 @@ import { ChevronDown, ChevronLeft, ChevronUp, Home, Maximize2 } from "lucide-rea
 import { CAPTURE_CANVAS_CHROME } from "./capture-canvas-chrome-layout";
 import { CAPTURE_V2_LAYERS } from "./layers";
 import { safeAreaTopPadding } from "@/lib/capacitor/safe-area-inset";
+import { isSW360Host } from "@/lib/site-walk/is-sw360-host";
 
 type Props = {
   headerLabel: string;
@@ -53,7 +54,7 @@ export function CaptureCanvasTopBar({
       >
         <button
           type="button"
-          onClick={onBack ?? (() => router.push("/site-walk"))}
+          onClick={onBack ?? (() => router.push(isSW360Host() ? "/sw360" : "/site-walk"))}
           className="inline-flex h-8 shrink-0 items-center gap-0.5 rounded-lg border border-[var(--accent-border-green)] bg-[color-mix(in_srgb,var(--graphite-primary)_14%,transparent)] pl-1.5 pr-2.5 text-[11px] font-bold uppercase tracking-wider text-[var(--graphite-primary)] transition active:scale-[0.98]"
           aria-label="Back"
         >
@@ -111,11 +112,11 @@ export function CaptureCanvasTopBar({
           onClick={(event) => {
             event.stopPropagation();
             // Work auto-saves as stops are captured; this is the fast escape.
-            router.push("/app");
+            router.push(isSW360Host() ? "/sw360" : "/app");
           }}
           data-capture-chrome="quick-exit"
           className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--accent-border-green)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] text-[var(--graphite-primary)] transition active:scale-[0.98]"
-          aria-label="Back to Slate360 home"
+          aria-label="Back to home"
         >
           <Home className="h-4 w-4" />
         </button>

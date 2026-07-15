@@ -56,10 +56,18 @@ const NativeChromeInit = dynamic(
   { ssr: false, loading: () => null }
 );
 
+const SW360HostThemeInit = dynamic(
+  () => import("@/components/providers/SW360HostThemeInit").then((m) => ({
+    default: m.SW360HostThemeInit,
+  })),
+  { ssr: false, loading: () => null }
+);
+
 export function ClientProviders({ children }: { children: ReactNode }) {
   return (
     <>
       <NativeChromeInit />
+      <SW360HostThemeInit />
       <ThemeApplier />
       <PostHogInit />
       <SWRegistrar />
