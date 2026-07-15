@@ -443,6 +443,28 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum Y (2026-07-15) — coverage audit: the missing north/south areas were NOT FLOWN (thermal)
+
+GPS ground-track plot (`qc/flight_tracks.png`) is decisive:
+- **102MEDIA thermal serpentine covers ONLY the central band** (~y +3 to −60 m,
+  x −56 to +45 m local). With the ~17×14 m frame footprint, thermal coverage ends
+  ≈ y +10 north and ≈ −67 south. Nothing north/south of that was captured at
+  100 ft — **no processing can recover unflown area; a gap-fill re-flight is
+  required** (same parameters: pre-dawn, 100 ft, 2 s interval, ~2 mph; 2–4
+  serpentine legs beyond the north edge + 2–4 beyond the south; the pipeline
+  merges them into the existing mosaic via the same GPS-anchored solve — flights
+  from DIFFERENT mornings are fine for geometry, but for radiometric consistency
+  fly the gaps at the same pre-dawn hour; the difference-lens chapter must only
+  compare same-epoch data).
+- **103MEDIA (low flight)** touched a strip north of the main pattern but at
+  few-feet AGL — cannot merge into a 100 ft mosaic (scale/parallax); stays inset.
+- **RGB mapping flights covered a much larger footprint** (±80 m x, −80..+45 m y)
+  → the 3D splat WILL cover the full site including areas thermal missed.
+- Alignment next-fix: frames 225–250 are diagonal TRANSIT legs crossing the grid —
+  they lay obliquely over grid coverage and likely cause residual visible
+  misalignment; next build EXCLUDES transit/turn frames from COMPOSITING (kept as
+  solve constraints only) and masks the presentation render to the deck.
+
 # Addendum X (2026-07-15) — mosaic v4: dense graph + perimeter verdict (parallax, not error)
 
 v4: dense match graph (791 cross-leg + loop-closure edges, median connectivity 8),
