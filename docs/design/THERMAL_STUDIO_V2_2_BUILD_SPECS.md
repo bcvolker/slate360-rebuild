@@ -443,6 +443,64 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum O (2026-07-15) — insignia v2, covered-area strategy, wow-factor additions
+
+## O1. Insignia v2 + color treatment
+
+Fixed the center-text overflow (INFRARED / THERMOGRAPHER now stacked inside the
+inner circle; crosshair ticks moved outside it). Color is a RENDER-time choice
+(the SVG inherits `currentColor`): recommended **muted gold `#C9A227`** on the dark
+viewer — full-strength in the footer credibility block beside the signature,
+~15–25% opacity as the large watermark. Gold-on-graphite reads "seal" without
+shouting; pure yellow or saturated gold looks cheap — keep it muted. PDF (white
+paper): render in near-black or dark gold. Signature PNG (pending Brian's photo)
+gets the same dual treatment.
+
+## O2. Covered areas the drone can't see — the HIKMICRO inset strategy
+
+Honest verdict: handheld HIKMICRO frames should NOT be forced into the drone
+panorama. Different sensor/resolution/focal length, oblique viewpoints, and
+parallax under canopies make orthographic mosaicking unreliable — a visibly warped
+patch would undermine the whole deliverable's credibility. But the areas are NOT
+lost. Strategy:
+1. **Located insets.** Each covered zone gets a pin on the panorama/2D map
+   ("Covered area — handheld survey") that opens the handheld capture(s) as a
+   first-class viewer: same hover-temps (HIKMICRO decodes absolute — temperatures
+   are directly comparable), same measurement/finding treatment. Placement via GPS
+   where available or the J3 point-picker.
+2. **Local mini-panoramas.** Where Brian shoots a covered zone as a deliberate
+   overlapping sweep (same height/orientation, 50%+ overlap), the stitcher can
+   build a small LOCAL radiometric panorama for that zone as its own inset —
+   fine at room-scale even though a global mosaic isn't.
+3. **Coverage map layer** (see O3.1) shows drone-surveyed vs handheld-surveyed vs
+   inaccessible, so nothing reads as an oversight.
+Capture tips for the walkthrough: perpendicular to surfaces where possible,
+consistent distance, let the camera stabilize a few seconds per zone, note the
+location per photo (voice note or pattern).
+
+## O3. Wow-factor additions (feasible, high impact — in priority order)
+
+1. **Coverage & confidence map.** A layer/chapter tinting the deck: drone-surveyed /
+   handheld-surveyed / not accessible. Instantly answers "did you check everywhere?"
+   and reads as rigor, not weakness.
+2. **Moisture-area quantification in SQUARE FEET.** Once the drawing overlay is
+   control-point aligned, the drawing's scale (sheets are 1/8"=1'-0") gives the
+   panorama real-world scale → every suspect region's area computes in sq ft, with
+   a rollup table ("~2,340 sq ft of thermal signatures consistent with retained
+   moisture across 14 zones"). This is EXACTLY what repair scoping/pricing needs
+   and nothing a $20k spot-scan PDF can offer. Also enables an on-viewer scale bar
+   + a measure tool in the link.
+3. **RDH exploratory-opening pins.** Pin RDH's test/opening locations (report
+   Appendix A) on the panorama — leadership sees RDH's point evidence and Brian's
+   full-coverage evidence in ONE view, reinforcing the hypothesis panel (N1).
+4. **Survey-conditions banner.** Auto-populated ASTM-style conditions block on link
+   + PDF: date/time span, ambient, sky, wind, last-rain date, camera, pilot, cert.
+   Rigor signal; weather enrichment already exists in the pipeline.
+5. **60-second executive auto-tour.** The cinematic chapter opens with an
+   auto-playing guided pass (pan across the panorama → zoom to top 3 findings →
+   drain overlay fade-in) before handing over interactive control. Leadership gets
+   the story in a minute even if they never touch a toggle.
+
 # Addendum N (2026-07-15) — ASU deliverable package: RDH hypothesis panel, signature/insignia, 3D capture plan
 
 ## N1. The RDH hypothesis panel (the never-before-seen deliverable)
