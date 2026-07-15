@@ -443,6 +443,57 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum L (2026-07-14) — Autel decode path (real code) + a correctness rule for moisture thresholds
+
+Read the actual `extract.py` Autel path. Findings + one important correction that
+affects every downstream moisture number.
+
+## L1. What extract.py actually does with an Autel file (verified)
+
+`detect_sensor` (:50) routes Make=AUTEL → profile "autel". `extract_raw_matrix`
+(:216) tries HIKMICRO's post-EOI block first (miss for Autel), then pulls the first
+exiftool binary tag >1KB from `["ThermalData","EmbeddedImage","RawThermalImage"]`
+(:93). If NONE exist → `is_radiometric:False`, **no grid at all** — the real
+make-or-break risk for tomorrow. If a block exists it's read as uint16 → reshaped to
+640×512 → `autel_raw_to_celsius` (:123): with an ambient tag it spreads raw counts
+±~20 °C around ambient via `(raw-median)*(40/span)`; without ambient it returns raw
+counts. **Always `absolute_celsius=False`, parser `autel_ambient_delta`.**
+
+## L2. Opportunity: try FLIR Planck decode on Autel files
+
+Some Autel dual-sensor bodies embed FLIR-style radiometric data (which is why FLIR
+Tools reads them). `extract.py` never tries the Planck path for Make=AUTEL. **Fix
+(small, additive):** in `convert_raw_to_celsius`, for the autel branch, attempt
+`flir_raw_to_celsius` first when PlanckR1+PlanckB tags exist — that yields ABSOLUTE
+°C, strictly better than the heuristic. The test probe
+(`workers/modal/thermal-analysis/test_autel_decode.py`) checks for this and reports it.
+
+## L3. CORRECTNESS RULE — absolute vs relative thresholds (amends I2 + Grok's calibration)
+
+Grok's `calibrated_moisture_probability` maps ΔT in **absolute °C** (1.0–3.5 °C) to
+probability. **That is only valid on absolute-calibrated grids (HIKMICRO, DJI, FLIR-
+Planck).** On a RELATIVE Autel grid the °C values are a synthetic ±20 °C spread with
+arbitrary scale — a "2 °C" reading is not 2 °C, so absolute thresholds are
+meaningless there. Rule the detector MUST follow:
+- **Absolute grid** (`absolute_celsius=True`): use the calibrated °C thresholds.
+- **Relative grid** (`absolute_celsius=False`): use SIGMA-relative thresholds only
+  (n × robust local sigma), never fixed °C, and stamp every finding/report/link
+  "Relative ΔT only". The existing detector floor `max(min_delta_c, 1.5*sigma)` must
+  DROP the `min_delta_c` term when the grid is relative.
+- Local-contrast moisture detection itself works on both (the mapping is monotonic,
+  and moisture is a local anomaly) — only the CALIBRATION differs.
+This is a per-finding provenance requirement: store `absolute_celsius` +
+`parser_id` on every capture and gate threshold logic + report language on it.
+
+## L4. Pre-flight test (ready now)
+
+`workers/modal/thermal-analysis/test_autel_decode.py` — run on ONE original R-JPEG
+after the flight: prints make/model, which binary block (if any) is present, whether
+Planck constants exist, the decoded grid shape + min/mean/max, absolute-vs-relative,
+and the correct detector path. If it reports "NO extractable thermal block" but FLIR
+Tools reads the file, the data is in a proprietary segment exiftool doesn't surface
+as a named tag — bring the file + the FLIR Tools reading and we locate the offset.
+
 # Addendum K (2026-07-14) — drawing-overlay pipeline PROVEN on the real RDH file
 
 Ran the extraction against the actual RDH deliverable ("Final Rev 33040.000 … Sun
