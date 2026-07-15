@@ -443,6 +443,35 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum K (2026-07-14) — drawing-overlay pipeline PROVEN on the real RDH file
+
+Ran the extraction against the actual RDH deliverable ("Final Rev 33040.000 … Sun
+Devil Stadium EJ Investigation.pdf", 39 pages). Confirmed, not theorized:
+- **Sheets 33–35 are the sun-deck EJ/drain plans** (SAF Level 150, HNTB base), TRUE
+  VECTOR — sheet 33 alone has 49,027 vector paths (`re`/`l`/`c`/`qu`). Report body
+  (pp. 1–32, 36–39) is narrative + photos (drain 90 hits, waterproof 117, membrane
+  35, expansion-joint 36). Legends on sheets 34–35.
+- **Color-separable layers.** Black = HNTB architecture; **RED (≈129k px on sheet 33)
+  = RDH's investigation markup** — dashed callout boxes w/ leader lines + the EJ line;
+  blue = zone highlights; green = notes. So the overlay can isolate JUST RDH's
+  findings layer, or show full linework, by stroke color.
+- **Extraction method that works (proven):** render page at 3× → key out near-white
+  to transparent → optional per-color isolate. Output = RGBA PNG (full linework +
+  red-markup-only), 9072×6480. This is simpler and preserves exact CAD colors better
+  than re-rendering `get_drawings()` geometry; keep `get_drawings()` only if
+  semantic per-path filtering is later needed. Sample assets:
+  `docs/audit/asu-overlay-samples/`, working extractor pattern in this addendum.
+- **Geometry is compatible:** these are top-down plan views; a pre-dawn top-down
+  drone thermal panorama aligns to them via the J3 control-point affine (3–4 points:
+  building corners / stair cores / the EJ line). Confirms I1's control-point choice
+  over feature matching.
+- **Extractor belongs in the Modal worker** as `extract_drawing_overlay(pdf, page,
+  mode="full"|"color", color=…)` → RGBA PNG to R2, consumed by the share viewer's
+  opacity-slider layer (I1). Ship it in the PAN/overlay slice.
+- **Note on the thermal SAMPLE image:** the shared JPG is a false-color PREVIEW
+  (Iron palette, oblique facade) — decoding real per-pixel °C still requires the
+  ORIGINAL radiometric file through Modal `extract.py`, not the rendered preview.
+
 # Addendum J (2026-07-14) — 3D photogrammetry, 360 embedding, prompt-driven pinning
 
 Answers to Brian's oblique-photogrammetry + 360-embed questions. These are POST-W4
