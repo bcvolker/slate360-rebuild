@@ -443,6 +443,43 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum M (2026-07-14) — PROVEN: a real radiometric file decodes to absolute °C from bytes
+
+Decoded Brian's real file `IRX_0110.JPG` end-to-end in pure Python (no exiftool),
+from the raw JPEG bytes. Definitive facts:
+- **Make = "FLIR Systems AB"**, 12 segmented FLIR APP1 records → standard **FLIR FFF**
+  radiometric format (magic `FFF\0`, big-endian record directory).
+- **Full Planck constants present** (params record type 0x20, little-endian interior):
+  Emissivity 0.95, Reflected 22.0 °C, R1 1,143,194.6, R2 1.0, B 1476.99, F 1.0,
+  O −15,665. Raw image type 0x01 = 640×512 uint16.
+- **Absolute temperature 10.1–41.6 °C (mean 36.5)** via the Planck equation —
+  physically correct. So this camera's files decode ABSOLUTE with zero heuristics.
+
+Implications:
+1. **If tomorrow's drone files are this format** (Make FLIR / segmented FFF), they
+   decode ABSOLUTE via extract.py's existing FLIR path — no Autel problem, and the
+   calibrated °C moisture thresholds (I2/L3) ARE valid. Run the probe on file #1 to
+   confirm Make + FFF presence.
+2. **The make-routing gap (L2) is real and now concrete:** IF an Autel body writes
+   Make="AUTEL" while embedding FLIR FFF data, `detect_sensor` sends it down the
+   heuristic path and THROWS AWAY recoverable absolute temps. Fix: when FFF/Planck
+   data is present, decode via Planck regardless of the Make string.
+3. **New tool shipped:** `workers/modal/thermal-analysis/flir_fff_decode.py` — a
+   pure-Python FLIR FFF decoder (no exiftool dependency). Doubles as (a) a robustness
+   fallback / the standalone-app decoder, and (b) the golden-fixture VALIDATOR:
+   `--csv <FLIR Tools per-pixel export>` compares our decode to FLIR Tools within a
+   tolerance (default ±0.5 °C) — this is the scientific-validity gate artifact (H4).
+
+## What would actually help from FLIR Tools (Brian offered)
+
+- **YES, high value:** a **per-pixel temperature CSV export** of ONE file from FLIR
+  Tools (Tools can export the radiometric matrix to CSV), plus that same original
+  JPG. Feeds `flir_fff_decode.py --csv` to PROVE our decoder matches FLIR to a
+  fraction of a degree — the decode-accuracy gate. Also: one **sample FLIR Tools PDF
+  report** as a visual quality bar for our report rework.
+- **NOT needed:** FLIR Tools binaries/DLLs (proprietary, not liftable) — we decode
+  natively, just proven. The earlier 19-screenshot FLIR teardown already covers UI.
+
 # Addendum L (2026-07-14) — Autel decode path (real code) + a correctness rule for moisture thresholds
 
 Read the actual `extract.py` Autel path. Findings + one important correction that
