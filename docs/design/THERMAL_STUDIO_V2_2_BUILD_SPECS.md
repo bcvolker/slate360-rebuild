@@ -443,6 +443,20 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum AF (2026-07-15) — RGB reference map SHIPPED (plane-rectified, winner-take-all)
+
+`deliverables/rgb_reference_map.jpg` (+ `rgb_reference_map_georef.npz`): full-site
+top-down visual map from the -65 deg RGB flight (379 frames), built WITHOUT COLMAP:
+per-frame plane rectification from DJI XMP pose (GimbalYaw/Pitch + RelativeAltitude
++ GPS) onto the ground plane, composited winner-take-all (feather x nadir-proximity
+weight — the first averaged attempt smeared, same lesson as thermal). Readable:
+practice field, SAF buildings + sun deck, stadium bowl, parking, individual
+vehicles. **Shares the thermal mosaic's local origin** (same lat0/lon0) → direct
+overlay/wipe-slider base + easier control-point picking for the drawing overlay.
+Known limits (fit-for-reference): GPS/yaw seam offsets (no feature matching), tall-
+structure duplication at seams, z=0 plane = takeoff elevation. Survey-grade ortho
+comes free with the COLMAP/splat pipeline later. Tool: tools/rgb_map.py.
+
 # Addendum AE (2026-07-15) — rotation-inclusive pose solve SHIPPED (EJ/line continuity fix)
 
 Implemented per AD + Brian's go: stage 2 is now a full (dtheta, tx, ty) pose graph —
