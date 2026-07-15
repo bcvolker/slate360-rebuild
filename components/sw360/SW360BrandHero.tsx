@@ -6,6 +6,6 @@
  */
 export function SW360BrandHero({ greeting }: { greeting: string }) {
   return (
-    <p className="text-xl font-black tracking-tight text-[var(--sw360-charcoal)]">{greeting}</p>
+    <p className="text-lg font-black tracking-tight text-[var(--sw360-charcoal)]">{greeting}</p>
   );
 }

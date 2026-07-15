@@ -10,6 +10,16 @@ import type { MobileAppHomeAlert } from "@/lib/mobile/load-app-home-data";
 type Filter = "all" | "flagged" | "todo";
 
 /**
+ * Triage toggles were bare 16px icons Brian couldn't identify or hit — now
+ * 36px bordered chips with a clear filled/on state.
+ */
+function triageButtonClass(active: boolean): string {
+  return active
+    ? "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--sw360-green-light)] bg-[var(--sw360-green-light)]/15 text-[var(--sw360-green-light)]"
+    : "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--sw360-charcoal)]/25 bg-white/50 text-[var(--sw360-charcoal)]/50";
+}
+
+/**
  * `project_notifications.link_path` is a cross-app field also read by the
  * legacy desktop dashboard, so its stored format can't be changed without
  * risking those other consumers. Translate the one legacy shape we know
@@ -139,7 +149,7 @@ export function SW360InboxClient({
             {filteredAssignments.map((a) => (
               <div
                 key={a.id}
-                className="flex items-center gap-2 border-b border-[var(--sw360-charcoal)]/8 px-4 py-3 last:border-b-0"
+                className="flex items-center gap-2 border-b border-[var(--sw360-charcoal)]/25 px-4 py-3 last:border-b-0"
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-[var(--sw360-charcoal)]">{a.title}</p>
@@ -147,18 +157,23 @@ export function SW360InboxClient({
                     {a.status}
                   </span>
                 </div>
-                <button type="button" onClick={() => void toggleAssignment(a.id, "isTodo")} aria-label="To-do">
-                  <ListTodo
-                    size={16}
-                    className={a.isTodo ? "text-[var(--sw360-green-light)]" : "text-[var(--sw360-charcoal)]/30"}
-                  />
+                <button
+                  type="button"
+                  onClick={() => void toggleAssignment(a.id, "isTodo")}
+                  aria-label="To-do"
+                  aria-pressed={a.isTodo}
+                  className={triageButtonClass(a.isTodo)}
+                >
+                  <ListTodo size={17} />
                 </button>
-                <button type="button" onClick={() => void toggleAssignment(a.id, "flagged")} aria-label="Flag">
-                  <Flag
-                    size={16}
-                    className={a.flagged ? "text-[var(--sw360-green-light)]" : "text-[var(--sw360-charcoal)]/30"}
-                    fill={a.flagged ? "currentColor" : "none"}
-                  />
+                <button
+                  type="button"
+                  onClick={() => void toggleAssignment(a.id, "flagged")}
+                  aria-label="Flag"
+                  aria-pressed={a.flagged}
+                  className={triageButtonClass(a.flagged)}
+                >
+                  <Flag size={17} fill={a.flagged ? "currentColor" : "none"} />
                 </button>
               </div>
             ))}
@@ -175,7 +190,7 @@ export function SW360InboxClient({
             {filteredAlerts.map((a) => (
               <div
                 key={a.id}
-                className="flex items-center gap-2 border-b border-[var(--sw360-charcoal)]/8 px-4 py-3 last:border-b-0"
+                className="flex items-center gap-2 border-b border-[var(--sw360-charcoal)]/25 px-4 py-3 last:border-b-0"
               >
                 {a.linkPath ? (
                   <Link href={resolveInboxLink(a.linkPath)} className="min-w-0 flex-1">
@@ -188,18 +203,23 @@ export function SW360InboxClient({
                     <p className="truncate text-xs text-[var(--sw360-charcoal)]/60">{a.message}</p>
                   </div>
                 )}
-                <button type="button" onClick={() => void toggleAlert(a.id, "isTodo")} aria-label="To-do">
-                  <ListTodo
-                    size={16}
-                    className={a.isTodo ? "text-[var(--sw360-green-light)]" : "text-[var(--sw360-charcoal)]/30"}
-                  />
+                <button
+                  type="button"
+                  onClick={() => void toggleAlert(a.id, "isTodo")}
+                  aria-label="To-do"
+                  aria-pressed={a.isTodo}
+                  className={triageButtonClass(a.isTodo)}
+                >
+                  <ListTodo size={17} />
                 </button>
-                <button type="button" onClick={() => void toggleAlert(a.id, "flagged")} aria-label="Flag">
-                  <Flag
-                    size={16}
-                    className={a.flagged ? "text-[var(--sw360-green-light)]" : "text-[var(--sw360-charcoal)]/30"}
-                    fill={a.flagged ? "currentColor" : "none"}
-                  />
+                <button
+                  type="button"
+                  onClick={() => void toggleAlert(a.id, "flagged")}
+                  aria-label="Flag"
+                  aria-pressed={a.flagged}
+                  className={triageButtonClass(a.flagged)}
+                >
+                  <Flag size={17} fill={a.flagged ? "currentColor" : "none"} />
                 </button>
               </div>
             ))}

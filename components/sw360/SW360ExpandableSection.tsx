@@ -15,7 +15,7 @@ import { ChevronDown, X } from "lucide-react";
 export function SW360ExpandableSection({
   title,
   itemCount,
-  collapsedRows = 3,
+  collapsedRows = 2,
   expandedMaxRows = 7,
   rowHeightPx = 56,
   children,
@@ -50,6 +50,11 @@ export function SW360ExpandableSection({
     <div ref={containerRef}>
       <div className="mb-2 flex items-center justify-between">
         <p className="text-xs font-bold uppercase tracking-wide text-[var(--sw360-charcoal)]/60">{title}</p>
+        {/* Chip is ALWAYS present (Brian: the control disappearing at low
+            item counts read as an inconsistency between sections) — it's a
+            functional Open/Close whenever there's more to reveal, and a
+            plain count badge in the same styling when everything already
+            fits. */}
         {canExpand ? (
           <button
             type="button"
@@ -67,7 +72,11 @@ export function SW360ExpandableSection({
               </>
             )}
           </button>
-        ) : null}
+        ) : (
+          <span className="flex min-h-[26px] shrink-0 items-center rounded-full border border-[var(--sw360-charcoal)]/25 px-2.5 text-[11px] font-bold text-[var(--sw360-charcoal)]/60">
+            {itemCount} total
+          </span>
+        )}
       </div>
       <div
         className="overflow-hidden rounded-2xl border border-[var(--sw360-charcoal)]/20 bg-[var(--sw360-silver)]/40"

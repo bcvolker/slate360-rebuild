@@ -73,7 +73,9 @@ export default async function SW360HomePage() {
   const hasAttention = unsentReports > 0 || unanswered > 0;
 
   return (
-    <div className="flex flex-col gap-5 px-4 py-6">
+    // gap-3.5/py-4 (down from gap-5/py-6) — Brian: Schedule/People was being
+    // pushed below the fold on a 6.1" phone; Home should fit without scrolling.
+    <div className="flex flex-col gap-3.5 px-4 py-4">
       <SW360BrandHero greeting={context.user ? "Welcome back" : "Welcome"} />
 
       <SW360StartWalkButton projects={projects} showQuickWalk />
