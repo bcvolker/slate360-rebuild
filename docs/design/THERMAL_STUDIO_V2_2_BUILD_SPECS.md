@@ -443,7 +443,27 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
-# Addendum Y (2026-07-15) — coverage audit: the missing north/south areas were NOT FLOWN (thermal)
+# Addendum Z (2026-07-15) — north/south frame-level audit: covered concourse, not lost data
+
+Frame-level inspection (`qc/north_frames_check.jpg`, `qc/south_frames_check.jpg`)
+revises Addendum Y — **no re-flight required**:
+- **NORTH:** the deck continues UNDER A ROOF/canopy. The northernmost 100-ft frames
+  image the wall + curved canopy top (aerial thermal physically cannot see beneath).
+  **The low flight (103MEDIA) flew INTO the covered concourse** — its northernmost
+  frames (~y +9) show the pillared covered space from below across roughly the full
+  deck width. That IS the north data: it enters the deliverable as the covered-area
+  insets (O2), pinned along the north edge of the panorama. Nothing aerial was
+  missed; nothing is recoverable from above.
+- **SOUTH:** captured. Southern legs (to y −59, footprint ≈ −66) image the deck-to-
+  seating transition (bleacher rows visible) — the deck's southern boundary is in
+  the data. Perceived loss comes from RENDERING: transit-frame lay-over + the 15%
+  symmetric border crop trimming ~2 m at the coverage boundary.
+- **Render fixes queued (final presentation build):** exclude transit/turn frames
+  from compositing; ASYMMETRIC border crop for boundary frames (keep the outward
+  edge, crop only interior edges — reclaims the trimmed perimeter strip); mask to
+  the deck; deck-bounded silhouette.
+
+# Addendum Y (2026-07-15) — coverage audit: the missing north/south areas were NOT FLOWN (thermal) — REVISED BY ADDENDUM Z
 
 GPS ground-track plot (`qc/flight_tracks.png`) is decisive:
 - **102MEDIA thermal serpentine covers ONLY the central band** (~y +3 to −60 m,
