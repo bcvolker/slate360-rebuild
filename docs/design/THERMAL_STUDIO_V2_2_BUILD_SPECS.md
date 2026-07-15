@@ -443,6 +443,41 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum Q (2026-07-15) — market positioning: a NEW BREED of interactive deliverable
+
+Brian's directive: market this as a new platform / new category he has created —
+NEW, yet CALIBRATED against proven industry tools, and SUPERIOR in (a) how it
+presents evidence and (b) its ability to extract the most sensitive, hard-to-get
+data from difficult situations. This refines H0 (which still holds: we are not a
+FLIR-suite replacement — we are a NEW CATEGORY: the interactive thermal-evidence
+platform).
+
+## Q1. Messaging canon (use these claims; each is backed by a shipped/planned proof)
+
+| Claim | Proof behind it |
+|---|---|
+| "A new breed of thermal deliverable" | Live radiometric links (hover real temps on a phone), chaptered viewer, hypothesis panel, three-evidence overlays — no incumbent ships any of these |
+| "Calibrated against proven industry tools" | flir_fff_decode.py --csv validation vs FLIR Tools (±tolerance, the H4 gate); golden per-brand fixtures; worker↔client ±0.1 °C parity |
+| "Extracts what handheld spot-scans can't" | Per-pixel statistical detection (spatial coherence beats eyeball), presentation recipes that make 0.5–2 °C signatures visible, full-coverage panorama vs point samples, differential (post-rain) lens |
+| "Evidence, not opinion" | Immutable raw chapter beside every analyzed chapter; capture-time provenance (absolute/relative flags, conditions banner); operator-of-record review of every AI finding |
+
+## Q2. Where the positioning appears (tasteful, not salesy)
+
+- Link intro line under the title: "An interactive thermal-evidence deliverable —
+  a new format created by Brian Volker, Level III Infrared Thermographer."
+- PDF foreword: one short paragraph — new format, calibrated against
+  industry-standard tooling, raw data preserved and inspectable.
+- About-the-thermographer card (P6): the platform sentence + contact.
+- NEVER: competitor put-downs, "AI-powered" as a headline (AI is a reviewed
+  assistant, not the product), or accuracy claims beyond the validated gates.
+
+## Q3. Naming note (decision open)
+
+The deliverable format needs a name Brian can own in conversation ("I'll send you
+a ___"). Candidates to decide later: "Live Thermal Report", "Radiometric Live
+Link" (already the feature name), or a branded coinage. Publisher brand per N3 =
+Slate360. Do not print a placeholder name on ASU deliverables until Brian picks.
+
 # Addendum P (2026-07-15) — 360 pinning, LiDAR verdict, slope layer, business layer
 
 ## P1. 360 photos pin EVERYWHERE via one anchor
