@@ -129,3 +129,48 @@ export async function notifyAssignment(args: NotifyArgs): Promise<void> {
     console.error("[notify-assignment] lookup failed", err);
   }
 }
+
+interface NotifyCompletedArgs {
+  assignmentId: string;
+  sessionId: string;
+  assigneeUserId: string;
+  assignerUserId: string;
+  title: string;
+}
+
+/**
+ * Notify the assigner when their assignee marks an assignment done — the
+ * other half of notifyAssignment() (which only ever fired on creation).
+ * Best-effort — never throws. Fire with `void notifyAssignmentCompleted(...)`.
+ */
+export async function notifyAssignmentCompleted(args: NotifyCompletedArgs): Promise<void> {
+  if (args.assigneeUserId === args.assignerUserId) return;
+
+  const admin = createAdminClient();
+  try {
+    const [{ data: assignee }, { data: session }] = await Promise.all([
+      admin
+        .from("profiles")
+        .select("id, email, full_name")
+        .eq("id", args.assigneeUserId)
+        .maybeSingle<ProfileLookup>(),
+      admin
+        .from("site_walk_sessions")
+        .select("id, project_id, title")
+        .eq("id", args.sessionId)
+        .maybeSingle<SessionLookup>(),
+    ]);
+    if (!session?.project_id) return;
+
+    await admin.from("project_notifications").insert({
+      user_id: args.assignerUserId,
+      project_id: session.project_id,
+      title: `Completed: ${args.title}`,
+      message: `${assignee?.full_name ?? "Your assignee"} marked "${args.title}" done.`,
+      link_path: `/site-walk/walks/active/${args.sessionId}`,
+      is_read: false,
+    }).then(() => undefined, (err) => console.error("[notify-assignment-completed] insert failed", err));
+  } catch (err) {
+    console.error("[notify-assignment-completed] lookup failed", err);
+  }
+}

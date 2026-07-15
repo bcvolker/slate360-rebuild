@@ -2,6 +2,7 @@ import Link from "next/link";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SW360NewProjectButton } from "@/components/sw360/SW360NewProjectButton";
+import { SW360BackHeader } from "@/components/sw360/SW360BackHeader";
 
 export default async function SW360ProjectsPage() {
   const context = await resolveServerOrgContext();
@@ -19,6 +20,7 @@ export default async function SW360ProjectsPage() {
 
   return (
     <div className="flex flex-col gap-4 px-4 py-6">
+      <SW360BackHeader href="/sw360" label="Home" />
       <div className="flex items-center justify-between">
         <h1 className="text-xl font-black tracking-tight text-[var(--sw360-charcoal)]">Projects</h1>
         <SW360NewProjectButton />

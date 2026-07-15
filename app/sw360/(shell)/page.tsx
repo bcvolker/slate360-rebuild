@@ -111,22 +111,31 @@ export default async function SW360HomePage() {
       )}
 
       {hasAttention ? (
-        <div className="overflow-hidden rounded-2xl border border-[var(--sw360-charcoal)]/12 bg-[var(--sw360-green-light)]/[0.07]">
+        <div
+          className="overflow-hidden rounded-2xl border border-[var(--sw360-charcoal)]/20 bg-[var(--sw360-green-light)]/[0.1]"
+          style={{ boxShadow: "0 2px 6px color-mix(in srgb, var(--sw360-green-light) 18%, transparent)" }}
+        >
           <div className="border-l-4 border-[var(--sw360-green-light)] px-4 py-3">
-            <p className="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-[var(--sw360-charcoal)]/70">
-              <AlertCircle size={13} className="text-[var(--sw360-green-light)]" />
+            <p className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wide text-[var(--sw360-charcoal)]">
+              <AlertCircle size={14} className="text-[var(--sw360-green-light)]" />
               Needs attention
             </p>
-            <div className="mt-2 flex flex-col gap-1.5 text-sm text-[var(--sw360-charcoal)]">
+            <div className="mt-2 flex flex-col gap-2 text-sm text-[var(--sw360-charcoal)]">
               {unsentReports > 0 ? (
-                <Link href="/sw360/reports" className="flex items-center justify-between">
-                  <span>{unsentReports} report{unsentReports === 1 ? "" : "s"} not sent yet</span>
+                <Link
+                  href="/sw360/reports"
+                  className="flex items-center justify-between rounded-lg bg-white/60 px-3 py-2"
+                >
+                  <span className="font-semibold">{unsentReports} report{unsentReports === 1 ? "" : "s"} not sent yet</span>
                   <span className="text-[var(--sw360-green-light)]">→</span>
                 </Link>
               ) : null}
               {unanswered > 0 ? (
-                <Link href="/sw360/inbox" className="flex items-center justify-between">
-                  <span>{unanswered} update{unanswered === 1 ? "" : "s"} in your Inbox</span>
+                <Link
+                  href="/sw360/inbox"
+                  className="flex items-center justify-between rounded-lg bg-white/60 px-3 py-2"
+                >
+                  <span className="font-semibold">{unanswered} update{unanswered === 1 ? "" : "s"} in your Inbox</span>
                   <span className="text-[var(--sw360-green-light)]">→</span>
                 </Link>
               ) : null}
@@ -140,7 +149,7 @@ export default async function SW360HomePage() {
           <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[var(--sw360-charcoal)]/60">
             Assigned to you
           </p>
-          <div className="overflow-hidden rounded-2xl border border-[var(--sw360-charcoal)]/12 bg-[var(--sw360-silver)]/25">
+          <div className="overflow-hidden rounded-2xl border border-[var(--sw360-charcoal)]/20 bg-[var(--sw360-silver)]/40">
             {home.assignments.slice(0, 4).map((a) => (
               <div
                 key={a.id}

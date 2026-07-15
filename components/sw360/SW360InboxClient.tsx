@@ -10,6 +10,19 @@ import type { MobileAppHomeAlert } from "@/lib/mobile/load-app-home-data";
 type Filter = "all" | "flagged" | "todo";
 
 /**
+ * `project_notifications.link_path` is a cross-app field also read by the
+ * legacy desktop dashboard, so its stored format can't be changed without
+ * risking those other consumers. Translate the one legacy shape we know
+ * points at a screen SW360 has its own equivalent for, so tapping a
+ * "stakeholder left feedback" alert actually lands inside the SW360 shell.
+ */
+function resolveInboxLink(linkPath: string): string {
+  const deliverablesMatch = linkPath.match(/^\/projects\/([^/]+)\/deliverables/);
+  if (deliverablesMatch) return `/sw360/projects/${deliverablesMatch[1]}/reports`;
+  return linkPath;
+}
+
+/**
  * Personal Inbox triage — search + Open/Flagged/To-do filters, per rev 7
  * lock (Q3, corrected): flag/to-do are a lightweight personal layer,
  * deliberately separate from the formal GC verify-then-close state machine.
@@ -122,11 +135,11 @@ export function SW360InboxClient({
           <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[var(--sw360-charcoal)]/60">
             Assigned to you
           </p>
-          <div className="flex flex-col gap-2">
+          <div className="overflow-hidden rounded-2xl border border-[var(--sw360-charcoal)]/20 bg-[var(--sw360-silver)]/40">
             {filteredAssignments.map((a) => (
               <div
                 key={a.id}
-                className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-white/70 px-4 py-3"
+                className="flex items-center gap-2 border-b border-[var(--sw360-charcoal)]/8 px-4 py-3 last:border-b-0"
               >
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-semibold text-[var(--sw360-charcoal)]">{a.title}</p>
@@ -158,14 +171,14 @@ export function SW360InboxClient({
           <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[var(--sw360-charcoal)]/60">
             Updates
           </p>
-          <div className="flex flex-col gap-2">
+          <div className="overflow-hidden rounded-2xl border border-[var(--sw360-charcoal)]/20 bg-[var(--sw360-silver)]/40">
             {filteredAlerts.map((a) => (
               <div
                 key={a.id}
-                className="flex items-center gap-2 rounded-xl border border-[var(--border)] bg-white/70 px-4 py-3"
+                className="flex items-center gap-2 border-b border-[var(--sw360-charcoal)]/8 px-4 py-3 last:border-b-0"
               >
                 {a.linkPath ? (
-                  <Link href={a.linkPath} className="min-w-0 flex-1">
+                  <Link href={resolveInboxLink(a.linkPath)} className="min-w-0 flex-1">
                     <p className="truncate text-sm font-semibold text-[var(--sw360-charcoal)]">{a.title}</p>
                     <p className="truncate text-xs text-[var(--sw360-charcoal)]/60">{a.message}</p>
                   </Link>

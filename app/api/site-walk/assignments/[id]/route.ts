@@ -8,6 +8,7 @@ import { withAppAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response";
 import type { IdRouteContext } from "@/lib/types/api";
 import type { UpdateAssignmentPayload, AssignmentPriority, AssignmentStatus } from "@/lib/types/site-walk";
+import { notifyAssignmentCompleted } from "@/lib/site-walk/notify-assignment";
 
 const VALID_STATUSES: AssignmentStatus[] = [
   "pending", "acknowledged", "in_progress", "done", "rejected",
@@ -80,6 +81,19 @@ export const PATCH = (req: NextRequest, ctx: IdRouteContext) =>
 
     if (error) return serverError(error.message);
     if (!data) return notFound("Assignment not found");
+
+    // Notify the assigner when their assignee marks it done (the other half
+    // of notifyAssignment(), which only ever fired on creation).
+    if (body.status === "done" && data.assigned_by && data.assigned_to && data.session_id) {
+      void notifyAssignmentCompleted({
+        assignmentId: data.id,
+        sessionId: data.session_id,
+        assigneeUserId: data.assigned_to,
+        assignerUserId: data.assigned_by,
+        title: data.title,
+      });
+    }
+
     return ok({ assignment: data });
   });
 

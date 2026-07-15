@@ -1,6 +1,7 @@
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { SW360StartWalkButton } from "@/components/sw360/SW360StartWalkButton";
+import { SW360BackHeader } from "@/components/sw360/SW360BackHeader";
 
 type ProjectRow = { id: string; name: string };
 
@@ -28,6 +29,7 @@ export default async function SW360CapturePage() {
 
   return (
     <div className="flex flex-col gap-5 px-4 py-6">
+      <SW360BackHeader href="/sw360" label="Home" />
       <div>
         <h1 className="text-xl font-black tracking-tight text-[var(--sw360-charcoal)]">Capture</h1>
         <p className="mt-0.5 text-sm text-[var(--sw360-charcoal)]/60">

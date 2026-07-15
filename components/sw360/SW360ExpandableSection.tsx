@@ -54,23 +54,23 @@ export function SW360ExpandableSection({
           <button
             type="button"
             onClick={() => setExpanded((v) => !v)}
-            aria-label={expanded ? "Show less" : "Show more"}
-            className="flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-bold text-[var(--sw360-green-light)]"
+            aria-label={expanded ? "Close" : `Open — ${itemCount} total`}
+            className="flex min-h-[26px] shrink-0 items-center gap-1 rounded-full border border-[var(--sw360-green-light)] px-2.5 text-[11px] font-bold text-[var(--sw360-green-light)]"
           >
             {expanded ? (
               <>
-                Close <X size={13} />
+                Close <X size={12} />
               </>
             ) : (
               <>
-                {itemCount} total <ChevronDown size={13} />
+                {itemCount} total · Open <ChevronDown size={12} />
               </>
             )}
           </button>
         ) : null}
       </div>
       <div
-        className="overflow-hidden rounded-2xl border border-[var(--sw360-charcoal)]/12 bg-[var(--sw360-silver)]/25"
+        className="overflow-hidden rounded-2xl border border-[var(--sw360-charcoal)]/20 bg-[var(--sw360-silver)]/40"
         style={{ boxShadow: "0 1px 2px color-mix(in srgb, var(--sw360-charcoal) 6%, transparent)" }}
       >
         <div className="overflow-y-auto transition-[max-height] duration-200" style={{ maxHeight }}>
