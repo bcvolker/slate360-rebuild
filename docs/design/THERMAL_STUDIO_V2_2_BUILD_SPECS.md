@@ -443,6 +443,28 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum W (2026-07-15) — mosaic v3 QUALITY PASS (after Brian rejected v1 quality)
+
+Brian rejected v1 (misaligned, soft). v2/v3 rebuilt the geometry + compositing:
+1. **Cross-leg feature registration**: 253 verified feature-matched pairs BETWEEN
+   legs (was GPS-only) feeding a **two-stage global solve** — stage 1 fixes each
+   frame's rotation+scale (per-leg chain + GPS Procrustes, scales unified to the
+   median: altitude is constant), stage 2 solves ONLY translations (2N sparse LSQ,
+   edges + weak GPS priors) with **residual-based edge pruning** (>1.5 m dropped,
+   re-solved). Full 4-DoF solve was tried and REJECTED — scale drifted (0.89 cm/px,
+   std 3.1) exactly as Grok's translation-focused recommendation predicted.
+2. **Sharp compositing**: 12% border crop (lens-distortion zone) + center-feather^14
+   (winner-take-most — one frame owns each pixel, soft only at transitions) →
+   killed ghost-averaging blur AND parallax double-edges on rooftop equipment.
+3. **Per-frame temperature offsets** solved from overlap medians (±4.05 °C found!)
+   → strip banding gone; envelope check still PASSES (blend is convex per-pixel).
+Result: `mosaic_main_flight_v2.npz` + `qc/mosaic_v2_QC.jpg` + `qc/mosaic_v2_zoom.jpg`
+— coherent geometry, crisp drains/pipes/EJ, visible deck-field mottling. Remaining
+polish options: per-frame vignette flattening (radial gain), the residual soft
+shading gradients, and porting this whole method into worker panorama.py (the
+worker's naive chain+average is now obsolete). GSD note: unified scale solved at
+2.70 cm/px (finer than the 4 cm assumption — more native detail available).
+
 # Addendum V (2026-07-15) — FULL MOSAIC BUILT (same-day): 251 frames, radiometric, GPS-anchored
 
 `deliverables/mosaic_main_flight.npz` + `qc/mosaic_main_QC.jpg`: the COMPLETE deck,
