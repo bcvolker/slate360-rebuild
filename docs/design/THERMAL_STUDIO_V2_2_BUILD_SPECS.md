@@ -443,6 +443,67 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum J (2026-07-14) — 3D photogrammetry, 360 embedding, prompt-driven pinning
+
+Answers to Brian's oblique-photogrammetry + 360-embed questions. These are POST-W4
+capability tracks (not in the frozen G4 desktop roster) EXCEPT the shared
+point-placement mini-UI (J3), which lands with the drawing-overlay work (PAN slice)
+because three features depend on it.
+
+## J1. Oblique-drone photogrammetry → 3D model in deliverables
+
+Feasible, but it is its own pipeline, not a thermal-worker add-on:
+- **Reuse the EXISTING Twin 360 cloud pipeline where possible.** Slate360 already
+  runs cloud Gaussian-splat reconstruction (Trigger → Modal GPU) for digital twins;
+  output is rendered by the shipping R3F/Spark viewer (splat + glTF/GLB). A folder of
+  overlapping 45° oblique JPEGs is a valid photogrammetry input.
+- **The missing middle step = camera poses.** Splat/mesh reconstruction needs per-image
+  camera poses. iPhone twin capture supplies ARKit poses; a raw drone photo set does
+  NOT — so a **COLMAP (SfM) pose-estimation stage** must run first (structure-from-
+  motion → sparse poses → dense/splat). COLMAP is open-source (BSD) but GPU-hungry;
+  this requires a **GPU Modal worker** (thermal is CPU-only today).
+- **Recommendation:** treat 3D as a **separate post-ASU capability slice** ("3D-1:
+  drone-photo → COLMAP poses → Gaussian splat, rendered as a deliverable chapter").
+  For the ASU deadline, ship the thermal panorama + drawing overlay first; add the 3D
+  chapter after. Deliverable integration itself is easy — the twin share viewer +
+  chapter container (B1) already render a 3D model beside thermal chapters.
+- **Effort:** COLMAP+splat GPU pipeline = large; deliverable embedding = small
+  (components exist).
+
+## J2. 360 spherical photos embedded on the panorama / 3D model
+
+The rendering half is BUILT: the Tour 360 system already has a pano viewer
+(`TourPanoViewer`) and a plan-sheet pin system. Embedding a 360 as a clickable
+hotspot on the thermal panorama (2D) or as a billboard pin in the 3D scene
+(`TwinSceneOverlays`) reuses those. What's new is only WHERE the pin sits (J3).
+
+## J3. Prompt-driven pinning WITHOUT a drag UI — the honest answer + the fix
+
+Placing pins precisely by prompt alone is fragile. Two real paths:
+1. **GPS auto-placement (best when data has GPS).** DJI Mini 5 Pro geotags photos;
+   if the thermal panorama stores a **geographic footprint** (corner lat/lons —
+   which the stitch can record when source frames are geotagged), then every 360's
+   pin position is COMPUTED from its GPS with zero manual placement. Same transform
+   georeferences finding pins and the drawing overlay. This is the clean prompt-only
+   path and the reason GPS persistence (currently a gap) is now P1.
+2. **Shared point-placement mini-UI (the pragmatic win).** A tiny reusable
+   "tap N points on this image" tool — 2 minutes of clicking — serves THREE features
+   at once: drawing-overlay control points (I1), 360-hotspot placement (J2), and
+   manual finding pins. This is far more reliable than prompt-typed coordinates and
+   trivial to build. **Build it once (J3) with the PAN/drawing-overlay slice**; it is
+   the correct answer to "everything through prompts" for spatial placement — the ONE
+   place a 30-second click beats any prompt.
+- **Verdict:** GPS auto-placement where GPS exists; the mini point-picker everywhere
+  else. Pure-prompt coordinate typing is the fallback of last resort, not the plan.
+
+## J4. Priority for the ASU deadline (few days)
+
+In order: (1) thermal panorama stitch of the pre-dawn flight; (2) moisture/anomaly
+detection with per-finding presentation recipes (I2); (3) drawing overlay of the RDH
+drain PDF with opacity (I1) via control points (J3 mini-UI); (4) share-viewer upgrade
+(zoom/pan/layers/hover/before-after) + mobile parity; (5) branded PDF with signature.
+360 embedding and the 3D model are phase-2 (after ASU) unless time allows.
+
 # Addendum I (2026-07-14) — Grok collaboration round: drawing overlay, presentation recipes, signature, mobile parity
 
 New items from Grok's gap analysis + Brian's deliverable requirements. These amend
