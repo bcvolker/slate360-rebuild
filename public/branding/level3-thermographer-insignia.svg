@@ -20,12 +20,11 @@
       <textPath href="#arcBottom" startOffset="50%" text-anchor="middle">ITC CERTIFIED · NO. 140957677</textPath>
     </text>
   </g>
-  <!-- center mark — all text sized to stay well inside the r=68 inner circle -->
+  <!-- center mark — enlarged stack, sized to stay inside the r=68 inner circle -->
   <g fill="currentColor" text-anchor="middle" font-family="'IBM Plex Mono','Courier New',monospace">
-    <text x="120" y="102" font-size="30" font-weight="700" letter-spacing="4">III</text>
-    <text x="120" y="122" font-size="10.5" letter-spacing="3">LEVEL III</text>
-    <text x="120" y="138" font-size="8" letter-spacing="1.5">INFRARED</text>
-    <text x="120" y="150" font-size="8" letter-spacing="1.5">THERMOGRAPHER</text>
+    <text x="120" y="106" font-size="17" font-weight="700" letter-spacing="3">LEVEL III</text>
+    <text x="120" y="128" font-size="11" letter-spacing="2">INFRARED</text>
+    <text x="120" y="146" font-size="11" letter-spacing="2">THERMOGRAPHER</text>
   </g>
   <!-- crosshair ticks kept OUTSIDE the inner circle so they can't touch the text -->
   <g stroke="currentColor" stroke-width="1.5">
