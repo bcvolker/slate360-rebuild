@@ -443,6 +443,39 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum AH (2026-07-16) — COLMAP run live + adopted external recommendations
+
+## AH1. Photogrammetry run status
+
+Volume path fixed (MSYS mangling → server-side fixup). COLMAP is **4.1.0 CUDA**
+(flag namespaces changed: FeatureExtraction.*/FeatureMatching.*; GPU on by
+default; Mapper.ba_use_gpu now used). Sparse run live on A10G: **917 images,
+24,216 verified pairs** (≈26 connections/image — healthy graph); mapper running.
+
+## AH2. Adopted from the two external responses (both useful this round)
+
+- **Deck-plane insight (best single explanation of the RGB map error):** the RGB
+  flight is 25° off-nadir and the reference map rectifies to z=takeoff; a deck
+  elevated h meters displaces deck features by h·tan(25°) ≈ 0.47h — an ~8 m deck
+  → ~3.7 m systematic offset, matching observations exactly. COLMAP's DEM makes
+  this moot; the half-day deck-plane re-rectify is the FALLBACK if COLMAP
+  disappoints.
+- **Graph-cut seam placement** (cv2.detail_GraphCutSeamFinder, COST_COLOR_GRAD)
+  adopted as the thermal mosaic's compositing finisher — routes seams through
+  agreement zones instead of feathering across disagreements; queued after the
+  COLMAP-based re-projection decision.
+- **MAX↔RGB same-modality registration + thin-plate-spline field** confirmed as
+  the thermal→ortho registration mechanism (matches AB design); TPS via
+  scikit-image (BSD).
+- **License audit accepted:** stock COLMAP binaries bundle GPL components → use
+  ONLY as an arm's-length subprocess in the worker (current architecture is
+  compliant); OpenSfM (BSD-2) is the clean-license alternative if linking is
+  ever needed; ODM is AGPL (arm's length only); Kapil repo has NO license (ideas
+  only — reaffirms AB); pycolmap pip package is BSD-3.
+- **Phase discipline (response 1):** wipe-QC as the acceptance artifact between
+  every stage; production porting (panorama.py etc.) only AFTER ASU passes QC;
+  splat trains from the SAME COLMAP solve (one world, shared pins).
+
 # Addendum AG (2026-07-15) — GPU photogrammetry worker DEPLOYED (the alignment unblock)
 
 Decision (Brian, after reviewing both maps): hand-rolled geometry has hit its

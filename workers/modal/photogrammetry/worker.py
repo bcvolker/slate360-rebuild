@@ -29,11 +29,41 @@ WORK = "/data/work"
 IMAGES = "/data/images"
 
 
+@app.function(image=image, volumes={"/data": vol}, timeout=600)
+def fixup():
+    """One-time: move the MSYS-mangled upload path to the clean /images root."""
+    import os, shutil
+    src = "/data/C:/Program Files/Git/images"
+    if os.path.isdir(src) and not os.path.isdir(IMAGES):
+        shutil.move(src, IMAGES)
+        shutil.rmtree("/data/C:", ignore_errors=True)
+    print(os.listdir(IMAGES))
+    vol.commit()
+    return "ok"
+
+
+@app.function(image=image, timeout=600)
+def diag():
+    import subprocess
+    for sub in ["feature_extractor", "spatial_matcher", "mapper"]:
+        r = subprocess.run(f"colmap {sub} --help", shell=True, capture_output=True, text=True)
+        out = (r.stdout or "") + (r.stderr or "")
+        keep = [l for l in out.splitlines() if any(k in l for k in ["gpu", "use_gpu", "guided", "single_camera", "max_image_size", "overlap"])]
+        print(f"=== {sub} ===")
+        print(chr(10).join(keep[:30]), flush=True)
+    v = subprocess.run("colmap --version", shell=True, capture_output=True, text=True)
+    print("VERSION:", v.stdout, v.stderr, flush=True)
+
+
 def _run(cmd: str) -> None:
-    import subprocess, sys
+    import subprocess, sys, os
     print(f"$ {cmd}", flush=True)
-    r = subprocess.run(cmd, shell=True)
+    env = dict(os.environ, QT_QPA_PLATFORM="offscreen")  # headless GPU/Qt
+    r = subprocess.run(cmd, shell=True, env=env, capture_output=True, text=True)
+    if r.stdout:
+        print(r.stdout[-4000:], flush=True)
     if r.returncode != 0:
+        print("STDERR:", (r.stderr or "")[-4000:], flush=True)
         sys.exit(f"FAILED ({r.returncode}): {cmd}")
 
 
@@ -51,18 +81,18 @@ def sparse(max_image_size: int = 3200, sequential_overlap: int = 20):
     _run(
         f"colmap feature_extractor --database_path {db} --image_path {IMAGES} "
         f"--ImageReader.single_camera_per_folder 1 "
-        f"--SiftExtraction.use_gpu 1 --SiftExtraction.max_image_size {max_image_size}"
+        f"--FeatureExtraction.max_image_size {max_image_size}"
     )
     # spatial matcher uses GPS priors read from EXIF at extraction time
     _run(
         f"colmap spatial_matcher --database_path {db} "
-        f"--SiftMatching.use_gpu 1 --SiftMatching.guided_matching 1"
+        f"--FeatureMatching.guided_matching 1"
     )
     # belt-and-suspenders for serpentine capture order
     _run(
         f"colmap sequential_matcher --database_path {db} "
         f"--SequentialMatching.overlap {sequential_overlap} "
-        f"--SiftMatching.use_gpu 1 --SiftMatching.guided_matching 1"
+        f"--FeatureMatching.guided_matching 1"
     )
     con = sqlite3.connect(db)
     pairs = con.execute("select count(*) from two_view_geometries where rows > 15").fetchone()[0]
@@ -71,7 +101,7 @@ def sparse(max_image_size: int = 3200, sequential_overlap: int = 20):
     os.makedirs(f"{WORK}/sparse", exist_ok=True)
     _run(
         f"colmap mapper --database_path {db} --image_path {IMAGES} "
-        f"--output_path {WORK}/sparse"
+        f"--output_path {WORK}/sparse --Mapper.ba_use_gpu 1"
     )
     # report registration
     for model in sorted(glob.glob(f"{WORK}/sparse/*")):
