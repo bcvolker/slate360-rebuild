@@ -93,10 +93,20 @@ change.
   → drain/EJ lines draw on → findings pins stagger in → mono caption settles
   (`SUN DEVIL STADIUM · THERMAL SURVEY · 2026-07-15 · 100FT AGL`). Static by
   ~2.5s. The insignia watermark remains on every canvas throughout the session
-  (pointer-events none, never over HUD corners), and **returns at full strength
-  in the RPT/sign-off chapter** beside the signature block. Signature image:
-  PENDING Brian's photo (I3/N2) — the block renders name + cert line until it
-  lands. `prefers-reduced-motion`: insignia appears in-corner directly, no glide.
+  (pointer-events none), and **returns at full strength in the RPT/sign-off
+  chapter** beside the signature block. Signature image: PENDING Brian's photo
+  (I3/N2) — the block renders name + cert line until it lands.
+  `prefers-reduced-motion`: insignia appears in-corner directly, no glide.
+- **INSIGNIA CLEAR ZONE (hard rule, Brian 2026-07-16):** the insignia is NEVER
+  overlapped by anything — no HUD text, captions, scale bar, north arrow,
+  findings pins, tooltips, legends, toasts, or panels may enter its bounding box
+  plus a margin of 0.5× its width on all sides. In every state (boot, watermark,
+  sign-off) the layout RESERVES that region: HUD elements claim other corners;
+  if a transient element (tooltip/toast) would collide, it repositions, never
+  the insignia. If a viewport is too small to honor the clear zone (tiny
+  landscape phones), the watermark HIDES rather than being overlapped —
+  obstructed is worse than absent. Acceptance: DOM overlap check at 390/768/1440
+  in both orientations across all tabs.
 
 ## 5. Data contract — what feeds each chapter (formats + shareability)
 
