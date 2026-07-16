@@ -107,6 +107,49 @@ change.
   landscape phones), the watermark HIDES rather than being overlapped —
   obstructed is worse than absent. Acceptance: DOM overlap check at 390/768/1440
   in both orientations across all tabs.
+  **THE ONE EXCEPTION (Brian 2026-07-16): his digitized signature signs ACROSS
+  the insignia** — lower half, slight angle (~10°), the traditional P.E.-stamp
+  treatment — in SIGN-OFF contexts only (PDF closure page + RPT chapter, where
+  the seal renders large). The corner WATERMARK state stays signature-free
+  (illegible at that size; hurts both marks). Signature pending Brian's photo.
+
+## 7. Adopted from external review (Grok round, 2026-07-16)
+
+- **Authoring vs viewing:** the link is READ-ONLY by design. All authoring —
+  findings, measurements, palette recipes, plume markups, control points — happens
+  in Thermal Studio (desktop) + the point-picker mini-UI (J3) and is persisted to
+  the DB; the viewer renders that state. Client-side marks are limited to Q&A
+  pins (existing share flow). No second authoring surface gets built into the link.
+- **Viewer versioning:** the shell carries a semver'd render contract; a link's
+  token pins the major version it was published against, so future viewer
+  upgrades never break an old link (old majors stay deployed). Config-as-JSON is
+  the interface: `{project, chapters[], layers[], branding, dataUrls}`.
+- **Offline/archival bundle:** an "archive export" produces a self-contained
+  folder (static HTML + tiles + JSON) for long-term records — queued post-ASU;
+  the PDF is the v1 archival artifact.
+- **White-labeling:** already covered by branding profiles (E5) — logo, footer,
+  accent-within-rules per deliverable; the viewer reads branding from the token's
+  `branding_snapshot`. No fork per client.
+- **Accessibility:** palette toggle includes a colorblind-safe sequential option
+  (viridis/cividis class) alongside inferno; UI meets contrast AA on all chrome;
+  temp readouts never rely on color alone (numbers always shown).
+- **Performance NFRs:** landing <300KB JS, first tiles <1s LTE, 60fps pan/zoom on
+  a mid-range phone, ≤500 findings before clustering kicks in, tiles ≤256KB each,
+  splat streamed progressively with a fixed budget on mobile.
+- **Analytics (purposeful, not generic):** per-token events — open, chapter
+  enter/exit + dwell, finding opened, wipe used, measure used, PDF downloaded,
+  question asked. Surfaced in the owner's deliverable row (S7.5). No third-party
+  trackers on client links.
+- **Export granularity:** current-view high-res PNG snapshot; findings as
+  CSV/GeoJSON (aligned meters) alongside the full PDF (S8.5 engine).
+- **Phased build:** P1 = shell + MAP tab + wipe + hover/tap temps + layers
+  (demo-able); P2 = 3D + 360 + findings + tour; P3 = deep links, bottom-sheet
+  polish, accessibility pass, analytics. Token/expiry/revocation reuses the
+  EXISTING thermal share-token infrastructure (roles, password, expiry,
+  per-stakeholder copies) — no new auth system.
+- **Template-ization:** the viewer is a parameterized package — every future
+  survey deploys the same shell with a new config; becomes the product's link
+  renderer (S7.5) rather than an ASU one-off.
 
 ## 5. Data contract — what feeds each chapter (formats + shareability)
 
