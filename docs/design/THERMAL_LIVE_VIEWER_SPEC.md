@@ -1,0 +1,121 @@
+# Thermal Live Viewer — LOCKED spec (2026-07-16)
+
+The public share-link viewer for the ASU survey and every thermal survey after it.
+Synthesized from two converging external design proposals + Brian's requirements.
+This is the S3 "SpaceX-bar" viewer made concrete. Product name: TBD (Q3 in
+V2_2_BUILD_SPECS — do not print a placeholder name on deliverables).
+
+## 0. Non-negotiables (Brian, verbatim intent)
+
+- **Hover radiometrics:** on the thermal panorama, temperature values follow the
+  cursor (desktop hover / mobile tap & tap-hold). Reads from the real aligned
+  temperature raster — never a color lookup.
+- **Pan + zoom** on every raster chapter, pinch on mobile.
+- **Fit + centered, always:** every chapter opens FIT-TO-VIEW and CENTERED —
+  nothing lost off-page, oversized, undersized, or misaligned. Aspect-aware
+  letterboxing; a "reset view" control on every canvas; deep-links restore exact
+  view state.
+- **No page scroll** at any viewport. The ONLY scrollable region is inside the
+  bottom sheet (mobile) / right rail (desktop).
+- **Analysis is a later layer:** v1 ships the pipeline deliverables (minimal
+  thermal presentation); the analysis pass (palette recipes, callouts, water-flow
+  presentation) arrives after Brian's drawings/context and slots in as LAYERS —
+  the shell must not need a redesign for it.
+
+## 1. Layout (both proposals agree; adopted)
+
+- **Shell = 100dvh canvas app**: top bar (44px: project name · capture chip ·
+  PDF) / full-bleed CANVAS / status rail (desktop) or bottom tab bar (mobile).
+- **Desktop:** left icon rail (56px, tabs) + right rail (280–320px, solid panel:
+  layers, opacity sliders, findings, metadata) + canvas fills the rest.
+- **Mobile:** bottom tab bar (56px, thumb zone) + **bottom sheet** peeking at
+  ~80px, drag to ~60dvh (layers/findings/metadata live inside; internal scroll
+  only). `overscroll-behavior: contain`, `touch-action: none` on canvas.
+- HUD corners (pointer-events none): north arrow, scale bar, live coord+temp
+  readout, and the mono metadata block (`GSD 3.0CM · FLT 06:15 MST · FLIR`).
+
+## 2. Tabs (spatial modes; findings/overlays are toggles, not tabs)
+
+| Tab | Content | Load |
+|---|---|---|
+| **MAP** (landing) | 2D aligned world: RGB ortho + thermal (wipe/opacity) + slope/ponding + drain/EJ drawing overlay + findings pins + 360 hotspots | eager (raster tiles only, <300KB JS, first tiles <1s LTE) |
+| **3D** | Gaussian splat, auto-orbit on entry (0.5°/s until touched) | lazy |
+| **360** | 8 spheres via mini-map nodes → full-screen immersive | lazy |
+| **FIND** | findings list (sheet/rail) with jump-to-canvas fly-to | eager (tiny) |
+| **RPT** | PDF preview + download + sign-off | lazy |
+
+Extensibility (locked): tab rail is data-driven (`{id,label,component,lazy}`);
+the future interior-walkthrough twin = one new entry with `mode:'walk'` on the
+same splat component; layers are a registered list — the multi-sensor future
+slots in with zero shell redesign.
+
+## 3. Interactions — v1 ship list (demo-critical five + three)
+
+1. **Wipe compare** thermal↔RGB (draggable split; clip-path; 1:1 alignment proof).
+2. **Hover/tap-for-temperature** (crosshair + `31.4°C` readout; tap-hold = region
+   min/max/mean). The flagship.
+3. **Measure** — two taps = distance (m/ft); polygon = area (m²/**sq ft**) —
+   valid because the world is metric-aligned; this is the repair-scoping number.
+4. **Findings pins + jump-to** (fly-to + card open; "magnet" edge pins point at
+   off-screen findings).
+5. **Per-layer opacity sliders** (thermal-over-RGB is the hero; drawing overlay
+   opacity for the drain/EJ layer).
+6. **Tour mode** — auto-visit each finding, 3s dwell + caption; pause on touch.
+7. **Epoch honesty** — early/late capture toggle with the "not simultaneous"
+   banner (the pre-dawn→sunrise drift, Addendum AA).
+8. **Deep-links** — URL carries tab/layers/opacity/finding; back-button works;
+   shareable mid-demo.
+
+Later layers (post-analysis phase): per-finding presentation recipes (span
+animates to the finding's tuned view on select), contour plume callouts + trend
+chevrons, hypothesis panel chapter, Q&A. All register as layers/cards — no shell
+change.
+
+## 4. Visual language ("mission control", not glassmorphism)
+
+- Tokens (viewer-scoped CSS vars; fresh set, NOT the app's Graphite Glass):
+  `--canvas #0A0B0D · --panel #121317 (solid, zero blur) · --hairline #23262D ·
+  --text-1 #F2F4F8 · --text-2 #8A8F98 · --accent var(--graphite-primary) #00E699`.
+  **Accent decision: the brand teal — NOT the proposed warm amber. Amber is
+  banned in Brian's locked design canon**, and the teal reads sharply against
+  inferno-palette imagery (complementary, never confusable with data colors —
+  a warm accent WOULD be confusable with warm thermal pixels).
+- Type: mono for ALL data (temps/coords/measurements, tabular-nums, uppercase
+  microlabels); clean grotesk for headers/notes. 0–4px radius, 1px hairlines, no
+  shadows, no pills, no emoji glyphs. Text over imagery gets a 1px dark stroke.
+- Motion: 180–280ms ease; 1:1 slider drag; one boot sweep on load; no ambient
+  loops; `prefers-reduced-motion` respected.
+- **5-second story (landing):** boot line (0.5s) → RGB ortho fades in framed and
+  centered → thermal fades up to 60% → drain/EJ lines draw on → findings pins
+  stagger in → mono caption settles (`SUN DEVIL STADIUM · THERMAL SURVEY ·
+  2026-07-15 · 100FT AGL`). Static by ~2.5s. A "data pulse" teaching moment —
+  the viewer instantly knows there's hidden data and where to tap.
+
+## 5. Data contract — what feeds each chapter (formats + shareability)
+
+| Item | Master (private, R2) | Served to viewer | Static/shareable export |
+|---|---|---|---|
+| Thermal radiometric pano | float32 NPZ + GeoTIFF (ENU origin + GSD baked in) | raster tiles + float16 temp chunks (hover) | PNG render / PDF pages |
+| RGB orthomosaic | GeoTIFF | raster tiles | JPG |
+| DEM / slope / ponding | GeoTIFF | tinted raster tiles | PNG |
+| Drain/EJ drawing overlay | RGBA PNG + alignment transform | image layer w/ opacity | burned into PDF figures |
+| Gaussian splat | .ply/.spz | streamed to 3D tab | turntable MP4 |
+| 360 spheres | equirect JPG | sphere viewer | as-is JPG |
+| Findings/measurements/markup | JSON (DB rows) | API | PDF findings section |
+| Report | PDF in R2 | RPT tab | **the PDF file** |
+| **The deliverable itself** | — | — | **the LINK** (token, password, expiry, per-stakeholder copies, analytics) |
+
+Sharing model: the link IS the shareable artifact (forwardable URL, no account
+needed, revocable); the PDF is the downloadable companion; raw
+GeoTIFF/NPZ masters are Brian's working data, shared only deliberately.
+
+## 6. Acceptance gates
+
+- Every chapter: fit-to-view + centered on open at 390px, 768px, 1440px; zero
+  page scroll; reset-view restores exactly.
+- Hover/tap temp matches the NPZ value at that pixel (±0.1 °C) — spot-checked
+  against the master grid.
+- Measure: a known real-world distance (drawing-verified) reads within 1%.
+- Wipe: features hand off cleanly across the split at 3 zoom levels.
+- Landing p95 < 3s on LTE (raster tiles only; 3D/360 lazy).
+- prefers-reduced-motion disables the boot sweep + auto-orbit.
