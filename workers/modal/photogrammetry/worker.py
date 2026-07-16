@@ -127,6 +127,38 @@ def align(model: str = "0", max_error: float = 3.0):
         f"--transform_path {WORK}/align_transform.txt"
     )
     _run(f"colmap model_analyzer --path {dst}")
+    # validation (external-review): transform scale sane, rotation det=+1 (no
+    # mirror), camera centers vs refs residuals
+    import numpy as np
+    T = np.loadtxt(f"{WORK}/align_transform.txt").reshape(4, 4) if os.path.exists(
+        f"{WORK}/align_transform.txt") else None
+    if T is not None:
+        R = T[:3, :3]
+        scale = float(np.cbrt(abs(np.linalg.det(R))))
+        print(f"ALIGN VALIDATION: scale={scale:.4f} (sane: 0.3-3.0), "
+              f"rot det sign={'+' if np.linalg.det(R) > 0 else '-'} (must be +)", flush=True)
+    _run(f"colmap model_converter --input_path {dst} --output_path {dst} --output_type TXT")
+    refs = {l.split()[0]: np.array(list(map(float, l.split()[1:4])))
+            for l in open("/data/gps_refs_enu.txt")}
+    res = []
+    for line in open(f"{dst}/images.txt"):
+        if line.startswith("#") or len(line.split()) < 10:
+            continue
+        parts = line.split()
+        name = parts[9]
+        if name in refs:
+            import numpy as np
+            qw, qx, qy, qz = map(float, parts[1:5]); t = np.array(list(map(float, parts[5:8])))
+            Rm = np.array([[1-2*(qy*qy+qz*qz), 2*(qx*qy-qz*qw), 2*(qx*qz+qy*qw)],
+                           [2*(qx*qy+qz*qw), 1-2*(qx*qx+qz*qz), 2*(qy*qz-qx*qw)],
+                           [2*(qx*qz-qy*qw), 2*(qy*qz+qx*qw), 1-2*(qx*qx+qy*qy)]])
+            C = -Rm.T @ t
+            res.append(float(np.linalg.norm(C[:2] - refs[name][:2])))
+    if res:
+        import numpy as np
+        print(f"ALIGN VALIDATION: {len(res)} cameras matched to refs; horizontal "
+              f"residual median {np.median(res):.2f} m, p90 {np.percentile(res, 90):.2f} m "
+              f"(consumer GPS: 1-3 m normal)", flush=True)
     vol.commit()
     return "aligned"
 
@@ -134,8 +166,8 @@ def align(model: str = "0", max_error: float = 3.0):
 @app.function(gpu="A10G", image=image, volumes={"/data": vol}, timeout=12 * 3600)
 def dense(max_image_size: int = 1600, model: str = "0_aligned"):
     """PatchMatch stereo + fusion on the ALIGNED sparse model -> fused.ply.
-    1600px (consensus speed/quality point); depth range clamped in real meters
-    (valid only because the model is metric post-align)."""
+    1600px (consensus speed/quality point); cache_size forces disk paging
+    instead of OOM (external-review recommendation for 917 imgs on 24GB)."""
     import os
     dense_dir = f"{WORK}/dense"
     os.makedirs(dense_dir, exist_ok=True)
@@ -146,11 +178,13 @@ def dense(max_image_size: int = 1600, model: str = "0_aligned"):
     )
     _run(
         f"colmap patch_match_stereo --workspace_path {dense_dir} "
-        f"--workspace_format COLMAP --PatchMatchStereo.geom_consistency true"
+        f"--workspace_format COLMAP --PatchMatchStereo.geom_consistency true "
+        f"--PatchMatchStereo.cache_size 16"
     )
     _run(
         f"colmap stereo_fusion --workspace_path {dense_dir} "
         f"--workspace_format COLMAP --input_type geometric "
+        f"--StereoFusion.cache_size 16 "
         f"--output_path {dense_dir}/fused.ply"
     )
     vol.commit()
