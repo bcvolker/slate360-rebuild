@@ -49,6 +49,17 @@ Data root: `C:\ASU-Survey` (never `.tmp`). Cloud: Modal app
    repair sheets): deck-field moisture detection w/ recipes, drain-halo radial
    profiles, EJ-line signatures, pattern layer + callouts + plain-language
    findings (replaces mockup placeholders). Sq-ft via drawing scale.
+   **SLOPE INTEGRATION (Brian 2026-07-16 — slope is an analysis input, not a
+   nuisance):** (a) per-pixel slope/aspect from the SMOOTHED DEM → every plume
+   gets a gravity cross-check (downslope-trailing = coherent; upslope = artifact
+   or pressurized source → flag); (b) ponding basins via depression filling →
+   the three-evidence overlay (predicted ponding ∩ thermal signature ∩ drain);
+   (c) as-built slope-direction map vs RDH H3/H4 negative-slope claims and vs
+   repair-sheet-3 designed slopes — whole-deck test of their point findings.
+   Framing rule: "photogrammetric relative topography" — slope DIRECTION and
+   basins at ≥0.5 m scale, never code-compliance slope certification (no GCPs).
+   Projection-wise slope is already handled (thermal projects through the DEM;
+   no flat-deck assumption exists anywhere in the pipeline).
 7. **Real viewer build P1** (parallel with 5-6): shell + MAP tab + wipe + hover
    + layers per THERMAL_LIVE_VIEWER_SPEC (incl. §3c source-frame inspector +
    pattern-layer wipe target, §6b shared-frame rules). P2: 3D/360/FIND tabs.
