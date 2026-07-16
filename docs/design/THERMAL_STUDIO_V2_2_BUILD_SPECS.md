@@ -443,6 +443,27 @@ review:
   audit (touch pan/zoom on panorama tiles, tap-for-temp instead of hover, swipe
   between slideshow frames) — the ASU-leadership demo happens on someone's phone.
 
+# Addendum AG (2026-07-15) — GPU photogrammetry worker DEPLOYED (the alignment unblock)
+
+Decision (Brian, after reviewing both maps): hand-rolled geometry has hit its
+ceiling; graduate to real photogrammetry. Grok supplied a COLMAP-on-Modal recipe
+(directionally right; several flag names corrected against real COLMAP, and the
+official colmap/colmap CUDA docker image replaces its source-build).
+**SHIPPED:** `workers/modal/photogrammetry/worker.py` — Modal app
+`slate360-photogrammetry` (A10G GPU), deployed. Three functions:
+- `sparse`: GPU SIFT (max 3200px) → spatial matcher (EXIF-GPS priors) +
+  sequential matcher (serpentine belt-and-suspenders, guided matching) → mapper →
+  model_analyzer registration report.
+- `dense`: image_undistorter (1800px) → PatchMatch stereo (geom consistency) →
+  stereo_fusion → fused.ply.
+- `ortho`: CPU rasterization of the fused cloud, top-down z-buffer → RGB
+  orthomosaic JPG + DEM npz at 3 cm GSD.
+Data: Modal volume `asu-rgb-flights`; all 4 RGB flight folders uploading
+(~6.5 GB). Pipeline after ortho exists: RGB ortho replaces the reference map;
+DEM → thermal orthorectification via paired MAX visuals (thermal and RGB
+registered BY CONSTRUCTION); DEM → slope/ponding layer; poses → splat input.
+Expected runtimes (A10G): sparse 1–2 h, dense 4–10 h, ortho minutes.
+
 # Addendum AF (2026-07-15) — RGB reference map SHIPPED (plane-rectified, winner-take-all)
 
 `deliverables/rgb_reference_map.jpg` (+ `rgb_reference_map_georef.npz`): full-site
