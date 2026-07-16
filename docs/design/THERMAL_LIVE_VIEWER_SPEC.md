@@ -97,6 +97,34 @@ stitched grid** (this is N4 made explicit, not a new concept):
   Brian's drawings/context arrive and the analysis pass runs — the viewer
   shell does not wait on this; Chapter B simply appears empty-then-populated.
 
+## 3c. Source-frame inspector + pattern layer (Brian's ideas, 2026-07-16 — adopted as first-class)
+
+Two additions that REDUCE dependence on stitch perfection rather than fighting it:
+
+- **Source-frame inspector (click-through to originals).** Every one of the 251
+  thermal frames has a known position; the map doubles as an INDEX. Click/tap
+  anywhere → the viewer opens the original sensor frame covering that point
+  (nearest-center), centered as close to the clicked spot as possible, in a
+  focused overlay: pristine unstitched radiometric data, its own hover temps,
+  frame metadata (range, capture time), prev/next through neighboring frames.
+  This is the ZERO-ARTIFACT detail layer — no stitch seam can ever appear in it,
+  and it is the evidentiary strongest view (each frame is an unmodified sensor
+  record). Standard DroneDeploy-class pattern (ortho + source-image inspector).
+  Demoed in VIEWER_MOCKUP.html v3 (3 sample frames as numbered map markers).
+- **Pattern layer as the wipe target (alternative to raw pano).** The analyzed
+  layer (Chapter B) can render as SMOOTH TINTED REGIONS on the RGB map — moisture-
+  consistent zones, drain halos, EJ-line signatures as soft color fields with
+  callouts — revealed by the wipe INSTEAD of (or alongside) the raw thermal
+  pixels. Key property: derived regions are far more TOLERANT of residual stitch
+  misalignment than raw pixel mosaics (a soft 2m-wide tinted plume reads
+  identically with a 0.3m registration error; a crisp pipe edge does not). The
+  wipe therefore offers selectable targets: RAW THERMAL | PATTERNS | (both).
+- Resulting layer architecture: RGB ortho (base) → raw thermal pano (evidence,
+  honest about imperfection) → pattern/analysis layer (presentation-robust) →
+  source-frame inspector (zero-artifact detail) → overlays (drawing/slope/pins).
+  The stitched panorama remains a deliverable, but it is no longer the single
+  point of presentation failure.
+
 ## 4. Visual language ("mission control", not glassmorphism)
 
 - Tokens (viewer-scoped CSS vars; fresh set, NOT the app's Graphite Glass):
