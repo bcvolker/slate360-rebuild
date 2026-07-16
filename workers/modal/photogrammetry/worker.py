@@ -110,9 +110,32 @@ def sparse(max_image_size: int = 3200, sequential_overlap: int = 20):
     return "sparse complete"
 
 
+@app.function(image=image, volumes={"/data": vol}, timeout=1800)
+def align(model: str = "0", max_error: float = 3.0):
+    """LOAD-BEARING STEP (multi-AI consensus): georegister the sparse model to
+    metric ENU at the THERMAL MOSAIC ORIGIN before any dense/ortho/splat work.
+    Refs are pre-converted ENU meters (gps_refs_enu.txt) -> ref_is_gps 0 +
+    alignment_type custom, so COLMAP XY == thermal-mosaic XY by construction."""
+    import os
+    src = f"{WORK}/sparse/{model}"
+    dst = f"{WORK}/sparse/{model}_aligned"
+    os.makedirs(dst, exist_ok=True)
+    _run(
+        f"colmap model_aligner --input_path {src} --output_path {dst} "
+        f"--ref_images_path /data/gps_refs_enu.txt --ref_is_gps 0 "
+        f"--alignment_type custom --alignment_max_error {max_error} "
+        f"--transform_path {WORK}/align_transform.txt"
+    )
+    _run(f"colmap model_analyzer --path {dst}")
+    vol.commit()
+    return "aligned"
+
+
 @app.function(gpu="A10G", image=image, volumes={"/data": vol}, timeout=12 * 3600)
-def dense(max_image_size: int = 1800, model: str = "0"):
-    """PatchMatch stereo + fusion on the sparse model -> fused.ply."""
+def dense(max_image_size: int = 1600, model: str = "0_aligned"):
+    """PatchMatch stereo + fusion on the ALIGNED sparse model -> fused.ply.
+    1600px (consensus speed/quality point); depth range clamped in real meters
+    (valid only because the model is metric post-align)."""
     import os
     dense_dir = f"{WORK}/dense"
     os.makedirs(dense_dir, exist_ok=True)
