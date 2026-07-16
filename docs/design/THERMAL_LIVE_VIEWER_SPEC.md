@@ -85,11 +85,18 @@ change.
   shadows, no pills, no emoji glyphs. Text over imagery gets a 1px dark stroke.
 - Motion: 180–280ms ease; 1:1 slider drag; one boot sweep on load; no ambient
   loops; `prefers-reduced-motion` respected.
-- **5-second story (landing):** boot line (0.5s) → RGB ortho fades in framed and
-  centered → thermal fades up to 60% → drain/EJ lines draw on → findings pins
-  stagger in → mono caption settles (`SUN DEVIL STADIUM · THERMAL SURVEY ·
-  2026-07-15 · 100FT AGL`). Static by ~2.5s. A "data pulse" teaching moment —
-  the viewer instantly knows there's hidden data and where to tap.
+- **5-second story (landing):** boot line (0.5s) **with Brian's Level III
+  insignia centered above it** (muted gold `#C9A227`, `public/branding/
+  level3-thermographer-insignia.svg`, fading in with the boot line) → as the RGB
+  ortho fades in, the insignia **shrinks and glides to the bottom-right corner,
+  settling as a persistent ~15–20% opacity watermark** → thermal fades up to 60%
+  → drain/EJ lines draw on → findings pins stagger in → mono caption settles
+  (`SUN DEVIL STADIUM · THERMAL SURVEY · 2026-07-15 · 100FT AGL`). Static by
+  ~2.5s. The insignia watermark remains on every canvas throughout the session
+  (pointer-events none, never over HUD corners), and **returns at full strength
+  in the RPT/sign-off chapter** beside the signature block. Signature image:
+  PENDING Brian's photo (I3/N2) — the block renders name + cert line until it
+  lands. `prefers-reduced-motion`: insignia appears in-corner directly, no glide.
 
 ## 5. Data contract — what feeds each chapter (formats + shareability)
 
