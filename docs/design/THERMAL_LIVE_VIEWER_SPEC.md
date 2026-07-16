@@ -71,6 +71,32 @@ animates to the finding's tuned view on select), contour plume callouts + trend
 chevrons, hypothesis panel chapter, Q&A. All register as layers/cards — no shell
 change.
 
+## 3b. The two thermal panoramas (locked requirement, Brian 2026-07-16)
+
+Every survey ships **two perfectly-aligned radiometric panoramas from the SAME
+stitched grid** (this is N4 made explicit, not a new concept):
+
+- **Chapter A — RAW.** Untuned, unscaled. Default palette = **Ironbow**, full
+  auto-span, no overlays. This is the untouched evidence record — what the
+  sensor actually saw, nothing adjusted. Always available, always first in
+  the wipe/toggle order.
+- **Chapter B — ANALYZED.** Palette/span/isotherm TUNED per-region (the
+  presentation-recipe mechanism, I2) specifically so pixel-color changes and
+  moisture-consistent blotching are VISIBLE — this is the whole point of
+  tuning: making a real 0.5–2°C signature actually readable instead of
+  drowned in full-scene span. Anomaly regions carry **callout markers**;
+  clicking/tapping a callout opens a short **plain-language finding** (2–3
+  sentences, evidentiary tone — "thermal pattern consistent with…") alongside
+  the numeric ΔT. Callouts DEEP-LINK to the FIND tab's full entry.
+- Both render from **one** underlying temperature grid — A and B are display
+  states of identical data, never two different stitches. The wipe-compare
+  interaction (§3) IS the A↔B comparison. Nothing in Chapter B exists in the
+  data that isn't in Chapter A; only the presentation differs.
+- Sequencing note (unchanged from the project plan): Chapter A ships as soon
+  as the aligned panorama exists. Chapter B's tuning/callouts populate once
+  Brian's drawings/context arrive and the analysis pass runs — the viewer
+  shell does not wait on this; Chapter B simply appears empty-then-populated.
+
 ## 4. Visual language ("mission control", not glassmorphism)
 
 - Tokens (viewer-scoped CSS vars; fresh set, NOT the app's Graphite Glass):
