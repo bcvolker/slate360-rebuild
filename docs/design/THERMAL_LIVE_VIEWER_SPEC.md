@@ -139,6 +139,33 @@ stitched grid** (this is N4 made explicit, not a new concept):
   the seal renders large). The corner WATERMARK state stays signature-free
   (illegible at that size; hurts both marks). Signature pending Brian's photo.
 
+## 6b. Mockup round-1 critique adoptions (2026-07-16) — HARD RULES for the real build
+
+Two external critiques of VIEWER_MOCKUP.html v1 converged on the same root bug and
+a fix list. Locked as build rules:
+
+- **ONE SHARED MAP FRAME (the root-cause rule):** every raster layer (RGB ortho,
+  thermal, overlays) must be pre-registered to ONE ENU extent + ONE pixel size
+  BEFORE reaching the browser — never rely on CSS to align differing aspects.
+  All layers render into a single `.mapFrame` element (identical rect); the wipe
+  clip, wipe handle, and hover/tap sampling all measure against that frame. The
+  ASU proof: ortho cropped to the thermal footprint numerically via the shared
+  georef (offset col 2942 / row 5327 at 3 cm — pixel-for-pixel, zero CSS tricks).
+- Wipe: full-height ~32px invisible hit strip (2px visible line), RGB/IR side
+  labels, double-click-to-jump, keyboard nudge (arrow keys) in the real build.
+- Temp readout: ONE readout (follow-cursor chip with edge-aware flipping), never
+  duplicated in the HUD; short copy (`72.3°F · 22.4°C`); tap-to-pin on touch.
+- Chrome discipline: sans-serif for prose, mono ONLY for data; gold reserved for
+  the insignia alone (findings/badges use neutral + teal ΔT); no dead/unwired
+  controls visible in any demo build; scale bar must be computed from GSD ×
+  displayed width (zoom-aware) or omitted — never decorative.
+- **Rejected from the critiques (Brian's locked calls stand):** the insignia boot
+  sequence and corner watermark STAY (critique called them theatrical/vanity —
+  overruled; they are Brian's explicit credibility requirements, clear-zone rule
+  applies). Boot shortened to ~0.9s.
+- Deferred to the real build (out of mockup scope): pan/zoom engine, fly-to on
+  finding click, mini-map, measure tool, custom sliders/eye-icon toggles.
+
 ## 7. Adopted from external review (Grok round, 2026-07-16)
 
 - **Authoring vs viewing:** the link is READ-ONLY by design. All authoring —
