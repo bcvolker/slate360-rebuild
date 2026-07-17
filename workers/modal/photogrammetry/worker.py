@@ -40,6 +40,8 @@ splat_image = (
                  index_url="https://download.pytorch.org/whl/cu121")
     .pip_install("numpy<2", "opencv-python-headless")
     .pip_install("gsplat==1.4.0")
+    # torch 2.1 cpp_extension imports pkg_resources, removed in setuptools>=70
+    .pip_install("setuptools==69.5.1")
     .env({"TORCH_CUDA_ARCH_LIST": "8.6"})
 )
 
@@ -269,6 +271,136 @@ def dense(max_image_size: int = 1600, model: str = "0_aligned"):
     )
     vol.commit()
     return "dense complete"
+
+
+@app.function(image=image, volumes={"/data": vol}, timeout=6 * 3600,
+              memory=49152, cpu=8)
+def ortho_hires(gsd_m: float = 0.02):
+    """TRUE orthophoto (DroneDeploy/Pix4D-class): every output pixel sampled
+    from the best-viewing ORIGINAL photo through the DEM (nadir-dominant
+    winner-take-all, no feather — round-4 external consensus). Replaces the
+    point-splat ortho for presentation. Same projection engine the thermal
+    pass reuses (exact overlay alignment by construction)."""
+    import os
+
+    import cv2
+    import numpy as np
+
+    dem_z = np.load(f"{WORK}/ortho/dem.npz")
+    DEM = dem_z["dem"].astype(np.float32)
+    DX0, DY1 = [float(v) for v in dem_z["origin"]]
+    DG = float(dem_z["gsd_m"])
+    DH, DW = DEM.shape
+
+    # output grid covers the same extent at gsd_m
+    OW = int(DW * DG / gsd_m)
+    OH = int(DH * DG / gsd_m)
+    print(f"output {OW}x{OH} @ {gsd_m*100:.0f}mm", flush=True)
+    xs = DX0 + (np.arange(OW, dtype=np.float32) + 0.5) * gsd_m
+    ys = DY1 - (np.arange(OH, dtype=np.float32) + 0.5) * gsd_m
+
+    # parse TXT model (aligned + MAX registered)
+    sparse = f"{WORK}/sparse/0_aligned_max"
+    cams = {}
+    for line in open(f"{sparse}/cameras.txt"):
+        if line.startswith("#"):
+            continue
+        p = line.split()
+        cams[int(p[0])] = {"model": p[1], "w": int(p[2]), "h": int(p[3]),
+                           "params": [float(v) for v in p[4:]]}
+    views = []
+    lines = [l for l in open(f"{sparse}/images.txt") if not l.startswith("#")]
+    for i in range(0, len(lines), 2):
+        p = lines[i].split()
+        if len(p) < 10:
+            continue
+        name = p[9]
+        if name.startswith("MAX_102/"):
+            continue  # RGB ortho: daylight mapping photos only
+        q = np.array([float(v) for v in p[1:5]])
+        t = np.array([float(v) for v in p[5:8]], np.float32)
+        w, x, y, z = q
+        R = np.array([
+            [1-2*(y*y+z*z), 2*(x*y-w*z), 2*(x*z+w*y)],
+            [2*(x*y+w*z), 1-2*(x*x+z*z), 2*(y*z-w*x)],
+            [2*(x*z-w*y), 2*(y*z+w*x), 1-2*(x*x+y*y)]], np.float32)
+        views.append({"R": R, "t": t, "cam": int(p[8]), "name": name,
+                      "C": (-R.T @ t)})
+    print(f"{len(views)} RGB views", flush=True)
+
+    best = np.zeros((OH, OW), np.float32)
+    out = np.zeros((OH, OW, 3), np.uint8)
+    ground_z = float(np.nanmedian(DEM))
+
+    for vi, v in enumerate(views):
+        c = cams[v["cam"]]
+        f, cx, cy, k = c["params"][:4]  # SIMPLE_RADIAL
+        R, t, C = v["R"], v["t"], v["C"]
+        # footprint bbox: corner rays onto the median ground plane
+        corners = np.array([[0, 0], [c["w"], 0], [0, c["h"]], [c["w"], c["h"]]],
+                           np.float32)
+        xn = (corners[:, 0] - cx) / f
+        yn = (corners[:, 1] - cy) / f
+        dirs = (R.T @ np.stack([xn, yn, np.ones(4, np.float32)])).T
+        s = (ground_z - C[2]) / dirs[:, 2]
+        gx = C[0] + s * dirs[:, 0]
+        gy = C[1] + s * dirs[:, 1]
+        M = 8.0
+        ca = np.clip(((min(gx.min(), C[0]) - M - DX0) / gsd_m), 0, OW-1).astype(int)
+        cb = np.clip(((max(gx.max(), C[0]) + M - DX0) / gsd_m), 0, OW-1).astype(int)
+        ra = np.clip(((DY1 - max(gy.max(), C[1]) - M) / gsd_m), 0, OH-1).astype(int)
+        rb = np.clip(((DY1 - (min(gy.min(), C[1]) - M)) / gsd_m), 0, OH-1).astype(int)
+        if cb - ca < 2 or rb - ra < 2:
+            continue
+        img = cv2.imread(f"{IMAGES}/{v['name']}")
+        if img is None:
+            continue
+        X, Y = np.meshgrid(xs[ca:cb], ys[ra:rb])
+        dc = np.clip(((X - DX0) / DG).astype(np.int32), 0, DW-1)
+        dr = np.clip(((DY1 - Y) / DG).astype(np.int32), 0, DH-1)
+        Z = DEM[dr, dc]
+        P = np.stack([X.ravel(), Y.ravel(),
+                      np.nan_to_num(Z, nan=ground_z).ravel()])
+        Xc = R @ P + t[:, None]
+        zc = Xc[2]
+        front = zc > 1.0
+        xn2 = Xc[0] / np.maximum(zc, 1e-6)
+        yn2 = Xc[1] / np.maximum(zc, 1e-6)
+        r2 = xn2*xn2 + yn2*yn2
+        d = 1.0 + k * r2
+        u = f * xn2 * d + cx
+        vv = f * yn2 * d + cy
+        inb = front & (u >= 0) & (u < c["w"]-1) & (vv >= 0) & (vv < c["h"]-1)
+        # score: nadirness^2 * center weight
+        dx = P[0] - C[0]; dy = P[1] - C[1]; dz = P[2] - C[2]
+        dist = np.sqrt(dx*dx + dy*dy + dz*dz) + 1e-6
+        nad = np.clip(-dz / dist, 0, 1) ** 2
+        ctr = np.clip(1.0 - 0.5*(((u-cx)/cx)**2 + ((vv-cy)/cy)**2), 0.05, 1)
+        sc = np.where(inb, nad * ctr, 0).astype(np.float32).reshape(X.shape)
+        cur = best[ra:rb, ca:cb]
+        win = sc > cur
+        if not win.any():
+            continue
+        ui = np.clip(u.astype(np.int32), 0, c["w"]-1).reshape(X.shape)
+        vi2 = np.clip(vv.astype(np.int32), 0, c["h"]-1).reshape(X.shape)
+        colors = img[vi2[win], ui[win]]
+        blk = out[ra:rb, ca:cb]
+        blk[win] = colors
+        out[ra:rb, ca:cb] = blk
+        cur[win] = sc[win]
+        best[ra:rb, ca:cb] = cur
+        if vi % 50 == 0:
+            print(f"[{vi}/{len(views)}] {v['name']} filled "
+                  f"{100.0*(best > 0).mean():.1f}%", flush=True)
+
+    os.makedirs(f"{WORK}/ortho_hires", exist_ok=True)
+    cv2.imwrite(f"{WORK}/ortho_hires/orthomosaic.jpg", out,
+                [cv2.IMWRITE_JPEG_QUALITY, 92])
+    np.savez_compressed(f"{WORK}/ortho_hires/meta.npz",
+                        origin=[DX0, DY1], gsd_m=gsd_m,
+                        coverage=float((best > 0).mean()))
+    vol.commit()
+    return f"ortho_hires complete: {OW}x{OH}, cover {(best>0).mean()*100:.1f}%"
 
 
 def _read_colmap_bin(sparse_dir):
