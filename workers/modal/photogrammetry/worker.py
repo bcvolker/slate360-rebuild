@@ -277,16 +277,23 @@ def ortho(gsd_m: float = 0.03):
         dem_filled = fill_lut[labels.ravel()].reshape(H, W)
         dem = np.where(hole, dem_filled, dem)
 
-    # RGB: inpaint small holes; leave giant no-coverage regions dark.
-    # Vectorized (a per-component `lbl == i` loop is O(n_lbl * H*W) and blew
-    # the 2h function timeout on the 11k x 11k canvas).
-    holes8 = hole.astype(np.uint8) * 255
-    n_lbl, lbl, stats, _ = cv2.connectedComponentsWithStats(holes8)
-    keep = stats[:, cv2.CC_STAT_AREA] <= 5000   # ~4.5 m^2 at 3cm
-    keep[0] = False                              # background label
-    small = (keep[lbl].astype(np.uint8)) * 255
-    if small.any():
-        img = cv2.inpaint(img, small, 7, cv2.INPAINT_TELEA)
+    # RGB fill: at 3cm GSD the cloud covers only ~15% of cells, so empty
+    # pixels are a CONNECTED speckle sea — component-size inpaint can't see
+    # them. Fill each empty cell from its nearest valid pixel (same LUT trick
+    # as the DEM), capped at 12 px (~36 cm) so true no-coverage stays dark.
+    if hole.any():
+        dist, labels = cv2.distanceTransformWithLabels(
+            hole.astype(np.uint8), cv2.DIST_L2, 5,
+            labelType=cv2.DIST_LABEL_PIXEL)
+        valid_idx = np.flatnonzero(~hole.ravel())
+        lab_of_valid = labels.ravel()[valid_idx]
+        rgb_lut = np.zeros((labels.max() + 1, 3), np.uint8)
+        rgb_lut[lab_of_valid] = img.reshape(-1, 3)[valid_idx]
+        filled = rgb_lut[labels.ravel()].reshape(H, W, 3)
+        near = hole & (dist <= 12)
+        img = np.where(near[..., None], filled, img)
+        # light median to knock down splat noise without smearing edges
+        img = cv2.medianBlur(img, 3)
     os.makedirs(f"{WORK}/ortho", exist_ok=True)
     cv2.imwrite(f"{WORK}/ortho/orthomosaic.jpg", img[:, :, ::-1], [cv2.IMWRITE_JPEG_QUALITY, 90])
     np.savez_compressed(f"{WORK}/ortho/dem.npz", dem=dem, gsd_m=gsd_m,
