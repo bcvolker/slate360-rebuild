@@ -60,7 +60,18 @@ Data root: `C:\ASU-Survey` (never `.tmp`). Cloud: Modal app
    basins at ≥0.5 m scale, never code-compliance slope certification (no GCPs).
    Projection-wise slope is already handled (thermal projects through the DEM;
    no flat-deck assumption exists anywhere in the pipeline).
-7. **Real viewer build P1 — PULLED FORWARD, STARTS NOW in parallel** (Brian
+7. **Real viewer build P1 — v1 SHIPPED 2026-07-16** (`C:\ASU-Survey\deliverables\
+   THERMAL_VIEWER_P1.html`, builders in `C:\ASU-Survey\viewer\build_assets_p1.py`
+   + `build_viewer_p1.py`). Working: pan/zoom engine (drag/wheel-to-cursor/
+   pinch/±/FIT/dblclick/keys), Compare|Blend exclusive modes, Chapter A raw
+   (full envelope −21..57°C) | B tuned (2-98 pctl 9.2–27.9°C, DEFAULT) with
+   recipe-disclosure chip, null-safe hover+tap temps, dynamic scale bar,
+   source-frame inspector, layer rail (drain layer stubbed PENDING), honest
+   findings empty-state + locked template preview, single-epoch banner, coach
+   marks, insignia v5 boot+watermark, mobile sheet+pinch. Unwired tabs hidden.
+   Verified headless (fit/zoom/wipe/hover/NO DATA/chapters/modes/inspector all
+   pass). Remaining in P1: Brian eye-pass; P2 wires 3D/360 when assets land.
+   Original scope note (Brian
    2026-07-16: build while waiting on processing to save time). P1 does NOT
    need the corrected panorama to begin: shell + MAP tab + wipe/blend modes +
    hover/tap temps + layers + finding cards build against the CURRENT assets
