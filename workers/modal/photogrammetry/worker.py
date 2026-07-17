@@ -28,6 +28,21 @@ image = (
 WORK = "/data/work"
 IMAGES = "/data/images"
 
+# Separate image for Gaussian-splat training. nerfstudio's build kept failing
+# (pyliblzfse/fpsample sdists), so we train with a custom gsplat loop instead —
+# torch + gsplat only (gsplat JIT-compiles CUDA at first use -> devel image).
+splat_image = (
+    modal.Image.from_registry("nvidia/cuda:12.1.1-devel-ubuntu22.04",
+                              add_python="3.11")
+    .apt_install("git", "libgl1", "libglib2.0-0", "build-essential", "ninja-build")
+    .run_commands("python -m pip install --upgrade pip setuptools wheel")
+    .pip_install("torch==2.1.2+cu121", "torchvision==0.16.2+cu121",
+                 index_url="https://download.pytorch.org/whl/cu121")
+    .pip_install("numpy<2", "opencv-python-headless")
+    .pip_install("gsplat==1.4.0")
+    .env({"TORCH_CUDA_ARCH_LIST": "8.6"})
+)
+
 
 @app.function(image=image, volumes={"/data": vol}, timeout=600)
 def fixup():
@@ -110,6 +125,52 @@ def sparse(max_image_size: int = 3200, sequential_overlap: int = 20):
         _run(f"colmap model_analyzer --path {model}")
     vol.commit()
     return "sparse complete"
+
+
+@app.function(gpu="A10G", image=image, volumes={"/data": vol}, timeout=8 * 3600)
+def register_max(model: str = "0_aligned"):
+    """Register the 251 pre-dawn MAX visible frames (/images/MAX_102) into the
+    existing aligned daytime model — full 6-DoF poses for the thermal rig.
+    Local windowed SIFT vs the ortho topped out at median 7 inliers
+    (pre-dawn vs daylight); COLMAP's guided matching against many model views
+    is the robust path. Output: sparse/{model}_max (BIN + TXT + poses report).
+    """
+    import glob
+    import os
+
+    db = f"{WORK}/database.db"
+    n = len(glob.glob(f"{IMAGES}/MAX_102/*.JPG"))
+    print(f"MAX frames on volume: {n}", flush=True)
+    if n < 10:
+        raise SystemExit("upload MAX_102 first")
+    # extractor skips images already in the DB; adds only the new folder
+    _run(
+        f"colmap feature_extractor --database_path {db} --image_path {IMAGES} "
+        f"--ImageReader.single_camera_per_folder 1 "
+        f"--FeatureExtraction.max_image_size 3200"
+    )
+    vol.commit()
+    _run(
+        f"colmap spatial_matcher --database_path {db} "
+        f"--FeatureMatching.guided_matching 1"
+    )
+    vol.commit()
+    src = f"{WORK}/sparse/{model}"
+    dst = f"{WORK}/sparse/{model}_max"
+    os.makedirs(dst, exist_ok=True)
+    _run(
+        f"colmap image_registrator --database_path {db} "
+        f"--input_path {src} --output_path {dst}"
+    )
+    _run(f"colmap model_analyzer --path {dst}")
+    _run(f"colmap model_converter --input_path {dst} --output_path {dst} "
+         f"--output_type TXT")
+    # count how many MAX frames made it in
+    with open(f"{dst}/images.txt", encoding="utf-8", errors="ignore") as f:
+        got = sum(1 for line in f if "MAX_102/" in line)
+    print(f"registered MAX frames: {got}/{n}", flush=True)
+    vol.commit()
+    return f"register_max complete: {got}/{n}"
 
 
 @app.function(gpu="A10G", image=image, volumes={"/data": vol}, timeout=10 * 3600)
@@ -208,6 +269,216 @@ def dense(max_image_size: int = 1600, model: str = "0_aligned"):
     )
     vol.commit()
     return "dense complete"
+
+
+def _read_colmap_bin(sparse_dir):
+    """Minimal COLMAP BIN readers (cameras/images/points3D) — no pycolmap
+    dependency, no API drift. Returns (cams, views, xyz, rgb)."""
+    import struct
+
+    import numpy as np
+
+    def read(f, fmt):
+        return struct.unpack(fmt, f.read(struct.calcsize(fmt)))
+
+    cams = {}
+    with open(f"{sparse_dir}/cameras.bin", "rb") as f:
+        (n,) = read(f, "<Q")
+        for _ in range(n):
+            cid, model, w, h = read(f, "<iiQQ")
+            n_params = {0: 3, 1: 4, 2: 4, 3: 5, 4: 8, 5: 8, 6: 12}[model]
+            params = read(f, "<" + "d" * n_params)
+            cams[cid] = {"model": model, "w": int(w), "h": int(h),
+                         "params": params}
+    views = []
+    with open(f"{sparse_dir}/images.bin", "rb") as f:
+        (n,) = read(f, "<Q")
+        for _ in range(n):
+            _iid, qw, qx, qy, qz, tx, ty, tz, cid = read(f, "<idddddddi")
+            name = b""
+            while True:
+                c = f.read(1)
+                if c == b"\x00":
+                    break
+                name += c
+            (n2d,) = read(f, "<Q")
+            f.seek(24 * n2d, 1)
+            views.append({"q": (qw, qx, qy, qz), "t": (tx, ty, tz),
+                          "cam": cid, "name": name.decode()})
+    pts, cols = [], []
+    with open(f"{sparse_dir}/points3D.bin", "rb") as f:
+        (n,) = read(f, "<Q")
+        for _ in range(n):
+            _pid, x, y, z, r, g, b, _err = read(f, "<QdddBBBd")
+            (tl,) = read(f, "<Q")
+            f.seek(8 * tl, 1)
+            pts.append((x, y, z))
+            cols.append((r, g, b))
+    return cams, views, np.array(pts, np.float32), np.array(cols, np.float32)
+
+
+@app.function(gpu="A10G", image=splat_image, volumes={"/data": vol},
+              timeout=12 * 3600)
+def splat(iters: int = 30000, sh_degree: int = 2, init_cap: int = 1200000):
+    """Custom gsplat 3DGS training on the dense workspace (undistorted PINHOLE
+    cameras + 1600px images). NO pose normalization — the splat stays in the
+    metric ENU frame shared with ortho/DEM/thermal. Exports 3DGS-format
+    {WORK}/splat/scene.ply."""
+    import math
+    import os
+    import random
+
+    import cv2
+    import numpy as np
+    import torch
+    import torch.nn.functional as F
+    from gsplat import rasterization
+    from gsplat.strategy import DefaultStrategy
+
+    dev = "cuda"
+    sparse_dir = f"{WORK}/dense/sparse"
+    img_dir = f"{WORK}/dense/images"
+    cams, views, xyz, rgb = _read_colmap_bin(sparse_dir)
+    print(f"{len(views)} views, {len(xyz)} init points", flush=True)
+
+    def qvec2rot(q):
+        w, x, y, z = q
+        return np.array([
+            [1 - 2 * (y * y + z * z), 2 * (x * y - w * z), 2 * (x * z + w * y)],
+            [2 * (x * y + w * z), 1 - 2 * (x * x + z * z), 2 * (y * z - w * x)],
+            [2 * (x * z - w * y), 2 * (y * z + w * x), 1 - 2 * (x * x + y * y)],
+        ], np.float32)
+
+    viewmats, Ks, paths, sizes, centers = [], [], [], [], []
+    for v in views:
+        c = cams[v["cam"]]
+        fx, fy, cx, cy = c["params"][:4]  # PINHOLE from image_undistorter
+        R = qvec2rot(v["q"])
+        t = np.array(v["t"], np.float32)
+        M = np.eye(4, dtype=np.float32)
+        M[:3, :3] = R
+        M[:3, 3] = t
+        viewmats.append(M)
+        Ks.append(np.array([[fx, 0, cx], [0, fy, cy], [0, 0, 1]], np.float32))
+        paths.append(os.path.join(img_dir, v["name"]))
+        sizes.append((c["w"], c["h"]))
+        centers.append(-R.T @ t)
+    centers = np.stack(centers)
+    scene_scale = float(np.median(np.linalg.norm(
+        centers - centers.mean(0), axis=1))) * 1.1
+    print(f"scene scale {scene_scale:.1f} m", flush=True)
+
+    if len(xyz) > init_cap:
+        sel = np.random.default_rng(0).choice(len(xyz), init_cap, replace=False)
+        xyz, rgb = xyz[sel], rgb[sel]
+    N = len(xyz)
+    means = torch.tensor(xyz, device=dev)
+    # init scale = log(mean 3-NN distance) approximated by local density
+    d2 = torch.cdist(means[:4096], means[:4096])
+    d2.fill_diagonal_(1e9)
+    est = d2.topk(3, largest=False).values.mean().item()
+    scales = torch.log(torch.full((N, 3), max(est, 0.02), device=dev))
+    quats = torch.zeros((N, 4), device=dev)
+    quats[:, 0] = 1
+    opac = torch.logit(torch.full((N,), 0.1, device=dev))
+    sh0 = ((torch.tensor(rgb, device=dev) / 255.0 - 0.5) / 0.28209).unsqueeze(1)
+    shN = torch.zeros((N, (sh_degree + 1) ** 2 - 1, 3), device=dev)
+
+    params = torch.nn.ParameterDict({
+        "means": torch.nn.Parameter(means),
+        "scales": torch.nn.Parameter(scales),
+        "quats": torch.nn.Parameter(quats),
+        "opacities": torch.nn.Parameter(opac),
+        "sh0": torch.nn.Parameter(sh0),
+        "shN": torch.nn.Parameter(shN),
+    }).to(dev)
+    lrs = {"means": 1.6e-4 * scene_scale, "scales": 5e-3, "quats": 1e-3,
+           "opacities": 5e-2, "sh0": 2.5e-3, "shN": 2.5e-3 / 20}
+    opts = {k: torch.optim.Adam([params[k]], lr=lrs[k], eps=1e-15)
+            for k in params}
+    strategy = DefaultStrategy(verbose=False)
+    strategy.check_sanity(params, opts)
+    state = strategy.initialize_state(scene_scale=scene_scale)
+
+    def ssim(a, b):  # dependency-free SSIM (11x11 gaussian window)
+        g = torch.tensor(cv2.getGaussianKernel(11, 1.5), dtype=torch.float32,
+                         device=dev).float()
+        win = (g @ g.T).expand(3, 1, 11, 11)
+        mu1 = F.conv2d(a, win, padding=5, groups=3)
+        mu2 = F.conv2d(b, win, padding=5, groups=3)
+        s1 = F.conv2d(a * a, win, padding=5, groups=3) - mu1 ** 2
+        s2 = F.conv2d(b * b, win, padding=5, groups=3) - mu2 ** 2
+        s12 = F.conv2d(a * b, win, padding=5, groups=3) - mu1 * mu2
+        c1, c2 = 0.01 ** 2, 0.03 ** 2
+        return (((2 * mu1 * mu2 + c1) * (2 * s12 + c2))
+                / ((mu1 ** 2 + mu2 ** 2 + c1) * (s1 + s2 + c2))).mean()
+
+    order = list(range(len(views)))
+    random.seed(0)
+    for step in range(iters):
+        i = order[step % len(order)]
+        if step % len(order) == 0:
+            random.shuffle(order)
+        img = cv2.imread(paths[i])
+        if img is None:
+            continue
+        gt = torch.tensor(img[:, :, ::-1].copy(), dtype=torch.float32,
+                          device=dev) / 255.0
+        H_, W_ = gt.shape[:2]
+        vm = torch.tensor(viewmats[i], device=dev)[None]
+        K = torch.tensor(Ks[i], device=dev)[None]
+        deg = min(step // 2000, sh_degree)
+        colors = torch.cat([params["sh0"], params["shN"]], 1)
+        render, _alpha, info = rasterization(
+            params["means"], params["quats"] / params["quats"].norm(
+                dim=-1, keepdim=True),
+            torch.exp(params["scales"]), torch.sigmoid(params["opacities"]),
+            colors, vm, K, W_, H_, sh_degree=deg, packed=False,
+            absgrad=True)
+        strategy.step_pre_backward(params, opts, state, step, info)
+        pred = render[0].clamp(0, 1)
+        l1 = (pred - gt).abs().mean()
+        loss = 0.8 * l1 + 0.2 * (1 - ssim(
+            pred.permute(2, 0, 1)[None], gt.permute(2, 0, 1)[None]))
+        loss.backward()
+        strategy.step_post_backward(params, opts, state, step, info,
+                                    packed=False)
+        for o in opts.values():
+            o.step()
+            o.zero_grad(set_to_none=True)
+        if step % 500 == 0:
+            print(f"[{step}/{iters}] loss {loss.item():.4f} "
+                  f"gaussians {len(params['means'])}", flush=True)
+        if step % 5000 == 4999:
+            vol.commit()
+
+    # export 3DGS-format PLY
+    os.makedirs(f"{WORK}/splat", exist_ok=True)
+    with torch.no_grad():
+        m = params["means"].cpu().numpy()
+        s = params["scales"].cpu().numpy()
+        q = params["quats"].cpu().numpy()
+        o = params["opacities"].cpu().numpy()
+        c0 = params["sh0"].cpu().numpy().reshape(len(m), -1)
+        cN = params["shN"].cpu().numpy().transpose(0, 2, 1).reshape(len(m), -1)
+    n = len(m)
+    props = (["x", "y", "z", "nx", "ny", "nz"]
+             + [f"f_dc_{i}" for i in range(3)]
+             + [f"f_rest_{i}" for i in range(cN.shape[1])]
+             + ["opacity"] + [f"scale_{i}" for i in range(3)]
+             + [f"rot_{i}" for i in range(4)])
+    header = ("ply\nformat binary_little_endian 1.0\n"
+              f"element vertex {n}\n"
+              + "".join(f"property float {p}\n" for p in props)
+              + "end_header\n")
+    data = np.hstack([m, np.zeros((n, 3), np.float32), c0, cN,
+                      o[:, None], s, q]).astype(np.float32)
+    with open(f"{WORK}/splat/scene.ply", "wb") as f:
+        f.write(header.encode())
+        f.write(data.tobytes())
+    vol.commit()
+    print(f"exported {n} gaussians -> {WORK}/splat/scene.ply", flush=True)
+    return f"splat complete: {n} gaussians"
 
 
 @app.function(image=image, volumes={"/data": vol}, timeout=4 * 3600, memory=32768)
