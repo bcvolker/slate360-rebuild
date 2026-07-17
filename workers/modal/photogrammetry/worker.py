@@ -275,7 +275,18 @@ def dense(max_image_size: int = 1600, model: str = "0_aligned"):
 
 @app.function(image=image, volumes={"/data": vol}, timeout=6 * 3600,
               memory=49152, cpu=8)
-def ortho_hires(gsd_m: float = 0.02):
+def ortho_deck_1cm():
+    """Deck-only true ortho at 1cm (deck crop ENU bounds + 6m margin) —
+    DroneDeploy-parity zoom detail where the survey subject lives."""
+    return ortho_hires.local(gsd_m=0.01, x_min=-73.0, x_max=61.0,
+                             y_min=-76.0, y_max=17.5, out_name="ortho_deck_1cm")
+
+
+@app.function(image=image, volumes={"/data": vol}, timeout=6 * 3600,
+              memory=49152, cpu=8)
+def ortho_hires(gsd_m: float = 0.02, x_min: float = None, x_max: float = None,
+                y_min: float = None, y_max: float = None,
+                out_name: str = "ortho_hires"):
     """TRUE orthophoto (DroneDeploy/Pix4D-class): every output pixel sampled
     from the best-viewing ORIGINAL photo through the DEM (nadir-dominant
     winner-take-all, no feather — round-4 external consensus). Replaces the
@@ -292,12 +303,16 @@ def ortho_hires(gsd_m: float = 0.02):
     DG = float(dem_z["gsd_m"])
     DH, DW = DEM.shape
 
-    # output grid covers the same extent at gsd_m
-    OW = int(DW * DG / gsd_m)
-    OH = int(DH * DG / gsd_m)
-    print(f"output {OW}x{OH} @ {gsd_m*100:.0f}mm", flush=True)
-    xs = DX0 + (np.arange(OW, dtype=np.float32) + 0.5) * gsd_m
-    ys = DY1 - (np.arange(OH, dtype=np.float32) + 0.5) * gsd_m
+    # output grid: full DEM extent by default, or the requested ENU window
+    ox0 = DX0 if x_min is None else max(DX0, x_min)
+    oy1 = DY1 if y_max is None else min(DY1, y_max)
+    ox1 = (DX0 + DW * DG) if x_max is None else min(DX0 + DW * DG, x_max)
+    oy0 = (DY1 - DH * DG) if y_min is None else max(DY1 - DH * DG, y_min)
+    OW = int((ox1 - ox0) / gsd_m)
+    OH = int((oy1 - oy0) / gsd_m)
+    print(f"output {OW}x{OH} @ {gsd_m*1000:.0f}mm", flush=True)
+    xs = ox0 + (np.arange(OW, dtype=np.float32) + 0.5) * gsd_m
+    ys = oy1 - (np.arange(OH, dtype=np.float32) + 0.5) * gsd_m
 
     # parse TXT model (aligned + MAX registered)
     sparse = f"{WORK}/sparse/0_aligned_max"
@@ -363,10 +378,10 @@ def ortho_hires(gsd_m: float = 0.02):
         gx = C[0] + s * dirs[:, 0]
         gy = C[1] + s * dirs[:, 1]
         M = 8.0
-        ca = np.clip(((min(gx.min(), C[0]) - M - DX0) / gsd_m), 0, OW-1).astype(int)
-        cb = np.clip(((max(gx.max(), C[0]) + M - DX0) / gsd_m), 0, OW-1).astype(int)
-        ra = np.clip(((DY1 - max(gy.max(), C[1]) - M) / gsd_m), 0, OH-1).astype(int)
-        rb = np.clip(((DY1 - (min(gy.min(), C[1]) - M)) / gsd_m), 0, OH-1).astype(int)
+        ca = np.clip(((min(gx.min(), C[0]) - M - ox0) / gsd_m), 0, OW-1).astype(int)
+        cb = np.clip(((max(gx.max(), C[0]) + M - ox0) / gsd_m), 0, OW-1).astype(int)
+        ra = np.clip(((oy1 - max(gy.max(), C[1]) - M) / gsd_m), 0, OH-1).astype(int)
+        rb = np.clip(((oy1 - (min(gy.min(), C[1]) - M)) / gsd_m), 0, OH-1).astype(int)
         if cb - ca < 2 or rb - ra < 2:
             continue
         img = cv2.imread(f"{IMAGES}/{v['name']}")
@@ -411,11 +426,11 @@ def ortho_hires(gsd_m: float = 0.02):
             print(f"[{vi}/{len(views)}] {v['name']} filled "
                   f"{100.0*(best > 0).mean():.1f}%", flush=True)
 
-    os.makedirs(f"{WORK}/ortho_hires", exist_ok=True)
-    cv2.imwrite(f"{WORK}/ortho_hires/orthomosaic.jpg", out,
+    os.makedirs(f"{WORK}/{out_name}", exist_ok=True)
+    cv2.imwrite(f"{WORK}/{out_name}/orthomosaic.jpg", out,
                 [cv2.IMWRITE_JPEG_QUALITY, 92])
-    np.savez_compressed(f"{WORK}/ortho_hires/meta.npz",
-                        origin=[DX0, DY1], gsd_m=gsd_m,
+    np.savez_compressed(f"{WORK}/{out_name}/meta.npz",
+                        origin=[ox0, oy1], gsd_m=gsd_m,
                         coverage=float((best > 0).mean()))
     vol.commit()
     return f"ortho_hires complete: {OW}x{OH}, cover {(best>0).mean()*100:.1f}%"
