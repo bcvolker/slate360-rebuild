@@ -227,6 +227,31 @@ gate = 25-40 stratified deck ties, target RMSE ≤10cm / ship ≤20cm / fail >35
 joint-width ("average agreement ~X cm, about the width of an expansion joint"),
 source frames as verification path; NEVER "perfectly aligned"/"survey grade".
 
+**P1.6 (07-17, Brian round + round-7 consensus):** TILE PYRAMID SHIPPED (the
+real zoom-sharpness fix — unanimous: single flat JPEGs always zoom soft):
+viewer\make_tiles.py → deliverables\tiles\L{z}\{x}_{y}.jpg (512px, 3 levels
+@2cm now; L3 appends when ortho_deck_1cm lands), viewer loads via relative
+<img> (file://-safe, graceful fallback to embedded base if tiles folder
+missing — HTML must stay NEXT TO tiles\). Thermal embedded at native 4045px.
+Tabs split per Brian: 3D = splat (restored default), TERRAIN = coverage mesh
+(separate tab; both to be improved). Right rail simplified to 3 sections
+(Compare / Layers / Findings; example card + verbose captions removed).
+Insignia+SIGNATURE moved to LEFT rail bottom (98px rail, 74px seal, signature
+across lower half, click → enlarged modal w/ cert caption). Builder chain:
+build_viewer_p6.py.
+**Round-7 astonish-layer triage (adopt order after tiles+mesh+drains):**
+(1) Briefing auto-play (unanimous #1), (2) Evidence drawer per finding,
+(3) A↔B truth flicker ("colors change, data doesn't"), (4) wet/dry timeline
+stub (already partially shipped as note), (5) follow-the-water gravity trace
+(MUST label "illustration, not measured flow"), (6) repair-scope ft²×scenario
+ranges ("not a bid" disclaimer), (7) RDH claim scoreboard (collaborative
+wording), (8) decision pins + Monday-morning one-pager export, (9) confounder
+toggle + falsification panel (honesty-raising). REJECTED: fake moisture %,
+single-number cost, fear timelines, sonification, VR. Standing gates from
+round 7: sharpness gate (EJ crisp at 4×), cache-bust asset names when hosted,
+Coverage texture must share the tile source with 2D, overlays unlock on
+tiles+mesh (NOT on splat retrain).
+
 ### P-D: 360 tab (P2)
 8 equirect spheres → pannellum-style WebGL viewer or three.js sphere; pin
 sphere positions on the map (GPS from EXIF if present, else Brian places);
