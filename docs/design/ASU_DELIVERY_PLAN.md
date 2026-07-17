@@ -27,7 +27,17 @@ Data root: `C:\ASU-Survey` (never `.tmp`). Cloud: Modal app
    median. Deck black-void 59% (v1) → 0.04% (v3); deck features crisp.
    `colmap_rgb_orthomosaic_v3.jpg` + `dem_v3.npz` in deliverables; swapped
    into viewer P1 assets.
-2. **Thermal poses — deck-optimized** (the key step, ~1 day):
+2. **DONE 2026-07-17: thermal poses + rig + REGISTERED PANORAMA SHIPPED.**
+   image_registrator: 229/251 MAX 6-DoF poses. Rig IRX→MAX solved via
+   template-init + gradient-ECC (scale 3.12, centered; visually verified,
+   qc_rig_*.jpg). tools\paint_registered_panorama.py projects every frame
+   through dem_v3 into the ortho 3cm grid, per-pixel median of ~10 overlaps
+   (66M samples) → panorama_registered.npz → viewer chapters + hover grid.
+   Wipe QC (qc_wipe_*.jpg): deck features coincide; roofs show expected
+   parallax ghosting (deck-first rule tolerates). TRUE-ORTHO also shipped
+   (ortho_hires_v2.jpg, 2cm, gain-compensated, deck void 0.16%) and is the
+   viewer base map. AWAITING Brian's swipe verdict + formal tie-point RMSE.
+   Original plan (superseded):
    a. Primary: 2D-match each paired MAX visible against the finished ortho
       (nadir-vs-nadir; the deck's flatness makes this well-conditioned) → pose
       from homography + known altitude.
