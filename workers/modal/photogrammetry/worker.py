@@ -332,6 +332,23 @@ def ortho_hires(gsd_m: float = 0.02):
     out = np.zeros((OH, OW, 3), np.uint8)
     ground_z = float(np.nanmedian(DEM))
 
+    # PASS 1 — per-image gain compensation (round-5 consensus): median
+    # luminance of each photo's central region; normalize to the global
+    # median before compositing. Kills the exposure quilt from the
+    # pre-dawn->sunrise brightness drift across the mission.
+    meds = np.zeros(len(views), np.float32)
+    for vi, v in enumerate(views):
+        img = cv2.imread(f"{IMAGES}/{v['name']}", cv2.IMREAD_GRAYSCALE)
+        if img is None:
+            continue
+        h2, w2 = img.shape
+        meds[vi] = np.median(img[h2//4:3*h2//4:8, w2//4:3*w2//4:8])
+    target = float(np.median(meds[meds > 0]))
+    gains = np.where(meds > 0, np.clip(target / np.maximum(meds, 1), 0.6, 1.7),
+                     1.0)
+    print(f"gain-comp: target {target:.0f}, gains {gains.min():.2f}.."
+          f"{gains.max():.2f}", flush=True)
+
     for vi, v in enumerate(views):
         c = cams[v["cam"]]
         f, cx, cy, k = c["params"][:4]  # SIMPLE_RADIAL
@@ -383,7 +400,8 @@ def ortho_hires(gsd_m: float = 0.02):
             continue
         ui = np.clip(u.astype(np.int32), 0, c["w"]-1).reshape(X.shape)
         vi2 = np.clip(vv.astype(np.int32), 0, c["h"]-1).reshape(X.shape)
-        colors = img[vi2[win], ui[win]]
+        colors = np.clip(img[vi2[win], ui[win]].astype(np.float32)
+                         * gains[vi], 0, 255).astype(np.uint8)
         blk = out[ra:rb, ca:cb]
         blk[win] = colors
         out[ra:rb, ca:cb] = blk
