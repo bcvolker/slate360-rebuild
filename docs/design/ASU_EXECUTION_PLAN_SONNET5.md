@@ -211,6 +211,22 @@ framing: aerial fly-around. GATE: Brian checks sizing, navigation, zoom-to-area.
 If nerfstudio image build keeps failing, fall back to `gsplat` simple trainer
 (write ~200-line trainer) or OpenSplat (has prebuilt binaries + COLMAP input).
 
+**Round-5 consensus ADOPTED (07-17):** splat retrain later w/ floater control AT
+TRAINING TIME (sky handling + opacity/scale reg + absgrad; data_factor 2-3) so
+the DEM gate can tighten to −1.5/+1.0m; pruning = view-accumulated contribution
++ spatial stratification (top-k per ENU cell), DEM as hard mask not ranker;
+web target 1.5-3M gaussians via chunked streaming (.ksplat/LOD, progressive
+coarse→fine), 800k stays the single-file/mobile ceiling; HYBRID 3D = textured
+mesh "COVERAGE" mode (Open3D Poisson + texture bake preferred over AGPL paths)
++ splat "PHOTOREAL" mode, composited mesh-depth-first (mesh depthWrite +
+splat depthTest, never dual-transparent); ortho seams = per-image gain comp
+(log-domain LSQ on overlaps) BEFORE winner-take-all, graph-cut only if quilt
+remains; occlusion = grazing-angle reject >~50° for deck pixels; thermal QC
+gate = 25-40 stratified deck ties, target RMSE ≤10cm / ship ≤20cm / fail >35cm
++ zero visible EJ/drain discontinuity at 4x wipe; client language = inches/
+joint-width ("average agreement ~X cm, about the width of an expansion joint"),
+source frames as verification path; NEVER "perfectly aligned"/"survey grade".
+
 ### P-D: 360 tab (P2)
 8 equirect spheres → pannellum-style WebGL viewer or three.js sphere; pin
 sphere positions on the map (GPS from EXIF if present, else Brian places);
