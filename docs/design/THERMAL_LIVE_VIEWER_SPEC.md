@@ -125,6 +125,28 @@ Two additions that REDUCE dependence on stitch perfection rather than fighting i
   The stitched panorama remains a deliverable, but it is no longer the single
   point of presentation failure.
 
+## 3d. 3D anomaly overlay — settled implementation (external consensus, 2026-07-16)
+
+Two independent reviews converged; locked before build:
+- **The splat asset is NEVER mutated.** Analysis regions render as a separate
+  **coarse DEM-draped mesh** (~1–2 m faces, ≤50k tris for mobile, clipped to the
+  deck mask so patches never paint empty air) carrying the SAME region GeoJSON
+  that drives the 2D pattern layer — one source of truth, two renderers.
+- **Depth recipe:** overlay mesh `depthTest:true, depthWrite:false,
+  renderOrder after splat, polygonOffset(-1,-1)` + a 5–15 cm lift along up-axis;
+  if transparent-vs-splat sorting misbehaves, use the opaque depth-proxy trick
+  (invisible colorWrite:false depthWrite:true DEM copy first). Enable the splat
+  renderer's depth-writing mode where available.
+- **Callouts = CSS2D/DOM billboards** anchored at region centroid + ~1.5 m —
+  never WebGL geometry (no depth fights, always crisp/clickable). Matches the
+  Polycam/Luma/Teleport annotation pattern.
+- **Frame caveat (will bite if ignored):** overlay + labels must be built in (or
+  transformed into) the SPLAT'S local frame — if the splat ships with a
+  recentering/correction transform in its manifest, the overlay group applies
+  the same transform. Never mix raw-ENU overlay with a recentered splat.
+- Tinting gaussians directly is rejected for analysis layers (slow, untoggleable,
+  bakes analysis into the asset — violates the display-layer law).
+
 ## 4. Visual language ("mission control", not glassmorphism)
 
 - Tokens (viewer-scoped CSS vars; fresh set, NOT the app's Graphite Glass):
