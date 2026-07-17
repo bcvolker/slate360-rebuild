@@ -216,6 +216,66 @@ a fix list. Locked as build rules:
 - Deferred to the real build (out of mockup scope): pan/zoom engine, fly-to on
   finding click, mini-map, measure tool, custom sliders/eye-icon toggles.
 
+## 6c. Round-2 critique adoptions (2026-07-16) — BUILD RULES for viewer P1
+
+Brian's framing governs: NOT a forced narrative — easy to understand at a high
+level, deeply interactive, hard data one tap away, visually impressive and
+innovative. The critique's fixes are adopted in service of that, not of
+"storytelling" per se.
+
+**Landing (blocker fixes):**
+- First open = the interactive map with **Chapter B / pattern presentation ON**
+  (tight-span recipe view) — never full-span raw as the only thermal view (a
+  moisture case is invisible at full span; Addendum AB proved this). "Show raw
+  sensor record (A)" is a one-tap credibility toggle.
+- One-line context header under the topbar (evidentiary phrasing + "RDH remains
+  engineer of record") + a prominent **"2-min briefing" button** that runs the
+  auto-tour for people who want to be walked through — OPTIONAL, never forced.
+- 3 dismissible coach marks max (Wipe · Open a finding · Inspect source frame).
+
+**Evidence honesty (locked template — cards cannot ship otherwise):**
+- Finding card = Title · **ΔT vs a NAMED local reference** (e.g. "+1.4°C vs 3 m
+  annular reference, σ=0.3") / Observation (pattern) / Interpretation ("Level
+  III: consistent with…") / Not established / Suggested next step. BANNED words
+  in findings: confirmed, caused by, leaking, failed, defective.
+- Pattern layer legend is MANDATORY whenever the layer is on: "Display layer —
+  thermal patterns consistent with retained heat/moisture. Not a moisture map.
+  Not leak confirmation." Severity = opacity/outline weight, never red=wet;
+  dashed/hatched region styling, not solid hazard fills.
+- **Recipe disclosure chip** whenever an enhanced view is active: "Presentation
+  span 18.2–21.6°C (local). Underlying data unchanged — tap for raw."
+- Single-epoch banner until the differential flight exists.
+- Persistent EOR/scope line (topbar/status rail, not dismissible).
+
+**Per-finding evidence stack (the "hard data accessible" requirement):**
+each finding card links its full stack — recipe used, reference stats, area in
+sq ft, slope/gravity check result, radial or line profile thumbnail, RDH-claim
+chip (Supports/Neutral/Conflicts), and ONE-TAP to the source frame(s). All
+static JSON + pre-rendered thumbnails; no live compute.
+
+**Layers/IA:**
+- Three-evidence intersection layer (thermal ∩ ponding ∩ drain) = first-class.
+- Sq-ft rollup strip on the map when Patterns is on.
+- Wipe and opacity become exclusive MODES: Compare (wipe) | Blend (opacity).
+- Findings pins and source-frame access get DISTINCT affordances (pins/callouts
+  vs long-press-anywhere or an "inspect" mode — never two numbered systems).
+- FIND tab demoted: findings live on the map + rail; the tab becomes the full
+  list/filter view. Spatial tabs = MAP/3D/360/RPT.
+- Unwired tabs are HIDDEN until their assets exist — no dead chrome, ever.
+- Mobile bottom tab bar is mandatory before any phone demo (mockup gap).
+
+**Chrome/style tuning:**
+- Watermark: reduce toward ~64–90px @ 8–15%, hide <430px (clear-zone escape) —
+  final size/opacity = Brian's visual call; the seal must never read as a
+  sticker on the evidence. Boot mark stays large.
+- Gold = insignia ONLY (no gold badges/banners anywhere else).
+- One title location (topbar); canvas caption removed. Scale bar computed from
+  GSD × zoom or omitted. No dead JS references.
+
+**Rejected/adjusted:** "story arc as the organizing principle" — adjusted per
+Brian to "high-level clarity + optional briefing"; the map remains the landing,
+evidence-forward, with the tour one tap away.
+
 ## 7. Adopted from external review (Grok round, 2026-07-16)
 
 - **Authoring vs viewing:** the link is READ-ONLY by design. All authoring —

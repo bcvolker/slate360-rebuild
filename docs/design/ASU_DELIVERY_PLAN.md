@@ -60,9 +60,19 @@ Data root: `C:\ASU-Survey` (never `.tmp`). Cloud: Modal app
    basins at ≥0.5 m scale, never code-compliance slope certification (no GCPs).
    Projection-wise slope is already handled (thermal projects through the DEM;
    no flat-deck assumption exists anywhere in the pipeline).
-7. **Real viewer build P1** (parallel with 5-6): shell + MAP tab + wipe + hover
-   + layers per THERMAL_LIVE_VIEWER_SPEC (incl. §3c source-frame inspector +
-   pattern-layer wipe target, §6b shared-frame rules). P2: 3D/360/FIND tabs.
+7. **Real viewer build P1 — PULLED FORWARD, STARTS NOW in parallel** (Brian
+   2026-07-16: build while waiting on processing to save time). P1 does NOT
+   need the corrected panorama to begin: shell + MAP tab + wipe/blend modes +
+   hover/tap temps + layers + finding cards build against the CURRENT assets
+   (COLMAP ortho + v5 thermal + temp grid, already georef-matched); the
+   corrected pano and real findings swap in as data files when ready — that is
+   the whole point of the config-driven design. Build to
+   THERMAL_LIVE_VIEWER_SPEC §§1-3d, 6b, **6c (round-2 rules: Chapter-B-default
+   landing, locked finding-card template + banned words, recipe disclosure,
+   pattern legend, evidence stack, three-evidence layer, exclusive
+   Compare/Blend modes, distinct pin affordances, hidden unwired tabs, mobile
+   bottom tabs, coach marks, sq-ft strip, single-epoch banner)**. P2 wires
+   3D/360 tabs when splat/spheres assets land.
 8. **PDF + branding**: signature photo still pending from Brian; insignia done.
 
 ## Standing gates
