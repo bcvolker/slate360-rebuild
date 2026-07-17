@@ -182,7 +182,25 @@ Brian. Only accepted drains ship. Wire into viewer drain layer (already
 stubbed in the rail) + drain-halo ΔT readouts per architect H6 (~4ft radius
 hypothesis).
 
-### P-C: 3D tab — Gaussian splat (training queued)
+### P-C: 3D tab — SHIPPED v1 (2026-07-17 early AM)
+Training DONE (30k iters, loss ~0.06, 8.54M gaussians, `/work/splat/scene.ply`
+= 1.4GB, local copy deliverables\splat_scene.ply). Web pipeline:
+`viewer\convert_splat.py` prunes to ~800k via **DEM-surface filter** (keep
+only gaussians within [-4,+3] m of dem_v3 at their (x,y) — 5.4M of 7.7M
+in-bounds gaussians were mid-air floater fog; flat z-caps CANNOT separate
+floaters from rooftops) + opacity/scale gates + deck-priority ranking →
+25.6MB .splat (antimatter15 32B format). Renderer: self-contained WebGL1
+instanced splatting in build_viewer_p5.py — EWA covariance (J·WΣWᵀ·Jᵀ; the
+transposes MATTER, J·M·J renders black), **AA opacity compensation
+sqrt(det0/det1) for the +0.3px dilation** (without it sub-pixel splats stack
+into white fog at zoom-out), 16-bit counting sort back-to-front on view
+change, orbit/pan/dolly + pinch. QC renders via a localhost PUT server
+(viewer\put_server.py) since page screenshots time out. HTML now ~54MB —
+desktop OK, REINFORCES the hosted-tiles/mobile split (B2 consensus).
+Remaining P-C: Brian eye-pass (sizing/nav/zoom), quality iteration (denser
+fill, exposure), thermal overlays per spec §3d.
+
+### P-C-prior notes (training path)
 `worker.py::splat` (nerfstudio splatfacto, A10G, ~2-4h): trains on the ALIGNED
 model with pose normalization DISABLED (auto-scale/center/orient off) so the
 splat lives in the same ENU frame. Export `.ply` → convert to `.splat`/SOG for
