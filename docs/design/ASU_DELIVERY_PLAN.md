@@ -20,9 +20,13 @@ Data root: `C:\ASU-Survey` (never `.tmp`). Cloud: Modal app
 
 ## The build queue (in order — each step unblocks the next)
 
-1. **Ortho quality pass** (hours) — median-of-top-N per cell + DEM median filter
-   + small-hole inpaint in worker `ortho()`. Output: solid presentation RGB map
-   + clean DEM. Gate: hole-free over the DECK (roof gaps acceptable).
+1. **Ortho quality pass — DONE 2026-07-16 (v3)**: median-of-top-N per cell +
+   DEM nearest-valid fill (100% finite) + RGB nearest-valid fill capped 12px
+   (the cloud paints only ~15% of the 128MP canvas; empty pixels are a
+   connected speckle sea, so component-size inpaint could never fire) + 3px
+   median. Deck black-void 59% (v1) → 0.04% (v3); deck features crisp.
+   `colmap_rgb_orthomosaic_v3.jpg` + `dem_v3.npz` in deliverables; swapped
+   into viewer P1 assets.
 2. **Thermal poses — deck-optimized** (the key step, ~1 day):
    a. Primary: 2D-match each paired MAX visible against the finished ortho
       (nadir-vs-nadir; the deck's flatness makes this well-conditioned) → pose
