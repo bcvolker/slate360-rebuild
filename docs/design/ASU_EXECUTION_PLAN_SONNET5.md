@@ -95,6 +95,23 @@ bottom-right; CLEAR ZONE rule — nothing overlaps it; sole exception = Brian's
 signature in sign-off contexts), mobile bottom sheet + pinch. Unwired tabs
 HIDDEN. Local preview: `python -m http.server 8799` in deliverables + browse.
 
+**P1.2 (2026-07-16 late, Brian's UX round):** Brian OVERRULES hidden-unwired-tabs —
+the left rail must be a prominent panel of sections. Shipped: 82px rail w/ 5
+labeled tabs (MAP / THERMAL / 3D / PLANS / REPORT — unready ones show honest
+status cards, never dead ends), THERMAL = IR-only view, full-res 4045px map,
+click-anywhere→nearest raw source frame (all 251 embedded; desktop click,
+mobile double-tap), isotherm threshold slider (grid-driven canvas), ΔT
+differential chapter stub (unlocks after dry-baseline re-flight), mobile top
+tab bar. Builders: `build_assets_p2.py` + `build_viewer_p2.py` (supersede p1).
+Multi-AI round-3 consensus ADOPTED: DSP-SIFT flags + CLAHE + deck-mask for
+registration retry if image_registrator underperforms; pose-graph anchor
+propagation (4-DoF x,y,yaw); TPS control-point mosaic warp as deliverable-safe
+fallback; drains = 6-8 control points + 2-3 held-out checks, AFFINE (all three
+agreed; projective only if residuals show structure), uncertainty CIRCLES not
+boxes (~±0.5m construction variance, labeled on hover); differential epoch =
+top differentiator (stub shipped); evidence-locker crosshairs + briefing tour
++ per-finding evidence stack queued for P2/P3.
+
 **Data contract rule: the viewer is config-driven.** New panorama, drain layer,
 findings, splat = new data files + rebuild; viewer code changes only for new
 interactions. Insignia source: `C:\s360\public\branding\level3-thermographer-insignia.svg`
