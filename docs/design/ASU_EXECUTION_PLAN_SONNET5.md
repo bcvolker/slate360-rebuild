@@ -112,6 +112,33 @@ boxes (~±0.5m construction variance, labeled on hover); differential epoch =
 top differentiator (stub shipped); evidence-locker crosshairs + briefing tour
 + per-finding evidence stack queued for P2/P3.
 
+**P1.3/P1.4 (07-16 night, Brian's rounds 2-3):** frame boxes removed (click-anywhere
+stays; green = drains only), inspector has its own zoom/pan (isolated from map),
+raw chapter REMOVED (washed out, no value), 360 pins = BLUE SPHERE icons
+(--blue #3D8EFF) opening a lib-free WebGL equirect viewer (7 on-deck spheres
+embedded, drag-look + FOV zoom + pinch), provisional-alignment honesty chip,
+PLAIN-LANGUAGE pass (audience = non-experts: "MOISTURE CONTRAST", "HEAT MAP",
+"PHOTO MAP", "HEAT HIGHLIGHT", "MEASURED TEMPERATURE"; ΔT is a plain COMING-SOON
+note, not a dead button — Brian: no unclickable controls without explanation).
+Builders: build_assets_p3.py + build_viewer_p4.py (current chain).
+**Round-4 AI consensus ADOPTED:** true-ortho = custom (shares engine w/ thermal),
+nadir-dominant winner-take-all + exposure equalization (NO wide feather), output
+stays 3cm; thermal composite = PER-PIXEL MEDIAN master grid + count/p10/p90 as
+QC layers (moisture emphasis via display recipes, never bake low-percentile into
+master); cross-modal rig = ECC-on-gradients + MI validation gate over 10-30
+pairs, median of params; 22 unregistered frames = exclude transit, propagate
+only deck-gap fillers (x,y,yaw graph); QC ship line = deck tie RMSE ≤10cm target
+/ 25cm ceiling + zero EJ/drain breaks (three responses ranged 3-25cm); mobile =
+current 20MB monolith risky on iPhone → later: async JSON-block parsing +
+hosted tiles + offline zip (design asset paths for the split now); REPORT =
+qualitative likelihood TIERS (most consistent / plausible / less consistent /
+not established), NEVER percentages (unanimous — reads as false precision);
+briefing/story mode = unanimous top addition (P2 priority #1, also answers
+"what shows first when the link opens").
+**Opening experience (proposed to Brian):** boot insignia → 15-second guided
+intro (site fly-in on the 3D splat once live → key findings → how to explore)
+→ lands on MAP; skippable; deep links bypass.
+
 **Data contract rule: the viewer is config-driven.** New panorama, drain layer,
 findings, splat = new data files + rebuild; viewer code changes only for new
 interactions. Insignia source: `C:\s360\public\branding\level3-thermographer-insignia.svg`
