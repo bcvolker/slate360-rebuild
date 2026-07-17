@@ -252,6 +252,26 @@ round 7: sharpness gate (EJ crisp at 4×), cache-bust asset names when hosted,
 Coverage texture must share the tile source with 2D, overlays unlock on
 tiles+mesh (NOT on splat retrain).
 
+
+**Round-8 adoptions (07-17 PM):** map softness = FINISHING chain (unanimous):
+bilinear sampling SHIPPED in ortho_hires (was nearest-int), single-encode q96
++ USM on top tile levels (make_tiles_1cm.py), next = graph-cut seams + local/
+Poisson exposure harmonization (the "color triangles"); splat retrain config
+locked (factor 2-3 res, +229 nadir views, opacity/scale reg + antialiasing,
+NO post-hoc mass pruning, keep 1.5-3M, importance=view-accumulated); 3D
+coverage product = SCREENED POISSON textured mesh from fused.ply (heightfield
+demoted to sketch); DD benchmark test matrix documented in responses. IA
+consensus: findings-first (BRIEF/synopsis -> ranked findings -> free explore),
+REPORT = theory-x-evidence matrix + next steps + certification AS CLOSING
+MOMENT, opening copy drafts in round-8 responses (NDT framing, EOR retained);
+tone softening: sentence case, warm charcoal panels, mono only for data,
+"Findings/Evidence/Next steps" vocabulary, no boot theater. Feature top-6
+consensus: briefing, evidence drawer, loupe, A-B flicker, one-pager export,
+theory matrix (+ confounder toggle). Viewer P1.8: seal = compact popup card
+w/ big close, all modals get .bigClose, RESET VIEW buttons on 3D/terrain,
+build stamp + MAP DETAIL indicator (diagnosed Brian's tiles as WORKING ->
+render was the gap).
+
 ### P-D: 360 tab (P2)
 8 equirect spheres → pannellum-style WebGL viewer or three.js sphere; pin
 sphere positions on the map (GPS from EXIF if present, else Brian places);
