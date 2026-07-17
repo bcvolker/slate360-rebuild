@@ -272,6 +272,39 @@ w/ big close, all modals get .bigClose, RESET VIEW buttons on 3D/terrain,
 build stamp + MAP DETAIL indicator (diagnosed Brian's tiles as WORKING ->
 render was the gap).
 
+
+**Round-9 triage (07-17 eve):** REJECTED the "intrinsics extracted at 3200px"
+claim — VERIFIED WRONG (cameras.txt stores native-res params: 5280w, cx=2640
+exactly; COLMAP always scales keypoints back). The "no 1cm information exists"
+claim used the wrong camera spec: with the REAL focal (3694px), native GSD =
+1.1-1.6cm depending on AGL, so the 1cm level is near-native (mild supersample
+at most). ADOPTED: USM removed from the finest tile level (halo risk on
+near-native data; second-finest keeps it); NEXT PROCESSING JOB = pairwise
+per-channel log-gain harmonization (Brown-Lowe overlap-graph LSQ, kills the
+color-triangle patches + casts) then graph-cut seams (COST_COLOR_GRAD);
+Poisson only if residue remains; NEVER harmonize the radiometric thermal
+master. ODM/WebODM noted as benchmark/alternative path if custom finishing
+still lags after gain+seams (also the DD-benchmark idea). 3D consensus:
+OpenMVS/Poisson textured mesh = the Coverage product (worker mesh.py, 500k-1M
+tris, 8K atlas, Draco glTF); splat retrain per locked config; FUTURE
+walkthrough UI = orbit + first-person modes w/ per-zone scene graph + door/
+stair teleports (bake neighbor manifest into ground-capture protocol).
+Packaging locked: 3 end-user artifacts (link, one-pager PDF, full certified
+report PDF — page structures in round-9 responses incl. print degradation:
+colorbars per inset, QR back to live link) + Brian-only archive bundle
+(GeoTIFFs incl. 32-bit radiometric thermal, DEM, mesh OBJ/glTF, splat PLY,
+NPZs, R-JPEGs, 360s, drains.json, findings.geojson, weather JSON) zipped.
+10-min live-meeting script + email framing + persistent "Prepared for ASU /
+Confidential" header + synopsis-always-first = adopted. Skeptic gates: on-
+screen alignment QC, named ΔT reference ("warmer than WHAT"), drains must
+coincide perfectly, confounder screen visible, no absolute causal language.
+**Viewer P1.9 (shipped):** provis text block REMOVED (Brian: no fixed
+un-closable text over the map, no analysis-ish content before analysis); title
+caption now dismissible; HUD/scale chips on solid backgrounds, larger text;
+1cm tiles live (4 levels). **STANDING UI RULE (Brian): every overlay/text
+block must be closable or movable; future analysis callouts must be DRAGGABLE
+with a LEADER LINE anchored to their map location.**
+
 ### P-D: 360 tab (P2)
 8 equirect spheres → pannellum-style WebGL viewer or three.js sphere; pin
 sphere positions on the map (GPS from EXIF if present, else Brian places);
