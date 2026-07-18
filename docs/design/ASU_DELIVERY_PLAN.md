@@ -68,7 +68,19 @@ Data root: `C:\ASU-Survey` (never `.tmp`). Cloud: Modal app
    model (+ registered nadir visibles for top-down coverage). Deliverable file
    ~2 days out; appears on the 3D tab when viewer phase-2 wires it. Framed as
    aerial fly-around.
-6. **Analysis pass** (after 3+4; context now largely in hand — RDH report +
+6. **DONE 2026-07-19: ANALYSIS SHIPPED (locked methodology).**
+   toolsnalyze_deck.py: concrete-only deck mask (brightness band 115-192
+   excludes membrane AND white low-e surfaces — first pass without the
+   ceiling put every hit on canopies/HVAC, caught by QC), 5m robust local
+   background, local-MAD z-map, BH-FDR q<0.05 (z_thr 2.21), area/shape
+   filters, confounder screen w/ cap rule. RESULT: 14 findings (2 warm, 12
+   cool), headline = intense cool anomalies (-6..-7C, F1/F5) clustered
+   within 4m of DRAIN 6 which independently shows the strongest halo effect
+   (-1.76 sigma), plus F3 1.1m from drain 3 (halo -0.63): coherent
+   drain-proximate moisture story in evidence language. findings.json,
+   drain_halos.json, pattern_layer.png. Viewer: 14 color-coded map markers +
+   clickable finding cards (fly-to), disclosed threshold/reference/single-
+   epoch text. Original plan (kept for reference): **Analysis pass** (after 3+4; context now largely in hand — RDH report +
    repair sheets): deck-field moisture detection w/ recipes, drain-halo radial
    profiles, EJ-line signatures, pattern layer + callouts + plain-language
    findings (replaces mockup placeholders). Sq-ft via drawing scale.
