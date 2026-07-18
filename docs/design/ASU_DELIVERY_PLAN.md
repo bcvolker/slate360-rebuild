@@ -50,7 +50,16 @@ Data root: `C:\ASU-Survey` (never `.tmp`). Cloud: Modal app
    after analysis). Gate: wipe-test vs ortho ON DECK FEATURES (EJ straight,
    score lines continuous, drains coincident) + numeric EJ straightness check.
    v5 retires only after this passes Brian's eye.
-4. **Drain callout layer** (parallel, ~half day): extract drain symbols from
+4. **DONE 2026-07-19 (deadline path): drains SHIPPED as plan locations.**
+   15 drains color-extracted from repair sheet AE102X (blue dot isolate),
+   georeferenced via rotation-from-north-rosette (-79 deg) + known scale
+   (1"=10' @150dpi ~= 2cm/px) + translation voting with deck-validity
+   scoring. Labeled "plan location, not field-verified, +/-0.3-0.6 m" with
+   dashed uncertainty circles (round-10 consensus labeling). Viewer layer
+   wired + THERMAL-ON-TERRAIN drape shipped (PHOTO|HEAT toggle on TERRAIN
+   tab). ODM abandoned for deadline (still meshing at T-minus; becomes
+   post-deadline upgrade). Original plan (superseded):
+   **Drain callout layer** (parallel, ~half day): extract drain symbols from
    repair sheet 1 (leader-follow + glyph-cluster per external consensus; human
    verify pass mandatory — reviewer page, keyboard accept/reject); one
    control-point alignment onto the ortho → drain boxes/halos land georeferenced.
