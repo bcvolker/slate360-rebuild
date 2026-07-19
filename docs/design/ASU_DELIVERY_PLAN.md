@@ -119,7 +119,17 @@ Data root: `C:\ASU-Survey` (never `.tmp`). Cloud: Modal app
    Compare/Blend modes, distinct pin affordances, hidden unwired tabs, mobile
    bottom tabs, coach marks, sq-ft strip, single-epoch banner)**. P2 wires
    3D/360 tabs when splat/spheres assets land.
-8. **PDF + branding**: signature photo still pending from Brian; insignia done.
+8. **DONE 2026-07-19: REPORT TAB SHIPPED.** Full report document in-viewer:
+   NDT-framing synopsis, executive summary (auto-populated from findings.json),
+   theory-vs-evidence matrix (architect drain-membrane / RDH expansion-joint /
+   transient-alternative scored against deck-pattern, drain-clustering, halo,
+   drainage evidence), what-is-not-established, next-steps (dry re-flight),
+   methodology+limitations, certification block w/ seal+signature, print/
+   save-as-PDF (window.print + print CSS -> light theme). Drain overlay system
+   also shipped (opacity slider + edit/place tool + ENU billboards on map/
+   thermal/3D/terrain). REMAINING: host the link. 3D/terrain quality = post-
+   deadline OpenMVS-on-dense-cloud track (ODM timed out, exit 124). Original:
+   **PDF + branding**: signature photo still pending from Brian; insignia done.
 
 ## Standing gates
 - Every stitched/aligned product: wipe-test + deck-feature checks before Brian
