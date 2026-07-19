@@ -491,7 +491,11 @@ def ortho_hires(gsd_m: float = 0.02, x_min: float = None, x_max: float = None,
             B2[ib] -= w2 * d2
         A2 += np.eye(N2) * 1.0  # gauge/regularization
         off = np.linalg.solve(A2, B2).astype(np.float32)
-        off = np.clip(off, -14, 14)
+        # LUMA-ONLY offsets: per-channel saturated the clip and produced
+        # purple casts on the periphery; brightness equalization is the
+        # dominant defect and is color-safe
+        off = np.repeat(off.mean(axis=1, keepdims=True), 3, axis=1)
+        off = np.clip(off, -22, 22)
         lut = np.zeros((len(views), 3), np.float32)
         for v2, i2 in idx_of.items():
             lut[v2] = off[i2]
