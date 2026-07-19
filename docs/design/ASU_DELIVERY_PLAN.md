@@ -174,3 +174,25 @@ SUPERSEDED BY NEWER EVIDENCE (2026-07-19 late):
   tools\mesh_post.py). This is the 3D product; ODM is no longer on the path.
 - Mesh carries vertex colors, NOT photo-projected texture. Reads as a clean
   solid model, not photoreal. Photo texturing = post-deadline upgrade.
+
+
+## 2026-07-19 late — 3D SHIPPED + alignment measured + deliverable assembled
+
+- **coverage.glb wired into TERRAIN.** Minimal in-viewer GLB parser (POSITION +
+  COLOR_0 + indices; no three.js). UV derived from WORLD XY so the photo map and
+  thermal drape register on real geometry with no UV attribute. Modes:
+  PHOTO | HEAT | 3D COLOR. Parser + frame alignment verified headless in Node
+  (deck frame proven inside mesh bounds). DEM heightfield retired.
+- **Formal tie-point RMSE measured** (tools	ie_point_rmse.py):
+  9 auto-matched deck control points, median 40.8 cm, RMSE 39.4 cm, p95 57.5 cm,
+  systematic bias only (-4.0, +3.3) cm. Offsets point in RANDOM directions and
+  bias is ~0 => most of the residual is cross-modal template-matching error, not
+  a real shift. Reported in the REPORT tab as a CONSERVATIVE UPPER BOUND with
+  explicit "not survey stake-out accuracy" language. Artifacts:
+  alignment_rmse.json, qc_tie_points.jpg.
+- **Deliverable assembled**: deliverables\ASU_DELIVERABLE\ = index.html +
+  coverage.glb + tiles\ (108 MB). This folder is the hosting unit -- the HTML
+  must stay next to coverage.glb and tiles\.
+
+REMAINING: host the folder; Brian's drain-plan fit (COPY FIT numbers) to bake in;
+photo-texturing the mesh + splat retrain = post-deadline upgrades.
