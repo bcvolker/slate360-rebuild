@@ -351,18 +351,21 @@ def ortho_hires(gsd_m: float = 0.02, x_min: float = None, x_max: float = None,
     # luminance of each photo's central region; normalize to the global
     # median before compositing. Kills the exposure quilt from the
     # pre-dawn->sunrise brightness drift across the mission.
-    meds = np.zeros(len(views), np.float32)
+    meds = np.zeros((len(views), 3), np.float32)
     for vi, v in enumerate(views):
-        img = cv2.imread(f"{IMAGES}/{v['name']}", cv2.IMREAD_GRAYSCALE)
+        img = cv2.imread(f"{IMAGES}/{v['name']}")
         if img is None:
             continue
-        h2, w2 = img.shape
-        meds[vi] = np.median(img[h2//4:3*h2//4:8, w2//4:3*w2//4:8])
-    target = float(np.median(meds[meds > 0]))
-    gains = np.where(meds > 0, np.clip(target / np.maximum(meds, 1), 0.6, 1.7),
-                     1.0)
-    print(f"gain-comp: target {target:.0f}, gains {gains.min():.2f}.."
-          f"{gains.max():.2f}", flush=True)
+        c9 = img[img.shape[0]//4:3*img.shape[0]//4:8,
+                 img.shape[1]//4:3*img.shape[1]//4:8]
+        meds[vi] = np.median(c9.reshape(-1, 3), axis=0)
+    target = np.median(meds[meds[:, 0] > 0], axis=0)
+    gains = np.where(meds > 0,
+                     np.clip(target[None, :] / np.maximum(meds, 1), 0.6, 1.7),
+                     1.0).astype(np.float32)
+    print(f"per-channel gains: target {target}, "
+          f"range {gains.min():.2f}..{gains.max():.2f}", flush=True)
+    labelmap = np.full((OH, OW), -1, np.int16)
 
     for vi, v in enumerate(views):
         c = cams[v["cam"]]
@@ -413,22 +416,103 @@ def ortho_hires(gsd_m: float = 0.02, x_min: float = None, x_max: float = None,
         win = sc > cur
         if not win.any():
             continue
-        ui = np.clip(u.astype(np.int32), 0, c["w"]-1).reshape(X.shape)
-        vi2 = np.clip(vv.astype(np.int32), 0, c["h"]-1).reshape(X.shape)
-        colors = np.clip(img[vi2[win], ui[win]].astype(np.float32)
-                         * gains[vi], 0, 255).astype(np.uint8)
+        # bilinear sampling from the source photo (nearest caused the "soft/
+        # jaggy at native zoom" verdict — round-8 unanimous)
+        uw = u.reshape(X.shape)[win]
+        vw = vv.reshape(X.shape)[win]
+        ux0 = np.clip(np.floor(uw).astype(np.int32), 0, c["w"]-2)
+        vy0 = np.clip(np.floor(vw).astype(np.int32), 0, c["h"]-2)
+        fx = (uw - ux0).astype(np.float32)[:, None]
+        fy = (vw - vy0).astype(np.float32)[:, None]
+        c00 = img[vy0, ux0].astype(np.float32)
+        c10 = img[vy0, ux0+1].astype(np.float32)
+        c01 = img[vy0+1, ux0].astype(np.float32)
+        c11 = img[vy0+1, ux0+1].astype(np.float32)
+        colors = np.clip(((c00*(1-fx)+c10*fx)*(1-fy)
+                          + (c01*(1-fx)+c11*fx)*fy) * gains[vi],
+                         0, 255).astype(np.uint8)
         blk = out[ra:rb, ca:cb]
         blk[win] = colors
         out[ra:rb, ca:cb] = blk
+        lblk = labelmap[ra:rb, ca:cb]
+        lblk[win] = vi
+        labelmap[ra:rb, ca:cb] = lblk
         cur[win] = sc[win]
         best[ra:rb, ca:cb] = cur
         if vi % 50 == 0:
             print(f"[{vi}/{len(views)}] {v['name']} filled "
                   f"{100.0*(best > 0).mean():.1f}%", flush=True)
 
+    # ---- REGION EQUALIZATION (round-11 consensus, output-space form of the
+    # pairwise gain solve): per footprint-region per-channel offsets solved so
+    # adjacent regions agree along their shared borders, then a narrow feather
+    # on the border strip. Kills the winner-take-all tone/color polygons. ----
+    print("region equalization...", flush=True)
+    Lm = labelmap
+    nb_pairs = {}
+    for axis in (0, 1):
+        a = Lm[:, :-1] if axis else Lm[:-1, :]
+        b = Lm[:, 1:] if axis else Lm[1:, :]
+        diff = (a != b) & (a >= 0) & (b >= 0)
+        ys, xs2 = np.nonzero(diff)
+        if axis:
+            pa = out[ys, xs2].astype(np.float32)
+            pb = out[ys, xs2 + 1].astype(np.float32)
+            la = a[ys, xs2]; lb = b[ys, xs2]
+        else:
+            pa = out[ys, xs2].astype(np.float32)
+            pb = out[ys + 1, xs2].astype(np.float32)
+            la = a[ys, xs2]; lb = b[ys, xs2]
+        for i2 in range(0, len(ys), 3):
+            key = (int(la[i2]), int(lb[i2]))
+            if key[0] > key[1]:
+                key = (key[1], key[0])
+                d2 = pa[i2] - pb[i2]
+            else:
+                d2 = pb[i2] - pa[i2]
+            nb_pairs.setdefault(key, []).append(d2)
+    used = sorted(set([k for pair in nb_pairs for k in pair]))
+    idx_of = {v2: i2 for i2, v2 in enumerate(used)}
+    N2 = len(used)
+    print(f"regions {N2}, border pairs {len(nb_pairs)}", flush=True)
+    off = np.zeros((N2, 3), np.float32)
+    if N2 > 1:
+        A2 = np.zeros((N2, N2), np.float64)
+        B2 = np.zeros((N2, 3), np.float64)
+        for (ka, kb), ds in nb_pairs.items():
+            if len(ds) < 8:
+                continue
+            d2 = np.median(np.array(ds), axis=0)  # value(kb) - value(ka)
+            ia, ib = idx_of[ka], idx_of[kb]
+            w2 = min(len(ds), 500)
+            A2[ia, ia] += w2; A2[ib, ib] += w2
+            A2[ia, ib] -= w2; A2[ib, ia] -= w2
+            B2[ia] += w2 * d2
+            B2[ib] -= w2 * d2
+        A2 += np.eye(N2) * 1.0  # gauge/regularization
+        off = np.linalg.solve(A2, B2).astype(np.float32)
+        off = np.clip(off, -14, 14)
+        lut = np.zeros((len(views), 3), np.float32)
+        for v2, i2 in idx_of.items():
+            lut[v2] = off[i2]
+        valid = Lm >= 0
+        adj = np.zeros_like(out, np.float32)
+        adj[valid] = lut[Lm[valid]]
+        out = np.clip(out.astype(np.float32) + adj, 0, 255).astype(np.uint8)
+        # narrow feather across borders
+        border = np.zeros((OH, OW), np.uint8)
+        border[:-1, :] |= (Lm[:-1, :] != Lm[1:, :]) & (Lm[:-1, :] >= 0) & (Lm[1:, :] >= 0)
+        border[:, :-1] |= (Lm[:, :-1] != Lm[:, 1:]) & (Lm[:, :-1] >= 0) & (Lm[:, 1:] >= 0)
+        border = cv2.dilate(border, np.ones((9, 9), np.uint8))
+        sm = cv2.GaussianBlur(out, (0, 0), 2.5)
+        bmask = border.astype(bool)
+        out[bmask] = sm[bmask]
+        print("region offsets applied: |off| med %.1f max %.1f"
+              % (np.median(np.abs(off)), np.abs(off).max()), flush=True)
+
     os.makedirs(f"{WORK}/{out_name}", exist_ok=True)
     cv2.imwrite(f"{WORK}/{out_name}/orthomosaic.jpg", out,
-                [cv2.IMWRITE_JPEG_QUALITY, 92])
+                [cv2.IMWRITE_JPEG_QUALITY, 96])
     np.savez_compressed(f"{WORK}/{out_name}/meta.npz",
                         origin=[ox0, oy1], gsd_m=gsd_m,
                         coverage=float((best > 0).mean()))
