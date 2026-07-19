@@ -137,3 +137,40 @@ Data root: `C:\ASU-Survey` (never `.tmp`). Cloud: Modal app
 - Hover readouts: NO DATA outside coverage, everywhere, always.
 - The stitched pano is no longer a single point of failure (pattern layer +
   source-frame inspector carry presentation/credibility independently).
+
+
+## Cross-track audit reconciliation (2026-07-19, external Kimi-assisted pass)
+
+`docs/design/MAP_MODEL_FIX_EXECUTION_PLAN.md` covers three tracks; only **Phase 9**
+is ASU. Phases 0-8/10 (Site Walk plan maps, PWA cache, Twin viewer/native iOS,
+location consistency) are a SEPARATE workstream -- valuable, but explicitly
+POST-ASU. Do not interleave them with the survey deadline.
+
+CONFIRMED CORRECT (adopted):
+- `patch_ortho.py` is OBSOLETE -- already applied; its anchor targets the old
+  implementation. Do not re-run. Archive as historical evidence.
+- `georef_app.py` reads a STALE hardcoded path (`/data/work/ortho/dem.npz`).
+  Shipped products are `dem_v3.npz` + the true-ortho path. Must accept an
+  explicit NPZ path before it is trusted for validation.
+- ASU acceptance surface is `C:\ASU-Surveyiewer\` + its generated
+  deliverable. `ThermalTwinOverlayMap.tsx` is the Thermal Studio GPS-pin MVP --
+  the WRONG surface. Do not wire ASU into it.
+- Remaining ASU delivery gates: host the share link, Brian's wipe eye-pass, and
+  a formal tie-point RMSE (still outstanding -- promised, not yet measured).
+- Moonshot key had a doubled `sk-sk-` prefix (independently confirmed by direct
+  401 test). Kimi tooling is non-functional until corrected.
+
+SUPERSEDED BY NEWER EVIDENCE (2026-07-19 late):
+- The plan calls ODM "an optional post-deadline experiment." That framing is now
+  outdated in one important respect: the ROOT CAUSE of every ODM failure was
+  found -- ODM discards the COLMAP model and rebuilds its own dense cloud at
+  **247M points / 6.9 GB** (vs our COLMAP 18.6M / 502 MB). That is why renderdem
+  thrashed at 38 GB / 37 CPU-hours and Poisson returned a degenerate 36 KB mesh.
+  Parameter tuning (octree depth, dem-resolution) could never fix it.
+- RESOLUTION: Poisson run DIRECTLY on the COLMAP cloud produced a real mesh in
+  ~1 min -> 2.66M verts / 5.31M faces -> voxel-cluster decimated to 441,376
+  faces / 216,570 verts -> **coverage.glb, 8.8 MB, glTF 2.0 with COLOR_0 vertex
+  colors** (deliverables\coverage.glb; tools\mesh_from_colmap.py +
+  tools\mesh_post.py). This is the 3D product; ODM is no longer on the path.
+- Mesh carries vertex colors, NOT photo-projected texture. Reads as a clean
+  solid model, not photoreal. Photo texturing = post-deadline upgrade.
