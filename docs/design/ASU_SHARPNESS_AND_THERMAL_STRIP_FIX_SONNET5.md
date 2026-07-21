@@ -290,3 +290,28 @@ approximate. Viewer: findings injected, rail section unhidden with capture-
 conditions banner, markers auto-mirror MAP+THERMAL (shared frame), REPORT
 analysis-status updated (still no findings text in REPORT). Verified in
 served DOM: 15 markers/cards, visible on both tabs, pins still hidden.
+
+## Screening v2 + PUBLIC LINK (2026-07-21)
+
+Client-directed redo: cap 12-15 callouts (shipped 12 = 8 warm + 3 cool + 1
+drain halo), per-finding EVIDENCE list + evidence-based OPINION, and a
+click-to-expand detail overlay (#findDetail modal): locally-windowed INFERNO
+thermal crop w/ white anomaly contour + same-area RGB photo side by side,
+plain-language blurb, WHY THIS WAS CALLED OUT evidence bullets, opinion box,
+confounders, screening caveat. Marker click + card click both open it; card
+highlights + scrolls; markers persist across MAP<->THERMAL swipe (shared
+frame). Data-driven pattern summary at top of sidebar (drain clusters, D16
+halo, trail, flat-slope count).
+
+BUG: JS string escape \' in the Python template collapsed to a bare quote
+(template is a NON-raw string) -> SyntaxError killed the entire script block
+(FINDINGS undefined, page half-dead, zero console errors surfaced). Fix +
+NEW GATE: extract <script> from built HTML and `node --check` it before
+publish. Add to every viewer build.
+
+PUBLIC LINK (leadership-ready): https://asu-sundeck-survey.vercel.app
+Vercel project asu-sundeck-survey, scope slate360, static deploy of
+ASU_DELIVERABLE (69MB index + glb/bin/tiles; stale coverage*.glb deleted
+first). Verified end-to-end on the public URL: 12 markers, detail overlay
+opens with crop image on marker click. Redeploy after any republish:
+cd deliverables/ASU_DELIVERABLE && npx vercel deploy --prod --yes
