@@ -201,3 +201,34 @@ Lesson: for cross-modal (thermal<->photo) alignment, do NOT attempt direct
 correlation. Chain through a same-modality reference (photo the thermal is
 already aligned to <-> new photo) -- RGB-to-RGB is reliable where thermal-to-RGB
 is hopeless.
+
+## RESOLUTION (2026-07-21) — all three issues fixed
+
+**Issue C (north cutoff):** the thermal PNG already carries its true footprint as
+a per-pixel alpha (finite-temperature mask). The 9-vertex CSS polygon was a
+redundant second clip cutting a chord across the concave north edge. Removed it
+(applyThermalClip -> 'none'); alpha does the masking, pixel-exact.
+
+**Issue A (overview sharpness):** the tile-level rule was INVERTED
+(`L.w <= fw*DPR*1.7 || L.z===0` kept coarse levels + force-showed L0). Fixed to
+the Leaflet rule: coarsest level with `L.w >= fw*DPR`. Added consistent luma
+unsharp to ALL coarse levels in make_tiles (0.50/0.45/0.40 for 8/4/2cm; L3 native
+untouched). Honest HUD ("ZOOM IN FOR 1 CM DETAIL"). Default now lands at L1 (4cm)
+not L0 (8cm). Full-deck 8cm/screen-px is physics (same as DroneDeploy).
+
+**Issue B (thermal twist) — the real root cause + fix:** every prior "aligned"
+proof used 50%-blend overlays, which HID the true offset because the filled
+building rectangles still overlapped ~50-70%. A sharp EDGE overlay of the shipped
+assets revealed the thermal was uniformly ~3.4m (y) + 1.26m (x) + ~1deg off the
+map. Phase correlation, ECC, mask ECC, big-window correlation, edge-map
+correlation ALL failed to measure it (cross-modal). **MUTUAL INFORMATION** (the
+correct cross-modal metric -- measures statistical dependence, not appearance
+similarity) via a coarse-to-fine brute translation+rotation search
+(tools/t_mi_align.py) locked it: MI 0.149, shift (-42,-112)px, rot -1deg. Edge
+overlay after: thermal edges sit ON map edges everywhere. Radiometric-safe
+num/den warp; temperatures resampled, never invented (drift -0.02C). Wired
+mosaic_v5_mi.npz into build_assets_p1/p2.
+
+LESSON: never validate cross-modal alignment with blended overlays -- they hide
+multi-meter offsets. Use EDGE overlays. And for thermal<->photo, MUTUAL
+INFORMATION is the metric that works; correlation-family methods do not.
