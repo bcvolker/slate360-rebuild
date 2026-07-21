@@ -266,3 +266,27 @@ STILL OPEN: drain-overlay registration. Automated building-mask fit failed
 buildings). Not shipped -- overlay left at its sensible default orientation and
 kept toggled OFF. Needs the 4-point correspondence approach (client's arrowed
 drains) -> similarity fit -> verify all 18.
+
+## First-pass screening SHIPPED (2026-07-21, post-1239 build)
+
+TIMESTAMP RESOLVED: EXIF 12:20-12:46 stamps are UTC -> 05:20-05:46 MST
+(sunrise 05:27). Confirmed by shadowless twilight light in MAX_0500 nadir
+frame + Brian's recollection. PRE-DAWN survey => classic sign convention:
+WARM = candidate retained heat at membrane/drain-mat level. The 4-AI panel's
+"midday can't support subsurface calls" objection is void.
+
+tools/screening_pass.py (supersedes analyze_deck.py for this build):
+deck-only mask (survey polygon, +/-30cm elevation band off dense DEM, raised
+dilated out - 55% of polygon excluded), 5m masked-median background, MAD z,
+fixed |z|>=3 + |dT|>=0.4C (NO Gaussian FDR - reviewer consensus), elongated
+shapes KEPT as "trail" class (drain-mat travel signature; old aspect<=5
+filter deleted exactly that evidence), drain halo annulus test.
+
+Results: 34 warm candidates -> top 10 shipped + 4 cool (surface-effect
+class) + 1 drain-ring halo (D16 +2.3F = pooling candidate, matches RDH's
+blocked-mat-drainage finding at EO10). One warm TRAIL (A3). Blurbs are
+plain-English with screening-only language; drain distances labelled
+approximate. Viewer: findings injected, rail section unhidden with capture-
+conditions banner, markers auto-mirror MAP+THERMAL (shared frame), REPORT
+analysis-status updated (still no findings text in REPORT). Verified in
+served DOM: 15 markers/cards, visible on both tabs, pins still hidden.
