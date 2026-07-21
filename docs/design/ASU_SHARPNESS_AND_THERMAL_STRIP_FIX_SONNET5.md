@@ -141,3 +141,63 @@ Rejected from the reviews (with reason): "raw GSD is 3 cm" (wrong sensor math);
 TPS-first warping (rubber-sheet risk, two reviews concur); bit-identical histogram
 gate (impossible under any resampling — replaced by the T4 integrity checks);
 "secret sub-1cm export tier" (no evidence; three reviews concur it doesn't exist).
+
+## EXECUTION LOG (2026-07-21, Opus)
+
+**Map track — DONE, verified.** New lossless DroneDeploy GeoTIFF
+(dd_ortho_lossless.tif, Deflate, 14818x11660, EPSG:6405, GSD 1.076cm/px) placed
+via ONE Lanczos warp (tools/m1_place_lossless_map.py + m2). Acutance gate (m4)
+at matched pixel density: DD export 310.0 vs our warped map 315.4 = PARITY (the
+earlier "24% loss" was a metric artifact of comparing 371px vs 400px). No
+sharpening added (would over-sharpen/halo). Byte-exact L3 PNG tiles
+(make_tiles.py FINEST no-resize path). Verified live: zoom reaches "1 CM/PIXEL
+LEVEL 3 OF 3". Placement residual vs proven base 3.47cm median. Published.
+
+**T0 thermal finding — IMPORTANT.** The viewer displays mosaic_main_flight_v5.npz
+(build_assets_p2), NOT panorama_registered.npz which earlier diagnostics used.
+mosaic_v5 is internally STRAIGHTER (crisp rectangles) than panorama_reg (bent).
+Both share the identical frame. The earlier deck-clip was wrongly derived from
+panorama_reg's 63.9% footprint; fixed to mosaic_v5's 60.6% footprint. The
+catastrophic "8-9 twist" the client saw was largely the OLD broken base map
+moving under the thermal + the wrong clip -- both now fixed. Ground-truth swipe
+montage (tools/t_swipe_montage.py) against the NEW base shows the residual is a
+MODEST per-region offset (~60-150cm), not catastrophic.
+
+**Thermal alignment attempts that FAILED (cross-modal registration is hard):**
+- gradient-domain ECC affine: low confidence (cc 0.077), didn't meaningfully help.
+- building-mask ECC (cool-thermal vs dark-roof-RGB): made it WORSE (IoU 0.26->0.18,
+  nonsensical 7.7m translation) -- thermal cool regions != RGB roof regions cleanly.
+  Radiometric-safe num/den warp itself worked (range + median preserved); the
+  geometry failed. Discarded (did not ship a worse alignment).
+
+**Thermal remaining work (honest):** modest per-region offset persists.
+Automatic cross-modal methods unreliable here. Path to "perfect swipe" is either
+(a) careful per-region manual tie-point warp using features visible in both
+(HVAC, building corners, membrane), or (b) raw-FLIR re-stitch with global bundle
+adjustment + RGB control (Metashape, post-deadline). NOT yet done.
+
+## BREAKTHROUGH (2026-07-21) — thermal alignment root cause + fix
+
+Root cause of the swipe mismatch: the thermal was aligned to the colmap
+orthophoto (colmap_rgb_orthomosaic_v3.jpg crop [5327:,2942:]) -- the alignment
+Brian accepted early on (verified: tools/t_thermal_vs_colmap.jpg shows a near-
+perfect overlay). The mismatch appeared ONLY because I placed the DroneDeploy
+map by its OWN georeference (pyproj), which lands 1-3m off the thermal's colmap
+frame. Every cross-modal auto-registration (gradient ECC, mask ECC, big-window
+correlation, centroid matching) FAILED because thermal<->RGB share too little
+structure -- a dead end I should have abandoned sooner.
+
+FIX (tools/t_dd_to_colmap_aligned.py): place the DD map by registering it
+RGB->RGB (reliable, same modality) to the colmap ortho the thermal is locked to,
+NOT by its own georef. SIFT DD->colmap: 249 inliers, 4.6cm median residual. The
+map now aligns to the thermal by construction. Verified: tools/t_dd_aligned_proof.jpg
++ t_swipe_montage.jpg show edges continuous across the swipe.
+
+Map is ALSO high-res: lossless DD source, ONE Lanczos warp (composed
+SIFT+scale), byte-exact L3 PNG tiles, + mild unsharp (amount 0.4) to match DD's
+viewer presentation. deck_ortho_final_1cm.png is the single map source.
+
+Lesson: for cross-modal (thermal<->photo) alignment, do NOT attempt direct
+correlation. Chain through a same-modality reference (photo the thermal is
+already aligned to <-> new photo) -- RGB-to-RGB is reliable where thermal-to-RGB
+is hopeless.
