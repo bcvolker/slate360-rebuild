@@ -232,3 +232,37 @@ mosaic_v5_mi.npz into build_assets_p1/p2.
 LESSON: never validate cross-modal alignment with blended overlays -- they hide
 multi-meter offsets. Use EDGE overlays. And for thermal<->photo, MUTUAL
 INFORMATION is the metric that works; correlation-family methods do not.
+
+## Tab consistency + asset delivery (2026-07-21, build 1239)
+
+ROOT CAUSE of "nothing changed": the viewer was EDITED but never REBUILT.
+Live HTML was stamped 09:11; source edits landed 09:39. Every 3D/TERRAIN/
+findings/PLANS fix existed only in build_viewer_p6.py. Lesson: edit -> BUILD ->
+PUBLISH -> verify in the served build, every time. Never report a UI change
+without re-reading it out of the shipped file.
+
+Shipped in 1239:
+- 3D  = dd_mesh.glb (DroneDeploy, 5 primitives / 5 atlases / 1,211,918 tris)
+- POINT CLOUD (renamed from TERRAIN) = dd_points.bin (5,957,787 pts from LAS)
+- publish_deliverable.py now ships dd_mesh.glb + dd_points.bin + meta (it was
+  still shipping the dead coverage*.glb, so the tabs had nothing to fetch)
+- assets staged to C:\ASU-Survey\models\ (was %TEMP%, which is volatile)
+- 360 pins: #frameMarkers had NO initial display:none, so pins rendered despite
+  layers.panos=false and leaked onto THERMAL (shared mapFrame). Now hidden by
+  default + explicitly hidden on the thermal tab.
+- green deck-outline SVG (var(--accent)) hidden with the other analysis chrome
+- FINDINGS=[] and DRAINS=[] (numbered circles were the old unverified auto-
+  detected set)
+- SHARED FRAMING CONTRACT: MAP/THERMAL DEFAULT_ZOOM 0.85 (fit + margin);
+  3D + POINT CLOUD share HOME3D {az:-PI/2 (north up), el:1.15, r:210,
+  target=deck centre} so both tabs open identically; PLANS auto-fits to 85% of
+  its panel and is rotated -90 deg to match the map's orientation.
+- START_VIEWER.bat: serves ASU_DELIVERABLE over http with a cache-busting
+  query. Required -- file:// blocks the GLB/points fetch, so double-clicking the
+  HTML leaves 3D/POINT CLOUD empty and can serve a stale cached page.
+
+STILL OPEN: drain-overlay registration. Automated building-mask fit failed
+(IoU 0.038; the map "building" mask grabbed 43% of the frame = shadows/deck, not
+buildings). Not shipped -- overlay left at its sensible default orientation and
+kept toggled OFF. Needs the 4-point correspondence approach (client's arrowed
+drains) -> similarity fit -> verify all 18.
