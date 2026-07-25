@@ -426,26 +426,46 @@ passes confirm v3.x adds capabilities that directly simplify our pipeline:
 
 ## PART D — Progress tracker
 
-Legend: ⬜ not started · 🟨 in progress · ✅ done + visual gate passed · ⛔ blocked
+Legend: ⬜ not started · 🟨 partial · ✅ code complete & verified · ⛔ blocked on Brian · ⏭️ deferred (see note)
 
 ### Phase 0 — Unblocked (no authorization needed)
-- ⬜ **P0a-1** SHA-256 fingerprint column (additive migration) + idempotent asset registration
-- ⬜ **P0a-2** GC for stale `uploading` rows
-- ⬜ **P0a-3** Refuse job enqueue while any asset not `ready`
-- ⬜ **P0a-4** Verify: duplicate submit → one row; dual-camera import <10 min
-- ⬜ **P0b-1** Aspect-ratio (~2:1) 360 detection replacing filename heuristic
+- ✅ **P0a-1** SHA-256 fingerprint column (additive migration) + idempotent asset registration
+- 🟨 **P0a-2** GC for stale `uploading` rows
+- ✅ **P0a-3** Refuse job enqueue while any asset not `ready`
+- ⛔ **P0a-4** Verify: duplicate submit → one row; dual-camera import <10 min
+- ✅ **P0b-1** Aspect-ratio (~2:1) 360 detection replacing filename heuristic
 - ⬜ **P0b-2** Equirect unwrap + nadir mask reprojection → COLMAP `--ImageReader.mask_path`
-- ⬜ **P0b-3** Verify on real X4 file: no operator, floor preserved
-- ⬜ **P0c-1** Add bilateral grid + antialiased + camera optimizer + densify/ratio flags
-- ⬜ **P0c-2** Remove/correct the no-op `cull-alpha-thresh`
-- ⬜ **P0c-3** A/B on all benchmarks + **visual gate**
-- ⬜ **P0d-1** Split `worker.py` into a pipeline package
-- ⬜ **P0d-2** `ALIGN_BACKEND` / `TRAIN_BACKEND` selectors + payload plumbing
-- ⬜ **P0d-3** Experiment-harness arms + backend recorded in `quality_metrics`
-- ⬜ **P0e-1** Capture SOPs published (iPhone / Mini-class / A1 / X4-X5 / bridge)
+- ⛔ **P0b-3** Verify on real X4 file: no operator, floor preserved
+- ✅ **P0c-1** Add bilateral grid + antialiased + camera optimizer + densify/ratio flags
+- ✅ **P0c-2** Remove/correct the no-op `cull-alpha-thresh`
+- ⛔ **P0c-3** A/B on all benchmarks + **visual gate**
+- ⏭️ **P0d-1** Split `worker.py` into a pipeline package
+- 🟨 **P0d-2** `ALIGN_BACKEND` / `TRAIN_BACKEND` selectors + payload plumbing
+- ✅ **P0d-3** Experiment-harness arms + backend recorded in `quality_metrics`
+- ✅ **P0e-1** Capture SOPs published (iPhone / Mini-class / A1 / X4-X5 / bridge)
 - ⬜ **P0e-2** In-app capture coaching reflects the SOPs
-- ⬜ **P0e-3** One SOP-compliant benchmark capture per device class
-- ⬜ **P0e-4** Resolve the X4 shutter + sharpness conflict empirically
+- ⛔ **P0e-3** One SOP-compliant benchmark capture per device class
+- ⛔ **P0e-4** Resolve the X4 shutter + sharpness conflict empirically
+
+
+### Phase 0 execution notes (2026-07-25)
+
+- **P0d-1 (split `worker.py`) is DEFERRED into Phase 1 — deliberately.** Phase 1 rebuilds the
+  align stage, which is the largest block in that file. Splitting a 2,700-line module now and
+  restructuring the same code weeks later is duplicated work and duplicated regression risk, and
+  the split cannot be runtime-verified from the dev container. Do it as the first step of P1a,
+  where the new structure is known.
+- **P0d-2 is partial:** the `TRAIN_BACKEND`-equivalent selector shipped as `TRAIN_PROFILE`
+  (env var + per-job `trainProfile` payload override). `ALIGN_BACKEND` lands with P1a, since
+  there is no second alignment backend to select between until COLMAP ≥4.0 is in the image.
+- **P0a-2 is partial:** the `gc_stale_digital_twin_upload_assets()` function is written and in the
+  migration, but is not yet called from the cron — wire it into
+  `app/api/ops/cron/recover-stale-twin-jobs` once the migration is applied.
+- **P0b-2 (equirect unwrap + nadir mask) is not started.** Detection now routes 360 media
+  correctly, but the worker-side unwrap still uses the existing 12-view ffmpeg path with no mask
+  reprojection. This is the remaining half of the 360 fix.
+- Items marked ⛔ require a benchmark capture, GPU spend, or an on-device check — they cannot be
+  closed from the dev container.
 
 ### Phase 1 — Pose-prior alignment ⛔ *gated on Modal-image authorization*
 - ⬜ **P1a-1** Verify pycolmap pose-prior API (decides route)

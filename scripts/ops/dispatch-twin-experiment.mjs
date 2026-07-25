@@ -9,6 +9,7 @@
  * Usage:
  *   node scripts/ops/dispatch-twin-experiment.mjs --capture-id <uuid> --arm <bypass|colmap> \
  *     [--tolerance-sec <float>] [--quality draft|standard] [--speed fast|standard] \
+ *     [--train-profile baseline|quality] \
  *     [--no-ply] [--debug] [--roll-deg <float>] [--publish]
  *
  * --no-ply omits lidarPlyKey from the dispatch payload even if a ply_lidar asset
@@ -67,6 +68,10 @@ loadEnv(".env.local");
 
 const captureId = arg("capture-id");
 const arm = arg("arm");
+// P0d — training-profile arm. "baseline" reproduces current production behaviour;
+// "quality" enables the nerfstudio 1.1.5 flags that were never switched on
+// (bilateral grid, antialiased raster, SO3xR3 camera optimizer, denser densification).
+const trainProfile = arg("train-profile");
 const toleranceSecRaw = arg("tolerance-sec");
 const quality = arg("quality") || "draft";
 const speed = arg("speed") || "fast";
@@ -200,6 +205,7 @@ const dispatchPayload = {
   lidarPosesKey: posesAsset?.storage_key ?? null,
   lidarPlyKey: noPly ? null : (plyAsset?.storage_key ?? null),
   forceColmap: arm === "colmap",
+  ...(trainProfile ? { trainProfile } : {}),
   debugArtifacts,
   ...(matchToleranceSec !== undefined ? { matchToleranceSec } : {}),
   ...(rollCorrectionDeg !== undefined ? { rollCorrectionDeg } : {}),

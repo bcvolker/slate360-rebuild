@@ -267,14 +267,17 @@ DENSIFY_GRAD_THRESH_QUALITY = 0.0005
 MAX_GAUSS_RATIO_QUALITY = 5.0
 
 
-def build_train_args(processed_dir: Path, train_dir: Path, iterations: int) -> list[str]:
+def build_train_args(
+    processed_dir: Path, train_dir: Path, iterations: int, profile: str | None = None
+) -> list[str]:
     """Assemble the ns-train argv for the active TRAIN_PROFILE.
 
     All quality-profile flags were confirmed present in SplatfactoModelConfig at the
     nerfstudio v1.1.5 tag. Do not add flags here without verifying them against that tag —
     an unknown flag makes ns-train exit non-zero and fails the whole job.
     """
-    cull_alpha = CULL_ALPHA_THRESH_QUALITY if TRAIN_PROFILE == "quality" else CULL_ALPHA_THRESH
+    active = (profile or TRAIN_PROFILE).strip().lower()
+    cull_alpha = CULL_ALPHA_THRESH_QUALITY if active == "quality" else CULL_ALPHA_THRESH
     args = [
         "ns-train",
         "splatfacto",
@@ -298,7 +301,7 @@ def build_train_args(processed_dir: Path, train_dir: Path, iterations: int) -> l
         "--pipeline.model.stop-split-at",
         str(max(6_000, int(iterations * 0.57))),
     ]
-    if TRAIN_PROFILE == "quality":
+    if active == "quality":
         args += [
             # Absorbs per-image exposure/white-balance drift across a walk instead of letting
             # gaussians bake it in as geometry. iPhone AE/AWB drift is a primary floater source,
@@ -2287,6 +2290,8 @@ class JobInput:
     lidar_poses_key: str | None = None
     lidar_ply_key: str | None = None
     force_colmap: bool = False
+    # P0d — per-job training profile override; falls back to the TRAIN_PROFILE env var.
+    train_profile: str | None = None
     match_tolerance_sec: float | None = None
     debug_artifacts: bool = False
     roll_correction_deg: float = 0.0
@@ -2329,6 +2334,7 @@ class JobInput:
             lidar_poses_key=payload.get("lidarPosesKey") or None,
             lidar_ply_key=payload.get("lidarPlyKey") or None,
             force_colmap=bool(payload.get("forceColmap", False)),
+            train_profile=(payload.get("trainProfile") or None),
             match_tolerance_sec=float(raw_tolerance) if raw_tolerance is not None else None,
             debug_artifacts=bool(payload.get("debugArtifacts", False)),
             roll_correction_deg=float(payload.get("rollCorrectionDeg", 0.0) or 0.0),
@@ -2482,9 +2488,10 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
     # Training is self-silent for many minutes; heartbeat 45→84 so the UI shows movement,
     # and hard-timeout at 60 min (AF2, was 40) so a hung train fails visibly instead of
     # hanging until Modal's container kill (which posts no callback).
-    print(f"[train] profile={TRAIN_PROFILE}")
+    active_profile = (job.train_profile or TRAIN_PROFILE).strip().lower()
+    print(f"[train] profile={active_profile}")
     run_with_heartbeat(
-        build_train_args(processed_dir, train_dir, iterations),
+        build_train_args(processed_dir, train_dir, iterations, active_profile),
         job_id=job.job_id,
         stage="train",
         start_pct=45,
@@ -2661,10 +2668,12 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             "lidarBypass": lidar_bypass_used,
             "lidarPlyInit": lidar_ply_init,
             "cullAlphaThresh": (
-                CULL_ALPHA_THRESH_QUALITY if TRAIN_PROFILE == "quality" else CULL_ALPHA_THRESH
+                CULL_ALPHA_THRESH_QUALITY
+                if (job.train_profile or TRAIN_PROFILE).strip().lower() == "quality"
+                else CULL_ALPHA_THRESH
             ),
             # P0c/P0d — every model row is self-describing about which arms produced it.
-            "trainProfile": TRAIN_PROFILE,
+            "trainProfile": (job.train_profile or TRAIN_PROFILE).strip().lower(),
             "splatCount": splat_count,
             # Diagnostic instrumentation (see scripts/ops/diagnose-twin-poses.mjs).
             "alignmentPath": "arkit_bypass" if lidar_bypass_used else "colmap",
