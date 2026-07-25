@@ -18,6 +18,7 @@ import {
   restoreTwinCaptureReviewState,
 } from "@/lib/digital-twin/twin-capture-pending-persist";
 import { fetchSlateDropFileAsBlob } from "@/lib/digital-twin/twin-review-fetch";
+import { useEquirectHints, hintFor } from "@/components/digital-twin/useEquirectHints";
 import {
   classifyTwinMedia,
   countTwinEstimateFrames,
@@ -122,9 +123,10 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
     [session?.clips],
   );
 
+  const equirectHints = useEquirectHints(clipFiles); // P0b — measured, beats filename guess
   const captureCategories = useMemo(
-    () => clipFiles.map((file) => classifyTwinMedia(file)),
-    [clipFiles],
+    () => clipFiles.map((f) => classifyTwinMedia(f, false, hintFor(equirectHints, f))),
+    [clipFiles, equirectHints],
   );
 
   const localAddedFiles = useMemo(

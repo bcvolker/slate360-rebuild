@@ -22,6 +22,13 @@ export type TwinUploadTarget = {
   captureId?: string;
   title?: string;
   gps?: TwinGpsFix;
+  /**
+   * P0b — optional client-side asset-kind resolver. Supplied where a measured
+   * equirectangular hint is available so 360 media is stored as `panorama_360`
+   * (which is what drives `is360Flags` at dispatch) instead of plain `video`.
+   * Omit to keep the previous server-inferred behaviour.
+   */
+  resolveAssetKind?: (file: File) => string | undefined;
 };
 
 export type TwinFileUploadState = {
@@ -84,7 +91,8 @@ export function useMultipartTwinUpload() {
       const multipartCandidates = selected.filter((f) => f.size > TWIN_SINGLE_UPLOAD_MAX_BYTES);
       const singleCandidates = selected.filter((f) => f.size <= TWIN_SINGLE_UPLOAD_MAX_BYTES);
       let resolvedCaptureId = target.captureId ?? captureId ?? "";
-      const ctx = runnerCtx();
+      // P0b — carry the caller's asset-kind resolver into the runners.
+      const ctx = { ...runnerCtx(), resolveAssetKind: target.resolveAssetKind };
 
       try {
         if (multipartCandidates.length) {
@@ -106,6 +114,9 @@ export function useMultipartTwinUpload() {
             files: multipartCandidates.map((file) => ({
               filename: file.name,
               contentType: file.type || "application/octet-stream",
+              // P0b — explicit kind from the measured equirect hint; the server cannot
+              // distinguish a 360 video from an ordinary one by MIME/filename alone.
+              assetKind: target.resolveAssetKind?.(file),
               sizeBytes: file.size,
             })),
           });

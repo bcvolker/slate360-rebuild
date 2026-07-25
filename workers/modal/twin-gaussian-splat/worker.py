@@ -247,8 +247,77 @@ def splat_transform_clean_export(ply_path: Path, spz_path: Path) -> dict[str, An
     raise RuntimeError(f"SPZ export failed after opacity ladder and saliency fallback: {last_err}")
 
 
-# splatfacto default; explicit conservative cull (cleaner than splatfacto-big's 0.005).
+# P0c — training profile, selectable so quality changes ship as an A/B arm rather than a
+# replacement. "baseline" reproduces pre-2026-07 behaviour byte-for-byte; "quality" enables
+# flags that already exist in the pinned nerfstudio 1.1.5 but were never turned on.
+# Default stays "baseline" until an arm beats it on the benchmark set (CP-1).
+TRAIN_PROFILE = os.environ.get("TRAIN_PROFILE", "baseline").strip().lower()
+
+# CORRECTION (P0c): 0.1 is ALSO the splatfacto default in nerfstudio 1.1.5, so passing it
+# changes nothing — the previous comment claiming an "explicit conservative cull" was wrong.
+# Kept explicit so the value is visible in quality_metrics. The quality profile raises it so
+# it actually culls.
 CULL_ALPHA_THRESH = 0.1
+CULL_ALPHA_THRESH_QUALITY = 0.15
+
+# Densification threshold: lower => densify more => fills textureless walls (splatfacto-big
+# uses 0.0005 vs the 0.0008 default). Anisotropy cap: lower => fewer needle/spike artifacts on
+# glass (only active because use-scale-regularization is on).
+DENSIFY_GRAD_THRESH_QUALITY = 0.0005
+MAX_GAUSS_RATIO_QUALITY = 5.0
+
+
+def build_train_args(processed_dir: Path, train_dir: Path, iterations: int) -> list[str]:
+    """Assemble the ns-train argv for the active TRAIN_PROFILE.
+
+    All quality-profile flags were confirmed present in SplatfactoModelConfig at the
+    nerfstudio v1.1.5 tag. Do not add flags here without verifying them against that tag —
+    an unknown flag makes ns-train exit non-zero and fails the whole job.
+    """
+    cull_alpha = CULL_ALPHA_THRESH_QUALITY if TRAIN_PROFILE == "quality" else CULL_ALPHA_THRESH
+    args = [
+        "ns-train",
+        "splatfacto",
+        "--data",
+        str(processed_dir),
+        "--output-dir",
+        str(train_dir),
+        "--max-num-iterations",
+        str(iterations),
+        "--vis",
+        "tensorboard",
+        "--viewer.quit-on-train-completion",
+        "True",
+        "--pipeline.model.use-scale-regularization",
+        "True",
+        "--pipeline.model.cull-alpha-thresh",
+        str(cull_alpha),
+        # Stop densifying at ~57% of iterations so the model doesn't explode into millions of
+        # gaussians (the 4M/1GB case) — fewer, cleaner splats + far lower export/stream size,
+        # then refinement-only for the remainder.
+        "--pipeline.model.stop-split-at",
+        str(max(6_000, int(iterations * 0.57))),
+    ]
+    if TRAIN_PROFILE == "quality":
+        args += [
+            # Absorbs per-image exposure/white-balance drift across a walk instead of letting
+            # gaussians bake it in as geometry. iPhone AE/AWB drift is a primary floater source,
+            # which is why our capture SOP tells users to lock exposure — this fixes it in the
+            # solver rather than relying on the operator.
+            "--pipeline.model.use-bilateral-grid",
+            "True",
+            # Mip-splatting-style antialiasing; helps thin structure.
+            "--pipeline.model.rasterize-mode",
+            "antialiased",
+            # Defaults to "off". Our COLMAP poses come from a handheld walk and are not exact.
+            "--pipeline.model.camera-optimizer.mode",
+            "SO3xR3",
+            "--pipeline.model.densify-grad-thresh",
+            str(DENSIFY_GRAD_THRESH_QUALITY),
+            "--pipeline.model.max-gauss-ratio",
+            str(MAX_GAUSS_RATIO_QUALITY),
+        ]
+    return args
 
 
 def apply_orientation_override(processed_dir: Path, method: str = "up") -> None:
@@ -2413,30 +2482,9 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
     # Training is self-silent for many minutes; heartbeat 45→84 so the UI shows movement,
     # and hard-timeout at 60 min (AF2, was 40) so a hung train fails visibly instead of
     # hanging until Modal's container kill (which posts no callback).
+    print(f"[train] profile={TRAIN_PROFILE}")
     run_with_heartbeat(
-        [
-            "ns-train",
-            "splatfacto",
-            "--data",
-            str(processed_dir),
-            "--output-dir",
-            str(train_dir),
-            "--max-num-iterations",
-            str(iterations),
-            "--vis",
-            "tensorboard",
-            "--viewer.quit-on-train-completion",
-            "True",
-            "--pipeline.model.use-scale-regularization",
-            "True",
-            "--pipeline.model.cull-alpha-thresh",
-            str(CULL_ALPHA_THRESH),
-            # Stop densifying at ~57% of iterations so the model doesn't explode into
-            # millions of gaussians (the 4M/1GB case) — fewer, cleaner splats + far lower
-            # export/stream size, then refinement-only for the remainder.
-            "--pipeline.model.stop-split-at",
-            str(max(6_000, int(iterations * 0.57))),
-        ],
+        build_train_args(processed_dir, train_dir, iterations),
         job_id=job.job_id,
         stage="train",
         start_pct=45,
@@ -2612,7 +2660,11 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             "orientationMethod": "none" if lidar_bypass_used else "up",
             "lidarBypass": lidar_bypass_used,
             "lidarPlyInit": lidar_ply_init,
-            "cullAlphaThresh": CULL_ALPHA_THRESH,
+            "cullAlphaThresh": (
+                CULL_ALPHA_THRESH_QUALITY if TRAIN_PROFILE == "quality" else CULL_ALPHA_THRESH
+            ),
+            # P0c/P0d — every model row is self-describing about which arms produced it.
+            "trainProfile": TRAIN_PROFILE,
             "splatCount": splat_count,
             # Diagnostic instrumentation (see scripts/ops/diagnose-twin-poses.mjs).
             "alignmentPath": "arkit_bypass" if lidar_bypass_used else "colmap",

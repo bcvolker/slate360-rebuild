@@ -10,6 +10,13 @@ type RunnerCtx = {
   abortedRef: MutableRefObject<boolean>;
   updateFile: (index: number, patch: Partial<TwinFileUploadState>) => void;
   setCaptureId: (id: string) => void;
+  /**
+   * P0b — resolve the asset kind client-side, where the measured equirect hint lives.
+   * The server's `inferTwinAssetKind` falls back to filename/MIME, which cannot tell a
+   * 360 video from an ordinary one; an explicit kind short-circuits that inference.
+   * Omitted (undefined) preserves the previous server-inferred behaviour.
+   */
+  resolveAssetKind?: (file: File) => string | undefined;
 };
 
 export async function runSingleTwinUpload(
@@ -33,6 +40,7 @@ export async function runSingleTwinUpload(
     gps: target.gps,
     filename: file.name,
     contentType: file.type || "application/octet-stream",
+    assetKind: ctx.resolveAssetKind?.(file),
     sizeBytes: file.size,
     sortOrder,
   });

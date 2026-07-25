@@ -1,3 +1,5 @@
+import type { Twin360Hint } from "./twin-equirect-probe";
+
 export type TwinMediaCategory =
   | "phone_video"
   | "phone_photo"
@@ -25,16 +27,35 @@ export function isLikelyDroneFilename(name: string): boolean {
   return DRONE_HINT.test(name);
 }
 
-export function classifyTwinMedia(file: File, forceDrone = false): TwinMediaCategory {
+/**
+ * P0b — classify a capture file.
+ *
+ * `hint` comes from {@link probeEquirectHint} (measured stream aspect ratio) and is
+ * AUTHORITATIVE when supplied: real 360 files carry no reliable filename marker, so the
+ * legacy name-matching below is a fallback for synchronous call sites only. Pass a hint
+ * wherever the async probe can run.
+ */
+export function classifyTwinMedia(
+  file: File,
+  forceDrone = false,
+  hint: Twin360Hint = "unknown",
+): TwinMediaCategory {
   const name = file.name.toLowerCase();
   if (LIDAR_EXT.test(name) || file.type.includes("ply")) return "lidar";
   if (MESH_EXT.test(name)) return "mesh";
   const isVideo =
-    file.type.startsWith("video/") || /\.(webm|mp4|mov|m4v)$/i.test(file.name);
+    file.type.startsWith("video/") ||
+    /\.(webm|mp4|mov|m4v|insv)$/i.test(file.name);
   if (forceDrone || isLikelyDroneFilename(name)) {
+    // A 360 drone (e.g. Antigravity A1) is still equirect — route it to the 360 path so
+    // it gets unwrapped, not fed to COLMAP as a flat frame.
+    if (hint === "equirect") return isVideo ? "360_video" : "360_photo";
     return isVideo ? "drone_video" : "drone_photo";
   }
-  const is360 = name.includes("360") || name.includes("pano") || name.includes("insta360");
+  const is360 =
+    hint === "equirect" ||
+    (hint === "unknown" &&
+      (name.includes("360") || name.includes("pano") || name.includes("insta360")));
   if (is360 && isVideo) return "360_video";
   if (is360) return "360_photo";
   if (isVideo) return "phone_video";
@@ -42,8 +63,12 @@ export function classifyTwinMedia(file: File, forceDrone = false): TwinMediaCate
   return "other";
 }
 
-export function twinMediaToAssetKind(file: File, forceDrone = false): string {
-  const category = classifyTwinMedia(file, forceDrone);
+export function twinMediaToAssetKind(
+  file: File,
+  forceDrone = false,
+  hint: Twin360Hint = "unknown",
+): string {
+  const category = classifyTwinMedia(file, forceDrone, hint);
   switch (category) {
     case "360_video":
     case "360_photo":
