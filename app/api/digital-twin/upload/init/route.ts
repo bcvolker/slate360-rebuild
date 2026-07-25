@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { CreateMultipartUploadCommand } from "@aws-sdk/client-s3";
 import { withAuth } from "@/lib/server/api-auth";
 import { ok, badRequest, forbidden, serverError } from "@/lib/server/api-response";
+import { upsertTwinCaptureAsset } from "@/lib/twin/upsert-capture-asset";
 import { s3, BUCKET } from "@/lib/s3";
 import { assertDigitalTwinProcessingEntitlement } from "@/lib/twin/processing-entitlement";
 import { assertStorageQuota, StorageQuotaExceededError } from "@/lib/twin/storage-quota";
@@ -98,25 +99,17 @@ export const POST = (req: NextRequest) =>
         const assetKind = inferTwinAssetKind(file.contentType, file.filename, file.assetKind);
         const totalParts = computePartCount(file.sizeBytes, partBytes);
 
-        const { data: asset, error: assetError } = await admin
-          .from("digital_twin_capture_assets")
-          .insert({
-            org_id: orgId,
-            space_id: body.space_id,
-            capture_id: capture.id,
-            asset_kind: assetKind,
-            upload_tier: "standard",
-            content_type: file.contentType,
-            file_size_bytes: file.sizeBytes,
-            status: "uploading",
-            sort_order: index,
-          })
-          .select("id")
-          .single();
-
-        if (assetError || !asset?.id) {
-          throw new Error(assetError?.message ?? "Failed to create capture asset");
-        }
+        // P0a — idempotent registration; see lib/twin/upsert-capture-asset.ts.
+        const asset = await upsertTwinCaptureAsset(admin, {
+          orgId,
+          spaceId: body.space_id,
+          captureId: capture.id,
+          assetKind,
+          contentType: file.contentType,
+          sizeBytes: file.sizeBytes,
+          sortOrder: index,
+          clientFingerprint: file.clientFingerprint ?? null,
+        });
 
         await createUnifiedFileForTwinAsset(admin, {
           orgId,

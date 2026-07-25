@@ -11,6 +11,7 @@ import {
   markUnifiedFileReady,
 } from "@/lib/twin/unified-files-bridge";
 import { bridgeTwinAssetToSlateDrop } from "@/lib/twin/slatedrop-bridge";
+import { upsertTwinCaptureAsset } from "@/lib/twin/upsert-capture-asset";
 import {
   buildTwinStorageKey,
   inferTwinAssetKind,
@@ -34,6 +35,8 @@ type PresignBody = {
   contentType: string;
   sizeBytes: number;
   assetKind?: string;
+  /** P0a — stable client identity so re-submits reuse the asset row. */
+  clientFingerprint?: string;
   sortOrder?: number;
 };
 
@@ -86,25 +89,20 @@ export const POST = (req: NextRequest) =>
         const storageKey = buildTwinStorageKey(orgId, body.space_id, capture.id, body.filename);
         const assetKind = inferTwinAssetKind(body.contentType, body.filename, body.assetKind);
 
-        const { data: asset, error: assetError } = await admin
-          .from("digital_twin_capture_assets")
-          .insert({
-            org_id: orgId,
-            space_id: body.space_id,
-            capture_id: capture.id,
-            asset_kind: assetKind,
-            upload_tier: "standard",
-            content_type: body.contentType,
-            file_size_bytes: body.sizeBytes,
-            status: "uploading",
-            sort_order: body.sortOrder ?? 0,
-          })
-          .select("id")
-          .single();
-
-        if (assetError || !asset?.id) {
-          throw new Error(assetError?.message ?? "Failed to create capture asset");
-        }
+        // P0a — idempotent registration. A retry / refresh / re-entry into the submit flow
+        // used to insert a fresh row for the same file; one 262.9 MB video registered three
+        // times and the job then ran on the incomplete triplicate set. Reuse the live row
+        // when the client supplies a fingerprint.
+        const asset = await upsertTwinCaptureAsset(admin, {
+          orgId,
+          spaceId: body.space_id,
+          captureId: capture.id,
+          assetKind,
+          contentType: body.contentType,
+          sizeBytes: body.sizeBytes,
+          sortOrder: body.sortOrder ?? 0,
+          clientFingerprint: body.clientFingerprint ?? null,
+        });
 
         await createUnifiedFileForTwinAsset(admin, {
           orgId,

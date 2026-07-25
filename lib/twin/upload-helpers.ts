@@ -13,6 +13,8 @@ export type TwinFileDescriptor = {
   contentType: string;
   sizeBytes: number;
   assetKind?: string;
+  /** P0a — stable client identity so re-submits reuse the asset row instead of duplicating it. */
+  clientFingerprint?: string;
 };
 
 export type TwinGpsFix = {

@@ -90,16 +90,31 @@ export const POST = (req: NextRequest) =>
       if (captureError) return serverError(captureError.message);
       if (!capture) return notFound("Capture not found");
 
-      const { data: assets, error: assetsError } = await admin
+      // P0a — fetch ALL live assets, not just `ready` ones. Previously this filtered to
+      // status = "ready", so an asset still uploading was silently EXCLUDED from the job
+      // rather than blocking it: that is how the 2026-07-08 capture processed against an
+      // incomplete triplicate set. Now a capture with work in flight is refused outright.
+      const { data: allAssets, error: assetsError } = await admin
         .from("digital_twin_capture_assets")
         .select("id, status, asset_kind")
         .eq("capture_id", body.capture_id)
         .eq("org_id", orgId)
-        .eq("status", "ready")
         .is("deleted_at", null);
 
       if (assetsError) return serverError(assetsError.message);
-      if (!assets?.length) return badRequest("No ready assets on capture");
+
+      const pending = (allAssets ?? []).filter(
+        (a) => a.status === "uploading" || a.status === "pending",
+      );
+      if (pending.length) {
+        return badRequest(
+          `${pending.length} file${pending.length === 1 ? " is" : "s are"} still uploading — ` +
+            "wait for the upload to finish before processing.",
+        );
+      }
+
+      const assets = (allAssets ?? []).filter((a) => a.status === "ready");
+      if (!assets.length) return badRequest("No ready assets on capture");
 
       await assertTwinHighQualityEntitlement(admin, orgId, user.email, quality);
 

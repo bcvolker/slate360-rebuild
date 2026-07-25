@@ -1,5 +1,6 @@
 import type { MutableRefObject } from "react";
 import { twinApiPost, type InitUploadRow } from "@/hooks/twin-upload-api";
+import { twinAssetFingerprint } from "@/lib/twin/asset-fingerprint";
 import type { TwinFileUploadState, TwinUploadTarget } from "@/hooks/useMultipartTwinUpload";
 
 const MAX_PART_RETRIES = 3;
@@ -41,6 +42,7 @@ export async function runSingleTwinUpload(
     filename: file.name,
     contentType: file.type || "application/octet-stream",
     assetKind: ctx.resolveAssetKind?.(file),
+    clientFingerprint: twinAssetFingerprint(file),
     sizeBytes: file.size,
     sortOrder,
   });

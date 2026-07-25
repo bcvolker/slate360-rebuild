@@ -7,6 +7,7 @@ import {
 } from "@/lib/twin/upload-constants";
 import { twinApiPost } from "@/hooks/twin-upload-api";
 import { runMultipartTwinUpload, runSingleTwinUpload } from "@/hooks/twin-upload-runners";
+import { twinAssetFingerprint } from "@/lib/twin/asset-fingerprint";
 import type { TwinProcessingQuality } from "@/lib/twin/processing-estimate-types";
 
 export type TwinGpsFix = {
@@ -117,6 +118,7 @@ export function useMultipartTwinUpload() {
               // P0b — explicit kind from the measured equirect hint; the server cannot
               // distinguish a 360 video from an ordinary one by MIME/filename alone.
               assetKind: target.resolveAssetKind?.(file),
+              clientFingerprint: twinAssetFingerprint(file),
               sizeBytes: file.size,
             })),
           });
