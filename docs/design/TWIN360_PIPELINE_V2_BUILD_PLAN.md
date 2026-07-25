@@ -410,6 +410,52 @@ three capture devices.
 
 ---
 
+## PART F — Execution model (how this actually gets built)
+
+### Two parallel tracks
+
+Phase 4 does **not** depend on Phases 1–3. Mesh export, floor plans, bake, and file exports operate
+on whatever model the pipeline produces, so they can proceed while the alignment/training work is
+blocked on authorizations. Run two tracks:
+
+```
+  TRACK A (quality):      P0 ──> P1 ──> P2 ──> P3        [blocked on Modal-image auth]
+                            │
+  TRACK B (deliverables):  └──> P4                        [unblocked after P0d]
+```
+
+If §E authorizations are slow, Sonnet 5 works Track B and does not sit idle.
+
+### Where Sonnet 5 can run unattended vs. where it must stop
+
+| Work type | Autonomy | Notes |
+|---|---|---|
+| Code changes, migrations, refactors, backend wiring | **Full** | Standard build work |
+| Modal/Trigger deploys | **Full**, from an environment with credentials | Not from the dev container (§E2) |
+| Running an A/B experiment arm | **Full** | ~20–40 min GPU per arm |
+| **Promoting an arm to default** | **STOP — human required** | R7.5 visual gate is mandatory and cannot be automated |
+| Anything touching entitlements/billing/Stripe/middleware/existing migrations | **STOP** | Forbidden edit zones (read-only) |
+| Native iOS changes (P3d) | **STOP after code** | Requires Codemagic → TestFlight → Brian's device |
+| Final acceptance | **STOP** | On-device iPhone verification, Brian only |
+
+**Practical consequence: this is a build-then-verify loop, not a straight-through run.** Each phase
+ends at a human checkpoint. Sonnet 5 should batch work up to the next checkpoint, then report with
+the evidence needed to make the call (metrics table + share links for visual comparison).
+
+### Checkpoint cadence
+
+| Checkpoint | Trigger | What Brian decides |
+|---|---|---|
+| **CP-1** | End of P0c | Promote the free-flag arm? (compare share links) |
+| **CP-2** | End of Phase 0 | Authorize Modal image changes → unblocks Track A |
+| **CP-3** | End of P1c | Promote pose-prior mapper? (scale/gravity 100%? visually better?) |
+| **CP-4** | End of P2b | Promote learned matching? |
+| **CP-5** | End of P3b | Promote gsplat trainer + depth loss? |
+| **CP-6** | P3d scoping | Approve native capture change (TestFlight cycle)? |
+| **CP-7** | End of P4 | Accept deliverables; on-device final acceptance |
+
+---
+
 ## PART E — Authorizations still needed from Brian
 
 1. **Benchmark capture IDs** (2–4 per §C rule 7) + **Modal GPU credit authorization** for A/B arms.
