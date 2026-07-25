@@ -33,6 +33,7 @@ import os
 import re
 import shutil
 import subprocess
+import tempfile
 import threading
 import time
 import traceback
@@ -1500,11 +1501,47 @@ def extract_video_frames(
     return len(kept_times), stats, kept_times, kept_sharpness
 
 
-def extract_equirect_views(image_path: Path, out_dir: Path, stem: str) -> int:
+# P0b-2 — equirectangular unwrap geometry.
+#
+# The previous ring was 12 yaw steps at pitch=0 only, which never looked up or down: ceilings
+# and floors were reconstructed from grazing rays at the frame edges, if at all.
+#
+# Pitch is deliberately capped at +/-35 deg and NEVER reaches the nadir. The operator, pole, or
+# tripod sits at -90 deg in every handheld 360 capture; by not sampling straight down we exclude
+# them geometrically instead of needing per-image masks. A true reprojected nadir mask (COLMAP
+# --ImageReader.mask_path, convention <image>.png, black = excluded) is the stronger fix and is
+# tracked as a follow-on — it needs the ns-process-data mask plumbing verified first.
+EQUIRECT_VIEW_W = 1600
+EQUIRECT_VIEW_H = 1200
+# (pitch_deg, yaw_step_deg) — a dense horizontal band plus sparser up/down rings.
+EQUIRECT_RINGS_STILL = ((0, 45), (35, 90), (-35, 90))   # 8 + 4 + 4 = 16 views
+EQUIRECT_RINGS_VIDEO = ((0, 90), (35, 180), (-35, 180))  # 4 + 2 + 2 = 8 views
+
+
+def equirect_view_angles(rings: tuple[tuple[int, int], ...]) -> list[tuple[int, int]]:
+    angles: list[tuple[int, int]] = []
+    for pitch, step in rings:
+        for yaw in range(0, 360, step):
+            angles.append((pitch, yaw))
+    return angles
+
+
+def extract_equirect_views(
+    image_path: Path,
+    out_dir: Path,
+    stem: str,
+    rings: tuple[tuple[int, int], ...] = EQUIRECT_RINGS_STILL,
+) -> int:
+    """Cut one equirectangular frame into overlapping perspective views for COLMAP.
+
+    COLMAP has no spherical camera model, so equirect MUST be reprojected before SfM —
+    feeding it directly is the documented "360 produces garbage" failure.
+    """
     out_dir.mkdir(parents=True, exist_ok=True)
     count = 0
-    for yaw in range(0, 360, 30):
-        out_path = out_dir / f"{stem}_yaw{yaw:03d}.jpg"
+    for pitch, yaw in equirect_view_angles(rings):
+        tag = f"p{pitch:+03d}y{yaw:03d}".replace("+", "p").replace("-", "m")
+        out_path = out_dir / f"{stem}_{tag}.jpg"
         run_cmd(
             [
                 "ffmpeg",
@@ -1513,14 +1550,51 @@ def extract_equirect_views(image_path: Path, out_dir: Path, stem: str) -> int:
                 str(image_path),
                 "-vf",
                 (
-                    f"v360=input=equirect:output=flat:yaw={yaw}:pitch=0:roll=0:"
-                    "w=1600:h=1200"
+                    f"v360=input=equirect:output=flat:yaw={yaw}:pitch={pitch}:roll=0:"
+                    f"w={EQUIRECT_VIEW_W}:h={EQUIRECT_VIEW_H}"
                 ),
+                "-q:v",
+                "2",
                 str(out_path),
             ]
         )
         count += 1
     return count
+
+
+# 360 video carries a full sphere per frame, so it needs far fewer frames than a narrow-FoV
+# phone clip — and every frame is multiplied by the view count, so oversampling here is what
+# makes COLMAP intractable. ~1 frame every 2 s matches the 360-stills guidance.
+EQUIRECT_VIDEO_FPS = 0.5
+
+
+def extract_equirect_video_views(video_path: Path, out_dir: Path, stem: str) -> int:
+    """Sample a 360 video sparsely, then unwrap each sampled frame into perspective views."""
+    out_dir.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="equirect-frames-") as tmp:
+        frames_dir = Path(tmp)
+        run_cmd(
+            [
+                "ffmpeg",
+                "-y",
+                "-i",
+                str(video_path),
+                "-vf",
+                f"fps={EQUIRECT_VIDEO_FPS}",
+                "-q:v",
+                "2",
+                str(frames_dir / f"{stem}_%05d.jpg"),
+            ]
+        )
+        frames = sorted(frames_dir.glob(f"{stem}_*.jpg"))
+        if not frames:
+            raise RuntimeError(f"No frames extracted from 360 video {video_path.name}")
+        total = 0
+        for i, frame in enumerate(frames):
+            total += extract_equirect_views(
+                frame, out_dir, f"{stem}_{i:04d}", rings=EQUIRECT_RINGS_VIDEO
+            )
+    return total
 
 
 def materialize_images(
@@ -1543,6 +1617,20 @@ def materialize_images(
         stem = sanitize_stem(Path(key).stem or f"asset_{idx}")
         is360 = bool(is360_flags[idx]) if idx < len(is360_flags) else False
         ext = src.suffix.lower()
+
+        # P0b-2 — 360 VIDEO must be checked BEFORE the generic video branch. Previously the
+        # video branch ran first, so an equirect clip was cut into flat frames and handed to
+        # COLMAP as if it were pinhole imagery — the documented "360 produces garbage" bug.
+        # These frames are intentionally excluded from frame_abs_times: their timestamps are
+        # per-sampled-frame, not per-keyframe, so they must not feed ARKit pose matching.
+        if is360 and ext in VIDEO_EXTENSIONS:
+            stats["videos"] += 1
+            views = extract_equirect_video_views(src, images_dir, stem)
+            stats["panorama_views"] += views
+            stats.setdefault("equirectVideo", []).append(
+                {"source": stem, "views": views, "fps": EQUIRECT_VIDEO_FPS}
+            )
+            continue
 
         if ext in VIDEO_EXTENSIONS:
             stats["videos"] += 1

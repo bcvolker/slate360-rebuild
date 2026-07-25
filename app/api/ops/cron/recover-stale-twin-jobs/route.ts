@@ -23,7 +23,25 @@ export async function GET(req: NextRequest) {
     const admin = createAdminClient();
     const processed = await recoverStaleDigitalTwinJobs(admin);
 
-    return ok({ ok: true, processed });
+    // P0a — sweep assets abandoned mid-upload (status 'uploading' with no storage_key).
+    // These used to accumulate forever and were the debris left behind by the duplicate
+    // registration bug. Non-fatal: a missing RPC (migration not yet applied) must not break
+    // stale-job recovery, which is the cron's primary duty.
+    let staleAssetsSwept: number | null = null;
+    const { data: swept, error: gcError } = await admin.rpc(
+      "gc_stale_digital_twin_upload_assets",
+      { p_stale_minutes: 180 },
+    );
+    if (gcError) {
+      console.warn(
+        "[cron/recover-stale-twin-jobs] asset GC skipped:",
+        gcError.message,
+      );
+    } else {
+      staleAssetsSwept = typeof swept === "number" ? swept : 0;
+    }
+
+    return ok({ ok: true, processed, staleAssetsSwept });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[GET /api/ops/cron/recover-stale-twin-jobs]", { error: message });

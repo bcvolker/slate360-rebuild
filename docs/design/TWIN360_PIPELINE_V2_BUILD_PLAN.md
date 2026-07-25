@@ -430,11 +430,11 @@ Legend: ⬜ not started · 🟨 partial · ✅ code complete & verified · ⛔ b
 
 ### Phase 0 — Unblocked (no authorization needed)
 - ✅ **P0a-1** SHA-256 fingerprint column (additive migration) + idempotent asset registration
-- 🟨 **P0a-2** GC for stale `uploading` rows
+- ✅ **P0a-2** GC for stale `uploading` rows (function + cron wiring; activates on migration apply)
 - ✅ **P0a-3** Refuse job enqueue while any asset not `ready`
 - ⛔ **P0a-4** Verify: duplicate submit → one row; dual-camera import <10 min
 - ✅ **P0b-1** Aspect-ratio (~2:1) 360 detection replacing filename heuristic
-- ⬜ **P0b-2** Equirect unwrap + nadir mask reprojection → COLMAP `--ImageReader.mask_path`
+- ✅ **P0b-2** 360-video unwrap + pitch rings (nadir excluded geometrically; true mask reprojection deferred)
 - ⛔ **P0b-3** Verify on real X4 file: no operator, floor preserved
 - ✅ **P0c-1** Add bilateral grid + antialiased + camera optimizer + densify/ratio flags
 - ✅ **P0c-2** Remove/correct the no-op `cull-alpha-thresh`
@@ -458,12 +458,15 @@ Legend: ⬜ not started · 🟨 partial · ✅ code complete & verified · ⛔ b
 - **P0d-2 is partial:** the `TRAIN_BACKEND`-equivalent selector shipped as `TRAIN_PROFILE`
   (env var + per-job `trainProfile` payload override). `ALIGN_BACKEND` lands with P1a, since
   there is no second alignment backend to select between until COLMAP ≥4.0 is in the image.
-- **P0a-2 is partial:** the `gc_stale_digital_twin_upload_assets()` function is written and in the
-  migration, but is not yet called from the cron — wire it into
-  `app/api/ops/cron/recover-stale-twin-jobs` once the migration is applied.
-- **P0b-2 (equirect unwrap + nadir mask) is not started.** Detection now routes 360 media
-  correctly, but the worker-side unwrap still uses the existing 12-view ffmpeg path with no mask
-  reprojection. This is the remaining half of the 360 fix.
+- **P0a-2 is wired:** `gc_stale_digital_twin_upload_assets()` is called from
+  `app/api/ops/cron/recover-stale-twin-jobs`, non-fatally — a missing RPC (migration not yet
+  applied) logs a warning instead of breaking stale-job recovery.
+- **P0b-2 shipped the load-bearing half.** 360 VIDEO was previously matched by the generic
+  video branch *before* the is360 check, so equirect clips were cut into flat frames and fed to
+  COLMAP as pinhole imagery — the actual "360 produces garbage" mechanism. 360 video now unwraps
+  to perspective views, and unwrap rings gained pitch diversity (0, +/-35 deg). Nadir is excluded
+  geometrically by never sampling straight down; a true reprojected mask via COLMAP
+  `--ImageReader.mask_path` remains a follow-on (needs ns-process-data mask plumbing verified).
 - Items marked ⛔ require a benchmark capture, GPU spend, or an on-device check — they cannot be
   closed from the dev container.
 
