@@ -183,6 +183,22 @@ believed. Different mechanism, different failure mode.
 - Accept: `colmap_vanilla` + `splatfacto` reproduces today's output byte-comparably in structure;
   new arms dispatch without a worker fork.
 
+**P0e · Capture SOPs per device** — *zero code; this is what makes cheap gear work*
+
+Practitioner consensus, not controlled studies — label as guidance, not guarantees. Publish as
+in-app capture coaching + a short field doc.
+
+| Device | SOP |
+|---|---|
+| **iPhone (LiDAR)** | 0.5–0.8 m/s, pause ~1 s at corners/doorways, 70–80% overlap, lock AE/WB, no HDR, all lights on, landscape. (Already documented — keep.) |
+| **DJI Mini-class drone** | **Stills beat video** (rolling shutter is the quality killer on consumer drones — all three passes agree). ≥80% forward / 60–70% side (85/80 for best). Nadir grid **plus** oblique facade orbits at 30–45° — nadir alone reconstructs walls poorly. Low/mid/high orbit rings. Fast shutter, fixed WB. If shooting video: slow smooth flight, ~1/1000 s, highest bitrate, extract 1–3 sharp frames/s, reject turns and stationary redundancy. |
+| **Antigravity A1 (360 drone)** | 8K/30 in daylight, 5.2K/60 when light is weak; shutter 1/2000 bright, 1/1000 overcast; EV −0.7, auto ISO, fixed WB; H.265 high bitrate. Low orbit ~1–1.5 m AGL close to walls, mid orbit ~2–3 m, roof snake, context spiral at ~2× building extent. 3–5 min clip, return near start for loop closure. **Hard limit: obstacle avoidance cannot be disabled → 5–7 m standoff, so close-detail facade work is out of reach. Exteriors only.** Note its 30–50% "adjacent lane" overlap figure is for continuous full-sphere video and is **not** comparable to still-photo overlap. |
+| **Insta360 X4/X5 (indoor)** | 8K/30 daylight interiors, 5.7K/60 under artificial light; H.265 high bitrate; fixed WB. **Upload raw `.insv` where supported** — do not convert/rename. If exporting stitched MP4: **Direction Lock ON**, and **disable Horizon Leveling, Tilt Recovery, and Vibration Reduction** (stabilization warps equirect frames and injects geometric noise). 0.5–1 m standoff, 1–1.5 m/s walk, low/mid/high perimeter + diagonal centre pass + reverse mid pass, 2–4 min continuous loop. Mask the operator/nadir rather than blanket-cropping the floor. *(Unresolved conflict across sources: shutter 1/500 vs 1/800–1/1000, and sharpness Low vs High — test both on a benchmark capture.)* |
+| **Drone exterior + phone interior bridge** | Capture a **continuous transition through an open doorway**: approach obliquely from several exterior positions, slow through the threshold, see both adjacent spaces in the transition frames, then loop the vestibule before branching inward. Open doors before capture and don't move them. Add ground-level exterior phone/360 passes overlapping the drone facade — this is the practical substitute for synthetic intermediate views. **Never bridge through glass** (reflection/transmission creates false geometry). Caveat: a peer-reviewed 360-bridge experiment measured **4–6× worse metric accuracy** than perspective imagery — use panorama bridges for *orientation*, not for measured geometry. No turnkey open-source aerial↔interior merge exists; expect separate registration plus Sim3 alignment on doorway control points. |
+
+Accept: SOPs published; in-app coaching reflects them; each device has at least one benchmark
+capture shot to SOP for the A/B set.
+
 ---
 
 ### PHASE 1 — Pose-prior-anchored alignment (the structural fix)
@@ -202,13 +218,37 @@ believed. Different mechanism, different failure mode.
 - Map ARKit keyframes → registered COLMAP images (reuse the existing frame↔keyframe time matcher,
   0.25 s tolerance). For each image write `position` (ARKit translation) + `position_covariance` +
   `gravity` into `pose_priors`.
-- **Covariance must be driven by ARKit tracking state, not hardcoded** — tight (σ≈0.02–0.05 m) while
-  `.normal`, loose (σ≈0.3–1.0 m) after interruption/relocalization or during rapid motion. This is
-  what makes bad priors harmless.
+- **Covariance must be driven by ARKit tracking state, not hardcoded.** Apple publishes no
+  covariance and no enum→σ mapping exists in the literature — the table below is a **tuned
+  starting point (INFERRED)**, derived from two independent research passes that both anchor on the
+  Sensors 2022 VIO benchmark (~0.02 m/s ARKit relative drift). Tune on the benchmark walks.
+
+  | `ARCamera.TrackingState` | Starting σ_xyz (m) |
+  |---|---|
+  | `.normal`, continuous walk | 0.03–0.08 |
+  | `.limited(.insufficientFeatures)` | 0.3–1.0 |
+  | `.limited(.excessiveMotion)` | 0.5–2.0 |
+  | `.limited(.initializing)` / `.limited(.relocalizing)` | **omit the prior entirely** (relocalization can jump the world frame) |
+  | First ~1 s after relocalization / interruption | 0.2–0.5, then tighten |
+
+- **Drift-growth term (important):** ARKit position error is a random walk, so absolute positions
+  late in a walk are wrong *relative to* early ones even while tracking stays `.normal`. Inflate
+  σ ∝ √t (or √distance) from session start, or per-clip from the last loop closure. Without this,
+  uniformly tight priors will fight true geometry on long walks.
+- **iOS 26.4+ LiDAR drift regression — confirmed independently by two research passes**
+  (Apple Developer Forums threads 827240, 833040): reproducible cumulative drift in
+  `ARCamera.transform` on **LiDAR devices only**, accumulating with walking distance, absent when
+  stationary, present on iPhone 14/15/16/17 Pro and iPad Pro, **no config workaround**, Apple
+  investigating with no published fix timeline. Mitigation: detect `iOS ≥ 26.4 && hasLiDAR` and
+  apply a global covariance inflation multiplier (start ×2–3); log it in `quality_metrics` so the
+  multiplier can be retired when Apple ships a fix. **This regression strengthens the case for
+  priors-with-robust-loss over any pose-trusting approach** — it is precisely why the old bypass
+  arm could never work on current iOS.
 - Drone path: nothing to write — COLMAP auto-populates `pose_priors` from EXIF GPS at
   `feature_extractor`. Verify this fires on the ASU dataset.
-- Accept: `pose_priors` row count == registered image count; covariance varies with tracking state;
-  a deliberately corrupted prior does not wreck the reconstruction.
+- Accept: `pose_priors` row count == registered image count (minus deliberately omitted
+  relocalizing frames); covariance varies with tracking state and grows with walk length; a
+  deliberately corrupted prior does not wreck the reconstruction.
 
 **P1c · `pose_prior_mapper` arm**
 ```
@@ -304,9 +344,21 @@ colmap pose_prior_mapper \
 **P3d · Capture-side: retain per-frame depth (native, needs TestFlight)**
 - Today the plugin persists only a fused 2 cm-voxel PLY with **grey placeholder color** — not
   per-frame `sceneDepth`, and no per-point RGB. Both limit P3b's ceiling.
-- Scope: persist downsampled/compressed per-frame depth + confidence, and sample per-point RGB from
-  the paired video frame. Native change → Codemagic → TestFlight cycle.
-- Accept: depth-supervised arm using per-frame depth beats the fused-PLY arm.
+- **Format — adopt the de-facto standard** (StrayScanner / Polycam polyform both use it, confirmed
+  by two research passes): depth as **lossless 16-bit PNG in millimetres** at the **native 256×192**
+  (do NOT upscale on device), confidence as **8-bit PNG** with ARKit's three levels. Record3D's
+  alternative is LZFSE-compressed float32 metres. **Keep depth lossless** — 8-bit quantization over
+  the 5 m range is a ~2 cm step, which erases the very LiDAR precision we are trying to exploit.
+  Bonus: nerfstudio ingests Polycam and Record3D layouts directly, so matching one gives a free
+  ingestion path.
+- **Storage impact — size this against the P0a upload work.** Estimates (arithmetic, not measured;
+  both passes agree on order): depth+confidence as PNG ≈ **50–100 MB/min** on top of the existing
+  ~32 MB/min HEVC. That is a **2–4× increase in upload volume**, so P0a's resumable/idempotent
+  upload path is a hard prerequisite. Mitigation: persist depth at 10–15 Hz while RGB stays at
+  30 fps (depth changes slowly relative to appearance).
+- Also sample per-point RGB from the paired video frame to replace the grey placeholder.
+- Accept: depth-supervised arm using per-frame depth beats the fused-PLY arm; upload of a 2-minute
+  capture with depth still completes reliably on cellular.
 
 ---
 
@@ -315,10 +367,30 @@ colmap pose_prior_mapper \
 **P4a · Bake** — apply `edit_list` destructively server-side → new model version. Today's edits are
 non-destructive overlays that never reach downloads ("the downloaded file still has the mess").
 
-**P4b · Mesh export** — **Open3D (MIT) scalable TSDF → Marching Cubes from posed LiDAR/depth.**
-Bake color by projecting camera images using known poses. **Do not use SuGaR/2DGS/GOF/RaDe-GS/
-GS2Mesh** (Inria non-commercial). `ns-export tsdf` (Apache-2.0) is an acceptable secondary;
-`ns-export poisson` will not work with splatfacto (needs a normals-predicting model).
+**P4b · Mesh export** — **Open3D 0.19.0 (MIT) `ScalableTSDFVolume` → Marching Cubes from posed
+LiDAR/depth.** **Do not use SuGaR/2DGS/GOF/RaDe-GS/GS2Mesh** (Inria non-commercial).
+`ns-export tsdf` (Apache-2.0) is an acceptable secondary; `ns-export poisson` will **not** work with
+splatfacto (it needs a normals-predicting model such as `nerfacto --predict-normals`).
+
+Verified parameters (both research passes agree):
+```python
+volume = o3d.pipelines.integration.ScalableTSDFVolume(
+    voxel_length=0.012,        # iPhone-grade; tutorial default 4.0/512 = 7.8 mm is too fine
+    sdf_trunc=0.04,            # ~2-4x voxel_length
+    color_type=o3d.pipelines.integration.TSDFVolumeColorType.RGB8,
+    volume_unit_resolution=16, depth_sampling_stride=4)
+rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(
+    color, depth, depth_scale=1000.0, depth_trunc=5.0, convert_rgb_to_intensity=False)
+volume.integrate(rgbd, intrinsic, extrinsic)   # extrinsic = world-to-camera
+mesh = volume.extract_triangle_mesh(); mesh.compute_vertex_normals()
+```
+- **`depth_scale` gotcha:** millimetre PNG depth (Polycam/StrayScanner style, and our P3d choice)
+  → `depth_scale=1000.0`. Float32-metre depth (Record3D style) → `depth_scale=1.0`. Getting this
+  wrong silently produces a mesh 1000× the wrong size.
+- Filter confidence below `medium` before integrating; `depth_trunc=5.0` matches the LiDAR range.
+- **Color:** `RGB8` gives per-vertex colors from Marching Cubes. **There is no built-in UV-atlas
+  bake** — a textured mesh needs a separate xatlas unwrap + posed-image projection step. Scope
+  vertex-color first; treat UV texturing as a follow-on.
 
 **P4c · Vector 2D floor plan + areas** — Open3D RANSAC plane extraction → Shapely/GEOS topology →
 **SVG with explicit physical viewport + DXF with `$INSUNITS=6` (meters)** via ezdxf (MIT).
@@ -332,9 +404,23 @@ grows with distance/scan size; glass and reflective surfaces dominate errors. **
 language: "±2–5 cm typical at room scale; estimating-grade, not survey-grade; verify long diagonals,
 openings, and fabrication-critical dimensions with a laser."** Never claim permit-grade.
 
-**P4e · Exports + embed** — `.ply`, `.glb`, point cloud (LAS/LAZ via laspy/PDAL; E57 via
-libE57Format), keep `.spz` v3 for the viewer. `/embed/twin/{token}` with CSP `frame-ancestors`
-opened for that route only.
+**P4e · Exports + embed** — `.ply`, `.glb`, point cloud (LAS/LAZ via laspy, LAZ backend **lazrs
+(Apache-2.0), not laszip (LGPL)**; PDAL BSD-3; E57 via libE57Format 3.3.0, BSL-1.0), keep `.spz`
+v3 for the viewer. OpenUSD 26.03 ships `UsdVolParticleField3DGaussianSplat` + a PLY→USD script if
+USD export is wanted later. `/embed/twin/{token}` with CSP `frame-ancestors` opened for that route
+only.
+
+**Upgrade `@playcanvas/splat-transform` 2.7.1 → 3.1.6 (MIT, released 2026-07-21).** Two research
+passes confirm v3.x adds capabilities that directly simplify our pipeline:
+- **`--filter-floaters`** and **`--filter-cluster` (GPU)** — could replace or reinforce the Python
+  SOR stage; note `scripts/ops/clean-spz-floaters.mjs` already uses `--filter-floaters` while the
+  worker does not.
+- **`--decimate`** — could replace the Python 2M-splat cap.
+- **`.glb` output with `KHR_gaussian_splatting`** — a deliverable format we currently lack.
+- ⚠️ **Hazard: v3 defaults SPZ output to v4.** Spark reads **v3 only** — this is exactly the bug
+  that produced the 2026-06 SPZ v4 crisis. **Keep `--spz-version 3` explicit** and re-run
+  `scripts/ops/verify-twin-spz.mjs` across the fleet after upgrading. Treat the version bump as its
+  own A/B arm with the verifier as the gate.
 
 ---
 
@@ -356,6 +442,10 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done + visual gate passed · 
 - ⬜ **P0d-1** Split `worker.py` into a pipeline package
 - ⬜ **P0d-2** `ALIGN_BACKEND` / `TRAIN_BACKEND` selectors + payload plumbing
 - ⬜ **P0d-3** Experiment-harness arms + backend recorded in `quality_metrics`
+- ⬜ **P0e-1** Capture SOPs published (iPhone / Mini-class / A1 / X4-X5 / bridge)
+- ⬜ **P0e-2** In-app capture coaching reflects the SOPs
+- ⬜ **P0e-3** One SOP-compliant benchmark capture per device class
+- ⬜ **P0e-4** Resolve the X4 shutter + sharpness conflict empirically
 
 ### Phase 1 — Pose-prior alignment ⛔ *gated on Modal-image authorization*
 - ⬜ **P1a-1** Verify pycolmap pose-prior API (decides route)
@@ -363,8 +453,10 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done + visual gate passed · 
 - ⬜ **P1a-3** Regression: `colmap_vanilla` unchanged
 - ⬜ **P1b-1** ARKit keyframe → image mapping
 - ⬜ **P1b-2** Write position + covariance + gravity to `pose_priors`
-- ⬜ **P1b-3** Tracking-state-driven covariance
-- ⬜ **P1b-4** Verify drone EXIF-GPS auto-population
+- ⬜ **P1b-3** Tracking-state-driven covariance table (omit priors while relocalizing)
+- ⬜ **P1b-4** √t drift-growth inflation from session start / last loop closure
+- ⬜ **P1b-5** iOS ≥26.4 + LiDAR global covariance multiplier, logged in `quality_metrics`
+- ⬜ **P1b-6** Verify drone EXIF-GPS auto-population
 - ⬜ **P1c-1** `pose_prior_mapper` arm + vanilla fallback
 - ⬜ **P1c-2** Tune `prior_position_loss_scale`
 - ⬜ **P1c-3** Gate: scale 100%, `Y_UP_MEASURED` 100%, PSNR ≥ baseline, **visual gate**
@@ -402,7 +494,8 @@ Legend: ⬜ not started · 🟨 in progress · ✅ done + visual gate passed · 
 - ⬜ **P4c-4** Surface the floor plan in the UI *(currently generated but has zero UI consumers)*
 - ⬜ **P4d-1** Accuracy copy + disclaimers per §P4d
 - ⬜ **P4e-1** `.ply` / `.glb` / LAS / E57 exports
-- ⬜ **P4e-2** `/embed/twin/{token}` + scoped CSP
+- ⬜ **P4e-2** splat-transform 2.7.1 → 3.1.6 *(keep `--spz-version 3`; re-verify fleet)*
+- ⬜ **P4e-3** `/embed/twin/{token}` + scoped CSP
 
 **"Complete Twin 360" definition of done:** Phases 0–4 green, on-device iPhone verified, with a
 single share link delivering 3D twin + 2D plan + measurements + downloadable mesh, from any of the
