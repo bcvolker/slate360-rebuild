@@ -24,7 +24,34 @@ Both are "Claude Code." Only one of them is on the machine that holds your crede
 **The network policy is the real wall.** Credentials alone would not help: the gateway refuses the
 connection before any authentication happens. Fix order is **policy → credentials → CLIs**.
 
-## Fix
+## Recommended fix: teleport, don't reconfigure
+
+**If you work locally (Cursor, terminal) on the machine that holds the credentials, do NOT
+configure the cloud environment.** Pull the cloud session down to that machine instead:
+
+```bash
+cd C:\s360
+claude --teleport            # interactive picker, or: claude --teleport <session-id>
+```
+
+Teleport checks out the cloud session's branch and loads its **full conversation history** into
+your local terminal, where Claude Code already has Supabase, Modal, Vercel and R2 authenticated.
+Nothing to allowlist, no credentials to copy, no keys to rotate afterwards.
+
+Other ways into the same thing: `/teleport` (or `/tp`) inside a running CLI session; `/tasks`
+then press `t`; or **Open in CLI** in the web interface, which copies the command for you.
+
+Caveats:
+- Requires the Claude Code CLI signed in to the same claude.ai account.
+- Handoff is **one-way**: work continued locally does not flow back into the web session. That
+  is harmless here because everything is committed and pushed to the branch.
+- Commit or stash local changes first; you will be prompted otherwise.
+
+Configure the cloud environment (below) only if you want **web or mobile** sessions to reach the
+backend autonomously — e.g. kicking off a deploy from your phone. For desk-bound work it is
+strictly more setup and more secret-handling for no gain.
+
+## Alternative fix: configure the cloud environment
 
 ### 1. Network policy (required)
 
@@ -45,6 +72,12 @@ Settings live with the Claude Code environment configuration, not in this repo. 
 https://code.claude.com/docs/en/claude-code-on-the-web
 
 ### 2. Credentials as environment variables
+
+**No new keys need to be generated.** These values already exist in Vercel production; copy them
+rather than minting replacements. On the local machine, `npx vercel env pull .env.prod
+--environment=production` dumps them for copying (delete the file afterwards). The exception is
+Modal: its tokens live in `~/.modal.toml`, not Vercel, so either copy from there or mint a token
+at modal.com/settings/tokens.
 
 Environments support configured environment variables. Add the minimum set for the task at hand —
 **do not paste secrets into chat**; put them in the environment config, where they are injected
