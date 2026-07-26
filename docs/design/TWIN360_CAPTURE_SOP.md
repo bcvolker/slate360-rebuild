@@ -93,7 +93,10 @@ Its "30–50% overlap" guidance refers to adjacent lanes in continuous full-sphe
 | Clip | One continuous 2–4 min loop (up to 6 min acceptable) |
 
 **Export rules — these matter more than the settings above:**
-- **Upload raw `.insv` where supported.** Do not convert, rename, or edit first.
+- **Prefer a stitched equirectangular export** (Insta360 Studio → equirect). Raw `.insp`/`.insv`
+  are *dual-fisheye* — two circular images side by side, not yet stitched — and are a different
+  projection entirely. The pipeline now accepts and reprojects them, but stitched equirect is the
+  better-tested path; use raw only if you cannot stitch.
 - If you must export stitched MP4: **Direction Lock ON** (preserves the spatial metadata), and
   **disable Horizon Leveling, Tilt Recovery, and Vibration Reduction** — stabilization warps
   equirectangular frames and injects geometric noise the solver cannot undo.
@@ -103,6 +106,25 @@ Its "30–50% overlap" guidance refers to adjacent lanes in continuous full-sphe
 *Unresolved:* published guidance conflicts on shutter (1/500 vs 1/800–1/1000) and in-camera
 sharpness (Low vs High). Both variants are on the benchmark list to test — until then, 1/500 and
 Low sharpness is the safer default indoors.
+
+---
+
+## A note on panorama types
+
+Not every 2:1 image is a full sphere, and not every 360 file is equirectangular:
+
+| Source | What you get | How the pipeline treats it |
+|---|---|---|
+| Insta360 stitched export | Full 360×180 equirectangular, 2:1 | Reprojected as `equirect` |
+| Insta360 raw `.insp` / `.insv` | **Dual-fisheye**, unstitched | Reprojected as `dfisheye` |
+| DJI "Sphere" pano mode | Full equirectangular, 2:1 | Reprojected as `equirect` |
+| DJI wide / 180° pano | 2:1 but *partial* coverage | Detected as 2:1 → treated as equirect; verify the result |
+| Ordinary drone or phone photo | Rectilinear | Never reprojected |
+
+The pipeline picks the projection from the file itself (extension for Insta360 raw, frame ratio
+otherwise), so both a DJI sphere pano and an Insta360 file work without you flagging anything.
+If a partial (non-spherical) panorama ever reconstructs badly, that is the case to report — it is
+the one type aspect ratio alone cannot distinguish.
 
 ---
 

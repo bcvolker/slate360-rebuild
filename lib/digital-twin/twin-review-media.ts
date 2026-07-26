@@ -49,11 +49,12 @@ export function classifyTwinMedia(
   if (forceDrone || isLikelyDroneFilename(name)) {
     // A 360 drone (e.g. Antigravity A1) is still equirect — route it to the 360 path so
     // it gets unwrapped, not fed to COLMAP as a flat frame.
-    if (hint === "equirect") return isVideo ? "360_video" : "360_photo";
+    if (hint === "equirect" || hint === "dual_fisheye") return isVideo ? "360_video" : "360_photo";
     return isVideo ? "drone_video" : "drone_photo";
   }
   const is360 =
     hint === "equirect" ||
+    hint === "dual_fisheye" ||
     (hint === "unknown" &&
       (name.includes("360") || name.includes("pano") || name.includes("insta360")));
   if (is360 && isVideo) return "360_video";

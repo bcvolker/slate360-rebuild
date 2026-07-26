@@ -54,8 +54,52 @@ WEB_ENDPOINT_LABEL = "reconstruct"
 GPU_TYPE = "A10G"
 MAX_DURATION_SECONDS = 7200
 
-VIDEO_EXTENSIONS = {".mp4", ".mov", ".m4v", ".webm", ".mkv", ".avi"}
-IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".tif", ".tiff", ".heic", ".heif"}
+VIDEO_EXTENSIONS = {".mp4", ".mov", ".m4v", ".webm", ".mkv", ".avi", ".insv"}
+IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp", ".tif", ".tiff", ".heic", ".heif", ".insp"}
+
+# P0b-2 — panoramic media is not one projection. Choosing wrong yields garbage geometry,
+# not mild degradation:
+#   equirect  full 360x180 sphere at 2:1 (Insta360 stitched export, DJI "Sphere" pano)
+#   dfisheye  Insta360 RAW .insp/.insv — two circular fisheyes side by side, UNSTITCHED
+# ffmpeg's v360 filter takes the projection as its `input=` argument, so the only thing that
+# has to be right is which one we pass.
+INSTA360_RAW_EXTENSIONS = {".insp", ".insv"}
+EQUIRECT_RATIO_MIN = 1.95
+EQUIRECT_RATIO_MAX = 2.05
+
+
+def probe_dimensions(path: Path) -> tuple[int, int] | None:
+    """Read stream WxH via ffprobe. Returns None if it cannot be determined."""
+    try:
+        out = subprocess.run(
+            ["ffprobe", "-v", "error", "-select_streams", "v:0",
+             "-show_entries", "stream=width,height", "-of", "csv=s=x:p=0", str(path)],
+            capture_output=True, text=True, timeout=60, check=True,
+        ).stdout.strip()
+        w, h = out.split("x")[:2]
+        return int(w), int(h)
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def detect_projection(path: Path) -> str:
+    """Classify a 360-flagged source as 'dfisheye' or 'equirect'.
+
+    Extension wins for Insta360 RAW because those files are dual-fisheye regardless of their
+    frame dimensions. Otherwise a ~2:1 frame is treated as equirect; anything else falls back
+    to equirect too, since the asset was explicitly flagged 360 upstream and equirect is by far
+    the more common delivery format.
+    """
+    if path.suffix.lower() in INSTA360_RAW_EXTENSIONS:
+        return "dfisheye"
+    dims = probe_dimensions(path)
+    if dims:
+        w, h = dims
+        if h > 0:
+            ratio = w / h
+            if not (EQUIRECT_RATIO_MIN <= ratio <= EQUIRECT_RATIO_MAX):
+                print(f"[ingest] {path.name}: ratio {ratio:.3f} is not 2:1; treating as equirect anyway")
+    return "equirect"
 
 # ── LiDAR pose/frame-timestamp match tolerance ──────────────────────────────
 # Tightened from the original ±2s (loose enough to match a frame to a pose from
@@ -1531,6 +1575,7 @@ def extract_equirect_views(
     out_dir: Path,
     stem: str,
     rings: tuple[tuple[int, int], ...] = EQUIRECT_RINGS_STILL,
+    projection: str = "equirect",
 ) -> int:
     """Cut one equirectangular frame into overlapping perspective views for COLMAP.
 
@@ -1550,7 +1595,7 @@ def extract_equirect_views(
                 str(image_path),
                 "-vf",
                 (
-                    f"v360=input=equirect:output=flat:yaw={yaw}:pitch={pitch}:roll=0:"
+                    f"v360=input={projection}:output=flat:yaw={yaw}:pitch={pitch}:roll=0:"
                     f"w={EQUIRECT_VIEW_W}:h={EQUIRECT_VIEW_H}"
                 ),
                 "-q:v",
@@ -1568,7 +1613,9 @@ def extract_equirect_views(
 EQUIRECT_VIDEO_FPS = 0.5
 
 
-def extract_equirect_video_views(video_path: Path, out_dir: Path, stem: str) -> int:
+def extract_equirect_video_views(
+    video_path: Path, out_dir: Path, stem: str, projection: str = "equirect"
+) -> int:
     """Sample a 360 video sparsely, then unwrap each sampled frame into perspective views."""
     out_dir.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="equirect-frames-") as tmp:
@@ -1592,7 +1639,8 @@ def extract_equirect_video_views(video_path: Path, out_dir: Path, stem: str) -> 
         total = 0
         for i, frame in enumerate(frames):
             total += extract_equirect_views(
-                frame, out_dir, f"{stem}_{i:04d}", rings=EQUIRECT_RINGS_VIDEO
+                frame, out_dir, f"{stem}_{i:04d}",
+                rings=EQUIRECT_RINGS_VIDEO, projection=projection,
             )
     return total
 
@@ -1625,10 +1673,13 @@ def materialize_images(
         # per-sampled-frame, not per-keyframe, so they must not feed ARKit pose matching.
         if is360 and ext in VIDEO_EXTENSIONS:
             stats["videos"] += 1
-            views = extract_equirect_video_views(src, images_dir, stem)
+            projection = detect_projection(src)
+            print(f"[ingest] 360 video {src.name}: projection={projection}")
+            views = extract_equirect_video_views(src, images_dir, stem, projection)
             stats["panorama_views"] += views
             stats.setdefault("equirectVideo", []).append(
-                {"source": stem, "views": views, "fps": EQUIRECT_VIDEO_FPS}
+                {"source": stem, "views": views, "fps": EQUIRECT_VIDEO_FPS,
+                 "projection": projection}
             )
             continue
 
@@ -1652,7 +1703,11 @@ def materialize_images(
             continue
 
         if is360 and ext in IMAGE_EXTENSIONS:
-            stats["panorama_views"] += extract_equirect_views(src, images_dir, stem)
+            still_projection = detect_projection(src)
+            print(f"[ingest] 360 still {src.name}: projection={still_projection}")
+            stats["panorama_views"] += extract_equirect_views(
+                src, images_dir, stem, projection=still_projection
+            )
             continue
 
         if ext in IMAGE_EXTENSIONS:
