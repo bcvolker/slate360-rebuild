@@ -41,6 +41,17 @@ RANSAC_MIN_INLIERS = 40
 MAX_WALLS = 32
 # A wall shorter than this is noise, not architecture.
 MIN_WALL_LENGTH_M = 0.5
+# --- Commercial-space parameters -------------------------------------------------------
+# Commercial floors are multi-room by definition and carry a structural column grid, so a
+# single-room assumption (fine for a bedroom) produces nonsense on an office floor.
+# A closed shape smaller than this is a column/pilaster, not a room.
+MAX_COLUMN_AREA_M2 = 2.5
+MAX_COLUMN_SPAN_M = 2.0
+# Smallest thing we will call a room. Below this it is a duct chase, closet or noise.
+MIN_ROOM_AREA_M2 = 1.5
+# Partition vs structure: cubicle and half-height partitions do not reach the ceiling, and
+# must not be counted as building walls when computing enclosure or wall area.
+PARTITION_MAX_HEIGHT_FRAC = 0.75
 # Snap tolerance for regularising to the dominant orientation.
 ANGLE_SNAP_DEG = 8.0
 
@@ -52,6 +63,13 @@ class WallSegment:
     x2: float
     y2: float
     inliers: int = 0
+    # Vertical extent of the points supporting this wall, as a fraction of ceiling height.
+    height_frac: float | None = None
+
+    @property
+    def is_partition(self) -> bool:
+        """True for cubicle/half-height partitions: real obstructions, not building structure."""
+        return self.height_frac is not None and self.height_frac < PARTITION_MAX_HEIGHT_FRAC
 
     @property
     def length(self) -> float:
@@ -66,8 +84,33 @@ class WallSegment:
 
 
 @dataclass
+class RoomPolygon:
+    """One enclosed area on the floor plate."""
+    area_m2: float
+    perimeter_m: float
+    centroid: tuple[float, float]
+    wkt: str
+
+    @property
+    def area_ft2(self) -> float:
+        return round(self.area_m2 * M2_TO_FT2, 1)
+
+
+@dataclass
+class Column:
+    """A structural column or pilaster — deducted from usable area, never a room."""
+    centroid: tuple[float, float]
+    area_m2: float
+    span_m: float
+
+
+@dataclass
 class FloorPlan:
     walls: list[WallSegment] = field(default_factory=list)
+    # Commercial floors are multi-room; `rooms` is the authoritative list. `floor_area_m2`
+    # is kept as the LARGEST room for backwards compatibility with single-room callers.
+    rooms: list[RoomPolygon] = field(default_factory=list)
+    columns: list[Column] = field(default_factory=list)
     floor_area_m2: float | None = None
     perimeter_m: float | None = None
     wall_area_gross_m2: float | None = None
@@ -75,6 +118,31 @@ class FloorPlan:
     floor_z: float | None = None
     closed: bool = False
     notes: list[str] = field(default_factory=list)
+
+    @property
+    def room_count(self) -> int:
+        return len(self.rooms)
+
+    @property
+    def usable_area_m2(self) -> float | None:
+        """Sum of enclosed room areas, less the footprint of structural columns.
+
+        Reported as USABLE, not rentable: BOMA/ANSI Z65.1 rentable area requires a
+        load-factor apportionment of building common areas that a single floor scan cannot
+        determine. Do not label this output "rentable".
+        """
+        if not self.rooms:
+            return None
+        gross = sum(r.area_m2 for r in self.rooms)
+        return round(gross - sum(c.area_m2 for c in self.columns), 3)
+
+    @property
+    def structural_walls(self) -> list[WallSegment]:
+        return [w for w in self.walls if not w.is_partition]
+
+    @property
+    def partitions(self) -> list[WallSegment]:
+        return [w for w in self.walls if w.is_partition]
 
 
 def _as_xyz(points: Iterable[Sequence[float]]) -> np.ndarray:
@@ -203,19 +271,24 @@ def regularise(walls: Sequence[WallSegment], base_angle_deg: float | None = None
     return out
 
 
-def build_room_polygon(walls: Sequence[WallSegment], snap_m: float = 0.25):
-    """Close wall segments into a room polygon. Returns a shapely Polygon or None."""
+def build_room_polygons(walls: Sequence[WallSegment], snap_m: float = 0.25):
+    """Close wall segments into ALL enclosed areas, separating rooms from columns.
+
+    Commercial floors are multi-room: an office floor plate is a corridor plus a dozen
+    tenant spaces, and returning only the largest polygon (the old single-room behaviour)
+    reports one room and silently discards the rest. Every enclosed loop is returned, then
+    split by size — small closed shapes are structural columns, not rooms.
+    """
     try:
         from shapely.geometry import LineString, MultiLineString
         from shapely.ops import polygonize, unary_union
     except ImportError:  # pragma: no cover - shapely is a worker dependency
-        return None
+        return [], []
     if len(walls) < 3:
-        return None
-    lines = [LineString([(w.x1, w.y1), (w.x2, w.y2)]) for w in walls]
-    # Extend each segment slightly so near-miss corners actually intersect and polygonize.
+        return [], []
+
     grown = []
-    for w, ln in zip(walls, lines):
+    for w in walls:
         if w.length < 1e-6:
             continue
         ux, uy = (w.x2 - w.x1) / w.length, (w.y2 - w.y1) / w.length
@@ -225,11 +298,79 @@ def build_room_polygon(walls: Sequence[WallSegment], snap_m: float = 0.25):
                 (w.x2 + ux * snap_m, w.y2 + uy * snap_m),
             ])
         )
+    if not grown:
+        return [], []
+
     merged = unary_union(MultiLineString(grown))
-    polys = [p for p in polygonize(merged) if p.area > 0.5]
-    if not polys:
+    rooms: list[RoomPolygon] = []
+    columns: list[Column] = []
+    for poly in polygonize(merged):
+        area = float(poly.area)
+        if area <= 0:
+            continue
+        minx, miny, maxx, maxy = poly.bounds
+        span = max(maxx - minx, maxy - miny)
+        cx, cy = poly.centroid.x, poly.centroid.y
+        if area <= MAX_COLUMN_AREA_M2 and span <= MAX_COLUMN_SPAN_M:
+            columns.append(Column(centroid=(round(cx, 3), round(cy, 3)),
+                                  area_m2=round(area, 3), span_m=round(span, 3)))
+        elif area >= MIN_ROOM_AREA_M2:
+            rooms.append(RoomPolygon(
+                area_m2=round(area, 3),
+                perimeter_m=round(float(poly.length), 3),
+                centroid=(round(cx, 3), round(cy, 3)),
+                wkt=poly.wkt,
+            ))
+    rooms.sort(key=lambda r: r.area_m2, reverse=True)
+    return rooms, columns
+
+
+def build_room_polygon(walls: Sequence[WallSegment], snap_m: float = 0.25):
+    """Back-compat single-polygon helper. Prefer build_room_polygons()."""
+    try:
+        from shapely import wkt as _wkt
+    except ImportError:  # pragma: no cover
         return None
-    return max(polys, key=lambda p: p.area)
+    rooms, _ = build_room_polygons(walls, snap_m)
+    return _wkt.loads(rooms[0].wkt) if rooms else None
+
+
+def classify_wall_heights(
+    walls: Sequence[WallSegment], xyz: np.ndarray, floor_z: float,
+    ceiling_h: float | None, up_axis: int = 2,
+) -> None:
+    """Annotate each wall with the vertical extent of its supporting points.
+
+    Open-plan commercial space is full of 1.2-1.6 m partitions that read exactly like walls
+    in a single horizontal slice. Measuring how far up the points actually go separates
+    building structure from furniture-grade partitions.
+    """
+    if not ceiling_h or ceiling_h <= 0:
+        return
+    plane_axes = [a for a in (0, 1, 2) if a != up_axis]
+    up_all = xyz[:, up_axis] - floor_z
+    # Exclude the floor and ceiling slabs. They are horizontal and span the whole plate, so
+    # their points sit near EVERY wall line in plan view — leaving them in makes a 1.5 m
+    # partition measure full height (the ceiling slab supplies the tall points) and every
+    # wall reads as structural.
+    slab_margin = max(0.15, ceiling_h * 0.08)
+    keep = (up_all > slab_margin) & (up_all < ceiling_h - slab_margin)
+    pts2d = xyz[keep][:, plane_axes]
+    up = up_all[keep]
+    if len(pts2d) < 20:
+        return
+    for w in walls:
+        if w.length < 1e-6:
+            continue
+        ux, uy = (w.x2 - w.x1) / w.length, (w.y2 - w.y1) / w.length
+        rel = pts2d - np.array([w.x1, w.y1])
+        perp = np.abs(rel[:, 0] * -uy + rel[:, 1] * ux)
+        along = rel[:, 0] * ux + rel[:, 1] * uy
+        near = (perp <= RANSAC_INLIER_DIST_M * 2.0) & (along >= 0) & (along <= w.length)
+        if int(near.sum()) < 20:
+            continue
+        # 95th percentile: robust to a few stray points above the partition line.
+        w.height_frac = round(float(np.quantile(up[near], 0.95) / ceiling_h), 3)
 
 
 def compute_plan(points: Iterable[Sequence[float]], up_axis: int = 2, seed: int = 0) -> FloorPlan:
@@ -251,13 +392,24 @@ def compute_plan(points: Iterable[Sequence[float]], up_axis: int = 2, seed: int 
         return plan
 
     plan.walls = regularise(extract_walls(sl, seed=seed))
-    poly = build_room_polygon(plan.walls)
-    if poly is not None:
+    classify_wall_heights(plan.walls, xyz, plan.floor_z, plan.ceiling_height_m, up_axis)
+
+    plan.rooms, plan.columns = build_room_polygons(plan.walls)
+    if plan.rooms:
         plan.closed = True
-        plan.floor_area_m2 = round(float(poly.area), 3)
-        plan.perimeter_m = round(float(poly.length), 3)
+        largest = plan.rooms[0]
+        plan.floor_area_m2 = largest.area_m2
+        plan.perimeter_m = largest.perimeter_m
         if plan.ceiling_height_m:
-            plan.wall_area_gross_m2 = round(plan.perimeter_m * plan.ceiling_height_m, 3)
+            # Structural walls only — partitions do not enclose the volume.
+            struct_len = sum(w.length for w in plan.structural_walls) or sum(
+                w.length for w in plan.walls
+            )
+            plan.wall_area_gross_m2 = round(struct_len * plan.ceiling_height_m, 3)
+        if plan.columns:
+            plan.notes.append(f"{len(plan.columns)} column(s) detected and deducted")
+        if len(plan.rooms) > 1:
+            plan.notes.append(f"{len(plan.rooms)} enclosed areas found")
     else:
         plan.notes.append("walls did not close into a room — partial capture")
     return plan
