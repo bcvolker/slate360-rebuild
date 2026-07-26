@@ -69,9 +69,18 @@ upstream source before writing it into the worker.**
    modest resolution — better than earlier estimates suggested.
 3. **AGS-Mesh license is ambiguous** (Apache-2.0 within dn-splatter vs "no root license" standalone
    vs "research-only"). **Do not build on it** until legal review.
-4. **Whether pycolmap on PyPI exposes the pose-prior write API and mapper** — one source cites
-   pycolmap PR #3123 as exposing incremental-mapper pose-prior options. **Verify in Step P1a-1;
-   this decides the cheapest route to a modern COLMAP.**
+4. ~~Whether pycolmap on PyPI exposes the pose-prior write API~~ — **RESOLVED 2026-07-26.**
+   `pip install pycolmap` yields **4.1.1** (current upstream) with the full API:
+   `PosePrior` (position, position_covariance, gravity), `Database.write_pose_prior` /
+   `read_all_pose_priors` / `num_pose_priors()`, and `IncrementalPipelineOptions`
+   `.use_prior_position` / `.use_robust_loss_on_prior_position` /
+   `.prior_position_loss_scale` (**default 7.815**, previously unverified — it is the
+   chi-squared 95% critical value at 3 DOF). **P1a route decided: pycolmap from PyPI. No source
+   build, no Debian sid package.**
+   ⚠️ **COLMAP 4.x changed the binding model:** `write_pose_prior(prior)` takes ONLY the prior;
+   association comes from `prior.corr_data_id = data_t(sensor_t(CAMERA, camera_id), image_id)`,
+   not an image_id argument. There is no `db.commit()` and no `Database(...)` constructor — use
+   `Database.open(path)`. All four of these differ from the 3.x-era assumption.
 5. **DIM's `uv.lock` pins torch 2.7.1** while our worker runs torch 2.4.1. `pyproject.toml` leaves
    torch unpinned, so it may work — **verify before adopting DIM**, or use hloc instead.
 6. Reported `--crop-bottom` inversion bug in some nerfstudio builds — test, don't assume.
@@ -471,14 +480,14 @@ Legend: ⬜ not started · 🟨 partial · ✅ code complete & verified · ⛔ b
   closed from the dev container.
 
 ### Phase 1 — Pose-prior alignment ⛔ *gated on Modal-image authorization*
-- ⬜ **P1a-1** Verify pycolmap pose-prior API (decides route)
+- ✅ **P1a-1** pycolmap 4.1.1 from PyPI exposes the full pose-prior API — route decided
 - ⬜ **P1a-2** COLMAP 4.1.1 in the image; both commands respond
 - ⬜ **P1a-3** Regression: `colmap_vanilla` unchanged
-- ⬜ **P1b-1** ARKit keyframe → image mapping
-- ⬜ **P1b-2** Write position + covariance + gravity to `pose_priors`
-- ⬜ **P1b-3** Tracking-state-driven covariance table (omit priors while relocalizing)
-- ⬜ **P1b-4** √t drift-growth inflation from session start / last loop closure
-- ⬜ **P1b-5** iOS ≥26.4 + LiDAR global covariance multiplier, logged in `quality_metrics`
+- ✅ **P1b-1** ARKit keyframe → image mapping (by image name; unregistered frames skipped)
+- ✅ **P1b-2** Write position + covariance + gravity to `pose_priors` (round-trip verified)
+- ✅ **P1b-3** Tracking-state-driven covariance (omits relocalizing/initializing)
+- ✅ **P1b-4** √t drift-growth inflation (verified sub-linear: 4× time → 2× drift)
+- ✅ **P1b-5** iOS ≥26.4 + LiDAR covariance multiplier (×2.5), logged in `quality_metrics`
 - ⬜ **P1b-6** Verify drone EXIF-GPS auto-population
 - ⬜ **P1c-1** `pose_prior_mapper` arm + vanilla fallback
 - ⬜ **P1c-2** Tune `prior_position_loss_scale`
