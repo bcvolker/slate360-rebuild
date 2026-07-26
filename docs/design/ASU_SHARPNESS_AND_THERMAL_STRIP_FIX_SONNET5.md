@@ -315,3 +315,21 @@ ASU_DELIVERABLE (69MB index + glb/bin/tiles; stale coverage*.glb deleted
 first). Verified end-to-end on the public URL: 12 markers, detail overlay
 opens with crop image on marker click. Redeploy after any republish:
 cd deliverables/ASU_DELIVERABLE && npx vercel deploy --prod --yes
+
+## Wide map data DONE + studio direction (2026-07-26)
+
+map_wide_1cm.png BUILT+VERIFIED: DD export (EPSG:6405 TFW) reprojected to ENU
+1cm (affine fit, projection curvature <0.1mm over 160m), then REGISTERED onto
+the working base via 15-patch phase-correlation affine (the two DD exports
+disagree by a smooth ~15cm scale/shear field; correction residual 0.8cm
+median, post-fix verify 0.1-0.2cm @ resp 0.97-1.0). New window E -86.2..73.2,
+N -80.2..45.2. Viewer re-plumb SPEC at C:\ASU-Survey\docs\WIDE_MAP_REPLUMB.md
+(thermal becomes a sub-rect; remap findings/panos fx/fy; drains from E/N;
+embed-size gotcha -> tiles carry detail).
+
+Shipped this session: author localStorage persistence (lost-work fix), drain
+markers = 14px dots w/ hover labels, SOURCE SHEET chip (sheet no longer
+doubles drains), rotation-aware initial centering (deck dead-centre @80%),
+screen-space swipe divider, vertical-pan direction fix. Tour Builder is being
+built in-app by another chat (TOUR_BUILDER_PLAN.md) -- viewer TOURS tab will
+consume its output. R2 free egress for 360-video sidecars.
