@@ -43,53 +43,38 @@ behaviour stays default until a side-by-side comparison wins.
 
 ---
 
-## 3. Next steps, in the order I would do them
+## 3. Next steps
 
-### Step 1 — Teleport this session *(5 minutes, unblocks the rest)*
-```powershell
-cd C:\s360
-claude --teleport
-```
-Brings this branch **and this conversation** to the machine that already holds the credentials.
-The other AI's runbook is correct that the secrets are on that machine; it is also correct that
-they must not be copied elsewhere. Teleporting is the option that needs neither.
+**The backend work is now an executable handoff, not prose.** Commands, expected results and a
+verification step per item live in **`docs/ops/EXECUTE_ON_LOCAL_MACHINE.md`** — a session with
+backend access runs that file top to bottom without reading anything else.
 
-### Step 2 — Commit the ASU scripts *(10 minutes, mine after Step 1)*
-Exact commands in `PIPELINE_V3_REVIEW_AND_ROADMAP.md` §5.3.
+Brian's two options for getting it run — **`docs/ops/GIVE_WEB_SESSION_BACKEND_ACCESS.md`**:
+- **A.** Configure the web environment (network policy + env vars, 10 min in a browser form) →
+  a web session does everything itself from then on.
+- **B.** Paste one prompt to the Claude Code chat already running on `C:\s360` → it executes the
+  handoff today with zero setup.
 
-### Step 3 — Apply the migration *(1 command)*
-```powershell
-$env:SUPABASE_TELEMETRY_DISABLED="1"
-npx supabase db query --linked -f supabase/migrations/20260725120000_twin_asset_dedup.sql
-```
+Either works. The ordering of the work itself:
 
-### Step 4 — **Arm B: native-resolution texture** *(CPU only, no GPU spend)*
-The cheapest experiment in the plan and possibly most of the quality gap. Precondition, which is
-what makes the result trustworthy: **the same mesh file, verified by SHA-256, textured twice** —
-once from the 1600 px dense workspace, once from the new native-resolution texture workspace.
-Nothing re-solved, no camera changes.
-```powershell
-cd workers\modal\photogrammetry
-$env:PYTHONIOENCODING="utf-8"
-python -m modal deploy worker.py
-python -m modal run worker.py::texture_workspace
-```
-Then re-texture against `/data/work/texture/images` and compare renders side by side.
+| # | Step | Needs backend? | Notes |
+|---|---|---|---|
+| 1 | Commit the untracked ASU scripts | Files are on `C:\s360` only | ⛔ blocking; nothing reproducible without them |
+| 2 | Apply `20260725120000_twin_asset_dedup.sql` | ✅ Supabase | Additive + idempotent, safe to re-run |
+| 3 | **Arm B — native-resolution texture** | ✅ Modal (CPU only) | Cheapest experiment; may be most of the gap |
+| 4 | M0 memory profile | ✅ Modal | Decides whether an A100 is needed at all |
+| 5 | Reprocess a benchmark through the pose-prior arm | ✅ Modal | No new fieldwork; captures already exist |
 
-### Step 5 — **DSM/DTM raster export** *(the highest-leverage single addition)*
-One raster written from the fused cloud with GDAL. It unlocks, in one step: **volume, cut/fill,
-elevation layer, contours, and elevation profiles** — five competitive features off one artifact.
-Ships alongside the COG ortho and LAZ/COPC writers, which are the same GDAL/PDAL work.
+Then, once the above has reported back:
 
-### Step 6 — **Collision mesh beside every splat**
-Turns the viewer's approximate splat picks into real measurement without changing what renders.
-Small change, large credibility gain.
+- **DSM/DTM raster export** — the highest-leverage single addition left. One raster from the
+  fused cloud unlocks **volume, cut/fill, elevation, contours and profiles** together. Ships with
+  the COG and LAZ/COPC writers; same GDAL/PDAL work.
+- **Collision mesh beside every splat** — turns the viewer's approximate picks into real
+  measurement without changing what renders.
 
-### Step 7 — Reprocess the existing benchmark captures
-No new fieldwork needed — the best-ever phone walk, the car interior, the iPhone+X4 dual capture
-and the ASU drone set all already exist. `scripts/ops/list-twin-benchmarks.mjs` ranks them;
-`scripts/ops/dispatch-twin-experiment.mjs` reprocesses one through a chosen arm without touching
-the live model.
+**Not yet:** the 2400/3200 MVS ladder. If Arm B closes the gap, that GPU spend may be
+unnecessary — and finding that out costs CPU minutes.
 
 ---
 
