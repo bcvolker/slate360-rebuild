@@ -311,6 +311,21 @@ CULL_ALPHA_THRESH_QUALITY = 0.15
 DENSIFY_GRAD_THRESH_QUALITY = 0.0005
 MAX_GAUSS_RATIO_QUALITY = 5.0
 
+# Profiles that let the trainer move the cameras. See build_train_args for why this is a
+# separate axis from "quality" — a splat trained with pose refinement is NOT in the same frame
+# as the mesh, so it cannot be the basis of a measurement.
+POSE_REFINING_PROFILES = frozenset({"visual"})
+
+
+def is_metric_authority(profile: str | None = None) -> bool:
+    """True when the trained splat is still in the authoritative pose solution's frame.
+
+    Recorded in `quality_metrics` as `metricAuthority` and consumed by the viewer: a splat
+    trained with camera refinement may be measured against ITSELF but must never be presented
+    as agreeing with the mesh, the point cloud, or the georeferenced products.
+    """
+    return (profile or TRAIN_PROFILE).strip().lower() not in POSE_REFINING_PROFILES
+
 
 def build_train_args(
     processed_dir: Path, train_dir: Path, iterations: int, profile: str | None = None
@@ -320,9 +335,26 @@ def build_train_args(
     All quality-profile flags were confirmed present in SplatfactoModelConfig at the
     nerfstudio v1.1.5 tag. Do not add flags here without verifying them against that tag —
     an unknown flag makes ns-train exit non-zero and fails the whole job.
+
+    Profiles:
+        baseline  pre-2026-07 behaviour, byte-for-byte. The default.
+        quality   exposure/WB compensation, antialiasing, denser densification, anisotropy cap.
+                  Cameras are FROZEN — the splat stays in the authoritative frame.
+        visual    quality + camera pose refinement (SO3xR3). Best-looking output, but NOT
+                  metric: see below.
+
+    Why pose refinement is its own profile rather than part of `quality`:
+    nerfstudio's camera optimizer moves the cameras during training and those deltas are not
+    written back into the pose solution, so the resulting splat sits in a slightly different
+    frame from the mesh, the point cloud and the GeoTIFF — with no record of the offset. That
+    silently breaks the product promise that all representations of a site agree. It was
+    previously bundled into `quality`, which meant our "better quality" arm was also our
+    "quietly non-metric" arm. Refinement is genuinely useful for presentation-only twins, so
+    it is kept — but behind a profile that stamps `metricAuthority: false`.
     """
     active = (profile or TRAIN_PROFILE).strip().lower()
-    cull_alpha = CULL_ALPHA_THRESH_QUALITY if active == "quality" else CULL_ALPHA_THRESH
+    enhanced = active in ("quality", "visual")
+    cull_alpha = CULL_ALPHA_THRESH_QUALITY if enhanced else CULL_ALPHA_THRESH
     args = [
         "ns-train",
         "splatfacto",
@@ -346,7 +378,7 @@ def build_train_args(
         "--pipeline.model.stop-split-at",
         str(max(6_000, int(iterations * 0.57))),
     ]
-    if active == "quality":
+    if enhanced:
         args += [
             # Absorbs per-image exposure/white-balance drift across a walk instead of letting
             # gaussians bake it in as geometry. iPhone AE/AWB drift is a primary floater source,
@@ -357,14 +389,19 @@ def build_train_args(
             # Mip-splatting-style antialiasing; helps thin structure.
             "--pipeline.model.rasterize-mode",
             "antialiased",
-            # Defaults to "off". Our COLMAP poses come from a handheld walk and are not exact.
-            "--pipeline.model.camera-optimizer.mode",
-            "SO3xR3",
             "--pipeline.model.densify-grad-thresh",
             str(DENSIFY_GRAD_THRESH_QUALITY),
             "--pipeline.model.max-gauss-ratio",
             str(MAX_GAUSS_RATIO_QUALITY),
         ]
+    # Camera pose refinement is stated EXPLICITLY in both directions rather than relying on the
+    # library default. splatfacto 1.1.5 defaults this to "off", which is what we want — but a
+    # default is not a guarantee, and a future bump that flips it would silently de-metricise
+    # every twin. Pin it.
+    args += [
+        "--pipeline.model.camera-optimizer.mode",
+        "SO3xR3" if active in POSE_REFINING_PROFILES else "off",
+    ]
     return args
 
 
@@ -2812,11 +2849,14 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             "lidarPlyInit": lidar_ply_init,
             "cullAlphaThresh": (
                 CULL_ALPHA_THRESH_QUALITY
-                if (job.train_profile or TRAIN_PROFILE).strip().lower() == "quality"
+                if (job.train_profile or TRAIN_PROFILE).strip().lower() in ("quality", "visual")
                 else CULL_ALPHA_THRESH
             ),
             # P0c/P0d — every model row is self-describing about which arms produced it.
             "trainProfile": (job.train_profile or TRAIN_PROFILE).strip().lower(),
+            # False when the trainer was allowed to move the cameras: the splat is then in its
+            # own frame and must not be presented as agreeing with the mesh or the geo products.
+            "metricAuthority": is_metric_authority(job.train_profile),
             "splatCount": splat_count,
             # Diagnostic instrumentation (see scripts/ops/diagnose-twin-poses.mjs).
             "alignmentPath": "arkit_bypass" if lidar_bypass_used else "colmap",

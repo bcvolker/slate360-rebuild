@@ -56,8 +56,31 @@ and see if it looks better", and it is why the arms below split geometry from te
 
 ## PART 1 — The method
 
-**Photogrammetry is the geometry. Gaussian splatting is the presentation. LiDAR is the anchor.
-NeRF is out.** One solve, two representations.
+> **REVISED 2026-07-27 (v2).** The first version of this section said *"photogrammetry is the
+> geometry, LiDAR is the anchor."* That under-sells LiDAR and an external review was right to
+> push back. On a painted drywall wall photogrammetry has almost nothing to match on while
+> LiDAR returns a clean surface; on a richly textured facade the opposite holds. Demoting one to
+> "anchor" throws away real geometric evidence. Corrected statement below.
+
+**Photogrammetry and LiDAR are both geometry sensors. The site constraint graph is the spatial
+authority. Gaussian splatting is the photorealistic presentation layer. NeRF is out of the
+production path.** One authoritative solve, several representations derived from it.
+
+Which sensor wins is decided per surface, by confidence, not by policy:
+
+| Visual texture | LiDAR confidence | Result |
+|---|---|---|
+| strong | weak / out of range | photogrammetry dominates |
+| weak (drywall, painted steel) | strong | **LiDAR dominates** |
+| strong | strong | both constrain the surface; disagreement is a QC signal |
+| weak | weak | **marked uncertain — never invented** |
+
+That last row is a product decision as much as a technical one: a twin that says "I don't know"
+about a surface is worth more than one that quietly interpolates across it, because someone is
+going to take a measurement off it.
+
+This is why `sceneDepth` + `confidenceMap` retention matters (P5d-1) and is not bookkeeping —
+without per-point confidence the fusion rule above cannot be evaluated at all.
 
 ```
         capture (any device)
@@ -76,9 +99,12 @@ NeRF is out.** One solve, two representations.
 
 ### Why each choice
 
-**NeRF — ruled out.** Slow to train, slow to render, no direct surface to export, and effectively
-superseded. nerfstudio's own centre of gravity moved to splatfacto. Nothing in our product needs
-an implicit radiance field that splats do not do better and faster. *No further evaluation.*
+**NeRF — out of the production path, not "superseded".** Slow to train, slow to render, no direct
+surface to export, and nothing in our product needs an implicit radiance field that splats do not
+do better and faster today. So: **no development effort, no evaluation, not in the MVP.** But
+"superseded" was the wrong word — radiance fields remain active research and some use cases still
+favour them. The practical commitment is narrower and cheaper to keep: **the asset model stores a
+representation type**, so adding a fourth representation later is a row, not a migration.
 
 **Gaussian splatting — kept, but as the viewing layer only.** It is the best available answer for
 "walk a client through this space on a phone in a browser": high visual fidelity, real-time on
@@ -96,11 +122,30 @@ volumes, measurements. It is also the only representation directly comparable to
 the only one their design tools open. Licence-clean throughout (COLMAP BSD, Open3D MIT, PDAL/GDAL
 permissive).
 
-**LiDAR — not a fourth method; a prior and an anchor.** iPhone LiDAR contributes three things no
-camera does: **metric scale** (deletes the `residual_too_high` scale-recovery bug class),
-**gravity** (deletes the upside-down failures), and **geometry on textureless surfaces** where
-photogrammetry has nothing to match on — white walls, painted drywall, glass frames. It is short
-range and coarse (~256×192), so it supplements photogrammetry, never replaces it.
+**LiDAR — a geometry sensor in its own right.** iPhone LiDAR contributes **metric scale**
+(deletes the `residual_too_high` bug class), **gravity** (deletes the upside-down failures), and
+**surface geometry where photogrammetry has nothing to match on** — white walls, painted drywall,
+glass frames. It is coarse (~256×192) and its useful range is short, so it does not replace
+photogrammetry; the two are fused by confidence.
+
+On range: **do not encode a hard cut-off.** Earlier drafts of this doc said "LiDAR is dark past
+~5 m", which is a useful field heuristic and a bad implementation. The pipeline should treat
+distant depth as low-confidence **because the confidence map says so**, not because a constant in
+our code says so — the effective range varies with surface, angle, and ambient IR.
+
+**A correction on splat→mesh licensing.** An earlier version of this doc said "every good
+splat→mesh method inherits the Inria non-commercial licence." **Too broad.** The accurate rule:
+
+> Reject any path whose **executable dependency graph** contains the Inria implementation.
+> Evaluate permissively-licensed training and depth-to-surface routes on their own merits.
+
+gsplat is an independent Apache-2.0 implementation and is the backend Splatfacto already uses.
+Rendering depth from a splat and running Open3D TSDF on it touches no Inria code. Two specific
+traps to avoid, both of which look clean from the badge alone: **3DGS-to-PC** (Apache-2.0 badge,
+but its own install instructions require the original Gaussian Splatting repo) and **FastGS**
+(MIT badge, but its README defers to upstream 3DGS licences). **A GitHub licence badge is not a
+licence audit** — which is why automated SBOM scanning of the actual Modal image is now a
+tracked item (P5e-1), not a good intention.
 
 **"Or something different?"** — the two candidates worth naming and rejecting for now:
 - **Feed-forward reconstruction (DUSt3R / MASt3R / VGGT class).** Genuinely impressive, and the
@@ -220,15 +265,52 @@ These are capture-SOP items, already written up in `TWIN360_CAPTURE_SOP.md`. **R
 accuracy is decided while the shutter is running**, and no amount of pipeline work recovers a
 blurry, open-ended, single-pass walk.
 
-### What to put in front of a client
+### What to put in front of a client — measure it, don't quote it
 
-- ✅ "Measurements are typically within a few centimetres over a room."
-- ✅ "Areas are typically within 1–2%."
-- ✅ "Suitable for scoping, take-off with tolerance, as-built documentation, and progress
-  comparison."
-- ❌ Never: "survey accurate", "±1 cm", or any single number without a scale attached to it.
-- Every measurement surface shows a **tolerance**, and every twin records the conditions that
-  produced it (loop closed? GCPs? drift estimate?) so the number is defensible.
+**The table above is documentation, not a product claim, and it must not be marketed.** Published
+ranges for phone LiDAR vary enormously with scene, trajectory, app and processing — the same
+device produces centimetre results in one room and decimetre results down a corridor. Quoting
+"2–5 cm" to an owner is a promise we cannot keep on a capture we have not seen.
+
+**Replace the claim with a measurement.** Every finished twin carries a QC report card computed
+from that specific capture:
+
+```
+  TWIN 360 — QUALITY REPORT                    Capture 4821 · 2026-07-27
+  ──────────────────────────────────────────────────────────────────────
+  Measurement status            VERIFIED LOCAL
+  Local metric confidence       HIGH
+  Loop closure residual         2.8 cm       (closed, 3 loops)
+  Control point RMSE            —            (no control points used)
+  LiDAR vs photogrammetry       1.9 cm       (median, 41k paired points)
+  LiDAR coverage                63%
+  Block registration residual   4.1 cm       (interior -> site)
+  Global position confidence    LOW          (consumer GPS, no GCPs)
+  Wall area unaccounted         3.2 m2       (2 walls partly occluded)
+```
+
+Every field is computable from data we already have, and each one fails for a different reason —
+which is exactly what makes the card useful rather than decorative.
+
+**Status vocabulary** (one of four, never a number on its own):
+
+| Status | Meaning |
+|---|---|
+| `VERIFIED` | Independent check data agrees — control points, or a closed loop with a measured residual |
+| `ESTIMATED` | Internally consistent, no independent check |
+| `LOW CONFIDENCE` | Known problems: poor coverage, open loop, large drift, weak registration |
+| `UNREGISTERED` | Locally metric, but not placed in the site frame |
+
+Note the fourth: an earlier draft called this state *"unlocated but correct"*. **"Correct" is the
+wrong word** and an external review was right to flag it — a long unclosed interior walk can be
+internally distorted while still being roughly metric. The honest label is **"locally metric,
+unregistered"**, and it ships with the drift estimate that justifies it.
+
+Client-facing language, then, is conditional rather than absolute:
+- ✅ "This capture measured a 2.8 cm loop closure residual; measurements over a room are reliable
+  to that order."
+- ✅ "Areas on this floor are reported ±X%, with 3.2 m² of wall unverified."
+- ❌ Never "survey accurate", "±1 cm", or any figure detached from the capture that produced it.
 
 ---
 
