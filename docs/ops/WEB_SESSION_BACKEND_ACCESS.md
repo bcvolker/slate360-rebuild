@@ -24,6 +24,58 @@ Both are "Claude Code." Only one of them is on the machine that holds your crede
 **The network policy is the real wall.** Credentials alone would not help: the gateway refuses the
 connection before any authentication happens. Fix order is **policy → credentials → CLIs**.
 
+## Re-verified 2026-07-27 — exhaustive second pass
+
+Re-run after Brian reported that other chats "find the Supabase permissions once they look."
+**They do not exist in this environment to find.** Full evidence:
+
+```
+~/.supabase/            EXISTS -> contains only telemetry.json (178 bytes) + empty traces/
+                        No access token. Created by an earlier failed CLI call, nothing more.
+~/.modal.toml           absent      ~/.vercel      absent
+~/.config/modal         absent      ~/.config/vercel  absent
+~/.netrc                absent      ~/.git-credentials absent
+/run/secrets            none        /var/run/secrets   none
+.env files in repo      only .env.example
+env vars present        AWS_*, GH_TOKEN, GITHUB_TOKEN, CLOUDSDK_*, GIT_CONFIG_*
+                        -> nothing for Supabase, Modal, Vercel, Trigger or R2
+```
+
+Network, which is the decisive test — a credential cannot help if the tunnel never opens:
+
+```
+api.github.com                        -> HTTP 200   allowed
+api.supabase.com                      -> CONNECT tunnel failed, 403
+hadnfcenpcfaeclczsmm.supabase.co      -> CONNECT tunnel failed, 403
+api.modal.com                         -> CONNECT tunnel failed, 403
+api.vercel.com                        -> CONNECT tunnel failed, 403
+```
+
+The agent proxy's own README (`/root/.ccr/README.md`) names this failure class exactly:
+
+> **403 / 407 from the proxy** — "The destination host is not allowed by your organization's
+> egress policy for this session. Do not retry or route around it — report the blocked host."
+
+`/__agentproxy/status` confirms `"selective": false, "toolScoped": false` — this is a blanket
+environment-level allowlist, not something a session can negotiate or a credential can satisfy.
+
+**Why other chats succeed:** they are Claude Code **CLI on Brian's Windows machine at `C:\s360`**,
+where the CLIs hold real logins and there is no egress proxy at all. Those sessions are not
+"finding" a permission this one is missing — they are running on entirely different hardware with
+an entirely different network path. Both are called "Claude Code"; only one sits on the machine
+with the credentials.
+
+**Two fixes, either works:**
+1. **Teleport** (recommended, below) — pull this session down to `C:\s360`.
+2. **Change the environment's network policy** at
+   <https://claude.ai/code> → environment settings, to a policy permitting `*.supabase.co`,
+   `api.supabase.com`, `api.modal.com` and `api.vercel.com`. Then credentials still have to be
+   supplied separately, so this is the longer road. Docs:
+   <https://code.claude.com/docs/en/claude-code-on-the-web>
+
+**Do not paste keys into a web-session chat.** They would be exposed in the transcript *and*
+still not work, because the tunnel is refused before authentication.
+
 ## Recommended fix: teleport, don't reconfigure
 
 **If you work locally (Cursor, terminal) on the machine that holds the credentials, do NOT
