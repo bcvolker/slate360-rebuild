@@ -86,3 +86,7 @@ reference/
 # Local 360 sample photos (binaries) — never commit
 360_Sample_Photos/
 360_Sample_Photos.zip
+
+# Local-only AI backend secrets pack (never push)
+.local/
+

@@ -141,3 +141,195 @@ Rejected from the reviews (with reason): "raw GSD is 3 cm" (wrong sensor math);
 TPS-first warping (rubber-sheet risk, two reviews concur); bit-identical histogram
 gate (impossible under any resampling — replaced by the T4 integrity checks);
 "secret sub-1cm export tier" (no evidence; three reviews concur it doesn't exist).
+
+## EXECUTION LOG (2026-07-21, Opus)
+
+**Map track — DONE, verified.** New lossless DroneDeploy GeoTIFF
+(dd_ortho_lossless.tif, Deflate, 14818x11660, EPSG:6405, GSD 1.076cm/px) placed
+via ONE Lanczos warp (tools/m1_place_lossless_map.py + m2). Acutance gate (m4)
+at matched pixel density: DD export 310.0 vs our warped map 315.4 = PARITY (the
+earlier "24% loss" was a metric artifact of comparing 371px vs 400px). No
+sharpening added (would over-sharpen/halo). Byte-exact L3 PNG tiles
+(make_tiles.py FINEST no-resize path). Verified live: zoom reaches "1 CM/PIXEL
+LEVEL 3 OF 3". Placement residual vs proven base 3.47cm median. Published.
+
+**T0 thermal finding — IMPORTANT.** The viewer displays mosaic_main_flight_v5.npz
+(build_assets_p2), NOT panorama_registered.npz which earlier diagnostics used.
+mosaic_v5 is internally STRAIGHTER (crisp rectangles) than panorama_reg (bent).
+Both share the identical frame. The earlier deck-clip was wrongly derived from
+panorama_reg's 63.9% footprint; fixed to mosaic_v5's 60.6% footprint. The
+catastrophic "8-9 twist" the client saw was largely the OLD broken base map
+moving under the thermal + the wrong clip -- both now fixed. Ground-truth swipe
+montage (tools/t_swipe_montage.py) against the NEW base shows the residual is a
+MODEST per-region offset (~60-150cm), not catastrophic.
+
+**Thermal alignment attempts that FAILED (cross-modal registration is hard):**
+- gradient-domain ECC affine: low confidence (cc 0.077), didn't meaningfully help.
+- building-mask ECC (cool-thermal vs dark-roof-RGB): made it WORSE (IoU 0.26->0.18,
+  nonsensical 7.7m translation) -- thermal cool regions != RGB roof regions cleanly.
+  Radiometric-safe num/den warp itself worked (range + median preserved); the
+  geometry failed. Discarded (did not ship a worse alignment).
+
+**Thermal remaining work (honest):** modest per-region offset persists.
+Automatic cross-modal methods unreliable here. Path to "perfect swipe" is either
+(a) careful per-region manual tie-point warp using features visible in both
+(HVAC, building corners, membrane), or (b) raw-FLIR re-stitch with global bundle
+adjustment + RGB control (Metashape, post-deadline). NOT yet done.
+
+## BREAKTHROUGH (2026-07-21) — thermal alignment root cause + fix
+
+Root cause of the swipe mismatch: the thermal was aligned to the colmap
+orthophoto (colmap_rgb_orthomosaic_v3.jpg crop [5327:,2942:]) -- the alignment
+Brian accepted early on (verified: tools/t_thermal_vs_colmap.jpg shows a near-
+perfect overlay). The mismatch appeared ONLY because I placed the DroneDeploy
+map by its OWN georeference (pyproj), which lands 1-3m off the thermal's colmap
+frame. Every cross-modal auto-registration (gradient ECC, mask ECC, big-window
+correlation, centroid matching) FAILED because thermal<->RGB share too little
+structure -- a dead end I should have abandoned sooner.
+
+FIX (tools/t_dd_to_colmap_aligned.py): place the DD map by registering it
+RGB->RGB (reliable, same modality) to the colmap ortho the thermal is locked to,
+NOT by its own georef. SIFT DD->colmap: 249 inliers, 4.6cm median residual. The
+map now aligns to the thermal by construction. Verified: tools/t_dd_aligned_proof.jpg
++ t_swipe_montage.jpg show edges continuous across the swipe.
+
+Map is ALSO high-res: lossless DD source, ONE Lanczos warp (composed
+SIFT+scale), byte-exact L3 PNG tiles, + mild unsharp (amount 0.4) to match DD's
+viewer presentation. deck_ortho_final_1cm.png is the single map source.
+
+Lesson: for cross-modal (thermal<->photo) alignment, do NOT attempt direct
+correlation. Chain through a same-modality reference (photo the thermal is
+already aligned to <-> new photo) -- RGB-to-RGB is reliable where thermal-to-RGB
+is hopeless.
+
+## RESOLUTION (2026-07-21) — all three issues fixed
+
+**Issue C (north cutoff):** the thermal PNG already carries its true footprint as
+a per-pixel alpha (finite-temperature mask). The 9-vertex CSS polygon was a
+redundant second clip cutting a chord across the concave north edge. Removed it
+(applyThermalClip -> 'none'); alpha does the masking, pixel-exact.
+
+**Issue A (overview sharpness):** the tile-level rule was INVERTED
+(`L.w <= fw*DPR*1.7 || L.z===0` kept coarse levels + force-showed L0). Fixed to
+the Leaflet rule: coarsest level with `L.w >= fw*DPR`. Added consistent luma
+unsharp to ALL coarse levels in make_tiles (0.50/0.45/0.40 for 8/4/2cm; L3 native
+untouched). Honest HUD ("ZOOM IN FOR 1 CM DETAIL"). Default now lands at L1 (4cm)
+not L0 (8cm). Full-deck 8cm/screen-px is physics (same as DroneDeploy).
+
+**Issue B (thermal twist) — the real root cause + fix:** every prior "aligned"
+proof used 50%-blend overlays, which HID the true offset because the filled
+building rectangles still overlapped ~50-70%. A sharp EDGE overlay of the shipped
+assets revealed the thermal was uniformly ~3.4m (y) + 1.26m (x) + ~1deg off the
+map. Phase correlation, ECC, mask ECC, big-window correlation, edge-map
+correlation ALL failed to measure it (cross-modal). **MUTUAL INFORMATION** (the
+correct cross-modal metric -- measures statistical dependence, not appearance
+similarity) via a coarse-to-fine brute translation+rotation search
+(tools/t_mi_align.py) locked it: MI 0.149, shift (-42,-112)px, rot -1deg. Edge
+overlay after: thermal edges sit ON map edges everywhere. Radiometric-safe
+num/den warp; temperatures resampled, never invented (drift -0.02C). Wired
+mosaic_v5_mi.npz into build_assets_p1/p2.
+
+LESSON: never validate cross-modal alignment with blended overlays -- they hide
+multi-meter offsets. Use EDGE overlays. And for thermal<->photo, MUTUAL
+INFORMATION is the metric that works; correlation-family methods do not.
+
+## Tab consistency + asset delivery (2026-07-21, build 1239)
+
+ROOT CAUSE of "nothing changed": the viewer was EDITED but never REBUILT.
+Live HTML was stamped 09:11; source edits landed 09:39. Every 3D/TERRAIN/
+findings/PLANS fix existed only in build_viewer_p6.py. Lesson: edit -> BUILD ->
+PUBLISH -> verify in the served build, every time. Never report a UI change
+without re-reading it out of the shipped file.
+
+Shipped in 1239:
+- 3D  = dd_mesh.glb (DroneDeploy, 5 primitives / 5 atlases / 1,211,918 tris)
+- POINT CLOUD (renamed from TERRAIN) = dd_points.bin (5,957,787 pts from LAS)
+- publish_deliverable.py now ships dd_mesh.glb + dd_points.bin + meta (it was
+  still shipping the dead coverage*.glb, so the tabs had nothing to fetch)
+- assets staged to C:\ASU-Survey\models\ (was %TEMP%, which is volatile)
+- 360 pins: #frameMarkers had NO initial display:none, so pins rendered despite
+  layers.panos=false and leaked onto THERMAL (shared mapFrame). Now hidden by
+  default + explicitly hidden on the thermal tab.
+- green deck-outline SVG (var(--accent)) hidden with the other analysis chrome
+- FINDINGS=[] and DRAINS=[] (numbered circles were the old unverified auto-
+  detected set)
+- SHARED FRAMING CONTRACT: MAP/THERMAL DEFAULT_ZOOM 0.85 (fit + margin);
+  3D + POINT CLOUD share HOME3D {az:-PI/2 (north up), el:1.15, r:210,
+  target=deck centre} so both tabs open identically; PLANS auto-fits to 85% of
+  its panel and is rotated -90 deg to match the map's orientation.
+- START_VIEWER.bat: serves ASU_DELIVERABLE over http with a cache-busting
+  query. Required -- file:// blocks the GLB/points fetch, so double-clicking the
+  HTML leaves 3D/POINT CLOUD empty and can serve a stale cached page.
+
+STILL OPEN: drain-overlay registration. Automated building-mask fit failed
+(IoU 0.038; the map "building" mask grabbed 43% of the frame = shadows/deck, not
+buildings). Not shipped -- overlay left at its sensible default orientation and
+kept toggled OFF. Needs the 4-point correspondence approach (client's arrowed
+drains) -> similarity fit -> verify all 18.
+
+## First-pass screening SHIPPED (2026-07-21, post-1239 build)
+
+TIMESTAMP RESOLVED: EXIF 12:20-12:46 stamps are UTC -> 05:20-05:46 MST
+(sunrise 05:27). Confirmed by shadowless twilight light in MAX_0500 nadir
+frame + Brian's recollection. PRE-DAWN survey => classic sign convention:
+WARM = candidate retained heat at membrane/drain-mat level. The 4-AI panel's
+"midday can't support subsurface calls" objection is void.
+
+tools/screening_pass.py (supersedes analyze_deck.py for this build):
+deck-only mask (survey polygon, +/-30cm elevation band off dense DEM, raised
+dilated out - 55% of polygon excluded), 5m masked-median background, MAD z,
+fixed |z|>=3 + |dT|>=0.4C (NO Gaussian FDR - reviewer consensus), elongated
+shapes KEPT as "trail" class (drain-mat travel signature; old aspect<=5
+filter deleted exactly that evidence), drain halo annulus test.
+
+Results: 34 warm candidates -> top 10 shipped + 4 cool (surface-effect
+class) + 1 drain-ring halo (D16 +2.3F = pooling candidate, matches RDH's
+blocked-mat-drainage finding at EO10). One warm TRAIL (A3). Blurbs are
+plain-English with screening-only language; drain distances labelled
+approximate. Viewer: findings injected, rail section unhidden with capture-
+conditions banner, markers auto-mirror MAP+THERMAL (shared frame), REPORT
+analysis-status updated (still no findings text in REPORT). Verified in
+served DOM: 15 markers/cards, visible on both tabs, pins still hidden.
+
+## Screening v2 + PUBLIC LINK (2026-07-21)
+
+Client-directed redo: cap 12-15 callouts (shipped 12 = 8 warm + 3 cool + 1
+drain halo), per-finding EVIDENCE list + evidence-based OPINION, and a
+click-to-expand detail overlay (#findDetail modal): locally-windowed INFERNO
+thermal crop w/ white anomaly contour + same-area RGB photo side by side,
+plain-language blurb, WHY THIS WAS CALLED OUT evidence bullets, opinion box,
+confounders, screening caveat. Marker click + card click both open it; card
+highlights + scrolls; markers persist across MAP<->THERMAL swipe (shared
+frame). Data-driven pattern summary at top of sidebar (drain clusters, D16
+halo, trail, flat-slope count).
+
+BUG: JS string escape \' in the Python template collapsed to a bare quote
+(template is a NON-raw string) -> SyntaxError killed the entire script block
+(FINDINGS undefined, page half-dead, zero console errors surfaced). Fix +
+NEW GATE: extract <script> from built HTML and `node --check` it before
+publish. Add to every viewer build.
+
+PUBLIC LINK (leadership-ready): https://asu-sundeck-survey.vercel.app
+Vercel project asu-sundeck-survey, scope slate360, static deploy of
+ASU_DELIVERABLE (69MB index + glb/bin/tiles; stale coverage*.glb deleted
+first). Verified end-to-end on the public URL: 12 markers, detail overlay
+opens with crop image on marker click. Redeploy after any republish:
+cd deliverables/ASU_DELIVERABLE && npx vercel deploy --prod --yes
+
+## Wide map data DONE + studio direction (2026-07-26)
+
+map_wide_1cm.png BUILT+VERIFIED: DD export (EPSG:6405 TFW) reprojected to ENU
+1cm (affine fit, projection curvature <0.1mm over 160m), then REGISTERED onto
+the working base via 15-patch phase-correlation affine (the two DD exports
+disagree by a smooth ~15cm scale/shear field; correction residual 0.8cm
+median, post-fix verify 0.1-0.2cm @ resp 0.97-1.0). New window E -86.2..73.2,
+N -80.2..45.2. Viewer re-plumb SPEC at C:\ASU-Survey\docs\WIDE_MAP_REPLUMB.md
+(thermal becomes a sub-rect; remap findings/panos fx/fy; drains from E/N;
+embed-size gotcha -> tiles carry detail).
+
+Shipped this session: author localStorage persistence (lost-work fix), drain
+markers = 14px dots w/ hover labels, SOURCE SHEET chip (sheet no longer
+doubles drains), rotation-aware initial centering (deck dead-centre @80%),
+screen-space swipe divider, vertical-pan direction fix. Tour Builder is being
+built in-app by another chat (TOUR_BUILDER_PLAN.md) -- viewer TOURS tab will
+consume its output. R2 free egress for 360-video sidecars.
