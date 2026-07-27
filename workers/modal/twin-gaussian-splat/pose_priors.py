@@ -63,7 +63,12 @@ SIGMA_MAX = 5.0
 
 @dataclass
 class ArkitKeyframe:
-    """One ARKit keyframe as persisted in poses.json (schema v4)."""
+    """One ARKit keyframe as persisted in poses.json (schema v4/v5).
+
+    v5 adds a `gps` block with `fixTime`/`age`; that path lives in gps_priors.py and does not
+    change this dataclass. Local geometry comes from ARKit positions here; GPS only georeferences
+    the finished block.
+    """
     image_name: str
     position: tuple[float, float, float]
     timestamp: float

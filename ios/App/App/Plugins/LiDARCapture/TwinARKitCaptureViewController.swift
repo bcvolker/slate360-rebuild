@@ -233,7 +233,15 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private func runARSession() {
         guard ARWorldTrackingConfiguration.isSupported else { fail("AR not supported"); return }
         let config = ARWorldTrackingConfiguration()
-        if ARWorldTrackingConfiguration.supportsFrameSemantics(.smoothedSceneDepth) {
+        // Request BOTH depth flavours where supported. smoothedSceneDepth is temporally
+        // filtered, which is right for a live preview but biases depth discontinuities —
+        // it drags edges toward their neighbours. Raw sceneDepth is noisier per frame but
+        // unbiased at edges, which is what geometry wants. Enabling both lets the depth
+        // source be an A/B arm instead of another TestFlight cycle.
+        let both: ARConfiguration.FrameSemantics = [.smoothedSceneDepth, .sceneDepth]
+        if ARWorldTrackingConfiguration.supportsFrameSemantics(both) {
+            config.frameSemantics = both
+        } else if ARWorldTrackingConfiguration.supportsFrameSemantics(.smoothedSceneDepth) {
             config.frameSemantics = .smoothedSceneDepth
         } else if ARWorldTrackingConfiguration.supportsFrameSemantics(.sceneDepth) {
             config.frameSemantics = .sceneDepth
@@ -1101,6 +1109,13 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             "clip_index": completedClipCount + 1,
         ]
         if let loc = currentLocation {
+            // fixTime/age are load-bearing, not bookkeeping. CoreLocation delivers ~1 Hz
+            // while keyframes are written far more often, so the SAME fix gets copied into
+            // many keyframes. Without a fix timestamp the cloud cannot tell one measurement
+            // repeated 30 times from 30 independent ones, and treating them as independent
+            // over-weights that position by sqrt(30) in the solve. With fixTime the cloud
+            // collapses repeats to one prior and inflates covariance by age.
+            let fixTime = loc.timestamp.timeIntervalSince1970
             kf["gps"] = [
                 "lat": loc.coordinate.latitude,
                 "lon": loc.coordinate.longitude,
@@ -1108,6 +1123,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                 "hAcc": loc.horizontalAccuracy,
                 "vAcc": loc.verticalAccuracy,
                 "course": loc.course,
+                "fixTime": fixTime,
+                "age": max(0.0, unix - fixTime),
             ]
         }
         // Heading + GPS accuracy let the cloud georegister the twin onto 3D map tiles later.
@@ -1140,7 +1157,10 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
 
     private func writePosesJSON(to url: URL, clips: [ClipRecord]) {
         let payload: [String: Any] = [
-            "version": 4,
+            // v5 adds gps.fixTime / gps.age per keyframe. Purely additive — v4 readers
+            // ignore the new keys, and v5 readers must tolerate their absence on older
+            // captures (fall back to treating every fix as independent, as v4 did).
+            "version": 5,
             "session_start_time": sessionStartUnix,
             "session_start_ar_timestamp": 0.0,
             // Per-clip video mapping: exact wall-clock start for each clip's video so

@@ -245,14 +245,65 @@ def align(model: str = "0", max_error: float = 3.0):
     return "aligned"
 
 
+def _log_colmap_version() -> None:
+    """Print the COLMAP build actually running.
+
+    The image is pinned to `colmap/colmap:latest`, which is NOT reproducible — an upstream
+    push silently changes the solver under a run whose results we are comparing across weeks.
+    Pinning the tag is the real fix (see TWIN360_METHOD_AND_ACCURACY.md); until then, every
+    stage records which build produced its numbers so a silent upgrade is at least visible in
+    the logs rather than showing up as an unexplained quality change.
+    """
+    import subprocess
+    r = subprocess.run("colmap -h", shell=True, capture_output=True, text=True)
+    head = ((r.stdout or "") + (r.stderr or "")).strip().splitlines()
+    print(f"COLMAP BUILD: {head[0] if head else 'unknown'}", flush=True)
+
+
+def _native_long_edge(model_dir: str) -> int:
+    """Longest image edge in the sparse model, read from cameras.bin.
+
+    Used to report effective dense-stage GSD. Returns 0 if it cannot be read —
+    reporting is diagnostic, it must never fail the run.
+    """
+    try:
+        import pycolmap  # present in the colmap image
+        rec = pycolmap.Reconstruction(model_dir)
+        return max(max(c.width, c.height) for c in rec.cameras.values())
+    except Exception as exc:  # noqa: BLE001
+        print(f"native resolution probe unavailable: {exc}", flush=True)
+        return 0
+
+
 @app.function(gpu="A10G", image=image, volumes={"/data": vol}, timeout=12 * 3600)
-def dense(max_image_size: int = 1600, model: str = "0_aligned"):
+def dense(max_image_size: int = 1600, model: str = "0_aligned",
+          workspace: str = "dense"):
     """PatchMatch stereo + fusion on the ALIGNED sparse model -> fused.ply.
-    1600px (consensus speed/quality point); cache_size forces disk paging
-    instead of OOM (external-review recommendation for 917 imgs on 24GB)."""
+
+    `max_image_size` is the single most important quality knob in this worker and
+    it is a MEMORY constraint, not an algorithmic choice: 1600 was picked because
+    917 images at higher resolution OOM a 24 GB A10G. Against a 5280x3956 sensor
+    that is a 3.3x linear downscale — 89% of the pixels are discarded before any
+    depth is computed. Resolution does not impose a hard depth-accuracy floor
+    (PatchMatch estimates disparity to sub-pixel precision), but it does bound the
+    spatial frequency that can be recovered: fine edges, thin members and small
+    height steps are attenuated at 1600 in a way no downstream upsample restores.
+
+    `workspace` keeps ladder arms side by side instead of overwriting each other:
+        dense(1600)                        -> /work/dense        (control)
+        dense(2400, workspace="dense2400") -> /work/dense2400
+        dense(3200, workspace="dense3200") -> /work/dense3200
+    Run `texture_workspace()` separately for native-resolution texturing.
+    """
     import os
-    dense_dir = f"{WORK}/dense"
+    _log_colmap_version()
+    dense_dir = f"{WORK}/{workspace}"
     os.makedirs(dense_dir, exist_ok=True)
+    native = _native_long_edge(f"{WORK}/sparse/{model}")
+    if native:
+        print(f"DENSE RESOLUTION: native long edge {native} px, dense cap "
+              f"{max_image_size} px, downscale {native / max_image_size:.2f}x — "
+              f"effective GSD is that multiple of the native GSD", flush=True)
     _run(
         f"colmap image_undistorter --image_path {IMAGES} "
         f"--input_path {WORK}/sparse/{model} --output_path {dense_dir} "
@@ -270,7 +321,41 @@ def dense(max_image_size: int = 1600, model: str = "0_aligned"):
         f"--output_path {dense_dir}/fused.ply"
     )
     vol.commit()
-    return "dense complete"
+    return f"dense complete ({workspace} @ {max_image_size}px)"
+
+
+@app.function(image=image, volumes={"/data": vol}, timeout=6 * 3600,
+              cpu=8, memory=32768)
+def texture_workspace(max_image_size: int = -1, model: str = "0_aligned",
+                      workspace: str = "texture"):
+    """Undistort at NATIVE resolution for texturing only — no stereo, no GPU.
+
+    `colmap mesh_texturer` reads whatever `--image_path` it is given, and the
+    established path pointed it at the dense workspace. That coupled texture
+    resolution to the dense memory cap: a 1600 px dense run also meant 1600 px
+    texture source, so the ortho and the GLB inherited the downscale even though
+    texturing has no stereo memory cost at all.
+
+    Undistortion is a resample, not a solve — it is CPU-cheap and needs no GPU.
+    Point `mesh_texturer --image_path {WORK}/texture/images` at this instead, and
+    geometry resolution stops dictating appearance resolution.
+    """
+    import os
+    _log_colmap_version()
+    out = f"{WORK}/{workspace}"
+    os.makedirs(out, exist_ok=True)
+    cap = "" if max_image_size < 0 else f" --max_image_size {max_image_size}"
+    _run(
+        f"colmap image_undistorter --image_path {IMAGES} "
+        f"--input_path {WORK}/sparse/{model} --output_path {out} "
+        f"--output_type COLMAP{cap}"
+    )
+    vol.commit()
+    n = len(os.listdir(f"{out}/images")) if os.path.isdir(f"{out}/images") else 0
+    print(f"texture workspace ready: {n} undistorted images at "
+          f"{'native' if max_image_size < 0 else max_image_size} resolution",
+          flush=True)
+    return f"texture workspace complete ({n} images)"
 
 
 @app.function(image=image, volumes={"/data": vol}, timeout=6 * 3600,

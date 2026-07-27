@@ -29,6 +29,19 @@ disagree, the ruling is the one verified by reading upstream source/LICENSE file
 **Lesson for Sonnet 5: never accept a flag name or license from a research summary. Verify against
 upstream source before writing it into the worker.**
 
+**A1b. Corrections to OUR OWN earlier reasoning (2026-07-27).** Two external reviews caught real
+errors in this repo's analysis. Full adjudication in `TWIN360_METHOD_AND_ACCURACY.md` §0.
+
+| Our earlier claim | Ruling | Consequence |
+|---|---|---|
+| "1600 px dense imposes a **quantisation floor** above DD's 0.93 cm σ" | **Wrong.** PatchMatch interpolates disparity sub-pixel and fusion averages many views, so sub-GSD precision on flat surfaces is normal | Hypothesis restated: downscaling costs **recoverable spatial frequency and match success**, not flat-surface precision. Predicts acutance/hole-area move, σ does not |
+| Texture resolution was treated as independent of the dense cap | **Wrong, and verified in code** — downstream stages read `{WORK}/dense/images`, the *undistorted* output of `image_undistorter --max_image_size 1600` | Geometry and texture were coupled. `texture_workspace()` now undistorts at native resolution on CPU. **Arm B tests this first — it is the cheapest arm and may explain most of the gap** |
+| `colmap/colmap:latest` was acceptable | **Not reproducible** | COLMAP build now logged at every stage; tag pinning is a follow-up (verify the tag exists first) |
+| Keyframe `gps` blocks were sufficient for georeferencing | **Wrong** — no `CLLocation.timestamp`, so one 1 Hz fix copied into ~30 keyframes is indistinguishable from 30 independent ones and gets over-weighted by √30 | poses.json **v5** adds `gps.fixTime`/`gps.age`; `gps_priors.py` collapses repeats and age-inflates covariance (19/19 tests) |
+| `smoothedSceneDepth` was the right depth source | **Unproven either way** — temporal smoothing biases depth edges but suppresses noise | Both semantics now requested at capture, so raw-vs-smoothed is an A/B arm instead of a second TestFlight cycle |
+| — | COLMAP's docs state the native `EQUIRECTANGULAR` model is **faster but less accurate** than perspective views | **Confirms** the existing unwrap-to-perspective choice. Do not switch |
+| — | DroneDeploy is a **reference**, not ground truth | Scoring language: "parity with DD" is the goal; accuracy *claims* require control points |
+
 ### A2. Cross-source consensus (safe to build on)
 
 - **COLMAP:** `pose_prior_mapper` = 3.11.0; gravity priors = 4.0.0; EXIF gravity extraction = 4.1.1;
@@ -529,9 +542,35 @@ Legend: ⬜ not started · 🟨 partial · ✅ code complete & verified · ⛔ b
 - ⬜ **P4e-2** splat-transform 2.7.1 → 3.1.6 *(keep `--spz-version 3`; re-verify fleet)*
 - ⬜ **P4e-3** `/embed/twin/{token}` + scoped CSP
 
-**"Complete Twin 360" definition of done:** Phases 0–4 green, on-device iPhone verified, with a
+### Phase 5 — Cross-device site assembly *(added 2026-07-27)*
+
+Design: `UNIFIED_SITE_MODEL_ARCHITECTURE.md`. Rationale and accuracy expectations:
+`TWIN360_METHOD_AND_ACCURACY.md`. This is what makes drone + phone + 360 one twin instead of three.
+
+- ✅ **P5a-0** `gps_priors.py` — collapse repeated GNSS fixes, age-inflate covariance (19/19 tests)
+- ⬜ **P5a-1** Site frame: one ENU origin per project, persisted, all blocks referenced to it
+- ⬜ **P5a-2** Wire `gps_priors` into the solve
+- ⬜ **P5a-3** GeoTIFF + world-file writers (GDAL/pyproj, explicit EPSG — never hand-rolled)
+- ⬜ **P5a-4** LAS/LAZ writer with CRS tagging
+- ⬜ **P5b-1** Block registry: capture → block → Sim3 → site, with stored residual
+- ⬜ **P5b-2** Doorway-bridge anchoring (4-DOF; gravity + scale shared from the start)
+- ⬜ **P5b-3** Anchoring residual surfaced; degrade to "unlocated but correct" on failure
+- ⬜ **P5c-1** LOD layering: drone shell → ground detail → interior blocks
+- ⬜ **P5c-2** Splat 3D Tiles tileset authored in-house *(py3dtiles cannot tile splats)*
+- ⬜ **P5d-1** Persist per-point LiDAR confidence *(currently thresholded at capture then discarded;
+  needed by P3b-2)*
+
+### Resolution/mesh arms *(added 2026-07-27 — supersedes the plain ladder in §5 of the ASU plan)*
+
+- ✅ **PXa-0** `texture_workspace()` + per-arm `dense(workspace=…)` + effective-GSD logging
+- ⬜ **PXa-1** **Arm M0** — profile where dense memory actually goes *(before any GPU spend)*
+- ⬜ **PXa-2** **Arm B** — 1600 geometry + **native texture**. CPU only. **Run this first**
+- ⬜ **PXa-3** Arms C/D — 2400/3200 geometry + native texture *(only if B leaves a gap)*
+- ⬜ **PXb-1** Mesh arms P / D1 / D2 / AF, scored on hole area **and** invented-surface area
+
+**"Complete Twin 360" definition of done:** Phases 0–5 green, on-device iPhone verified, with a
 single share link delivering 3D twin + 2D plan + measurements + downloadable mesh, from any of the
-three capture devices.
+capture devices, and exterior + interior joined with a stated anchoring residual.
 
 ---
 
