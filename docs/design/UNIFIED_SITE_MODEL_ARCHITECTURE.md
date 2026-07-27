@@ -139,6 +139,72 @@ splats mobile / 500k desktop) apply per loaded region rather than per site.
 
 ---
 
+## 6b. What to adopt instead of build (OSS survey, 2026-07-27)
+
+Licenses verified by reading repo LICENSE files. **Only Apache-2.0 / BSD / MIT are usable.**
+
+### Adopt
+
+| Project | License | Replaces |
+|---|---|---|
+| **COLMAP 4.1.1** (via **pycolmap**) | BSD-3 | The entire multi-source fusion core. `model_aligner --ref_is_gps 1 --alignment_type ecef` georeferences from drone EXIF; `image_registrator` adds a new capture into an existing model; `model_merger` joins two reconstructions sharing images; pose priors (3.12+) carry ARKit/GPS uncertainty. **Verified locally: `EQUIRECTANGULAR` is a native camera model, and `align_reconstruction_to_locations` is exposed in pycolmap.** |
+| **Open3D** + **TEASER++** + **small_gicp** | MIT ×3 | The whole phone-LiDAR-into-drone-cloud registration chain. TEASER++ is certifiably robust at 90–99% outlier rates — the right tool for cross-source correspondence, which is exactly our hard case. |
+| **PDAL** + **laspy** + **libE57Format** + **GDAL/pyproj** | BSD-3 / BSD-2 / BSL-1.0 / MIT | Point-cloud and CRS I/O, including third-party `.las`/`.laz`/`.e57` ingest and GeoTIFF+world-file output. **Route LAZ writes through PDAL** to sidestep the LASzip(Apache) vs LASlib(LGPL) ambiguity. |
+| **CesiumJS** + **3d-tiles-tools** + **py3dtiles** | Apache-2.0 ×3 | **The composite viewer, entirely.** As of April 2026 Cesium renders Gaussian splats with hierarchical LOD in 3D Tiles — mesh + point cloud + splats, georeferenced on one globe, streaming. This is §5 of this document, done. Target `KHR_gaussian_splatting` + `..._compression_spz_2`; the older SPZ-v1 extension is deprecated. |
+| **hloc** + **LightGlue** + **ALIKED** | Apache-2.0 / Apache-2.0 / BSD-3 | Registering a capture against an existing map when appearance differs (drone nadir vs phone eye level, or a return visit). **Only with this model set** — see below. |
+
+### Avoid
+
+| Project | License | Why |
+|---|---|---|
+| **OpenMVS** | **AGPL-3.0** | Fatal for cloud SaaS — network-use triggers source disclosure. No dual license offered. |
+| **OpenDroneMap / ODM** | **AGPL-3.0** | Same, and it is AGPL *largely because it depends on OpenMVS*. Already dropped for technical reasons; this closes it permanently. Build the dense/ortho step on COLMAP + PDAL + GDAL instead. |
+| **SuperPoint / SuperGlue weights** | Magic Leap non-commercial | **hloc's defaults** — easy to ship by accident. Swap to LightGlue + ALIKED. |
+| **Original INRIA 3DGS** | Non-commercial research | Use **gsplat** (Apache-2.0), which we already run. |
+| **CloudCompare** | GPL-3 | Internal ops tool only; never a product dependency. |
+| **AliceVision/Meshroom** | MPL-2.0 + unaudited per-algorithm caveats | COLMAP supersedes it under a cleaner licence. |
+
+### Consequence for the 360 path
+
+COLMAP's native `EQUIRECTANGULAR` model means 360 media can be **solved directly**, without the
+ffmpeg unwrap-to-perspective step built in P0b-2 — fewer images, no seam duplication, no
+redundant overlap. **But the splat trainer still expects pinhole cameras**, so the likely shape is
+hybrid: solve poses natively on equirect, then generate perspective views *from the solved poses*
+for training. Treat the existing unwrap as the working path and the native model as an A/B arm;
+verify whether splatfacto accepts equirect before switching.
+
+### The gap that remains ours
+
+No open-source project fuses drone-EXIF photos + ARKit-posed phone video + LiDAR depth + 360
+equirect + GPS tracks + third-party E57 into one georeferenced model. Every primitive exists
+permissively; **the orchestration — which capture defines the reference frame, how per-source
+uncertainty propagates, and in what order things merge — is the part we write.** COLMAP's pose
+priors and OpenSfM's per-image GPS standard deviations are the right places to encode that
+uncertainty rather than inventing a scheme.
+
+---
+
+## 6c. Additional user-uploaded data: classify by contribution
+
+Users will add extra GPS, LiDAR, video, photos, 360 stills and 360 video. These do not all enter
+the pipeline at the same place, and treating them uniformly is what makes "upload anything"
+unmanageable. Every ingested source declares what it contributes:
+
+| Contribution | Sources | Enters at |
+|---|---|---|
+| **Geometry** — new surface | photos, video, 360, LiDAR scans | Images/points into the solve |
+| **Pose evidence** — where the camera was | ARKit poses, drone EXIF, GPS tracks, RTK | `pose_priors` table |
+| **Scale / reference** — metric truth | LiDAR, GCPs, surveyed points | Constraints on the solve |
+| **Appearance only** — texture, no geometry | high-res stills, close-ups | Texturing pass |
+
+**More data is not monotonically better.** A blurry clip or a bad GPS track can degrade a good
+model. Covariance weighting protects the pose path automatically — a loose prior is
+down-weighted — but imagery needs a quality gate at ingest (the existing per-frame sharpness
+scoring), and every added source must be attributable so a bad one can be excluded and the model
+rebuilt without it.
+
+---
+
 ## 7. Sequencing
 
 This slots into the existing plan rather than replacing it.
