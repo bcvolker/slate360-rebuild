@@ -111,9 +111,26 @@ export const twinGaussianSplatTask = task({
     };
 
     try {
+      // The Modal endpoint sits on a public *.modal.run URL with no gateway auth, so the
+      // dispatch has to identify itself or anyone who learns the URL can spawn GPU jobs.
+      // Reuses GPU_WORKER_SECRET_KEY — the same secret the worker signs its callbacks with —
+      // so there is nothing extra to provision. Trigger reads its env at DEPLOY time
+      // (syncEnvVars in trigger.config.ts), so this needs a Trigger redeploy, not just Vercel.
+      const dispatchToken = process.env.GPU_WORKER_SECRET_KEY?.trim();
+      if (!dispatchToken) {
+        console.warn(
+          "[twin dispatch] GPU_WORKER_SECRET_KEY missing — dispatching unauthenticated. " +
+            "The worker still accepts this during phase-1 rollout but will reject it once " +
+            "MODAL_DISPATCH_AUTH_REQUIRED is set.",
+        );
+      }
+
       const response = await fetch(getModalEndpoint(), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          ...(dispatchToken ? { "x-dispatch-token": dispatchToken } : {}),
+        },
         body: JSON.stringify(dispatchPayload),
       });
 

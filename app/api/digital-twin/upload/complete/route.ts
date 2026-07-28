@@ -105,11 +105,20 @@ export const POST = (req: NextRequest) =>
         })
         .eq("id", session.id);
 
+      // `deleted_at: null` is not redundant. The stale-upload sweep soft-deletes rows stuck in
+      // `uploading` with a NULL storage_key — and during a long multipart upload (the 262 MB
+      // drone-video case this whole path exists for) storage_key IS null right up until this
+      // moment. So a slow-but-healthy upload can be swept mid-flight. Without clearing
+      // deleted_at here the row would flip to `ready` while still soft-deleted: a zombie that
+      // every job query filters out, so the user sees "uploaded" and processing never sees the
+      // file. The bytes did land, so the correct resolution is to resurrect the row, not to
+      // fail the request.
       await admin
         .from("digital_twin_capture_assets")
         .update({
           storage_key: body.key,
           status: "ready",
+          deleted_at: null,
         })
         .eq("id", asset.id);
 

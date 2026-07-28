@@ -37,15 +37,24 @@ git rev-parse --abbrev-ref HEAD                    # expect: claude/dronedeploy-
 These files exist only on this machine. Everything about the DroneDeploy comparison is
 unreproducible until they are in git.
 
+**Corrected 2026-07-27:** `georef_app.py` / `patch_ortho.py` / `stats_app.py` are already sitting
+**untracked in `workers\modal\photogrammetry\`** — they do not need copying from anywhere. Only
+the `C:\ASU-Survey\tools\*.py` set needs moving in.
+
 ```powershell
 cd C:\s360
 mkdir -Force workers\modal\photogrammetry\asu-tools
 Copy-Item C:\ASU-Survey\tools\*.py workers\modal\photogrammetry\asu-tools\ -Force
-foreach ($f in @('georef_app.py','patch_ortho.py','stats_app.py')) {
-  if (Test-Path "C:\s360\$f") { Copy-Item "C:\s360\$f" workers\modal\photogrammetry\ -Force }
-  elseif (Test-Path "C:\ASU-Survey\$f") { Copy-Item "C:\ASU-Survey\$f" workers\modal\photogrammetry\ -Force }
-  else { Write-Warning "NOT FOUND: $f — search for it and report the path" }
-}
+git status --short workers/modal/photogrammetry/   # confirm the three .py files show as untracked
+```
+
+**Do not commit `patch_ortho.py` as a live tool.** It is a one-shot source patch whose anchor no
+longer exists — `main`'s `ortho()` already carries a newer hole-fill (nearest-valid LUT capped at
+12 px) than the patch would apply, so running it now dies on `assert old in s`. Move it into
+`asu-tools\` and rename it so nobody mistakes it for something runnable:
+
+```powershell
+Move-Item workers\modal\photogrammetry\patch_ortho.py workers\modal\photogrammetry\asu-tools\patch_ortho.HISTORICAL.py -Force
 ```
 
 **Check for secrets before staging.** These scripts may contain hardcoded keys; GitHub push
@@ -57,9 +66,13 @@ Select-String -Path workers\modal\photogrammetry\asu-tools\*.py, workers\modal\p
 If that prints anything, replace the literal with `os.environ["NAME"]` before continuing.
 
 **Stage explicit paths only — never `git add .`:**
+Add `workers/modal/photogrammetry/asu-tools/README.md` first, marking the folder **research /
+benchmark, not deployable product infra** — 62 scratch scripts with no marker will eventually be
+mistaken for something the pipeline depends on.
+
 ```powershell
 git add workers/modal/photogrammetry/asu-tools
-git add workers/modal/photogrammetry/georef_app.py workers/modal/photogrammetry/patch_ortho.py workers/modal/photogrammetry/stats_app.py
+git add workers/modal/photogrammetry/georef_app.py workers/modal/photogrammetry/stats_app.py
 git commit -m "chore(asu): commit the untracked mesh and scoring scripts
 
 The ASU mesh and every published measurement came from these files, which were
@@ -75,7 +88,18 @@ git ls-files workers/modal/photogrammetry/ | Measure-Object   # expect Count > 2
 
 ---
 
-## 2. Apply the pending migration  ⛔ BLOCKING
+## 1b. Deploy order is load-bearing: MIGRATION BEFORE VERCEL  ⚠️
+
+The branch's upload path writes a `client_fingerprint` column. **If this branch merges and Vercel
+deploys before §2 has run against production, every upload init fails with column-not-found —
+uploads go hard down.**
+
+**Order: apply the migration (§2) → then merge/deploy.** Never the reverse. This applies to the
+Vercel side specifically, which no earlier version of this doc called out.
+
+---
+
+## 2. Apply the pending migrations  ⛔ BLOCKING
 
 Activates the duplicate-upload fix and the stale-upload GC. Both are already code-complete and
 inert until this runs. **The migration is additive and idempotent — safe to run twice.**
@@ -84,7 +108,13 @@ inert until this runs. **The migration is additive and idempotent — safe to ru
 cd C:\s360
 $env:SUPABASE_TELEMETRY_DISABLED='1'
 npx supabase db query --linked -f supabase/migrations/20260725120000_twin_asset_dedup.sql
+npx supabase db query --linked -f supabase/migrations/20260727120000_twin_gc_multipart_aware.sql
 ```
+
+**Both, in that order.** The second hardens the stale-upload sweep so it cannot soft-delete an
+upload that is still in flight — during a long multipart upload `storage_key` stays NULL right
+up until completion, which is exactly what the sweep was keying on. It also widens the cutoff
+180 min → 720 min.
 
 **Verify — all three must return a row:**
 ```powershell
@@ -94,6 +124,37 @@ npx supabase db query --linked --query "select indexname from pg_indexes where i
 npx supabase db query --linked --query "select proname from pg_proc where proname='gc_stale_digital_twin_upload_assets';"
 ```
 Empty result on any = the migration did not apply. Report the error, do not retry blindly.
+
+---
+
+## 2b. Turn on Modal dispatch auth  🔒 do this before anything else GPU
+
+The Modal `reconstruct` endpoint sits on a public `*.modal.run` URL and, until this branch, had
+**no authentication at all** — anyone who learned the URL could POST `{jobId, sourceKeys}` in a
+loop and spawn A10G containers with 2-hour timeouts. The jobs fail on bogus keys, but only after
+the GPU has started, so the bill is real.
+
+The fix reuses `GPU_WORKER_SECRET_KEY`, which both sides already have. **Rollout is deliberately
+two-phase so dispatch never goes down:**
+
+```powershell
+# Phase 1 — deploy the worker. Unauthenticated calls still pass but log a loud warning.
+cd C:\s360\workers\modal\twin-gaussian-splat
+$env:PYTHONIOENCODING='utf-8'; python -m modal deploy worker.py
+
+# Phase 2 — redeploy Trigger so the dispatch starts sending the header.
+# Trigger's env is synced AT DEPLOY TIME, so a Vercel deploy is NOT enough.
+cd C:\s360
+$env:PYTHONIOENCODING='utf-8'; npx trigger.dev@latest deploy
+
+# Phase 3 — confirm the "[security] UNAUTHENTICATED dispatch accepted" warnings have STOPPED
+# in the Modal logs, then add MODAL_DISPATCH_AUTH_REQUIRED=1 to the `slate360-twin-worker`
+# Modal secret and redeploy the worker. Enforcement is now live.
+```
+
+**Verify** by running one real job end to end after phase 2 and confirming no security warning
+appears. A *wrong* token is rejected in every phase; only a *missing* one is tolerated, and only
+until phase 3.
 
 ---
 
@@ -125,9 +186,18 @@ python -m modal volume ls asu-rgb-flights /work/texture/images | Measure-Object
 Get-FileHash <path-to-mesh.ply> -Algorithm SHA256
 ```
 
-Then run `colmap mesh_texturer` **twice against that same mesh**, changing only `--image_path`:
-- **Arm A (control):** `--image_path /work/dense/images`   ← 1600 px
-- **Arm B:** `--image_path /work/texture/images`           ← native
+**Confirm the flag before running — `mesh_texturer` takes a workspace, not an image path:**
+```powershell
+colmap mesh_texturer -h
+```
+Its documented signature is `--workspace_path` (a directory containing `images/` + `sparse/`),
+which is also what the existing `texture_mesh.py` used. So the two arms differ only in which
+workspace they read:
+- **Arm A (control):** `--workspace_path /data/work/dense`    ← 1600 px images
+- **Arm B:** `--workspace_path /data/work/texture`            ← native-resolution images
+
+`--input_path` (the mesh) is **identical** in both. If `-h` shows something different, follow the
+help output and record what you used.
 
 Re-hash the mesh afterwards and confirm it is unchanged. Report both textured outputs plus:
 render crops at native zoom, file sizes, and wall-clock per arm.

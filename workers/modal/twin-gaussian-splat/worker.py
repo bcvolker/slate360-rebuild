@@ -43,6 +43,15 @@ from typing import Any
 
 import modal
 
+try:
+    # fastapi ships only in `web_image`. The GPU containers import this same module, so a bare
+    # top-level import would break every job. It has to be top-level rather than lazy because
+    # `Header(...)` is a default argument, evaluated when the function is DEFINED.
+    from fastapi import Header
+except ModuleNotFoundError:  # pragma: no cover - GPU containers never serve the endpoint
+    def Header(default=None, **_kwargs):  # type: ignore[misc]
+        return default
+
 APP_NAME = "slate360-twin-gaussian-splat"
 SECRET_NAME = "slate360-twin-worker"
 WEB_ENDPOINT_LABEL = "reconstruct"
@@ -2952,8 +2961,49 @@ def process_job(payload: dict[str, Any]) -> None:
 
 @app.function(image=web_image, secrets=[worker_secret], timeout=60)
 @modal.fastapi_endpoint(method="POST", label=WEB_ENDPOINT_LABEL)
-def reconstruct(body: dict[str, Any]):
+def reconstruct(body: dict[str, Any], x_dispatch_token: str = Header(default="")):
+    """Dispatch entry point. **Public URL — treat every request as hostile.**
+
+    Modal web endpoints live at a guessable `*.modal.run` address with no gateway auth. Before
+    the token check below, anyone who learned this URL could POST `{jobId, sourceKeys}` in a
+    loop: each call spawns a GPU container with a 2-hour timeout. The jobs fail on the bogus
+    keys, but only *after* the A10G has started, so the bill is real.
+
+    The token is `GPU_WORKER_SECRET_KEY` — the same shared secret the worker already uses to
+    sign its callbacks, so there is nothing new to provision on either side.
+
+    ROLLOUT IS TWO-PHASE ON PURPOSE. Turning this on before the Trigger task sends the header
+    would take dispatch down. So:
+      1. Deploy this worker. `MODAL_DISPATCH_AUTH_REQUIRED` is unset -> requests are allowed
+         but every unauthenticated one logs a loud warning.
+      2. Redeploy Trigger with the `x-dispatch-token` header (its env is synced at deploy time,
+         so a Vercel-only deploy is NOT enough).
+      3. Confirm the warnings have stopped, then set `MODAL_DISPATCH_AUTH_REQUIRED=1` in the
+         `slate360-twin-worker` Modal secret and redeploy. Enforcement is now live.
+    A wrong token is rejected in BOTH phases — phase 1 only tolerates a missing one.
+    """
     from fastapi.responses import JSONResponse
+
+    expected = os.environ.get("GPU_WORKER_SECRET_KEY", "").strip()
+    required = os.environ.get("MODAL_DISPATCH_AUTH_REQUIRED", "").strip().lower() in (
+        "1", "true", "yes",
+    )
+    supplied = (x_dispatch_token or "").strip()
+    if not expected:
+        # The callback path already depends on this, so its absence is a broken deployment.
+        return JSONResponse(status_code=500, content={"error": "worker secret not configured"})
+    if supplied:
+        if not hmac.compare_digest(supplied, expected):
+            return JSONResponse(status_code=401, content={"error": "invalid dispatch token"})
+    elif required:
+        return JSONResponse(status_code=401, content={"error": "dispatch token required"})
+    else:
+        print(
+            "[security] UNAUTHENTICATED dispatch accepted — x-dispatch-token absent. This is "
+            "phase-1 rollout tolerance only. Redeploy Trigger with the header, then set "
+            "MODAL_DISPATCH_AUTH_REQUIRED=1.",
+            flush=True,
+        )
 
     if not isinstance(body, dict):
         return JSONResponse(status_code=400, content={"error": "JSON object required"})

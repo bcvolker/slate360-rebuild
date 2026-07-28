@@ -32,15 +32,25 @@ export async function upsertTwinCaptureAsset(
   if (input.clientFingerprint) {
     const { data: existing } = await admin
       .from("digital_twin_capture_assets")
-      .select("id")
+      .select("id, status, storage_key")
       .eq("capture_id", input.captureId)
       .eq("client_fingerprint", input.clientFingerprint)
       .is("deleted_at", null)
       .maybeSingle();
 
     if (existing?.id) {
-      // Re-presigning is legitimate (the previous URL may have expired), so refresh the
-      // mutable fields and hand back the same row rather than creating a sibling.
+      // A finished upload must NOT be walked backwards. Re-entering the submit flow and
+      // re-picking a file that already uploaded is the exact scenario this dedup exists for,
+      // and blindly resetting status to "uploading" would regress a good `ready` row — then
+      // if the user closed the tab it would sit there until the stale sweep soft-deleted a
+      // perfectly good asset. If the bytes are already up, hand the row back untouched.
+      if (existing.status === "ready" && existing.storage_key) {
+        return { id: existing.id, reused: true };
+      }
+
+      // Otherwise the previous attempt genuinely never finished. Re-presigning is legitimate
+      // (the old URL may have expired), so refresh the mutable fields and reuse the row rather
+      // than creating a sibling.
       await admin
         .from("digital_twin_capture_assets")
         .update({
