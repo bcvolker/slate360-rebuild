@@ -73,15 +73,32 @@ def diag():
 
 
 def _run(cmd: str) -> None:
-    import subprocess, sys, os
+    """Run a shell stage, streaming its output live.
+
+    This used to buffer everything with `capture_output=True` and print the last 4000 chars
+    once the stage finished. On a detached multi-hour COLMAP stage that means zero liveness
+    signal for hours — you cannot tell a job that is progressing from one that has wedged, and
+    on failure you get a truncated tail with no history. Streaming costs nothing and makes the
+    Modal log a usable progress indicator.
+
+    A rolling tail is still kept so the failure message stays self-contained.
+    """
+    import collections, subprocess, sys, os
     print(f"$ {cmd}", flush=True)
     env = dict(os.environ, QT_QPA_PLATFORM="offscreen")  # headless GPU/Qt
-    r = subprocess.run(cmd, shell=True, env=env, capture_output=True, text=True)
-    if r.stdout:
-        print(r.stdout[-4000:], flush=True)
-    if r.returncode != 0:
-        print("STDERR:", (r.stderr or "")[-4000:], flush=True)
-        sys.exit(f"FAILED ({r.returncode}): {cmd}")
+    tail: collections.deque[str] = collections.deque(maxlen=40)
+    proc = subprocess.Popen(
+        cmd, shell=True, env=env, text=True,
+        stdout=subprocess.PIPE, stderr=subprocess.STDOUT, bufsize=1,
+    )
+    assert proc.stdout is not None
+    for line in proc.stdout:
+        tail.append(line)
+        sys.stdout.write(line)
+        sys.stdout.flush()
+    rc = proc.wait()
+    if rc != 0:
+        sys.exit(f"FAILED ({rc}): {cmd}\n--- last {len(tail)} lines ---\n{''.join(tail)}")
 
 
 @app.function(gpu="A10G", image=image, volumes={"/data": vol}, timeout=6 * 3600)
@@ -438,11 +455,17 @@ def ortho_hires(gsd_m: float = 0.02, x_min: float = None, x_max: float = None,
     # pre-dawn->sunrise brightness drift across the mission.
     meds = np.zeros((len(views), 3), np.float32)
     for vi, v in enumerate(views):
-        img = cv2.imread(f"{IMAGES}/{v['name']}")
+        # This pass needs STATISTICS ONLY — a per-image median — so there is no reason to
+        # decode 5280x3956 pixels and then throw away 63 of every 64 with a ::8 stride.
+        # IMREAD_REDUCED_COLOR_8 decodes at 1/8 scale inside the JPEG decoder itself, which is
+        # both far cheaper (917 full decodes over a network volume was the single largest cost
+        # in this stage) and slightly better statistically: reduced decode averages each 8x8
+        # block instead of point-sampling one pixel from it, so the median aliases less.
+        img = cv2.imread(f"{IMAGES}/{v['name']}", cv2.IMREAD_REDUCED_COLOR_8)
         if img is None:
             continue
-        c9 = img[img.shape[0]//4:3*img.shape[0]//4:8,
-                 img.shape[1]//4:3*img.shape[1]//4:8]
+        c9 = img[img.shape[0]//4:3*img.shape[0]//4,
+                 img.shape[1]//4:3*img.shape[1]//4]
         meds[vi] = np.median(c9.reshape(-1, 3), axis=0)
     target = np.median(meds[meds[:, 0] > 0], axis=0)
     gains = np.where(meds > 0,

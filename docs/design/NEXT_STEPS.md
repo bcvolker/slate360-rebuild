@@ -9,6 +9,39 @@ Detail lives in `PIPELINE_V3_REVIEW_AND_ROADMAP.md` (phases),
 
 ---
 
+## 0. ⚠️ Ownership — read before starting anything
+
+Several chats are working this project at once. **The Kimi review findings are already fixed and
+pushed on `claude/dronedeploy-reconstruction-analysis-py2toz`.** Do not re-implement them; pull
+the branch. Duplicated work on the same files produces conflicting implementations of the same
+fix, which is worse than either fix alone.
+
+| Kimi finding | Status | Where |
+|---|---|---|
+| #1 Modal `reconstruct` endpoint unauthenticated | ✅ **fixed, pushed** | `worker.py` + `src/trigger/twin-gaussian-splat.ts` |
+| #2 `asset-fingerprint.ts` binary to git | ✅ **fixed, pushed** | NUL separators → length prefixes |
+| #3 GC sweeps live uploads / zombie rows | ✅ **fixed, pushed** | migration `20260727120000` + `upload/complete` |
+| #4 upsert downgrades `ready` → `uploading` | ✅ **fixed, pushed** | `lib/twin/upsert-capture-asset.ts` |
+| #5 deploy order: migration before Vercel | ✅ **documented** | `EXECUTE_ON_LOCAL_MACHINE.md` §1b |
+| #6 product worker on COLMAP 3.8 | ⛔ **open — gates V2** | needs the Modal image change |
+| perf: `_run` buffers output | ✅ **fixed, pushed** | now streams live |
+| perf: gain pass double-decodes | ✅ **fixed, pushed** | `IMREAD_REDUCED_COLOR_8`, identical sample count |
+| ODM report skipped | ✅ **fixed, pushed** | `--skip-report` removed |
+| credit reservation race | 📋 **recommendation only** | billing is a forbidden edit zone |
+| `metricAuthority` → viewer measurement UI | ⬜ open | Phase E |
+| `splat()` decodes JPEG on the GPU critical path | ⬜ open backlog | benchmark path |
+| consolidate one-off Modal apps | ⬜ open backlog | after the ASU scripts land |
+
+**What is actually left for a machine-local session: deploying**, in the order set out in
+`docs/ops/EXECUTE_ON_LOCAL_MACHINE.md`. The code is written and tested.
+
+Note on #2: the minimal alternative fix (keep NUL, write it as a `\u0000` escape so only the
+*source bytes* change) is equally valid and preserves fingerprint values. The landed fix changes
+the hash instead, which is free right now because the migration has not been applied, so no
+fingerprints exist in production. No reason to churn it either way.
+
+---
+
 ## 1. Done and verified (code complete, tests passing)
 
 | What | Evidence |

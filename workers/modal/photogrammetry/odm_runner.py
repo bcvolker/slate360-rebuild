@@ -53,7 +53,9 @@ def run_odm(ortho_cm: float = 1.0):
         "--pc-quality", "high",
         "--feature-quality", "high",
         "--max-concurrency", "16",
-        "--skip-report",
+        # --skip-report removed. The ODM report carries reprojection error, GSD and overlap —
+        # exactly the QA numbers the DroneDeploy head-to-head needs, and the reason the earlier
+        # run's failure was hard to diagnose. It costs almost nothing next to a 23-hour job.
         "--gltf",
     ]
     print("$ " + " ".join(cmd), flush=True)
