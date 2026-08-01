@@ -280,3 +280,57 @@ E0 (day) → **E1 colmap_drone** (week) ∥ **per-frame-depth native change** (s
 same day, TestFlight-gated) → Arm B + M0 (days, CPU) → M1-M3 mobile flow (UX, as
 planned) → interior pose priors (needs image upgrade) → E2 exports/QC → D1-D4
 studio → U1 schema (any time, small) → P1 360-video → P2 federation last.
+
+### 5.6 Third-round review corrections (verified 2026-07-28, late)
+
+- **INTERIOR IS CLOSER THAN THE TRACKER SHOWS.** `align_backends.py` exposes
+  `run_alignment(backend="colmap_vanilla"|"colmap_pose_prior")` with covariance-
+  weighted ARKit priors — code-complete, with an off/on A/B test harness
+  (`test_pose_prior_benefit.py`, median camera-centre error comparison). But
+  `worker.py` has ZERO references to it and its image has no pycolmap. **The precise
+  interior gate is: add `pycolmap==4.1.1` to the gpu_image pip-install
+  (worker.py:~153-200), import + call `run_alignment()` in the align stage with
+  `colmap_vanilla` fallback, R7.5 visual gate. ~1-2 weeks, not multi-week.**
+- **Exterior productization = a SEPARATE worker/task contract** (adopted from
+  review 1): build product dispatch around `workers/modal/photogrammetry/worker.py`
+  as its own Trigger task + job_type, do NOT couple mesh/ortho/CRS into the 2,700-
+  line splat worker. Route by explicit `source_role`/`asset_kind` + validated
+  metadata — never silently classify every GPS-bearing file as drone imagery.
+- **Ingest truth-gaps confirmed still open:** 360-hint flag is NOT propagated
+  through `useMultipartTwinUpload` to the worker; `.insv` missing from
+  `upload-helpers.ts` (only `.insp` at line 54); no server-side ffprobe fallback.
+  Also: `jobs/route.ts` ADVERTISES `photogrammetry_mesh`/`lidar_fusion` job types
+  with no worker behind them — reject until real (becomes the exterior task's
+  job_type when E1 lands).
+- ASU tools: ALREADY committed (a6334dc1) — review's reproducibility ask satisfied.
+- Native capture format: prototype the per-frame depth package + validate on
+  TestFlight BEFORE locking the exact file format (versioned capture package).
+- Honest confidence map adopted: exterior parity HIGH ~2wk · interior determinism
+  MED-HIGH ~1-2wk post-image-change · interior TOP visual quality gated on the
+  TestFlight depth cycle (long pole, runs in background) · 360 verify ~days on a
+  real X4 file · federation LAST, months, never promised until both tracks stable.
+
+## 6. TWO-WEEK PARALLEL EXECUTION PLAN (multi-AI, ~12 prompts)
+
+Constraint: 1-2 weeks, multiple AI platforms available. The working tree collision
+rule: web/remote sessions work on BRANCHES; the LOCAL machine session is the only
+merge + deploy point (migrations → merge → Vercel/Modal/Trigger), as proven by the
+dronedeploy-branch flow. Tracks run in parallel:
+
+| Track | Owner | Prompts | Contents |
+|---|---|---|---|
+| **A. Exterior parity** | local session (deploys) | 3 | A1=E0 day-fixes (pin tag, TWIN-002 .find→.filter+worker merge, reject unbacked job_types, park ODM) · A2=E1 exterior Trigger task + product dispatch from photogrammetry worker (job_type=photogrammetry_mesh, source_role routing, derivatives→R2, callback) · A3=E2 georef + GeoTIFF/LAS + QC report |
+| **B. Interior determinism** | local session (Modal deploy) | 2 | B1=pycolmap 4.1.1 image + wire run_alignment(colmap_pose_prior) w/ vanilla fallback · B2=A/B on the 28.97 capture ×3 reruns (gate: scale applied 3/3, Y_UP_MEASURED 3/3, PSNR≥baseline, visual) |
+| **C. iOS depth (long pole — START DAY 1)** | any session writes Swift; Brian: Codemagic + TestFlight | 1-2 | C1=per-frame depth(16-bit mm PNG native res)+confidence+per-point RGB, versioned package format · TestFlight verify on Brian's phone |
+| **D. Mobile flow + viewer** | web session(s), on branches | 3-4 | D1=M1 unified Review&Sources (kill auto-process + slop) · D2=360 ingest truth (hint propagation, .insv, ffprobe fallback) + verify real X4 file end-to-end · D3=floor-plan tab + 4-state accuracy badge · (D4=M3 polish if time) |
+| **E. Cheap experiments** | local, CPU-only | 1 | Arm B native-res texture + M0 memory profile on ASU set (decides if any GPU ladder is ever needed) |
+
+**Total: ~11-13 prompts.** Week 1: A1+A2, B1, C1 code, D1, E. Week 2: A3, B2 gate,
+D2+D3, C TestFlight verify, integration + Brian's on-device field test of everything.
+**In 2 weeks (high confidence):** drone photos → DroneDeploy-class model in-product;
+interior scale deterministic; 360 X4 verified; unified mobile flow; floor plan +
+accuracy badges in shares. **Explicitly NOT in 2 weeks:** federation (P2), depth-
+supervised interior ceiling (TestFlight cycle continues), GLB mesh export.
+**Brian's 3 unblocks, all needed DAY 1:** (1) authorize the pycolmap image change,
+(2) cut the Codemagic build when C1's Swift lands, (3) confirm his DJI Mini 5 Pro
+set is uploaded for the E1 gate.
