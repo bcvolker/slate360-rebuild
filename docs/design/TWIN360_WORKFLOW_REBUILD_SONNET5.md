@@ -195,3 +195,88 @@ model I already have" beats "add more sources" for immediate deliverable value.)
 - M2: double-import the same video → one row; mid-upload kill + retry → resume.
 - Now: **open "Quick Scan — Jul 8" in the app — model `923bd3f6`, PSNR 28.97, is the
   best twin the pipeline has produced. This is the visual-quality baseline.**
+
+---
+
+## 5. LOCKED ADDENDUM 2026-07-28 — external adversarial review, verified & adopted
+
+Two external reviews landed; every load-bearing claim below was **verified against code
+in this repo** before adoption (grep-confirmed at the cited locations).
+
+### 5.1 The strategic correction (changes this plan's priorities)
+
+**"COLMAP 4.1.1 is the single gate" was WRONG. There are TWO independent gates:**
+
+1. **EXTERIOR (DroneDeploy parity) is unblocked TODAY — it is a wiring problem.**
+   The product worker solves SfM with `ns-process-data --no-gpu --num-downscales 2`
+   (CPU SIFT, capped pyramid, no GPS use — verified worker.py:2605-2611) while the
+   research worker (`workers/modal/photogrammetry/worker.py:88-123`) already runs the
+   DroneDeploy-class config **proven on 917 DJI photos**: GPU SIFT @ max_image_size
+   3200 → `spatial_matcher` (GPS-guided) + `sequential_matcher --overlap 20` with
+   `guided_matching 1` → `mapper --Mapper.ba_use_gpu 1`, plus `align()` GPS/ENU
+   georeferencing with residuals, native-res `texture_workspace()`, true-ortho
+   `ortho_hires`. **None of it is dispatchable from the product.** "Overlapping drone
+   photos = unusable model" is caused by the nerfed product config, not by COLMAP.
+2. **INTERIOR (run-to-run determinism) is gated on pose priors** (pose_prior_mapper →
+   pycolmap 4.1.1 image layer). Scale recovery is post-hoc and non-deterministic
+   (same capture: 28.97 w/ scale vs 26.77 `residual_too_high`).
+
+Sequence them **in parallel**, not serially.
+
+### 5.2 New slice E-track (EXTERIOR productization) — inserted ahead of P2
+
+- **E0 (day, do first):**
+  (a) **Pin the COLMAP image tag** — `photogrammetry/worker.py:24` uses
+  `colmap/colmap:latest`; a silent upstream bump invalidates every A/B run
+  (the worker's own `_log_colmap_version` warns about this). Pin before ANY GPU spend.
+  (b) **Do NOT rehabilitate ODM.** An uncommitted +27-line diff on `odm_runner.py`
+  is re-investing in it; ODM is AGPL-3.0 (fatal for SaaS per
+  UNIFIED_SITE_MODEL_ARCHITECTURE §6b) AND technically failed on ASU (degenerate
+  36KB mesh, 37 CPU-hours). Park the diff; benchmark-only forever.
+  (c) **TWIN-002 one-liner:** `src/trigger/twin-gaussian-splat.ts:80-81` uses
+  `.find()` for `lidar_poses`/`ply_lidar` — first-match-only, silent data loss the
+  moment multi-clip LiDAR uploads as separate rows. `.filter()` + worker-side merge
+  (worker must accept arrays; not literally one line — small slice).
+- **E1 (week): `ALIGN_BACKEND=colmap_drone`** — port the research `sparse()` config
+  into the product worker as a selectable backend; auto-route when `asset_kind` is
+  `drone_*` or EXIF GPS detected (never leave drone jobs on the nerfed default);
+  pass `alignBackend` through the Trigger payload; record in `quality_metrics`.
+  **Gate:** a real DJI set through the PRODUCT flow registers ≥95% of images +
+  R7.5 visual comparison vs DroneDeploy on identical data.
+- **E2 (week): GPS georef + export writers** — wire `gps_priors.py` (done, 19/19
+  tests, unwired) into the drone solve; GeoTIFF via GDAL (explicit EPSG), LAS/LAZ
+  via PDAL (license-clean per §6b); textured mesh + true-ortho into R2 derivatives
+  + structured QC report (GSD, reprojection error, registration %, georef residual).
+- **Cheap experiments BEFORE any GPU ladder:** Arm B native-res texturing (CPU-only,
+  code-complete `texture_workspace()`) and M0 memory profile. Only if B leaves a
+  visual gap does the 2400/3200 resolution ladder get GPU money.
+
+### 5.3 Interior additions (adopted)
+
+- **Start the per-frame depth TestFlight cycle NOW, in parallel** — the long pole.
+  iOS capture persists only a fused 2cm-voxel grey PLY (verified voxelSize=0.02);
+  per-frame depth (16-bit PNG mm @ native 256×192) + confidence + per-point RGB
+  (Polycam/StrayScanner de-facto format) is what raises the ceiling on depth
+  supervision, the biggest floater-killer. Native change → Codemagic → TestFlight.
+- Pose-prior integration (pycolmap 4.1.1 layer + `colmap_pose_prior` backend with
+  vanilla fallback) remains the interior fix; gate = scale applied on 100% of runs,
+  Y_UP_MEASURED 100%, PSNR ≥ baseline on the 28.97 capture, visual gate.
+
+### 5.4 Shared-spine additions (adopted from both reviews)
+
+- **U1 site-frame schema NOW** (small additive migration: project site origin +
+  blocks registry w/ Sim3 + residual) — a column today vs a migration after 100
+  prod models. Federation itself stays Phase 5; **never fuse before each track is
+  independently reliable** ("more data is not monotonically better").
+- **Share viewer:** floor-plan tab (PNG generated, zero UI consumers today) + the
+  four-state accuracy vocabulary on every capture: VERIFIED / ESTIMATED /
+  LOW CONFIDENCE / UNREGISTERED — measurements must carry honest confidence.
+- **Definition of done for one share link:** visual twin + measurement geometry +
+  2D plan + downloadable derivatives + per-capture accuracy status.
+
+### 5.5 Revised order of execution
+
+E0 (day) → **E1 colmap_drone** (week) ∥ **per-frame-depth native change** (starts
+same day, TestFlight-gated) → Arm B + M0 (days, CPU) → M1-M3 mobile flow (UX, as
+planned) → interior pose priors (needs image upgrade) → E2 exports/QC → D1-D4
+studio → U1 schema (any time, small) → P1 360-video → P2 federation last.
