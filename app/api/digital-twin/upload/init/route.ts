@@ -10,6 +10,7 @@ import { createUnifiedFileForTwinAsset } from "@/lib/twin/unified-files-bridge";
 import {
   buildTwinStorageKey,
   inferTwinAssetKind,
+  isExternalTwinLidarScanFilename,
   resolveOrCreateCapture,
   resolveTwinSpace,
   TWIN_MULTIPART_PART_BYTES,
@@ -55,6 +56,15 @@ export const POST = (req: NextRequest) =>
     for (const file of body.files) {
       if (!file.filename || !file.contentType || !file.sizeBytes) {
         return badRequest("Each file requires filename, contentType, and sizeBytes");
+      }
+      const isExternalLidarScan = isExternalTwinLidarScanFilename(file.filename);
+      if (isExternalLidarScan && file.assetKind !== "lidar_scan") {
+        return badRequest(
+          `${file.filename} requires the dedicated LiDAR scan upload role`,
+        );
+      }
+      if (file.assetKind === "lidar_scan" && !isExternalLidarScan) {
+        return badRequest("LiDAR scan uploads must be LAS, LAZ, or E57 files");
       }
       if (file.sizeBytes <= TWIN_MULTIPART_PART_BYTES - 1) {
         return badRequest(`File ${file.filename} is too small for multipart — use /upload/single`);

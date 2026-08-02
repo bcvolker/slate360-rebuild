@@ -17,7 +17,7 @@ export type TwinGpsFix = {
   accuracy?: number;
 };
 
-export type TwinJobType = "gaussian_splat" | "photogrammetry_mesh";
+export type TwinJobType = "gaussian_splat" | "photogrammetry_mesh" | "lidar_scan";
 
 export type TwinUploadTarget = {
   spaceId: string;
@@ -214,7 +214,7 @@ export function useMultipartTwinUpload() {
 
   const enqueueJob = useCallback(
     async (
-      outputFormat: "spz" | "ply" | "glb" = "spz",
+      outputFormat: "spz" | "ply" | "glb" | "lidar_octree" = "spz",
       quality: TwinProcessingQuality = "standard",
       captureIdOverride?: string,
       jobType: TwinJobType = "gaussian_splat",

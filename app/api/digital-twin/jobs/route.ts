@@ -42,15 +42,15 @@ const triggerRequestOptions = { clientConfig: { previewBranch: "" } };
 
 type JobBody = {
   capture_id: string;
-  output_format?: "spz" | "ply" | "glb";
-  job_type?: "gaussian_splat" | "photogrammetry_mesh";
+  output_format?: "spz" | "ply" | "glb" | "lidar_octree";
+  job_type?: "gaussian_splat" | "photogrammetry_mesh" | "lidar_scan";
   lidar_prior_asset_id?: string | null;
   quality?: string;
   align_backend?: "colmap_vanilla" | "colmap_pose_prior";
 };
 
-const OUTPUT_FORMATS = new Set(["spz", "ply", "glb"]);
-const JOB_TYPES = new Set(["gaussian_splat", "photogrammetry_mesh"]);
+const OUTPUT_FORMATS = new Set(["spz", "ply", "glb", "lidar_octree"]);
+const JOB_TYPES = new Set(["gaussian_splat", "photogrammetry_mesh", "lidar_scan"]);
 
 export const POST = (req: NextRequest) =>
   withAuth(req, async ({ user, admin, orgId }) => {
@@ -70,6 +70,9 @@ export const POST = (req: NextRequest) =>
     }
     if (jobType === "photogrammetry_mesh" && outputFormat !== "glb") {
       return badRequest("Exterior photogrammetry jobs currently support only glb output");
+    }
+    if (jobType === "lidar_scan" && outputFormat !== "lidar_octree") {
+      return badRequest("LiDAR scan jobs currently support only lidar_octree output");
     }
     if (!QUALITY_TIERS.has(quality)) return badRequest("Invalid quality");
 
@@ -121,7 +124,11 @@ export const POST = (req: NextRequest) =>
       await assertTwinHighQualityEntitlement(admin, orgId, user.email, quality);
 
       try {
-        await assertTwinJobCredits(admin, orgId, body.capture_id, outputFormat, quality);
+        // Credit calculation is intentionally format-agnostic today; use the
+        // existing accepted format type until the protected pricing module gets
+        // an approved LiDAR-specific billing slice.
+        const creditOutputFormat = outputFormat === "lidar_octree" ? "ply" : outputFormat;
+        await assertTwinJobCredits(admin, orgId, body.capture_id, creditOutputFormat, quality);
       } catch (creditErr) {
         if (creditErr instanceof InsufficientTwinCreditsError) {
           return badRequest(creditErr.message);
@@ -129,7 +136,14 @@ export const POST = (req: NextRequest) =>
         throw creditErr;
       }
 
-      const inputAssetIds = assets.map((row) => row.id);
+      const inputAssets =
+        jobType === "lidar_scan"
+          ? assets.filter((row) => row.asset_kind === "lidar_scan")
+          : assets;
+      if (jobType === "lidar_scan" && !inputAssets.length) {
+        return badRequest("No ready LiDAR scan assets on capture");
+      }
+      const inputAssetIds = inputAssets.map((row) => row.id);
 
       const { data: job, error: jobError } = await admin
         .from("digital_twin_processing_jobs")
@@ -160,6 +174,8 @@ export const POST = (req: NextRequest) =>
         const taskId =
           job.job_type === "photogrammetry_mesh"
             ? "twin.photogrammetry_mesh"
+            : job.job_type === "lidar_scan"
+              ? "twin.lidar_scan"
             : "twin.gaussian_splat";
         const handle = await tasks.trigger(
           taskId,

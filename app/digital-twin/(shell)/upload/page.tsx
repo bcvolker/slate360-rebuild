@@ -1,6 +1,7 @@
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { loadDigitalTwinHubData } from "@/lib/digital-twin/load-hub-data";
 import { TwinUploadPanel } from "@/components/digital-twin/TwinUploadPanel";
+import { LidarScanUploadPanel } from "@/components/digital-twin/LidarScanUploadPanel";
 
 type PageProps = {
   searchParams: Promise<{ projectId?: string; mode?: string; capture?: string }>;
@@ -13,6 +14,18 @@ export default async function DigitalTwinUploadPage({ searchParams }: PageProps)
   const initialProjectId = params.projectId?.trim() || null;
   const initialCaptureId = params.capture?.trim() || null;
   const lockProject = params.mode === "project" && Boolean(initialProjectId);
+
+  if (params.mode === "lidar") {
+    return (
+      <LidarScanUploadPanel
+        spaces={twins}
+        projects={projects}
+        initialProjectId={initialProjectId}
+        initialCaptureId={initialCaptureId}
+        lockProject={lockProject}
+      />
+    );
+  }
 
   return (
     <TwinUploadPanel
