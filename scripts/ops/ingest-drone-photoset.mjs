@@ -296,7 +296,10 @@ async function main() {
         {
           fileName: path.basename(mrkPath),
           storageKey: `${prefix}/${path.basename(mrkPath)}`,
-          assetKind: "geospatial_mrk",
+          // The current production CHECK constraint has no MRK-specific kind.
+          // Keep the evidence row as `other`; the product Trigger identifies
+          // it by its .MRK suffix and never passes it to COLMAP as a photo.
+          assetKind: "other",
           contentType: "text/plain",
           fileSizeBytes: fs.statSync(mrkPath).size,
         },

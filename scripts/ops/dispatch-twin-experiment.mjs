@@ -7,9 +7,10 @@
  * (lib/twin/job-callback.ts) handles the terminal transition normally.
  *
  * Usage:
- *   node scripts/ops/dispatch-twin-experiment.mjs --capture-id <uuid> --arm <bypass|colmap> \
+ *   node scripts/ops/dispatch-twin-experiment.mjs --capture-id <uuid> [--arm <bypass|colmap>] \
+ *     [--align-backend <colmap_vanilla|colmap_pose_prior>] \
  *     [--tolerance-sec <float>] [--quality draft|standard] [--speed fast|standard] \
- *     [--train-profile baseline|quality] \
+ *     [--train-profile baseline|quality] [--poll] \
  *     [--no-ply] [--debug] [--roll-deg <float>] [--publish]
  *
  * --no-ply omits lidarPlyKey from the dispatch payload even if a ply_lidar asset
@@ -67,7 +68,9 @@ function flag(name) {
 loadEnv(".env.local");
 
 const captureId = arg("capture-id");
-const arm = arg("arm");
+const requestedArm = arg("arm");
+const alignBackend = arg("align-backend");
+const arm = requestedArm || "bypass";
 // P0d — training-profile arm. "baseline" reproduces current production behaviour;
 // "quality" enables the nerfstudio 1.1.5 flags that were never switched on
 // (bilateral grid, antialiased raster, SO3xR3 camera optimizer, denser densification).
@@ -84,12 +87,22 @@ if (rollDegRaw && !Number.isFinite(rollCorrectionDeg)) {
   process.exit(1);
 }
 const shouldPublish = flag("publish");
+const shouldPoll = flag("poll") || shouldPublish;
 
-if (!captureId || (arm !== "bypass" && arm !== "colmap")) {
+if (!captureId || (requestedArm && arm !== "bypass" && arm !== "colmap")) {
   console.error(
-    "Usage: node scripts/ops/dispatch-twin-experiment.mjs --capture-id <uuid> --arm <bypass|colmap> " +
+    "Usage: node scripts/ops/dispatch-twin-experiment.mjs --capture-id <uuid> " +
+      "[--arm <bypass|colmap>] [--align-backend <colmap_vanilla|colmap_pose_prior>] " +
       "[--tolerance-sec <float>] [--quality draft|standard] [--speed fast|standard]",
   );
+  process.exit(1);
+}
+if (
+  alignBackend &&
+  alignBackend !== "colmap_vanilla" &&
+  alignBackend !== "colmap_pose_prior"
+) {
+  console.error(`Invalid --align-backend "${alignBackend}"`);
   process.exit(1);
 }
 if (quality !== "draft" && quality !== "standard") {
@@ -107,7 +120,7 @@ if (toleranceSecRaw && !Number.isFinite(matchToleranceSec)) {
   process.exit(1);
 }
 
-const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseUrl = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const modalEndpoint = process.env.MODAL_TWIN_ENDPOINT?.trim();
 
@@ -183,7 +196,7 @@ if (jobErr || !job?.id) {
   process.exit(1);
 }
 
-const logLine = `${new Date().toISOString()} jobId=${job.id} arm=${arm} capture=${captureId} quality=${quality} speed=${speed}${
+const logLine = `${new Date().toISOString()} jobId=${job.id} arm=${arm} alignBackend=${alignBackend || "default"} capture=${captureId} quality=${quality} speed=${speed}${
   matchToleranceSec !== undefined ? ` toleranceSec=${matchToleranceSec}` : ""
 }${noPly ? " noPly" : ""}${debugArtifacts ? " debug" : ""}${
   rollCorrectionDeg !== undefined ? ` rollDeg=${rollCorrectionDeg}` : ""
@@ -204,7 +217,8 @@ const dispatchPayload = {
   newAssetIds: mediaAssets.map((row) => row.id),
   lidarPosesKey: posesAsset?.storage_key ?? null,
   lidarPlyKey: noPly ? null : (plyAsset?.storage_key ?? null),
-  forceColmap: arm === "colmap",
+  forceColmap: arm === "colmap" || alignBackend === "colmap_pose_prior",
+  ...(alignBackend ? { alignBackend } : {}),
   ...(trainProfile ? { trainProfile } : {}),
   debugArtifacts,
   ...(matchToleranceSec !== undefined ? { matchToleranceSec } : {}),
@@ -214,7 +228,12 @@ const dispatchPayload = {
 console.log(`[dispatch-experiment] posting to ${modalEndpoint}`);
 const response = await fetch(modalEndpoint, {
   method: "POST",
-  headers: { "Content-Type": "application/json" },
+  headers: {
+    "Content-Type": "application/json",
+    ...(process.env.GPU_WORKER_SECRET_KEY
+      ? { "x-dispatch-token": process.env.GPU_WORKER_SECRET_KEY.trim() }
+      : {}),
+  },
   body: JSON.stringify(dispatchPayload),
 });
 
@@ -238,6 +257,7 @@ console.log(
     {
       jobId: job.id,
       arm,
+      alignBackend: alignBackend || null,
       quality,
       speed,
       noPly,
@@ -250,13 +270,13 @@ console.log(
   ),
 );
 
-if (!shouldPublish) {
+if (!shouldPoll) {
   process.exit(0);
 }
 
 // AF12: poll to terminal, then apply the permanent publish protocol on success.
 const POLL_MS = 20_000;
-const MAX_WAIT_MS = 60 * 60_000;
+const MAX_WAIT_MS = 3 * 60 * 60_000;
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -280,13 +300,50 @@ while (Date.now() - started < MAX_WAIT_MS) {
 }
 
 if (!finalRow) {
-  console.error("[publish] TIMED OUT waiting for terminal status — not publishing");
+  console.error("[experiment] TIMED OUT waiting for terminal status");
   process.exit(1);
 }
 
 if (finalRow.status === "failed") {
-  console.error(`[publish] job FAILED — not touching the published model: ${finalRow.error_text}`);
+  console.error(`[experiment] job FAILED: ${finalRow.error_text}`);
   process.exit(1);
+}
+
+if (!shouldPublish) {
+  const { data: resultModel } = await admin
+    .from("digital_twin_models")
+    .select("id, storage_key, quality_metrics, georef")
+    .eq("id", finalRow.output_model_id)
+    .maybeSingle();
+  const record = {
+    jobId: job.id,
+    captureId,
+    spaceId: capture.space_id,
+    arm,
+    alignBackend: alignBackend || "default",
+    status: finalRow.status,
+    modelId: resultModel?.id ?? null,
+    storageKey: resultModel?.storage_key ?? null,
+    qualityMetrics: resultModel?.quality_metrics ?? null,
+    georef: resultModel?.georef ?? null,
+    visualGate: "NOT_PERFORMED — Brian must inspect the share output",
+  };
+  const reportPath = "docs/ops/PHASE1_ACCEPTANCE_REPORT.md";
+  fs.mkdirSync("docs/ops", { recursive: true });
+  if (!fs.existsSync(reportPath)) {
+    fs.writeFileSync(
+      reportPath,
+      "# Phase 1 Twin 360 acceptance report\n\nMetrics do not constitute the R7.5 visual gate; Brian must inspect each viewable output.\n",
+      "utf8",
+    );
+  }
+  fs.appendFileSync(
+    reportPath,
+    `\n## Interior acceptance run ${new Date().toISOString()}\n\n\`\`\`json\n${JSON.stringify(record, null, 2)}\n\`\`\`\n`,
+    "utf8",
+  );
+  console.log(JSON.stringify(record, null, 2));
+  process.exit(0);
 }
 
 const newModelId = finalRow.output_model_id;
