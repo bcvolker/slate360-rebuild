@@ -79,6 +79,7 @@ export default async function SharedTwinPage({ params, searchParams }: Props) {
     .from("digital_twin_models")
     .select("id, title, model_format, storage_key, status, is_primary, quality_metrics, georef")
     .eq("space_id", space.id)
+    .eq("org_id", claimed.org_id)
     .eq("status", "ready")
     .is("deleted_at", null);
 
@@ -103,10 +104,27 @@ export default async function SharedTwinPage({ params, searchParams }: Props) {
   }
 
   const viewerKind = resolveTwinViewerKind(model.model_format, model.storage_key);
+  const { data: lidarSibling } =
+    viewerKind === "lidar"
+      ? { data: null }
+      : await admin
+          .from("digital_twin_models")
+          .select("id")
+          .eq("space_id", space.id)
+          .eq("org_id", claimed.org_id)
+          .eq("model_format", "lidar_octree")
+          .eq("status", "ready")
+          .is("deleted_at", null)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+  const lidarModelId = viewerKind === "lidar" ? model.id : lidarSibling?.id ?? null;
 
   const [modelUrl, orgResult] = await Promise.all([
     viewerKind === "splat"
       ? Promise.resolve(`/api/share/twin/${token}/splat`)
+      : viewerKind === "lidar"
+        ? Promise.resolve(`/api/share/twin/${token}/lidar/manifest.json`)
       : resolveDigitalTwinModelUrl(model.storage_key),
     admin.from("organizations").select("name").eq("id", claimed.org_id).maybeSingle(),
   ]);
@@ -122,6 +140,7 @@ export default async function SharedTwinPage({ params, searchParams }: Props) {
       modelUrl={modelUrl}
       modelTitle={model.title}
       modelId={model.id}
+      lidarModelId={lidarModelId}
       viewerKind={viewerKind}
       shareToken={token}
       qualityMetrics={

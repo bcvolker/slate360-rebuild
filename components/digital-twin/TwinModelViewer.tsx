@@ -23,6 +23,13 @@ const TourPanoViewer = dynamic(
   () => import("@/components/tours/TourPanoViewer").then((m) => m.TourPanoViewer),
   { ssr: false },
 );
+const LidarPointCloudViewer = dynamic(
+  () =>
+    import("@/components/digital-twin/lidar/LidarPointCloudViewer").then(
+      (m) => m.LidarPointCloudViewer,
+    ),
+  { ssr: false },
+);
 
 export function TwinModelViewer({
   viewerKind,
@@ -54,6 +61,14 @@ export function TwinModelViewer({
     return (
       <div className="absolute inset-0 overflow-hidden">
         <TourPanoViewer src={modelUrl} />
+      </div>
+    );
+  }
+
+  if (viewerKind === "lidar") {
+    return (
+      <div className="absolute inset-0 overflow-hidden">
+        <LidarPointCloudViewer baseUrl={modelUrl.replace(/\/manifest\.json$/, "")} />
       </div>
     );
   }
