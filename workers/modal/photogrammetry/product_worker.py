@@ -634,6 +634,8 @@ def _run_exterior(payload: dict[str, Any], root: Path) -> dict[str, Any]:
         "densePointCount": int(len(_ply_vertices(fused)[0])),
         "glb": glb_metrics,
         "ortho": ortho_metrics,
+        "cameras": sparse_metrics.get("cameras"),
+        "camerasError": sparse_metrics.get("camerasError"),
     }
     _set_stage(job_id, "export", 90)
     qc_path = root / "qc.json"
