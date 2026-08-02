@@ -28,13 +28,12 @@ export function TwinGlbPhotoExplorer({
   onSelect: (index: number) => void;
 }) {
   return (
-    <div className="absolute inset-0">
+    <div className="absolute inset-0 bg-[var(--graphite-canvas)]">
       <Canvas
         className="absolute inset-0 touch-none"
         camera={{ position: [8, 6, 8], fov: 50, near: 0.05, far: 5000 }}
         gl={{ antialias: true, alpha: true }}
       >
-        <color attach="background" args={["#0B0F15"]} />
         <ambientLight intensity={0.85} />
         <directionalLight position={[6, 10, 4]} intensity={0.9} />
         <Suspense fallback={null}>

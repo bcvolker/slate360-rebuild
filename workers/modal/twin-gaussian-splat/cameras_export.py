@@ -112,7 +112,7 @@ def build_cameras_from_transforms(
             continue
         basename = Path(str(file_path)).name
         original = rename.get(basename, basename)
-        source_index = _infer_source_index(original, basename)
+        source_index = _infer_source_index(original, basename, source_keys)
         asset_id = index_map.get(source_index) if source_index is not None else None
         if asset_id is None and len(new_asset_ids) == 1:
             asset_id = str(new_asset_ids[0])
@@ -197,17 +197,29 @@ def write_cameras_json(path: Path, payload: dict[str, Any]) -> None:
     path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
 
 
-def _infer_source_index(original: str, basename: str) -> int | None:
+def _infer_source_index(
+    original: str,
+    basename: str,
+    source_keys: list[str],
+) -> int | None:
     for name in (original, basename):
         match = SOURCE_INDEX_RE.match(name)
         if match:
             return int(match.group(1))
-        # Video frame stem often encodes source index as prefix before underscore.
         stem = Path(name).stem
         if stem.startswith("source_"):
             parts = stem.split("_")
             if len(parts) >= 2 and parts[1].isdigit():
                 return int(parts[1])
+        # materialize_images prefixes every prepared frame with the original
+        # source stem and appends the source index, e.g. `IMG_0001_0000.jpg`.
+        # This preserves the asset join for stills, video frames, and panorama
+        # projections without putting database IDs into worker-local filenames.
+        for index, key in enumerate(source_keys):
+            source_stem = re.sub(r"[^a-zA-Z0-9._-]+", "_", Path(key).stem)[:80]
+            prefix = f"{source_stem}_{index:04d}"
+            if stem == prefix or stem.startswith(f"{prefix}_"):
+                return index
     match = FRAME_RE.match(basename)
     if match:
         # frame_NNNNN is 1-indexed image order, not source index — leave unmapped

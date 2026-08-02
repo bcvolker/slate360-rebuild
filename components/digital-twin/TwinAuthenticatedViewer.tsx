@@ -17,6 +17,10 @@ import { TwinCollaborationPanel } from "./TwinCollaborationPanel";
 import type { TwinViewerCameraMode } from "./TwinViewerControlsOverlay";
 import type { SplatManifest } from "@/lib/digital-twin/twin-manifest";
 import { WALK_DISABLED_NO_FLOOR_REASON } from "@/components/digital-twin/splat-viewer-constants";
+import { usePhotoExplorer } from "@/components/digital-twin/photo-explorer/usePhotoExplorer";
+import { PhotoExplorerMarkers } from "@/components/digital-twin/photo-explorer/PhotoExplorerMarkers";
+import { PhotoExplorerPanel } from "@/components/digital-twin/photo-explorer/PhotoExplorerPanel";
+import { PhotoExplorerToggle } from "@/components/digital-twin/photo-explorer/PhotoExplorerToggle";
 
 const TwinShareSplatViewer = dynamic(
   () =>
@@ -26,6 +30,13 @@ const TwinShareSplatViewer = dynamic(
 
 const TwinModelViewer = dynamic(
   () => import("@/components/digital-twin/TwinModelViewer").then((m) => m.TwinModelViewer),
+  { ssr: false },
+);
+const TwinGlbPhotoExplorer = dynamic(
+  () =>
+    import("@/components/digital-twin/photo-explorer/TwinGlbPhotoExplorer").then(
+      (m) => m.TwinGlbPhotoExplorer,
+    ),
   { ssr: false },
 );
 
@@ -56,6 +67,7 @@ export function TwinAuthenticatedViewer({
   const [cameraMode, setCameraMode] = useState<TwinViewerCameraMode>("orbit");
   const [manifest, setManifest] = useState<SplatManifest | null>(null);
   const walkDisabledReason = manifest?.up_axis === "UNKNOWN" ? WALK_DISABLED_NO_FLOOR_REASON : null;
+  const pe = usePhotoExplorer({ modelId, modelUrl });
   const [repositionMode, setRepositionMode] = useState(false);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [measureActive, setMeasureActive] = useState(false);
@@ -121,13 +133,23 @@ export function TwinAuthenticatedViewer({
 
   const sceneOverlay = useMemo(
     () => (
-      <TwinSceneOverlays
-        pins={overlayPins}
-        measurements={overlayMeasurements}
-        showPins={layerVisible.pins ?? true}
-        showMeasurements={layerVisible.measurements ?? true}
-        previewPoint={measureActive ? measureA : null}
-      />
+      <>
+        <TwinSceneOverlays
+          pins={overlayPins}
+          measurements={overlayMeasurements}
+          showPins={layerVisible.pins ?? true}
+          showMeasurements={layerVisible.measurements ?? true}
+          previewPoint={measureActive ? measureA : null}
+        />
+        <PhotoExplorerMarkers
+          cameras={pe.cameras}
+          visible={pe.layerOn}
+          selectedIndex={pe.selectedIndex}
+          onHover={pe.setHoveredIndex}
+          onSelect={pe.setSelectedIndex}
+          correctionQuaternion={manifest?.correction_quaternion}
+        />
+      </>
     ),
     [
       overlayPins,
@@ -136,6 +158,12 @@ export function TwinAuthenticatedViewer({
       layerVisible.measurements,
       measureActive,
       measureA,
+      manifest?.correction_quaternion,
+      pe.cameras,
+      pe.layerOn,
+      pe.selectedIndex,
+      pe.setHoveredIndex,
+      pe.setSelectedIndex,
     ],
   );
 
@@ -163,6 +191,12 @@ export function TwinAuthenticatedViewer({
         spaceId={spaceId}
         onCountsChange={setCommentCount}
         compact
+      />
+      <PhotoExplorerToggle
+        available={pe.available}
+        layerOn={pe.layerOn}
+        onToggle={pe.toggleLayer}
+        count={pe.cameras.length}
       />
       {error ? <p className="text-xs text-red-300">{error}</p> : null}
     </div>
@@ -208,11 +242,25 @@ export function TwinAuthenticatedViewer({
           repositionMode={repositionMode}
           onManifestChange={setManifest}
         />
+      ) : viewerKind === "model" && pe.available ? (
+        <TwinGlbPhotoExplorer
+          modelUrl={modelUrl}
+          cameras={pe.cameras}
+          layerOn={pe.layerOn}
+          selectedIndex={pe.selectedIndex}
+          onHover={pe.setHoveredIndex}
+          onSelect={pe.setSelectedIndex}
+        />
       ) : (
         <div className="absolute inset-0">
           <TwinModelViewer viewerKind={viewerKind} modelUrl={modelUrl} modelTitle={modelTitle} />
         </div>
       )}
+      <PhotoExplorerPanel
+        camera={pe.selected}
+        photoUrl={pe.photoUrl}
+        onClose={pe.clearSelection}
+      />
     </TwinViewerCanvasShell>
   );
 }

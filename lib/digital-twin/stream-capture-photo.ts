@@ -32,7 +32,7 @@ export async function streamCapturePhotoForModel(
 
   const { data: asset } = await admin
     .from("digital_twin_capture_assets")
-    .select("id, storage_key, content_type, asset_kind, file_name, status")
+    .select("id, unified_file_id, storage_key, content_type, asset_kind, status")
     .eq("id", params.assetId)
     .eq("org_id", params.orgId)
     .eq("capture_id", model.capture_id)
@@ -47,6 +47,17 @@ export async function streamCapturePhotoForModel(
       { error: "Source is not a still photo", assetKind: asset.asset_kind },
       { status: 415 },
     );
+  }
+
+  let fileName = "photo";
+  if (asset.unified_file_id) {
+    const { data: unifiedFile } = await admin
+      .from("unified_files")
+      .select("original_name, name")
+      .eq("id", asset.unified_file_id)
+      .eq("org_id", params.orgId)
+      .maybeSingle();
+    fileName = unifiedFile?.original_name ?? unifiedFile?.name ?? fileName;
   }
 
   try {
@@ -67,7 +78,7 @@ export async function streamCapturePhotoForModel(
       headers: {
         "content-type": asset.content_type || object.ContentType || "image/jpeg",
         "cache-control": "private, max-age=300",
-        "content-disposition": `inline; filename="${(asset.file_name || "photo").replace(/"/g, "")}"`,
+        "content-disposition": `inline; filename="${fileName.replace(/"/g, "")}"`,
       },
     });
   } catch {

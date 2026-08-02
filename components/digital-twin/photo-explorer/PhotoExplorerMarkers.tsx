@@ -1,7 +1,7 @@
 "use client";
 
 import { useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
+import { useThree, type ThreeEvent } from "@react-three/fiber";
 import * as THREE from "three";
 import {
   isRegisteredCamera,
@@ -15,7 +15,6 @@ const _matrix = new THREE.Matrix4();
 const _quat = new THREE.Quaternion();
 const _pos = new THREE.Vector3();
 const _scale = new THREE.Vector3(1, 1, 1);
-const _look = new THREE.Quaternion();
 
 /** Thin pyramid frustum pointing down local -Z (camera look). */
 function buildFrustumGeometry(): THREE.BufferGeometry {
@@ -50,12 +49,15 @@ export function PhotoExplorerMarkers({
   selectedIndex,
   onHover,
   onSelect,
+  correctionQuaternion,
 }: {
   cameras: TwinCameraPose[];
   visible: boolean;
   selectedIndex: number | null;
   onHover: (index: number | null) => void;
   onSelect: (index: number) => void;
+  /** The splat manifest rotates the model's parent group; markers need the same correction. */
+  correctionQuaternion?: number[] | null;
 }) {
   const meshRef = useRef<THREE.InstancedMesh>(null);
   const [hovered, setHovered] = useState<number | null>(null);
@@ -73,11 +75,11 @@ export function PhotoExplorerMarkers({
   const material = useMemo(
     () =>
       new THREE.MeshBasicMaterial({
-        color: "#ffffff",
         transparent: true,
         opacity: 0.85,
         depthWrite: false,
         toneMapped: false,
+        vertexColors: true,
       }),
     [],
   );
@@ -85,39 +87,49 @@ export function PhotoExplorerMarkers({
   useLayoutEffect(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
+    const correction =
+      correctionQuaternion && correctionQuaternion.length >= 4
+        ? new THREE.Quaternion(
+            correctionQuaternion[0],
+            correctionQuaternion[1],
+            correctionQuaternion[2],
+            correctionQuaternion[3],
+          ).normalize()
+        : null;
+    const accent =
+      getComputedStyle(document.documentElement).getPropertyValue("--twin360-blue").trim() || "white";
     registered.forEach(({ cam }, instanceId) => {
       const p = cam.position!;
       const r = cam.rotation!;
       _pos.set(p[0], p[1], p[2]);
-      _quat.set(r[0], r[1], r[2], r[3]);
+      _quat.set(r[0], r[1], r[2], r[3]).normalize();
       // Camera looks down -Z in its local frame; quaternion is camera-to-world.
-      _look.copy(_quat);
-      _matrix.compose(_pos, _look, _scale);
+      if (correction) {
+        _pos.applyQuaternion(correction);
+        _quat.premultiply(correction);
+      }
+      _matrix.compose(_pos, _quat, _scale);
       mesh.setMatrixAt(instanceId, _matrix);
-      const accent =
-        getComputedStyle(document.documentElement).getPropertyValue("--twin360-blue").trim() ||
-        "rgb(61, 142, 255)";
       _color.set(accent);
       mesh.setColorAt(instanceId, _color);
     });
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
     mesh.count = registered.length;
-  }, [registered]);
+  }, [correctionQuaternion, registered]);
 
-  useFrame(() => {
+  useLayoutEffect(() => {
     const mesh = meshRef.current;
     if (!mesh || !mesh.instanceColor) return;
     const accent =
-      getComputedStyle(document.documentElement).getPropertyValue("--twin360-blue").trim() ||
-      "rgb(61, 142, 255)";
+      getComputedStyle(document.documentElement).getPropertyValue("--twin360-blue").trim() || "white";
     registered.forEach(({ index: sourceIndex }, instanceId) => {
       const isHot = hovered === sourceIndex || selectedIndex === sourceIndex;
-      _color.set(isHot ? "rgb(255, 255, 255)" : accent);
+      _color.set(isHot ? "white" : accent);
       mesh.setColorAt(instanceId, _color);
     });
     mesh.instanceColor.needsUpdate = true;
-  });
+  }, [hovered, registered, selectedIndex]);
 
   if (!visible || registered.length === 0) return null;
 

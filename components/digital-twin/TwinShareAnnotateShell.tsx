@@ -198,7 +198,7 @@ export function TwinShareAnnotateShell({
   const markers = (
     <PhotoExplorerMarkers
       cameras={pe.cameras}
-      visible={pe.layerOn}
+      visible={pe.layerOn} correctionQuaternion={manifest?.correction_quaternion}
       selectedIndex={pe.selectedIndex}
       onHover={pe.setHoveredIndex}
       onSelect={pe.setSelectedIndex}

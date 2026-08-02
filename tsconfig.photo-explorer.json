@@ -2,10 +2,12 @@
   "extends": "./tsconfig.json",
   "compilerOptions": { "incremental": false, "noEmit": true },
   "include": [
+    "types/**/*.d.ts",
     "app/api/share/twin/**/*.ts",
     "app/api/digital-twin/models/[modelId]/cameras/route.ts",
     "app/api/digital-twin/models/[modelId]/photo/[assetId]/route.ts",
     "app/share/twin/**/*.tsx",
+    "components/digital-twin/TwinAuthenticatedViewer.tsx",
     "components/digital-twin/TwinShareAnnotateShell.tsx",
     "components/digital-twin/TwinShareViewer.tsx",
     "components/digital-twin/TwinShareSplatViewer.tsx",
