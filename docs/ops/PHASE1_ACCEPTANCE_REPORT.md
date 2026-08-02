@@ -152,3 +152,71 @@ No Modal deploy, Trigger deploy, Vercel deploy, or environment-variable change
 was made during Phase 1. The five failed/cancelled acceptance function calls
 were stopped after evidence collection; no paid acceptance containers remain
 active. No worker code was edited on the Phase 1 branch.
+
+## Exterior acceptance run 2026-08-02T04:40:13.422Z
+
+```json
+{
+  "source": {
+    "camera": "DJI Mavic 3 Enterprise",
+    "photosDirectory": "C:\\ASU-Survey\\DJI_202607150603_0015",
+    "photoCount": 380,
+    "mrk": {
+      "fileName": "DJI_202607150603_015_Timestamp.MRK",
+      "rowCount": 380,
+      "parsedPositionCount": 380,
+      "latitude": {
+        "min": 33.42717761,
+        "max": 33.42816475
+      },
+      "longitude": {
+        "min": -111.93289584,
+        "max": -111.93155934
+      },
+      "ellipsoidHeightM": {
+        "min": 337.821,
+        "max": 383.209
+      },
+      "format": "DJI_MRK_TIMESTAMP_V1"
+    },
+    "sourceVerification": {
+      "expected": 381,
+      "present": 381,
+      "missing": []
+    }
+  },
+  "orgId": "c5538bfd-a67a-4930-8481-0e5e331ec7cc",
+  "projectId": "1acd1aca-12d0-4bcc-8b04-d2d8a9f618fc",
+  "spaceId": "6b733e1a-7744-4bc9-9492-a436df7d84a5",
+  "captureId": "b98d2165-56ec-42ff-8c1c-90aef7622115",
+  "quality": "standard",
+  "results": [
+    {
+      "run": 1,
+      "jobId": "83a82e9c-f7ea-41ba-af33-f57dc47aa2e8",
+      "triggerRunId": "run_06fs0mp0n5ethvllmpd1it6a01",
+      "status": "failed",
+      "workerRunId": "fc-01KZ05PKZ4Y5MVW034DFCFVJTH",
+      "error": "Stale job: processing exceeded 45 minutes",
+      "model": null,
+      "derivativeVerification": null,
+      "shareUrl": "https://www.slate360.ai/share/twin/gHSEHIWC8W9NRxS7voYCaGnvDU1l80ZP",
+      "shareHttpStatus": 200,
+      "visualGate": "NOT_PERFORMED — Brian must inspect the share output"
+    },
+    {
+      "run": 2,
+      "jobId": "a3d645a7-a827-483d-a489-0e719de6f8b7",
+      "triggerRunId": "run_06fs11n7f1ldeh0nlmajssbb01",
+      "status": "failed",
+      "workerRunId": "fc-01KZ08E4NT8KAKFA7DF2X960AQ",
+      "error": "Stale job: processing exceeded 45 minutes",
+      "model": null,
+      "derivativeVerification": null,
+      "shareUrl": "https://www.slate360.ai/share/twin/6Y-IPM0hviz3ErvFI9KOXR2cV_--xO44",
+      "shareHttpStatus": 200,
+      "visualGate": "NOT_PERFORMED — Brian must inspect the share output"
+    }
+  ]
+}
+```

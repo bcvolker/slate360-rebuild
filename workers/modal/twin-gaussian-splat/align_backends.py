@@ -98,10 +98,15 @@ def run_alignment(
 
     # 3. Matching. Sequential always; spatial only when priors give it something to work with.
     seq = pycolmap.SequentialPairingOptions()
+    # loop_detection is OFF: COLMAP 3.11 downloads its FAISS vocabulary tree from
+    # GitHub at runtime when loop detection is enabled, and the pinned container's
+    # CA bundle rejects the TLS handshake (curl 77) — the native std::invalid_argument
+    # then SIGABRTs the whole process before the Python vanilla fallback can run
+    # (Phase 1 acceptance, all 3 pose-prior runs). Re-enable only after the vocab
+    # tree is baked into the image at build time and passed by explicit path.
     for attr, value in (
         ("overlap", SEQUENTIAL_OVERLAP),
-        ("loop_detection", True),
-        ("loop_detection_num_images", LOOP_DETECTION_IMAGES),
+        ("loop_detection", False),
         ("quadratic_overlap", True),
     ):
         if hasattr(seq, attr):

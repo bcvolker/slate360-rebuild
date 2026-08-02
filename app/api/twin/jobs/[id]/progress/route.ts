@@ -60,7 +60,12 @@ export async function POST(
 
     // Never move a job backwards out of a terminal state: only heartbeat while it
     // is still processing/queued. A late progress post after completion is a no-op.
-    const update: { stage: string; progress_pct?: number } = { stage };
+    // updated_at is the liveness signal for stale-job recovery: heartbeats must
+    // bump it explicitly or long-running jobs get failed while still working.
+    const update: { stage: string; progress_pct?: number; updated_at: string } = {
+      stage,
+      updated_at: new Date().toISOString(),
+    };
     if (progressPct !== undefined) update.progress_pct = progressPct;
 
     const { error } = await admin

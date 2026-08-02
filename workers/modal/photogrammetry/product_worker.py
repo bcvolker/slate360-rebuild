@@ -19,6 +19,7 @@ import shutil
 import struct
 import subprocess
 import tempfile
+import threading
 import traceback
 from pathlib import Path
 from typing import Any
@@ -515,6 +516,53 @@ def _upload(s3, bucket: str, path: Path, key: str, content_type: str) -> None:
     )
 
 
+# Current pipeline position, reported by the heartbeat thread. Stage names are
+# mapped onto the progress route's fixed vocabulary (upload/align/train/optimize/
+# export) so no app change is needed: download→upload, sparse→align, dense→train,
+# texture/GLB→optimize, derivatives→export.
+_PROGRESS = {"stage": "upload", "pct": 6}
+
+
+def _set_stage(job_id: str, stage: str, pct: int) -> None:
+    _PROGRESS["stage"] = stage
+    _PROGRESS["pct"] = pct
+    _post_progress(job_id)
+
+
+def _post_progress(job_id: str) -> None:
+    """Best-effort signed heartbeat. The stale-job recovery keys on last activity
+    (updated_at), so a silent multi-hour COLMAP stage MUST keep posting or the DB
+    marks the job failed while the container is still working (Phase 1 exterior
+    failure mode). Never raises — a flaky heartbeat must not kill a live job."""
+    import hashlib
+    import hmac
+    import requests
+
+    if not job_id:
+        return
+    try:
+        raw = json.dumps(
+            {"stage": _PROGRESS["stage"], "progress_pct": _PROGRESS["pct"]},
+            separators=(",", ":"),
+        ).encode()
+        signature = hmac.new(
+            os.environ["GPU_WORKER_SECRET_KEY"].encode(), raw, hashlib.sha256
+        ).hexdigest()
+        resp = requests.post(
+            f"{os.environ['SITE_URL'].rstrip('/')}/api/twin/jobs/{job_id}/progress",
+            data=raw,
+            headers={
+                "Content-Type": "application/json",
+                "x-worker-signature": f"sha256={signature}",
+            },
+            timeout=15,
+        )
+        if resp.status_code >= 400:
+            print(f"[progress] rejected ({resp.status_code}): {resp.text[:300]}", flush=True)
+    except Exception as exc:  # noqa: BLE001
+        print(f"[progress] heartbeat failed (non-fatal): {type(exc).__name__}: {exc}", flush=True)
+
+
 def _callback(payload: dict[str, Any]) -> None:
     import hmac
     import hashlib
@@ -538,11 +586,16 @@ def _run_exterior(payload: dict[str, Any], root: Path) -> dict[str, Any]:
     bucket = os.environ["R2_BUCKET"]
     s3 = _s3_client()
     source_keys = [str(key) for key in payload.get("sourceKeys", [])]
+    job_id = str(payload.get("jobId") or "")
     images = root / "images"
+    _set_stage(job_id, "upload", 6)
     _download_sources(s3, bucket, source_keys, images)
     max_image_size = 2400 if payload.get("quality") == "high" else 1600
+    _set_stage(job_id, "align", 20)
     model, sparse_metrics = _run_sparse(images, root, max_image_size)
+    _set_stage(job_id, "train", 45)
     fused = _run_dense(images, model, root, max_image_size)
+    _set_stage(job_id, "optimize", 75)
     textured_mesh = _run_textured_mesh(images, model, root / "dense", root)
     glb = root / "exterior.glb"
     glb_metrics = _textured_ply_to_glb(
@@ -569,6 +622,7 @@ def _run_exterior(payload: dict[str, Any], root: Path) -> dict[str, Any]:
         "glb": glb_metrics,
         "ortho": ortho_metrics,
     }
+    _set_stage(job_id, "export", 90)
     qc_path = root / "qc.json"
     qc_path.write_text(json.dumps(qc, indent=2) + "\n", encoding="utf-8")
     prefix = f"orgs/{payload['orgId']}/digital-twin/{payload['spaceId']}/models/{payload['jobId']}"
@@ -597,6 +651,14 @@ def process_exterior_job(payload: dict[str, Any]) -> None:
     root = Path("/tmp") / f"exterior-job-{job_id or 'unknown'}"
     shutil.rmtree(root, ignore_errors=True)
     root.mkdir(parents=True, exist_ok=True)
+    stop_beat = threading.Event()
+
+    def _beat() -> None:
+        while not stop_beat.wait(60):
+            _post_progress(job_id)
+
+    heartbeat = threading.Thread(target=_beat, daemon=True)
+    heartbeat.start()
     try:
         result = _run_exterior(payload, root)
         _callback({
@@ -623,6 +685,7 @@ def process_exterior_job(payload: dict[str, Any]) -> None:
             })
         raise
     finally:
+        stop_beat.set()
         shutil.rmtree(root, ignore_errors=True)
 
 
