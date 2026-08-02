@@ -11,7 +11,7 @@
  *     [--align-backend <colmap_vanilla|colmap_pose_prior>] \
  *     [--tolerance-sec <float>] [--quality draft|standard] [--speed fast|standard] \
  *     [--train-profile baseline|quality] [--poll] \
- *     [--no-ply] [--debug] [--roll-deg <float>] [--publish]
+ *     [--asset-id <uuid>] [--no-ply] [--debug] [--roll-deg <float>] [--publish]
  *
  * --no-ply omits lidarPlyKey from the dispatch payload even if a ply_lidar asset
  *   exists, isolating the pose/conversion path from the PLY-seed path.
@@ -71,6 +71,7 @@ const captureId = arg("capture-id");
 const requestedArm = arg("arm");
 const alignBackend = arg("align-backend");
 const arm = requestedArm || "bypass";
+const reportLabel = arg("report-label", "Interior acceptance run");
 // P0d — training-profile arm. "baseline" reproduces current production behaviour;
 // "quality" enables the nerfstudio 1.1.5 flags that were never switched on
 // (bilateral grid, antialiased raster, SO3xR3 camera optimizer, denser densification).
@@ -79,6 +80,7 @@ const toleranceSecRaw = arg("tolerance-sec");
 const quality = arg("quality") || "draft";
 const speed = arg("speed") || "fast";
 const noPly = flag("no-ply");
+const onlyAssetId = arg("asset-id");
 const debugArtifacts = flag("debug");
 const rollDegRaw = arg("roll-deg");
 const rollCorrectionDeg = rollDegRaw ? Number(rollDegRaw) : undefined;
@@ -155,6 +157,13 @@ if (assetErr) {
 }
 
 const allReadyAssets = (assets ?? []).filter((row) => row.storage_key);
+const selectedAssets = onlyAssetId
+  ? allReadyAssets.filter((row) => row.id === onlyAssetId)
+  : allReadyAssets;
+if (!selectedAssets.length) {
+  console.error(onlyAssetId ? `Asset not found in capture: ${onlyAssetId}` : "No ready assets with storage keys for this capture");
+  process.exit(1);
+}
 if (!allReadyAssets.length) {
   console.error("No ready assets with storage keys for this capture");
   process.exit(1);
@@ -162,16 +171,16 @@ if (!allReadyAssets.length) {
 
 // Mirrors src/trigger/twin-gaussian-splat.ts exactly.
 const MEDIA_KINDS = new Set(["photo", "video", "panorama_360", "drone_photo", "drone_video"]);
-const mediaAssets = allReadyAssets.filter((row) => MEDIA_KINDS.has(row.asset_kind ?? ""));
-const posesAsset = allReadyAssets.find((row) => row.asset_kind === "lidar_poses");
-const plyAsset = allReadyAssets.find((row) => row.asset_kind === "ply_lidar");
+const mediaAssets = selectedAssets.filter((row) => MEDIA_KINDS.has(row.asset_kind ?? ""));
+const posesAsset = selectedAssets.find((row) => row.asset_kind === "lidar_poses");
+const plyAsset = selectedAssets.find((row) => row.asset_kind === "ply_lidar");
 
 if (!mediaAssets.length) {
   console.error("No photo or video assets ready for processing");
   process.exit(1);
 }
 
-const inputAssetIds = allReadyAssets.map((row) => row.id);
+const inputAssetIds = selectedAssets.map((row) => row.id);
 
 const { data: job, error: jobErr } = await admin
   .from("digital_twin_processing_jobs")
@@ -339,7 +348,7 @@ if (!shouldPublish) {
   }
   fs.appendFileSync(
     reportPath,
-    `\n## Interior acceptance run ${new Date().toISOString()}\n\n\`\`\`json\n${JSON.stringify(record, null, 2)}\n\`\`\`\n`,
+    `\n## ${reportLabel} ${new Date().toISOString()}\n\n\`\`\`json\n${JSON.stringify(record, null, 2)}\n\`\`\`\n`,
     "utf8",
   );
   console.log(JSON.stringify(record, null, 2));
