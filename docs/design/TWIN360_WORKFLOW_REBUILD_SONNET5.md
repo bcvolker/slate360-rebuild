@@ -547,3 +547,53 @@ session; this section records the assignment map:
 | 4 — M1 mobile Review & Sources | Ground-up one-decision submit flow; kills upload slop; source_role chips; credit estimate; no auto-process | Any AI, branch `claude/m1-review-sources` |
 | 5 — Studio crop/edit/publish | Desktop crop/recenter/upright/delete → bake → export → share round-trip | Any AI, branch, after Phase 1 |
 | 6 — Federation | Multi-source single scene | LAST; not started |
+
+### 7.5 LOCKED 2026-08-02 — Phase 1 first pass: verdict, fixes shipped, reruns in flight
+
+**Phase 1 report (docs/ops/PHASE1_ACCEPTANCE_REPORT.md, merged 7fff842d) verified
+accurate.** It did its job: found 3 real blockers on real data. All fixed and
+deployed by the local session same-day:
+
+1. **Pose-prior SIGABRT (all 3 runs)** — COLMAP 3.11 loop detection downloads a
+   FAISS vocab tree from GitHub at runtime; container CA rejects TLS → native
+   abort kills the process before the vanilla fallback can run. FIX: loop
+   detection OFF in align_backends.py (sequential+spatial matching unchanged);
+   re-enable only with a build-time-baked tree. Gaussian worker redeployed.
+2. **Exterior jobs stale-killed while alive (both runs)** — recovery RPC keyed on
+   `started_at`, so ANY job >45 min was failed mid-run; the first Mavic run was
+   legitimately deep in dense reconstruction. FIX: migration
+   `20260802100000_stale_twin_jobs_activity_aware.sql` (applied to prod) makes
+   staleness activity-based; product worker now heartbeats the progress route
+   every 60 s from a signed background thread with stage boundaries mapped onto
+   the existing stage vocabulary; progress route bumps updated_at. Product
+   worker redeployed.
+3. **PSNR 25.53 vs 28.97 is likely CONFIG DRIFT, not regression** — the 28.97
+   reference (model `923bd3f6-551e`, Jul 8) predates the `trainProfile` flag
+   (profile null); the acceptance rerun used `--train-profile baseline`. A
+   vanilla run at `--train-profile quality` is in flight to close the question.
+4. **X4 .insv acceptance is impossible with retained data** — capture `04fada9b`
+   holds app-exported MP4s (generic `video` kind, no equirect hint; predates the
+   probe). The Gaussian run succeeded (21.9 PSNR, 167/167) but proves nothing
+   about the .insv chain. BLOCKED ON BRIAN: supply an original `.insv` straight
+   from the X4 and upload through the current app flow.
+
+**Rerun matrix dispatched 2026-08-02 (all detached on Modal):** exterior
+`4388feb8` on existing capture `b98d2165` (381 assets incl. MRK — no re-upload;
+heartbeats + activity-staleness now protect it) · pose-prior A/B ×3 at
+standard/standard/baseline (`ce26b5d5`, `a19fa656`, `d93458e6`) — valid against
+the completed vanilla-baseline run (25.53) · draft-config smoke ×3 (crash-fix
+validation only) · vanilla @ quality-profile probe (`a2fc0a03`).
+
+**Phase 2 branch status:** built on `claude/e2-exterior-delivery` (5 commits,
+modular worker split, MRK/CRS/RMSE, GeoTIFF/LAS, viewer tabs; local gates pass).
+NOT merged: it refactors the exterior worker that is only now being
+output-verified. Merge order: exterior rerun completes → E1 metrics recorded →
+local session reviews + merges Phase 2 → deploys → E2 acceptance on the same
+capture. One-variable-at-a-time.
+
+**Remaining prompt budget:** Phase 3b depth-supervised training (1 prompt, after
+Brian's TestFlight build) · Phase 4 M1 mobile rebuild (1 prompt, already
+written, can start NOW) · Phase 5 studio (1–2 prompts, after Phase 1 closes) ·
+Phase 2 review/merge/deploy + Phase 3a promotion decision are local-session
+tasks, no prompts. Federation excluded from near-term budget. **Total: 3–4
+prompts to a fully working pipeline + rebuilt flow.**
