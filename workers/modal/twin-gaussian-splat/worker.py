@@ -245,7 +245,9 @@ gpu_image = (
         "print('gsplat ok:', torch.__version__, getattr(_C, 'CameraModelType', None))\"",
     )
     # Modal does not mount sibling source files automatically.
-    .add_local_python_source("align_backends", "pose_priors", "depth_evidence")
+    .add_local_python_source(
+        "align_backends", "pose_priors", "depth_evidence", "cameras_export"
+    )
 )
 
 
@@ -3148,6 +3150,49 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
         floorplan_key = None
         print(f"Floor plan generation/upload failed (non-fatal): {fp_exc}")
 
+    # Photo Explorer sidecar — non-fatal; viewer hides the layer when absent.
+    cameras_key: str | None = None
+    cameras_count = 0
+    try:
+        from cameras_export import build_cameras_from_transforms, write_cameras_json
+
+        transforms_path = processed_dir / "transforms.json"
+        if transforms_path.is_file():
+            cameras_payload = build_cameras_from_transforms(
+                transforms_path,
+                frame_index_to_original=_ns_process_data_frame_map(images_dir),
+                source_keys=job.source_keys,
+                new_asset_ids=job.new_asset_ids,
+                crop_center=crop_stats.get("cropCenter"),
+                scale_factor=float(scale_info.get("scaleFactor") or 1.0),
+                apply_viewer_flip=True,
+            )
+            cameras_path = export_dir / "cameras.json"
+            write_cameras_json(cameras_path, cameras_payload)
+            cameras_key = out_key[: -len(".spz")] + ".cameras.json"
+            s3.upload_file(
+                str(cameras_path),
+                bucket,
+                cameras_key,
+                ExtraArgs={
+                    "ContentType": "application/json",
+                    "CacheControl": "public, max-age=31536000, immutable",
+                },
+            )
+            cameras_count = int(cameras_payload.get("cameraCount") or 0)
+            print(f"[cameras] uploaded {cameras_count} poses → {cameras_key}")
+    except Exception as cameras_exc:  # noqa: BLE001
+        cameras_key = None
+        print(f"[cameras] export failed (non-fatal): {cameras_exc}")
+
+    derivative_keys: dict[str, str] = {}
+    if cameras_key:
+        derivative_keys["cameras"] = cameras_key
+    if floorplan_key:
+        derivative_keys["floorplan"] = floorplan_key
+    if manifest_key:
+        derivative_keys["manifest"] = manifest_key
+
     return {
         "outputKey": out_key,
         "manifestKey": manifest_key,
@@ -3158,6 +3203,8 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             "quality": job.quality,
             "speed": job.speed,
             "modelType": job.model_type,
+            "derivativeKeys": derivative_keys,
+            "cameraCount": cameras_count,
             "iterations": iterations,
             "sourceCount": len(job.source_keys),
             "ingest": ingest_stats,
