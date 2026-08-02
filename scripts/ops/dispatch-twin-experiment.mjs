@@ -42,6 +42,7 @@
  */
 
 import fs from "node:fs";
+import { randomBytes } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
 
 function loadEnv(file) {
@@ -324,6 +325,21 @@ if (!shouldPublish) {
     .select("id, storage_key, quality_metrics, georef")
     .eq("id", finalRow.output_model_id)
     .maybeSingle();
+  const shareToken = randomBytes(24).toString("base64url");
+  await admin.from("digital_twin_share_tokens").insert({
+    token: shareToken,
+    org_id: capture.org_id,
+    space_id: capture.space_id,
+    created_by: capture.created_by,
+    role: "view",
+    label: `Phase 1 ${reportLabel}`,
+  });
+  const shareUrl = `${process.env.NEXT_PUBLIC_BASE_URL || "https://www.slate360.ai"}/share/twin/${shareToken}`;
+  const shareResponse = await fetch(shareUrl, { redirect: "manual" });
+  await admin
+    .from("digital_twin_share_tokens")
+    .update({ is_revoked: true })
+    .eq("token", shareToken);
   const record = {
     jobId: job.id,
     captureId,
@@ -335,6 +351,9 @@ if (!shouldPublish) {
     storageKey: resultModel?.storage_key ?? null,
     qualityMetrics: resultModel?.quality_metrics ?? null,
     georef: resultModel?.georef ?? null,
+    shareTokenCreated: true,
+    shareHttpStatus: shareResponse.status,
+    shareTargetNote: "Share route resolves the space's published model; fresh A/B model was not published.",
     visualGate: "NOT_PERFORMED — Brian must inspect the share output",
   };
   const reportPath = "docs/ops/PHASE1_ACCEPTANCE_REPORT.md";
