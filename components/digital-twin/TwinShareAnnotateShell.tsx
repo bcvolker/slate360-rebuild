@@ -2,20 +2,33 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
-import { cn } from "@/lib/utils";
-import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import type { TwinViewerKind } from "@/lib/digital-twin/viewer-format";
 import type { SplatViewerHandle, TwinPickPoint } from "@/components/digital-twin/TwinShareSplatViewer";
 import { TwinViewerCanvasShell } from "@/components/digital-twin/TwinViewerCanvasShell";
 import type { SplatManifest } from "@/lib/digital-twin/twin-manifest";
 import { WALK_DISABLED_NO_FLOOR_REASON } from "@/components/digital-twin/splat-viewer-constants";
-import { measureToolDisclaimer } from "@/components/digital-twin/TwinViewerDisclaimer";
 import { TwinQualityBadge } from "@/components/digital-twin/TwinQualityBadge";
-import { TwinShareToolStrip, type TwinShareCameraMode, type TwinShareTool } from "./TwinShareToolStrip";
+import type { TwinShareCameraMode, TwinShareTool } from "./TwinShareToolStrip";
+import { TwinShareActivitySheet } from "@/components/digital-twin/TwinShareActivitySheet";
+import { usePhotoExplorer } from "@/components/digital-twin/photo-explorer/usePhotoExplorer";
+import { PhotoExplorerMarkers } from "@/components/digital-twin/photo-explorer/PhotoExplorerMarkers";
+import { PhotoExplorerPanel } from "@/components/digital-twin/photo-explorer/PhotoExplorerPanel";
+import {
+  postShareComment,
+  postShareMeasurement,
+  postSharePin,
+} from "@/components/digital-twin/twin-share-annotate-actions";
 
 const TwinShareSplatViewer = dynamic(
   () =>
     import("@/components/digital-twin/TwinShareSplatViewer").then((m) => m.TwinShareSplatViewer),
+  { ssr: false },
+);
+const TwinGlbPhotoExplorer = dynamic(
+  () =>
+    import("@/components/digital-twin/photo-explorer/TwinGlbPhotoExplorer").then(
+      (m) => m.TwinGlbPhotoExplorer,
+    ),
   { ssr: false },
 );
 const TwinModelViewer = dynamic(
@@ -30,13 +43,6 @@ type CommentRow = {
   body: string;
 };
 type PinRow = { id: string; title: string };
-
-const fieldClass =
-  "w-full rounded-xl border border-white/10 bg-[#0B0F15]/60 px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-500";
-
-function dist(a: TwinPickPoint, b: TwinPickPoint) {
-  return Math.hypot(b.x - a.x, b.y - a.y, b.z - a.z);
-}
 
 export function TwinShareAnnotateShell({
   shareToken,
@@ -74,9 +80,11 @@ export function TwinShareAnnotateShell({
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
+  const pe = usePhotoExplorer({ shareToken, modelId, modelUrl });
   const pickEnabled = canAnnotate && (tool === "pin" || tool === "measure");
   const measureReady = viewerKind === "splat" || viewerKind === "model";
   const splatReady = viewerKind === "splat";
+  const glbReady = viewerKind === "model";
 
   const refresh = useCallback(async () => {
     const [cRes, pRes] = await Promise.all([
@@ -102,7 +110,6 @@ export function TwinShareAnnotateShell({
     async (point: TwinPickPoint) => {
       if (!canAnnotate) return;
       setError(null);
-
       if (tool === "pin") {
         if (!authorName.trim() || !pinTitle.trim()) {
           setError("Enter your name and pin title first.");
@@ -111,19 +118,14 @@ export function TwinShareAnnotateShell({
         }
         setBusy(true);
         try {
-          const res = await fetch(`/api/share/twin/${shareToken}/pin`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              author_display: authorName.trim(),
-              title: pinTitle.trim(),
-              body: commentBody.trim() || null,
-              position: point,
-              model_id: modelId ?? null,
-            }),
+          await postSharePin({
+            shareToken,
+            authorName,
+            pinTitle,
+            commentBody,
+            point,
+            modelId,
           });
-          const data = (await res.json().catch(() => ({}))) as { error?: string };
-          if (!res.ok) throw new Error(data.error ?? "Could not create pin");
           setPinTitle("");
           setCommentBody("");
           showToast("Pin created");
@@ -136,29 +138,20 @@ export function TwinShareAnnotateShell({
         }
         return;
       }
-
       if (tool === "measure") {
         if (!measureA) {
           setMeasureA(point);
           return;
         }
-        const measured = dist(measureA, point);
         setBusy(true);
         try {
-          const res = await fetch(`/api/share/twin/${shareToken}/measurement`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              author_display: authorName.trim() || "Guest",
-              start_point: measureA,
-              end_point: point,
-              measured_value: measured,
-              unit: "m",
-              model_id: modelId ?? null,
-            }),
+          await postShareMeasurement({
+            shareToken,
+            authorName,
+            measureA,
+            point,
+            modelId,
           });
-          const data = (await res.json().catch(() => ({}))) as { error?: string };
-          if (!res.ok) throw new Error(data.error ?? "Could not save measurement");
           setMeasureA(null);
           showToast("Measurement saved");
         } catch (err) {
@@ -179,16 +172,7 @@ export function TwinShareAnnotateShell({
     setBusy(true);
     setError(null);
     try {
-      const res = await fetch(`/api/share/twin/${shareToken}/comment`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          author_display: authorName.trim(),
-          body: commentBody.trim(),
-        }),
-      });
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) throw new Error(data.error ?? "Could not post comment");
+      await postShareComment({ shareToken, authorName, commentBody });
       setCommentBody("");
       showToast("Comment added");
       await refresh();
@@ -211,80 +195,14 @@ export function TwinShareAnnotateShell({
     [comments],
   );
 
-  const commentCount = thread.length + pins.length;
-
-  const commentsContent = (
-    <div className="space-y-3 pb-2">
-      {canAnnotate ? (
-        <>
-          <TwinShareToolStrip
-            tool={tool}
-            cameraMode={cameraMode}
-            canAnnotate={canAnnotate}
-            measureReady={measureReady}
-            viewerKind={viewerKind}
-            busy={busy}
-            onSelectTool={selectTool}
-            onToggleCameraMode={() => setCameraMode((m) => (m === "interior" ? "orbit" : "interior"))}
-          />
-          <div className="space-y-2 rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_5%,transparent)] p-3">
-            <input
-              value={authorName}
-              onChange={(e) => setAuthorName(e.target.value)}
-              placeholder="Your name"
-              className={fieldClass}
-            />
-            {tool === "comment" ? (
-              <>
-                <textarea
-                  value={commentBody}
-                  onChange={(e) => setCommentBody(e.target.value)}
-                  placeholder="Comment or question"
-                  rows={3}
-                  className={cn(fieldClass, "resize-none")}
-                />
-                <button type="button" onClick={() => void submitComment()} className={twinAccent.button}>
-                  Post comment
-                </button>
-              </>
-            ) : null}
-            {tool === "pin" ? (
-              <input
-                value={pinTitle}
-                onChange={(e) => setPinTitle(e.target.value)}
-                placeholder="Pin title — then tap the model"
-                className={fieldClass}
-              />
-            ) : null}
-            {tool === "measure" ? (
-              <p className="text-[10px] leading-relaxed text-zinc-400">
-                {measureA ? "Tap second point on model." : "Tap two points on the pick proxy mesh."}{" "}
-                {measureToolDisclaimer(manifest?.metric_scale_applied)}
-              </p>
-            ) : null}
-          </div>
-        </>
-      ) : null}
-
-      {error ? <p className="text-xs text-red-300">{error}</p> : null}
-
-      <div className="space-y-2">
-        {thread.length === 0 && pins.length === 0 ? (
-          <p className="text-xs text-zinc-500">No comments or pins yet.</p>
-        ) : null}
-        {thread.map((c) => (
-          <div key={c.id} className="text-xs text-zinc-300">
-            <span className={cn("font-semibold", twinAccent.text)}>{c.author_display ?? "Guest"}</span>:{" "}
-            {c.body}
-          </div>
-        ))}
-        {pins.map((p) => (
-          <div key={p.id} className="text-xs text-zinc-300">
-            <span className={cn("font-semibold", twinAccent.text)}>Pin</span>: {p.title}
-          </div>
-        ))}
-      </div>
-    </div>
+  const markers = (
+    <PhotoExplorerMarkers
+      cameras={pe.cameras}
+      visible={pe.layerOn}
+      selectedIndex={pe.selectedIndex}
+      onHover={pe.setHoveredIndex}
+      onSelect={pe.setSelectedIndex}
+    />
   );
 
   return (
@@ -292,9 +210,36 @@ export function TwinShareAnnotateShell({
       viewerRef={viewerRef}
       commentsOpen={commentsOpen}
       onToggleComments={() => setCommentsOpen((open) => !open)}
-      commentCount={commentCount}
+      commentCount={thread.length + pins.length}
       commentsTitle="Activity"
-      commentsContent={commentsContent}
+      commentsContent={
+        <TwinShareActivitySheet
+          canAnnotate={canAnnotate}
+          tool={tool}
+          cameraMode={cameraMode}
+          measureReady={measureReady}
+          viewerKind={viewerKind}
+          busy={busy}
+          onSelectTool={selectTool}
+          onToggleCameraMode={() => setCameraMode((m) => (m === "interior" ? "orbit" : "interior"))}
+          authorName={authorName}
+          setAuthorName={setAuthorName}
+          commentBody={commentBody}
+          setCommentBody={setCommentBody}
+          pinTitle={pinTitle}
+          setPinTitle={setPinTitle}
+          onSubmitComment={() => void submitComment()}
+          measureA={measureA}
+          manifest={manifest}
+          error={error}
+          thread={thread}
+          pins={pins}
+          photosAvailable={pe.available}
+          photosLayerOn={pe.layerOn}
+          photoCount={pe.cameras.length}
+          onTogglePhotos={pe.toggleLayer}
+        />
+      }
       toast={toast}
       cameraMode={cameraMode}
       onToggleCameraMode={() => {
@@ -328,15 +273,27 @@ export function TwinShareAnnotateShell({
           pickEnabled={pickEnabled}
           onPick={(pt) => void handlePick(pt)}
           cameraMode={cameraMode}
-          onCameraModeChange={setCameraMode}
           repositionMode={repositionMode}
           onManifestChange={setManifest}
+          overlay={markers}
+        />
+      ) : glbReady && pe.available ? (
+        <TwinGlbPhotoExplorer
+          modelUrl={modelUrl}
+          cameras={pe.cameras}
+          layerOn={pe.layerOn}
+          selectedIndex={pe.selectedIndex}
+          onHover={pe.setHoveredIndex}
+          onSelect={pe.setSelectedIndex}
         />
       ) : (
-        <div className="absolute inset-0">
-          <TwinModelViewer viewerKind={viewerKind} modelUrl={modelUrl} modelTitle={modelTitle} />
-        </div>
+        <TwinModelViewer viewerKind={viewerKind} modelUrl={modelUrl} modelTitle={modelTitle} />
       )}
+      <PhotoExplorerPanel
+        camera={pe.selected}
+        photoUrl={pe.photoUrl}
+        onClose={pe.clearSelection}
+      />
     </TwinViewerCanvasShell>
   );
 }

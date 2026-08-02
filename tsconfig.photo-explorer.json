@@ -1,0 +1,28 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "incremental": false, "noEmit": true },
+  "include": [
+    "app/api/share/twin/**/*.ts",
+    "app/api/digital-twin/models/[modelId]/cameras/route.ts",
+    "app/api/digital-twin/models/[modelId]/photo/[assetId]/route.ts",
+    "app/share/twin/**/*.tsx",
+    "components/digital-twin/TwinShareAnnotateShell.tsx",
+    "components/digital-twin/TwinShareViewer.tsx",
+    "components/digital-twin/TwinShareSplatViewer.tsx",
+    "components/digital-twin/TwinViewerCanvasShell.tsx",
+    "components/digital-twin/splat-viewer-core.tsx",
+    "components/digital-twin/splat-viewer-scene.tsx",
+    "components/digital-twin/photo-explorer/**/*.tsx",
+    "lib/digital-twin/twin-cameras.ts",
+    "lib/digital-twin/resolve-twin-cameras-key.ts",
+    "lib/digital-twin/share-model.ts",
+    "lib/digital-twin/stream-capture-photo.ts",
+    "lib/digital-twin/share-splat.ts",
+    "lib/digital-twin/share-token.ts",
+    "lib/digital-twin/share-rate-limit.ts",
+    "lib/s3.ts",
+    "lib/supabase/admin.ts",
+    "lib/server/api-auth.ts",
+    "lib/server/api-response.ts"
+  ]
+}
