@@ -12,8 +12,9 @@
 
 const GROQ_BASE = "https://api.groq.com/openai/v1";
 const OPENAI_BASE = "https://api.openai.com/v1";
+const MOONSHOT_BASE = "https://api.moonshot.ai/v1";
 
-export type ChatProvider = "groq" | "openai";
+export type ChatProvider = "groq" | "openai" | "kimi";
 
 export interface ChatProviderConfig {
   provider: ChatProvider;
@@ -23,6 +24,22 @@ export interface ChatProviderConfig {
 }
 
 export function resolveChatProvider(): ChatProviderConfig | null {
+  // Explicit opt-in override. Set CHAT_PROVIDER=kimi (a.k.a. moonshot) to route
+  // all chat calls to Kimi K3. Kimi is a slow reasoning model (temperature pinned
+  // to 1, large token budget), so it is NOT part of the automatic fallback chain —
+  // it must be chosen explicitly to avoid degrading the fast note-formatting flows.
+  const forced = (process.env.CHAT_PROVIDER ?? "").trim().toLowerCase();
+  if (forced === "kimi" || forced === "moonshot") {
+    const key = process.env.MOONSHOT_API_KEY;
+    if (!key) return null;
+    return {
+      provider: "kimi",
+      baseUrl: MOONSHOT_BASE,
+      apiKey: key,
+      chatModel: process.env.MOONSHOT_CHAT_MODEL ?? "kimi-k3",
+    };
+  }
+
   const groqKey = process.env.GROQ_API_KEY;
   if (groqKey) {
     return {
@@ -52,20 +69,32 @@ export interface ChatMessage {
 export async function chatComplete(
   cfg: ChatProviderConfig,
   messages: ChatMessage[],
-  opts: { temperature?: number; maxTokens?: number } = {},
+  opts: { temperature?: number; maxTokens?: number; reasoningEffort?: "low" | "medium" | "high" | "max" } = {},
 ): Promise<string> {
+  // Kimi K3 is a reasoning model: temperature is pinned to 1 (any other value is
+  // rejected with HTTP 400) and it needs a large output budget, otherwise internal
+  // reasoning consumes the whole max_tokens cap and returns empty content.
+  const isKimi = cfg.provider === "kimi";
+  const temperature = isKimi ? 1 : opts.temperature ?? 0.2;
+  const maxTokens = isKimi ? Math.max(opts.maxTokens ?? 4096, 4096) : opts.maxTokens ?? 600;
+
+  const body: Record<string, unknown> = {
+    model: cfg.chatModel,
+    messages,
+    temperature,
+    max_tokens: maxTokens,
+  };
+  if (isKimi && opts.reasoningEffort) {
+    body.reasoning_effort = opts.reasoningEffort;
+  }
+
   const res = await fetch(`${cfg.baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${cfg.apiKey}`,
     },
-    body: JSON.stringify({
-      model: cfg.chatModel,
-      messages,
-      temperature: opts.temperature ?? 0.2,
-      max_tokens: opts.maxTokens ?? 600,
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!res.ok) {

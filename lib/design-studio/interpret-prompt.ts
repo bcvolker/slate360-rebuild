@@ -1,5 +1,5 @@
 import "server-only";
-import { resolveChatProvider } from "@/lib/server/ai-provider";
+import { resolveChatProvider, type ChatProvider } from "@/lib/server/ai-provider";
 import { DesignPlanSchema, type DesignPlan } from "./action-schema";
 
 /**
@@ -59,30 +59,37 @@ function systemPrompt(ctx: PromptContext): string {
   ].join("\n\n");
 }
 
-function pickModel(): { model: string; baseUrl: string; apiKey: string } | null {
+function pickModel(): { provider: ChatProvider; model: string; baseUrl: string; apiKey: string } | null {
   const cfg = resolveChatProvider();
   if (!cfg) return null;
   // Prefer a larger model for structured output than the note-cleanup default.
   const model =
     process.env.DESIGN_STUDIO_CHAT_MODEL ??
     (cfg.provider === "groq" ? "llama-3.3-70b-versatile" : cfg.chatModel);
-  return { model, baseUrl: cfg.baseUrl, apiKey: cfg.apiKey };
+  return { provider: cfg.provider, model, baseUrl: cfg.baseUrl, apiKey: cfg.apiKey };
 }
 
 async function callJson(
-  m: { model: string; baseUrl: string; apiKey: string },
+  m: { provider: ChatProvider; model: string; baseUrl: string; apiKey: string },
   messages: { role: string; content: string }[],
 ): Promise<string> {
+  // Kimi K3: temperature must be 1 and it needs a large token budget for reasoning.
+  // It does not reliably honor json_object mode, so rely on the prompt + safeJson
+  // fence-stripping for JSON extraction instead.
+  const isKimi = m.provider === "kimi";
+  const body: Record<string, unknown> = {
+    model: m.model,
+    messages,
+    temperature: isKimi ? 1 : 0.1,
+    max_tokens: isKimi ? Math.max(1500, 4096) : 1500,
+  };
+  if (!isKimi) {
+    body.response_format = { type: "json_object" };
+  }
   const res = await fetch(`${m.baseUrl}/chat/completions`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${m.apiKey}` },
-    body: JSON.stringify({
-      model: m.model,
-      messages,
-      temperature: 0.1,
-      max_tokens: 1500,
-      response_format: { type: "json_object" },
-    }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     const text = await res.text().catch(() => "");
