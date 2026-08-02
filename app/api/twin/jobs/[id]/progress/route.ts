@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 // worker's post_progress() calls and the submit-status UI stage order.
 const VALID_STAGES = new Set(["upload", "align", "train", "optimize", "export"]);
 
-type ProgressPayload = { stage?: unknown; progress_pct?: unknown };
+type ProgressPayload = { stage?: unknown; progress_pct?: unknown; jobId?: unknown };
 
 /**
  * Worker-only progress heartbeat. The Modal reconstruction job POSTs
@@ -46,6 +46,13 @@ export async function POST(
   const stage = typeof body.stage === "string" ? body.stage : undefined;
   if (!stage || !VALID_STAGES.has(stage)) {
     return badRequest("stage must be one of: upload, align, train, optimize, export");
+  }
+
+  // Replay binding: when the signed body carries a jobId it must match the URL —
+  // otherwise a captured valid body could refresh liveness on a different job.
+  // Bodies without jobId (older deployed workers) remain accepted.
+  if (typeof body.jobId === "string" && body.jobId !== jobId) {
+    return unauthorized("Signed jobId does not match route");
   }
 
   // Clamp to 1..99 — 0 reads as "not started" and 100 is reserved for the

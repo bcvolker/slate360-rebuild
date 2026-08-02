@@ -2669,17 +2669,27 @@ def post_callback(payload: dict[str, Any]) -> None:
 # Coarse pipeline stages the submit-status UI renders as a checklist. Kept in sync
 # with the API route's VALID_STAGES and the UI's stage order.
 #   upload → align → train → optimize → export → (completion callback = 100)
+# Last stage/pct reported, reposted by the liveness heartbeat thread so silent
+# multi-minute stages (COLMAP align, export) keep bumping the job's updated_at —
+# stale recovery is activity-based and would otherwise fail a live job at 45 min.
+_LAST_PROGRESS = {"stage": "upload", "pct": 5}
+
+
 def post_progress(job_id: str, stage: str, progress_pct: int) -> None:
     """Best-effort progress heartbeat. Never fails the job — the frozen-5% bug was
     caused precisely by there being no progress signal, so a flaky heartbeat must
     degrade to the UI's time-based fallback rather than raise."""
     import requests
 
+    _LAST_PROGRESS["stage"] = stage
+    _LAST_PROGRESS["pct"] = progress_pct
     try:
         site_url = os.environ["SITE_URL"].rstrip("/")
         secret = os.environ["GPU_WORKER_SECRET_KEY"]
         url = f"{site_url}/api/twin/jobs/{job_id}/progress"
-        raw_body = dumps_json({"stage": stage, "progress_pct": progress_pct})
+        # jobId in the signed body binds the signature to this job so a captured
+        # body cannot be replayed against another job's progress route.
+        raw_body = dumps_json({"jobId": job_id, "stage": stage, "progress_pct": progress_pct})
         headers = {
             "Content-Type": "application/json",
             "x-worker-signature": sign_callback_body(raw_body, secret),
@@ -2914,22 +2924,18 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
 
         # Q1/Q2: recover metric scale + measured-gravity orientation by
         # comparing COLMAP's solved trajectory against ARKit's for the same
-        # frames — only possible when this capture has lidar_poses.
-        scale_info: dict[str, Any] = (
-            {
-                "scaleFactor": 1.0,
-                "framePairsUsed": pose_alignment_stats.get("posePriorKeyframeCount", 0),
-                "scaleResidual": pose_alignment_stats.get("meanReprojectionError"),
-                "scaleSkipped": None,
-                "measuredUpColmapFrame": [0.0, 1.0, 0.0],
-            }
-            if used_pose_prior_alignment
-            else {
-                "scaleFactor": None, "framePairsUsed": 0, "scaleResidual": None,
-                "scaleSkipped": "no_lidar_poses", "measuredUpColmapFrame": None,
-            }
-        )
-        if poses_data is not None and not used_pose_prior_alignment:
+        # frames — only possible when this capture has lidar_poses. This runs
+        # for BOTH align backends: the pose-prior arm previously ASSERTED
+        # scaleFactor=1.0 and a fabricated [0,1,0] "measured" up-vector without
+        # verification, which let the share badge claim metric scale that was
+        # never measured. Priors make the solve approximately metric by
+        # construction, so real recovery should land near 1.0 — but it must be
+        # measured, and an honest skip reason beats a fake pass.
+        scale_info: dict[str, Any] = {
+            "scaleFactor": None, "framePairsUsed": 0, "scaleResidual": None,
+            "scaleSkipped": "no_lidar_poses", "measuredUpColmapFrame": None,
+        }
+        if poses_data is not None:
             scale_info = recover_metric_scale(
                 processed_dir, poses_data, ingest_stats.get("frameAbsTimes") or {},
                 images_dir=images_dir,
@@ -3232,6 +3238,18 @@ def process_job(payload: dict[str, Any]) -> None:
         shutil.rmtree(work_root, ignore_errors=True)
     work_root.mkdir(parents=True, exist_ok=True)
 
+    # Liveness heartbeat for the WHOLE job: stage-boundary posts alone leave
+    # silent gaps (COLMAP align, export) longer than the 45-min activity-stale
+    # window. Reposts the last stage/pct every 60 s; daemon so it never blocks exit.
+    import threading as _threading
+    _stop_beat = _threading.Event()
+
+    def _beat() -> None:
+        while not _stop_beat.wait(60):
+            post_progress(job_id, _LAST_PROGRESS["stage"], _LAST_PROGRESS["pct"])
+
+    _threading.Thread(target=_beat, daemon=True).start()
+
     try:
         job = JobInput.from_payload(payload)
         if job.model_type != "gaussian_splat":
@@ -3269,6 +3287,7 @@ def process_job(payload: dict[str, Any]) -> None:
                 print(f"Failure callback also failed: {callback_exc}")
         raise
     finally:
+        _stop_beat.set()
         shutil.rmtree(work_root, ignore_errors=True)
 
 
@@ -3305,18 +3324,14 @@ def reconstruct(body: dict[str, Any], x_dispatch_token: str = Header(default="")
     if not expected:
         # The callback path already depends on this, so its absence is a broken deployment.
         return JSONResponse(status_code=500, content={"error": "worker secret not configured"})
-    if supplied:
-        if not hmac.compare_digest(supplied, expected):
-            return JSONResponse(status_code=401, content={"error": "invalid dispatch token"})
-    elif required:
+    # Fail CLOSED: the phase-1 rollout tolerance (accept missing token unless
+    # MODAL_DISPATCH_AUTH_REQUIRED was set) is retired — a public *.modal.run URL
+    # that spawns paid GPU work must never depend on an env flag staying set.
+    _ = required  # retained env var no longer weakens enforcement
+    if not supplied:
         return JSONResponse(status_code=401, content={"error": "dispatch token required"})
-    else:
-        print(
-            "[security] UNAUTHENTICATED dispatch accepted — x-dispatch-token absent. This is "
-            "phase-1 rollout tolerance only. Redeploy Trigger with the header, then set "
-            "MODAL_DISPATCH_AUTH_REQUIRED=1.",
-            flush=True,
-        )
+    if not hmac.compare_digest(supplied, expected):
+        return JSONResponse(status_code=401, content={"error": "invalid dispatch token"})
 
     if not isinstance(body, dict):
         return JSONResponse(status_code=400, content={"error": "JSON object required"})

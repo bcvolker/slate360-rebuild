@@ -406,7 +406,7 @@ needs re-uploading. Verified in prod 2026-08-01:
 |---|---|---|---|
 | `04fada9b-c678-47d9-bc38-10572e920bcc` | 2026-07-08 | Insta360 X4 import (2 video rows — pre-dedup duplicate pair, pick distinct fingerprints) | 525.7 MB |
 | `8eb0367a-63ee-49d0-bde4-8757978cd0c4` | 2026-07-08 | phone walk: video + lidar_poses + ply_lidar + panorama_360 | 318.8 MB |
-| `e5d42523-4a94-4ed8-b7bb-ab9b4c395ad1` | 2026-07-04 | **PSNR-28.97 baseline capture** (video + LiDAR + poses) | 128.3 MB |
+| `e5d42523-4a94-4ed8-b7bb-ab9b4c395ad1` | 2026-07-04 | A/B test capture (video + LiDAR + poses; own vanilla baseline PSNR 25.53 — NOT the 28.97 scene) | 128.3 MB |
 | `245ec1ca-f90f-4c41-8691-460e6820ce08` | 2026-07-02 | video + LiDAR + poses | 41.1 MB |
 | `98ea6046-e3a5-45ac-b5c5-9cf9ff3945e6` | 2026-07-01 | video + LiDAR + poses | 38.9 MB |
 | `c4367891-7c24-4990-9d56-a5cd63b4ffe9` | 2026-06-30 | video + LiDAR + poses | 23.3 MB |
@@ -597,3 +597,60 @@ written, can start NOW) · Phase 5 studio (1–2 prompts, after Phase 1 closes) 
 Phase 2 review/merge/deploy + Phase 3a promotion decision are local-session
 tasks, no prompts. Federation excluded from near-term budget. **Total: 3–4
 prompts to a fully working pipeline + rebuilt flow.**
+
+### 7.6 LOCKED 2026-08-02 — three-auditor adversarial round: triage, fixes shipped, corrected facts
+
+Three independent audits (all claims re-verified locally before action).
+**FIXED + DEPLOYED same day (commit of this section):**
+1. Late `completed` callback can no longer resurrect a `failed` job (409 in
+   `lib/twin/job-callback.ts`) — the #1 consensus critical; it would have
+   charged credits + inserted a model for a run the user was told failed.
+2. `outputKey` must live under the job's own org prefix (callback scope check).
+3. Both Modal endpoints now FAIL CLOSED — dispatch token required
+   unconditionally, no longer dependent on `MODAL_DISPATCH_AUTH_REQUIRED`
+   staying set (verified live: 401 without token on both).
+4. Gaussian worker: whole-job 60 s liveness heartbeat thread (align/export had
+   silent gaps longer than the 45-min activity window).
+5. Pose-prior HONESTY: the arm asserted `scaleFactor=1.0` + a fabricated
+   measured up-vector; real `recover_metric_scale` now runs on both backends —
+   an honest skip beats a fake pass.
+6. Trigger tasks: `markJobFailed`/`failJob` now also fail the capture (was
+   stuck `processing` forever).
+7. Migration `20260802130000` (applied): stale recovery also fails `queued`
+   jobs never claimed within the threshold.
+8. GC cron override 180→720 min (was able to sweep a live upload on site LTE).
+9. Reprocess helper gained the P0a pending-uploads gate.
+10. Progress heartbeat body now carries `jobId`; route rejects mismatches
+    (replay binding). Quality badge now reads the worker's actual
+    `scaleFactor` field (why good models showed LOW CONFIDENCE).
+
+**CORRECTED FACTS (measurement, not code):** the 28.97 reference model
+(`923bd3f6-551e`) belongs to capture `8eb0367a` (Jul 8 phone walk), NOT
+`e5d42523` (Jul 4) — the "PSNR regression" was a cross-scene comparison and is
+retired. `e5d42523`'s own vanilla baseline is 25.53 (standard/baseline). The
+`quality` train profile scored WORSE (22.74) than `baseline` (25.53) on the
+same capture — profile tuning is a Phase 3 question. Live proof of fixes:
+exterior rerun passed the old 45-min death line still processing at 45%; all 3
+pose-prior smokes completed with zero SIGABRTs.
+
+**DEFERRED BACKLOG (verified real, scheduled, not blocking):**
+- Billing correctness (charge from `input_asset_ids` + persisted quality, not
+  worker-reported lists; credit reservation) — touches billing logic, needs
+  Brian's explicit authorization like Package C. HIGH priority next slice.
+- Share hardening: `max_views` enforced per-asset-route via session grant (both
+  bypassable today AND breaks first load at max_views=1); GLB presigned-URL
+  lifecycle. One scoped slice.
+- Duplicate-job TOCTOU unique index — DESIGN NEEDED: a naive partial unique on
+  active capture_id would break the ops A/B flow (parallel experiment runs on
+  one capture). Likely: app-level advisory lock exempting service-role ops.
+- Native Swift batch (next Codemagic build): client fingerprint on native
+  uploads, captureId in failure payloads, apiBase origin allowlist.
+- Worker-image hardening: bake `@playcanvas/splat-transform` + COLMAP vocab
+  tree into images (no runtime npm/network); pin remaining wheels.
+- Exterior reprocess routing (`createReconstructionJob` hardcodes
+  gaussian/spz) — folds into Phase 2 merge.
+- Upload edge cases: single-upload HeadObject verification, multipart-init
+  compensating aborts, sortOrder collision, part-level resume, drone-video
+  rejection message, web lidar_poses.json classification, derivative-key
+  cleanup on model delete, publish pointer transaction, R2-cleanup lease.
+- `lidar_prior_asset_id` honored-or-dropped decision.

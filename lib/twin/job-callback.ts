@@ -90,6 +90,18 @@ export async function handleTwinJobCallback(
     return { ok: true, status: 200, idempotent: true };
   }
 
+  // A late "completed" callback must never resurrect a job the stale-recovery
+  // cron (or anything else) already marked failed: the user was told it failed
+  // and may have re-dispatched — resurrecting would charge credits and insert a
+  // second model for a run nobody is waiting on.
+  if (body.status === "completed" && job.status !== "processing" && job.status !== "queued") {
+    return {
+      ok: false,
+      status: 409,
+      error: `Job is ${job.status}; late completion ignored`,
+    };
+  }
+
   if (body.status === "failed") {
     const { error } = await admin
       .from("digital_twin_processing_jobs")
@@ -134,6 +146,13 @@ export async function handleTwinJobCallback(
 
   if (!body.outputKey) {
     return { ok: false, status: 400, error: "outputKey is required for completed callbacks" };
+  }
+
+  // The callback is HMAC-authenticated, but a leaked worker secret must not be
+  // able to point a job at another org's R2 object: the output must live under
+  // this job's own org prefix.
+  if (!body.outputKey.startsWith(`orgs/${job.org_id}/`)) {
+    return { ok: false, status: 400, error: "outputKey is outside the job's org scope" };
   }
 
   const modelFormat = body.modelFormat ?? job.output_format ?? "spz";

@@ -28,9 +28,12 @@ export async function GET(req: NextRequest) {
     // registration bug. Non-fatal: a missing RPC (migration not yet applied) must not break
     // stale-job recovery, which is the cron's primary duty.
     let staleAssetsSwept: number | null = null;
+    // 720 min matches the multipart-aware GC hardening (20260727120000): three
+    // hours is inside the plausible window for a large file on site LTE, so the
+    // earlier 180-min override here could sweep a live upload mid-transfer.
     const { data: swept, error: gcError } = await admin.rpc(
       "gc_stale_digital_twin_upload_assets",
-      { p_stale_minutes: 180 },
+      { p_stale_minutes: 720 },
     );
     if (gcError) {
       console.warn(

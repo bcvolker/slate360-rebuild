@@ -20,7 +20,10 @@ export function resolveTwinQualityStatus(metrics: TwinQualityMetrics): TwinQuali
   const metricScaleApplied =
     metrics?.metricScaleApplied === true ||
     metrics?.metric_scale_applied === true ||
-    asNumber(metrics?.scaleFactorApplied) !== null;
+    asNumber(metrics?.scaleFactorApplied) !== null ||
+    // The gaussian worker emits `scaleFactor` (nullable); a finite value means
+    // metric scale was actually recovered and applied.
+    asNumber(metrics?.scaleFactor) !== null;
   if (metricScaleApplied) return "ESTIMATED";
   return "LOW CONFIDENCE";
 }

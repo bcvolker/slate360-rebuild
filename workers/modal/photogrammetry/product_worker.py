@@ -542,7 +542,7 @@ def _post_progress(job_id: str) -> None:
         return
     try:
         raw = json.dumps(
-            {"stage": _PROGRESS["stage"], "progress_pct": _PROGRESS["pct"]},
+            {"jobId": job_id, "stage": _PROGRESS["stage"], "progress_pct": _PROGRESS["pct"]},
             separators=(",", ":"),
         ).encode()
         signature = hmac.new(
@@ -697,12 +697,13 @@ def reconstruct_exterior(body: dict[str, Any], x_dispatch_token: str = Header(de
 
     expected = os.environ.get("GPU_WORKER_SECRET_KEY", "").strip()
     supplied = (x_dispatch_token or "").strip()
-    required = os.environ.get("MODAL_DISPATCH_AUTH_REQUIRED", "").strip().lower() in {"1", "true", "yes"}
     if not expected:
         return JSONResponse(status_code=500, content={"error": "worker secret not configured"})
-    if not supplied and required:
+    # Fail CLOSED: a public *.modal.run URL that spawns paid GPU work must never
+    # depend on an env flag (MODAL_DISPATCH_AUTH_REQUIRED) staying set.
+    if not supplied:
         return JSONResponse(status_code=401, content={"error": "dispatch token required"})
-    if supplied and not hmac.compare_digest(supplied, expected):
+    if not hmac.compare_digest(supplied, expected):
         return JSONResponse(status_code=401, content={"error": "invalid dispatch token"})
     if not isinstance(body, dict) or not body.get("jobId") or not body.get("sourceKeys"):
         return JSONResponse(status_code=400, content={"error": "jobId and sourceKeys are required"})

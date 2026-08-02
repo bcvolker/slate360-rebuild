@@ -83,14 +83,29 @@ export async function createReconstructionJob(
   if (!capture) return { ok: false, status: 404, error: "Source capture not found" };
   const priorCaptureStatus = capture.capture_status ?? "ready";
 
-  const { data: assets, error: assetsError } = await admin
+  // P0a gate (same as POST /api/digital-twin/jobs): fetch ALL live assets so a
+  // reprocess started while a new source is still uploading is refused instead
+  // of silently running against the partial ready set.
+  const { data: allAssets, error: assetsError } = await admin
     .from("digital_twin_capture_assets")
     .select("id, status")
     .eq("capture_id", captureId)
     .eq("org_id", orgId)
-    .eq("status", "ready")
     .is("deleted_at", null);
   if (assetsError) return { ok: false, status: 500, error: assetsError.message };
+
+  const pending = (allAssets ?? []).filter(
+    (row) => row.status === "uploading" || row.status === "pending",
+  );
+  if (pending.length) {
+    return {
+      ok: false,
+      status: 400,
+      error: `${pending.length} file${pending.length === 1 ? " is" : "s are"} still uploading — wait for the upload to finish before reprocessing.`,
+    };
+  }
+
+  const assets = (allAssets ?? []).filter((row) => row.status === "ready");
   if (!assets?.length) {
     return {
       ok: false,

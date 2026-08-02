@@ -28,6 +28,22 @@ async function markJobFailed(
       completed_at: new Date().toISOString(),
     })
     .eq("id", jobId);
+
+  // The API set the capture to "processing" at enqueue; failing only the job
+  // leaves the capture spinning forever (stale recovery touches jobs, not
+  // captures, once the job is terminal).
+  const { data: job } = await supabase
+    .from("digital_twin_processing_jobs")
+    .select("capture_id")
+    .eq("id", jobId)
+    .maybeSingle();
+  if (job?.capture_id) {
+    await supabase
+      .from("digital_twin_captures")
+      .update({ capture_status: "failed", error_text: message })
+      .eq("id", job.capture_id)
+      .eq("capture_status", "processing");
+  }
 }
 
 export const twinGaussianSplatTask = task({

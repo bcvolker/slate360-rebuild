@@ -23,6 +23,20 @@ async function failJob(supabase: ReturnType<typeof getSupabase>, jobId: string, 
       completed_at: new Date().toISOString(),
     })
     .eq("id", jobId);
+
+  // Failing only the job leaves the capture stuck in "processing" forever.
+  const { data: job } = await supabase
+    .from("digital_twin_processing_jobs")
+    .select("capture_id")
+    .eq("id", jobId)
+    .maybeSingle();
+  if (job?.capture_id) {
+    await supabase
+      .from("digital_twin_captures")
+      .update({ capture_status: "failed", error_text: message })
+      .eq("id", job.capture_id)
+      .eq("capture_status", "processing");
+  }
 }
 
 export const twinPhotogrammetryTask = task({
