@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import dynamic from "next/dynamic";
 import type { TwinViewerKind } from "@/lib/digital-twin/viewer-format";
 import type { SplatViewerHandle, TwinPickPoint } from "@/components/digital-twin/TwinShareSplatViewer";
 import { TwinViewerCanvasShell } from "@/components/digital-twin/TwinViewerCanvasShell";
@@ -11,30 +10,13 @@ import { TwinQualityBadge } from "@/components/digital-twin/TwinQualityBadge";
 import type { TwinShareCameraMode, TwinShareTool } from "./TwinShareToolStrip";
 import { TwinShareActivitySheet } from "@/components/digital-twin/TwinShareActivitySheet";
 import { usePhotoExplorer } from "@/components/digital-twin/photo-explorer/usePhotoExplorer";
-import { PhotoExplorerMarkers } from "@/components/digital-twin/photo-explorer/PhotoExplorerMarkers";
 import { PhotoExplorerPanel } from "@/components/digital-twin/photo-explorer/PhotoExplorerPanel";
+import { TwinShareAnnotateViewerStage } from "./TwinShareAnnotateViewerStage";
 import {
   postShareComment,
   postShareMeasurement,
   postSharePin,
 } from "@/components/digital-twin/twin-share-annotate-actions";
-
-const TwinShareSplatViewer = dynamic(
-  () =>
-    import("@/components/digital-twin/TwinShareSplatViewer").then((m) => m.TwinShareSplatViewer),
-  { ssr: false },
-);
-const TwinGlbPhotoExplorer = dynamic(
-  () =>
-    import("@/components/digital-twin/photo-explorer/TwinGlbPhotoExplorer").then(
-      (m) => m.TwinGlbPhotoExplorer,
-    ),
-  { ssr: false },
-);
-const TwinModelViewer = dynamic(
-  () => import("@/components/digital-twin/TwinModelViewer").then((m) => m.TwinModelViewer),
-  { ssr: false },
-);
 
 type CommentRow = {
   id: string;
@@ -83,8 +65,6 @@ export function TwinShareAnnotateShell({
   const pe = usePhotoExplorer({ shareToken, modelId, modelUrl });
   const pickEnabled = canAnnotate && (tool === "pin" || tool === "measure");
   const measureReady = viewerKind === "splat" || viewerKind === "model";
-  const splatReady = viewerKind === "splat";
-  const glbReady = viewerKind === "model";
 
   const refresh = useCallback(async () => {
     const [cRes, pRes] = await Promise.all([
@@ -195,16 +175,6 @@ export function TwinShareAnnotateShell({
     [comments],
   );
 
-  const markers = (
-    <PhotoExplorerMarkers
-      cameras={pe.cameras}
-      visible={pe.layerOn} correctionQuaternion={manifest?.correction_quaternion}
-      selectedIndex={pe.selectedIndex}
-      onHover={pe.setHoveredIndex}
-      onSelect={pe.setSelectedIndex}
-    />
-  );
-
   return (
     <TwinViewerCanvasShell
       viewerRef={viewerRef}
@@ -266,29 +236,24 @@ export function TwinShareAnnotateShell({
         />
       }
     >
-      {splatReady ? (
-        <TwinShareSplatViewer
-          ref={viewerRef}
-          src={modelUrl}
-          pickEnabled={pickEnabled}
-          onPick={(pt) => void handlePick(pt)}
-          cameraMode={cameraMode}
-          repositionMode={repositionMode}
-          onManifestChange={setManifest}
-          overlay={markers}
-        />
-      ) : glbReady && pe.available ? (
-        <TwinGlbPhotoExplorer
-          modelUrl={modelUrl}
-          cameras={pe.cameras}
-          layerOn={pe.layerOn}
-          selectedIndex={pe.selectedIndex}
-          onHover={pe.setHoveredIndex}
-          onSelect={pe.setSelectedIndex}
-        />
-      ) : (
-        <TwinModelViewer viewerKind={viewerKind} modelUrl={modelUrl} modelTitle={modelTitle} />
-      )}
+      <TwinShareAnnotateViewerStage
+        viewerRef={viewerRef}
+        viewerKind={viewerKind}
+        modelUrl={modelUrl}
+        modelTitle={modelTitle}
+        cameras={pe.cameras}
+        layerOn={pe.layerOn}
+        selectedIndex={pe.selectedIndex}
+        onHover={pe.setHoveredIndex}
+        onSelect={pe.setSelectedIndex}
+        correctionQuaternion={manifest?.correction_quaternion}
+        pickEnabled={pickEnabled}
+        onPick={(pt) => void handlePick(pt)}
+        cameraMode={cameraMode}
+        repositionMode={repositionMode}
+        onCameraModeChange={setCameraMode}
+        onManifestChange={setManifest}
+      />
       <PhotoExplorerPanel
         camera={pe.selected}
         photoUrl={pe.photoUrl}
