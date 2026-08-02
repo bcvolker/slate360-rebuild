@@ -26,6 +26,7 @@ type Props = {
   onToggleReposition?: () => void;
   walkDisabledReason?: string | null;
   metricScaleApplied?: boolean;
+  statusOverlay?: ReactNode;
 };
 
 const MOBILE_CONTROLS_OFFSET_PX = 12;
@@ -46,6 +47,7 @@ export function TwinViewerCanvasShell({
   onToggleReposition,
   walkDisabledReason = null,
   metricScaleApplied = false,
+  statusOverlay,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -85,6 +87,12 @@ export function TwinViewerCanvasShell({
       <div className="relative z-0 h-full min-h-0 w-full">{children}</div>
 
       <div className="pointer-events-none absolute inset-0 z-20">
+        {statusOverlay ? (
+          <div className="pointer-events-none absolute left-3 top-[max(0.75rem,env(safe-area-inset-top))] z-20">
+            {statusOverlay}
+          </div>
+        ) : null}
+
         <div
           className="pointer-events-auto absolute left-1/2 z-30 -translate-x-1/2 md:left-auto md:right-3 md:translate-x-0"
           style={{ bottom: controlsBottom }}

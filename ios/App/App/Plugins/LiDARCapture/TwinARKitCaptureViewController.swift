@@ -4,6 +4,7 @@ import ARKit
 import SceneKit
 import AVFoundation
 import CoreLocation
+import CoreImage
 import simd
 
 // MARK: - Options / result
@@ -29,6 +30,19 @@ struct TwinCaptureOptions {
 private struct PointData {
     var position: SIMD3<Float>
     var color: SIMD3<UInt8>
+}
+
+/// Versioned retained sensor evidence. Each record contains depth in millimetres,
+/// confidence bytes, and a JPEG from the same ARFrame for timestamped RGB/depth
+/// correspondence. The cloud worker can consume this later without changing the
+/// capture uploader again.
+private struct DepthEvidenceFrame {
+    let timestamp: Double
+    let width: Int
+    let height: Int
+    let depthMillimetres: [UInt16]
+    let confidence: [UInt8]
+    let rgbPixelBuffer: CVPixelBuffer
 }
 
 // MARK: - View controller
@@ -71,6 +85,9 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private var keyframes: [[String: Any]] = []
     private let voxelSize: Float = 0.02
     private let keyframeInterval: TimeInterval = 0.5
+    private var depthEvidenceURL: URL?
+    private var depthEvidenceHandle: FileHandle?
+    private var depthEvidenceFrameCount = 0
 
     // Published copies of the collection sizes. These are written ONLY on `depthQueue`
     // (right after the collections mutate) and read by the HUD/progress on other threads.
@@ -728,6 +745,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             DispatchQueue.main.async { self.setSaveStage("Writing scan data…") }
             self.writePosesJSON(to: posesURL, clips: clips)
             NSLog("[TwinCap] writePoses DONE")
+            self.closeDepthEvidence()
 
             let totalDuration = clips.reduce(0.0) { $0 + $1.duration }
             let manifest: [String: Any] = [
@@ -743,6 +761,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                 ] },
                 "plyUri": plyURL.absoluteString,
                 "posesUri": posesURL.absoluteString,
+                "depthEvidenceUri": self.depthEvidenceURL?.absoluteString ?? NSNull(),
+                "depthEvidenceFrameCount": self.depthEvidenceFrameCount,
                 "pointCount": self.voxelGrid.count,
                 "keyframeCount": self.keyframes.count,
                 "clipCount": clips.count,
@@ -818,6 +838,10 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         let sy = Float(height) / Float(imageRes.height)
         let fx = intrinsics[0][0] * sx, fy = intrinsics[1][1] * sy
         let cx = intrinsics[2][0] * sx, cy = intrinsics[2][1] * sy
+        let recordKeyframe = arkitTs - lastKeyframeArkit >= keyframeInterval
+        // lastKeyframeArkit is read and written only on the serial ARKit
+        // delegate thread.
+        if recordKeyframe { lastKeyframeArkit = arkitTs }
 
         CVPixelBufferLockBaseAddress(depthMap, .readOnly)
         CVPixelBufferLockBaseAddress(confMap, .readOnly)
@@ -829,16 +853,36 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
               let confPtr = CVPixelBufferGetBaseAddress(confMap) else { return }
         let depthBuf = depthPtr.assumingMemoryBound(to: Float32.self)
         let confBuf = confPtr.assumingMemoryBound(to: UInt8.self)
+        let depthStride = CVPixelBufferGetBytesPerRow(depthMap) / MemoryLayout<Float32>.size
+        let confidenceStride = CVPixelBufferGetBytesPerRow(confMap)
+        var evidenceDepth: [UInt16]? = nil
+        var evidenceConfidence: [UInt8]? = nil
+        var evidencePixelBuffer: CVPixelBuffer? = nil
+        if recordKeyframe {
+            var depthMillimetres = Array(repeating: UInt16(0), count: width * height)
+            var confidence = Array(repeating: UInt8(0), count: width * height)
+            for row in 0..<height {
+                for col in 0..<width {
+                    let targetIndex = row * width + col
+                    let metres = max(0.0, min(65.535, depthBuf[row * depthStride + col]))
+                    depthMillimetres[targetIndex] = UInt16((metres * 1000.0).rounded())
+                    confidence[targetIndex] = confBuf[row * confidenceStride + col]
+                }
+            }
+            evidenceDepth = depthMillimetres
+            evidenceConfidence = confidence
+            evidencePixelBuffer = frame.capturedImage
+            CVPixelBufferRetain(frame.capturedImage)
+        }
 
         var newVoxels = [(key: SIMD3<Int32>, data: PointData)]()
         let step = 3
         let minConf = options.confidence.rawValue
         for row in stride(from: 0, to: height, by: step) {
             for col in stride(from: 0, to: width, by: step) {
-                let idx = row * width + col
-                let conf = Int(confBuf[idx])
+                let conf = Int(confBuf[row * confidenceStride + col])
                 guard conf >= minConf else { continue }
-                let depth = depthBuf[idx]
+                let depth = depthBuf[row * depthStride + col]
                 guard depth > 0.1, depth < 8.0 else { continue }
                 // Unproject to camera space in ARKit's own convention (X right, Y up,
                 // Z backward) so this is consistent with `transform` below, which is
@@ -859,15 +903,23 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             }
         }
 
-        let recordKeyframe = arkitTs - lastKeyframeArkit >= keyframeInterval
-        // lastKeyframeArkit is read AND written only here, on the ARKit delegate thread
-        // (which delivers frames serially) — so it never races depthQueue. Previously it
-        // was written inside the depthQueue block, racing this read.
-        if recordKeyframe { lastKeyframeArkit = arkitTs }
         let keyframeData: [String: Any]? = recordKeyframe
             ? buildKeyframe(arkitTs: arkitTs, transform: transform, intrinsics: intrinsics,
                             resolution: frame.camera.imageResolution)
             : nil
+        let evidenceFrame: DepthEvidenceFrame? = {
+            guard let depth = evidenceDepth,
+                  let confidence = evidenceConfidence,
+                  let pixelBuffer = evidencePixelBuffer else { return nil }
+            return DepthEvidenceFrame(
+                timestamp: sessionStartUnix + (arkitTs - sessionStartArkit),
+                width: width,
+                height: height,
+                depthMillimetres: depth,
+                confidence: confidence,
+                rgbPixelBuffer: pixelBuffer
+            )
+        }()
 
         // completedClipCount is a word-sized Int maintained on main (like pointCount) —
         // safe to read here; clipVideos itself is main-thread-only.
@@ -885,7 +937,21 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         if behind {
             // Still record the keyframe (poses matter more than a few dropped voxels).
             if let kf = keyframeData {
-                depthQueue.async { [weak self] in self?.keyframes.append(kf) }
+                depthQueue.async { [weak self] in
+                    guard let self = self else {
+                        if let evidence = evidenceFrame {
+                            CVPixelBufferRelease(evidence.rgbPixelBuffer)
+                        }
+                        return
+                    }
+                    self.keyframes.append(kf)
+                    if let evidence = evidenceFrame {
+                        self.appendDepthEvidence(evidence)
+                        CVPixelBufferRelease(evidence.rgbPixelBuffer)
+                    }
+                }
+            } else if let evidence = evidenceFrame {
+                CVPixelBufferRelease(evidence.rgbPixelBuffer)
             }
             pushHudState()
             return
@@ -893,6 +959,9 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
 
         depthQueue.async { [weak self] in
             guard let self = self else {
+                if let evidence = evidenceFrame {
+                    CVPixelBufferRelease(evidence.rgbPixelBuffer)
+                }
                 return
             }
             defer {
@@ -918,6 +987,10 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             }
             if let kf = keyframeData {
                 self.keyframes.append(kf)
+            }
+            if let evidence = evidenceFrame {
+                self.appendDepthEvidence(evidence)
+                CVPixelBufferRelease(evidence.rgbPixelBuffer)
             }
             // Publish sizes for the HUD/progress so those off-queue readers never touch the
             // collections directly (the EXC_BAD_ACCESS data race).
@@ -975,6 +1048,41 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
 
     // MARK: Writer
 
+    private func appendDepthEvidence(_ frame: DepthEvidenceFrame) {
+        guard let handle = depthEvidenceHandle else { return }
+        let rgbData = ciContext.jpegRepresentation(
+            of: CIImage(cvPixelBuffer: frame.rgbPixelBuffer),
+            colorSpace: CGColorSpaceCreateDeviceRGB(),
+            options: [:]
+        ) ?? Data()
+        let depthData = frame.depthMillimetres.withUnsafeBytes { Data($0) }
+        let confidenceData = Data(frame.confidence)
+        var record = Data()
+        var timestampBits = frame.timestamp.bitPattern.littleEndian
+        var width = UInt16(min(frame.width, Int(UInt16.max))).littleEndian
+        var height = UInt16(min(frame.height, Int(UInt16.max))).littleEndian
+        var depthBytes = UInt32(depthData.count).littleEndian
+        var confidenceBytes = UInt32(confidenceData.count).littleEndian
+        var rgbBytes = UInt32(rgbData.count).littleEndian
+        withUnsafeBytes(of: &timestampBits) { record.append(contentsOf: $0) }
+        withUnsafeBytes(of: &width) { record.append(contentsOf: $0) }
+        withUnsafeBytes(of: &height) { record.append(contentsOf: $0) }
+        withUnsafeBytes(of: &depthBytes) { record.append(contentsOf: $0) }
+        withUnsafeBytes(of: &confidenceBytes) { record.append(contentsOf: $0) }
+        withUnsafeBytes(of: &rgbBytes) { record.append(contentsOf: $0) }
+        record.append(depthData)
+        record.append(confidenceData)
+        record.append(rgbData)
+        handle.write(record)
+        depthEvidenceFrameCount += 1
+    }
+
+    private func closeDepthEvidence() {
+        depthEvidenceHandle?.synchronizeFile()
+        depthEvidenceHandle?.closeFile()
+        depthEvidenceHandle = nil
+    }
+
     private func beginWriter(with frame: ARFrame) {
         // Session time base is set ONCE (first clip); each clip gets its own start on
         // the shared timeline so pose timestamps stay global while video PTS restarts.
@@ -997,6 +1105,15 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             .appendingPathComponent("\(sid)_clip\(clipSequence).mp4")
         try? FileManager.default.removeItem(at: url)
         videoURL = url
+        if depthEvidenceHandle == nil {
+            let evidenceURL = URL(fileURLWithPath: NSTemporaryDirectory())
+                .appendingPathComponent("\(sid)_depth.s360depth")
+            try? FileManager.default.removeItem(at: evidenceURL)
+            FileManager.default.createFile(atPath: evidenceURL.path, contents: nil)
+            depthEvidenceURL = evidenceURL
+            depthEvidenceHandle = try? FileHandle(forWritingTo: evidenceURL)
+            depthEvidenceHandle?.write(Data("S360DEPTH1".utf8))
+        }
 
         guard let w = try? AVAssetWriter(outputURL: url, fileType: .mp4) else {
             fail("Could not create video writer"); return

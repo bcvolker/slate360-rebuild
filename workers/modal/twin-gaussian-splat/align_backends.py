@@ -93,6 +93,7 @@ def run_alignment(
         except Exception as exc:  # noqa: BLE001
             stats["posePriorError"] = f"{type(exc).__name__}: {exc}"
             backend = "colmap_vanilla"
+            stats["alignBackend"] = backend
             stats["alignBackendFallback"] = "prior write failed"
 
     # 3. Matching. Sequential always; spatial only when priors give it something to work with.

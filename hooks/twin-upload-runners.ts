@@ -26,7 +26,8 @@ export async function runSingleTwinUpload(
   file: File,
   index: number,
   sortOrder: number,
-) {
+  captureIdOverride?: string,
+): Promise<{ captureId: string }> {
   const presign = await twinApiPost<{
     captureId: string;
     assetId: string;
@@ -36,7 +37,7 @@ export async function runSingleTwinUpload(
     phase: "presign",
     space_id: target.spaceId,
     project_id: target.projectId,
-    capture_id: target.captureId ?? ctx.captureId ?? undefined,
+    capture_id: captureIdOverride ?? target.captureId ?? ctx.captureId ?? undefined,
     title: target.title,
     gps: target.gps,
     filename: file.name,
@@ -49,7 +50,7 @@ export async function runSingleTwinUpload(
 
   ctx.setCaptureId(presign.captureId);
   ctx.updateFile(index, { assetId: presign.assetId, key: presign.key, status: "uploading", progress: 10 });
-  if (ctx.abortedRef.current) return;
+  if (ctx.abortedRef.current) return { captureId: presign.captureId };
 
   const putRes = await fetch(presign.signedUrl, {
     method: "PUT",
@@ -66,6 +67,7 @@ export async function runSingleTwinUpload(
     sizeBytes: file.size,
   });
   ctx.updateFile(index, { status: "complete", progress: 100 });
+  return { captureId: presign.captureId };
 }
 
 export async function runMultipartTwinUpload(

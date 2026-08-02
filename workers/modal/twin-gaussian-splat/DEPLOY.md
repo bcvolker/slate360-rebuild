@@ -140,6 +140,20 @@ Expect `200` and `x-modal-run-id: ...`. The async GPU job will fail without real
 
 Response: `200` immediately, header `x-modal-run-id: <spawn id>`.
 
+Optional alignment fields:
+
+```json
+{
+  "alignBackend": "colmap_vanilla",
+  "lidarDepthKey": "orgs/<org>/digital-twin/<space>/<capture>/lidar_depth.s360depth"
+}
+```
+
+`colmap_pose_prior` is an A/B arm with vanilla fallback, not a promoted default.
+The native depth stream is validated and reported under
+`qualityMetrics.depthEvidence`; it is retained evidence until a real-capture
+depth-supervision gate promotes it.
+
 ### Callback (Modal → Slate360)
 
 `POST ${SITE_URL}/api/digital-twin/jobs/callback`

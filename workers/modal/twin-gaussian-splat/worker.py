@@ -110,6 +110,48 @@ def detect_projection(path: Path) -> str:
                 print(f"[ingest] {path.name}: ratio {ratio:.3f} is not 2:1; treating as equirect anyway")
     return "equirect"
 
+
+def reconcile_360_flags(
+    source_dir: Path,
+    source_keys: list[str],
+    is360_flags: list[bool],
+) -> tuple[list[bool], list[dict[str, Any]]]:
+    """Worker-side safety net for stale asset kinds from older clients."""
+    flags = list(is360_flags)
+    corrections: list[dict[str, Any]] = []
+    for index, key in enumerate(source_keys):
+        matches = list(source_dir.glob(f"source_{index:04d}.*"))
+        if not matches:
+            continue
+        path = matches[0]
+        already_flagged = index < len(flags) and flags[index]
+        if already_flagged:
+            continue
+        if path.suffix.lower() in INSTA360_RAW_EXTENSIONS:
+            if index >= len(flags):
+                flags.extend([False] * (index + 1 - len(flags)))
+            flags[index] = True
+            corrections.append({"index": index, "key": key, "reason": "insta360_raw_extension"})
+            continue
+        dimensions = probe_dimensions(path)
+        if not dimensions:
+            continue
+        width, height = dimensions
+        ratio = width / height if height else 0.0
+        if EQUIRECT_RATIO_MIN <= ratio <= EQUIRECT_RATIO_MAX:
+            if index >= len(flags):
+                flags.extend([False] * (index + 1 - len(flags)))
+            flags[index] = True
+            corrections.append({
+                "index": index,
+                "key": key,
+                "reason": "ffprobe_equirect_ratio",
+                "width": width,
+                "height": height,
+            })
+    return flags, corrections
+
+
 # ── LiDAR pose/frame-timestamp match tolerance ──────────────────────────────
 # Tightened from the original ±2s (loose enough to match a frame to a pose from
 # a different point in the walk) to ±250ms, close to the 0.5s keyframe interval.
@@ -143,6 +185,10 @@ MIN_FRAMES_FLOOR_GUARD = 3  # never let the blur floor drop the usable frame cou
 # "bypass_first" (legacy behavior: attempt bypass unless force_colmap is set)
 # once the Round 6 optimization track beats COLMAP.
 ALIGNMENT_STRATEGY = os.environ.get("ALIGNMENT_STRATEGY", "colmap_first").strip().lower()
+# P1c — selectable pose-prior alignment arm. Keep vanilla as the default until
+# a real-capture A/B gate promotes the prior-backed solve.
+ALIGN_BACKEND = os.environ.get("ALIGN_BACKEND", "colmap_vanilla").strip().lower()
+VALID_ALIGN_BACKENDS = frozenset({"colmap_vanilla", "colmap_pose_prior"})
 
 app = modal.App(APP_NAME)
 
@@ -189,6 +235,7 @@ gpu_image = (
         "--index-url https://download.pytorch.org/whl/cu121",
         "pip install ninja numpy jaxtyping rich",
         "pip install nerfstudio==1.1.5",
+        "pip install pycolmap==4.1.1",
         # Override PyPI gsplat (no bundled CUDA ops) with prebuilt wheel for pt24cu121.
         "pip install gsplat==1.4.0 --force-reinstall --no-deps "
         "--index-url https://docs.gsplat.studio/whl/pt24cu121",
@@ -197,6 +244,8 @@ gpu_image = (
         "assert _C is not None, 'gsplat CUDA ops missing'; "
         "print('gsplat ok:', torch.__version__, getattr(_C, 'CameraModelType', None))\"",
     )
+    # Modal does not mount sibling source files automatically.
+    .add_local_python_source("align_backends", "pose_priors", "depth_evidence")
 )
 
 
@@ -432,6 +481,184 @@ def resolve_matching_method(ingest_stats: dict[str, int]) -> str:
     if ingest_stats.get("videos", 0) > 0:
         return "sequential"
     return "exhaustive"
+
+
+def build_pose_prior_keyframes(
+    poses_data: dict[str, Any],
+    images_dir: Path,
+    frame_abs_times: dict[str, float],
+    tolerance_sec: float = DEFAULT_MATCH_TOLERANCE_SEC,
+) -> list[Any]:
+    """Map extracted image names to the nearest persisted ARKit keyframe.
+
+    `align_backends` writes priors by COLMAP image name. The capture exporter
+    does not persist an image name in each ARKit frame, so the only safe join
+    key is the absolute video-frame timestamp produced by `materialize_images`.
+    Frames outside the timestamp tolerance are omitted rather than assigned a
+    misleading prior.
+    """
+    import numpy as np
+    from align_backends import ArkitKeyframe
+
+    raw_frames = [
+        frame
+        for frame in poses_data.get("frames", [])
+        if isinstance(frame, dict) and isinstance(frame.get("timestamp"), (int, float))
+    ]
+    if not raw_frames:
+        return []
+
+    output: list[Any] = []
+    image_paths = sorted(
+        path
+        for path in images_dir.iterdir()
+        if path.is_file() and path.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"}
+    )
+    for image_path in image_paths:
+        timestamp = frame_abs_times.get(image_path.name)
+        if timestamp is None:
+            continue
+        nearest = min(raw_frames, key=lambda frame: abs(float(frame["timestamp"]) - timestamp))
+        if abs(float(nearest["timestamp"]) - timestamp) > tolerance_sec:
+            continue
+        transform = nearest.get("transform_4x4")
+        if not isinstance(transform, list) or len(transform) != 16:
+            continue
+        matrix = np.asarray(transform, dtype=float).reshape(4, 4, order="F")
+        position = tuple(float(value) for value in matrix[:3, 3])
+        gravity = nearest.get("gravity")
+        gravity_tuple = (
+            tuple(float(value) for value in gravity)
+            if isinstance(gravity, list) and len(gravity) == 3
+            else None
+        )
+        output.append(
+            ArkitKeyframe(
+                image_name=image_path.name,
+                position=position,
+                timestamp=float(nearest["timestamp"]),
+                tracking_state=str(
+                    nearest.get("tracking_state")
+                    or nearest.get("trackingState")
+                    or "normal"
+                ),
+                gravity=gravity_tuple,
+                seconds_since_interruption=(
+                    float(nearest["seconds_since_interruption"])
+                    if isinstance(nearest.get("seconds_since_interruption"), (int, float))
+                    else None
+                ),
+            )
+        )
+    return output
+
+
+def write_pose_prior_transforms(
+    sparse_model_path: Path,
+    images_dir: Path,
+    processed_dir: Path,
+) -> dict[str, Any]:
+    """Adapt pycolmap's OpenCV sparse model to Nerfstudio's OpenGL transforms.
+
+    Pose-prior mapping returns a COLMAP reconstruction, while the existing
+    trainer consumes `processed_dir/transforms.json`. Keeping this adapter at
+    the boundary lets the vanilla path remain unchanged.
+    """
+    import numpy as np
+    import pycolmap
+
+    reconstruction = pycolmap.Reconstruction(str(sparse_model_path))
+    processed_dir.mkdir(parents=True, exist_ok=True)
+    processed_images = processed_dir / "images"
+    if processed_images.exists():
+        shutil.rmtree(processed_images)
+    shutil.copytree(images_dir, processed_images)
+    image_paths = [
+        path
+        for path in images_dir.iterdir()
+        if path.is_file() and path.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"}
+    ]
+
+    frames: list[dict[str, Any]] = []
+    first_camera = None
+    for image in reconstruction.images.values():
+        camera = reconstruction.cameras[image.camera_id]
+        if first_camera is None:
+            first_camera = camera
+        cam_from_world = image.cam_from_world()
+        rotation = np.asarray(cam_from_world.rotation.matrix(), dtype=float)
+        translation = np.asarray(cam_from_world.translation, dtype=float).reshape(3)
+        # COLMAP uses x-right/y-down/z-forward. Nerfstudio's transforms use
+        # OpenGL x-right/y-up/z-back, so convert camera-local axes only.
+        open_gl_from_colmap = np.diag([1.0, -1.0, -1.0])
+        camera_to_world = np.eye(4, dtype=float)
+        camera_to_world[:3, :3] = rotation.T @ open_gl_from_colmap
+        camera_to_world[:3, 3] = -rotation.T @ translation
+        frames.append({
+            "file_path": f"images/{image.name}",
+            "transform_matrix": camera_to_world.tolist(),
+        })
+
+    if not frames or first_camera is None:
+        raise RuntimeError("Pose-prior reconstruction produced no camera frames")
+    calibration = np.asarray(first_camera.calibration_matrix(), dtype=float)
+    params = [float(value) for value in first_camera.params]
+    transforms: dict[str, Any] = {
+        "camera_model": "OPENCV",
+        "fl_x": float(calibration[0, 0]),
+        "fl_y": float(calibration[1, 1]),
+        "cx": float(calibration[0, 2]),
+        "cy": float(calibration[1, 2]),
+        "w": int(first_camera.width),
+        "h": int(first_camera.height),
+        "orientation_override": "none",
+        "frames": sorted(frames, key=lambda frame: frame["file_path"]),
+    }
+    for key, index in (("k1", 4), ("k2", 5), ("p1", 6), ("p2", 7)):
+        if len(params) > index:
+            transforms[key] = params[index]
+    transforms_path = processed_dir / "transforms.json"
+    transforms_path.write_text(json.dumps(transforms, indent=2) + "\n", encoding="utf-8")
+    return {
+        "registeredImages": len(frames),
+        "totalImages": len(image_paths),
+        "meanReprojectionError": round(
+            float(reconstruction.compute_mean_reprojection_error()), 4
+        ),
+        "posePriorTransforms": str(transforms_path),
+    }
+
+
+def run_pose_prior_alignment(
+    images_dir: Path,
+    processed_dir: Path,
+    work_root: Path,
+    poses_data: dict[str, Any],
+    frame_abs_times: dict[str, float],
+    backend: str,
+) -> dict[str, Any]:
+    """Run the existing covariance-weighted alignment backend and adapt output."""
+    from align_backends import run_alignment
+
+    keyframes = build_pose_prior_keyframes(poses_data, images_dir, frame_abs_times)
+    if backend == "colmap_pose_prior" and len(keyframes) < 3:
+        raise RuntimeError(
+            f"Only {len(keyframes)} ARKit/image correspondences survived timestamp matching"
+        )
+    alignment_dir = work_root / "pose_alignment"
+    stats = run_alignment(
+        images_dir,
+        alignment_dir,
+        backend=backend,
+        keyframes=keyframes,
+        ios_lidar_drift=False,
+    )
+    sparse_model = Path(str(stats.get("sparseModelPath") or ""))
+    if not sparse_model.is_dir():
+        raise RuntimeError("Pose-prior alignment returned no sparse model")
+    stats.update(write_pose_prior_transforms(sparse_model, images_dir, processed_dir))
+    stats["posePriorKeyframeCount"] = len(keyframes)
+    return stats
 
 
 # ── LiDAR COLMAP bypass ──────────────────────────────────────────────────────
@@ -2478,7 +2705,9 @@ class JobInput:
     new_asset_ids: list[str]
     lidar_poses_key: str | None = None
     lidar_ply_key: str | None = None
+    lidar_depth_key: str | None = None
     force_colmap: bool = False
+    align_backend: str | None = None
     # P0d — per-job training profile override; falls back to the TRAIN_PROFILE env var.
     train_profile: str | None = None
     match_tolerance_sec: float | None = None
@@ -2522,7 +2751,10 @@ class JobInput:
             new_asset_ids=[str(v) for v in payload["newAssetIds"]],
             lidar_poses_key=payload.get("lidarPosesKey") or None,
             lidar_ply_key=payload.get("lidarPlyKey") or None,
+            lidar_depth_key=payload.get("lidarDepthKey") or None,
             force_colmap=bool(payload.get("forceColmap", False)),
+            align_backend=(str(payload.get("alignBackend")).strip().lower()
+                           if payload.get("alignBackend") else None),
             train_profile=(payload.get("trainProfile") or None),
             match_tolerance_sec=float(raw_tolerance) if raw_tolerance is not None else None,
             debug_artifacts=bool(payload.get("debugArtifacts", False)),
@@ -2542,6 +2774,11 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
 
     post_progress(job.job_id, "upload", 10)
     download_sources(s3, bucket, job.source_keys, source_dir)
+    effective_360_flags, projection_corrections = reconcile_360_flags(
+        source_dir,
+        job.source_keys,
+        job.is360_flags,
+    )
 
     # Q1: when lidar_poses exist, prefetch + parse them up front — cheap (a
     # small JSON), and needed by the COLMAP-path metric-scale recovery below
@@ -2550,6 +2787,7 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
     # job under colmap_first).
     poses_data: dict[str, Any] | None = None
     video_start_times: dict[int, float] = {}
+    depth_evidence_stats: dict[str, Any] = {}
     if job.lidar_poses_key:
         try:
             poses_prefetch_path = source_dir / "_lidar_poses_prefetch.json"
@@ -2561,11 +2799,24 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
         except Exception as poses_exc:  # noqa: BLE001
             print(f"[scale-recovery] poses prefetch failed (non-fatal): {type(poses_exc).__name__}: {poses_exc}")
             poses_data = None
+    if job.lidar_depth_key:
+        try:
+            depth_path = source_dir / "_lidar_depth.s360depth"
+            s3.download_file(bucket, job.lidar_depth_key, str(depth_path))
+            from depth_evidence import inspect_depth_evidence
+
+            depth_evidence_stats = inspect_depth_evidence(depth_path)
+        except Exception as depth_exc:  # noqa: BLE001
+            depth_evidence_stats = {
+                "validationError": f"{type(depth_exc).__name__}: {depth_exc}",
+            }
+            print(f"[depth-evidence] validation failed (non-fatal): {depth_evidence_stats['validationError']}")
 
     ingest_stats = materialize_images(
-        source_dir, images_dir, job.source_keys, job.is360_flags,
+        source_dir, images_dir, job.source_keys, effective_360_flags,
         video_start_times=video_start_times,
     )
+    ingest_stats["projectionCorrections"] = projection_corrections
 
     match_tolerance = (
         job.match_tolerance_sec if job.match_tolerance_sec is not None else DEFAULT_MATCH_TOLERANCE_SEC
@@ -2590,42 +2841,95 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
 
     colmap_images_total: int | None = None
     colmap_images_registered: int | None = None
+    requested_align_backend = (job.align_backend or ALIGN_BACKEND).strip().lower()
+    if requested_align_backend not in VALID_ALIGN_BACKENDS:
+        print(f"[align] unknown backend {requested_align_backend!r}; using colmap_vanilla")
+        requested_align_backend = "colmap_vanilla"
+    align_backend_used = "arkit_bypass" if lidar_bypass_used else "colmap_vanilla"
+    pose_alignment_stats: dict[str, Any] = {}
     if not lidar_bypass_used:
-        matching_method = resolve_matching_method(ingest_stats)
-        run_cmd(
-            [
-                "xvfb-run",
-                "-a",
-                "-s",
-                "-screen 0 800x600x24",
-                "ns-process-data",
-                "images",
-                "--matching-method",
-                matching_method,
-                "--no-gpu",
-                "--data",
-                str(images_dir),
-                "--output-dir",
-                str(processed_dir),
-                "--num-downscales",
-                "2",
-            ]
-        )
-        apply_orientation_override(processed_dir, "up")
+        used_pose_prior_alignment = False
+        if requested_align_backend == "colmap_pose_prior" and poses_data is not None:
+            try:
+                pose_alignment_stats = run_pose_prior_alignment(
+                    images_dir,
+                    processed_dir,
+                    work_root,
+                    poses_data,
+                    ingest_stats.get("frameAbsTimes") or {},
+                    requested_align_backend,
+                )
+                matching_method = "pose_prior"
+                align_backend_used = (
+                    "colmap_vanilla"
+                    if pose_alignment_stats.get("alignBackendFallback")
+                    else "colmap_pose_prior"
+                )
+                used_pose_prior_alignment = True
+                print(
+                    f"[align] pose-prior backend registered "
+                    f"{pose_alignment_stats.get('registeredImages')} images"
+                )
+            except Exception as prior_exc:  # noqa: BLE001
+                pose_alignment_stats = {
+                    "alignBackend": "colmap_vanilla",
+                    "alignBackendFallback": f"{type(prior_exc).__name__}: {prior_exc}",
+                }
+                shutil.rmtree(processed_dir, ignore_errors=True)
+                print(f"[align] pose-prior arm failed; falling back to vanilla: {prior_exc}")
+
+        if not used_pose_prior_alignment:
+            matching_method = resolve_matching_method(ingest_stats)
+            run_cmd(
+                [
+                    "xvfb-run",
+                    "-a",
+                    "-s",
+                    "-screen 0 800x600x24",
+                    "ns-process-data",
+                    "images",
+                    "--matching-method",
+                    matching_method,
+                    "--no-gpu",
+                    "--data",
+                    str(images_dir),
+                    "--output-dir",
+                    str(processed_dir),
+                    "--num-downscales",
+                    "2",
+                ]
+            )
+            apply_orientation_override(processed_dir, "up")
+            align_backend_used = "colmap_vanilla"
+
         colmap_images_total = len([
             p for p in images_dir.iterdir()
             if p.is_file() and p.suffix.lower() in {".jpg", ".jpeg", ".png", ".webp"}
         ])
-        colmap_images_registered = count_registered_images(processed_dir)
+        colmap_images_registered = (
+            int(pose_alignment_stats["registeredImages"])
+            if used_pose_prior_alignment and pose_alignment_stats.get("registeredImages") is not None
+            else count_registered_images(processed_dir)
+        )
 
         # Q1/Q2: recover metric scale + measured-gravity orientation by
         # comparing COLMAP's solved trajectory against ARKit's for the same
         # frames — only possible when this capture has lidar_poses.
-        scale_info: dict[str, Any] = {
-            "scaleFactor": None, "framePairsUsed": 0, "scaleResidual": None,
-            "scaleSkipped": "no_lidar_poses", "measuredUpColmapFrame": None,
-        }
-        if poses_data is not None:
+        scale_info: dict[str, Any] = (
+            {
+                "scaleFactor": 1.0,
+                "framePairsUsed": pose_alignment_stats.get("posePriorKeyframeCount", 0),
+                "scaleResidual": pose_alignment_stats.get("meanReprojectionError"),
+                "scaleSkipped": None,
+                "measuredUpColmapFrame": [0.0, 1.0, 0.0],
+            }
+            if used_pose_prior_alignment
+            else {
+                "scaleFactor": None, "framePairsUsed": 0, "scaleResidual": None,
+                "scaleSkipped": "no_lidar_poses", "measuredUpColmapFrame": None,
+            }
+        )
+        if poses_data is not None and not used_pose_prior_alignment:
             scale_info = recover_metric_scale(
                 processed_dir, poses_data, ingest_stats.get("frameAbsTimes") or {},
                 images_dir=images_dir,
@@ -2868,7 +3172,13 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             "metricAuthority": is_metric_authority(job.train_profile),
             "splatCount": splat_count,
             # Diagnostic instrumentation (see scripts/ops/diagnose-twin-poses.mjs).
-            "alignmentPath": "arkit_bypass" if lidar_bypass_used else "colmap",
+            "alignmentPath": align_backend_used,
+            "alignBackendRequested": requested_align_backend,
+            "alignBackendFallback": pose_alignment_stats.get("alignBackendFallback"),
+            "posePriorKeyframeCount": pose_alignment_stats.get("posePriorKeyframeCount"),
+            "posePriorsWritten": pose_alignment_stats.get("posePriorsWritten"),
+            "posePriorSigmaMin": pose_alignment_stats.get("posePriorSigmaMin"),
+            "posePriorSigmaMax": pose_alignment_stats.get("posePriorSigmaMax"),
             "forceColmap": job.force_colmap,
             "matchToleranceSec": match_tolerance,
             "framesExtracted": bypass_stats.get("extractedCount"),
@@ -2886,6 +3196,7 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             "exportFilter": export_filter_stats,
             "sharpFrameSelection": ingest_stats.get("sharpFrameSelection") or bypass_stats.get("sharpFrameSelection"),
             "gravityDataAvailable": bool(job.lidar_poses_key),
+            "depthEvidence": depth_evidence_stats or None,
             # Q1 (metric scale) + Q2 (measured-gravity orientation) — both
             # derived from the same ARKit<->COLMAP correspondence.
             "scaleFactor": scale_info.get("scaleFactor"),
@@ -2925,6 +3236,8 @@ def process_job(payload: dict[str, Any]) -> None:
         job = JobInput.from_payload(payload)
         if job.model_type != "gaussian_splat":
             raise ValueError(f"Unsupported modelType: {job.model_type}")
+        if job.align_backend and job.align_backend not in VALID_ALIGN_BACKENDS:
+            raise ValueError(f"Unsupported alignBackend: {job.align_backend}")
 
         result = run_pipeline(job, work_root)
         success_body = {

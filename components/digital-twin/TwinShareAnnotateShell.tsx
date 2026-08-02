@@ -10,6 +10,7 @@ import { TwinViewerCanvasShell } from "@/components/digital-twin/TwinViewerCanva
 import type { SplatManifest } from "@/lib/digital-twin/twin-manifest";
 import { WALK_DISABLED_NO_FLOOR_REASON } from "@/components/digital-twin/splat-viewer-constants";
 import { measureToolDisclaimer } from "@/components/digital-twin/TwinViewerDisclaimer";
+import { TwinQualityBadge } from "@/components/digital-twin/TwinQualityBadge";
 import { TwinShareToolStrip, type TwinShareCameraMode, type TwinShareTool } from "./TwinShareToolStrip";
 
 const TwinShareSplatViewer = dynamic(
@@ -44,6 +45,8 @@ export function TwinShareAnnotateShell({
   modelUrl,
   modelTitle,
   modelId,
+  qualityMetrics,
+  georef,
 }: {
   shareToken: string;
   canAnnotate: boolean;
@@ -51,6 +54,8 @@ export function TwinShareAnnotateShell({
   modelUrl: string;
   modelTitle: string;
   modelId?: string | null;
+  qualityMetrics?: Record<string, unknown> | null;
+  georef?: Record<string, unknown> | null;
 }) {
   const viewerRef = useRef<SplatViewerHandle | null>(null);
   const [tool, setTool] = useState<TwinShareTool>("view");
@@ -307,6 +312,14 @@ export function TwinShareAnnotateShell({
       }
       walkDisabledReason={walkDisabledReason}
       metricScaleApplied={manifest?.metric_scale_applied ?? false}
+      statusOverlay={
+        <TwinQualityBadge
+          metrics={{
+            ...(qualityMetrics ?? {}),
+            ...(georef ? { georef } : {}),
+          }}
+        />
+      }
     >
       {splatReady ? (
         <TwinShareSplatViewer

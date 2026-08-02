@@ -21,6 +21,8 @@ export function TwinShareViewer({
   canAnnotate = false,
   canDownload = false,
   tokenState,
+  qualityMetrics,
+  georef,
 }: {
   embed: boolean;
   title: string;
@@ -33,6 +35,8 @@ export function TwinShareViewer({
   canAnnotate?: boolean;
   canDownload?: boolean;
   tokenState?: PortalTokenState | null;
+  qualityMetrics?: Record<string, unknown> | null;
+  georef?: Record<string, unknown> | null;
 }) {
   if (tokenState) {
     return (
@@ -48,6 +52,8 @@ export function TwinShareViewer({
       modelUrl={modelUrl}
       modelTitle={modelTitle}
       modelId={modelId}
+      qualityMetrics={qualityMetrics}
+      georef={georef}
     />
   ) : null;
 

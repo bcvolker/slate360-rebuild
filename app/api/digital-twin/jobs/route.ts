@@ -43,13 +43,14 @@ const triggerRequestOptions = { clientConfig: { previewBranch: "" } };
 type JobBody = {
   capture_id: string;
   output_format?: "spz" | "ply" | "glb";
-  job_type?: "gaussian_splat" | "photogrammetry_mesh" | "lidar_fusion";
+  job_type?: "gaussian_splat" | "photogrammetry_mesh";
   lidar_prior_asset_id?: string | null;
   quality?: string;
+  align_backend?: "colmap_vanilla" | "colmap_pose_prior";
 };
 
 const OUTPUT_FORMATS = new Set(["spz", "ply", "glb"]);
-const JOB_TYPES = new Set(["gaussian_splat", "photogrammetry_mesh", "lidar_fusion"]);
+const JOB_TYPES = new Set(["gaussian_splat", "photogrammetry_mesh"]);
 
 export const POST = (req: NextRequest) =>
   withAuth(req, async ({ user, admin, orgId }) => {
@@ -63,12 +64,13 @@ export const POST = (req: NextRequest) =>
     const quality = parseQuality(body.quality);
 
     if (!OUTPUT_FORMATS.has(outputFormat)) return badRequest("Invalid output_format");
-    // C5: only spz ever actually ships — the enum stays for the future, but ply/glb
-    // requests are rejected now rather than silently priced and never honored.
-    if (outputFormat !== "spz") {
-      return badRequest("Only spz output is currently supported for digital twins");
-    }
     if (!JOB_TYPES.has(jobType)) return badRequest("Invalid job_type");
+    if (jobType === "gaussian_splat" && outputFormat !== "spz") {
+      return badRequest("Gaussian-splat jobs currently support only spz output");
+    }
+    if (jobType === "photogrammetry_mesh" && outputFormat !== "glb") {
+      return badRequest("Exterior photogrammetry jobs currently support only glb output");
+    }
     if (!QUALITY_TIERS.has(quality)) return badRequest("Invalid quality");
 
     try {
@@ -155,9 +157,17 @@ export const POST = (req: NextRequest) =>
 
       try {
         const { tasks } = await import("@trigger.dev/sdk/v3");
+        const taskId =
+          job.job_type === "photogrammetry_mesh"
+            ? "twin.photogrammetry_mesh"
+            : "twin.gaussian_splat";
         const handle = await tasks.trigger(
-          "twin.gaussian_splat",
-          { jobId: job.id, quality },
+          taskId,
+          {
+            jobId: job.id,
+            quality,
+            ...(body.align_backend ? { alignBackend: body.align_backend } : {}),
+          },
           undefined,
           triggerRequestOptions,
         );

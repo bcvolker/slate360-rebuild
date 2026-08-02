@@ -19,6 +19,7 @@ import {
 } from "@/lib/digital-twin/twin-capture-pending-persist";
 import { fetchSlateDropFileAsBlob } from "@/lib/digital-twin/twin-review-fetch";
 import { useEquirectHints, hintFor } from "@/components/digital-twin/useEquirectHints";
+import { probeEquirectHints } from "@/lib/digital-twin/twin-equirect-probe";
 import {
   classifyTwinMedia,
   countTwinEstimateFrames,
@@ -123,18 +124,22 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
     [session?.clips],
   );
 
-  const equirectHints = useEquirectHints(clipFiles); // P0b — measured, beats filename guess
-  const captureCategories = useMemo(
-    () => clipFiles.map((f) => classifyTwinMedia(f, false, hintFor(equirectHints, f))),
-    [clipFiles, equirectHints],
-  );
-
   const localAddedFiles = useMemo(
     () =>
       addedSources
         .filter((row): row is TwinReviewAddedSource & { file: File } => row.origin !== "slatedrop")
         .map((row) => row.file),
     [addedSources],
+  );
+
+  const uploadProbeFiles = useMemo(
+    () => [...clipFiles, ...localAddedFiles],
+    [clipFiles, localAddedFiles],
+  );
+  const equirectHints = useEquirectHints(uploadProbeFiles); // P0b — measured, beats filename guess
+  const captureCategories = useMemo(
+    () => clipFiles.map((f) => classifyTwinMedia(f, false, hintFor(equirectHints, f))),
+    [clipFiles, equirectHints],
   );
 
   const estimateFiles = useMemo(
@@ -273,6 +278,11 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
         ...slatedropFiles,
       ];
       if (!allFiles.length) throw new Error("Add at least one source");
+      const runtimeHints = await probeEquirectHints(allFiles);
+      const runtimeAssetKind = (file: File) => {
+        const index = allFiles.indexOf(file);
+        return twinMediaToAssetKind(file, false, runtimeHints[index] ?? "unknown");
+      };
 
       const gps = await resolveGpsFix();
       const title = scanName.trim() || session.selection.spaceTitle;
@@ -282,10 +292,19 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
           projectId: session.selection.projectId,
           title,
           gps,
+          resolveAssetKind: runtimeAssetKind,
         },
         allFiles,
       );
-      await upload.enqueueJob("spz", quality);
+      const exteriorEligible =
+        allFiles.length >= 3 &&
+        allFiles.every((file) => runtimeAssetKind(file) === "drone_photo");
+      await upload.enqueueJob(
+        exteriorEligible ? "glb" : "spz",
+        quality,
+        capId ?? undefined,
+        exteriorEligible ? "photogrammetry_mesh" : "gaussian_splat",
+      );
       await persistRawRetention(capId, retainRaw);
       setJobQueued(true);
       setStep("status");
@@ -333,6 +352,11 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
         ...slatedropFiles,
       ];
       if (!allFiles.length) throw new Error("Add at least one source");
+      const runtimeHints = await probeEquirectHints(allFiles);
+      const runtimeAssetKind = (file: File) => {
+        const index = allFiles.indexOf(file);
+        return twinMediaToAssetKind(file, false, runtimeHints[index] ?? "unknown");
+      };
 
       const gps = await resolveGpsFix();
       const title = scanName.trim() || session.selection.spaceTitle;
@@ -342,6 +366,7 @@ export function useTwinSubmitReviewState(devPreview?: DevPreview) {
           projectId: session.selection.projectId,
           title,
           gps,
+          resolveAssetKind: runtimeAssetKind,
         },
         allFiles,
       );

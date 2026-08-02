@@ -12,9 +12,11 @@ export type TwinMediaCategory =
   | "other";
 
 /** Point-cloud / LiDAR scan formats. */
-const LIDAR_EXT = /\.(ply|las|laz|e57|pcd|xyz|pts)$/i;
+const LIDAR_EXT = /\.(ply|las|laz|e57|pcd|xyz|pts|s360depth)$/i;
 /** Textured-mesh / 3D-model formats. */
 const MESH_EXT = /\.(obj|glb|gltf|fbx|stl)$/i;
+/** Insta360 raw dual-fisheye containers. */
+const INSTA360_RAW_EXT = /\.(insv|insp)$/i;
 /**
  * Best-effort drone detection from the filename. Drone files arrive with no
  * reliable client-side metadata, so we match the common manufacturer naming
@@ -55,6 +57,7 @@ export function classifyTwinMedia(
   const is360 =
     hint === "equirect" ||
     hint === "dual_fisheye" ||
+    INSTA360_RAW_EXT.test(name) ||
     (hint === "unknown" &&
       (name.includes("360") || name.includes("pano") || name.includes("insta360")));
   if (is360 && isVideo) return "360_video";
@@ -69,6 +72,7 @@ export function twinMediaToAssetKind(
   forceDrone = false,
   hint: Twin360Hint = "unknown",
 ): string {
+  if (/\.s360depth$/i.test(file.name)) return "lidar_depth";
   const category = classifyTwinMedia(file, forceDrone, hint);
   switch (category) {
     case "360_video":

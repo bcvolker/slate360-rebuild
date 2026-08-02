@@ -77,7 +77,7 @@ export default async function SharedTwinPage({ params, searchParams }: Props) {
 
   let modelQuery = admin
     .from("digital_twin_models")
-    .select("id, title, model_format, storage_key, status, is_primary")
+    .select("id, title, model_format, storage_key, status, is_primary, quality_metrics, georef")
     .eq("space_id", space.id)
     .eq("status", "ready")
     .is("deleted_at", null);
@@ -124,6 +124,10 @@ export default async function SharedTwinPage({ params, searchParams }: Props) {
       modelId={model.id}
       viewerKind={viewerKind}
       shareToken={token}
+      qualityMetrics={
+        model.quality_metrics as Record<string, unknown> | null | undefined
+      }
+      georef={model.georef as Record<string, unknown> | null | undefined}
       canAnnotate={canAnnotate}
       canDownload={canDownload}
     />

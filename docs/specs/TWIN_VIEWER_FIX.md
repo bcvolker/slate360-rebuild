@@ -1,9 +1,10 @@
 # Spec: Twin Viewer — Centering, Orientation, Controls & Two Viewer Modes
 
-Status: **build-ready spec** (consolidates external T1+T2 passes + CEO controls/viewer-mode reqs).
-Verified repo state (2026-06): `splat-viewer-scene.tsx:144` still has `rotation={[Math.PI,0,0]}`;
-`twin-manifest.ts` / `splat-pca-orientation.ts` do **NOT** exist; `splat-bounds.ts` does 2nd–98th
-percentile bounds; `exterior-camera-frame.ts` frames via AABB. **No part of this is implemented yet.**
+Status: **steps 1–3 implemented; steps 4–6 pending** (repository audit 2026-07-19).
+`splat-viewer-scene.tsx` now applies a worker-baked manifest quaternion to a parent group,
+`twin-manifest.ts` and `splat-pca-orientation.ts` exist, and overview framing prefers worker
+manifest camera/bounds. The fallback still uses 2nd–98th percentile/AABB behavior; the
+bounding-sphere hardening and showcase/field product modes remain pending.
 
 Risk note: the viewer is CEO-gated and screenshots time out → **stage changes manifest-first and
 identity-default so legacy models render exactly as today (zero regression) and new twins get the
@@ -47,7 +48,9 @@ of covariance) → smallest-eigenvalue axis = floor normal (sign so mass is abov
   "recommended_orbit_camera":{"position":[x,y,z],"target":[x,y,z],"fov":55,"near":0.02,"far":94},
   "interior_entry_point":[cx,fy,cz] }
 ```
-Return `manifestKey` in the job callback. PCA done upstream → viewer is deterministic + instant.
+The worker uploads a sibling manifest next to the SPZ. The viewer's authenticated/share
+manifest routes derive that key from `digital_twin_models.storage_key`, so persisting
+`manifestKey` in the callback is not required.
 
 ## 3. T1 — Viewer read path (safe, incremental)
 1. On `url` change, `fetch` the manifest (fast, CDN-cached).
@@ -86,9 +89,10 @@ Collapsible panels keep the model unobstructed; on mobile they become bottom she
 
 ## 6. Build order (safe) — STATUS
 1. ✅ **Worker manifest** (T2) — DONE in code (`worker.py`: PLY-stride fix + `compute_splat_manifest`
-   + sibling `.manifest.json` upload). ⚠ **NOT DEPLOYED** — this sandbox has no Modal creds; run
+   + sibling `.manifest.json` upload). ⚠ **DEPLOYED APP LIKELY STALE** — Modal auth is available,
+   but the twin app predates major worker changes. Inspect app history, then run
    `cd workers/modal/twin-gaussian-splat && PYTHONIOENCODING=utf-8 python -m modal deploy worker.py`
-   from a machine with the token. Manifests attach to **newly-processed** twins only.
+   when the running revision is stale. Manifests attach to **newly-processed** twins only.
 2. ✅ **Viewer manifest read** — DONE (`splat-viewer-scene.tsx` parent group applies
    `correction_quaternion`, identity default; `/api/digital-twin/splat-manifest` delivery route;
    `lib/digital-twin/twin-manifest.ts`). Zero regression for legacy twins.

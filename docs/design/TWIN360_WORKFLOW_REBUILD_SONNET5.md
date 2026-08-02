@@ -334,3 +334,172 @@ supervised interior ceiling (TestFlight cycle continues), GLB mesh export.
 **Brian's 3 unblocks, all needed DAY 1:** (1) authorize the pycolmap image change,
 (2) cut the Codemagic build when C1's Swift lands, (3) confirm his DJI Mini 5 Pro
 set is uploaded for the E1 gate.
+
+---
+
+## 7. LOCKED 2026-08-01 — implementation drop verified & merged; PHASED EXECUTION BRIEFS
+
+### 7.0 What changed on 2026-08-01 (verified, not assumed)
+
+Another AI session implemented and DEPLOYED the core of tracks A/B/C/D but did not
+commit. The local session (merge-and-deploy owner) verified every claim against
+the working tree and live endpoints, ran the gates, and committed the drop:
+
+- **Exterior product worker LIVE**: `workers/modal/photogrammetry/product_worker.py`
+  at `https://bcvolker--reconstruct-exterior.modal.run` (401 without
+  `x-dispatch-token` — verified). Pinned COLMAP image, GPU SIFT, GPS spatial +
+  sequential guided matching, GPU BA, dense fusion, texturing → **GLB primary**,
+  plus orthomosaic, local DEM, QC JSON stored beside it. Georef is explicitly
+  `UNREGISTERED` until CRS/GCP lands (Phase 2).
+- **`photogrammetry_mesh` job type is REAL**: `src/trigger/twin-photogrammetry.ts`
+  (task `twin.photogrammetry_mesh`), dispatched by `app/api/digital-twin/jobs/route.ts`
+  (`job_type: "photogrammetry_mesh"`, `output_format: "glb"`). Trigger version
+  `20260801.1` deployed. `MODAL_PHOTOGRAMMETRY_ENDPOINT` set in Vercel prod.
+- **Interior pose-prior arm WIRED**: gaussian worker installs `pycolmap==4.1.1`,
+  accepts `alignBackend: "colmap_vanilla" | "colmap_pose_prior"`, adapts COLMAP
+  poses via `image.cam_from_world()` into Nerfstudio transforms, falls back to
+  vanilla on failure. Vanilla remains default until the Phase 3 gate passes.
+  Synthetic A/B: median camera-center error 4.95 m → 0.059 m (mechanism only).
+- **Ingest truth fixed**: `.insv`/`.insp`/`.s360depth` explicit; equirect probe on
+  all selected files with the measured hint AUTHORITATIVE; 360 flag + capture ID
+  survive single AND multipart uploads (the capture-ID threading bug from the
+  external review is fixed); duplicate LiDAR pose/PLY/depth assets fail loudly
+  (TWIN-002 closed).
+- **Native depth evidence**: ARKit capture retains optional per-frame depth +
+  confidence + paired RGB in versioned `S360DEPTH1` stream; worker validates and
+  reports `qualityMetrics.depthEvidence`. NOT yet used for training (Phase 3b).
+  Needs a Codemagic/TestFlight build to reach Brian's phone.
+- **Share viewer honesty**: `TwinQualityBadge.tsx` surfaces
+  VERIFIED / ESTIMATED / LOW CONFIDENCE / UNREGISTERED from delivered QC.
+- Tests green: review-media 4/4 + badge 4/4 (vitest), depth-evidence pass,
+  pose-priors 28/28, guard:architecture pass, production build pass.
+
+### 7.1 Corrections adopted from the 2026-08-01 external reviews
+
+1. **E1/E2 gate split** (replaces the single "E1 parity" gate): **E1 =
+   reconstruction correctness** — sparse+dense registration rate, reprojection
+   error, repeatability across reruns on the ASU/DJI set. **E2 = delivery** —
+   textured mesh quality, orthomosaic/DEM correctness, CRS/LAS export, QC report,
+   viewer tabs. Never claim "DroneDeploy parity" from E1 alone.
+2. **B2 fallback gate**: pose-prior promotes to default only on 3/3 reruns with
+   scale applied + Y_UP_MEASURED + PSNR ≥ baseline + visual pass. INTERIM
+   acceptance (2/3 + visual) allows continued A/B but NOT promotion.
+3. **Provenance in quality_metrics**: every job must record the COLMAP image
+   tag/git SHA and pycolmap/gsplat/nerfstudio wheel versions so reruns are
+   attributable. (Phase 1 adds this if missing.)
+4. **ffprobe stays out of the Vercel request path**: server-side probe fallback
+   runs in the worker (Modal) or Trigger task, never in a Next.js route.
+5. **`gps_priors.py` is phone/block georeferencing ONLY**; drone EXIF GPS is
+   consumed by COLMAP's spatial matcher directly. Do not cross-wire.
+6. **Explicit `source_role` routing**: GPS-bearing files are routed by the user's
+   declared source (drone picker / phone / 360), never silently classified as
+   drone because GPS exists.
+7. **Bounded prompts**: remaining work is 6 phases (below), each sized to one
+   AI session, each with its own gate. No open-ended "keep improving" prompts.
+
+### 7.2 ORIGINAL SOURCE RETRIEVAL — reprocessing old uploads (answering "how do we access the data from before submission")
+
+**Every file Brian ever uploaded for a twin is still in the pipeline.** Nothing
+needs re-uploading. Verified in prod 2026-08-01:
+
+| capture_id | date | contents | size |
+|---|---|---|---|
+| `04fada9b-c678-47d9-bc38-10572e920bcc` | 2026-07-08 | Insta360 X4 import (2 video rows — pre-dedup duplicate pair, pick distinct fingerprints) | 525.7 MB |
+| `8eb0367a-63ee-49d0-bde4-8757978cd0c4` | 2026-07-08 | phone walk: video + lidar_poses + ply_lidar + panorama_360 | 318.8 MB |
+| `e5d42523-4a94-4ed8-b7bb-ab9b4c395ad1` | 2026-07-04 | **PSNR-28.97 baseline capture** (video + LiDAR + poses) | 128.3 MB |
+| `245ec1ca-f90f-4c41-8691-460e6820ce08` | 2026-07-02 | video + LiDAR + poses | 41.1 MB |
+| `98ea6046-e3a5-45ac-b5c5-9cf9ff3945e6` | 2026-07-01 | video + LiDAR + poses | 38.9 MB |
+| `c4367891-7c24-4990-9d56-a5cd63b4ffe9` | 2026-06-30 | video + LiDAR + poses | 23.3 MB |
+
+**Where the bytes live**: each row in `digital_twin_capture_assets` has a
+`storage_key` — an object path in Cloudflare R2 bucket `slate360-storage`
+(org/space/capture-scoped). The DB row is the index; R2 holds the bytes. DB
+deletes do NOT remove blobs. Raw retention default is KEEP (`retainRaw=true`);
+only an explicit opt-out at submit lets the callback delete raw sources.
+
+**How to list what a capture contains** (from the local machine):
+```sql
+select id, asset_kind, file_name, file_size_bytes, storage_key, status
+from digital_twin_capture_assets
+where capture_id = '<CAPTURE_ID>' and deleted_at is null;
+```
+via `SUPABASE_TELEMETRY_DISABLED=1 npx supabase db query --linked -f <file.sql>`.
+
+**How to REPROCESS a capture through the improved pipeline** (three routes, all
+read the same original assets — no re-upload):
+1. **Product API** — `POST /api/digital-twin/jobs` with
+   `{ capture_id, job_type: "gaussian_splat" | "photogrammetry_mesh", quality,
+   align_backend? }`. This is what the app's Process button calls; enforces
+   entitlements/credits and the all-assets-ready gate.
+2. **User-facing reprocess routes** —
+   `app/api/digital-twin/models/[modelId]/reprocess` and
+   `captures/[id]/reprocess` (Slice 0/1 work, shipped).
+3. **Ops script (experiments, bypasses billing)** —
+   `node scripts/ops/dispatch-twin-experiment.mjs --capture-id <ID>
+   [--align-backend colmap_pose_prior] [--train-profile ...] [--publish]`,
+   which POSTs directly to the Modal endpoint with the dispatch token. Jobs run
+   detached on Modal; poll `digital_twin_processing_jobs` by id. R7.5 visual
+   gate applies before any publish.
+
+### 7.3 PHASED EXECUTION BRIEFS (each = one prompt to one AI platform)
+
+Working rule unchanged: web/remote sessions on branches; LOCAL session is the
+sole merge + deploy point. Every phase brief below is self-contained.
+
+**PHASE 1 — Acceptance runs on real data (local session; needs backend access).**
+Objective: turn the deployed pipeline from "code-verified" to "output-verified."
+Steps: (a) ASU/DJI exterior set → submit as `photogrammetry_mesh` via
+`POST /api/digital-twin/jobs` (or ops dispatch); require callback + GLB + ortho +
+DEM + QC JSON in R2 under the job model prefix; record E1 metrics (registered
+images ≥95%, reprojection <1.5 px, rerun repeatability) into the doc; compare
+against the DroneDeploy reference visually. (b) Interior A/B: rerun capture
+`e5d42523` once `colmap_vanilla`, 3× `colmap_pose_prior` via the ops script with
+`--align-backend`; gate per §7.1(2). (c) 360: reprocess capture `04fada9b` (X4
+import — use the deduped asset) and verify .insv detection → perspective
+extraction → registration → viewer output. (d) Add provenance fields §7.1(3) to
+`quality_metrics` if absent. Every publish passes the R7.5 browser screenshot
+gate; Brian's eyes are final. Deliverable: metrics table appended here.
+
+**PHASE 2 — Exterior E2 delivery (any session, branch).** Objective: make
+exterior outputs client-grade. Steps: CRS handling + optional GCP/checkpoint
+ingest in `product_worker.py` (lifts georef from UNREGISTERED per measured
+checkpoint RMSE); GeoTIFF ortho + LAS point export; surface ortho/DEM/QC as
+first-class tabs in the share viewer (`app/share/twin/[token]`) next to the 3D
+view; walkthrough tab = the existing splat/GLB viewer with guided waypoints.
+Gate: E2 checklist — mesh visual pass, ortho georef within stated RMSE, LAS opens
+in CloudCompare, QC JSON rendered in viewer. Local session deploys Modal after merge.
+
+**PHASE 3 — Interior promotion + depth supervision (local for deploys).**
+3a: if Phase 1(b) gate passes 3/3, flip `colmap_pose_prior` to default in the
+jobs route + Trigger payload; keep vanilla as automatic fallback. 3b: consume
+`S360DEPTH1` per-frame depth evidence as depth supervision in splatfacto training
+(worker already validates the stream; wire it into the dataparser + depth loss);
+gate = PSNR/visual improvement vs the 28.97 baseline on a NEW TestFlight capture.
+Blocked on: Codemagic build cut (Brian) so the phone actually records the stream.
+
+**PHASE 4 — M1 unified mobile Review & Sources screen (web session, branch).**
+The submit/upload UI is still the old slop (Brian verbatim: "files over eight
+megabytes are resumable multi port upload…" must die). Build the one-decision
+Review screen per §2 M1: source list with per-file classification chips
+(phone/360/drone/LiDAR — user-correctable, feeds `source_role`), credit estimate,
+single Process CTA, no auto-process, upload progress integrated. Graphite Glass
+tokens only; ground-up rebuild, keep nothing. Gate: bug-hunter pass + Brian
+on-device.
+
+**PHASE 5 — Studio: crop/edit/publish (D1-D4, web session, branch).** Desktop
+editor: crop box, recenter, upright, delete-splats brush, then bake (worker
+crop/recenter/scale params already exist — expose them), export (spz/ply/GLB),
+square-footage from floor plan. Publish = share token + walkthrough tab. Gate:
+edit → bake → share round-trip on a real model.
+
+**PHASE 6 — Multi-source federation (LAST; do not start until 1-5 stable).**
+Combine phone + 360 + drone + LiDAR of the same site into one scene (register
+360-extracted perspectives and drone set into a common COLMAP model, merge splat
++ mesh). Months-scale; never promised to users until proven on Brian's own site
+captures.
+
+**Deploy matrix (unchanged, load-bearing):** `workers/modal/**` →
+`PYTHONIOENCODING=utf-8 python -m modal deploy <worker>.py` from its dir ·
+`src/trigger/**` → `PYTHONIOENCODING=utf-8 npx trigger.dev@4.4.6 deploy` (CLI
+pinned; @latest refuses the SDK) · app code → git push (Vercel) · iOS Swift →
+Codemagic TestFlight (Brian cuts) · migrations BEFORE Vercel push.

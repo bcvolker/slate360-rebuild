@@ -33,7 +33,12 @@ async function markJobFailed(
 export const twinGaussianSplatTask = task({
   id: "twin.gaussian_splat",
   maxDuration: 120,
-  run: async (payload: { jobId: string; quality?: string; forceColmap?: boolean }) => {
+  run: async (payload: {
+    jobId: string;
+    quality?: string;
+    forceColmap?: boolean;
+    alignBackend?: "colmap_vanilla" | "colmap_pose_prior";
+  }) => {
     const { jobId } = payload;
     const quality = payload.quality === "high" ? "high" : "standard";
     // Diagnostic-only option (see scripts/ops/diagnose-twin-poses.mjs R3): skips the
@@ -58,14 +63,16 @@ export const twinGaussianSplatTask = task({
 
     const { data: assets, error: assetsError } = await supabase
       .from("digital_twin_capture_assets")
-      .select("id, storage_key, asset_kind")
+      .select("id, storage_key, asset_kind, status")
       .in("id", job.input_asset_ids ?? [])
       .eq("org_id", job.org_id)
       .is("deleted_at", null);
 
     if (assetsError) throw new Error(assetsError.message);
 
-    const allReadyAssets = (assets ?? []).filter((row) => row.storage_key);
+    const allReadyAssets = (assets ?? []).filter(
+      (row) => row.storage_key && row.status === "ready",
+    );
     if (!allReadyAssets.length) {
       await markJobFailed(supabase, jobId, "No ready assets with storage keys");
       return { failed: true, reason: "missing_storage_keys" };
@@ -77,22 +84,40 @@ export const twinGaussianSplatTask = task({
       "photo", "video", "panorama_360", "drone_photo", "drone_video",
     ]);
     const mediaAssets = allReadyAssets.filter((row) => MEDIA_KINDS.has(row.asset_kind ?? ""));
-    const posesAsset = allReadyAssets.find((row) => row.asset_kind === "lidar_poses");
-    const plyAsset = allReadyAssets.find((row) => row.asset_kind === "ply_lidar");
+    const posesAssets = allReadyAssets.filter((row) => row.asset_kind === "lidar_poses");
+    const plyAssets = allReadyAssets.filter((row) => row.asset_kind === "ply_lidar");
+    const depthAssets = allReadyAssets.filter((row) => row.asset_kind === "lidar_depth");
+    if (posesAssets.length > 1 || plyAssets.length > 1 || depthAssets.length > 1) {
+      const message =
+        "Multiple LiDAR evidence assets are present, but multi-clip merge is not enabled yet; " +
+        "refusing to silently process only the first asset.";
+      await markJobFailed(supabase, jobId, message);
+      return { failed: true, reason: "multiple_lidar_assets_not_supported" };
+    }
+    const posesAsset = posesAssets[0];
+    const plyAsset = plyAssets[0];
 
     if (!mediaAssets.length) {
       await markJobFailed(supabase, jobId, "No photo or video assets ready for processing");
       return { failed: true, reason: "no_media_assets" };
     }
 
-    await supabase
+    const { data: claimedJob, error: claimError } = await supabase
       .from("digital_twin_processing_jobs")
       .update({
         status: "processing",
         started_at: new Date().toISOString(),
         progress_pct: 5,
       })
-      .eq("id", jobId);
+      .eq("id", jobId)
+      .eq("status", "queued")
+      .select("id")
+      .maybeSingle();
+    if (claimError) throw new Error(claimError.message);
+    if (!claimedJob) {
+      console.log(`[twin.gaussian_splat] Job ${jobId} was claimed by another run`);
+      return { skipped: true, status: "already_claimed" };
+    }
 
     const dispatchPayload = {
       jobId: job.id,
@@ -107,7 +132,9 @@ export const twinGaussianSplatTask = task({
       newAssetIds: mediaAssets.map((row) => row.id),
       lidarPosesKey: posesAsset?.storage_key ?? null,
       lidarPlyKey: plyAsset?.storage_key ?? null,
+      lidarDepthKey: depthAssets[0]?.storage_key ?? null,
       forceColmap,
+      alignBackend: payload.alignBackend ?? null,
     };
 
     try {

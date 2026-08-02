@@ -22,9 +22,9 @@ const KIND_SURCHARGE: Record<string, number> = {
 /**
  * Computes processing credits for newly processed capture assets (incremental billing).
  *
- * C5: output format no longer affects price — the API only ever dispatches
- * spz (ply/glb output_format requests are rejected before reaching a job),
- * so a per-format multiplier here would price something that never ships.
+ * Output format does not affect price — Gaussian jobs emit spz and exterior
+ * photogrammetry jobs emit glb, while the cost is driven by source bytes and
+ * sensor workload.
  */
 export function computeTwinProcessingCredits(assets: TwinCreditAsset[]): number {
   if (!assets.length) return 0;

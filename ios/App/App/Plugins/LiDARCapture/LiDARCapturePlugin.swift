@@ -199,8 +199,9 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
         }
         let plyUrl = (manifest["plyUri"] as? String).flatMap(URL.init(string:))
         let posesUrl = (manifest["posesUri"] as? String).flatMap(URL.init(string:))
+        let depthEvidenceUrl = (manifest["depthEvidenceUri"] as? String).flatMap(URL.init(string:))
 
-        guard !videoFiles.isEmpty || !photoFiles.isEmpty || plyUrl != nil || posesUrl != nil else {
+        guard !videoFiles.isEmpty || !photoFiles.isEmpty || plyUrl != nil || posesUrl != nil || depthEvidenceUrl != nil else {
             resolveCapture(["cancelled": false, "uploadError": "No capture files were produced."])
             return
         }
@@ -233,6 +234,14 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                         url: url, filename: "lidar_poses.json",
                         rawContentType: "application/json", assetKind: "lidar_poses"))
                 }
+                if let url = depthEvidenceUrl {
+                    entries.append(.init(
+                        url: url,
+                        filename: "lidar_depth.s360depth",
+                        contentType: "application/octet-stream",
+                        assetKind: "lidar_depth"
+                    ))
+                }
                 // Pass spaceId through even if empty — the uploader self-heals by creating a
                 // quick-scan workspace, so a stale web bundle can't strand the capture.
                 let uploader = TwinUploader(
@@ -264,6 +273,7 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                     result["photoUris"] = NSNull()
                     result["plyUri"] = NSNull()
                     result["posesUri"] = NSNull()
+                    result["depthEvidenceUri"] = NSNull()
                     // Drive the WebView to the per-capture submit funnel (loads by captureId,
                     // so it survives a fresh WebView load with no in-memory web state). This is
                     // the "scan ready → cost → process → status → view" screen — NOT the generic

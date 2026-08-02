@@ -13,6 +13,8 @@ import { useTwinCreditEstimate } from "@/hooks/useTwinCreditEstimate";
 import { CreateTwinSpaceForm } from "./CreateTwinSpaceForm";
 import { TwinCreditGate } from "./TwinCreditGate";
 import { TwinJobStatus } from "./TwinJobStatus";
+import { useEquirectHints, hintFor } from "./useEquirectHints";
+import { twinMediaToAssetKind } from "@/lib/digital-twin/twin-review-media";
 
 type Props = {
   spaces: HubTwin[];
@@ -53,6 +55,19 @@ export function TwinUploadPanel({
     initialProjectId ?? scopedSpaces[0]?.projectId ?? scopedProjects[0]?.id ?? "",
   );
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const equirectHints = useEquirectHints(selectedFiles);
+  const resolveAssetKind = useCallback(
+    (file: File) => twinMediaToAssetKind(file, false, hintFor(equirectHints, file)),
+    [equirectHints],
+  );
+  const exteriorEligible = useMemo(
+    () =>
+      selectedFiles.length >= 3 &&
+      selectedFiles.every(
+        (file) => resolveAssetKind(file) === "drone_photo",
+      ),
+    [resolveAssetKind, selectedFiles],
+  );
 
   useEffect(() => {
     setLocalSpaces(scopedSpaces);
@@ -114,6 +129,7 @@ export function TwinUploadPanel({
           captureId: captureId ?? initialCaptureId ?? undefined,
           title: selectedSpace?.title ?? "Phone upload",
           gps,
+          resolveAssetKind,
         },
         selectedFiles,
       );
@@ -121,16 +137,35 @@ export function TwinUploadPanel({
     } catch (err) {
       setStatusMessage(err instanceof Error ? err.message : "Upload failed");
     }
-  }, [captureId, initialCaptureId, projectId, resolveGpsFix, selectedFiles, selectedSpace?.title, spaceId, startUpload]);
+  }, [
+    captureId,
+    initialCaptureId,
+    projectId,
+    resolveAssetKind,
+    resolveGpsFix,
+    selectedFiles,
+    selectedSpace?.title,
+    spaceId,
+    startUpload,
+  ]);
 
   const handleEnqueue = useCallback(async () => {
     try {
-      const result = await enqueueJob("spz");
-      setStatusMessage(`Processing job queued (${result.job.id})`);
+      const result = await enqueueJob(
+        exteriorEligible ? "glb" : "spz",
+        "standard",
+        undefined,
+        exteriorEligible ? "photogrammetry_mesh" : "gaussian_splat",
+      );
+      setStatusMessage(
+        exteriorEligible
+          ? `Exterior photogrammetry queued (${result.job.id})`
+          : `Processing job queued (${result.job.id})`,
+      );
     } catch (err) {
       setStatusMessage(err instanceof Error ? err.message : "Failed to queue job");
     }
-  }, [enqueueJob]);
+  }, [enqueueJob, exteriorEligible]);
 
   const allComplete = files.length > 0 && files.every((row) => row.status === "complete");
   const { estimate: creditEstimate } = useTwinCreditEstimate(captureId, allComplete);

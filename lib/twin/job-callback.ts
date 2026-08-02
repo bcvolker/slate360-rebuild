@@ -43,6 +43,7 @@ export type TwinWorkerCallbackPayload = {
   errorLog?: string;
   costCredits?: number;
   bounds?: Record<string, unknown>;
+  georef?: Record<string, unknown>;
   qualityMetrics?: Record<string, unknown>;
   floorplanKey?: string | null;
 };
@@ -195,6 +196,7 @@ export async function handleTwinJobCallback(
       storage_key: body.outputKey,
       file_size_bytes: fileSizeBytes,
       bounds: body.bounds ?? {},
+      georef: body.georef ?? {},
       quality_metrics: qualityMetrics,
       is_primary: isPrimary,
       status: "ready",

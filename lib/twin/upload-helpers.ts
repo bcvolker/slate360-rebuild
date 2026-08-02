@@ -43,6 +43,10 @@ export function inferTwinAssetKind(
   const mime = contentType.toLowerCase();
   const ext = filename.split(".").pop()?.toLowerCase() ?? "";
 
+  // Insta360 RAW containers are dual-fisheye media even when browsers report
+  // them as generic video/octet-stream. This must run before the generic
+  // video branch or the worker will receive is360=false.
+  if (ext === "insv" || ext === "insp") return "panorama_360";
   if (mime.startsWith("video/")) return "video";
   if (mime.includes("ply") || ["ply", "las", "laz", "e57", "pcd", "xyz", "pts"].includes(ext)) {
     return "ply_lidar";
@@ -51,8 +55,9 @@ export function inferTwinAssetKind(
   if (mime.includes("kml") || ext === "kml") return "geospatial_kml";
   if (mime.includes("gpx") || ext === "gpx") return "geospatial_gpx";
   if (mime.includes("geojson") || ext === "geojson") return "geospatial_geojson";
-  if (mime.includes("panorama") || ext === "insp") return "panorama_360";
+  if (mime.includes("panorama")) return "panorama_360";
   if (mime.startsWith("image/")) return "photo";
+  if (ext === "s360depth") return "lidar_depth";
   // ARKit pose JSON exported by the LiDAR plugin (filename: lidar_poses.json)
   if (ext === "json" && filename.toLowerCase().includes("poses")) return "lidar_poses";
   return "other";

@@ -20,9 +20,15 @@ import modal
 app = modal.App("slate360-photogrammetry")
 vol = modal.Volume.from_name("asu-rgb-flights", create_if_missing=True)
 
+# Docker Hub's rolling `latest` tag invalidates reconstruction comparisons.
+# Keep the resolved tag and digest together so a deliberate solver upgrade is
+# reviewable rather than silently changing an A/B arm.
+COLMAP_IMAGE = "colmap/colmap:20260729.7675@sha256:b9ab6c240ed8198d8b65fe3e23f16606c568e33e1ba865ca9d16429594e8c6b5"
+
 image = (
-    modal.Image.from_registry("colmap/colmap:latest", add_python="3.11")
+    modal.Image.from_registry(COLMAP_IMAGE, add_python="3.11")
     .pip_install("numpy", "opencv-python-headless", "pillow")
+    .pip_install("pycolmap==4.1.1")
 )
 
 WORK = "/data/work"
@@ -248,11 +254,9 @@ def align(model: str = "0", max_error: float = 3.0):
 def _log_colmap_version() -> None:
     """Print the COLMAP build actually running.
 
-    The image is pinned to `colmap/colmap:latest`, which is NOT reproducible — an upstream
-    push silently changes the solver under a run whose results we are comparing across weeks.
-    Pinning the tag is the real fix (see TWIN360_METHOD_AND_ACCURACY.md); until then, every
-    stage records which build produced its numbers so a silent upgrade is at least visible in
-    the logs rather than showing up as an unexplained quality change.
+    The image is pinned by tag and digest in `COLMAP_IMAGE`. Every stage still
+    records the actual build so a deliberate image upgrade remains visible in
+    benchmark artifacts.
     """
     import subprocess
     r = subprocess.run("colmap -h", shell=True, capture_output=True, text=True)

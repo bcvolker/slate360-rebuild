@@ -19,6 +19,26 @@ vol = modal.Volume.from_name("asu-rgb-flights")
 image = modal.Image.from_registry("opendronemap/odm:3.5.4", add_python="3.11")
 
 
+@app.function(image=image, timeout=600)
+def diag():
+    import glob
+    import os
+    import subprocess
+    for py in ["/usr/bin/python3", "/usr/local/bin/python3",
+               "/code/venv/bin/python3", "/venv/bin/python3"]:
+        if os.path.exists(py):
+            r = subprocess.run([py, "-c", "import dateutil, sys; print(sys.version)"],
+                               capture_output=True, text=True,
+                               env={"PATH": "/usr/bin"})
+            print(py, "->", (r.stdout or r.stderr).strip()[:90], flush=True)
+    print("code dir:", sorted(os.listdir("/code"))[:20], flush=True)
+    print("venvs:", glob.glob("/*/venv") + glob.glob("/code/*env*"), flush=True)
+    ep = "/code/entrypoint.sh" if os.path.exists("/code/entrypoint.sh") else None
+    for cand in ["/entrypoint.sh", "/code/entrypoint.sh", "/code/start.sh"]:
+        if os.path.exists(cand):
+            print("entrypoint", cand, ":", open(cand).read()[:400], flush=True)
+
+
 @app.function(image=image, volumes={"/data": vol}, timeout=23 * 3600,
               cpu=16, memory=98304)
 def run_odm(ortho_cm: float = 1.0):
@@ -42,8 +62,13 @@ def run_odm(ortho_cm: float = 1.0):
     n = len(os.listdir(imgdir))
     print(f"images staged: {n}", flush=True)
 
+    # ODM's own interpreter — modal's add_python shadows `python3` on PATH
+    # and lacks ODM's deps (dateutil crash). Use the container native one
+    # and put /usr/bin first for ODM's internal subprocesses.
+    env = dict(os.environ)
+    env["PATH"] = "/usr/bin:" + env.get("PATH", "")
     cmd = [
-        "python3", "/code/run.py",
+        "/usr/bin/python3", "/code/run.py",
         "--project-path", "/data/work/odm", "asu",
         "--orthophoto-resolution", str(ortho_cm),
         "--dsm",
@@ -58,7 +83,7 @@ def run_odm(ortho_cm: float = 1.0):
     ]
     print("$ " + " ".join(cmd), flush=True)
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE,
-                         stderr=subprocess.STDOUT, text=True)
+                         stderr=subprocess.STDOUT, text=True, env=env)
     for line in p.stdout:
         sys.stdout.write(line)
         sys.stdout.flush()

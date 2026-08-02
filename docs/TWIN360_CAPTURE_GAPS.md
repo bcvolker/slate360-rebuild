@@ -37,10 +37,38 @@ truth; let the COLMAP/GLOMAP solve be authoritative for geometry.
 | TWIN-008 | Splatfacto seed verification: log `ply_seed_requested/loaded/point_count`, `training_init_mode`, `ply_seed_error`. Don't cut iterations just because a PLY exists — verify it loaded. | P2 | No |
 | TWIN-009 | Loop-closure pose export: read FINAL anchor transforms at export (ARKit retro-corrects the world frame after capture); current path may freeze poses at capture time. | P1 | Verify against `TWIN_NATIVE_CAPTURE_PLAN.md` |
 
+### Repository audit status (2026-07-19)
+
+These statuses override the older “open by default” interpretation of the table above.
+Do not rebuild code that is already present; complete the remaining implementation and
+acceptance evidence instead.
+
+- **TWIN-001 — CODE PRESENT / NEEDS TESTFLIGHT PROOF.**
+  `TwinARKitCaptureViewController` owns one `ARSession`, rolls one `AVAssetWriter`
+  per clip, preserves the accumulated point cloud/poses, and exports per-clip
+  index/video/start/duration metadata. Verify a three-clip capture stays in one
+  world frame and uploads every video before closing the task.
+- **TWIN-002 — CONTRACT AUDIT REQUIRED BEFORE CODE.**
+  Trigger still selects one `ply_lidar` and one `lidar_poses` row, but the current
+  native exporter intentionally creates one accumulated PLY/poses pair for all clips.
+  Query real multi-clip asset rows first. Only implement arrays if multiple paired
+  LiDAR assets actually exist; pair them with `arSessionId`/`segmentIndex` metadata
+  rather than sending two unrelated key arrays.
+- **TWIN-003 — PARTIAL.**
+  Per-clip auto-finalization exists, but the default is still 240 seconds and there
+  is no one-time warning near 68–90 seconds. Change the approved default to 120
+  seconds, add the warning, and prove finalization preserves the clip/session.
+- **TWIN-004 — PARTIAL.**
+  `.serious` warns and `.critical` finalizes, but serious-state capture still runs
+  at roughly 30 fps and `systemPressureState` is not handled. Add safe 24 fps
+  throttling (or document why ARKit cannot support it), pressure handling, and
+  physical-device thermal verification.
+
 ## Settling open product values (panel-backed defaults)
 
-- **Clip length:** 60–90s sweet spot, 120s soft cap, 180s hard auto-stop. (Replaces the
-  current 480s safety guard as the *quality* target; keep 480s only as a crash backstop.)
+- **Clip length:** 60–90s sweet spot, warn near 68–90s, 120s approved auto-finalize.
+  The current native default is 240s and must be reduced; retain a separate higher-level
+  crash watchdog only if it cannot override the 120s quality cap.
 - **Clip-to-clip overlap:** 30–50% spatial (re-scan the last doorway/corner ~10–20s);
   hard floor ~20% before registration fails.
 - **Walk speed:** ~0.1 m/s, smooth; lock AE/WB/focus before recording; HDR off; landscape.

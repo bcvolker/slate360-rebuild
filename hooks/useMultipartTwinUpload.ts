@@ -17,6 +17,8 @@ export type TwinGpsFix = {
   accuracy?: number;
 };
 
+export type TwinJobType = "gaussian_splat" | "photogrammetry_mesh";
+
 export type TwinUploadTarget = {
   spaceId: string;
   projectId: string;
@@ -144,7 +146,16 @@ export function useMultipartTwinUpload() {
 
         for (const file of singleCandidates) {
           if (abortedRef.current) break;
-          await runSingleTwinUpload(ctx, target, file, selected.indexOf(file), selected.indexOf(file));
+          const result = await runSingleTwinUpload(
+            ctx,
+            target,
+            file,
+            selected.indexOf(file),
+            selected.indexOf(file),
+            resolvedCaptureId || undefined,
+          );
+          resolvedCaptureId = result.captureId;
+          setCaptureId(result.captureId);
         }
 
         setFiles((prev) => {
@@ -206,6 +217,7 @@ export function useMultipartTwinUpload() {
       outputFormat: "spz" | "ply" | "glb" = "spz",
       quality: TwinProcessingQuality = "standard",
       captureIdOverride?: string,
+      jobType: TwinJobType = "gaussian_splat",
     ) => {
       // The native iOS path uploads inside the plugin and owns the captureId, so it
       // passes it in directly rather than through the web hook's startUpload.
@@ -213,7 +225,7 @@ export function useMultipartTwinUpload() {
       if (!cid) throw new Error("No capture id — upload assets first");
       return twinApiPost<{ job: { id: string; status: string; progress_pct: number } }>(
         "/api/digital-twin/jobs",
-        { capture_id: cid, output_format: outputFormat, quality },
+        { capture_id: cid, output_format: outputFormat, quality, job_type: jobType },
       );
     },
     [captureId],
