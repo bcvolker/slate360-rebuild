@@ -654,3 +654,57 @@ pose-prior smokes completed with zero SIGABRTs.
   rejection message, web lidar_poses.json classification, derivative-key
   cleanup on model delete, publish pointer transaction, R2-cleanup lease.
 - `lidar_prior_asset_id` honored-or-dropped decision.
+
+### 7.7 LOCKED 2026-08-02 (evening) — DroneDeploy reference target, photo explorer, LiDAR track, A/B verdict
+
+**Reference target (Brian's screenshots, DroneDeploy "Sun Deck" project):** the
+530-photo Mavic mission produced a clean textured 3D mesh — THE quality bar for
+the exterior track — plus the feature to replicate: **camera-position markers**
+(teal frustums floating around the model at each shot location; click one →
+view that high-res source photo). We already have everything needed: COLMAP
+solves per-photo poses during reconstruction, and every original photo lives in
+R2. The worker just has to emit a `cameras.json` derivative (per registered
+photo: position, orientation, asset id) and the viewer renders markers + a
+click-to-photo panel. This is the **Photo Explorer** feature, added to the
+viewer roadmap (branch prompt available).
+
+**Pose-prior A/B verdict (Phase 3a): DO NOT PROMOTE.** Evidence: draft trio
+completed at PSNR 17.8–19.7 (crash cured — that was the point); the standard
+run that reached the publish gate was rejected as below quality; vanilla on the
+same capture scores 25.53. The arm stays available for experiments
+(`--align-backend`), default remains `colmap_vanilla`. Revisit only with a
+build-time-baked vocab tree (loop detection restored) + tuned prior weights —
+folded into Phase 3 as a research item, not a blocker. One confirmation run
+(`a7b687c0`) in flight for the record.
+
+**Credit incident:** acceptance runs drained the CEO org balance to 1 credit —
+two A/B runs finished GPU work but their completion callbacks were rejected
+("Insufficient credits"). Balance restored +1000 via idempotent ledger entry
+(`ops:acceptance-topup-20260802`). Lesson recorded: ops experiment dispatches
+charge org credits at callback; top up before big acceptance matrices. (The
+"charge from input_asset_ids + reservation" billing slice in §7.6 remains the
+real fix, pending Brian's authorization.)
+
+**NEW TRACK L — terrestrial LiDAR scan tab (architect request, ASU deck):**
+goal: upload LAS/LAZ/E57 from a handheld or tripod scanner → cloud-process →
+a separate interactive viewer tab with point cloud + flatness/slope analysis.
+- L1 (worker): new `lidar_scan` asset kind (unblock `.las/.laz/.e57` from
+  `UNUSABLE_SOURCE_EXT` for this explicit source role only); CPU Modal worker
+  using PDAL/Open3D: merge/register multiple scans, optional alignment to the
+  RTK/photogrammetry model, then emit (a) web-streamable point-cloud tiles
+  (Potree-style octree or 3D Tiles), (b) analysis derivatives: best-fit-plane
+  deviation heatmap (flatness), slope map, elevation contours, and
+  cross-section profiles along user axes.
+- L2 (viewer): "LiDAR" tab beside 3D/Ortho: point-cloud navigation, toggles
+  for deviation-heatmap / slope coloring, a section tool (drag a line → see
+  the profile), and click-to-measure. Reuses the share-token plumbing.
+- Scanner note: any scanner exporting LAS/LAZ/E57 works — the pipeline is
+  format-first, vendor-agnostic. RTK drone data from the same site lets the
+  scan snap into the same coordinate frame.
+
+**UPDATED PROMPT BUDGET:** Phase 4 M1 mobile rebuild (1, prompt already
+delivered, START NOW) · Photo Explorer viewer feature (1, branch) · Phase 3b
+depth-supervised training (1, after TestFlight build) · Phase 5 studio (1–2) ·
+Track L LiDAR tab (2: L1 worker, L2 viewer) · Local-session tasks (no prompts):
+Phase 2 review/merge/deploy once the exterior run completes + E2 acceptance,
+billing slice (needs Brian auth). **Total: 6–7 prompts.**
