@@ -26,6 +26,8 @@ from typing import Any
 
 import modal
 
+from cameras_sidecar import emit_cameras_sidecar
+
 try:
     from fastapi import Header
 except ModuleNotFoundError:  # pragma: no cover - only the web image serves HTTP
@@ -55,6 +57,7 @@ image = (
         "pycolmap==4.1.1",
         "requests==2.32.3",
     )
+    .add_local_python_source("cameras_sidecar")
 )
 web_image = modal.Image.debian_slim(python_version="3.11").pip_install("fastapi[standard]")
 
@@ -593,6 +596,16 @@ def _run_exterior(payload: dict[str, Any], root: Path) -> dict[str, Any]:
     max_image_size = 2400 if payload.get("quality") == "high" else 1600
     _set_stage(job_id, "align", 20)
     model, sparse_metrics = _run_sparse(images, root, max_image_size)
+    # Photo Explorer: emit per-photo camera poses in the GLB's model frame.
+    # Non-fatal — a missing sidecar just hides the layer in the viewer.
+    new_asset_ids = [str(a) for a in payload.get("newAssetIds", [])]
+    try:
+        cameras_metrics = emit_cameras_sidecar(
+            model, source_keys, new_asset_ids, root / "cameras.json"
+        )
+        sparse_metrics["cameras"] = cameras_metrics
+    except Exception as exc:  # pragma: no cover - depends on Modal's pycolmap build
+        sparse_metrics["camerasError"] = f"{type(exc).__name__}: {exc}"
     _set_stage(job_id, "train", 45)
     fused = _run_dense(images, model, root, max_image_size)
     _set_stage(job_id, "optimize", 75)
@@ -631,11 +644,16 @@ def _run_exterior(payload: dict[str, Any], root: Path) -> dict[str, Any]:
         "orthomosaic": f"{prefix}.orthomosaic.jpg",
         "dem": f"{prefix}.dem.npz",
         "qc": f"{prefix}.qc.json",
+        "cameras": f"{prefix}.cameras.json",
     }
     _upload(s3, bucket, glb, keys["glb"], "model/gltf-binary")
     _upload(s3, bucket, Path(ortho_metrics["orthomosaic"]), keys["orthomosaic"], "image/jpeg")
     _upload(s3, bucket, root / "ortho" / "dem.npz", keys["dem"], "application/octet-stream")
     _upload(s3, bucket, qc_path, keys["qc"], "application/json")
+    if (root / "cameras.json").is_file():
+        _upload(s3, bucket, root / "cameras.json", keys["cameras"], "application/json")
+    else:
+        keys.pop("cameras", None)
     return {
         "outputKey": keys["glb"],
         "fileSizeBytes": glb.stat().st_size,
