@@ -503,3 +503,47 @@ captures.
 `src/trigger/**` → `PYTHONIOENCODING=utf-8 npx trigger.dev@4.4.6 deploy` (CLI
 pinned; @latest refuses the SDK) · app code → git push (Vercel) · iOS Swift →
 Codemagic TestFlight (Brian cuts) · migrations BEFORE Vercel push.
+
+### 7.4 LOCKED 2026-08-01 (second pass) — corrections, test data, and delegation
+
+**Corrections adopted (external verifier round 2, all claims re-verified locally):**
+1. **The drone is a DJI MAVIC 3 ENTERPRISE with RTK** (not a Mini 5 Pro). Each
+   mission folder carries a `.MRK` RTK positioning/timestamp file — survey-grade
+   antenna positions. Phase 2 must parse MRK: it is the path from UNREGISTERED →
+   VERIFIED georef (measured checkpoint RMSE), no GCP targets required.
+2. **Test data locations (on Brian's machine):**
+   - `C:\ASU-Survey\DJI_202607150603_0015` — 380 JPG + MRK (mission 015)
+   - `C:\ASU-Survey\DJI_202607150618_0016` — 407 JPG + MRK (mission 016)
+   - `C:\ASU-Survey\DJI_202607150603_015` / `..._016` — duplicate copies, ignore
+   - `C:\ASU-Survey` root also holds `_D.JPG` singles, 102MEDIA/103MEDIA, Extra/, Low/
+   - `C:\Users\bcvol\OneDrive\Desktop\Sun Deck` — THERMAL only; out of twin scope
+     (belongs to Thermal Studio).
+3. **Per-phase commits from now on**: the 2026-08-01 drop was one 38-file commit;
+   future phases commit per-slice so regressions bisect cleanly.
+4. **Honesty line for Phase 1**: the exterior worker is code-verified, NOT
+   output-verified — the first real `photogrammetry_mesh` dispatch on the Mavic
+   set is the moment of truth; budget a day for real-data bugs and report them
+   rather than silently patching the worker.
+5. **ODM concern CLOSED**: `src/trigger/twin-photogrammetry.ts` references only
+   `MODAL_PHOTOGRAMMETRY_ENDPOINT`; zero odm_runner references (grep-verified).
+6. **Provenance**: record the COLMAP image tag AND git SHA plus
+   pycolmap/gsplat/nerfstudio wheel versions in `quality_metrics` (a pinned tag
+   can be silently rebuilt; the SHA is the reproducibility key).
+
+**Delegation model (locked):** the LOCAL session remains sole merge + deploy +
+gate owner and makes all promotion decisions. Other AI platforms execute phases
+on branches (or, for the acceptance runner, dispatch-only ops under guardrails:
+no main commits, no deploys, no env changes, no default flips, results to
+`docs/ops/PHASE1_ACCEPTANCE_REPORT.md`). GPU dispatches cost real money — the
+acceptance runner is capped at 2 exterior + 4 interior + 1 360 runs without
+explicit approval. Copy-paste phase prompts are maintained in chat by the local
+session; this section records the assignment map:
+
+| Phase | What it accomplishes | Owner |
+|---|---|---|
+| 1 — Acceptance runs | Turns "code-verified" into "output-verified": real Mavic 3E dispatch (E1 metrics), pose-prior A/B ×3 on the 28.97 capture, X4 360 reprocess; metrics table + R7.5 screenshots | Verifier AI (local access) under guardrails, or local session |
+| 2 — Exterior delivery (E2) | MRK/RTK georef + checkpoint RMSE, GeoTIFF/LAS export, ortho/DEM/QC + walkthrough tabs in share viewer | Any AI, branch `claude/e2-exterior-delivery` |
+| 3 — Interior promotion + depth | Flip pose-prior default IF 3/3 gate passes (local decision); wire S360DEPTH1 depth supervision into training | LOCAL only (deploys + promotion) |
+| 4 — M1 mobile Review & Sources | Ground-up one-decision submit flow; kills upload slop; source_role chips; credit estimate; no auto-process | Any AI, branch `claude/m1-review-sources` |
+| 5 — Studio crop/edit/publish | Desktop crop/recenter/upright/delete → bake → export → share round-trip | Any AI, branch, after Phase 1 |
+| 6 — Federation | Multi-source single scene | LAST; not started |
