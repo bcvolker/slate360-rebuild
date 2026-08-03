@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { Camera, PerspectiveCamera } from "three";
 import type { LidarManifest, LidarNode } from "@/lib/digital-twin/lidar-contract";
 
 export type LidarPointData = {
@@ -10,85 +11,102 @@ export type LidarPointData = {
   slopes: Float32Array;
 };
 
-type State = {
+type HierarchyState = {
   manifest: LidarManifest | null;
+  loading: boolean;
+  error: string | null;
+};
+
+type TileState = {
   points: LidarPointData | null;
   loading: boolean;
   error: string | null;
 };
 
 const MAX_VIEWER_POINTS = 1_500_000;
+const MAX_SELECTED_NODES = 36;
 
-type PntsAttribute = { byteOffset?: number };
-type PntsFeatureTable = {
-  POINTS_LENGTH: number;
-  POSITION: PntsAttribute;
-  RGB?: PntsAttribute;
-  BATCH_ID?: PntsAttribute;
-  RTC_CENTER?: number[];
-};
-type PntsBatchAttribute = { byteOffset?: number };
-
-function readJson<T>(buffer: ArrayBuffer, offset: number, length: number): T {
-  return JSON.parse(new TextDecoder().decode(new Uint8Array(buffer, offset, length))) as T;
+function nodeCenter(node: LidarNode): [number, number, number] {
+  return [
+    (node.bounds.min[0] + node.bounds.max[0]) / 2,
+    (node.bounds.min[1] + node.bounds.max[1]) / 2,
+    (node.bounds.min[2] + node.bounds.max[2]) / 2,
+  ];
 }
 
-function decodeNode(buffer: ArrayBuffer, node: LidarNode): LidarPointData {
+function nodeRadius(node: LidarNode): number {
+  return Math.max(
+    node.bounds.max[0] - node.bounds.min[0],
+    node.bounds.max[1] - node.bounds.min[1],
+    node.bounds.max[2] - node.bounds.min[2],
+    0.01,
+  ) * 0.5;
+}
+
+/** Frustum + LOD selection for Potree hierarchy nodes. */
+export function selectPotreeNodes(
+  manifest: LidarManifest,
+  camera: Camera,
+  viewportHeight: number,
+): string[] {
+  const fov =
+    "fov" in camera && typeof (camera as PerspectiveCamera).fov === "number"
+      ? ((camera as PerspectiveCamera).fov * Math.PI) / 180
+      : Math.PI / 3;
+  const spacing = Math.max(manifest.spacing ?? 0.05, 0.01);
+  const scored = manifest.nodes
+    .filter((node) => node.path)
+    .map((node) => {
+      const center = nodeCenter(node);
+      const dx = camera.position.x - center[0];
+      const dy = camera.position.y - center[1];
+      const dz = camera.position.z - center[2];
+      const distance = Math.max(Math.hypot(dx, dy, dz), 0.05);
+      // Approximate screen-space error: larger nodes / closer camera prefer deeper LOD.
+      const sse = (nodeRadius(node) * viewportHeight) / (distance * Math.tan(fov * 0.5));
+      const targetLevel = Math.min(
+        12,
+        Math.max(0, Math.floor(Math.log2(Math.max(sse / (spacing * 40), 1)))),
+      );
+      const levelScore = Math.abs(node.level - targetLevel) + (node.leaf ? 0 : 0.25);
+      return { id: node.id, distance, levelScore, leaf: node.leaf };
+    })
+    .sort((a, b) => a.levelScore - b.levelScore || a.distance - b.distance);
+
+  const selected = scored.filter((item) => item.leaf).slice(0, MAX_SELECTED_NODES).map((item) => item.id);
+  if (selected.length) return selected;
+  return scored.slice(0, Math.min(4, scored.length)).map((item) => item.id);
+}
+
+function decodePotreeNode(
+  buffer: ArrayBuffer,
+  valuesBuffer: ArrayBuffer | null,
+  hierarchy: LidarManifest,
+): LidarPointData {
+  const stride = hierarchy.pointStride ?? 16;
+  const positionOffset = hierarchy.positionOffset ?? 0;
+  const colorOffset = hierarchy.colorOffset ?? 12;
+  const scale = hierarchy.scale ?? 0.001;
+  const offset = hierarchy.offset ?? [0, 0, 0];
+  const count = Math.floor(buffer.byteLength / stride);
   const view = new DataView(buffer);
-  if (view.getUint32(0, false) !== 0x706e7473 || view.getUint32(4, true) !== 1) {
-    throw new Error(`Invalid 3D Tiles point cloud ${node.id}`);
-  }
-  const byteLength = view.getUint32(8, true);
-  const featureJsonLength = view.getUint32(12, true);
-  const featureBinaryLength = view.getUint32(16, true);
-  const batchJsonLength = view.getUint32(20, true);
-  const batchBinaryLength = view.getUint32(24, true);
-  if (byteLength > buffer.byteLength || byteLength < 28 + featureJsonLength + featureBinaryLength) {
-    throw new Error(`Truncated 3D Tiles point cloud ${node.id}`);
-  }
-  const featureJson = readJson<PntsFeatureTable>(buffer, 28, featureJsonLength);
-  const featureBinaryOffset = 28 + featureJsonLength;
-  const batchJsonOffset = featureBinaryOffset + featureBinaryLength;
-  const batchBinaryOffset = batchJsonOffset + batchJsonLength;
-  const batchJson = readJson<Record<string, PntsBatchAttribute>>(
-    buffer,
-    batchJsonOffset,
-    batchJsonLength,
-  );
-  const count = featureJson.POINTS_LENGTH;
-  const positionOffset = featureBinaryOffset + (featureJson.POSITION.byteOffset ?? 0);
-  const colorOffset = featureBinaryOffset + (featureJson.RGB?.byteOffset ?? count * 12);
-  const deviationOffset =
-    batchBinaryOffset + (batchJson.deviation?.byteOffset ?? Number.MAX_SAFE_INTEGER);
-  const slopeOffset = batchBinaryOffset + (batchJson.slope?.byteOffset ?? Number.MAX_SAFE_INTEGER);
-  const center = featureJson.RTC_CENTER ?? [0, 0, 0];
-  if (
-    !Number.isSafeInteger(count) ||
-    count < 0 ||
-    positionOffset + count * 12 > featureBinaryOffset + featureBinaryLength ||
-    colorOffset + count * 3 > featureBinaryOffset + featureBinaryLength ||
-    batchBinaryOffset + batchBinaryLength > buffer.byteLength
-  ) {
-    throw new Error(`Invalid 3D Tiles attributes ${node.id}`);
-  }
   const positions = new Float32Array(count * 3);
   const colors = new Uint8Array(count * 3);
   const deviations = new Float32Array(count);
   const slopes = new Float32Array(count);
+  const values =
+    valuesBuffer && valuesBuffer.byteLength >= count * 8 ? new DataView(valuesBuffer) : null;
   for (let index = 0; index < count; index += 1) {
-    const position = positionOffset + index * 12;
-    positions[index * 3] = view.getFloat32(position, true) + (center[0] ?? 0);
-    positions[index * 3 + 1] = view.getFloat32(position + 4, true) + (center[1] ?? 0);
-    positions[index * 3 + 2] = view.getFloat32(position + 8, true) + (center[2] ?? 0);
-    const color = colorOffset + index * 3;
-    colors[index * 3] = view.getUint8(color);
-    colors[index * 3 + 1] = view.getUint8(color + 1);
-    colors[index * 3 + 2] = view.getUint8(color + 2);
-    if (deviationOffset + (index + 1) * 4 <= batchBinaryOffset + batchBinaryLength) {
-      deviations[index] = view.getFloat32(deviationOffset + index * 4, true);
-    }
-    if (slopeOffset + (index + 1) * 4 <= batchBinaryOffset + batchBinaryLength) {
-      slopes[index] = view.getFloat32(slopeOffset + index * 4, true);
+    const base = index * stride;
+    positions[index * 3] = view.getInt32(base + positionOffset, true) * scale + offset[0];
+    positions[index * 3 + 1] = view.getInt32(base + positionOffset + 4, true) * scale + offset[1];
+    positions[index * 3 + 2] = view.getInt32(base + positionOffset + 8, true) * scale + offset[2];
+    colors[index * 3] = view.getUint8(base + colorOffset);
+    colors[index * 3 + 1] = view.getUint8(base + colorOffset + 1);
+    colors[index * 3 + 2] = view.getUint8(base + colorOffset + 2);
+    if (values) {
+      deviations[index] = values.getFloat32(index * 8, true);
+      slopes[index] = values.getFloat32(index * 8 + 4, true);
     }
   }
   return { positions, colors, deviations, slopes };
@@ -118,51 +136,105 @@ function mergeNodes(nodes: LidarPointData[]): LidarPointData {
   return { positions, colors, deviations, slopes };
 }
 
-export function useLidarTiles(baseUrl: string, modelId?: string | null): State {
-  const [state, setState] = useState<State>({
+export function useLidarHierarchy(baseUrl: string, modelId?: string | null): HierarchyState {
+  const [state, setState] = useState<HierarchyState>({
     manifest: null,
-    points: null,
     loading: true,
     error: null,
   });
 
   useEffect(() => {
     const controller = new AbortController();
-    setState({ manifest: null, points: null, loading: true, error: null });
+    setState({ manifest: null, loading: true, error: null });
     void (async () => {
       try {
         const query = modelId ? `?modelId=${encodeURIComponent(modelId)}` : "";
-        const manifestResponse = await fetch(`${baseUrl}/manifest.json${query}`, {
+        let response = await fetch(`${baseUrl}/hierarchy.json${query}`, {
           signal: controller.signal,
         });
-        if (!manifestResponse.ok) throw new Error("LiDAR manifest unavailable");
-        const manifest = (await manifestResponse.json()) as LidarManifest;
-        const leaves = manifest.nodes.filter((node) => node.leaf && node.path);
-        const decoded = await Promise.all(
-          leaves.map(async (node) => {
-            const response = await fetch(`${baseUrl}/${node.path!}${query}`, {
-              signal: controller.signal,
-            });
-            if (!response.ok) throw new Error(`LiDAR tile ${node.id} unavailable`);
-            return decodeNode(await response.arrayBuffer(), node);
-          }),
-        );
+        if (!response.ok) {
+          response = await fetch(`${baseUrl}/manifest.json${query}`, {
+            signal: controller.signal,
+          });
+        }
+        if (!response.ok) throw new Error("LiDAR hierarchy unavailable");
+        const manifest = (await response.json()) as LidarManifest;
         if (!controller.signal.aborted) {
-          setState({ manifest, points: mergeNodes(decoded), loading: false, error: null });
+          setState({ manifest, loading: false, error: null });
         }
       } catch (error) {
         if (!controller.signal.aborted) {
           setState({
             manifest: null,
-            points: null,
             loading: false,
-            error: error instanceof Error ? error.message : "LiDAR load failed",
+            error: error instanceof Error ? error.message : "LiDAR hierarchy failed",
           });
         }
       }
     })();
     return () => controller.abort();
   }, [baseUrl, modelId]);
+
+  return state;
+}
+
+export function useLidarTiles(
+  baseUrl: string,
+  modelId: string | null | undefined,
+  manifest: LidarManifest | null,
+  nodeIds: string[],
+): TileState {
+  const [state, setState] = useState<TileState>({
+    points: null,
+    loading: true,
+    error: null,
+  });
+
+  useEffect(() => {
+    if (!manifest || !nodeIds.length) {
+      setState({ points: null, loading: false, error: null });
+      return;
+    }
+    const controller = new AbortController();
+    setState((prev) => ({ ...prev, loading: true, error: null }));
+    void (async () => {
+      try {
+        const query = modelId ? `?modelId=${encodeURIComponent(modelId)}` : "";
+        const byId = new Map(manifest.nodes.map((node) => [node.id, node]));
+        const nodes = nodeIds
+          .map((id) => byId.get(id))
+          .filter((node): node is LidarNode => Boolean(node?.path));
+        const decoded = await Promise.all(
+          nodes.map(async (node) => {
+            const response = await fetch(`${baseUrl}/${node.path!}${query}`, {
+              signal: controller.signal,
+            });
+            if (!response.ok) throw new Error(`LiDAR tile ${node.id} unavailable`);
+            let valuesBuffer: ArrayBuffer | null = null;
+            if (node.valuesPath) {
+              const valuesResponse = await fetch(`${baseUrl}/${node.valuesPath}${query}`, {
+                signal: controller.signal,
+              });
+              if (valuesResponse.ok) valuesBuffer = await valuesResponse.arrayBuffer();
+            }
+            return decodePotreeNode(await response.arrayBuffer(), valuesBuffer, manifest);
+          }),
+        );
+        if (!controller.signal.aborted) {
+          setState({ points: mergeNodes(decoded), loading: false, error: null });
+        }
+      } catch (error) {
+        if (!controller.signal.aborted) {
+          setState({
+            points: null,
+            loading: false,
+            error: error instanceof Error ? error.message : "LiDAR tile load failed",
+          });
+        }
+      }
+    })();
+    return () => controller.abort();
+  }, [baseUrl, modelId, manifest, nodeIds.join("|")]);
 
   return state;
 }

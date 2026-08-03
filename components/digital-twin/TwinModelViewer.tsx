@@ -68,7 +68,9 @@ export function TwinModelViewer({
   if (viewerKind === "lidar") {
     return (
       <div className="absolute inset-0 overflow-hidden">
-        <LidarPointCloudViewer baseUrl={modelUrl.replace(/\/manifest\.json$/, "")} />
+        <LidarPointCloudViewer
+          baseUrl={modelUrl.replace(/\/(hierarchy|manifest)\.json$/, "")}
+        />
       </div>
     );
   }
