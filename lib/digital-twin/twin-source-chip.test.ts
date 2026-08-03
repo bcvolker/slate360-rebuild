@@ -34,8 +34,12 @@ describe("twin-source-chip", () => {
 
   it("keeps LiDAR files on the LiDAR chip", () => {
     expect(isLidarDescriptor({ name: "scan.e57", type: "" })).toBe(true);
+    expect(isLidarDescriptor({ name: "lidar_poses.json", type: "application/json" })).toBe(true);
     expect(availableChipsForFile({ name: "scan.ply", type: "" })).toEqual(["lidar"]);
     expect(assetKindForChip("lidar", { name: "depth.s360depth", type: "" })).toBe("lidar_depth");
+    expect(assetKindForChip("lidar", { name: "lidar_poses.json", type: "application/json" })).toBe(
+      "lidar_poses",
+    );
   });
 
   it("uses measured projection before filename hints", () => {

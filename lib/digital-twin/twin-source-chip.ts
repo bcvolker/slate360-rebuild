@@ -24,13 +24,14 @@ export type TwinFileDescriptor = {
 
 const VIDEO_RE = /\.(webm|mp4|mov|m4v|insv)$/i;
 const LIDAR_RE = /\.(ply|las|laz|e57|pcd|xyz|pts|s360depth)$/i;
+const LIDAR_POSES_RE = /(?:^|[_-])poses\.json$/i;
 
 export function isVideoDescriptor(file: TwinFileDescriptor): boolean {
   return file.type.startsWith("video/") || VIDEO_RE.test(file.name);
 }
 
 export function isLidarDescriptor(file: TwinFileDescriptor): boolean {
-  return LIDAR_RE.test(file.name) || file.type.includes("ply");
+  return LIDAR_RE.test(file.name) || LIDAR_POSES_RE.test(file.name) || file.type.includes("ply");
 }
 
 export function chipLabel(chip: TwinSourceChip): string {
@@ -76,7 +77,11 @@ export function defaultChipForFile(
 
 /** Map a chip to the asset kind consumed by existing upload and job contracts. */
 export function assetKindForChip(chip: TwinSourceChip, file: TwinFileDescriptor): string {
-  if (chip === "lidar") return /\.s360depth$/i.test(file.name) ? "lidar_depth" : "ply_lidar";
+  if (chip === "lidar") {
+    if (/\.s360depth$/i.test(file.name)) return "lidar_depth";
+    if (LIDAR_POSES_RE.test(file.name)) return "lidar_poses";
+    return "ply_lidar";
+  }
   if (chip === "360") return "panorama_360";
   if (chip === "drone") return isVideoDescriptor(file) ? "drone_video" : "drone_photo";
   return isVideoDescriptor(file) ? "video" : "photo";
