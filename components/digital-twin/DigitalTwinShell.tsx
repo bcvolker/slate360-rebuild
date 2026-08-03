@@ -45,7 +45,7 @@ export function DigitalTwinShell({
         <MobilePlatformHeader
           backHref="/digital-twin"
           title={resolveDigitalTwinRouteTitle(pathname)}
-          subtitle={orgName ?? "Reality capture workspace"}
+          subtitle={orgName ?? "Reality capture"}
         />
       }
       bottomNav={<MobilePlatformBottomNav />}

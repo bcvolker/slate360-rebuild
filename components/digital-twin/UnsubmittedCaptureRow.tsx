@@ -74,12 +74,12 @@ export function UnsubmittedCaptureRow({
             </span>
           ) : (
             <>
-              <span className="text-[11px] text-zinc-500">Move to workspace</span>
+              <span className="text-[11px] text-zinc-500">Move to space</span>
               <select
                 defaultValue=""
                 onChange={(e) => void move(e.target.value)}
                 className="min-h-7 rounded-lg border border-white/10 bg-white/[0.04] px-2 text-[11px] text-zinc-200 outline-none"
-                aria-label="Move capture to a different twin workspace"
+                aria-label="Move capture to a different twin space"
               >
                 <option value="" disabled>
                   Choose…
