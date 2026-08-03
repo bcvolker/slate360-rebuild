@@ -1,5 +1,9 @@
 import type { MutableRefObject } from "react";
-import { twinApiPost, type InitUploadRow } from "@/hooks/twin-upload-api";
+import {
+  twinApiPost,
+  type InitUploadRow,
+  type TwinUploadedPart,
+} from "@/hooks/twin-upload-api";
 import { twinAssetFingerprint } from "@/lib/twin/asset-fingerprint";
 import type { TwinFileUploadState, TwinUploadTarget } from "@/hooks/useMultipartTwinUpload";
 
@@ -77,7 +81,12 @@ export async function runMultipartTwinUpload(
   initRow: InitUploadRow,
   resolvedCaptureId: string,
 ) {
-  const parts: { partNumber: number; etag: string; sizeBytes: number }[] = [];
+  const parts: TwinUploadedPart[] = [];
+  const completed = new Map(
+    (initRow.completedParts ?? [])
+      .filter((part) => part.etag)
+      .map((part) => [part.partNumber, part]),
+  );
 
   for (let partNumber = 1; partNumber <= initRow.totalParts; partNumber++) {
     while (ctx.pausedRef.current) {
@@ -87,6 +96,15 @@ export async function runMultipartTwinUpload(
     }
 
     ctx.updateFile(index, { status: "uploading" });
+    const existing = completed.get(partNumber);
+    if (existing) {
+      parts.push(existing);
+      ctx.updateFile(index, {
+        progress: Math.round((parts.length / initRow.totalParts) * 90),
+      });
+      continue;
+    }
+
     const start = (partNumber - 1) * initRow.partSizeBytes;
     const chunk = file.slice(start, Math.min(start + initRow.partSizeBytes, file.size));
 
@@ -117,7 +135,13 @@ export async function runMultipartTwinUpload(
       await new Promise((resolve) => setTimeout(resolve, 500 * attempt));
     }
 
-    parts.push({ partNumber, etag, sizeBytes: chunk.size });
+    const uploadedPart = { partNumber, etag, sizeBytes: chunk.size };
+    parts.push(uploadedPart);
+    await twinApiPost("/api/digital-twin/upload/record-part", {
+      uploadId: initRow.uploadId,
+      key: initRow.key,
+      ...uploadedPart,
+    });
     ctx.updateFile(index, { progress: Math.round((partNumber / initRow.totalParts) * 90) });
   }
 

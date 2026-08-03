@@ -124,6 +124,55 @@ export const POST = (req: NextRequest) =>
           uploadedBy: user.id,
         });
 
+        if (asset.status === "ready" && asset.storageKey) {
+          uploads.push({
+            assetId: asset.id,
+            uploadId: "",
+            key: asset.storageKey,
+            partSizeBytes: 0,
+            totalParts: 0,
+            alreadyComplete: true,
+          });
+          continue;
+        }
+
+        const { data: activeMultipart, error: activeMultipartError } = await admin
+          .from("digital_twin_multipart_uploads")
+          .select("id, storage_key, part_size_bytes, total_parts")
+          .eq("asset_id", asset.id)
+          .eq("org_id", orgId)
+          .is("deleted_at", null)
+          .in("status", ["initiated", "uploading"])
+          .gt("expires_at", new Date().toISOString())
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (activeMultipartError) throw new Error(activeMultipartError.message);
+        if (activeMultipart) {
+          const { data: completedParts, error: completedPartsError } = await admin
+            .from("digital_twin_multipart_parts")
+            .select("part_number, etag, size_bytes")
+            .eq("multipart_id", activeMultipart.id)
+            .eq("status", "uploaded")
+            .order("part_number", { ascending: true });
+
+          if (completedPartsError) throw new Error(completedPartsError.message);
+          uploads.push({
+            assetId: asset.id,
+            uploadId: activeMultipart.id,
+            key: activeMultipart.storage_key,
+            partSizeBytes: activeMultipart.part_size_bytes,
+            totalParts: activeMultipart.total_parts,
+            completedParts: (completedParts ?? []).map((part) => ({
+              partNumber: part.part_number,
+              etag: part.etag ?? "",
+              sizeBytes: part.size_bytes,
+            })),
+          });
+          continue;
+        }
+
         const created = await s3.send(
           new CreateMultipartUploadCommand({
             Bucket: BUCKET,
