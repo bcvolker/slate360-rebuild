@@ -21,6 +21,24 @@ def test_fit_plane_recovers_tilted_plane() -> None:
     assert origin.shape == (3,)
 
 
+def test_signed_deviations_match_known_offsets_on_tilted_plane() -> None:
+    """Synthetic tilted plane + known signed offsets along the plane normal."""
+    x, y = np.meshgrid(np.linspace(0, 4, 24), np.linspace(0, 4, 24))
+    plane = np.column_stack([x.ravel(), y.ravel(), 1.0 + 0.1 * x.ravel() + 0.2 * y.ravel()])
+    expected_normal = np.array([-0.1, -0.2, 1.0], dtype=np.float64)
+    expected_normal /= np.linalg.norm(expected_normal)
+    signed_offsets = np.array([0.05, -0.03, 0.12, -0.08, 0.02], dtype=np.float64)
+    seeds = plane[:: len(plane) // len(signed_offsets)][: len(signed_offsets)].copy()
+    offset_points = seeds + signed_offsets[:, None] * expected_normal[None, :]
+    points = np.vstack([plane, offset_points])
+
+    _, normal, deviations = fit_plane(points)
+    assert abs(np.dot(normal, expected_normal)) > 0.999
+    sign = 1.0 if np.dot(normal, expected_normal) >= 0 else -1.0
+    recovered = deviations[-len(signed_offsets) :] * sign
+    assert np.allclose(recovered, signed_offsets, atol=5e-3)
+
+
 def test_analysis_reports_known_slope_and_contour_interval() -> None:
     x, y = np.meshgrid(np.linspace(0, 1, 10), np.linspace(0, 1, 10))
     points = np.column_stack([x.ravel(), y.ravel(), 2.0 + 0.1 * x.ravel()])
