@@ -708,3 +708,38 @@ depth-supervised training (1, after TestFlight build) · Phase 5 studio (1–2) 
 Track L LiDAR tab (2: L1 worker, L2 viewer) · Local-session tasks (no prompts):
 Phase 2 review/merge/deploy once the exterior run completes + E2 acceptance,
 billing slice (needs Brian auth). **Total: 6–7 prompts.**
+
+### 7.8 LOCKED 2026-08-03 — exterior postmortem + fix, A/B closed, Photo Explorer merged
+
+**Exterior job `4388feb8` postmortem:** orchestration fixes fully vindicated —
+ran 10.3 h through sparse, dense, and fusion. Died in `mesh_texturer`
+(std::length_error) because untrimmed `poisson_mesher` produced a degenerate
+surface ("bad average roots") — Poisson assumes a CLOSED OBJECT; aerial scenes
+need Delaunay. FIX (56bf3ca8, deployed): `delaunay_mesher` primary with trimmed
+Poisson fallback. **The Phase 2 branch modules inherit the same untrimmed
+Poisson — the merge MUST port this fix into `product_worker_colmap.py`.**
+Rerun `fb1767ed` in flight (~10 h). Backlog noted: persist dense intermediates
+to the Modal volume so a texture-stage failure doesn't repeat 9 h of GPU.
+
+**A/B CLOSED:** confirmation run PSNR 18.26 vs vanilla 25.53 — pose-prior stays
+non-default, research-only.
+
+**Photo Explorer MERGED + workers deployed** (7 branch commits): exterior +
+interior workers emit a `cameras.json` sidecar (per registered photo: model-
+space position, orientation quaternion, asset id); authenticated + share-token
+routes for cameras and original photos; R3F frustum markers + click-to-photo
+panel wired into both viewers. The contract auditor's gravest gaps were fixed
+on-branch before merge (unified_files.original_name join; correction-quaternion
+alignment on markers). **Remaining Photo Explorer polish backlog:** interior
+assetId mapping for multi-video/panorama captures (often null → markers render
+but can't open the photo), video-frame sources not openable (extracted frames
+are temp), derivative keys not queued on model delete, standardize payload
+shape ({cameras:[...]}). NOTE: existing models need a reprocess to gain
+markers — sidecars are emitted at reconstruction time.
+
+**Track L research adopted:** Potree octree (point-cloud-native format +
+three.js-based viewer, self-hostable on R2 under our no-CDN CSP; stock
+profile/measure/clip tools map 1:1 to the L2 spec; PotreeConverter runs in the
+CPU worker after PDAL merge). Fallback: keep the octree format, render via a
+minimal custom R3F loader if the full Potree viewer fights the shell. The L1/L2
+build prompt should embed this decision.
