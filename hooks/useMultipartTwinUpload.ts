@@ -214,7 +214,7 @@ export function useMultipartTwinUpload() {
 
   const enqueueJob = useCallback(
     async (
-      outputFormat: "spz" | "ply" | "glb" | "lidar_octree" = "spz",
+      outputFormat: "spz" | "ply" | "glb" | "lidar_potree" = "spz",
       quality: TwinProcessingQuality = "standard",
       captureIdOverride?: string,
       jobType: TwinJobType = "gaussian_splat",

@@ -133,7 +133,7 @@ export function LidarScanUploadPanel({
 
   const handleEnqueue = useCallback(async () => {
     try {
-      const result = await enqueueJob("lidar_octree", "standard", undefined, "lidar_scan");
+      const result = await enqueueJob("lidar_potree", "standard", undefined, "lidar_scan");
       setMessage(`LiDAR processing queued (${result.job.id})`);
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "Could not queue LiDAR processing");

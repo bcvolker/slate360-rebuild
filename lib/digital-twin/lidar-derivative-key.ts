@@ -9,8 +9,8 @@ type LidarModelKeySource = {
 };
 
 function fallbackKey(storageKey: string, suffix: string): string {
-  if (storageKey.endsWith("/manifest.json")) {
-    return `${storageKey.slice(0, -"/manifest.json".length)}/${suffix}`;
+  if (storageKey.endsWith("/hierarchy.json")) {
+    return `${storageKey.slice(0, -"/hierarchy.json".length)}/${suffix}`;
   }
   return `${storageKey}/${suffix}`;
 }
@@ -21,14 +21,15 @@ export function resolveLidarDerivativeKey(
 ): string | null {
   if (!isSafeLidarRelativePath(relativePath)) return null;
   const keys: LidarDerivativeKeys = lidarDerivativeKeys(model.quality_metrics);
-  if (relativePath === "manifest.json") return keys.lidarManifest ?? model.storage_key;
-  if (relativePath === "tileset.json") {
-    return keys.lidarTileset ?? fallbackKey(model.storage_key, relativePath);
-  }
+  if (relativePath === "hierarchy.json") return keys.lidarHierarchy ?? model.storage_key;
   if (relativePath === "qc.json") return keys.lidarQc ?? fallbackKey(model.storage_key, relativePath);
-  if (relativePath.startsWith("nodes/")) {
-    const prefix = keys.lidarNodesPrefix ?? fallbackKey(model.storage_key, "nodes/");
-    return `${prefix.replace(/\/?$/, "/")}${relativePath.slice("nodes/".length)}`;
+  if (relativePath.startsWith("tiles/")) {
+    const prefix = keys.lidarNodesPrefix ?? fallbackKey(model.storage_key, "tiles/");
+    return `${prefix.replace(/\/?$/, "/")}${relativePath.slice("tiles/".length)}`;
+  }
+  if (relativePath.startsWith("analysis/tiles/")) {
+    const prefix = keys.lidarValuesPrefix ?? fallbackKey(model.storage_key, "analysis/tiles/");
+    return `${prefix.replace(/\/?$/, "/")}${relativePath.slice("analysis/tiles/".length)}`;
   }
   const keyByPath: Record<string, string | undefined> = {
     "analysis/flatness.json": keys.lidarFlatness,

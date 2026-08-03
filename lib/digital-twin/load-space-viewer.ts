@@ -125,7 +125,7 @@ export async function loadTwinSpaceViewerData(
     viewerKind === "splat"
       ? `/api/digital-twin/models/${model.id}/splat`
       : viewerKind === "lidar"
-        ? `/api/digital-twin/models/${model.id}/lidar/manifest.json`
+        ? `/api/digital-twin/models/${model.id}/lidar/hierarchy.json`
       : await resolveDigitalTwinModelUrl(model.storage_key);
 
   const { data: latestCapture } = await admin

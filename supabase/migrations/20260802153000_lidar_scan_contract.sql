@@ -74,7 +74,7 @@ begin
 
   alter table public.digital_twin_processing_jobs
     add constraint digital_twin_processing_jobs_output_format_check
-    check (output_format in ('spz', 'ply', 'glb', 'lidar_octree'));
+    check (output_format in ('spz', 'ply', 'glb', 'lidar_potree'));
 end $$;
 
 do $$
@@ -96,5 +96,5 @@ begin
 
   alter table public.digital_twin_models
     add constraint digital_twin_models_model_format_check
-    check (model_format in ('spz', 'ply', 'splat_ply', 'glb', 'usdz', 'lidar_octree'));
+    check (model_format in ('spz', 'ply', 'splat_ply', 'glb', 'usdz', 'lidar_potree'));
 end $$;

@@ -42,14 +42,14 @@ const triggerRequestOptions = { clientConfig: { previewBranch: "" } };
 
 type JobBody = {
   capture_id: string;
-  output_format?: "spz" | "ply" | "glb" | "lidar_octree";
+  output_format?: "spz" | "ply" | "glb" | "lidar_potree";
   job_type?: "gaussian_splat" | "photogrammetry_mesh" | "lidar_scan";
   lidar_prior_asset_id?: string | null;
   quality?: string;
   align_backend?: "colmap_vanilla" | "colmap_pose_prior";
 };
 
-const OUTPUT_FORMATS = new Set(["spz", "ply", "glb", "lidar_octree"]);
+const OUTPUT_FORMATS = new Set(["spz", "ply", "glb", "lidar_potree"]);
 const JOB_TYPES = new Set(["gaussian_splat", "photogrammetry_mesh", "lidar_scan"]);
 
 export const POST = (req: NextRequest) =>
@@ -71,8 +71,8 @@ export const POST = (req: NextRequest) =>
     if (jobType === "photogrammetry_mesh" && outputFormat !== "glb") {
       return badRequest("Exterior photogrammetry jobs currently support only glb output");
     }
-    if (jobType === "lidar_scan" && outputFormat !== "lidar_octree") {
-      return badRequest("LiDAR scan jobs currently support only lidar_octree output");
+    if (jobType === "lidar_scan" && outputFormat !== "lidar_potree") {
+      return badRequest("LiDAR scan jobs currently support only lidar_potree output");
     }
     if (!QUALITY_TIERS.has(quality)) return badRequest("Invalid quality");
 
@@ -127,7 +127,7 @@ export const POST = (req: NextRequest) =>
         // Credit calculation is intentionally format-agnostic today; use the
         // existing accepted format type until the protected pricing module gets
         // an approved LiDAR-specific billing slice.
-        const creditOutputFormat = outputFormat === "lidar_octree" ? "ply" : outputFormat;
+        const creditOutputFormat = outputFormat === "lidar_potree" ? "ply" : outputFormat;
         await assertTwinJobCredits(admin, orgId, body.capture_id, creditOutputFormat, quality);
       } catch (creditErr) {
         if (creditErr instanceof InsufficientTwinCreditsError) {

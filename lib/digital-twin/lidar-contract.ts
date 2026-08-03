@@ -1,6 +1,6 @@
 export type LidarDerivativeKeys = {
-  lidarManifest?: string;
-  lidarTileset?: string;
+  lidarHierarchy?: string;
+  lidarValuesPrefix?: string;
   lidarNodesPrefix?: string;
   lidarFlatness?: string;
   lidarSlope?: string;
@@ -17,25 +17,32 @@ export type LidarBounds = {
 export type LidarNode = {
   id: string;
   path?: string;
+  valuesPath?: string;
   bounds: LidarBounds;
   count: number;
-  lod: boolean;
   leaf: boolean;
   level: number;
 };
 
 export type LidarManifest = {
-  version: number;
-  format: "slate360-3dtiles";
+  version: number | string;
+  format: "potree";
   coordinateSystem: "model";
   crs: string | null;
   bounds: LidarBounds;
   pointCount: number;
-  nodeCount: number;
-  attributes: string[];
-  tileset: string;
+  nodeCount?: number;
+  attributes?: string[];
+  octreeDir: "tiles";
+  spacing?: number;
+  scale?: number;
+  offset?: [number, number, number];
+  pointStride?: number;
+  positionOffset?: number;
+  colorOffset?: number;
   nodes: LidarNode[];
   analysis?: {
+    valuesPrefix?: string;
     flatness?: string;
     slope?: string;
     contours?: string;
@@ -45,14 +52,16 @@ export type LidarManifest = {
 
 export type LidarColorMode = "rgb" | "deviation" | "slope";
 
-export function lidarDerivativeKeys(metrics: Record<string, unknown> | null | undefined): LidarDerivativeKeys {
+export function lidarDerivativeKeys(
+  metrics: Record<string, unknown> | null | undefined,
+): LidarDerivativeKeys {
   const raw = metrics?.derivativeKeys;
   if (!raw || typeof raw !== "object") return {};
   const source = raw as Record<string, unknown>;
   const keys: LidarDerivativeKeys = {};
   const names: (keyof LidarDerivativeKeys)[] = [
-    "lidarManifest",
-    "lidarTileset",
+    "lidarHierarchy",
+    "lidarValuesPrefix",
     "lidarNodesPrefix",
     "lidarFlatness",
     "lidarSlope",
@@ -68,10 +77,10 @@ export function lidarDerivativeKeys(metrics: Record<string, unknown> | null | un
 
 export function isSafeLidarRelativePath(path: string): boolean {
   return (
-    path === "manifest.json" ||
-    path === "tileset.json" ||
+    path === "hierarchy.json" ||
     path === "qc.json" ||
-    /^nodes\/[A-Za-z0-9_-]+\.pnts$/.test(path) ||
+    /^tiles\/[A-Za-z0-9_-]+\.bin$/.test(path) ||
+    /^analysis\/tiles\/[A-Za-z0-9_-]+\.bin$/.test(path) ||
     /^analysis\/(flatness|slope|sections)\.json$/.test(path) ||
     path === "analysis/contours.geojson"
   );

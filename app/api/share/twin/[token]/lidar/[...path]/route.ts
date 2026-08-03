@@ -21,7 +21,7 @@ export async function GET(req: NextRequest, ctx: Params) {
     new URL(req.url).searchParams.get("modelId"),
   );
   if (!result.ok) return NextResponse.json({ error: "Unavailable" }, { status: 404 });
-  const relativePath = path.join("/") || "manifest.json";
+  const relativePath = path.join("/") || "hierarchy.json";
   const key = resolveLidarDerivativeKey(result.model, relativePath);
   if (!key) return NextResponse.json({ error: "Invalid LiDAR asset" }, { status: 404 });
 

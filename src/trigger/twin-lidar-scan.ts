@@ -55,7 +55,7 @@ export const twinLidarScanTask = task({
 
     if (jobError) throw new Error(jobError.message);
     if (!job) throw new Error(`Job not found: ${payload.jobId}`);
-    if (job.job_type !== "lidar_scan" || job.output_format !== "lidar_octree") {
+    if (job.job_type !== "lidar_scan" || job.output_format !== "lidar_potree") {
       await failJob(
         supabase,
         payload.jobId,

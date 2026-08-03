@@ -14,7 +14,7 @@ export function resolveTwinViewerKind(
 
   if (format === "spz" || ext === "spz") return "splat";
   if (PANO_FORMATS.has(format)) return "pano";
-  if (format === "lidar_octree") return "lidar";
+  if (format === "lidar_potree") return "lidar";
   if (MODEL_FORMATS.has(format) || ext === "glb" || ext === "gltf") return "model";
   if (format === "ply" || format === "splat_ply") return "unsupported";
   return "unsupported";

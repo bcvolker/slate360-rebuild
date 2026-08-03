@@ -17,13 +17,13 @@ export async function GET(req: NextRequest, ctx: Params) {
       .select("storage_key, model_format, quality_metrics")
       .eq("id", modelId)
       .eq("org_id", orgId)
-      .eq("model_format", "lidar_octree")
+      .eq("model_format", "lidar_potree")
       .eq("status", "ready")
       .is("deleted_at", null)
       .maybeSingle();
     if (!model?.storage_key) return NextResponse.json({ error: "LiDAR model not found" }, { status: 404 });
 
-    const relativePath = path.join("/") || "manifest.json";
+    const relativePath = path.join("/") || "hierarchy.json";
     const key = resolveLidarDerivativeKey(model, relativePath);
     if (!key) return NextResponse.json({ error: "Invalid LiDAR asset" }, { status: 404 });
     try {

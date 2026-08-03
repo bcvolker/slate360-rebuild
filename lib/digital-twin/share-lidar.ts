@@ -13,7 +13,7 @@ export async function resolveTwinShareLidarModel(
 ): Promise<TwinShareModelResult> {
   const base = await resolveTwinShareModel(token);
   if (!base.ok) return base;
-  if (base.model.model_format === "lidar_octree") return base;
+  if (base.model.model_format === "lidar_potree") return base;
 
   const admin = createAdminClient();
   let modelQuery = admin
@@ -23,7 +23,7 @@ export async function resolveTwinShareLidarModel(
     )
     .eq("space_id", base.model.space_id)
     .eq("org_id", base.model.org_id)
-    .eq("model_format", "lidar_octree")
+    .eq("model_format", "lidar_potree")
     .eq("status", "ready")
     .is("deleted_at", null);
   if (requestedModelId) {

@@ -112,7 +112,7 @@ export default async function SharedTwinPage({ params, searchParams }: Props) {
           .select("id")
           .eq("space_id", space.id)
           .eq("org_id", claimed.org_id)
-          .eq("model_format", "lidar_octree")
+          .eq("model_format", "lidar_potree")
           .eq("status", "ready")
           .is("deleted_at", null)
           .order("created_at", { ascending: false })
@@ -124,7 +124,7 @@ export default async function SharedTwinPage({ params, searchParams }: Props) {
     viewerKind === "splat"
       ? Promise.resolve(`/api/share/twin/${token}/splat`)
       : viewerKind === "lidar"
-        ? Promise.resolve(`/api/share/twin/${token}/lidar/manifest.json`)
+        ? Promise.resolve(`/api/share/twin/${token}/lidar/hierarchy.json`)
       : resolveDigitalTwinModelUrl(model.storage_key),
     admin.from("organizations").select("name").eq("id", claimed.org_id).maybeSingle(),
   ]);
