@@ -15,5 +15,5 @@ export function isDigitalTwinCapturePath(pathname: string): boolean {
 
 /** Task surfaces that render without sub-route header chrome. */
 export function isDigitalTwinPassthroughShellPath(pathname: string): boolean {
-  return isDigitalTwinCapturePath(pathname);
+  return isDigitalTwinCapturePath(pathname) || pathname === "/digital-twin/upload";
 }

@@ -25,6 +25,7 @@ export type TwinFileDescriptor = {
 const VIDEO_RE = /\.(webm|mp4|mov|m4v|insv)$/i;
 const LIDAR_RE = /\.(ply|las|laz|e57|pcd|xyz|pts|s360depth)$/i;
 const LIDAR_POSES_RE = /(?:^|[_-])poses\.json$/i;
+const INSTA360_RAW_RE = /\.(insv|insp)$/i;
 
 export function isVideoDescriptor(file: TwinFileDescriptor): boolean {
   return file.type.startsWith("video/") || VIDEO_RE.test(file.name);
@@ -60,6 +61,7 @@ export function availableChipsForFile(
 ): TwinSourceChip[] {
   if (isLidarDescriptor(file)) return ["lidar"];
   if (projection === "equirect" || projection === "dual_fisheye") return ["360"];
+  if (INSTA360_RAW_RE.test(file.name)) return ["360"];
   return ["phone", "360", "drone"];
 }
 
@@ -71,6 +73,7 @@ export function defaultChipForFile(
 ): TwinSourceChip {
   if (isLidarDescriptor(file)) return "lidar";
   if (projection === "equirect" || projection === "dual_fisheye") return "360";
+  if (INSTA360_RAW_RE.test(file.name)) return "360";
   if (forceDrone || isLikelyDroneFilename(file.name)) return "drone";
   return "phone";
 }

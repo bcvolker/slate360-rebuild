@@ -30,6 +30,8 @@ describe("twin-source-chip", () => {
     expect(isChipLocked("360", "equirect")).toBe(false);
     expect(isChipLocked("phone", "flat")).toBe(false);
     expect(availableChipsForFile(video("VID_1.mp4"), "equirect")).toEqual(["360"]);
+    expect(defaultChipForFile(video("capture.insv"))).toBe("360");
+    expect(availableChipsForFile(video("capture.insv"))).toEqual(["360"]);
   });
 
   it("keeps LiDAR files on the LiDAR chip", () => {
