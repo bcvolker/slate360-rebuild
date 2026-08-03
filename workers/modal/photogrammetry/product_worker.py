@@ -262,16 +262,38 @@ def _run_textured_mesh(images: Path, model: Path, dense: Path, root: Path) -> Pa
         ]
     )
     raw_mesh = root / "mesh_raw.ply"
-    _run(
-        [
-            "colmap",
-            "poisson_mesher",
-            "--input_path",
-            str(dense / "fused.ply"),
-            "--output_path",
-            str(raw_mesh),
-        ]
-    )
+    # Delaunay is COLMAP's mesher for open SCENES; Poisson assumes a closed
+    # object and on the 380-photo aerial mission produced a degenerate surface
+    # ("bad average roots") whose texture bake then aborted with
+    # std::length_error (job 4388feb8, 10.3 h lost at the last step). Poisson
+    # with trimming remains only as a fallback for builds without CGAL.
+    try:
+        _run(
+            [
+                "colmap",
+                "delaunay_mesher",
+                "--input_path",
+                str(dense),
+                "--output_path",
+                str(raw_mesh),
+            ]
+        )
+    except Exception as delaunay_exc:  # noqa: BLE001
+        print(f"[mesh] delaunay_mesher failed ({delaunay_exc}); falling back to trimmed poisson", flush=True)
+        _run(
+            [
+                "colmap",
+                "poisson_mesher",
+                "--input_path",
+                str(dense / "fused.ply"),
+                "--output_path",
+                str(raw_mesh),
+                "--PoissonMeshing.trim",
+                "10",
+            ]
+        )
+    if not raw_mesh.is_file():
+        raise RuntimeError("Meshing produced no mesh_raw.ply")
     textured_dir = root / "textured"
     textured_dir.mkdir(parents=True, exist_ok=True)
     _run(
