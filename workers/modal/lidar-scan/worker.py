@@ -157,8 +157,8 @@ def run_pipeline(payload: dict[str, Any], root: Path) -> dict[str, Any]:
             **qc,
             "derivativeKeys": {
                 "lidarHierarchy": hierarchy_key,
-                "lidarManifest": hierarchy_key,
-                "lidarTilesPrefix": f"{prefix}/tiles/",
+                "lidarNodesPrefix": f"{prefix}/tiles/",
+                "lidarValuesPrefix": f"{prefix}/analysis/tiles/",
                 "lidarFlatness": f"{prefix}/analysis/flatness.json",
                 "lidarSlope": f"{prefix}/analysis/slope.json",
                 "lidarContours": f"{prefix}/analysis/contours.geojson",

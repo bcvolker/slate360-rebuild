@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { Camera, PerspectiveCamera } from "three";
+import { Box3, Frustum, Matrix4, Vector3, type Camera, type PerspectiveCamera } from "three";
 import type { LidarManifest, LidarNode } from "@/lib/digital-twin/lidar-contract";
 
 export type LidarPointData = {
@@ -49,33 +49,46 @@ export function selectPotreeNodes(
   camera: Camera,
   viewportHeight: number,
 ): string[] {
+  const projection = new Matrix4().multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+  const frustum = new Frustum().setFromProjectionMatrix(projection);
   const fov =
     "fov" in camera && typeof (camera as PerspectiveCamera).fov === "number"
       ? ((camera as PerspectiveCamera).fov * Math.PI) / 180
       : Math.PI / 3;
+  const root = manifest.nodes.find((node) => node.id === "r") ?? manifest.nodes[0];
+  if (!root) return [];
+  const rootCenter = nodeCenter(root);
+  const distance = Math.max(
+    camera.position.distanceTo(new Vector3(...rootCenter)),
+    0.05,
+  );
+  const rootScreenSize =
+    (nodeRadius(root) * viewportHeight) / (distance * Math.tan(fov * 0.5));
   const spacing = Math.max(manifest.spacing ?? 0.05, 0.01);
-  const scored = manifest.nodes
-    .filter((node) => node.path)
-    .map((node) => {
-      const center = nodeCenter(node);
-      const dx = camera.position.x - center[0];
-      const dy = camera.position.y - center[1];
-      const dz = camera.position.z - center[2];
-      const distance = Math.max(Math.hypot(dx, dy, dz), 0.05);
-      // Approximate screen-space error: larger nodes / closer camera prefer deeper LOD.
-      const sse = (nodeRadius(node) * viewportHeight) / (distance * Math.tan(fov * 0.5));
-      const targetLevel = Math.min(
-        12,
-        Math.max(0, Math.floor(Math.log2(Math.max(sse / (spacing * 40), 1)))),
-      );
-      const levelScore = Math.abs(node.level - targetLevel) + (node.leaf ? 0 : 0.25);
-      return { id: node.id, distance, levelScore, leaf: node.leaf };
-    })
-    .sort((a, b) => a.levelScore - b.levelScore || a.distance - b.distance);
-
-  const selected = scored.filter((item) => item.leaf).slice(0, MAX_SELECTED_NODES).map((item) => item.id);
-  if (selected.length) return selected;
-  return scored.slice(0, Math.min(4, scored.length)).map((item) => item.id);
+  const maxLevel = manifest.nodes.reduce((max, node) => Math.max(max, node.level), 0);
+  const targetLevel = Math.min(
+    maxLevel,
+    Math.max(0, Math.floor(Math.log2(Math.max(rootScreenSize / (spacing * 40), 1)))),
+  );
+  const visible = manifest.nodes.filter((node) => {
+    if (!node.path || node.level > targetLevel) return false;
+    return frustum.intersectsBox(
+      new Box3(new Vector3(...node.bounds.min), new Vector3(...node.bounds.max)),
+    );
+  });
+  const selected = visible.filter(
+    (node) =>
+      !visible.some(
+        (child) => child.level > node.level && child.id.startsWith(node.id),
+      ),
+  );
+  if (selected.length) {
+    return selected
+      .sort((a, b) => nodeCenter(a)[0] - nodeCenter(b)[0])
+      .slice(0, MAX_SELECTED_NODES)
+      .map((node) => node.id);
+  }
+  return visible.slice(0, Math.min(4, visible.length)).map((node) => node.id);
 }
 
 function decodePotreeNode(
@@ -149,14 +162,9 @@ export function useLidarHierarchy(baseUrl: string, modelId?: string | null): Hie
     void (async () => {
       try {
         const query = modelId ? `?modelId=${encodeURIComponent(modelId)}` : "";
-        let response = await fetch(`${baseUrl}/hierarchy.json${query}`, {
+        const response = await fetch(`${baseUrl}/hierarchy.json${query}`, {
           signal: controller.signal,
         });
-        if (!response.ok) {
-          response = await fetch(`${baseUrl}/manifest.json${query}`, {
-            signal: controller.signal,
-          });
-        }
         if (!response.ok) throw new Error("LiDAR hierarchy unavailable");
         const manifest = (await response.json()) as LidarManifest;
         if (!controller.signal.aborted) {
