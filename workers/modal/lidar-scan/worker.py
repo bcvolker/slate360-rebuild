@@ -1,4 +1,4 @@
-"""CPU Track L worker: LAS/LAZ/E57 -> same-origin octree + flatness derivatives."""
+"""CPU Track L worker: LAS/LAZ/E57 -> Potree octree + flatness derivatives."""
 
 from __future__ import annotations
 
@@ -30,12 +30,36 @@ APP_NAME = "slate360-lidar-scan"
 SECRET_NAME = "slate360-twin-worker"
 WEB_ENDPOINT_LABEL = "process-lidar-scan"
 MAX_DURATION_SECONDS = 45 * 60
+POTREE_CONVERTER_URL = (
+    "https://github.com/potree/PotreeConverter/releases/download/"
+    "2.1.1/PotreeConverter_linux_x64.zip"
+)
 
 app = modal.App(APP_NAME)
 worker_secret = modal.Secret.from_name(SECRET_NAME)
 worker_image = (
     modal.Image.from_registry("ubuntu:22.04", add_python="3.11")
-    .apt_install("pdal", "libpdal-plugin-e57", "libgl1", "libglib2.0-0", "libgomp1")
+    .apt_install(
+        "pdal",
+        "libpdal-plugin-e57",
+        "libgl1",
+        "libglib2.0-0",
+        "libgomp1",
+        "curl",
+        "ca-certificates",
+        "unzip",
+    )
+    .run_commands(
+        # Bake PotreeConverter into the image (§7.8). Fail the image build if the
+        # pinned release is unreachable — do not fall back to a runtime download.
+        "mkdir -p /opt/potree",
+        f"curl -fsSL {POTREE_CONVERTER_URL} -o /tmp/PotreeConverter.zip",
+        "unzip -o /tmp/PotreeConverter.zip -d /opt/potree",
+        "BIN=$(find /opt/potree -type f -name PotreeConverter | head -n1); "
+        "test -n \"$BIN\"; ln -sf \"$BIN\" /opt/potree/PotreeConverter; "
+        "chmod +x /opt/potree/PotreeConverter; /opt/potree/PotreeConverter --help >/dev/null || true",
+        "rm -f /tmp/PotreeConverter.zip",
+    )
     .pip_install(
         "boto3==1.35.99",
         "laspy==2.7.0",
@@ -182,7 +206,7 @@ def run_pipeline(payload: dict[str, Any], root: Path) -> dict[str, Any]:
     }
     (tiles_dir / "qc.json").write_text(json.dumps(qc, indent=2) + "\n", encoding="utf-8")
 
-    prefix = f"orgs/{payload['orgId']}/digital-twin/{payload['spaceId']}/models/{job_id}.lidar"
+    prefix = f"orgs/{payload['orgId']}/digital-twin/{payload['spaceId']}/models/{job_id}.potree"
     _set_progress(job_id, "export", 88)
     _upload_tree(s3, bucket, tiles_dir, prefix, tiles_dir)
     manifest_key = f"{prefix}/manifest.json"
@@ -190,13 +214,13 @@ def run_pipeline(payload: dict[str, Any], root: Path) -> dict[str, Any]:
         "outputKey": manifest_key,
         "fileSizeBytes": (tiles_dir / "manifest.json").stat().st_size,
         "bounds": manifest["bounds"],
-        "modelFormat": "lidar_octree",
+        "modelFormat": "lidar_potree",
         "qualityMetrics": {
             **qc,
             "derivativeKeys": {
                 "lidarManifest": manifest_key,
-                "lidarTileset": f"{prefix}/tileset.json",
-                "lidarNodesPrefix": f"{prefix}/nodes/",
+                "lidarHierarchy": f"{prefix}/hierarchy.json",
+                "lidarTilesPrefix": f"{prefix}/r/",
                 "lidarFlatness": f"{prefix}/analysis/flatness.json",
                 "lidarSlope": f"{prefix}/analysis/slope.json",
                 "lidarContours": f"{prefix}/analysis/contours.geojson",
