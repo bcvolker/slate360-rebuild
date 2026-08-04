@@ -39,6 +39,13 @@ const TwinGlbPhotoExplorer = dynamic(
     ),
   { ssr: false },
 );
+const TwinLidarViewer = dynamic(
+  () =>
+    import("@/components/digital-twin/lidar/LidarPointCloudViewer").then(
+      (m) => m.LidarPointCloudViewer,
+    ),
+  { ssr: false },
+);
 
 type Props = {
   spaceId: string;
@@ -169,7 +176,9 @@ export function TwinAuthenticatedViewer({
 
   const commentsContent = (
     <div className="space-y-2 pb-2">
-      {splatReady ? (
+      {viewerKind === "lidar" ? (
+        <TwinLidarViewer baseUrl={`/api/digital-twin/models/${modelId}/lidar`} />
+      ) : splatReady ? (
         <TwinMeasureTool
           active={measureActive}
           hasFirstPoint={measureA !== null}

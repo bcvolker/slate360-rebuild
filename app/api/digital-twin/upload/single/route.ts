@@ -15,6 +15,7 @@ import { upsertTwinCaptureAsset } from "@/lib/twin/upsert-capture-asset";
 import {
   buildTwinStorageKey,
   inferTwinAssetKind,
+  isExternalTwinLidarScanFilename,
   markCaptureUploadedIfReady,
   resolveOrCreateCapture,
   resolveTwinSpace,
@@ -63,6 +64,15 @@ export const POST = (req: NextRequest) =>
         }
         if (body.sizeBytes > TWIN_SINGLE_UPLOAD_MAX_BYTES) {
           return badRequest("File exceeds single-upload limit — use multipart init");
+        }
+        const isExternalLidarScan = isExternalTwinLidarScanFilename(body.filename);
+        if (isExternalLidarScan && body.assetKind !== "lidar_scan") {
+          return badRequest(
+            `${body.filename} requires the dedicated LiDAR scan upload role`,
+          );
+        }
+        if (body.assetKind === "lidar_scan" && !isExternalLidarScan) {
+          return badRequest("LiDAR scan uploads must be LAS, LAZ, or E57 files");
         }
 
         await resolveTwinSpace(admin, orgId, body.space_id, body.project_id);

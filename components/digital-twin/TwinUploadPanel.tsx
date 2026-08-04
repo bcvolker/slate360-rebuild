@@ -376,6 +376,9 @@ export function TwinUploadPanel({
         <Link href="/digital-twin/twins" className={cn("text-center text-xs", twinAccent.link)}>
           Go to My Twins
         </Link>
+        <Link href="/digital-twin/upload?mode=lidar" className={cn("text-center text-xs", twinAccent.link)}>
+          Upload terrestrial LiDAR scan
+        </Link>
       </div>
     </div>
   );

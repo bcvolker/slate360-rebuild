@@ -8,6 +8,8 @@ import {
 import { TwinShareAnnotateShell } from "@/components/digital-twin/TwinShareAnnotateShell";
 import { TwinShareDownloadButton } from "@/components/digital-twin/TwinShareDownloadButton";
 import type { TwinViewerKind } from "@/lib/digital-twin/viewer-format";
+import { TwinShareLidarLayerSwitcher } from "@/components/digital-twin/TwinShareLidarLayerSwitcher";
+import { LidarPointCloudViewer } from "@/components/digital-twin/lidar/LidarPointCloudViewer";
 
 export function TwinShareViewer({
   embed,
@@ -16,6 +18,7 @@ export function TwinShareViewer({
   modelUrl,
   modelTitle,
   modelId,
+  lidarModelId,
   viewerKind,
   shareToken,
   canAnnotate = false,
@@ -30,6 +33,7 @@ export function TwinShareViewer({
   modelUrl: string;
   modelTitle: string;
   modelId?: string | null;
+  lidarModelId?: string | null;
   viewerKind: TwinViewerKind;
   shareToken?: string;
   canAnnotate?: boolean;
@@ -44,7 +48,7 @@ export function TwinShareViewer({
     );
   }
 
-  const viewer = shareToken ? (
+  const visualViewer = shareToken ? (
     <TwinShareAnnotateShell
       shareToken={shareToken}
       canAnnotate={canAnnotate}
@@ -56,6 +60,21 @@ export function TwinShareViewer({
       georef={georef}
     />
   ) : null;
+  const viewer =
+    shareToken && lidarModelId && viewerKind !== "lidar" ? (
+      <TwinShareLidarLayerSwitcher
+        visual={visualViewer}
+        shareToken={shareToken}
+        lidarModelId={lidarModelId}
+      />
+    ) : viewerKind === "lidar" && shareToken ? (
+      <LidarPointCloudViewer
+        baseUrl={`/api/share/twin/${shareToken}/lidar`}
+        modelId={lidarModelId}
+      />
+    ) : (
+      visualViewer
+    );
 
   if (embed) {
     return (

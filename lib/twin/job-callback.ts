@@ -36,7 +36,7 @@ export type TwinWorkerCallbackPayload = {
   jobId: string;
   status: "completed" | "failed";
   outputKey?: string;
-  modelFormat?: "spz" | "ply" | "glb";
+  modelFormat?: "spz" | "ply" | "glb" | "lidar_potree";
   fileSizeBytes?: number;
   processedAssetIds?: string[];
   newAssetIds?: string[];

@@ -1,0 +1,28 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": { "incremental": false, "noEmit": true },
+  "include": [
+    "types/**/*.d.ts",
+    "app/api/digital-twin/jobs/route.ts",
+    "app/api/digital-twin/upload/init/route.ts",
+    "app/api/digital-twin/upload/single/route.ts",
+    "app/api/digital-twin/models/[modelId]/lidar/[...path]/route.ts",
+    "app/api/share/twin/[token]/lidar/[...path]/route.ts",
+    "app/digital-twin/(shell)/upload/page.tsx",
+    "app/share/twin/[token]/page.tsx",
+    "components/digital-twin/LidarScanUploadPanel.tsx",
+    "components/digital-twin/TwinAuthenticatedViewer.tsx",
+    "components/digital-twin/TwinModelViewer.tsx",
+    "components/digital-twin/TwinShareLidarLayerSwitcher.tsx",
+    "components/digital-twin/TwinShareViewer.tsx",
+    "components/digital-twin/lidar/**/*.ts",
+    "components/digital-twin/lidar/**/*.tsx",
+    "hooks/useMultipartTwinUpload.ts",
+    "lib/digital-twin/**/*.ts",
+    "lib/twin/upload-helpers.ts",
+    "lib/twin/job-callback.ts",
+    "lib/digital-twin/twin-review-media.ts",
+    "src/trigger/twin-lidar-scan.ts",
+    "trigger.config.ts"
+  ]
+}

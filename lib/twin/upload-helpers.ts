@@ -63,6 +63,10 @@ export function inferTwinAssetKind(
   return "other";
 }
 
+export function isExternalTwinLidarScanFilename(filename: string): boolean {
+  return /\.(las|laz|e57)$/i.test(filename);
+}
+
 export async function resolveTwinSpace(
   admin: AdminClient,
   orgId: string,

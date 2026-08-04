@@ -11,8 +11,11 @@ export type TwinMediaCategory =
   | "mesh"
   | "other";
 
+export type TwinSourceRole = "default" | "lidar_scan";
+
 /** Point-cloud / LiDAR scan formats. */
 const LIDAR_EXT = /\.(ply|las|laz|e57|pcd|xyz|pts|s360depth)$/i;
+const EXTERNAL_LIDAR_SCAN_EXT = /\.(las|laz|e57)$/i;
 /** Textured-mesh / 3D-model formats. */
 const MESH_EXT = /\.(obj|glb|gltf|fbx|stl)$/i;
 /** Insta360 raw dual-fisheye containers. */
@@ -71,7 +74,11 @@ export function twinMediaToAssetKind(
   file: File,
   forceDrone = false,
   hint: Twin360Hint = "unknown",
+  sourceRole: TwinSourceRole = "default",
 ): string {
+  if (sourceRole === "lidar_scan" && EXTERNAL_LIDAR_SCAN_EXT.test(file.name)) {
+    return "lidar_scan";
+  }
   if (/\.s360depth$/i.test(file.name)) return "lidar_depth";
   const category = classifyTwinMedia(file, forceDrone, hint);
   switch (category) {
@@ -116,7 +123,11 @@ export function isTwinDroneCategory(category: TwinMediaCategory): boolean {
  */
 const UNUSABLE_SOURCE_EXT = /\.(obj|glb|gltf|fbx|stl|kml|gpx|geojson|las|laz|e57|pcd|xyz|pts)$/i;
 
-export function isUnusableTwinSourceFile(file: File): boolean {
+export function isUnusableTwinSourceFile(
+  file: File,
+  sourceRole: TwinSourceRole = "default",
+): boolean {
+  if (sourceRole === "lidar_scan" && EXTERNAL_LIDAR_SCAN_EXT.test(file.name)) return false;
   return UNUSABLE_SOURCE_EXT.test(file.name.toLowerCase());
 }
 
