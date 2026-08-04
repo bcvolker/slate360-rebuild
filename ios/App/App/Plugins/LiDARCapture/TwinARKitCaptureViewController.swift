@@ -871,8 +871,9 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             }
             evidenceDepth = depthMillimetres
             evidenceConfidence = confidence
+            // ARC retains the buffer via this reference (and the evidence frame that
+            // captures it) — CVPixelBufferRetain/Release are unavailable in Swift.
             evidencePixelBuffer = frame.capturedImage
-            CVPixelBufferRetain(frame.capturedImage)
         }
 
         var newVoxels = [(key: SIMD3<Int32>, data: PointData)]()
@@ -938,32 +939,19 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             // Still record the keyframe (poses matter more than a few dropped voxels).
             if let kf = keyframeData {
                 depthQueue.async { [weak self] in
-                    guard let self = self else {
-                        if let evidence = evidenceFrame {
-                            CVPixelBufferRelease(evidence.rgbPixelBuffer)
-                        }
-                        return
-                    }
+                    guard let self = self else { return }
                     self.keyframes.append(kf)
                     if let evidence = evidenceFrame {
                         self.appendDepthEvidence(evidence)
-                        CVPixelBufferRelease(evidence.rgbPixelBuffer)
                     }
                 }
-            } else if let evidence = evidenceFrame {
-                CVPixelBufferRelease(evidence.rgbPixelBuffer)
             }
             pushHudState()
             return
         }
 
         depthQueue.async { [weak self] in
-            guard let self = self else {
-                if let evidence = evidenceFrame {
-                    CVPixelBufferRelease(evidence.rgbPixelBuffer)
-                }
-                return
-            }
+            guard let self = self else { return }
             defer {
                 self.depthBacklogLock.lock(); self.depthBacklog -= 1; self.depthBacklogLock.unlock()
             }
@@ -990,7 +978,6 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             }
             if let evidence = evidenceFrame {
                 self.appendDepthEvidence(evidence)
-                CVPixelBufferRelease(evidence.rgbPixelBuffer)
             }
             // Publish sizes for the HUD/progress so those off-queue readers never touch the
             // collections directly (the EXC_BAD_ACCESS data race).
