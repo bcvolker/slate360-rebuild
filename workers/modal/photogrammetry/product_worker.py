@@ -26,8 +26,6 @@ from typing import Any
 
 import modal
 
-from cameras_sidecar import emit_cameras_sidecar
-
 try:
     from fastapi import Header
 except ModuleNotFoundError:  # pragma: no cover - only the web image serves HTTP
@@ -622,6 +620,11 @@ def _run_exterior(payload: dict[str, Any], root: Path) -> dict[str, Any]:
     # Non-fatal — a missing sidecar just hides the layer in the viewer.
     new_asset_ids = [str(a) for a in payload.get("newAssetIds", [])]
     try:
+        # Import inside the function: the module is mounted only into the GPU
+        # image — a module-level import crashes the slim web-endpoint container
+        # (root cause of the fb1767ed dispatch failure: every dispatch 500'd).
+        from cameras_sidecar import emit_cameras_sidecar
+
         cameras_metrics = emit_cameras_sidecar(
             model, source_keys, new_asset_ids, root / "cameras.json"
         )
