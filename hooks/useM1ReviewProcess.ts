@@ -30,6 +30,7 @@ type Args = {
   addedSources: TwinReviewAddedSource[];
   captureId: string | null;
   title: string;
+  quality: "standard" | "high";
   estimateSufficient: boolean | undefined;
   changedAssetIds: Set<string>;
   completedKeys: Set<string>;
@@ -48,6 +49,7 @@ export function useM1ReviewProcess({
   addedSources,
   captureId,
   title,
+  quality,
   estimateSufficient,
   changedAssetIds,
   completedKeys,
@@ -102,7 +104,7 @@ export function useM1ReviewProcess({
       if (!nextCaptureId) throw new Error("No capture was created for these sources.");
       setProcessState("processing");
       const job = deriveJobType(sources.map((source) => source.chip));
-      await upload.enqueueJob(job.outputFormat, "standard", nextCaptureId, job.jobType);
+      await upload.enqueueJob(job.outputFormat, quality, nextCaptureId, job.jobType);
       setProcessRequested(true);
       clearTwinCapturePendingSession();
       clearTwinCaptureReviewPersistedState();
@@ -117,6 +119,7 @@ export function useM1ReviewProcess({
     completedKeys,
     estimateSufficient,
     processState,
+    quality,
     resolveGpsFix,
     setCaptureId,
     setProcessError,

@@ -5,6 +5,7 @@ import type { TwinJobCreditEstimate } from "@/lib/twin/processing-estimate-types
 import { TwinReviewSourcesScreen } from "./review-sources/TwinReviewSourcesScreen";
 
 type Props = {
+  canUseHighQuality?: boolean;
   devPreview?: {
     estimate: TwinJobCreditEstimate;
     session?: TwinCapturePendingSession;
@@ -14,6 +15,6 @@ type Props = {
 };
 
 /** Shared M1 entry point for a web capture's post-capture Review & Sources screen. */
-export function TwinCaptureReviewScreen({ devPreview }: Props) {
-  return <TwinReviewSourcesScreen devPreview={devPreview} />;
+export function TwinCaptureReviewScreen({ canUseHighQuality, devPreview }: Props) {
+  return <TwinReviewSourcesScreen canUseHighQuality={canUseHighQuality} devPreview={devPreview} />;
 }

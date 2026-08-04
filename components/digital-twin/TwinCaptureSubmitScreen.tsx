@@ -18,6 +18,7 @@ type Props = {
   captureStatus: string;
   title: string;
   assets: TwinSubmitAsset[];
+  canUseHighQuality?: boolean;
 };
 
 export function TwinCaptureSubmitScreen({
@@ -27,10 +28,12 @@ export function TwinCaptureSubmitScreen({
   captureStatus,
   title,
   assets,
+  canUseHighQuality = false,
 }: Props) {
   return (
     <TwinReviewSourcesScreen
       allowPendingSession={false}
+      canUseHighQuality={canUseHighQuality}
       initialCapture={{
         captureId,
         spaceId,

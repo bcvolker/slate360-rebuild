@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
+import { isOwnerEmail } from "@/lib/server/beta-access";
 import { loadDigitalTwinHubData } from "@/lib/digital-twin/load-hub-data";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { LidarScanUploadPanel } from "@/components/digital-twin/LidarScanUploadPanel";
@@ -69,7 +70,13 @@ export default async function DigitalTwinUploadPage({ searchParams }: PageProps)
       captureStatus: capture.capture_status ?? "uploaded",
       assets,
     };
-    return <TwinReviewSourcesScreen allowPendingSession={false} initialCapture={initialCapture} />;
+    return (
+      <TwinReviewSourcesScreen
+        allowPendingSession={false}
+        initialCapture={initialCapture}
+        canUseHighQuality={isOwnerEmail(context.user?.email)}
+      />
+    );
   }
 
   const space = initialProjectId
@@ -84,5 +91,11 @@ export default async function DigitalTwinUploadPage({ searchParams }: PageProps)
         }
       : undefined;
 
-  return <TwinReviewSourcesScreen allowPendingSession={false} initialTarget={target} />;
+  return (
+    <TwinReviewSourcesScreen
+      allowPendingSession={false}
+      initialTarget={target}
+      canUseHighQuality={isOwnerEmail(context.user?.email)}
+    />
+  );
 }

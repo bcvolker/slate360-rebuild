@@ -16,6 +16,7 @@ type Props = {
   initialCapture?: TwinReviewInitialCapture;
   initialTarget?: TwinReviewTarget;
   allowPendingSession?: boolean;
+  canUseHighQuality?: boolean;
   devPreview?: M1ReviewDevPreview;
 };
 
@@ -107,6 +108,9 @@ export function TwinReviewSourcesScreen(props: Props) {
             uploading={state.processState === "uploading"}
             sufficient={state.estimate?.sufficient ?? false}
             onProcess={() => void state.handleProcess()}
+            canUseHighQuality={props.canUseHighQuality ?? false}
+            quality={state.quality}
+            onQualityChange={state.setQuality}
           />
         </div>
       </div>

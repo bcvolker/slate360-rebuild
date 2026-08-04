@@ -154,10 +154,13 @@ export function useM1ReviewSources({
     [sources],
   );
   const frameCount = useMemo(() => estimateFrameCount(sources), [sources]);
+  // Owner-gated: high quality is surfaced only when the server page says so,
+  // but the state lives here so estimate, persistence, and enqueue all agree.
+  const [quality, setQuality] = useState<"standard" | "high">("standard");
   const liveEstimate = useTwinProcessingEstimate({
     sources: sourceAssets,
     frameCount,
-    quality: "standard",
+    quality,
     enabled: sessionReady && sources.length > 0,
   });
   const estimate = devPreview?.estimate ?? liveEstimate.estimate;
@@ -171,11 +174,11 @@ export function useM1ReviewSources({
       void persistTwinCaptureReviewState({
         session,
         scanName: title,
-        quality: "standard",
+        quality,
         addedSources: nextAddedSources,
       });
     },
-    [session, shouldLoadPending, title],
+    [session, shouldLoadPending, title, quality],
   );
 
   const sourceActions = useM1ReviewSourceActions({
@@ -195,6 +198,7 @@ export function useM1ReviewSources({
     addedSources,
     captureId,
     title,
+    quality,
     estimateSufficient: estimate?.sufficient,
     changedAssetIds,
     completedKeys,
@@ -243,6 +247,8 @@ export function useM1ReviewSources({
     captureId,
     initialCaptureStatus: initialCapture?.captureStatus ?? "draft",
     canProcess,
+    quality,
+    setQuality,
     ...sourceActions,
     handleProcess,
     handleRetry,

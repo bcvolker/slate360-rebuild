@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
+import { isOwnerEmail } from "@/lib/server/beta-access";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   TwinCaptureSubmitScreen,
@@ -57,6 +58,7 @@ export default async function TwinCaptureSubmitPage({
       captureStatus={capture.capture_status ?? "uploaded"}
       title={capture.title ?? "Quick scan"}
       assets={assets}
+      canUseHighQuality={isOwnerEmail(context.user?.email)}
     />
   );
 }

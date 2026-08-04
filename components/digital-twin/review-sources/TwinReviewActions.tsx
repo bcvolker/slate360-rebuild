@@ -8,6 +8,10 @@ type Props = {
   uploading: boolean;
   sufficient: boolean;
   onProcess: () => void;
+  /** Owner-gated: when false the quality control is hidden and standard is used. */
+  canUseHighQuality?: boolean;
+  quality?: "standard" | "high";
+  onQualityChange?: (quality: "standard" | "high") => void;
 };
 
 export function TwinReviewActions({
@@ -16,6 +20,9 @@ export function TwinReviewActions({
   uploading,
   sufficient,
   onProcess,
+  canUseHighQuality = false,
+  quality = "standard",
+  onQualityChange,
 }: Props) {
   const label = uploading
     ? "Adding sources…"
@@ -31,6 +38,38 @@ export function TwinReviewActions({
       data-twin-review="actions"
       data-twin-review-action="process"
     >
+      {canUseHighQuality && onQualityChange ? (
+        <div
+          className="mb-2 grid grid-cols-2 gap-2"
+          role="radiogroup"
+          aria-label="Processing quality"
+          data-twin-review="quality"
+        >
+          {(
+            [
+              ["standard", "Standard", "Faster"],
+              ["high", "High", "Best detail"],
+            ] as const
+          ).map(([value, label, hint]) => (
+            <button
+              key={value}
+              type="button"
+              role="radio"
+              aria-checked={quality === value}
+              disabled={busy || uploading}
+              onClick={() => onQualityChange(value)}
+              className={`flex min-h-12 flex-col items-center justify-center rounded-xl border px-3 text-sm font-semibold transition-colors ${
+                quality === value
+                  ? "border-[var(--twin360-blue)] bg-white/[0.06] text-[var(--graphite-text-header)]"
+                  : "border-white/10 bg-white/[0.04] text-[var(--graphite-muted)] hover:bg-white/[0.06]"
+              }`}
+            >
+              {label}
+              <span className="text-[10px] font-normal text-[var(--graphite-muted)]">{hint}</span>
+            </button>
+          ))}
+        </div>
+      ) : null}
       <button
         type="button"
         onClick={onProcess}

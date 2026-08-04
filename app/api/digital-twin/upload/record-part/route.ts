@@ -36,7 +36,7 @@ export const POST = (req: NextRequest) =>
       .is("deleted_at", null)
       .maybeSingle();
     if (sessionError) return serverError(sessionError.message);
-    if (!session) return notFound("Multipart upload not found");
+    if (!session) return notFound("This upload session has expired — start the upload again.");
     if (session.storage_key !== body.key) return badRequest("Storage key mismatch");
     if (body.partNumber > session.total_parts) return badRequest("partNumber exceeds total parts");
     if (session.status === "aborted") return badRequest("Upload was aborted");
