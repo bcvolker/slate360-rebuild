@@ -805,6 +805,38 @@ slope **12.6155° vs known 12.604°** (Δ0.012°). Track L is production-capable
 Remaining for L: Brian's real scanner data + human visual check of the viewer
 tab (R7.5); multi-scan ICP registration exercised only synthetically so far.
 
+### 7.11 LOCKED 2026-08-04 — Luna M1 MERGED with grafts; Codemagic triggered (iOS build failed, under diagnosis)
+
+**M1 merge complete (969bdacf + graft commit):** Luna merged into main with the
+checklist executed — (1) lidar surfaces preserved: `upload/page.tsx` keeps the
+`mode === "lidar"` → `LidarScanUploadPanel` branch on top of Luna's unified
+screen; `CreateTwinSpaceForm` restored from Cursor's copy-scrubbed version
+(workspace→scan); `TwinCreditGate`/`TwinJobStatus` restored SCOPED to the
+desktop LiDAR panel (their only consumer — the condemned mobile flow stays
+dead). (2) Owner-gated quality selector grafted: Standard/High segmented
+control (48 px, tokens) rendered only when the server page passes
+`canUseHighQuality` (isOwnerEmail), quality state threads estimate →
+persisted review → enqueue (Luna had hardcoded standard). (3) record-part 404
+de-jargoned. Gates: scoped tsc clean, guard:architecture pass, chip tests 6/6,
+guard:design pass. **File-size baseline fully reconciled** (was months stale):
+31 dead/shrunk entries dropped, 49 real oversized files refreshed; all new M1
+files <300.
+
+**Codemagic access CONFIRMED + first build triggered from the local session**
+(API token in .env.local; app slate360-rebuild `6a3b464b60159c6e6e399349`,
+workflow `ios-capacitor`; endpoint api.codemagic.IO not .co). Build
+`6a7161e5926ba2f3ca66166a` FAILED at "Build .ipa" (xcodebuild exit 65) — the
+depth-evidence Swift from the 08-01 drop has never been compiled by any Xcode;
+prime suspect per the RoomPlan lesson (missing @available gates / unregistered
+files). Static Swift audit in progress; fix → retrigger from here.
+
+**.insv clarification for Brian:** the July X4 upload contains MP4s exported
+by the Insta360 app — already re-encoded, no verification value. Needed: the
+CAMERA'S OWN raw files copied straight from the X4/SD card — `.insv` (video)
+or `.insp` (photo) recorded in full 360 mode. The "180°" single-lens video is
+a different mode (not equirect) and is expected to reconstruct poorly; a full
+360 capture of a walkable space is the right test asset.
+
 **M1 three-way bake-off — VERDICT: `claude/m1-review-sources-luna` wins.**
 Only branch that deletes every condemned screen with zero dangling refs,
 rewires the NATIVE capture path off the old credit-gate flow, implements REAL
