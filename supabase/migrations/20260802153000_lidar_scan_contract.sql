@@ -24,7 +24,7 @@ begin
     check (asset_kind in (
       'photo', 'video', 'panorama_360',
       'drone_photo', 'drone_video',
-      'ply_lidar', 'lidar_scan', 'lidar_depth', 'lidar_mesh',
+      'ply_lidar', 'lidar_poses', 'lidar_scan', 'lidar_depth', 'lidar_mesh',
       'geospatial_kml', 'geospatial_gpx', 'geospatial_geojson',
       'imu_log', 'other'
     ));

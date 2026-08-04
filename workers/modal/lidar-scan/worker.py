@@ -12,7 +12,6 @@ from pathlib import Path
 from typing import Any
 
 import modal
-import numpy as np
 
 try:
     from fastapi import Header
@@ -21,25 +20,22 @@ except ModuleNotFoundError:  # pragma: no cover - only the web image serves HTTP
     def Header(default=None, **_kwargs):  # type: ignore[misc]
         return default
 
-from potree_tiling import write_potree
-from scan_analysis import analyze_point_cloud
-from scan_io import read_scan
-from scan_registration import register_scans, voxel_decimate
-from worker_net import (
-    callback,
-    download_sources,
-    post_progress,
-    s3_client,
-    set_progress,
-    upload_tree,
-)
+# Heavy imports (numpy, PDAL/Open3D-backed scan modules, boto3-backed worker_net)
+# live INSIDE the pipeline functions: this module is also imported by the slim
+# web-endpoint container, which crashed on them at startup — the same failure
+# class that 500'd every exterior dispatch (see product_worker.py).
 
 APP_NAME = "slate360-lidar-scan"
 SECRET_NAME = "slate360-twin-worker"
 WEB_ENDPOINT_LABEL = "process-lidar-scan"
 MAX_DURATION_SECONDS = 45 * 60
 POTREE_CONVERTER_BIN = "/usr/local/bin/PotreeConverter"
-POTREE_CONVERTER_REF = "1.8"
+# 2.1.1 is the newest real release tag — "1.8" does not exist upstream (the
+# original pin never built). NOTE: 2.x emits metadata.json + a BINARY
+# hierarchy.bin/octree.bin; potree_tiling._hierarchy_entries still expects a
+# JSON node list and must be reworked against real 2.1.1 output before the
+# first production scan job (tracked in plan §7.9).
+POTREE_CONVERTER_REF = "2.1.1"
 
 app = modal.App(APP_NAME)
 worker_secret = modal.Secret.from_name(SECRET_NAME)
@@ -87,6 +83,13 @@ web_image = modal.Image.debian_slim(python_version="3.11").pip_install("fastapi[
 
 
 def run_pipeline(payload: dict[str, Any], root: Path) -> dict[str, Any]:
+    import numpy as np
+    from potree_tiling import write_potree
+    from scan_analysis import analyze_point_cloud
+    from scan_io import read_scan
+    from scan_registration import register_scans, voxel_decimate
+    from worker_net import download_sources, s3_client, set_progress, upload_tree
+
     bucket = os.environ["R2_BUCKET"]
     s3 = s3_client()
     source_keys = [str(key) for key in payload.get("sourceKeys", [])]
@@ -175,6 +178,8 @@ def run_pipeline(payload: dict[str, Any], root: Path) -> dict[str, Any]:
 
 @app.function(image=worker_image, secrets=[worker_secret], timeout=MAX_DURATION_SECONDS, retries=0)
 def process_job(payload: dict[str, Any]) -> None:
+    from worker_net import callback, post_progress
+
     job_id = str(payload.get("jobId") or "")
     root = Path("/tmp") / f"lidar-job-{job_id or 'unknown'}"
     shutil.rmtree(root, ignore_errors=True)
