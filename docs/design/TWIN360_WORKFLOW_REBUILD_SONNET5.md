@@ -743,3 +743,53 @@ profile/measure/clip tools map 1:1 to the L2 spec; PotreeConverter runs in the
 CPU worker after PDAL merge). Fallback: keep the octree format, render via a
 minimal custom R3F loader if the full Potree viewer fights the shell. The L1/L2
 build prompt should embed this decision.
+
+### 7.9 LOCKED 2026-08-03 (later) — Track L integrated; two deploy-killing defect classes cured; M1 3-way bake-off in evaluation
+
+**Track L MERGED + DEPLOYED** (merge 510d001d, fixes e5bc5de8): migration
+applied (after adding `lidar_poses` — the branch's allow-list missed a real
+prod kind and the constraint refused to apply), Modal app `slate360-lidar-scan`
+live at `bcvolker--process-lidar-scan.modal.run` (verified 401 fail-closed),
+`MODAL_LIDAR_ENDPOINT` in .env.local, Trigger redeployed with `twin.lidar_scan`.
+
+**Two defects the multi-AI drop shipped, both caught before/at deploy:**
+1. **Hallucinated dependency version:** PotreeConverter "1.8" does not exist —
+   image never built. Pinned to real 2.1.1 (builds in ~105 s). **OPEN GAP —
+   BLOCKS FIRST PRODUCTION SCAN:** `potree_tiling._hierarchy_entries` expects a
+   JSON node list that NO real converter emits (1.x = binary .hrc, 2.x = binary
+   hierarchy.bin + octree.bin). The bridge must be reworked to parse 2.1.1's
+   binary hierarchy (22-byte node records, chunked by firstChunkSize/stepSize
+   from metadata.json) and repack into the normalized tiles/*.bin scheme the
+   viewer already reads. Validate with a SYNTHETIC LAS (laspy tilted-plane
+   fixture) end-to-end — no scanner purchase needed.
+2. **Slim-web-image import crash (now a standing RULE):** module-level heavy
+   imports (numpy/scan modules/boto3-backed helpers) crash the slim
+   web-endpoint container that shares the module — this 500'd EVERY exterior
+   dispatch (fb1767ed stale at 5%, zero heartbeats: the endpoint itself was
+   dead) and was repeated verbatim in the lidar worker. RULE: any Modal worker
+   with a separate web image keeps module top-level imports to stdlib + modal;
+   everything heavy imports inside functions. Both workers fixed + redeployed;
+   both endpoints verified 401-not-500.
+
+**Exterior rerun `f4d8537f` healthy** post-fix (align 20% + heartbeating at
+13 min — previous dispatch was dead at 5 with stage null). ~10 h to verdict.
+
+**M1 three-way bake-off — VERDICT: `claude/m1-review-sources-luna` wins.**
+Only branch that deletes every condemned screen with zero dangling refs,
+rewires the NATIVE capture path off the old credit-gate flow, implements REAL
+part-level resume (init `completedParts` + new `record-part` route + skip-
+completed runner), and is fully clean on tokens/targets/jargon/size guards.
+GLM second (wired layer is feature-complete but ships ~1,600 lines of dead
+duplicate code, 2 oversized hooks, 5 `rounded-full` violations, 28 px chips,
+native path untouched). Cursor third (wraps instead of deletes — TwinUploadPanel
+is a re-export shim; no server chip persistence; cosmetic resume; broken dev
+sandbox). **Merge checklist (local session):** (1) rebase Luna onto current
+main PRESERVING the lidar-scan surfaces — main's `LidarScanUploadPanel`
+imports `CreateTwinSpaceForm` which Luna deletes, and all three branches
+rewrote `upload/page.tsx` without main's `mode === "lidar"` branch; (2)
+restore the owner-gated high-quality option (Luna hardcodes `standard` at
+`useM1ReviewSources.ts:160,174`) — graft Cursor's quality select +
+`canUseHighQuality` threading; (3) reword `record-part`'s "Multipart upload
+not found" (jargon leak); grafts: Cursor's workspace→scan copy scrubs +
+save-for-later affordance, GLM's superset chip tests. Then bug-hunter pass,
+merge, push, Brian on-device.
