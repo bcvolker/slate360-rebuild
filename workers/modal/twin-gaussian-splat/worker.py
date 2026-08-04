@@ -91,6 +91,19 @@ def probe_dimensions(path: Path) -> tuple[int, int] | None:
         return None
 
 
+def probe_video_stream_count(path: Path) -> int:
+    """Count video streams (Insta360 RAW .insv has one per lens). 0 on failure."""
+    try:
+        out = subprocess.run(
+            ["ffprobe", "-v", "error", "-select_streams", "v",
+             "-show_entries", "stream=index", "-of", "csv=p=0", str(path)],
+            capture_output=True, text=True, timeout=60, check=True,
+        ).stdout
+        return len([line for line in out.splitlines() if line.strip()])
+    except Exception:  # noqa: BLE001
+        return 0
+
+
 def detect_projection(path: Path) -> str:
     """Classify a 360-flagged source as 'dfisheye' or 'equirect'.
 
@@ -1858,8 +1871,24 @@ def extract_equirect_views(
     feeding it directly is the documented "360 produces garbage" failure.
     """
     out_dir.mkdir(parents=True, exist_ok=True)
+    # A "dfisheye" source frame may actually be a SINGLE square fisheye: ffmpeg's
+    # default stream selection pulls one of the .insv's two per-lens streams, and
+    # the kitchen smoke run produced 3840x3840 frames that v360's dfisheye input
+    # cannot unwrap. Square frame -> treat as one ~190-degree fisheye hemisphere.
+    proj = projection
+    fov_args = ""
+    if projection == "dfisheye":
+        fov_args = ":ih_fov=190:iv_fov=190"
+        dims = probe_dimensions(image_path)
+        if dims and dims[1] > 0 and 0.9 <= dims[0] / dims[1] <= 1.1:
+            proj = "fisheye"
     count = 0
     for pitch, yaw in equirect_view_angles(rings):
+        # v360 only accepts yaw in [-180, 180] — yaw=270 fails filter init
+        # ("Error setting option yaw"), which killed every raw-.insv job.
+        yaw_arg = ((yaw + 180) % 360) - 180
+        if proj == "fisheye" and abs(yaw_arg) > 100:
+            continue  # outside the single lens's coverage — would render black
         tag = f"p{pitch:+03d}y{yaw:03d}".replace("+", "p").replace("-", "m")
         out_path = out_dir / f"{stem}_{tag}.jpg"
         run_cmd(
@@ -1870,8 +1899,8 @@ def extract_equirect_views(
                 str(image_path),
                 "-vf",
                 (
-                    f"v360=input={projection}:output=flat:yaw={yaw}:pitch={pitch}:roll=0:"
-                    f"w={EQUIRECT_VIEW_W}:h={EQUIRECT_VIEW_H}"
+                    f"v360=input={proj}:output=flat:yaw={yaw_arg}:pitch={pitch}:roll=0:"
+                    f"w={EQUIRECT_VIEW_W}:h={EQUIRECT_VIEW_H}{fov_args}"
                 ),
                 "-q:v",
                 "2",
@@ -1895,19 +1924,43 @@ def extract_equirect_video_views(
     out_dir.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="equirect-frames-") as tmp:
         frames_dir = Path(tmp)
-        run_cmd(
-            [
-                "ffmpeg",
-                "-y",
-                "-i",
-                str(video_path),
-                "-vf",
-                f"fps={EQUIRECT_VIDEO_FPS}",
-                "-q:v",
-                "2",
-                str(frames_dir / f"{stem}_%05d.jpg"),
-            ]
-        )
+        # Insta360 RAW .insv carries TWO video streams (one per lens). Default
+        # stream selection silently drops the back hemisphere, so stack both
+        # side-by-side into a true dual-fisheye frame when a second stream exists.
+        if projection == "dfisheye" and probe_video_stream_count(video_path) >= 2:
+            run_cmd(
+                [
+                    "ffmpeg",
+                    "-y",
+                    "-i",
+                    str(video_path),
+                    "-filter_complex",
+                    (
+                        f"[0:v:0]fps={EQUIRECT_VIDEO_FPS}[a];"
+                        f"[0:v:1]fps={EQUIRECT_VIDEO_FPS}[b];"
+                        "[a][b]hstack=inputs=2[v]"
+                    ),
+                    "-map",
+                    "[v]",
+                    "-q:v",
+                    "2",
+                    str(frames_dir / f"{stem}_%05d.jpg"),
+                ]
+            )
+        else:
+            run_cmd(
+                [
+                    "ffmpeg",
+                    "-y",
+                    "-i",
+                    str(video_path),
+                    "-vf",
+                    f"fps={EQUIRECT_VIDEO_FPS}",
+                    "-q:v",
+                    "2",
+                    str(frames_dir / f"{stem}_%05d.jpg"),
+                ]
+            )
         frames = sorted(frames_dir.glob(f"{stem}_*.jpg"))
         if not frames:
             raise RuntimeError(f"No frames extracted from 360 video {video_path.name}")
