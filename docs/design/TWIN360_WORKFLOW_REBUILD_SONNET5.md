@@ -774,6 +774,37 @@ live at `bcvolker--process-lidar-scan.modal.run` (verified 401 fail-closed),
 **Exterior rerun `f4d8537f` healthy** post-fix (align 20% + heartbeating at
 13 min — previous dispatch was dead at 5 with stage null). ~10 h to verdict.
 
+### 7.10 LOCKED 2026-08-03 (night) — Potree bridge REBUILT on real 2.x format; E2E via synthetic-LAS prod job
+
+Three external analyses evaluated; none wrote code — the local session
+implemented the synthesis (91136a95). Adopted: GLM's format spec (deepest —
+proxy sub-chunk record-0 semantics, bit0=z/bit1=y/bit2=x octant mapping the old
+bridge had BACKWARDS, uint16 LAS color vs the viewer's uint8 contract,
+stepSize is a level count) + Luna's fail-closed rigor (corrupt-chunk rejection,
+non-uniform scale-vector re-encoding to the viewer's scalar). REJECTED:
+Cursor's `--encoding UNCOMPRESSED` flag — unverified CLI value, same
+hallucination class as "PotreeConverter 1.8"; the default DEFAULT encoding is
+already uncompressed, and BROTLI now raises a clear error instead.
+
+New `workers/modal/lidar-scan/potree_hierarchy.py`: metadata/attributes parser,
+22-byte `<BBIqq>` hierarchy walker with proxy resolution, corrected octant
+bounds, and node repack to the viewer's fixed stride-16 contract (int32 XYZ,
+uint8 RGB, positions re-encoded via world coordinates so non-uniform converter
+scales can't corrupt geometry). `potree_tiling.py` rewired onto it; viewer
+untouched. Converter-free unit tests (walk/proxy/bounds/color-roundtrip/
+corrupt-rejection) all pass locally; worker redeployed; ACCEPTANCE = a
+synthetic tilted-plane LAS (3600 pts, known dip 12.604°) ingested as a real
+`lidar_scan` capture and dispatched through the production pipeline — the
+recovered slope in the model's flatness metrics must match the known dip.
+Ops tooling: `.tmp/ingest-lidar-scan-test.mjs` (capture+asset+job+dispatch for
+a local LAS file; captures need project_id + assets need space_id).
+
+**E2E RESULT (job `a79c7ee5`, capture `3a4e8d2d`): PASS.** Completed through
+production Trigger→Modal→callback; pointCount 3600/3600 preserved; recovered
+slope **12.6155° vs known 12.604°** (Δ0.012°). Track L is production-capable.
+Remaining for L: Brian's real scanner data + human visual check of the viewer
+tab (R7.5); multi-scan ICP registration exercised only synthetically so far.
+
 **M1 three-way bake-off — VERDICT: `claude/m1-review-sources-luna` wins.**
 Only branch that deletes every condemned screen with zero dangling refs,
 rewires the NATIVE capture path off the old credit-gate flow, implements REAL
