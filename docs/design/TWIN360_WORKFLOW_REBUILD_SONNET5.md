@@ -856,3 +856,19 @@ restore the owner-gated high-quality option (Luna hardcodes `standard` at
 not found" (jargon leak); grafts: Cursor's workspace→scan copy scrubs +
 save-for-later affordance, GLM's superset chip tests. Then bug-hunter pass,
 merge, push, Brian on-device.
+
+### 7.12 LOCKED 2026-08-04 — FIRST RAW-INSTA360 TWIN (kitchen walkthrough)
+
+Job `f663a379` (capture `f5f85030`: 2.35 GB raw `.insv` + 2 equirect 5888×2944
+JPGs) COMPLETED end-to-end: .insv two-stream decode → hstack dual-fisheye →
+v360 unwrap (yaw-range + single-lens fixes, f3d716df) → COLMAP → training →
+SPZ model `30860783`. PSNR 17.22 — functional, visibly rough; known quality
+levers not yet applied: per-unit lens calibration (ih/iv_fov=190 approximation),
+no FlowState stabilization, operator unmasked (P1 refinement: skip the
+operator/nadir sectors during unwrap), kitchen lighting. The smoke clip
+(5-s false start, no motion) correctly failed at mapper — reconstruction
+needs parallax; not a pipeline bug. 360 INGEST TRACK: functionally CLOSED;
+quality tuning moves to P1. Share for Brian's R7.5 visual gate:
+/share/twin/I1VWmH7aiPxftOrsCc05oxtfd5H0qOmC (headless splat render is a
+documented tooling limit — his eyes are the gate). Ops: .tmp/ingest-360-test.mjs
+now streams >2 GiB via lib-storage multipart.
