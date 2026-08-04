@@ -71,6 +71,7 @@ worker_image = (
         "requests==2.32.3",
     )
     .add_local_python_source(
+        "potree_hierarchy",
         "potree_tiling",
         "potree_values",
         "scan_analysis",
