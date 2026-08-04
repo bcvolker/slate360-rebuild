@@ -1,9 +1,17 @@
+export type TwinUploadedPart = {
+  partNumber: number;
+  etag: string;
+  sizeBytes: number;
+};
+
 export type InitUploadRow = {
   assetId: string;
   uploadId: string;
   key: string;
   partSizeBytes: number;
   totalParts: number;
+  alreadyComplete?: boolean;
+  completedParts?: TwinUploadedPart[];
 };
 
 export async function parseTwinApiJson<T>(res: Response): Promise<T> {

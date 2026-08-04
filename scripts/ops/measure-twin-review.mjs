@@ -28,11 +28,11 @@ async function measureViewport(browser, viewport) {
     deviceScaleFactor: 1,
   });
   const page = await context.newPage();
-  const url = `${baseUrl}/dev/screens?screen=twin-review&device=mobile&credits=low&sheet=open${viewport.query}`;
+  const url = `${baseUrl}/dev/screens?screen=twin-review&device=mobile&credits=low${viewport.query}`;
   await page.goto(url, { waitUntil: "domcontentloaded", timeout: 120_000 });
   await page.waitForSelector('[data-twin-review="screen"]', { timeout: 90_000 });
   await page.locator('[data-dev-device="mobile"]').scrollIntoViewIfNeeded();
-  await page.waitForSelector('[data-twin-review="credits-sheet"]', { timeout: 15_000 });
+  await page.waitForSelector('[data-twin-review="estimate"]', { timeout: 15_000 });
   await page.waitForTimeout(300);
 
   const sample = await page.evaluate((label) => {
@@ -41,9 +41,8 @@ async function measureViewport(browser, viewport) {
     const topBar = document.querySelector('[data-twin-review="top-bar"]');
     const scroll = document.querySelector('[data-twin-review="scroll"]');
     const estimate = document.querySelector('[data-twin-review="estimate"]');
-    const lowCredits = document.querySelector('[data-twin-review="low-credits"]');
-    const actionBar = document.querySelector('[data-twin-review="action-bar"]');
-    const creditsSheet = document.querySelector('[data-twin-review="credits-sheet"]');
+    const actionBar = document.querySelector('[data-twin-review="actions"]');
+    const sources = document.querySelector('[data-twin-review="sources"]');
     if (!screen || !frame || !topBar || !scroll || !estimate || !actionBar) return null;
 
     const screenRect = screen.getBoundingClientRect();
@@ -64,10 +63,9 @@ async function measureViewport(browser, viewport) {
       frame: round(frame),
       topBar: round(topBar),
       scroll: round(scroll),
+      sources: round(sources),
       estimate: round(estimate),
-      lowCredits: round(lowCredits),
       actionBar: round(actionBar),
-      creditsSheet: round(creditsSheet),
     };
 
     const gap = (a, b) => (a && b ? Math.round(b.top - a.bottom) : null);
@@ -83,10 +81,9 @@ async function measureViewport(browser, viewport) {
         topBarToScroll: gap(rects.topBar, rects.scroll),
         scrollToActionBar: gap(rects.scroll, rects.actionBar),
         actionBarToFrameBottom: rects.frame ? rects.frame.height - (rects.actionBar?.bottom ?? 0) : null,
-        estimateToLowCredits: gap(rects.estimate, rects.lowCredits),
+        sourcesToEstimate: gap(rects.sources, rects.estimate),
       },
       actionBarPinnedToFrameBottom: rects.actionBar?.bottom === rects.frame?.height,
-      creditsSheetVisible: Boolean(creditsSheet),
     };
   }, viewport.label);
 

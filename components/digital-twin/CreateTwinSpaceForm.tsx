@@ -10,7 +10,7 @@ type Props = {
   projects: HubTwinProject[];
   onCreated: (space: HubTwin) => void;
   className?: string;
-  /** When set, new workspaces attach to this project only. */
+  /** When set, new scans attach to this project only. */
   lockedProjectId?: string;
 };
 
@@ -72,7 +72,7 @@ export function CreateTwinSpaceForm({
       };
 
       if (!res.ok || !data.space?.id) {
-        throw new Error(data.error ?? "Could not create workspace");
+        throw new Error(data.error ?? "Could not create scan");
       }
 
       onCreated(data.space);
@@ -92,7 +92,7 @@ export function CreateTwinSpaceForm({
       )}
     >
       <p className="mb-2 text-xs font-semibold text-zinc-300">
-        {needsProject ? "Create project & twin workspace" : "Create twin workspace"}
+        {needsProject ? "Create project & scan" : "Create scan"}
       </p>
 
       {needsProject ? (
@@ -132,7 +132,7 @@ export function CreateTwinSpaceForm({
       )}
 
       <label className="mb-3 flex flex-col gap-1 text-xs text-zinc-400">
-        Workspace name
+        Scan name
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
@@ -157,7 +157,7 @@ export function CreateTwinSpaceForm({
         ) : (
           <IconPlus className="h-4 w-4" stroke={1.75} />
         )}
-        {busy ? "Creating…" : needsProject ? "Create project & workspace" : "Create workspace"}
+        {busy ? "Creating…" : needsProject ? "Create project & scan" : "Create scan"}
       </button>
 
       {error ? <p className="mt-2 text-xs text-red-300">{error}</p> : null}

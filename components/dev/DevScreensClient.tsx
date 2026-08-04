@@ -310,7 +310,7 @@ export function DevScreensClient() {
           <>
             <span className="mx-1 h-5 w-px bg-[var(--mobile-app-card-border)]" aria-hidden />
             <Link
-              href={`/dev/screens?screen=twin-review&device=${device}&credits=low&sheet=open`}
+              href={`/dev/screens?screen=twin-review&device=${device}&credits=low`}
               className={`rounded-lg border px-2.5 py-1.5 text-[11px] font-bold ${
                 searchParams?.get("credits") === "low"
                   ? "border-[var(--accent-border-green)] text-[var(--graphite-text-header)]"

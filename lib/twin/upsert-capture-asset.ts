@@ -28,7 +28,7 @@ export type UpsertTwinAssetInput = {
 export async function upsertTwinCaptureAsset(
   admin: SupabaseClient,
   input: UpsertTwinAssetInput,
-): Promise<{ id: string; reused: boolean }> {
+): Promise<{ id: string; reused: boolean; status: string; storageKey: string | null }> {
   if (input.clientFingerprint) {
     const { data: existing } = await admin
       .from("digital_twin_capture_assets")
@@ -45,7 +45,12 @@ export async function upsertTwinCaptureAsset(
       // if the user closed the tab it would sit there until the stale sweep soft-deleted a
       // perfectly good asset. If the bytes are already up, hand the row back untouched.
       if (existing.status === "ready" && existing.storage_key) {
-        return { id: existing.id, reused: true };
+        return {
+          id: existing.id,
+          reused: true,
+          status: existing.status,
+          storageKey: existing.storage_key,
+        };
       }
 
       // Otherwise the previous attempt genuinely never finished. Re-presigning is legitimate
@@ -60,7 +65,12 @@ export async function upsertTwinCaptureAsset(
           status: "uploading",
         })
         .eq("id", existing.id);
-      return { id: existing.id, reused: true };
+      return {
+        id: existing.id,
+        reused: true,
+        status: "uploading",
+        storageKey: existing.storage_key,
+      };
     }
   }
 
@@ -84,5 +94,10 @@ export async function upsertTwinCaptureAsset(
   if (error || !asset?.id) {
     throw new Error(error?.message ?? "Failed to create capture asset");
   }
-  return { id: asset.id, reused: false };
+  return {
+    id: asset.id,
+    reused: false,
+    status: "uploading",
+    storageKey: null,
+  };
 }

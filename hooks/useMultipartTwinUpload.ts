@@ -107,6 +107,12 @@ export function useMultipartTwinUpload() {
               key: string;
               partSizeBytes: number;
               totalParts: number;
+              alreadyComplete?: boolean;
+              completedParts?: {
+                partNumber: number;
+                etag: string;
+                sizeBytes: number;
+              }[];
             }[];
           }>("/api/digital-twin/upload/init", {
             space_id: target.spaceId,
@@ -138,7 +144,10 @@ export function useMultipartTwinUpload() {
               assetId: initRow.assetId,
               uploadId: initRow.uploadId,
               key: initRow.key,
+              status: initRow.alreadyComplete ? "complete" : "pending",
+              progress: initRow.alreadyComplete ? 100 : 0,
             });
+            if (initRow.alreadyComplete) continue;
             if (abortedRef.current) break;
             await runMultipartTwinUpload(ctx, file, index, initRow, init.captureId);
           }
@@ -164,7 +173,8 @@ export function useMultipartTwinUpload() {
         });
         return resolvedCaptureId;
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Upload failed";
+        const message =
+          "We couldn't add one or more sources. Tap Process twin again to continue from where we stopped.";
         setFiles((prev) =>
           prev.map((row) => (row.status === "complete" ? row : { ...row, status: "error", error: message })),
         );
