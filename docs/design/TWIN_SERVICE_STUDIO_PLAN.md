@@ -29,10 +29,19 @@ build prompt for later reference (not scheduled into a phase).
 | **TOTAL** | **28 core** | **4/28** | **≈14%** |
 
 **Executor notes for what's done:** A1/A2/A4/B1 were all Sonnet-5-safe per §6 and executed on
-Sonnet 5. **Fable-5 heads-up:** B3 (360 masking/lens-calibration/sharpness-selection —
-real worker.py coordinate-math authoring, not dispatch) is the next slice that matches this
-doc's own "keep on Opus/Fable-class" guidance (§6) — flag to Brian before starting it. Same
-applies to all of Phase C (depth-loss trainer) and any future Modal worker math.
+Sonnet 5. B1's mechanism was verified live: dispatched a `trainProfile: visual` reprocess on
+capture `e5d42523` via `scripts/ops/dispatch-twin-experiment.mjs` (job `13934822…`, non-
+publishing) — result pending in `docs/design/TWIN360_WORKFLOW_REBUILD_SONNET5.md` §7 once
+Brian reviews it. **Confirmed gap found in the process:** there is currently no UI to preview a
+non-primary model version without publishing it (`TwinVersionsPanel` has no preview action) —
+sharpens Phase D's scope. **B2 re-scoped** (see table) — blocked on live exterior-pipeline bugs,
+not a simple dispatch.
+
+**Fable-5 heads-up:** B3 (360 masking/lens-calibration/sharpness-selection — real worker.py
+coordinate-math authoring, not dispatch) is the next slice that matches this doc's own "keep on
+Opus/Fable-class" guidance (§6) — flag to Brian before starting it. Same applies to all of
+Phase C (depth-loss trainer), the re-scoped B2's exterior-pipeline debugging, and any future
+Modal worker math.
 
 ---
 
@@ -96,7 +105,7 @@ components/APIs** and must not be rebuilt:
 | Slice | Work |
 |---|---|
 | B1 | Send `trainProfile` per-arm from `src/trigger/twin-gaussian-splat.ts`; run the P0c free-flag A/B (bilateral grid first) with the R7.5 visual gate |
-| B2 | Dispatch Arm B — **exterior/photogrammetry track**, `workers/modal/photogrammetry/worker.py:333` `texture_workspace()`, confirmed code-complete Modal function (`cpu=8, memory=32768`, no GPU) — undistorts at native resolution independent of the `dense()` geometry cap. Needs a prior exterior job's populated `/data` volume workspace (an aligned+dense run) to target; dispatch-only, no authoring, Sonnet-safe. + M0 memory profile |
+| B2 | **RE-SCOPED 2026-08-06, was not actually dispatch-ready.** `texture_workspace()` (`workers/modal/photogrammetry/worker.py:333`, CPU-only, code-complete) targets a persistent Modal `Volume` (`/data`) — but the LIVE exterior pipeline (`twin.photogrammetry_mesh` → `product_worker.py`, the app Trigger actually calls) uses **ephemeral per-job `/tmp/exterior-job-{id}/` workspaces**, not that volume. There is currently no populated `/data` workspace to point `texture_workspace()` at. Separately (found while checking): **all 5 most recent real exterior jobs failed** — the two most recent on `colmap mesh_texturer` crashing (`Command failed (-6)`, SIGABRT) on `mesh_raw.ply`, matching the known Poisson-mesher-on-aerial-scenes fragility noted in the pipeline ledger (`delaunay_mesher` was supposed to be primary with Poisson as a trimmed fallback — worth checking whether that fix reached `product_worker.py` or only the research file). **B2 as originally scoped is blocked until the live exterior pipeline itself is debugged** — that's real worker.py-level troubleshooting, not a dispatch, and belongs with the other Fable-class pipeline work. + M0 memory profile |
 | B3 | 360 trio: operator/nadir sector skip during unwrap → real reprojected mask via COLMAP `--ImageReader.mask_path`; per-unit lens calibration (replace ih_fov/iv_fov=190 approximation); route 360 frames through `extract_sharp_frames` instead of flat 0.5 fps |
 | B4 (opt) | PLY-seed A/B arm on the vanilla path (patch `ply_file_path` into transforms.json post-`ns-process-data`; plumbing exists on the dormant bypass path) |
 
