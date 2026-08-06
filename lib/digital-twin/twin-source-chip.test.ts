@@ -44,6 +44,26 @@ describe("twin-source-chip", () => {
     );
   });
 
+  it("A4: native uploader's gzip suffix doesn't defeat LiDAR classification", () => {
+    // TwinUploader/TwinGzip on iOS uploads these as lidar_capture.ply.gz /
+    // lidar_poses.json.gz — the pre-A4 end-anchored regexes missed the .gz
+    // and the review UI fell back to the Phone chip for real LiDAR evidence.
+    expect(isLidarDescriptor({ name: "lidar_capture.ply.gz", type: "application/gzip" })).toBe(true);
+    expect(isLidarDescriptor({ name: "lidar_poses.json.gz", type: "application/gzip" })).toBe(true);
+    expect(availableChipsForFile({ name: "lidar_capture.ply.gz", type: "application/gzip" })).toEqual([
+      "lidar",
+    ]);
+    expect(defaultChipForFile({ name: "lidar_capture.ply.gz", type: "application/gzip" })).toBe(
+      "lidar",
+    );
+    expect(
+      assetKindForChip("lidar", { name: "lidar_poses.json.gz", type: "application/gzip" }),
+    ).toBe("lidar_poses");
+    expect(
+      assetKindForChip("lidar", { name: "lidar_capture.ply.gz", type: "application/gzip" }),
+    ).toBe("ply_lidar");
+  });
+
   it("uses measured projection before filename hints", () => {
     expect(defaultChipForFile(video("DJI_001.mp4"), "equirect")).toBe("360");
     expect(defaultChipForFile(photo("DJI_001.JPG"), "flat")).toBe("drone");

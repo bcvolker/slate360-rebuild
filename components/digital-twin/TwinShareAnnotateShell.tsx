@@ -17,6 +17,13 @@ import {
   postShareMeasurement,
   postSharePin,
 } from "@/components/digital-twin/twin-share-annotate-actions";
+import { TwinSceneOverlays } from "@/components/digital-twin/TwinSceneOverlays";
+import {
+  buildShareOverlayPins,
+  buildShareOverlayMeasurements,
+  type TwinSharePinRow,
+  type TwinShareMeasurementRow,
+} from "@/lib/digital-twin/twin-share-overlays";
 
 type CommentRow = {
   id: string;
@@ -24,7 +31,8 @@ type CommentRow = {
   author_display: string | null;
   body: string;
 };
-type PinRow = { id: string; title: string };
+type PinRow = TwinSharePinRow;
+type MeasurementRow = TwinShareMeasurementRow;
 
 export function TwinShareAnnotateShell({
   shareToken,
@@ -57,6 +65,7 @@ export function TwinShareAnnotateShell({
   const [pinTitle, setPinTitle] = useState("");
   const [comments, setComments] = useState<CommentRow[]>([]);
   const [pins, setPins] = useState<PinRow[]>([]);
+  const [measurements, setMeasurements] = useState<MeasurementRow[]>([]);
   const [measureA, setMeasureA] = useState<TwinPickPoint | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -67,14 +76,17 @@ export function TwinShareAnnotateShell({
   const measureReady = viewerKind === "splat" || viewerKind === "model";
 
   const refresh = useCallback(async () => {
-    const [cRes, pRes] = await Promise.all([
+    const [cRes, pRes, mRes] = await Promise.all([
       fetch(`/api/share/twin/${shareToken}/comment`),
       fetch(`/api/share/twin/${shareToken}/pin`),
+      fetch(`/api/share/twin/${shareToken}/measurement`),
     ]);
     const cJson = (await cRes.json().catch(() => ({}))) as { comments?: CommentRow[] };
     const pJson = (await pRes.json().catch(() => ({}))) as { pins?: PinRow[] };
+    const mJson = (await mRes.json().catch(() => ({}))) as { measurements?: MeasurementRow[] };
     if (cRes.ok) setComments(cJson.comments ?? []);
     if (pRes.ok) setPins(pJson.pins ?? []);
+    if (mRes.ok) setMeasurements(mJson.measurements ?? []);
   }, [shareToken]);
 
   useEffect(() => {
@@ -175,6 +187,14 @@ export function TwinShareAnnotateShell({
     [comments],
   );
 
+  // A2: render pins + measurements in the 3D scene on shares, not just as text
+  // in the activity sheet — previously only the authenticated viewer did this.
+  const overlayPins = useMemo(() => buildShareOverlayPins(pins), [pins]);
+  const overlayMeasurements = useMemo(
+    () => buildShareOverlayMeasurements(measurements),
+    [measurements],
+  );
+
   return (
     <TwinViewerCanvasShell
       viewerRef={viewerRef}
@@ -204,6 +224,7 @@ export function TwinShareAnnotateShell({
           error={error}
           thread={thread}
           pins={pins}
+          measurements={measurements}
           photosAvailable={pe.available}
           photosLayerOn={pe.layerOn}
           photoCount={pe.cameras.length}
@@ -253,6 +274,15 @@ export function TwinShareAnnotateShell({
         repositionMode={repositionMode}
         onCameraModeChange={setCameraMode}
         onManifestChange={setManifest}
+        overlay={
+          <TwinSceneOverlays
+            pins={overlayPins}
+            measurements={overlayMeasurements}
+            showPins
+            showMeasurements
+            previewPoint={tool === "measure" ? measureA : null}
+          />
+        }
       />
       <PhotoExplorerPanel
         camera={pe.selected}

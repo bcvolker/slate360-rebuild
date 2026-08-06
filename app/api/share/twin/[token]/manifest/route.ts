@@ -38,12 +38,21 @@ export async function GET(req: NextRequest, ctx: Params) {
     const res = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
     const body = await res.Body?.transformToString();
     if (!body) return NextResponse.json(null, { status: 404 });
-    return new NextResponse(body, {
+    // A1: mix the model's live edit_list into the baked manifest so shared/mobile
+    // viewers apply the same desktop-editor cleanup as the editor itself.
+    let manifest: Record<string, unknown>;
+    try {
+      manifest = JSON.parse(body) as Record<string, unknown>;
+    } catch {
+      return new NextResponse(body, {
+        status: 200,
+        headers: { "content-type": "application/json", "cache-control": "private, max-age=300" },
+      });
+    }
+    manifest.edit_list = result.editList;
+    return NextResponse.json(manifest, {
       status: 200,
-      headers: {
-        "content-type": "application/json",
-        "cache-control": "private, max-age=300",
-      },
+      headers: { "cache-control": "private, max-age=300" },
     });
   } catch {
     return NextResponse.json(null, { status: 404 });

@@ -23,8 +23,12 @@ export type TwinFileDescriptor = {
 };
 
 const VIDEO_RE = /\.(webm|mp4|mov|m4v|insv)$/i;
-const LIDAR_RE = /\.(ply|las|laz|e57|pcd|xyz|pts|s360depth)$/i;
-const LIDAR_POSES_RE = /(?:^|[_-])poses\.json$/i;
+// A4: the native iOS uploader gzips ply_lidar/lidar_poses evidence in-place
+// (lidar_capture.ply.gz, lidar_poses.json.gz — see TwinGzip.gzipFile), so an
+// end-anchored extension match misses them and the review UI mislabels
+// native LiDAR files as "Phone". Tolerate an optional trailing ".gz".
+const LIDAR_RE = /\.(ply|las|laz|e57|pcd|xyz|pts|s360depth)(\.gz)?$/i;
+const LIDAR_POSES_RE = /(?:^|[_-])poses\.json(\.gz)?$/i;
 const INSTA360_RAW_RE = /\.(insv|insp)$/i;
 
 export function isVideoDescriptor(file: TwinFileDescriptor): boolean {

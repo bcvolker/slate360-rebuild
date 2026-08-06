@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { withAuth } from "@/lib/server/api-auth";
 import { BUCKET, s3 } from "@/lib/s3";
+import { parseEditList } from "@/lib/digital-twin/edit-list-types";
 
 export const runtime = "nodejs";
 
@@ -21,7 +22,7 @@ export function GET(req: NextRequest, ctx: Params) {
 
     const { data: model } = await admin
       .from("digital_twin_models")
-      .select("storage_key")
+      .select("storage_key, edit_list")
       .eq("id", modelId)
       .eq("org_id", orgId)
       .eq("status", "ready")
@@ -39,9 +40,21 @@ export function GET(req: NextRequest, ctx: Params) {
       const res = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
       const body = await res.Body?.transformToString();
       if (!body) return NextResponse.json(null, { status: 404 });
-      return new NextResponse(body, {
+      // A1: mix in the live edit_list so the authenticated viewer applies the
+      // same desktop-editor cleanup as the editor itself.
+      let manifest: Record<string, unknown>;
+      try {
+        manifest = JSON.parse(body) as Record<string, unknown>;
+      } catch {
+        return new NextResponse(body, {
+          status: 200,
+          headers: { "content-type": "application/json", "cache-control": "private, max-age=300" },
+        });
+      }
+      manifest.edit_list = parseEditList(model?.edit_list);
+      return NextResponse.json(manifest, {
         status: 200,
-        headers: { "content-type": "application/json", "cache-control": "private, max-age=300" },
+        headers: { "cache-control": "private, max-age=300" },
       });
     } catch {
       return NextResponse.json(null, { status: 404 });

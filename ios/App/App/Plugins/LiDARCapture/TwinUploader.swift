@@ -147,6 +147,7 @@ final class TwinUploader {
                 "filename": entry.filename,
                 "contentType": entry.contentType,
                 "sizeBytes": fileSize(entry.url),
+                "clientFingerprint": clientFingerprint(for: entry),
             ]
             if let kind = entry.assetKind { spec["assetKind"] = kind }
             return spec
@@ -236,6 +237,7 @@ final class TwinUploader {
             "filename": entry.filename,
             "contentType": entry.contentType,
             "sizeBytes": size,
+            "clientFingerprint": clientFingerprint(for: entry),
         ]
         if let cid = captureId { presignBody["capture_id"] = cid }
         if let t = title { presignBody["title"] = t }
@@ -278,5 +280,27 @@ final class TwinUploader {
     private func fileSize(_ url: URL) -> Int {
         let attrs = try? FileManager.default.attributesOfItem(atPath: url.path)
         return (attrs?[.size] as? NSNumber)?.intValue ?? 0
+    }
+
+    /// A4: stable per-file identity, mirroring the web uploader's `twinAssetFingerprint`
+    /// (name + size + lastModified — see lib/twin/asset-fingerprint.ts). The native
+    /// uploader never sent this, so a retried/relaunched upload re-registered the same
+    /// clip/PLY/poses file as a sibling `digital_twin_capture_assets` row instead of
+    /// reusing it — the same triplicate-upload failure mode the web P0a fix closed, just
+    /// still open on the path that matters (native capture is the primary LiDAR ingest).
+    /// Server-side this is an opaque string compared for exact equality
+    /// (`upsertTwinCaptureAsset`), so it does not need to match the JS hash bit-for-bit —
+    /// only be stable across retries of the same on-disk clip file.
+    private func clientFingerprint(for entry: FileEntry) -> String {
+        let size = fileSize(entry.url)
+        let attrs = try? FileManager.default.attributesOfItem(atPath: entry.url.path)
+        let modifiedMillis: Int64
+        if let modDate = attrs?[.modificationDate] as? Date {
+            modifiedMillis = Int64(modDate.timeIntervalSince1970 * 1000)
+        } else {
+            modifiedMillis = 0
+        }
+        let name = entry.filename
+        return "\(name.count):\(name):\(size):\(modifiedMillis)"
     }
 }

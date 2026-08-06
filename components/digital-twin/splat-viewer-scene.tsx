@@ -21,6 +21,7 @@ import {
 } from "@/components/digital-twin/splat-viewer-constants";
 import { fetchSplatManifest, type SplatManifest } from "@/lib/digital-twin/twin-manifest";
 import { estimateOrientationFromMesh } from "@/lib/digital-twin/splat-pca-orientation";
+import { applyEditListToMesh } from "@/lib/digital-twin/splat-edit-runtime";
 
 extend({ SparkRenderer: SparkRendererImpl, SplatMesh: SplatMeshImpl });
 
@@ -203,6 +204,12 @@ export function SplatViewerScene({
               group.updateMatrixWorld(true);
             }
           }
+        }
+        // A1: apply the desktop editor's non-destructive edit_list here too, so
+        // shares/mobile/cinematic/compare all show what the operator cleaned up —
+        // previously this only ran inside DesktopSplatViewport.
+        if (manifest?.edit_list?.length) {
+          applyEditListToMesh(mesh, manifest.edit_list);
         }
         setLoadedMesh(mesh);
         onReady();

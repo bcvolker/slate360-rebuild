@@ -2,11 +2,12 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { TwinShareDenyReason } from "@/lib/digital-twin/share-token";
+import { parseEditList, type TwinEditList } from "@/lib/digital-twin/edit-list-types";
 
 const TOKEN_RE = /^[A-Za-z0-9_-]{16,128}$/;
 
 export type TwinShareSplatResult =
-  | { ok: true; storageKey: string; fileSizeBytes: number | null }
+  | { ok: true; modelId: string; storageKey: string; fileSizeBytes: number | null; editList: TwinEditList }
   | { ok: false; reason: TwinShareDenyReason | "unavailable" };
 
 export async function resolveTwinShareSplat(token: string): Promise<TwinShareSplatResult> {
@@ -43,7 +44,7 @@ export async function resolveTwinShareSplat(token: string): Promise<TwinShareSpl
 
   let modelQuery = admin
     .from("digital_twin_models")
-    .select("id, storage_key, file_size_bytes, status, is_primary, model_format")
+    .select("id, storage_key, file_size_bytes, status, is_primary, model_format, edit_list")
     .eq("space_id", space.id)
     .eq("status", "ready")
     .is("deleted_at", null);
@@ -64,7 +65,9 @@ export async function resolveTwinShareSplat(token: string): Promise<TwinShareSpl
 
   return {
     ok: true,
+    modelId: model.id,
     storageKey: model.storage_key,
     fileSizeBytes: model.file_size_bytes ?? null,
+    editList: parseEditList(model.edit_list),
   };
 }

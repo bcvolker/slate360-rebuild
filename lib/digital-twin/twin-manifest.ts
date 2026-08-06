@@ -1,3 +1,5 @@
+import type { TwinEditList } from "./edit-list-types";
+
 /**
  * Splat orientation/framing manifest baked by the Modal twin worker
  * (workers/modal/twin-gaussian-splat/worker.py → compute_splat_manifest).
@@ -44,6 +46,10 @@ export type SplatManifest = {
   /** Q1: true when a real metric scale factor (recovered from ARKit<->COLMAP
    * trajectory correspondence) was baked into this model's positions. */
   metric_scale_applied?: boolean;
+  /** A1: the model's non-destructive desktop-editor edits (digital_twin_models.edit_list),
+   * mixed into the manifest response server-side so every viewer that reads the manifest
+   * for orientation also picks up cleanup edits — not just the desktop editor. */
+  edit_list?: TwinEditList;
 };
 
 /**

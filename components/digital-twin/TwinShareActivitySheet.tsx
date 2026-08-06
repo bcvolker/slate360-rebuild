@@ -11,6 +11,7 @@ import {
   type TwinShareTool,
 } from "@/components/digital-twin/TwinShareToolStrip";
 import { PhotoExplorerToggle } from "@/components/digital-twin/photo-explorer/PhotoExplorerToggle";
+import type { TwinShareMeasurementRow } from "@/lib/digital-twin/twin-share-overlays";
 
 const fieldClass =
   "w-full rounded-xl border border-white/10 bg-[var(--graphite-canvas)]/60 px-3 py-2 text-xs text-zinc-100 placeholder:text-zinc-500";
@@ -22,6 +23,7 @@ type CommentRow = {
   body: string;
 };
 type PinRow = { id: string; title: string };
+type MeasurementRow = TwinShareMeasurementRow;
 
 export function TwinShareActivitySheet({
   canAnnotate,
@@ -44,6 +46,7 @@ export function TwinShareActivitySheet({
   error,
   thread,
   pins,
+  measurements,
   photosAvailable,
   photosLayerOn,
   photoCount,
@@ -69,6 +72,7 @@ export function TwinShareActivitySheet({
   error: string | null;
   thread: CommentRow[];
   pins: PinRow[];
+  measurements: MeasurementRow[];
   photosAvailable: boolean;
   photosLayerOn: boolean;
   photoCount: number;
@@ -139,8 +143,8 @@ export function TwinShareActivitySheet({
       {error ? <p className="text-xs text-red-300">{error}</p> : null}
 
       <div className="space-y-2">
-        {thread.length === 0 && pins.length === 0 ? (
-          <p className="text-xs text-zinc-500">No comments or pins yet.</p>
+        {thread.length === 0 && pins.length === 0 && measurements.length === 0 ? (
+          <p className="text-xs text-zinc-500">No comments, pins, or measurements yet.</p>
         ) : null}
         {thread.map((c) => (
           <div key={c.id} className="text-xs text-zinc-300">
@@ -151,6 +155,12 @@ export function TwinShareActivitySheet({
         {pins.map((p) => (
           <div key={p.id} className="text-xs text-zinc-300">
             <span className={cn("font-semibold", twinAccent.text)}>Pin</span>: {p.title}
+          </div>
+        ))}
+        {measurements.map((m) => (
+          <div key={m.id} className="text-xs text-zinc-300">
+            <span className={cn("font-semibold", twinAccent.text)}>Measurement</span>:{" "}
+            {m.measured_value != null ? `${m.measured_value.toFixed(2)} ${m.unit ?? "m"}` : "—"}
           </div>
         ))}
       </div>
