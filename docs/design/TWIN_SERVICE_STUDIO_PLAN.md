@@ -7,7 +7,32 @@ schema, viewer/share, capture/upload, docs) reconciled with a 4-AI panel review.
 *pipeline* ledger (quality runs, A/B verdicts). This doc owns the *service/product* build:
 delivery fixes, operator studio, client portal, assistant, exports, pinned attachments.
 `TWIN360_CAPTURE_SOP.md` remains the canonical field SOP. `TWIN360_PIPELINE_V2_*` remain the
-pipeline architecture decisions.
+pipeline architecture decisions. `TWIN_SERVICE_BUSINESS_CONTEXT.md` captures the service-first
+repositioning context (why this plan matters commercially — no execution scheduled from it yet).
+`TWIN_SERVICE_VIEWER_REFERENCE.md` preserves a reusable measurement/annotation/360-pin viewer
+build prompt for later reference (not scheduled into a phase).
+
+## PROGRESS TRACKER — update after every completed slice
+
+**28 core slices across 8 phases (B4 is optional, not counted in the denominator).**
+
+| Phase | Slices | Done | Status |
+|---|---|---|---|
+| A′ — Delivery unlock | A1, A2, A4 | 3/3 | ✅ COMPLETE — shipped, live on Vercel prod + TestFlight |
+| B — Quality A/Bs | B1, B2, B3 (+B4 opt) | 1/3 | 🟨 IN PROGRESS — B1 shipped |
+| C — Depth supervision | C1, C2, C3 | 0/3 | ⬜ blocked on nothing new; awaits B/gate bandwidth |
+| D — Version/history schema | D1, D2, D3 | 0/3 | ⬜ not started |
+| F — Operator Twin Studio tab | F1, F2, F3, F4, F5 | 0/5 | ⬜ not started |
+| G — Client portal | G1, G2, G3, G4, G5 | 0/5 | ⬜ not started |
+| H — AI assistant | H1, H2, H3 | 0/3 | ⬜ not started (needs F3 for real geometry) |
+| E — Polish | E1 (bake), E2 (cinematic capture+correction), E3 (camera-path playback) | 0/3 | ⬜ not started |
+| **TOTAL** | **28 core** | **4/28** | **≈14%** |
+
+**Executor notes for what's done:** A1/A2/A4/B1 were all Sonnet-5-safe per §6 and executed on
+Sonnet 5. **Fable-5 heads-up:** B3 (360 masking/lens-calibration/sharpness-selection —
+real worker.py coordinate-math authoring, not dispatch) is the next slice that matches this
+doc's own "keep on Opus/Fable-class" guidance (§6) — flag to Brian before starting it. Same
+applies to all of Phase C (depth-loss trainer) and any future Modal worker math.
 
 ---
 
@@ -71,7 +96,7 @@ components/APIs** and must not be rebuilt:
 | Slice | Work |
 |---|---|
 | B1 | Send `trainProfile` per-arm from `src/trigger/twin-gaussian-splat.ts`; run the P0c free-flag A/B (bilateral grid first) with the R7.5 visual gate |
-| B2 | Dispatch Arm B (1600 geometry + native-res texture, CPU, `texture_workspace()` code-complete) + M0 memory profile |
+| B2 | Dispatch Arm B — **exterior/photogrammetry track**, `workers/modal/photogrammetry/worker.py:333` `texture_workspace()`, confirmed code-complete Modal function (`cpu=8, memory=32768`, no GPU) — undistorts at native resolution independent of the `dense()` geometry cap. Needs a prior exterior job's populated `/data` volume workspace (an aligned+dense run) to target; dispatch-only, no authoring, Sonnet-safe. + M0 memory profile |
 | B3 | 360 trio: operator/nadir sector skip during unwrap → real reprojected mask via COLMAP `--ImageReader.mask_path`; per-unit lens calibration (replace ih_fov/iv_fov=190 approximation); route 360 frames through `extract_sharp_frames` instead of flat 0.5 fps |
 | B4 (opt) | PLY-seed A/B arm on the vanilla path (patch `ply_file_path` into transforms.json post-`ns-process-data`; plumbing exists on the dormant bypass path) |
 
