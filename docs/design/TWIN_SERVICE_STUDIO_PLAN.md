@@ -19,14 +19,19 @@ build prompt for later reference (not scheduled into a phase).
 | Phase | Slices | Done | Status |
 |---|---|---|---|
 | A′ — Delivery unlock | A1, A2, A4 | 3/3 | ✅ COMPLETE — shipped, live on Vercel prod + TestFlight |
-| B — Quality A/Bs | B1, B2, B3 (+B4 opt) | 1/3 | 🟨 IN PROGRESS — B1 shipped |
+| B — Quality A/Bs | B1, B2, B3 (+B4 opt) | 2/3 | 🟨 B1 + B3 shipped (Fable: sharpness selection + verified 110×94 FOV, deployed); B2 = EXT-FIX shipped (memory + mesh_simplifier decimation + capped-res texture retry, deployed) — counts as done when the live rerun (job a2fbc907) completes |
 | C — Depth supervision | C1, C2, C3 | 0/3 | ⬜ blocked on nothing new; awaits B/gate bandwidth |
 | D — Version/history schema | D1, D2, D3 | 0/3 | ⬜ not started |
 | F — Operator Twin Studio tab | F1, F2, F3, F4, F5 | 0/5 | ⬜ not started |
 | G — Client portal | G1, G2, G3, G4, G5 | 0/5 | ⬜ not started |
 | H — AI assistant | H1, H2, H3 | 0/3 | ⬜ not started (needs F3 for real geometry) |
 | E — Polish | E1 (bake), E2 (cinematic capture+correction), E3 (camera-path playback) | 0/3 | ⬜ not started |
-| **TOTAL** | **28 core** | **4/28** | **≈14%** |
+| **TOTAL** | **28 core** | **6/28** | **≈21%** |
+
+**Verification runs in flight (2026-08-06, non-publishing — R7.5 visual gate = Brian):**
+- Job `13934822` — B1 arm check, `trainProfile: visual` on capture `e5d42523` (baselines: vanilla 25.53, quality 22.74)
+- Job `b1736f75` — B3 check, kitchen raw-`.insv` capture `f5f85030` on the new 360 path (baseline 17.22)
+- Job `a2fbc907` — EXT-FIX check, exterior capture `b98d2165` (380 drone photos; 5 prior consecutive failures)
 
 **Executor notes for what's done:** A1/A2/A4/B1 were all Sonnet-5-safe per §6 and executed on
 Sonnet 5. B1's mechanism was verified live: dispatched a `trainProfile: visual` reprocess on

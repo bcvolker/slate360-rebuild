@@ -1,4 +1,4 @@
-import type { NextRequest } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { withAppAuth } from "@/lib/server/api-auth";
@@ -33,7 +33,9 @@ export const GET = (req: NextRequest, ctx: RouteCtx) =>
         new GetObjectCommand({ Bucket: BUCKET, Key: key }),
         { expiresIn: 3600 },
       );
-      return Response.redirect(signedUrl, 302);
+      // NextResponse (not the WHATWG Response) — withAppAuth's handler is typed
+      // Promise<NextResponse>, so a bare Response.redirect fails the typecheck.
+      return NextResponse.redirect(signedUrl, 302);
     } catch (err) {
       console.error("[GET /api/digital-twin/models/[modelId]/floor-plan]", err);
       return serverError(err instanceof Error ? err.message : "Failed to generate signed URL");
