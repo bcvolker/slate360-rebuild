@@ -116,6 +116,21 @@ def _find_sparse_model(root: Path) -> Path:
     return candidates[0]
 
 
+def _sparse_model_metrics(model: Path) -> dict[str, Any]:
+    metrics: dict[str, Any] = {"sparseModelPath": str(model)}
+    try:
+        import pycolmap
+
+        reconstruction = pycolmap.Reconstruction(str(model))
+        metrics["registeredImages"] = int(len(reconstruction.images))
+        metrics["meanReprojectionError"] = round(
+            float(reconstruction.compute_mean_reprojection_error()), 4
+        )
+    except Exception as exc:  # pragma: no cover - depends on Modal's pycolmap build
+        metrics["reconstructionMetricsError"] = f"{type(exc).__name__}: {exc}"
+    return metrics
+
+
 def _run_sparse(images: Path, root: Path, max_image_size: int) -> tuple[Path, dict[str, Any]]:
     database = root / "database.db"
     sparse = root / "sparse"
@@ -173,18 +188,7 @@ def _run_sparse(images: Path, root: Path, max_image_size: int) -> tuple[Path, di
         ]
     )
     model = _find_sparse_model(root)
-    metrics: dict[str, Any] = {"sparseModelPath": str(model)}
-    try:
-        import pycolmap
-
-        reconstruction = pycolmap.Reconstruction(str(model))
-        metrics["registeredImages"] = int(len(reconstruction.images))
-        metrics["meanReprojectionError"] = round(
-            float(reconstruction.compute_mean_reprojection_error()), 4
-        )
-    except Exception as exc:  # pragma: no cover - depends on Modal's pycolmap build
-        metrics["reconstructionMetricsError"] = f"{type(exc).__name__}: {exc}"
-    return model, metrics
+    return model, _sparse_model_metrics(model)
 
 
 def _run_dense(images: Path, model: Path, root: Path, max_image_size: int) -> Path:
@@ -458,9 +462,26 @@ def _ply_vertices(path: Path) -> tuple[Any, Any]:
     return xyz, rgb
 
 
+# EXT-FIX-2 (2026-08-06, job a2fbc907): the texture atlas is OUR OWN mesh_texturer
+# output, not an untrusted upload — with 380 native-resolution photos the atlas
+# legitimately exceeds Pillow's 178.9M-px decompression-bomb default (the job died
+# here at 317M px, 5.5h in, AFTER the SIGABRT and OOM fixes both held). Raise the
+# guard DELIBERATELY to a still-bounded ceiling (1 Gpx ≈ 3 GB decoded, well inside
+# the 48 GB allocation) rather than disabling it outright.
+GLB_MAX_DECODE_PIXELS = 1_000_000_000
+# The embed must also be WEB-SAFE: WebGL's MAX_TEXTURE_SIZE is 8192 on the modern
+# iPhone/desktop targets this GLB ships to, so a 17.8k-edge atlas would fail to
+# upload as a GPU texture even if the browser survived decoding the JPEG. Downscale
+# for the embed; the native-res atlas still improved every texel that survives
+# (supersampled downscale beats a 1600px-source bake at the same output size).
+GLB_MAX_TEXTURE_EDGE_PX = 8192
+
+
 def _textured_ply_to_glb(mesh_path: Path, texture_path: Path, output_path: Path) -> dict[str, Any]:
     import numpy as np
     from PIL import Image
+
+    Image.MAX_IMAGE_PIXELS = GLB_MAX_DECODE_PIXELS
 
     with mesh_path.open("rb") as handle:
         header: list[str] = []
@@ -513,7 +534,15 @@ def _textured_ply_to_glb(mesh_path: Path, texture_path: Path, output_path: Path)
 
     pos = np.asarray(positions, dtype="<f4")
     uv = np.asarray(uvs, dtype="<f4")
-    image = Image.open(texture_path).convert("RGB")
+    image = Image.open(texture_path)
+    atlas_size = tuple(image.size)
+    image = image.convert("RGB")
+    if max(image.size) > GLB_MAX_TEXTURE_EDGE_PX:
+        ratio = GLB_MAX_TEXTURE_EDGE_PX / max(image.size)
+        target = (max(1, round(image.width * ratio)), max(1, round(image.height * ratio)))
+        resample = getattr(Image, "Resampling", Image).LANCZOS
+        image = image.resize(target, resample)
+        print(f"[glb] texture atlas {atlas_size[0]}x{atlas_size[1]} → embedded {target[0]}x{target[1]}", flush=True)
     buffer_parts: list[bytes] = []
     views: list[dict[str, Any]] = []
     accessors: list[dict[str, Any]] = []
@@ -594,7 +623,13 @@ def _textured_ply_to_glb(mesh_path: Path, texture_path: Path, output_path: Path)
         + binary
     )
     output_path.write_bytes(glb)
-    return {"vertices": int(len(pos)), "faces": int(len(pos) // 3), "bytes": len(glb)}
+    return {
+        "vertices": int(len(pos)),
+        "faces": int(len(pos) // 3),
+        "bytes": len(glb),
+        "textureAtlasPx": [int(atlas_size[0]), int(atlas_size[1])],
+        "textureEmbeddedPx": [int(image.width), int(image.height)],
+    }
 
 
 def _rasterize_ortho(fused: Path, output_dir: Path, gsd_m: float = 0.03) -> dict[str, Any]:
@@ -707,20 +742,142 @@ def _callback(payload: dict[str, Any]) -> None:
         raise RuntimeError(f"Callback rejected ({response.status_code}): {response.text[:1000]}")
 
 
+# EXT-FIX-2 — alignment-stage cache. Three consecutive real jobs each burned 5+
+# GPU-hours re-solving identical sparse+dense alignment only to fail in a LATER
+# stage (SIGABRT → OOM → decompression bomb, one new defect surfaced per run).
+# Sparse/dense is deterministic in (photo set, max_image_size), so cache exactly
+# that on the already-mounted volume and make every later-stage iteration cost
+# minutes instead of hours. dense/stereo's depth/normal maps are deliberately
+# EXCLUDED — only fusion reads them, and fused.ply(.vis) is already the fused
+# result — which keeps the tar ~5 GB instead of ~40 GB.
+ALIGNMENT_CACHE_DIR = Path("/data/align-cache")
+ALIGNMENT_CACHE_VERSION = "v1"
+
+
+def _alignment_cache_path(capture_id: str, quality: str) -> Path:
+    return ALIGNMENT_CACHE_DIR / f"{capture_id}-{quality}-{ALIGNMENT_CACHE_VERSION}.tar"
+
+
+def _save_alignment_cache(
+    root: Path, capture_id: str, quality: str, source_keys: list[str], new_asset_ids: list[str]
+) -> None:
+    """Best-effort — a cache failure must never fail a job that just spent hours aligning."""
+    if not capture_id:
+        return
+    try:
+        import tarfile
+
+        ALIGNMENT_CACHE_DIR.mkdir(parents=True, exist_ok=True)
+        # source_keys/new_asset_ids are stored because the dispatch queries assets
+        # WITHOUT a stable ORDER BY — a rerun's arrays can be the same set in a
+        # different order, and the source_{index:04d} filenames baked into the
+        # cached COLMAP model follow the ORIGINAL order. The restore path must use
+        # these, not the new payload's, for the name→asset mapping.
+        manifest = root / "cache_manifest.json"
+        manifest.write_text(
+            json.dumps({"sourceKeys": source_keys, "newAssetIds": new_asset_ids}),
+            encoding="utf-8",
+        )
+        tar_path = _alignment_cache_path(capture_id, quality)
+        tmp_tar = tar_path.with_suffix(".partial")
+        dense = root / "dense"
+        with tarfile.open(tmp_tar, "w") as tar:
+            tar.add(manifest, arcname="cache_manifest.json")
+            tar.add(root / "images", arcname="images")
+            tar.add(root / "sparse", arcname="sparse")
+            for member in ("images", "sparse", "fused.ply", "fused.ply.vis"):
+                p = dense / member
+                if p.exists():
+                    tar.add(p, arcname=f"dense/{member}")
+            # stereo config files only (delaunay workspace-shape safety); the big
+            # depth/normal map dirs stay out.
+            stereo = dense / "stereo"
+            if stereo.is_dir():
+                for cfg in stereo.glob("*.cfg"):
+                    tar.add(cfg, arcname=f"dense/stereo/{cfg.name}")
+        tmp_tar.replace(tar_path)
+        vol.commit()
+        print(
+            f"[align-cache] saved {tar_path.name} ({tar_path.stat().st_size / 1e9:.1f} GB)",
+            flush=True,
+        )
+    except Exception as exc:  # noqa: BLE001
+        print(f"[align-cache] save failed (non-fatal): {exc}", flush=True)
+
+
+def _restore_alignment_cache(
+    root: Path, capture_id: str, quality: str, payload_source_keys: list[str]
+) -> tuple[list[str], list[str]] | None:
+    """Returns (cached_source_keys, cached_new_asset_ids) on a valid hit, else None.
+    Invalid on source-set drift (capture edited since the cached run)."""
+    if not capture_id:
+        return None
+    tar_path = _alignment_cache_path(capture_id, quality)
+    if not tar_path.is_file():
+        return None
+
+    def _discard() -> None:
+        for sub in ("images", "sparse", "dense"):
+            shutil.rmtree(root / sub, ignore_errors=True)
+
+    try:
+        import tarfile
+
+        with tarfile.open(tar_path, "r") as tar:
+            tar.extractall(root)
+        manifest = json.loads((root / "cache_manifest.json").read_text(encoding="utf-8"))
+        cached_keys = [str(k) for k in manifest.get("sourceKeys", [])]
+        cached_ids = [str(a) for a in manifest.get("newAssetIds", [])]
+        if set(cached_keys) != set(payload_source_keys):
+            print("[align-cache] source set changed — invalidating, running full alignment", flush=True)
+            _discard()
+            return None
+        if not (root / "dense" / "fused.ply").is_file():
+            print("[align-cache] restored cache missing fused.ply — running full alignment", flush=True)
+            _discard()
+            return None
+        # Recreate the empty stereo map dirs some COLMAP tools expect to see.
+        for sub in ("depth_maps", "normal_maps", "consistency_graphs"):
+            (root / "dense" / "stereo" / sub).mkdir(parents=True, exist_ok=True)
+        print(f"[align-cache] restored {tar_path.name} — skipping sparse+dense", flush=True)
+        return cached_keys, cached_ids
+    except Exception as exc:  # noqa: BLE001
+        print(f"[align-cache] restore failed (non-fatal): {exc}", flush=True)
+        _discard()
+        return None
+
+
 def _run_exterior(payload: dict[str, Any], root: Path) -> dict[str, Any]:
     bucket = os.environ["R2_BUCKET"]
     s3 = _s3_client()
     source_keys = [str(key) for key in payload.get("sourceKeys", [])]
+    new_asset_ids = [str(a) for a in payload.get("newAssetIds", [])]
+    capture_id = str(payload.get("captureId") or "")
     job_id = str(payload.get("jobId") or "")
     images = root / "images"
-    _set_stage(job_id, "upload", 6)
-    _download_sources(s3, bucket, source_keys, images)
-    max_image_size = 2400 if payload.get("quality") == "high" else 1600
-    _set_stage(job_id, "align", 20)
-    model, sparse_metrics = _run_sparse(images, root, max_image_size)
+    quality = "high" if payload.get("quality") == "high" else "standard"
+    max_image_size = 2400 if quality == "high" else 1600
+
+    cached = _restore_alignment_cache(root, capture_id, quality, source_keys)
+    if cached:
+        sidecar_source_keys, sidecar_asset_ids = cached
+        _set_stage(job_id, "align", 20)
+        model = _find_sparse_model(root)
+        sparse_metrics = _sparse_model_metrics(model)
+        fused = root / "dense" / "fused.ply"
+    else:
+        sidecar_source_keys, sidecar_asset_ids = source_keys, new_asset_ids
+        _set_stage(job_id, "upload", 6)
+        _download_sources(s3, bucket, source_keys, images)
+        _set_stage(job_id, "align", 20)
+        model, sparse_metrics = _run_sparse(images, root, max_image_size)
+        _set_stage(job_id, "train", 45)
+        fused = _run_dense(images, model, root, max_image_size)
+        _save_alignment_cache(root, capture_id, quality, source_keys, new_asset_ids)
+
     # Photo Explorer: emit per-photo camera poses in the GLB's model frame.
-    # Non-fatal — a missing sidecar just hides the layer in the viewer.
-    new_asset_ids = [str(a) for a in payload.get("newAssetIds", [])]
+    # Non-fatal — a missing sidecar just hides the layer in the viewer. Uses the
+    # CACHED source ordering on a cache hit (see _save_alignment_cache).
     try:
         # Import inside the function: the module is mounted only into the GPU
         # image — a module-level import crashes the slim web-endpoint container
@@ -728,13 +885,11 @@ def _run_exterior(payload: dict[str, Any], root: Path) -> dict[str, Any]:
         from cameras_sidecar import emit_cameras_sidecar
 
         cameras_metrics = emit_cameras_sidecar(
-            model, source_keys, new_asset_ids, root / "cameras.json"
+            model, sidecar_source_keys, sidecar_asset_ids, root / "cameras.json"
         )
         sparse_metrics["cameras"] = cameras_metrics
     except Exception as exc:  # pragma: no cover - depends on Modal's pycolmap build
         sparse_metrics["camerasError"] = f"{type(exc).__name__}: {exc}"
-    _set_stage(job_id, "train", 45)
-    fused = _run_dense(images, model, root, max_image_size)
     _set_stage(job_id, "optimize", 75)
     textured_mesh, texture_metrics = _run_textured_mesh(images, model, root / "dense", root)
     glb = root / "exterior.glb"
@@ -761,6 +916,7 @@ def _run_exterior(payload: dict[str, Any], root: Path) -> dict[str, Any]:
         "densePointCount": int(len(_ply_vertices(fused)[0])),
         "glb": glb_metrics,
         "meshTexture": texture_metrics,
+        "alignmentCache": "hit" if cached else "miss",
         "ortho": ortho_metrics,
         "cameras": sparse_metrics.get("cameras"),
         "camerasError": sparse_metrics.get("camerasError"),
