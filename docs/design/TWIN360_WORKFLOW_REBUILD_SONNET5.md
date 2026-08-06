@@ -872,3 +872,35 @@ quality tuning moves to P1. Share for Brian's R7.5 visual gate:
 /share/twin/I1VWmH7aiPxftOrsCc05oxtfd5H0qOmC (headless splat render is a
 documented tooling limit — his eyes are the gate). Ops: .tmp/ingest-360-test.mjs
 now streams >2 GiB via lib-storage multipart.
+
+### 7.13 LOCKED 2026-08-06 — service-plan Phase A′/B executed; EXT root cause; FOV default discovery
+
+Full context: `TWIN_SERVICE_STUDIO_PLAN.md` (service build plan + tracker). Shipped
+today, all deployed: **A′ delivery unlock** (edit_list now applies on shares/mobile
+via manifest mix-in; pins+measurements render in 3D on shares with distance labels;
+`.gz` chip-regex fix; native uploader now sends clientFingerprint — Codemagic build
+green end-to-end incl. TestFlight publish, and the 08-04 "iOS build failed" is
+RETRACTED: that build actually succeeded, d7c8023a's fix worked). **B1** trainProfile
+wired reprocess→Trigger→Modal. **B3** in the 360 path: sharpness-scored best-per-2s-
+bucket frame selection (candidates @2fps, same image budget), and explicit unwrap FOV
+110×94 — **discovery: v360's flat-output default is 90×45 (VERIFIED: default render
+byte-identical to explicit 90/45 on the deployed ffmpeg 5.1.9)**, meaning every prior
+360 view was anamorphic, blind beyond ±57.5° vertically, and had zero inter-yaw
+overlap. **EXT-FIX** for the 5-consecutive exterior failures: product worker had no
+explicit memory (research track uses 32–48 GB for these stages — bad_alloc→SIGABRT
+at mesh_texturer ×2, one silent OOM death); now cpu=8/memory=49152 + COLMAP
+`mesh_simplifier` decimation to 1.5M faces (tool verified in pinned 4.2.0.dev0 via
+probe; also protects the per-face-vertex GLB converter) + capped-3200px texture
+retry arm.
+
+**Run results (all non-publishing; R7.5 visual gate = Brian):**
+- Job `13934822` (capture `e5d42523`, `trainProfile: visual`): COMPLETED, PSNR
+  **21.41**, profile recorded correctly, metricAuthority=false as designed, scale
+  0.4742 recovered cleanly. **Profile ladder on this capture now complete:
+  baseline 25.53 > quality 22.74 > visual 21.41 — baseline stays promoted.**
+- Job `b1736f75` (kitchen `.insv` on the new 360 path, baseline 17.22): in flight.
+- Job `a2fbc907` (exterior 380-photo rerun on fixed worker): in flight.
+
+**Confirmed product gap** (found dispatching these): no UI can preview a
+non-primary model version without publishing it — TwinVersionsPanel is list-only.
+Feeds Phase D scope in the service plan.
