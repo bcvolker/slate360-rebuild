@@ -990,3 +990,26 @@ later-stage iterations cost minutes). Residual known gap, deliberately deferred:
 `max_views` still only counts page loads, not direct asset-route hits — F4
 fixes the max_views=1 first-load breakage; full asset-scoped claiming is not
 planned.
+
+### 7.17 LOCKED 2026-08-06 — EXTERIOR PIPELINE FULLY WORKS; blocked only by credits
+
+Job `77c3dae4` (capture `b98d2165`, 380 photos) ran EVERY stage end-to-end for
+the first time: 379/380 registered (99.74%, reproj 1.12 px), 9.55M dense
+points, delaunay mesh 1,505,788 faces → decimated 1,499,998 (EXT-FIX cap
+engaged), native-res texture bake failed → **capped-3200 retry arm caught it**
+(EXT-FIX working as designed), and even the capped atlas was 313 Mpx
+(32768×9552 — COLMAP's atlas width cap) so the EXT-FIX-2 decode override saved
+that arm too; embed downscaled to 8192×2388; **GLB 98.2 MB / 1.5M faces
+VERIFIED in R2** along with orthomosaic + DEM + QC. Alignment cache saved
+(`align-cache/b98d2165-…-v1.tar` verified on the volume) — future exterior
+iterations skip ~5h of solving. cameras.json sidecar failed (non-fatal by
+design; camerasError in qc).
+
+**Sole failure: completion callback 409 "Insufficient credits: need 879, have
+761."** Root cause of reaching that state: the ops dispatch script bypasses
+the app's upfront `assertTwinJobCredits` pre-check (the normal submit flow
+refuses before spending GPU). Credits are Brian's domain (billing) — options
+presented: top up (or authorize a grant) then re-dispatch (cache hit → ~40-60
+min to a real model row), or accept R2-only artifacts. All four exterior
+pipeline defect classes (mesh_texturer SIGABRT, silent OOM, decompression
+bomb, web-unsafe texture size) are now FIXED AND CONFIRMED on real data.
