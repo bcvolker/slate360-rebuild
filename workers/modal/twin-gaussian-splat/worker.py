@@ -1845,6 +1845,19 @@ def extract_video_frames(
 # tracked as a follow-on — it needs the ns-process-data mask plumbing verified first.
 EQUIRECT_VIEW_W = 1600
 EQUIRECT_VIEW_H = 1200
+# B3b (2026-08-06) — explicit output FOV. ffmpeg v360's flat-output default is
+# h_fov=90, v_fov=45 (VERIFIED empirically on the deployed ffmpeg 5.1.9: a
+# default render is byte-identical to an explicit 90/45 render; probe in the
+# 08-06 ledger entry). Under that silent default every unwrapped view was
+# (a) anamorphic — 90° across 1600 px but 45° across 1200 px, non-square
+# pixels COLMAP had to absorb as fx≠fy; (b) blind above/below ±57.5° even
+# with the ±35° pitch rings — large unsampled ceiling/floor bands in every
+# interior; and (c) zero side-overlap between adjacent 90°-step video views.
+# 110×94 matches the 4:3 output for square pixels (tan(94/2) ≈ tan(110/2)·3/4),
+# restores 20° of inter-yaw overlap on the video rings, and extends vertical
+# coverage to ±82° while still excluding the nadir (operator/pole) and zenith.
+EQUIRECT_VIEW_H_FOV = 110
+EQUIRECT_VIEW_V_FOV = 94
 # (pitch_deg, yaw_step_deg) — a dense horizontal band plus sparser up/down rings.
 EQUIRECT_RINGS_STILL = ((0, 45), (35, 90), (-35, 90))   # 8 + 4 + 4 = 16 views
 EQUIRECT_RINGS_VIDEO = ((0, 90), (35, 180), (-35, 180))  # 4 + 2 + 2 = 8 views
@@ -1900,7 +1913,8 @@ def extract_equirect_views(
                 "-vf",
                 (
                     f"v360=input={proj}:output=flat:yaw={yaw_arg}:pitch={pitch}:roll=0:"
-                    f"w={EQUIRECT_VIEW_W}:h={EQUIRECT_VIEW_H}{fov_args}"
+                    f"w={EQUIRECT_VIEW_W}:h={EQUIRECT_VIEW_H}:"
+                    f"h_fov={EQUIRECT_VIEW_H_FOV}:v_fov={EQUIRECT_VIEW_V_FOV}{fov_args}"
                 ),
                 "-q:v",
                 "2",
@@ -1915,12 +1929,26 @@ def extract_equirect_views(
 # phone clip — and every frame is multiplied by the view count, so oversampling here is what
 # makes COLMAP intractable. ~1 frame every 2 s matches the 360-stills guidance.
 EQUIRECT_VIDEO_FPS = 0.5
+# B3a (2026-08-06) — sharpness-scored 360 frame selection. Normal phone video
+# has had variance-of-Laplacian best-per-bucket selection since AF4, but 360
+# video was still a flat 0.5 fps grid: whatever frame landed on the sample
+# instant was used, motion-blurred or not (a named cause of the kitchen 17.2).
+# Now candidates are sampled at EQUIRECT_CANDIDATE_FPS and the sharpest frame
+# per 1/EQUIRECT_VIDEO_FPS-second bucket is kept, preserving the same
+# effective frame budget (~1 per 2 s). Selection is purely RELATIVE within
+# each bucket — no absolute blur floor — because dropping 360 frames outright
+# creates coverage holes in a walkthrough, and the perspective-video floor
+# constant was tuned on narrow-FoV frames, not spherical ones.
+EQUIRECT_CANDIDATE_FPS = 2.0
 
 
 def extract_equirect_video_views(
     video_path: Path, out_dir: Path, stem: str, projection: str = "equirect"
-) -> int:
-    """Sample a 360 video sparsely, then unwrap each sampled frame into perspective views."""
+) -> tuple[int, dict[str, Any]]:
+    """Sample 360 video candidates, keep the sharpest per time bucket, unwrap those.
+
+    Returns (total_views_written, selection_stats).
+    """
     out_dir.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix="equirect-frames-") as tmp:
         frames_dir = Path(tmp)
@@ -1936,8 +1964,8 @@ def extract_equirect_video_views(
                     str(video_path),
                     "-filter_complex",
                     (
-                        f"[0:v:0]fps={EQUIRECT_VIDEO_FPS}[a];"
-                        f"[0:v:1]fps={EQUIRECT_VIDEO_FPS}[b];"
+                        f"[0:v:0]fps={EQUIRECT_CANDIDATE_FPS}[a];"
+                        f"[0:v:1]fps={EQUIRECT_CANDIDATE_FPS}[b];"
                         "[a][b]hstack=inputs=2[v]"
                     ),
                     "-map",
@@ -1955,7 +1983,7 @@ def extract_equirect_video_views(
                     "-i",
                     str(video_path),
                     "-vf",
-                    f"fps={EQUIRECT_VIDEO_FPS}",
+                    f"fps={EQUIRECT_CANDIDATE_FPS}",
                     "-q:v",
                     "2",
                     str(frames_dir / f"{stem}_%05d.jpg"),
@@ -1964,13 +1992,35 @@ def extract_equirect_video_views(
         frames = sorted(frames_dir.glob(f"{stem}_*.jpg"))
         if not frames:
             raise RuntimeError(f"No frames extracted from 360 video {video_path.name}")
+
+        # Best-per-bucket: bucket width is the legacy sample interval, so the
+        # kept-frame budget (and downstream COLMAP image count) is unchanged.
+        bucket_sec = 1.0 / EQUIRECT_VIDEO_FPS
+        buckets: dict[int, tuple[float, Path]] = {}
+        for idx, frame in enumerate(frames):
+            t = idx / EQUIRECT_CANDIDATE_FPS
+            sharpness = _frame_sharpness(frame)
+            bucket = int(t / bucket_sec)
+            if bucket not in buckets or sharpness > buckets[bucket][0]:
+                buckets[bucket] = (sharpness, frame)
+
+        picked = [entry for _, entry in sorted(buckets.items())]
+        sharp_values = [s for s, _ in picked]
         total = 0
-        for i, frame in enumerate(frames):
+        for i, (_, frame) in enumerate(picked):
             total += extract_equirect_views(
                 frame, out_dir, f"{stem}_{i:04d}",
                 rings=EQUIRECT_RINGS_VIDEO, projection=projection,
             )
-    return total
+        selection_stats = {
+            "candidateCount": len(frames),
+            "keptCount": len(picked),
+            "candidateFps": EQUIRECT_CANDIDATE_FPS,
+            "bucketSec": bucket_sec,
+            "meanSharpnessKept": (sum(sharp_values) / len(sharp_values)) if sharp_values else 0.0,
+            "minSharpnessKept": min(sharp_values) if sharp_values else 0.0,
+        }
+    return total, selection_stats
 
 
 def materialize_images(
@@ -2003,11 +2053,11 @@ def materialize_images(
             stats["videos"] += 1
             projection = detect_projection(src)
             print(f"[ingest] 360 video {src.name}: projection={projection}")
-            views = extract_equirect_video_views(src, images_dir, stem, projection)
+            views, selection_stats = extract_equirect_video_views(src, images_dir, stem, projection)
             stats["panorama_views"] += views
             stats.setdefault("equirectVideo", []).append(
                 {"source": stem, "views": views, "fps": EQUIRECT_VIDEO_FPS,
-                 "projection": projection}
+                 "projection": projection, "sharpSelection": selection_stats}
             )
             continue
 
