@@ -15,6 +15,7 @@ export function TwinShareViewer({
   embed,
   title,
   orgName,
+  orgLogoUrl,
   modelUrl,
   modelTitle,
   modelId,
@@ -30,6 +31,8 @@ export function TwinShareViewer({
   embed: boolean;
   title: string;
   orgName?: string | null;
+  /** F4: signed URL for the org's logo from the token's mint-time branding snapshot. */
+  orgLogoUrl?: string | null;
   modelUrl: string;
   modelTitle: string;
   modelId?: string | null;
@@ -95,6 +98,7 @@ export function TwinShareViewer({
       title={title}
       subtitle={orgName ? `Shared by ${orgName}` : "Interactive 3D model"}
       orgName={orgName ?? undefined}
+      orgLogoUrl={orgLogoUrl ?? undefined}
       variant="immersive"
       accent="twin"
       showFooter={false}

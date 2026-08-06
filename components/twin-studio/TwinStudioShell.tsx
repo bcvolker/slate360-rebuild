@@ -78,7 +78,9 @@ export function TwinStudioShell({
       {tab === "produce" ? <ProducePanel space={space} job={job} /> : null}
       {tab === "clean" ? <CleanPanel editorData={editorData} /> : null}
       {tab === "plan" ? <PlanPanel modelId={editorData?.modelId ?? null} /> : null}
-      {tab === "deliver" ? <DeliverPanel /> : null}
+      {tab === "deliver" ? (
+        <DeliverPanel spaceId={space.spaceId} modelId={editorData?.modelId ?? null} />
+      ) : null}
     </StudioWorkspaceShell>
   );
 }

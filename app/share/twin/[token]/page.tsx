@@ -1,5 +1,8 @@
 import { headers } from "next/headers";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { s3, BUCKET } from "@/lib/s3";
 import { resolveDigitalTwinModelUrl } from "@/lib/digital-twin/resolve-model-url";
 import {
   claimTwinShareView,
@@ -120,13 +123,27 @@ export default async function SharedTwinPage({ params, searchParams }: Props) {
           .maybeSingle();
   const lidarModelId = viewerKind === "lidar" ? model.id : lidarSibling?.id ?? null;
 
-  const [modelUrl, orgResult] = await Promise.all([
+  // F4: branding comes from the token's mint-time snapshot; live org name is
+  // only a fallback for tokens minted before snapshots existed.
+  const snapshot = (claimed.branding_snapshot ?? {}) as {
+    orgName?: string | null;
+    logoKey?: string | null;
+  };
+
+  const [modelUrl, fallbackOrg, orgLogoUrl] = await Promise.all([
     viewerKind === "splat"
       ? Promise.resolve(`/api/share/twin/${token}/splat`)
       : viewerKind === "lidar"
         ? Promise.resolve(`/api/share/twin/${token}/lidar/hierarchy.json`)
       : resolveDigitalTwinModelUrl(model.storage_key),
-    admin.from("organizations").select("name").eq("id", claimed.org_id).maybeSingle(),
+    snapshot.orgName
+      ? Promise.resolve(null)
+      : admin.from("organizations").select("name").eq("id", claimed.org_id).maybeSingle(),
+    snapshot.logoKey
+      ? getSignedUrl(s3, new GetObjectCommand({ Bucket: BUCKET, Key: snapshot.logoKey }), {
+          expiresIn: 3600,
+        }).catch(() => null)
+      : Promise.resolve(null),
   ]);
 
   const canAnnotate = claimed.role === "annotate";
@@ -136,7 +153,8 @@ export default async function SharedTwinPage({ params, searchParams }: Props) {
     <TwinShareViewer
       embed={embed}
       title={space.title}
-      orgName={orgResult.data?.name ?? null}
+      orgName={snapshot.orgName ?? fallbackOrg?.data?.name ?? null}
+      orgLogoUrl={orgLogoUrl}
       modelUrl={modelUrl}
       modelTitle={model.title}
       modelId={model.id}

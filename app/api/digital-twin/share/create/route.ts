@@ -38,6 +38,16 @@ export const POST = (req: NextRequest) =>
     if (spaceError) return serverError(spaceError.message);
     if (!space) return notFound("Twin space not found");
 
+    // F4: capture the org's branding AT MINT (thermal's pattern) — the share
+    // page renders from this snapshot, so later org-branding edits don't
+    // silently restyle links a client already sent onward. logoKey is the R2
+    // key (organizations.deliverable_logo_s3_key); the page signs it at render.
+    const { data: org } = await admin
+      .from("organizations")
+      .select("name, deliverable_logo_s3_key")
+      .eq("id", orgId)
+      .maybeSingle();
+
     const token = randomBytes(24).toString("base64url");
     const role = body.role ?? "view";
 
@@ -53,6 +63,10 @@ export const POST = (req: NextRequest) =>
         expires_at: body.expires_at ?? null,
         max_views: body.max_views ?? null,
         is_revoked: false,
+        branding_snapshot: {
+          orgName: org?.name ?? null,
+          logoKey: org?.deliverable_logo_s3_key ?? null,
+        },
       })
       .select("token, role, expires_at, max_views")
       .single();

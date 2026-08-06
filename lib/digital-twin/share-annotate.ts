@@ -39,10 +39,16 @@ export async function resolveTwinShareAnnotate(
   if (row.expires_at && new Date(row.expires_at).getTime() < Date.now()) {
     return { ok: false, reason: "expired" };
   }
+  // F4: STRICTLY GREATER, deliberately different from the page-load claim RPC's
+  // >= check. This resolver backs the per-asset routes, which never claim a
+  // view — after the page legitimately claims the FINAL view (count == max),
+  // its own splat/manifest/pin requests still have to work, or max_views=1
+  // breaks on the first ever load (the shipped behavior this fixes). The
+  // page-load budget itself stays strict inside claim_digital_twin_share_view.
   if (
     row.max_views !== null &&
     row.max_views !== undefined &&
-    row.view_count >= row.max_views
+    row.view_count > row.max_views
   ) {
     return { ok: false, reason: "max_views" };
   }

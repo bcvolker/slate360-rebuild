@@ -25,10 +25,14 @@ export async function resolveTwinShareSplat(token: string): Promise<TwinShareSpl
   if (row.expires_at && new Date(row.expires_at).getTime() < Date.now()) {
     return { ok: false, reason: "expired" };
   }
+  // F4: strictly greater — see resolveTwinShareAnnotate for the rationale
+  // (asset routes never claim; the page that claimed the final view must
+  // still be able to stream its own model, or max_views=1 breaks on the
+  // first load).
   if (
     row.max_views !== null &&
     row.max_views !== undefined &&
-    row.view_count >= row.max_views
+    row.view_count > row.max_views
   ) {
     return { ok: false, reason: "max_views" };
   }
