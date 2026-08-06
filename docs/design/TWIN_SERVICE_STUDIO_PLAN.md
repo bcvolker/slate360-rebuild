@@ -19,14 +19,14 @@ build prompt for later reference (not scheduled into a phase).
 | Phase | Slices | Done | Status |
 |---|---|---|---|
 | A′ — Delivery unlock | A1, A2, A4 | 3/3 | ✅ COMPLETE — shipped, live on Vercel prod + TestFlight |
-| B — Quality A/Bs | B1, B2, B3 (+B4 opt) | 2/3 | 🟨 B1 + B3 shipped and VERIFIED on real data (B1: profile ladder complete, baseline wins; B3: kitchen 17.22→25.30 PSNR, +47%). B2 = EXT-FIX: 2 of 3 real defects fixed and confirmed (no more SIGABRT, no more silent OOM — job ran 5.5h and reached 75%); found a THIRD defect on the live rerun (PIL DecompressionBombError on the native-res texture atlas, 317M px vs the 178.9M default limit) — real image-processing-at-scale work, flagged for Fable, not yet fixed |
+| B — Quality A/Bs | B1, B2, B3 (+B4 opt) | 3/3 | ✅ B1 + B3 VERIFIED on real data (profile ladder complete, baseline wins; kitchen 17.22→25.30 PSNR +47%). B2 CLOSED: all four exterior defect classes fixed + confirmed — **first complete exterior model ever produced (a45b9f8b: GLB 98.2MB, 1.5M faces, 379/380 registered)**, alignment cache verified live (18min rerun vs 5.5h). Native-res texture bake remains an open experiment (capped-3200 retry arm covers it); cameras sidecar bug chipped for follow-up |
 | C — Depth supervision | C1, C2, C3 | 0/3 | ⬜ unblocked (08-04 iOS build actually succeeded — retracted the earlier "failed" status) but not started |
 | D — Version/history schema | D1, D2, D3 | 2/3 | 🟨 D1 (migration, applied to prod) + D2 (camera-synced compare + nav surfacing) shipped; D3 (progression video export) not started |
 | F — Operator Twin Studio tab | F1, F2, F3, F4, F5 | 4/5 | 🟨 F1 shell+Produce, F2 Clean+parity, F3 Plan+floorplan wiring shipped. F4 shipped (Fable): Deliver tab with link create/list/copy/revoke (new share-tokens list route — revoke previously only worked session-locally), mint-time branding_snapshot {orgName, logoKey} rendered on shares incl. signed org logo (ExternalPortalShell.orgLogoUrl finally fed), and the max_views=1 first-load fix (asset resolvers deny at strictly-greater; claim RPC stays strict) — both share fixes VERIFIED end-to-end against real tokens on the dev server. F5 (review-time clip trim) remains |
 | G — Client portal | G1, G2, G3, G4, G5 | 0/5 | ⬜ not started |
 | H — AI assistant | H1, H2, H3 | 0/3 | ⬜ not started — F3 now gives it real geometry to answer with |
 | E — Polish | E1 (bake), E2 (cinematic capture+correction), E3 (camera-path playback) | 0/3 | ⬜ not started |
-| **TOTAL** | **28 core** | **14/28** | **≈50%** |
+| **TOTAL** | **28 core** | **15/28** | **≈54%** |
 
 **Verification runs (2026-08-06, non-publishing — R7.5 visual gate = Brian):**
 - Job `13934822` — B1 arm check, `trainProfile: visual` on capture `e5d42523`. **DONE: PSNR 21.41.** Profile ladder complete on real data: baseline 25.53 > quality 22.74 > visual 21.41 — baseline stays promoted.
