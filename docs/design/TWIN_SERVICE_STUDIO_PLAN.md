@@ -103,6 +103,7 @@ A tabbed workspace inside the desktop dashboard shell (the locked D1 shape):
 | F2 | Clean tab: embed `DesktopSplatEditor`; fix editor-vs-viewer parity (same splat budget + `lod:false` as viewers); real splat raycast for op placement | Undo/redo + gizmos deferred to Phase E |
 | F3 | Plan tab: wire `floorplan.py` + `openings.py` into the worker export stage (mount in `add_local_python_source`, emit SVG/DXF + areas JSON derivative); UI renders floor plan, floor sqft, gross/net wall areas with per-value confidence + locked disclaimer | Openings numbers ship only after tape-measure validation on ≥3 real LiDAR twins |
 | F4 | Deliver tab (absorbs A3): share-link management (create with expiry/max-views, list, revoke), branding snapshot + org logo (copy thermal pattern), fix `max_views` per-asset-route bypass + `max_views=1` first-load bug, optionally wire dead `password_hash`; exports panel (§5) | |
+| F5 | **Non-destructive clip trim at review**: per-video in/out points set on the Review & Sources screen (scrubber + thumbnails), stored as `trim_ranges` metadata on the asset (or job payload), applied by the worker as ffmpeg `-ss/-to` **at frame extraction** — the raw file is never re-encoded or modified (evidentiary rule). Applies to 360, drone and phone video alike. Worker: `extract_sharp_frames` / `extract_equirect_video_frames` gain a time-window param. | Replaces any client-side trimming; iPhone native clips keep the no-trim decision (trimming destroys solve overlap) but gain the same in/out metadata if a clip has junk head/tail |
 
 ### Phase G — Client portal (5–7 prompts)
 
@@ -205,6 +206,30 @@ create table digital_twin_pin_attachments (
 **Honest positioning:** Gaussian splats are not BIM/IFC solids. A designer doing conceptual
 changes gets: splat `.ply` (visual context) + mesh `.glb` (geometry to model against) +
 floor-plan `.dxf` (2D CAD) + raw photos. Never promise a Revit-native model.
+
+## 5b. Device ingest matrix & trimming rules
+
+Ingest is file-based (Review & Sources "Files" accept-any picker or SlateDrop) — there is no
+device pairing/WiFi ingest and none is planned. Classification is by **measured aspect ratio**
+(2:1 ⇒ equirect) with `.insv`/`.insp` extension special-cased to dual-fisheye.
+
+| Device | File to upload | Pre-export needed? | Status |
+|---|---|---|---|
+| Insta360 X4/X5 | **raw `.insv`** off the SD card (card reader / Files app), `.insp` stills | **None — raw preferred.** If using Studio anyway: stitched 2:1 equirect MP4, Direction Lock ON, horizon-leveling/tilt/vibration OFF, no AI object removal on structural surfaces | ✅ works today (kitchen twin) |
+| DJI Osmo 360 | stitched 2:1 equirect MP4 export | Equirect export works today via aspect-ratio detection. **Raw dual-lens files: unverified — need one sample file** to confirm the container/stream layout before promising raw ingest (small probe/unwrap addition if needed, same pattern as `.insv`) | 🟨 equirect yes / raw TBD |
+| Antigravity A1 (360 drone) | raw file preferred (Insta360 ecosystem — likely `.insv`-compatible), else equirect MP4 | Same as X4 if `.insv`; confirm with one sample file | 🟨 likely works / verify |
+| DJI Mavic 3E (photogrammetry) | original JPG stills **with EXIF intact** (never strip metadata; GPS feeds COLMAP spatial matching, `.MRK` feeds RTK georef in E2) | None. Avoid video (rolling shutter); if forced, ~1/1000 s and extract sharp frames | ✅ stills today |
+| iPhone (native capture) | nothing to export — auto-uploads | n/a | ✅ |
+
+**Trimming rules:**
+- Primary defense is capture discipline (start/stop at the space boundary, per SOP).
+- Until F5 ships: trim before upload only with **stream-copy** tools (e.g., LosslessCut) —
+  never vendor-app re-encoding exports.
+- After F5: set in/out points at review; the worker extracts frames only inside the window;
+  the raw file is preserved untouched.
+- Why it matters: every extracted frame enters one COLMAP solve. Transit/junk footage wastes
+  compute, causes mis-registrations and blob appendages, and drags PSNR; output-side filters
+  remove far outliers but not well-connected junk geometry.
 
 ## 6. Executor model guidance (can Sonnet 5 build this?)
 
