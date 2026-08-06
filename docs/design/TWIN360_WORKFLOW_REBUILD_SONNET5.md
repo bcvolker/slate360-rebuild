@@ -959,3 +959,34 @@ engineering, not integration wiring.
 Tracker: 13/28 core slices (~46%) once EXT-FIX's live-data confirmation is
 resolved separately from F1-F3 (F1-F3 already count; B2/EXT-FIX still open
 pending the decompression-bomb fix + a clean rerun).
+
+### 7.16 LOCKED 2026-08-06 — EXT-FIX-2 shipped (Fable): bomb fix + web-safe embed + alignment cache
+
+Defect #3 fixed two ways, because a limit bump alone would ship a broken
+deliverable: (1) `Image.MAX_IMAGE_PIXELS` raised DELIBERATELY to 1 Gpx in
+`_textured_ply_to_glb` (own mesh_texturer output, not untrusted; ~3 GB decoded
+vs 48 GB allocation — bounded, not disabled); (2) the GLB embed now downscales
+to an 8192 px max edge (LANCZOS) — WebGL `MAX_TEXTURE_SIZE` is 8192 on the
+modern iPhone/desktop targets, so the 17.8k-edge atlas would have failed GPU
+upload in the viewer even if Pillow had decoded it. Native-res bake still pays:
+supersampled downscale > 1600px-source bake at equal output size. Atlas +
+embedded dims now in `glb` metrics. **Verified locally against the exact
+failure shape**: synthetic 320-Mpx atlas + two-triangle textured PLY in
+mesh_texturer's binary layout — 13/13 checks incl. re-decoding the embedded
+JPEG out of the GLB BIN chunk.
+
+**Alignment cache added** (the iteration-cost fix): three consecutive jobs each
+burned 5+ GPU-hours re-solving identical sparse+dense only to fail in a later
+stage, one new defect per run. images/sparse/dense-fusion now tar to
+`/data/align-cache/{captureId}-{quality}-v1.tar` (~5 GB — dense/stereo depth/
+normal maps excluded, only fusion reads them). Restore validates the source SET
+(dispatch queries have no stable ORDER BY — the cache stores its own source
+ordering and the Photo Explorer sidecar uses THAT mapping on a hit, else the
+name→asset mapping silently scrambles). Non-fatal both directions;
+`qc.alignmentCache` records hit/miss.
+
+Deployed; rerun dispatched = **job `77c3dae4`** (cache miss this once, then
+later-stage iterations cost minutes). Residual known gap, deliberately deferred:
+`max_views` still only counts page loads, not direct asset-route hits — F4
+fixes the max_views=1 first-load breakage; full asset-scoped claiming is not
+planned.
