@@ -242,23 +242,62 @@ def _run_dense(images: Path, model: Path, root: Path, max_image_size: int) -> Pa
     return fused
 
 
-def _run_textured_mesh(images: Path, model: Path, dense: Path, root: Path) -> Path:
-    texture_workspace = root / "texture"
-    texture_workspace.mkdir(parents=True, exist_ok=True)
-    _run(
-        [
-            "colmap",
-            "image_undistorter",
-            "--image_path",
-            str(images),
-            "--input_path",
-            str(model),
-            "--output_path",
-            str(texture_workspace),
-            "--output_type",
-            "COLMAP",
-        ]
-    )
+# EXT-FIX (2026-08-06): cap the mesh handed to the texturer AND to the Python
+# GLB converter. Delaunay meshes from a ~380-image dense cloud can run to tens
+# of millions of triangles; mesh_texturer then aborts (SIGABRT — uncaught C++
+# bad_alloc/length_error, jobs 4388feb8 + f4d8537f), and even a successful bake
+# would feed _textured_ply_to_glb's per-face-vertex Python loop something it
+# cannot hold in memory. 1.5M faces keeps the GLB deliverable web-viewable.
+MESH_TARGET_FACES = 1_500_000
+# Retry arm for the texture bake: native-resolution undistort is the quality
+# goal, but it is also a memory amplifier (380 × ~5280px frames). If the native
+# bake dies, rebuild the texture workspace capped and bake once more instead of
+# losing the whole 5h+ run at its last step.
+TEXTURE_FALLBACK_MAX_IMAGE_SIZE = 3200
+
+
+def _read_ply_face_count(path: Path) -> int | None:
+    """Face count from a PLY header (text header even for binary PLY). None on any oddity."""
+    try:
+        with path.open("rb") as handle:
+            while True:
+                line = handle.readline()
+                if not line or len(line) > 512:
+                    return None
+                text = line.decode("ascii", "ignore").strip()
+                if text.startswith("element face "):
+                    return int(text.split()[-1])
+                if text == "end_header":
+                    return None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+def _build_texture_workspace(
+    images: Path, model: Path, out: Path, max_image_size: int | None
+) -> None:
+    out.mkdir(parents=True, exist_ok=True)
+    args = [
+        "colmap",
+        "image_undistorter",
+        "--image_path",
+        str(images),
+        "--input_path",
+        str(model),
+        "--output_path",
+        str(out),
+        "--output_type",
+        "COLMAP",
+    ]
+    if max_image_size is not None:
+        args += ["--max_image_size", str(max_image_size)]
+    _run(args)
+
+
+def _run_textured_mesh(
+    images: Path, model: Path, dense: Path, root: Path
+) -> tuple[Path, dict[str, Any]]:
+    metrics: dict[str, Any] = {}
     raw_mesh = root / "mesh_raw.ply"
     # Delaunay is COLMAP's mesher for open SCENES; Poisson assumes a closed
     # object and on the 380-photo aerial mission produced a degenerate surface
@@ -276,6 +315,7 @@ def _run_textured_mesh(images: Path, model: Path, dense: Path, root: Path) -> Pa
                 str(raw_mesh),
             ]
         )
+        metrics["mesher"] = "delaunay"
     except Exception as delaunay_exc:  # noqa: BLE001
         print(f"[mesh] delaunay_mesher failed ({delaunay_exc}); falling back to trimmed poisson", flush=True)
         _run(
@@ -290,29 +330,91 @@ def _run_textured_mesh(images: Path, model: Path, dense: Path, root: Path) -> Pa
                 "10",
             ]
         )
+        metrics["mesher"] = "poisson_trim10"
     if not raw_mesh.is_file():
         raise RuntimeError("Meshing produced no mesh_raw.ply")
-    textured_dir = root / "textured"
-    textured_dir.mkdir(parents=True, exist_ok=True)
-    _run(
-        [
-            "colmap",
-            "mesh_texturer",
-            "--workspace_path",
-            str(texture_workspace),
-            "--input_path",
-            str(raw_mesh),
-            "--output_path",
-            str(textured_dir),
-            "--output_type",
-            "BIN",
-        ]
+
+    raw_faces = _read_ply_face_count(raw_mesh)
+    metrics["meshFacesRaw"] = raw_faces
+    metrics["meshBytesRaw"] = raw_mesh.stat().st_size
+    print(
+        f"[mesh] raw mesh: {raw_faces if raw_faces is not None else '?'} faces, "
+        f"{raw_mesh.stat().st_size / 1e6:.1f} MB",
+        flush=True,
     )
+
+    # Decimate with COLMAP's own mesh_simplifier (present in the pinned
+    # 4.2.0.dev0 image — verified via probe; ratio-based option). Best-effort:
+    # a simplifier failure falls back to the raw mesh rather than failing the job.
+    texture_input = raw_mesh
+    if raw_faces and raw_faces > MESH_TARGET_FACES:
+        simplified = root / "mesh_simplified.ply"
+        ratio = MESH_TARGET_FACES / raw_faces
+        try:
+            _run(
+                [
+                    "colmap",
+                    "mesh_simplifier",
+                    "--input_path",
+                    str(raw_mesh),
+                    "--output_path",
+                    str(simplified),
+                    "--MeshSimplification.target_face_ratio",
+                    f"{ratio:.6f}",
+                ]
+            )
+            if simplified.is_file() and simplified.stat().st_size > 0:
+                texture_input = simplified
+                metrics["meshFacesSimplified"] = _read_ply_face_count(simplified)
+                print(f"[mesh] simplified to {metrics['meshFacesSimplified']} faces", flush=True)
+        except Exception as simplify_exc:  # noqa: BLE001
+            print(f"[mesh] mesh_simplifier failed ({simplify_exc}); texturing the raw mesh", flush=True)
+            metrics["meshSimplifyError"] = str(simplify_exc)[:300]
+
+    textured_dir = root / "textured"
+
+    def _texture(workspace: Path) -> None:
+        shutil.rmtree(textured_dir, ignore_errors=True)
+        textured_dir.mkdir(parents=True, exist_ok=True)
+        _run(
+            [
+                "colmap",
+                "mesh_texturer",
+                "--workspace_path",
+                str(workspace),
+                "--input_path",
+                str(texture_input),
+                "--output_path",
+                str(textured_dir),
+                "--output_type",
+                "BIN",
+            ]
+        )
+
+    native_workspace = root / "texture"
+    try:
+        _build_texture_workspace(images, model, native_workspace, None)
+        _texture(native_workspace)
+        metrics["textureResolution"] = "native"
+    except Exception as native_exc:  # noqa: BLE001
+        print(
+            f"[texture] native-resolution bake failed ({native_exc}); "
+            f"retrying at {TEXTURE_FALLBACK_MAX_IMAGE_SIZE}px",
+            flush=True,
+        )
+        metrics["textureNativeError"] = str(native_exc)[:300]
+        # Reclaim the native workspace's disk before building the capped one.
+        shutil.rmtree(native_workspace, ignore_errors=True)
+        capped_workspace = root / "texture_capped"
+        _build_texture_workspace(images, model, capped_workspace, TEXTURE_FALLBACK_MAX_IMAGE_SIZE)
+        _texture(capped_workspace)
+        metrics["textureResolution"] = f"capped_{TEXTURE_FALLBACK_MAX_IMAGE_SIZE}"
+
     mesh = textured_dir / "mesh.ply"
     texture = textured_dir / "texture.png"
     if not mesh.is_file() or not texture.is_file():
         raise RuntimeError("COLMAP texturer produced no mesh.ply/texture.png pair")
-    return mesh
+    return mesh, metrics
 
 
 def _ply_vertices(path: Path) -> tuple[Any, Any]:
@@ -634,7 +736,7 @@ def _run_exterior(payload: dict[str, Any], root: Path) -> dict[str, Any]:
     _set_stage(job_id, "train", 45)
     fused = _run_dense(images, model, root, max_image_size)
     _set_stage(job_id, "optimize", 75)
-    textured_mesh = _run_textured_mesh(images, model, root / "dense", root)
+    textured_mesh, texture_metrics = _run_textured_mesh(images, model, root / "dense", root)
     glb = root / "exterior.glb"
     glb_metrics = _textured_ply_to_glb(
         textured_mesh,
@@ -658,6 +760,7 @@ def _run_exterior(payload: dict[str, Any], root: Path) -> dict[str, Any]:
         "crs": None,
         "densePointCount": int(len(_ply_vertices(fused)[0])),
         "glb": glb_metrics,
+        "meshTexture": texture_metrics,
         "ortho": ortho_metrics,
         "cameras": sparse_metrics.get("cameras"),
         "camerasError": sparse_metrics.get("camerasError"),
@@ -690,7 +793,23 @@ def _run_exterior(payload: dict[str, Any], root: Path) -> dict[str, Any]:
     }
 
 
-@app.function(image=image, gpu="A10G", volumes={"/data": vol}, secrets=[worker_secret], timeout=12 * 3600)
+# EXT-FIX (2026-08-06): explicit memory/cpu. This function previously ran on
+# Modal's default allocation while the proven research track explicitly
+# requests 32–48 GB for exactly these texture/ortho stages
+# (photogrammetry/worker.py: texture_workspace memory=32768, ortho memory=49152).
+# Under the default, the late pipeline stages died two distinct deaths on real
+# jobs: mesh_texturer SIGABRT (uncaught C++ bad_alloc → abort, jobs 4388feb8 +
+# f4d8537f) and one silent container death mid-run (fb1767ed, "no worker
+# activity for 45 minutes" — OOM-killed with no callback).
+@app.function(
+    image=image,
+    gpu="A10G",
+    cpu=8,
+    memory=49152,
+    volumes={"/data": vol},
+    secrets=[worker_secret],
+    timeout=12 * 3600,
+)
 def process_exterior_job(payload: dict[str, Any]) -> None:
     job_id = str(payload.get("jobId") or "")
     root = Path("/tmp") / f"exterior-job-{job_id or 'unknown'}"
