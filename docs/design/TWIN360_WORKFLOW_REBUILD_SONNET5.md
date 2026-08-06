@@ -921,3 +921,41 @@ trusting the PSNR jump as the whole story — a metrics-only read has burned
 this project before). To actually LOOK at this specific model today requires
 either publishing it (reversible) or waiting for a version-preview UI (D1's
 schema landed 2026-08-06; the UI does not exist yet).
+
+### 7.15 LOCKED 2026-08-06 — EXT-FIX progress + new blocker; F1/F2/F3 studio slices shipped
+
+**Exterior (job a2fbc907, capture b98d2165, 380 photos):** EXT-FIX's two targeted
+fixes both WORKED — no SIGABRT (mesh_texturer completed), no silent OOM death.
+The job ran ~5.5h and reached "optimize" (75%, past texture bake, into GLB
+conversion) before failing on a THIRD, different defect:
+`PIL.Image.DecompressionBombError: Image size (317489152 pixels) exceeds limit
+of 178956970 pixels`. Root cause: EXT-FIX's native-resolution texture arm
+succeeded this time (previously it always crashed before producing output),
+and the resulting `mesh_texturer` atlas is genuinely huge — `_textured_ply_to_
+glb`'s `Image.open(texture_path)` trips Pillow's built-in decompression-bomb
+guard. **Real, actionable, NOT yet fixed** — needs a real engineering decision
+(raise `Image.MAX_IMAGE_PIXELS` with a deliberate cap vs. force the
+capped-resolution texture arm above some photo-count/resolution threshold vs.
+tile the atlas) rather than a reflexive limit-bump, since a naively larger
+limit risks a real OOM downstream (317M px × 3 bytes ≈ 950 MB raw, before
+JPEG re-encode + GLB embed, on top of whatever dense/mesh stages already
+consumed of the 49 GB allocation). Flagged for Fable-class attention per the
+studio plan's delegation map — this is real memory/image-processing-at-scale
+engineering, not integration wiring.
+
+**Studio Phase F, three slices shipped same day (Sonnet 5):**
+- F1 — `/twin-studio` operator cockpit (StudioWorkspaceShell pattern, matches
+  Thermal V2), Produce tab with version history + trainProfile-aware
+  reprocess dispatch + realtime job status.
+- F2 — Clean tab embeds DesktopSplatEditor; fixed editor-vs-viewer parity
+  (500k splat cap matching the shared viewer, real splat-surface raycast for
+  edit placement replacing an r=6 sphere proxy).
+- F3 — floorplan.py/openings.py (tested, dormant since P4c) mounted into the
+  GPU image and wired into the export stage; new DXF/SVG writers (verified:
+  15 new-code checks + an end-to-end synthetic-room integration test,
+  floorAreaM2 19.91 vs true 20.0). Plan tab renders floor/wall areas with the
+  locked disclaimer; net wall area explicitly marked unvalidated.
+
+Tracker: 13/28 core slices (~46%) once EXT-FIX's live-data confirmation is
+resolved separately from F1-F3 (F1-F3 already count; B2/EXT-FIX still open
+pending the decompression-bomb fix + a clean rerun).
