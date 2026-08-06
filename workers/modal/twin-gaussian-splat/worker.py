@@ -241,6 +241,9 @@ gpu_image = (
         "requests==2.32.3",
         # AF4: sharpness-scored frame selection (variance-of-Laplacian).
         "opencv-python-headless==4.10.0.84",
+        # F3: floorplan.py's room-polygon closure (polygonize/unary_union) — BSD-3,
+        # no GPL/AGPL/non-commercial concern.
+        "shapely==2.0.6",
     )
     .run_commands(
         # torch 2.4.1+cu121: matches gsplat 1.4.0 prebuilt wheel index pt24cu121.
@@ -259,7 +262,10 @@ gpu_image = (
     )
     # Modal does not mount sibling source files automatically.
     .add_local_python_source(
-        "align_backends", "pose_priors", "depth_evidence", "cameras_export"
+        "align_backends", "pose_priors", "depth_evidence", "cameras_export",
+        # F3: dormant since P4c — tested (test_floorplan.py, test_floorplan_commercial.py,
+        # test_openings.py) but never mounted into the image, so never reachable.
+        "floorplan", "openings",
     )
 )
 
@@ -2605,6 +2611,173 @@ def generate_floor_plan(ply_path: Path, manifest: dict, export_dir: Path) -> "Pa
         return None
 
 
+def _parse_wkt_polygon(wkt: str) -> list[tuple[float, float]] | None:
+    """Parse shapely's canonical 'POLYGON ((x1 y1, x2 y2, ...))' output. No interior rings
+    expected — polygonize() on a planar wall graph (floorplan.build_room_polygons) produces
+    simple polygons only."""
+    import re
+
+    match = re.search(r"POLYGON\s*\(\(([^)]+)\)\)", wkt)
+    if not match:
+        return None
+    coords: list[tuple[float, float]] = []
+    for pair in match.group(1).split(","):
+        parts = pair.strip().split()
+        if len(parts) != 2:
+            return None
+        coords.append((float(parts[0]), float(parts[1])))
+    return coords
+
+
+def _write_floorplan_svg(plan: Any, out_path: Path, margin_m: float = 0.5) -> None:
+    """Minimal SVG: walls as lines (partitions dimmed), room outlines as translucent fill.
+    Metres scaled to 100 px/m; Y flipped so the plan reads top-down like a drawing, not
+    bottom-up like a math plot."""
+    walls = plan.walls
+    if not walls:
+        raise RuntimeError("no walls to render")
+
+    xs = [w.x1 for w in walls] + [w.x2 for w in walls]
+    ys = [w.y1 for w in walls] + [w.y2 for w in walls]
+    x_min, x_max = min(xs) - margin_m, max(xs) + margin_m
+    y_min, y_max = min(ys) - margin_m, max(ys) + margin_m
+    scale = 100.0
+    width = (x_max - x_min) * scale
+    height = (y_max - y_min) * scale
+
+    def sx(x: float) -> float:
+        return (x - x_min) * scale
+
+    def sy(y: float) -> float:
+        return (y_max - y) * scale
+
+    parts = [
+        f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {width:.1f} {height:.1f}" '
+        f'width="{width:.0f}" height="{height:.0f}">',
+        f'<rect x="0" y="0" width="{width:.1f}" height="{height:.1f}" fill="#0B0F15"/>',
+    ]
+    for r in plan.rooms:
+        coords = _parse_wkt_polygon(r.wkt)
+        if coords:
+            pts_attr = " ".join(f"{sx(x):.1f},{sy(y):.1f}" for x, y in coords)
+            parts.append(f'<polygon points="{pts_attr}" fill="#3D8EFF" fill-opacity="0.08" stroke="none"/>')
+    for w in walls:
+        color = "#6b7280" if w.is_partition else "#3D8EFF"
+        parts.append(
+            f'<line x1="{sx(w.x1):.1f}" y1="{sy(w.y1):.1f}" x2="{sx(w.x2):.1f}" y2="{sy(w.y2):.1f}" '
+            f'stroke="{color}" stroke-width="3" stroke-linecap="square"/>'
+        )
+    parts.append("</svg>")
+    out_path.write_text("\n".join(parts), encoding="utf-8")
+
+
+def _write_floorplan_dxf(plan: Any, out_path: Path) -> None:
+    """Minimal ASCII DXF R12 — a bare ENTITIES section with no HEADER/TABLES/BLOCKS. This
+    is valid DXF and opens cleanly in AutoCAD/Revit/QCAD; LINE + POLYLINE/VERTEX/SEQEND are
+    the most universally-supported entity types (LWPOLYLINE is R14+, avoided on purpose)."""
+    lines: list[str] = ["0", "SECTION", "2", "ENTITIES"]
+
+    def add_line(x1: float, y1: float, x2: float, y2: float, layer: str) -> None:
+        lines.extend(
+            [
+                "0", "LINE", "8", layer,
+                "10", f"{x1:.4f}", "20", f"{y1:.4f}", "30", "0.0",
+                "11", f"{x2:.4f}", "21", f"{y2:.4f}", "31", "0.0",
+            ]
+        )
+
+    for w in plan.walls:
+        add_line(w.x1, w.y1, w.x2, w.y2, "PARTITIONS" if w.is_partition else "WALLS")
+
+    for r in plan.rooms:
+        coords = _parse_wkt_polygon(r.wkt)
+        if not coords:
+            continue
+        lines.extend(["0", "POLYLINE", "8", "ROOMS", "66", "1", "70", "1"])
+        for x, y in coords:
+            lines.extend(["0", "VERTEX", "8", "ROOMS", "10", f"{x:.4f}", "20", f"{y:.4f}", "30", "0.0"])
+        lines.extend(["0", "SEQEND"])
+
+    lines.extend(["0", "ENDSEC", "0", "EOF"])
+    out_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def compute_vector_floor_plan(
+    ply_path: Path, manifest: dict, export_dir: Path,
+) -> tuple[dict[str, Any], "Path | None", "Path | None"]:
+    """F3 (TWIN_SERVICE_STUDIO_PLAN.md Phase F) — measurable 2D plan + areas, using the
+    tested floorplan.py/openings.py geometry (P4c-complete since before this pipeline
+    existed, but never mounted into the image until this slice — see add_local_python_source).
+
+    Returns (areas_payload, svg_path_or_None, dxf_path_or_None). Non-fatal throughout: this
+    is a bonus derivative, never a reason to fail the job.
+
+    Net wall area (openings-subtracted) is INTENTIONALLY still reported here even though the
+    plan explicitly holds it back from "ready for paint takeoffs" framing — the number needs
+    to exist and be visible (with its accuracy caveat) before it can be validated against a
+    tape measure on real captures. The UI layer is responsible for the "not yet validated"
+    framing, not this function.
+    """
+    try:
+        import numpy as np
+        import floorplan as fp
+        import openings as op
+
+        raw = _read_ply_xyz(ply_path)
+        pts = raw * np.array([1.0, -1.0, -1.0])  # same viewer-space flip as generate_floor_plan
+
+        plan = fp.compute_plan(pts, up_axis=1)
+        if not plan.closed or not plan.rooms:
+            return {"closed": False, "notes": plan.notes}, None, None
+
+        wall_results: list[dict[str, Any]] = []
+        if plan.ceiling_height_m:
+            for w in plan.structural_walls:
+                wall_pts = op.project_to_wall(pts, (w.x1, w.y1), (w.x2, w.y2), floor_z=plan.floor_z)
+                if len(wall_pts) < 20:
+                    continue
+                areas = op.detect_openings(wall_pts, w.length, plan.ceiling_height_m)
+                result = areas.as_dict()
+                result["wall"] = {
+                    "x1": round(w.x1, 3), "y1": round(w.y1, 3),
+                    "x2": round(w.x2, 3), "y2": round(w.y2, 3),
+                    "lengthM": round(w.length, 3),
+                }
+                wall_results.append(result)
+
+        wall_area_net_m2 = round(sum(w["netM2"] for w in wall_results), 2) if wall_results else None
+
+        largest = plan.rooms[0]
+        payload: dict[str, Any] = {
+            "closed": True,
+            "floorAreaM2": largest.area_m2,
+            "floorAreaFt2": largest.area_ft2,
+            "usableAreaM2": plan.usable_area_m2,
+            "roomCount": plan.room_count,
+            "wallAreaGrossM2": plan.wall_area_gross_m2,
+            "wallAreaGrossFt2": fp.to_square_feet(plan.wall_area_gross_m2),
+            "wallAreaNetM2": wall_area_net_m2,
+            "wallAreaNetFt2": fp.to_square_feet(wall_area_net_m2),
+            "ceilingHeightM": plan.ceiling_height_m,
+            "notes": plan.notes,
+            "walls": wall_results,
+            "accuracy": (
+                "Estimating-grade — not survey or permit grade; verify critical dimensions "
+                "with a laser. Net wall area is unvalidated against a tape measure on real "
+                "captures — treat as approximate, not takeoff-ready."
+            ),
+        }
+
+        svg_path = export_dir / "floorplan.svg"
+        _write_floorplan_svg(plan, svg_path)
+        dxf_path = export_dir / "floorplan.dxf"
+        _write_floorplan_dxf(plan, dxf_path)
+        return payload, svg_path, dxf_path
+    except Exception as exc:  # noqa: BLE001
+        print(f"compute_vector_floor_plan failed (non-fatal): {exc}")
+        return {"error": str(exc)[:300]}, None, None
+
+
 def compute_splat_manifest(
     ply_path: Path,
     fov_deg: float = 55.0,
@@ -3253,6 +3426,27 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
         floorplan_key = None
         print(f"Floor plan generation/upload failed (non-fatal): {fp_exc}")
 
+    # F3 — vector plan (walls/rooms/areas + DXF/SVG), separate from the raster PNG above.
+    floor_plan_areas: dict[str, Any] = {}
+    floorplan_svg_key: str | None = None
+    floorplan_dxf_key: str | None = None
+    try:
+        floor_plan_areas, svg_path, dxf_path = compute_vector_floor_plan(ply_path, manifest, export_dir)
+        if svg_path and svg_path.is_file():
+            floorplan_svg_key = out_key[: -len(".spz")] + ".floorplan.svg"
+            s3.upload_file(
+                str(svg_path), bucket, floorplan_svg_key,
+                ExtraArgs={"ContentType": "image/svg+xml", "CacheControl": "public, max-age=31536000, immutable"},
+            )
+        if dxf_path and dxf_path.is_file():
+            floorplan_dxf_key = out_key[: -len(".spz")] + ".floorplan.dxf"
+            s3.upload_file(
+                str(dxf_path), bucket, floorplan_dxf_key,
+                ExtraArgs={"ContentType": "application/dxf", "CacheControl": "public, max-age=31536000, immutable"},
+            )
+    except Exception as vfp_exc:  # noqa: BLE001
+        print(f"Vector floor plan generation/upload failed (non-fatal): {vfp_exc}")
+
     # Photo Explorer sidecar — non-fatal; viewer hides the layer when absent.
     cameras_key: str | None = None
     cameras_count = 0
@@ -3293,6 +3487,10 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
         derivative_keys["cameras"] = cameras_key
     if floorplan_key:
         derivative_keys["floorplan"] = floorplan_key
+    if floorplan_svg_key:
+        derivative_keys["floorplanSvg"] = floorplan_svg_key
+    if floorplan_dxf_key:
+        derivative_keys["floorplanDxf"] = floorplan_dxf_key
     if manifest_key:
         derivative_keys["manifest"] = manifest_key
 
@@ -3370,6 +3568,11 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             # R8.3(b) metric-aware spike clamp
             "spikeClampedCount": crop_stats.get("spikeClampedCount"),
             "spikeClampMaxExtentM": crop_stats.get("spikeClampMaxExtentM"),
+            # F3 — walls/rooms/areas from compute_vector_floor_plan; must live inside
+            # qualityMetrics because process_job's success_body only forwards specific
+            # top-level result keys (outputKey/fileSizeBytes/bounds/qualityMetrics/
+            # floorplanKey) — a sibling key here would be silently dropped.
+            "floorPlan": floor_plan_areas,
         },
     }
 
