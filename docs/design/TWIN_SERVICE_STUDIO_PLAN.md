@@ -19,14 +19,14 @@ build prompt for later reference (not scheduled into a phase).
 | Phase | Slices | Done | Status |
 |---|---|---|---|
 | A′ — Delivery unlock | A1, A2, A4 | 3/3 | ✅ COMPLETE — shipped, live on Vercel prod + TestFlight |
-| B — Quality A/Bs | B1, B2, B3 (+B4 opt) | 2/3 | 🟨 B1 + B3 shipped and VERIFIED on real data (B1: profile ladder complete, baseline wins; B3: kitchen 17.22→25.30 PSNR, +47%). B2 = EXT-FIX shipped (memory + mesh_simplifier decimation + capped-res texture retry, deployed) — counts done when the live rerun (job a2fbc907) completes |
+| B — Quality A/Bs | B1, B2, B3 (+B4 opt) | 2/3 | 🟨 B1 + B3 shipped and VERIFIED on real data (B1: profile ladder complete, baseline wins; B3: kitchen 17.22→25.30 PSNR, +47%). B2 = EXT-FIX: 2 of 3 real defects fixed and confirmed (no more SIGABRT, no more silent OOM — job ran 5.5h and reached 75%); found a THIRD defect on the live rerun (PIL DecompressionBombError on the native-res texture atlas, 317M px vs the 178.9M default limit) — real image-processing-at-scale work, flagged for Fable, not yet fixed |
 | C — Depth supervision | C1, C2, C3 | 0/3 | ⬜ unblocked (08-04 iOS build actually succeeded — retracted the earlier "failed" status) but not started |
 | D — Version/history schema | D1, D2, D3 | 2/3 | 🟨 D1 (migration, applied to prod) + D2 (camera-synced compare + nav surfacing) shipped; D3 (progression video export) not started |
-| F — Operator Twin Studio tab | F1, F2, F3, F4, F5 | 2/5 | 🟨 F1 shell+Produce shipped. F2 shipped: Clean tab embeds DesktopSplatEditor; fixed editor-vs-viewer parity (500k splat cap matching shared viewer, real splat raycast replacing the r=6 sphere proxy for accurate edit placement). Plan/Deliver remain honest placeholders naming F3/F4 |
+| F — Operator Twin Studio tab | F1, F2, F3, F4, F5 | 3/5 | 🟨 F1 shell+Produce shipped. F2: Clean tab embeds DesktopSplatEditor + fixed editor-vs-viewer parity (500k splat cap, real splat raycast replacing the r=6 sphere proxy). F3: floorplan.py/openings.py (tested, dormant since P4c) mounted + wired into export stage; new DXF/SVG writers (verified 15/15 + integration test); Plan tab renders floor/wall areas, net wall area marked unvalidated. Deliver remains an honest placeholder naming F4 |
 | G — Client portal | G1, G2, G3, G4, G5 | 0/5 | ⬜ not started |
-| H — AI assistant | H1, H2, H3 | 0/3 | ⬜ not started (needs F3 for real geometry) |
+| H — AI assistant | H1, H2, H3 | 0/3 | ⬜ not started — F3 now gives it real geometry to answer with |
 | E — Polish | E1 (bake), E2 (cinematic capture+correction), E3 (camera-path playback) | 0/3 | ⬜ not started |
-| **TOTAL** | **28 core** | **10/28** | **≈36%** |
+| **TOTAL** | **28 core** | **13/28** | **≈46%** |
 
 **Verification runs (2026-08-06, non-publishing — R7.5 visual gate = Brian):**
 - Job `13934822` — B1 arm check, `trainProfile: visual` on capture `e5d42523`. **DONE: PSNR 21.41.** Profile ladder complete on real data: baseline 25.53 > quality 22.74 > visual 21.41 — baseline stays promoted.
