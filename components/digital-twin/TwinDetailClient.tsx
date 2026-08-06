@@ -11,6 +11,7 @@ import { TwinShareActions } from "./TwinShareActions";
 import { TwinVersionsPanel } from "./TwinVersionsPanel";
 import { TwinMeasurementsList } from "./TwinMeasurementsList";
 import { TwinGpsDisplay } from "./TwinGpsDisplay";
+import { DesktopWorkspaceLinks } from "./desktop/DesktopWorkspaceLinks";
 import { defaultTwinLayerVisibility } from "./TwinLayersPanel";
 import {
   parseTwinOverlayMeasurement,
@@ -184,11 +185,10 @@ export function TwinDetailClient({
           <div className="mt-4 space-y-4">
             {latestGps ? <TwinGpsDisplay gps={latestGps} /> : null}
             <TwinMeasurementsList spaceId={viewer.spaceId} refreshToken={measureRefresh} />
-            {desktopEditorEnabled ? (
-              <p className="rounded-xl border border-white/10 bg-white/[0.03] px-3 py-2.5 text-[11px] leading-snug text-[var(--graphite-muted)]">
-                To crop, clean, or level this model, open it in the desktop studio editor.
-              </p>
-            ) : null}
+            {/* D2: was a plain text hint with no link — DesktopWorkspaceLinks
+                (editor/cinematic/progression) already existed but was never
+                mounted anywhere in the app. */}
+            {desktopEditorEnabled ? <DesktopWorkspaceLinks spaceId={viewer.spaceId} /> : null}
           </div>
         </SheetContent>
       </Sheet>

@@ -6,6 +6,7 @@ import {
   type SplatViewerHandle,
   type TwinPickPoint,
 } from "@/components/digital-twin/splat-viewer-core";
+import type { SplatCameraPose } from "@/components/digital-twin/splat-viewer-constants";
 import type { SplatManifest } from "@/lib/digital-twin/twin-manifest";
 
 export type { TwinPickPoint, SplatViewerHandle };
@@ -23,6 +24,8 @@ export const TwinShareSplatViewer = forwardRef<
     onCameraModeChange?: (mode: "interior" | "orbit") => void;
     repositionMode?: boolean;
     onManifestChange?: (manifest: SplatManifest | null) => void;
+    /** D2: live orbit-camera pose changes, for cross-viewer sync (progression compare). */
+    onCameraChange?: (pose: SplatCameraPose) => void;
   }
 >(function TwinShareSplatViewer(
   {
@@ -36,6 +39,7 @@ export const TwinShareSplatViewer = forwardRef<
     onCameraModeChange,
     repositionMode = false,
     onManifestChange,
+    onCameraChange,
   },
   ref,
 ) {
@@ -52,6 +56,7 @@ export const TwinShareSplatViewer = forwardRef<
       onCameraModeChange={onCameraModeChange}
       repositionMode={repositionMode}
       onManifestChange={onManifestChange}
+      onCameraChange={onCameraChange}
     />
   );
 });

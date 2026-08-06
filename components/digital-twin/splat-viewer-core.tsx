@@ -15,7 +15,7 @@ import { Loader2 } from "lucide-react";
 import * as THREE from "three";
 import { cn } from "@/lib/utils";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
-import { formatTwinBytes } from "@/lib/digital-twin/format-bytes";
+import { formatTwinBytes, formatDownsampleNotice } from "@/lib/digital-twin/format-bytes";
 import type { InteriorCameraFrame } from "@/lib/digital-twin/interior-camera-frame";
 import type { SplatManifest } from "@/lib/digital-twin/twin-manifest";
 import { SplatViewerScene } from "@/components/digital-twin/splat-viewer-scene";
@@ -29,6 +29,7 @@ import {
   LOAD_STALL_TIMEOUT_MS,
   useMobileSplatBudget,
   type CameraMode,
+  type SplatCameraPose,
   type SplatViewerHandle,
   type TwinPickPoint,
 } from "@/components/digital-twin/splat-viewer-constants";
@@ -50,10 +51,10 @@ export const SplatViewerCore = forwardRef<
     overlay?: ReactNode;
     onCameraModeChange?: (mode: CameraMode) => void;
     repositionMode?: boolean;
-    /** V3: reports the resolved manifest (or null) once the fetch settles —
-     * consumers use manifest?.up_axis to decide whether Walk mode has a
-     * confident floor to work with. */
+    /** V3: resolved manifest (or null) once the fetch settles — consumers use manifest?.up_axis. */
     onManifestChange?: (manifest: SplatManifest | null) => void;
+    /** D2: live orbit-camera pose changes, for progression-compare sync. */
+    onCameraChange?: (pose: SplatCameraPose) => void;
   }
 >(function SplatViewerCore(
   {
@@ -67,6 +68,7 @@ export const SplatViewerCore = forwardRef<
     onCameraModeChange,
     repositionMode = false,
     onManifestChange,
+    onCameraChange,
   },
   ref,
 ) {
@@ -121,9 +123,7 @@ export const SplatViewerCore = forwardRef<
   }, []);
 
   const handleDownsampled = useCallback((originalCount: number, cappedCount: number) => {
-    setDownsampleNotice(
-      `Showing ${cappedCount.toLocaleString()} of ${originalCount.toLocaleString()} points (capped for performance)`,
-    );
+    setDownsampleNotice(formatDownsampleNotice(originalCount, cappedCount));
   }, []);
 
   const handleRetry = useCallback(() => {
@@ -137,6 +137,8 @@ export const SplatViewerCore = forwardRef<
       zoomIn: () => controlsApiRef.current?.zoomIn(),
       zoomOut: () => controlsApiRef.current?.zoomOut(),
       recenter: () => controlsApiRef.current?.recenter(),
+      getCameraPose: () => controlsApiRef.current?.getCameraPose() ?? null,
+      setCameraPose: (pose) => controlsApiRef.current?.setCameraPose(pose),
     }),
     [],
   );
@@ -289,6 +291,7 @@ export const SplatViewerCore = forwardRef<
             onInteriorEntryConsumed={() => setInteriorEntryHit(null)}
             onEnterInterior={handleEnterInterior}
             onManifestChange={onManifestChange}
+            onCameraChange={onCameraChange}
           />
         </Canvas>
       </SplatErrorBoundary>

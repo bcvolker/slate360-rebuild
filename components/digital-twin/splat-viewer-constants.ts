@@ -2,10 +2,23 @@ import { useEffect, useState } from "react";
 
 export type TwinPickPoint = { x: number; y: number; z: number };
 export type CameraMode = "interior" | "orbit";
+/** D2: orbit camera + target, used for cross-viewer sync (progression compare). */
+export type SplatCameraPose = {
+  position: [number, number, number];
+  target: [number, number, number];
+};
 export type SplatViewerHandle = {
   zoomIn: () => void;
   zoomOut: () => void;
   recenter: () => void;
+  /** D2: current orbit camera pose, or null when no OrbitControls is mounted
+   * (e.g. interior/walk mode). Read-only snapshot — does not subscribe. */
+  getCameraPose: () => SplatCameraPose | null;
+  /** D2: imperatively move this viewer's camera to match another viewer's pose.
+   * A no-op outside orbit mode. Does not itself trigger onCameraChange on this
+   * viewer (echo-suppressed), so two viewers can drive each other without a
+   * feedback loop. */
+  setCameraPose: (pose: SplatCameraPose) => void;
 };
 
 // Hard splat caps — enforced by a deterministic post-load downsample (see

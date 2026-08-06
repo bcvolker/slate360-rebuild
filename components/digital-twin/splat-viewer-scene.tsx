@@ -12,7 +12,12 @@ import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import type { InteriorCameraFrame } from "@/lib/digital-twin/interior-camera-frame";
 import { SplatInteriorNavigation } from "@/components/digital-twin/splat-interior-navigation";
 import { SplatOverviewNavigation } from "@/components/digital-twin/splat-overview-navigation";
-import type { CameraMode, SplatViewerHandle, TwinPickPoint } from "@/components/digital-twin/splat-viewer-constants";
+import type {
+  CameraMode,
+  SplatCameraPose,
+  SplatViewerHandle,
+  TwinPickPoint,
+} from "@/components/digital-twin/splat-viewer-constants";
 import {
   INTERIOR_MAX_ZOOM,
   INTERIOR_MIN_ZOOM,
@@ -22,6 +27,7 @@ import {
 import { fetchSplatManifest, type SplatManifest } from "@/lib/digital-twin/twin-manifest";
 import { estimateOrientationFromMesh } from "@/lib/digital-twin/splat-pca-orientation";
 import { applyEditListToMesh } from "@/lib/digital-twin/splat-edit-runtime";
+import { useCameraSyncBridge } from "@/lib/digital-twin/splat-camera-sync";
 
 extend({ SparkRenderer: SparkRendererImpl, SplatMesh: SplatMeshImpl });
 
@@ -30,14 +36,20 @@ function ControlsBridge({
   cameraMode,
   onRecenter,
   zoomRef,
+  onCameraChange,
 }: {
   apiRef: React.MutableRefObject<SplatViewerHandle | null>;
   cameraMode: CameraMode;
   onRecenter: () => void;
   zoomRef: React.MutableRefObject<number>;
+  /** D2: fired on every live orbit change (drag/zoom/pan), NOT fired for
+   * changes this instance applied itself via setCameraPose (echo-suppressed
+   * via isSyncingRef) — lets two viewers drive each other without a loop. */
+  onCameraChange?: (pose: SplatCameraPose) => void;
 }) {
   const { controls } = useThree();
   const orbit = controls as OrbitControlsImpl | null;
+  const { getCameraPose, setCameraPose } = useCameraSyncBridge(orbit, onCameraChange);
 
   useEffect(() => {
     apiRef.current = {
@@ -66,11 +78,13 @@ function ControlsBridge({
         );
       },
       recenter: onRecenter,
+      getCameraPose,
+      setCameraPose,
     };
     return () => {
       apiRef.current = null;
     };
-  }, [apiRef, cameraMode, orbit, onRecenter, zoomRef]);
+  }, [apiRef, cameraMode, orbit, onRecenter, zoomRef, getCameraPose, setCameraPose]);
 
   return null;
 }
@@ -96,6 +110,7 @@ export function SplatViewerScene({
   onEnterInterior,
   repositionMode = false,
   onManifestChange,
+  onCameraChange,
 }: {
   url: string;
   maxSplats: number;
@@ -119,6 +134,8 @@ export function SplatViewerScene({
   onManifestChange?: (manifest: SplatManifest | null) => void;
   onEnterInterior: (point: THREE.Vector3) => void;
   repositionMode?: boolean;
+  /** D2: live orbit-camera pose changes, for cross-viewer sync (progression compare). */
+  onCameraChange?: (pose: SplatCameraPose) => void;
 }) {
   const gl = useThree((state) => state.gl);
   const [loadedMesh, setLoadedMesh] = useState<SplatMesh | null>(null);
@@ -270,6 +287,7 @@ export function SplatViewerScene({
         cameraMode={cameraMode}
         onRecenter={onRecenter}
         zoomRef={zoomRef}
+        onCameraChange={onCameraChange}
       />
     </>
   );

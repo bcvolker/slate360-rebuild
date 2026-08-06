@@ -1,11 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import { IconArrowsHorizontal } from "@tabler/icons-react";
 import { cn } from "@/lib/utils";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import type { ProgressionSlide } from "@/lib/digital-twin/progression-types";
+import type {
+  SplatCameraPose,
+  SplatViewerHandle,
+} from "@/components/digital-twin/splat-viewer-constants";
 
 const TwinShareSplatViewer = dynamic(
   () => import("@/components/digital-twin/TwinShareSplatViewer").then((m) => m.TwinShareSplatViewer),
@@ -24,6 +28,27 @@ export function ProgressionCompareViewer({
   const [mode, setMode] = useState<CompareMode>("single");
   const [blend, setBlend] = useState(0.5);
   const [wipe, setWipe] = useState(0.5);
+
+  // D2: bidirectional live camera sync in blend/wipe — dragging either splat
+  // moves both, so the same angle is visible on both captures at once.
+  // Imperative ref-to-ref channel (no React state), so a drag doesn't force
+  // re-renders on either R3F tree. Each side's own setCameraPose call is
+  // echo-suppressed (see ControlsBridge), so this can't loop.
+  const viewerARef = useRef<SplatViewerHandle | null>(null);
+  const viewerBRef = useRef<SplatViewerHandle | null>(null);
+  const syncEnabled = mode !== "single";
+  const handleAChange = useCallback(
+    (pose: SplatCameraPose) => {
+      if (syncEnabled) viewerBRef.current?.setCameraPose(pose);
+    },
+    [syncEnabled],
+  );
+  const handleBChange = useCallback(
+    (pose: SplatCameraPose) => {
+      if (syncEnabled) viewerARef.current?.setCameraPose(pose);
+    },
+    [syncEnabled],
+  );
 
   const compareReady = slideB !== null;
 
@@ -59,9 +84,19 @@ export function ProgressionCompareViewer({
           <TwinShareSplatViewer src={slideA.modelUrl} className="h-full min-h-[400px]" />
         ) : mode === "blend" ? (
           <>
-            <TwinShareSplatViewer src={slideA.modelUrl} className="absolute inset-0 h-full" />
+            <TwinShareSplatViewer
+              ref={viewerARef}
+              src={slideA.modelUrl}
+              className="absolute inset-0 h-full"
+              onCameraChange={handleAChange}
+            />
             <div className="absolute inset-0" style={{ opacity: blend }}>
-              <TwinShareSplatViewer src={slideB.modelUrl} className="h-full" />
+              <TwinShareSplatViewer
+                ref={viewerBRef}
+                src={slideB.modelUrl}
+                className="h-full"
+                onCameraChange={handleBChange}
+              />
             </div>
             <input
               type="range"
@@ -76,12 +111,22 @@ export function ProgressionCompareViewer({
           </>
         ) : (
           <div className="relative h-full min-h-[400px]">
-            <TwinShareSplatViewer src={slideB.modelUrl} className="absolute inset-0 h-full" />
+            <TwinShareSplatViewer
+              ref={viewerBRef}
+              src={slideB.modelUrl}
+              className="absolute inset-0 h-full"
+              onCameraChange={handleBChange}
+            />
             <div
               className="absolute inset-0 overflow-hidden"
               style={{ clipPath: `inset(0 ${(1 - wipe) * 100}% 0 0)` }}
             >
-              <TwinShareSplatViewer src={slideA.modelUrl} className="h-full" />
+              <TwinShareSplatViewer
+                ref={viewerARef}
+                src={slideA.modelUrl}
+                className="h-full"
+                onCameraChange={handleAChange}
+              />
             </div>
             <input
               type="range"
