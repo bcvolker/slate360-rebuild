@@ -10,6 +10,7 @@
     "lib/digital-twin/**/*.ts",
     "lib/digital-twin/**/*.tsx",
     "lib/twin/**/*.ts",
+    "src/trigger/twin-*.ts",
     "components/digital-twin/**/*.ts",
     "components/digital-twin/**/*.tsx",
     "app/api/digital-twin/**/*.ts",

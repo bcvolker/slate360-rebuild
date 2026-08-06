@@ -54,6 +54,10 @@ export const twinGaussianSplatTask = task({
     quality?: string;
     forceColmap?: boolean;
     alignBackend?: "colmap_vanilla" | "colmap_pose_prior";
+    /** B1: worker.py TRAIN_PROFILE override for an A/B run (baseline is the
+     * promoted default — pose-prior-style promotions require the human
+     * R7.5 visual gate, this never auto-promotes anything). */
+    trainProfile?: "baseline" | "quality" | "visual";
   }) => {
     const { jobId } = payload;
     const quality = payload.quality === "high" ? "high" : "standard";
@@ -151,6 +155,7 @@ export const twinGaussianSplatTask = task({
       lidarDepthKey: depthAssets[0]?.storage_key ?? null,
       forceColmap,
       alignBackend: payload.alignBackend ?? null,
+      trainProfile: payload.trainProfile ?? null,
     };
 
     try {

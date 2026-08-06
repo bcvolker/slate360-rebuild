@@ -1,13 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
 import { withAuth } from "@/lib/server/api-auth";
 import { ok, badRequest } from "@/lib/server/api-response";
-import { createReconstructionJob } from "@/lib/twin/create-reconstruction-job";
+import { createReconstructionJob, type TwinTrainProfile } from "@/lib/twin/create-reconstruction-job";
 import type { TwinProcessingQuality } from "@/lib/twin/processing-estimate-types";
 
 export const runtime = "nodejs";
 
 function parseQuality(value: unknown): TwinProcessingQuality {
   return value === "high" ? "high" : "standard";
+}
+
+/** B1: owner-only A/B lever — validated so a bad value falls through to the
+ * worker's promoted default instead of erroring the whole reprocess. */
+function parseTrainProfile(value: unknown): TwinTrainProfile | undefined {
+  return value === "baseline" || value === "quality" || value === "visual" ? value : undefined;
 }
 
 /**
@@ -22,8 +28,9 @@ export const POST = (req: NextRequest, ctx: { params: Promise<{ id: string }> })
     if (!orgId) return badRequest("Organization context required");
 
     const { id: captureId } = await ctx.params;
-    const body = (await req.json().catch(() => ({}))) as { quality?: string };
+    const body = (await req.json().catch(() => ({}))) as { quality?: string; trainProfile?: unknown };
     const quality = parseQuality(body.quality);
+    const trainProfile = parseTrainProfile(body.trainProfile);
 
     const result = await createReconstructionJob(admin, {
       orgId,
@@ -31,6 +38,7 @@ export const POST = (req: NextRequest, ctx: { params: Promise<{ id: string }> })
       userEmail: user.email,
       captureId,
       quality,
+      trainProfile,
     });
     if (!result.ok) {
       return NextResponse.json({ error: result.error }, { status: result.status });

@@ -15,6 +15,10 @@ export type CreateReconstructionJobResult =
   | { ok: true; job: { id: string; status: string; progress_pct: number | null } }
   | { ok: false; status: number; error: string };
 
+/** B1: worker.py's TRAIN_PROFILE arms — see build_train_args. Omit to keep the
+ * worker's env-var default (currently "baseline", the promoted arm). */
+export type TwinTrainProfile = "baseline" | "quality" | "visual";
+
 /**
  * Shared "enqueue a Gaussian-splat reconstruction job for an existing capture"
  * orchestration — the exact sequence the initial POST /jobs route does, factored
@@ -37,9 +41,13 @@ export async function createReconstructionJob(
     userEmail: string | null | undefined;
     captureId: string;
     quality: TwinProcessingQuality;
+    /** B1: dispatch a specific worker.py training-flag arm for an A/B run
+     * (owner/reprocess-only lever — not the client submit flow). Omit for
+     * the promoted default. */
+    trainProfile?: TwinTrainProfile;
   },
 ): Promise<CreateReconstructionJobResult> {
-  const { orgId, userId, userEmail, captureId, quality } = params;
+  const { orgId, userId, userEmail, captureId, quality, trainProfile } = params;
 
   try {
     await assertDigitalTwinProcessingEntitlement(admin, {
@@ -151,7 +159,7 @@ export async function createReconstructionJob(
     const { tasks } = await import("@trigger.dev/sdk/v3");
     const handle = await tasks.trigger(
       "twin.gaussian_splat",
-      { jobId: job.id, quality },
+      { jobId: job.id, quality, ...(trainProfile ? { trainProfile } : {}) },
       undefined,
       triggerRequestOptions,
     );
