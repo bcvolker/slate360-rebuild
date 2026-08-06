@@ -1013,3 +1013,22 @@ presented: top up (or authorize a grant) then re-dispatch (cache hit → ~40-60
 min to a real model row), or accept R2-only artifacts. All four exterior
 pipeline defect classes (mesh_texturer SIGABRT, silent OOM, decompression
 bomb, web-unsafe texture size) are now FIXED AND CONFIRMED on real data.
+
+### 7.18 LOCKED 2026-08-06 — FIRST COMPLETE EXTERIOR MODEL; cache verified at 18 minutes
+
+Job `8707f913` COMPLETED end-to-end → **model `a45b9f8b` (GLB, 98.2 MB, 1.5M
+faces, 8192×2388 texture) — the first exterior model row ever created by this
+pipeline.** Runtime **18m11s** vs the 5.5h full run: `alignmentCache: "hit"`
+verified live — the cache restore + mesh/texture/GLB/ortho path works exactly
+as designed, and exterior iteration cost is now measured in minutes. Credits
+charged 879 (balance 1261→382; the 500-credit dev grant was CEO-authorized,
+recorded in credit_transactions as "Dev grant (CEO-authorized 2026-08-06)").
+Native-res texture bake still SIGABRTs (recorded in
+qc.meshTexture.textureNativeError) — the capped-3200 retry arm caught it both
+runs; native-res texturing remains an open Arm-B-class experiment, NOT a
+blocker. New non-fatal bug identified and chipped for follow-up:
+cameras_sidecar.py fails with pycolmap CameraMap `.get()` AttributeError →
+exterior models ship without the Photo Explorer layer until fixed + reprocessed
+(~18 min via cache). B2/EXT-FIX now CLOSED: all four exterior defect classes
+fixed and confirmed on real data, deliverable produced, R7.5 visual gate on
+model `a45b9f8b` is Brian's (Studio → space `6b733e1a` → Produce → Preview).
