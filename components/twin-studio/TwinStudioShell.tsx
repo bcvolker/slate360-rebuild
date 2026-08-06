@@ -11,6 +11,7 @@ import {
 } from "@/components/studio/StudioWorkspaceShell";
 import { useTwinJobRealtime } from "@/hooks/useTwinJobRealtime";
 import type { TwinStudioSpace } from "@/lib/digital-twin/load-twin-studio-data";
+import type { TwinDesktopEditorData } from "@/lib/digital-twin/load-desktop-editor";
 import { ProducePanel } from "./panels/ProducePanel";
 import { CleanPanel } from "./panels/CleanPanel";
 import { PlanPanel } from "./panels/PlanPanel";
@@ -31,7 +32,13 @@ const TABS: StudioTab<TwinStudioTab>[] = [
  * job status), one fully-unmounting panel per tab. Only Produce is real in
  * F1 — Clean/Plan/Deliver are honest placeholders until F2/F3/F4 land.
  */
-export function TwinStudioShell({ space }: { space: TwinStudioSpace }) {
+export function TwinStudioShell({
+  space,
+  editorData,
+}: {
+  space: TwinStudioSpace;
+  editorData: TwinDesktopEditorData | null;
+}) {
   const [tab, setTab] = useState<TwinStudioTab>("produce");
   // Hoisted here (not inside ProducePanel) so the live job status survives a
   // tab switch away from Produce and back, and so the top-bar chip can show
@@ -69,7 +76,7 @@ export function TwinStudioShell({ space }: { space: TwinStudioSpace }) {
       }
     >
       {tab === "produce" ? <ProducePanel space={space} job={job} /> : null}
-      {tab === "clean" ? <CleanPanel /> : null}
+      {tab === "clean" ? <CleanPanel editorData={editorData} /> : null}
       {tab === "plan" ? <PlanPanel /> : null}
       {tab === "deliver" ? <DeliverPanel /> : null}
     </StudioWorkspaceShell>

@@ -26,6 +26,7 @@
     "components/studio/StudioWorkspaceShell.tsx",
     "components/dashboard-desktop/dashboard-nav-config.ts",
     "components/dashboard-desktop/TwinStudioIndexContent.tsx",
-    "hooks/useTwinJobRealtime.ts"
+    "hooks/useTwinJobRealtime.ts",
+    "lib/digital-twin/load-desktop-editor.ts"
   ]
 }

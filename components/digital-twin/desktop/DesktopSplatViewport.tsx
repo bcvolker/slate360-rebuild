@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
-import { Canvas, extend, useThree, type ThreeEvent } from "@react-three/fiber";
+import { Canvas, extend, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { IconLoader2 } from "@tabler/icons-react";
@@ -18,36 +18,39 @@ import type { TwinEditList } from "@/lib/digital-twin/edit-list-types";
 import { fetchSplatManifest, type SplatManifest } from "@/lib/digital-twin/twin-manifest";
 import { estimateOrientationFromMesh } from "@/lib/digital-twin/splat-pca-orientation";
 import { applyOverviewHomeFrame } from "@/lib/digital-twin/splat-overview-home";
+import { raycastSplatMesh } from "@/lib/digital-twin/splat-raycast";
+import { DESKTOP_MAX_SPLATS, buildDownsampleIndices } from "@/components/digital-twin/splat-viewer-constants";
 
 extend({ SparkRenderer: SparkRendererImpl, SplatMesh: SplatMeshImpl });
 
-const DESKTOP_MAX_SPLATS = 250_000;
-
 type PickPoint = { x: number; y: number; z: number };
 
-function PickProxy({
-  enabled,
-  onPick,
-}: {
-  enabled: boolean;
-  onPick?: (point: PickPoint) => void;
-}) {
-  const handleClick = useCallback(
-    (event: ThreeEvent<MouseEvent>) => {
-      if (!enabled || !onPick) return;
-      event.stopPropagation();
-      const p = event.point;
-      onPick({ x: p.x, y: p.y, z: p.z });
-    },
-    [enabled, onPick],
-  );
-
-  return (
-    <mesh visible={false} onClick={handleClick}>
-      <sphereGeometry args={[6, 16, 16]} />
-      <meshBasicMaterial transparent opacity={0} depthWrite={false} />
-    </mesh>
-  );
+/**
+ * F2: real splat-surface raycast (matches the shared viewer's
+ * splat-overview-navigation.tsx), replacing an invisible r=6 sphere proxy
+ * that placed every edit op at a fixed depth from origin regardless of what
+ * was actually under the cursor. A native canvas `click` listener (not R3F's
+ * synthetic event system) so it works the same way as the shared viewer's
+ * own canvas-level pick handlers.
+ */
+function useSplatPickHandler(
+  meshRef: React.RefObject<SplatMesh | null>,
+  enabled: boolean,
+  onPick: ((point: PickPoint) => void) | undefined,
+) {
+  const { camera, gl } = useThree();
+  useEffect(() => {
+    if (!enabled || !onPick) return;
+    const canvas = gl.domElement;
+    const handleClick = (event: MouseEvent) => {
+      const mesh = meshRef.current;
+      if (!mesh?.isInitialized || !(camera instanceof THREE.PerspectiveCamera)) return;
+      const hit = raycastSplatMesh(mesh, camera, event.clientX, event.clientY, canvas);
+      if (hit) onPick({ x: hit.point.x, y: hit.point.y, z: hit.point.z });
+    };
+    canvas.addEventListener("click", handleClick);
+    return () => canvas.removeEventListener("click", handleClick);
+  }, [enabled, onPick, camera, gl, meshRef]);
 }
 
 function EditableSparkScene({
@@ -57,6 +60,7 @@ function EditableSparkScene({
   onPick,
   onReady,
   onMeshReady,
+  onDownsampled,
 }: {
   url: string;
   editList: TwinEditList;
@@ -64,6 +68,8 @@ function EditableSparkScene({
   onPick?: (point: PickPoint) => void;
   onReady: () => void;
   onMeshReady: (mesh: SplatMesh) => void;
+  /** F2: parity with the shared viewer's honest "capped for performance" notice. */
+  onDownsampled?: (originalCount: number, cappedCount: number) => void;
 }) {
   const meshRef = useRef<SplatMesh>(null);
   // Parent group carries the orientation correction (on top of the splat's
@@ -116,10 +122,29 @@ function EditableSparkScene({
   const splatArgs = useMemo(
     () => ({
       url,
-      lod: true,
+      // F2: was lod:true + a local 250k cap — the shared viewer runs
+      // lod:false + a hard deterministic downsample to DESKTOP_MAX_SPLATS
+      // (500k). What gets cleaned here must be the same splat set clients
+      // see, not a different (smaller, LOD-adaptive) one.
+      lod: false,
       maxSplats: DESKTOP_MAX_SPLATS,
       editable: true,
       onLoad: async (mesh: SplatMesh) => {
+        // Enforce the hard cap the same way splat-viewer-scene.tsx does —
+        // deterministically, before the mesh's first GPU upload.
+        const packedSplats = mesh.packedSplats;
+        if (packedSplats && packedSplats.numSplats > DESKTOP_MAX_SPLATS) {
+          const originalCount = packedSplats.numSplats;
+          const indices = buildDownsampleIndices(originalCount, DESKTOP_MAX_SPLATS);
+          const downsampled = packedSplats.extractSplats(indices, false);
+          packedSplats.initialize({
+            packedArray: downsampled.packedArray ?? undefined,
+            numSplats: downsampled.numSplats,
+          });
+          onDownsampled?.(originalCount, DESKTOP_MAX_SPLATS);
+        }
+        mesh.raycastable = true;
+
         applyEditListToMesh(mesh, editListRef.current);
         // Orient before framing (same precedence as the shared viewer): baked
         // manifest quaternion → PCA fallback → identity. Wait for the manifest
@@ -148,7 +173,7 @@ function EditableSparkScene({
         onReady();
       },
     }),
-    [url, onMeshReady, onReady, frameToModel],
+    [url, onMeshReady, onReady, frameToModel, onDownsampled],
   );
 
   useEffect(() => {
@@ -157,14 +182,15 @@ function EditableSparkScene({
     applyEditListToMesh(mesh, editList);
   }, [editList]);
 
+  useSplatPickHandler(meshRef, pickEnabled, onPick);
+
   return (
     <>
       <group ref={groupRef}>
-        <sparkRenderer args={[{ renderer: gl, enableLod: true }]}>
+        <sparkRenderer args={[{ renderer: gl, enableLod: false }]}>
           <splatMesh ref={meshRef} args={[splatArgs]} rotation={[Math.PI, 0, 0]} />
         </sparkRenderer>
       </group>
-      <PickProxy enabled={pickEnabled} onPick={onPick} />
       <OrbitControls ref={controlsRef} makeDefault enablePan enableZoom enableRotate />
     </>
   );
@@ -177,6 +203,7 @@ export function DesktopSplatViewport({
   onPick,
   meshRef: externalMeshRef,
   className,
+  onDownsampled,
 }: {
   src: string;
   editList: TwinEditList;
@@ -184,6 +211,7 @@ export function DesktopSplatViewport({
   onPick?: (point: PickPoint) => void;
   meshRef?: React.RefObject<SplatMesh | null>;
   className?: string;
+  onDownsampled?: (originalCount: number, cappedCount: number) => void;
 }) {
   const [loadState, setLoadState] = useState<"loading" | "ready" | "error">("loading");
   const meshRef = useRef<SplatMesh | null>(null);
@@ -231,6 +259,7 @@ export function DesktopSplatViewport({
           onPick={onPick}
           onReady={handleReady}
           onMeshReady={handleMeshReady}
+          onDownsampled={onDownsampled}
         />
       </Canvas>
     </div>

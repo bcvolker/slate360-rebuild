@@ -9,6 +9,7 @@ import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { defaultOpForTool, type TwinEditList, type TwinEditTool } from "@/lib/digital-twin/edit-list-types";
 import { createSweepEdit } from "@/lib/digital-twin/splat-edit-runtime";
 import { fetchSplatManifest } from "@/lib/digital-twin/twin-manifest";
+import { formatDownsampleNotice } from "@/lib/digital-twin/format-bytes";
 import { DesktopSplatToolRail, type DesktopSplatTool } from "./DesktopSplatToolRail";
 import { DesktopSplatViewport } from "./DesktopSplatViewport";
 import { DesktopSplatLayers } from "./DesktopSplatLayers";
@@ -44,6 +45,7 @@ export function DesktopSplatEditor({
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const [sweepActive, setSweepActive] = useState(false);
+  const [downsampleNotice, setDownsampleNotice] = useState<string | null>(null);
 
   const meshRef = useRef<SplatMesh | null>(null);
   const rafRef = useRef<number | null>(null);
@@ -143,6 +145,13 @@ export function DesktopSplatEditor({
     [activeTool],
   );
 
+  // F2: parity notice — the editor now enforces the same hard splat cap the
+  // shared viewer does (previously a smaller, LOD-adaptive 250k with no
+  // notice at all).
+  const handleDownsampled = useCallback((originalCount: number, cappedCount: number) => {
+    setDownsampleNotice(formatDownsampleNotice(originalCount, cappedCount));
+  }, []);
+
   const toggleLayer = (id: string) => {
     setEditList((prev) =>
       prev.map((op) => (op.id === id ? { ...op, enabled: op.enabled === false } : op)),
@@ -224,6 +233,10 @@ export function DesktopSplatEditor({
         </span>
       </div>
 
+      {downsampleNotice ? (
+        <p className="text-[11px] text-zinc-500">{downsampleNotice}</p>
+      ) : null}
+
       <div className="flex min-h-[min(70vh,720px)] flex-1 gap-3">
         <DesktopSplatToolRail
           activeTool={activeTool}
@@ -238,6 +251,7 @@ export function DesktopSplatEditor({
             onPick={handlePick}
             meshRef={meshRef}
             className="flex-1"
+            onDownsampled={handleDownsampled}
           />
           <DesktopSplatLayers ops={editList} onToggle={toggleLayer} onRemove={removeLayer} />
         </div>
