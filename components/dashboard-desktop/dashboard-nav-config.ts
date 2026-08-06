@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react";
 import {
   Box,
+  Boxes,
   Clapperboard,
   Cloud,
   CreditCard,
@@ -56,6 +57,17 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     icon: Box,
     matchPrefixes: ["/digital-twins", "/digital-twin/twins"],
     appStoreHidden: true,
+  },
+  {
+    // F1 (TWIN_SERVICE_STUDIO_PLAN.md Phase F): the operator production cockpit —
+    // distinct from the "Twin 360" row above, which is the client-facing app's own
+    // twin list. ceoOnly here matches Thermal Studio's precedent (coarse nav gate);
+    // the route itself does the real canAccessTwinDesktop entitlement check.
+    label: "Twin Studio",
+    href: "/twin-studio",
+    icon: Boxes,
+    matchPrefixes: ["/twin-studio"],
+    ceoOnly: true,
   },
   {
     label: "SlateDrop",

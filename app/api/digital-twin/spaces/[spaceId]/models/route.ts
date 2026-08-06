@@ -4,7 +4,13 @@ import { ok, badRequest, notFound, serverError } from "@/lib/server/api-response
 
 export const runtime = "nodejs";
 
-type QualityMetrics = { trainPsnr?: number; splatCount?: number; quality?: string } | null;
+type QualityMetrics = {
+  trainPsnr?: number;
+  splatCount?: number;
+  quality?: string;
+  /** B1: which worker.py TRAIN_PROFILE arm produced this version. */
+  trainProfile?: string;
+} | null;
 
 /**
  * Twin Slice 0: list a space's ready model versions for the version picker /
@@ -51,6 +57,7 @@ export const GET = (req: NextRequest, ctx: { params: Promise<{ spaceId: string }
         psnr: qm?.trainPsnr ?? null,
         splatCount: qm?.splatCount ?? null,
         quality: qm?.quality ?? null,
+        trainProfile: qm?.trainProfile ?? null,
         captureId: m.capture_id,
       };
     });

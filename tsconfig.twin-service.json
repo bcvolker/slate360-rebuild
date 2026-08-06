@@ -18,6 +18,14 @@
     "app/digital-twin/**/*.ts",
     "app/digital-twin/**/*.tsx",
     "app/share/twin/**/*.ts",
-    "app/share/twin/**/*.tsx"
+    "app/share/twin/**/*.tsx",
+    "app/(dashboard)/twin-studio/**/*.ts",
+    "app/(dashboard)/twin-studio/**/*.tsx",
+    "components/twin-studio/**/*.ts",
+    "components/twin-studio/**/*.tsx",
+    "components/studio/StudioWorkspaceShell.tsx",
+    "components/dashboard-desktop/dashboard-nav-config.ts",
+    "components/dashboard-desktop/TwinStudioIndexContent.tsx",
+    "hooks/useTwinJobRealtime.ts"
   ]
 }
