@@ -904,3 +904,20 @@ retry arm.
 **Confirmed product gap** (found dispatching these): no UI can preview a
 non-primary model version without publishing it — TwinVersionsPanel is list-only.
 Feeds Phase D scope in the service plan.
+
+### 7.14 LOCKED 2026-08-06 — B3 verified: kitchen raw-.insv 17.22 → 25.30 PSNR
+
+Job `b1736f75`, model `ef330d9a`, same capture `f5f85030` (kitchen raw `.insv`)
+as the 7.12 baseline, reprocessed on the B3 360 path (sharpness-scored frame
+selection + explicit 110×94 unwrap FOV, vanilla align, standard/standard).
+**PSNR 25.30 vs the 17.22 baseline — +8.1 points, +47%.** Crosses from
+"functional but visibly rough" into the same range as the interior vanilla
+baseline (25.53) despite being 360-sourced. `colmapImagesRegistered: 91`;
+`sharpSelection`: 186 candidates → 47 kept (best-of-~4 per 2s bucket), mean
+sharpness 51.6, all above the implicit floor (no absolute blur floor applied
+by design). Non-publishing run — model `ef330d9a` is not primary/published;
+Brian's R7.5 visual gate is still required before promoting it (or before
+trusting the PSNR jump as the whole story — a metrics-only read has burned
+this project before). To actually LOOK at this specific model today requires
+either publishing it (reversible) or waiting for a version-preview UI (D1's
+schema landed 2026-08-06; the UI does not exist yet).
