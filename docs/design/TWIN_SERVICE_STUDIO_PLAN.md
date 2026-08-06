@@ -19,19 +19,19 @@ build prompt for later reference (not scheduled into a phase).
 | Phase | Slices | Done | Status |
 |---|---|---|---|
 | A′ — Delivery unlock | A1, A2, A4 | 3/3 | ✅ COMPLETE — shipped, live on Vercel prod + TestFlight |
-| B — Quality A/Bs | B1, B2, B3 (+B4 opt) | 2/3 | 🟨 B1 + B3 shipped (Fable: sharpness selection + verified 110×94 FOV, deployed); B2 = EXT-FIX shipped (memory + mesh_simplifier decimation + capped-res texture retry, deployed) — counts as done when the live rerun (job a2fbc907) completes |
-| C — Depth supervision | C1, C2, C3 | 0/3 | ⬜ blocked on nothing new; awaits B/gate bandwidth |
-| D — Version/history schema | D1, D2, D3 | 0/3 | ⬜ not started |
+| B — Quality A/Bs | B1, B2, B3 (+B4 opt) | 2/3 | 🟨 B1 + B3 shipped and VERIFIED on real data (B1: profile ladder complete, baseline wins; B3: kitchen 17.22→25.30 PSNR, +47%). B2 = EXT-FIX shipped (memory + mesh_simplifier decimation + capped-res texture retry, deployed) — counts done when the live rerun (job a2fbc907) completes |
+| C — Depth supervision | C1, C2, C3 | 0/3 | ⬜ unblocked (08-04 iOS build actually succeeded — retracted the earlier "failed" status) but not started |
+| D — Version/history schema | D1, D2, D3 | 2/3 | 🟨 D1 (migration, applied to prod) + D2 (camera-synced compare + nav surfacing) shipped; D3 (progression video export) not started |
 | F — Operator Twin Studio tab | F1, F2, F3, F4, F5 | 0/5 | ⬜ not started |
 | G — Client portal | G1, G2, G3, G4, G5 | 0/5 | ⬜ not started |
 | H — AI assistant | H1, H2, H3 | 0/3 | ⬜ not started (needs F3 for real geometry) |
 | E — Polish | E1 (bake), E2 (cinematic capture+correction), E3 (camera-path playback) | 0/3 | ⬜ not started |
-| **TOTAL** | **28 core** | **6/28** | **≈21%** |
+| **TOTAL** | **28 core** | **8/28** | **≈29%** |
 
-**Verification runs in flight (2026-08-06, non-publishing — R7.5 visual gate = Brian):**
-- Job `13934822` — B1 arm check, `trainProfile: visual` on capture `e5d42523` (baselines: vanilla 25.53, quality 22.74)
-- Job `b1736f75` — B3 check, kitchen raw-`.insv` capture `f5f85030` on the new 360 path (baseline 17.22)
-- Job `a2fbc907` — EXT-FIX check, exterior capture `b98d2165` (380 drone photos; 5 prior consecutive failures)
+**Verification runs (2026-08-06, non-publishing — R7.5 visual gate = Brian):**
+- Job `13934822` — B1 arm check, `trainProfile: visual` on capture `e5d42523`. **DONE: PSNR 21.41.** Profile ladder complete on real data: baseline 25.53 > quality 22.74 > visual 21.41 — baseline stays promoted.
+- Job `b1736f75` — B3 check, kitchen raw-`.insv` capture `f5f85030` on the new 360 path. **DONE: PSNR 25.30 vs 17.22 baseline (+47%).** Not yet visually gated — model `ef330d9a` is not primary/published; no UI exists yet to preview a non-primary version (confirmed gap → informed D1's scope).
+- Job `a2fbc907` — EXT-FIX check, exterior capture `b98d2165` (380 drone photos; 5 prior consecutive failures). In flight (dense reconstruction stage).
 
 **Executor notes for what's done:** A1/A2/A4/B1 were all Sonnet-5-safe per §6 and executed on
 Sonnet 5. B1's mechanism was verified live: dispatched a `trainProfile: visual` reprocess on
