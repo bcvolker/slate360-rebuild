@@ -55,7 +55,15 @@ diagnosis in `DASHBOARD_EXPANDABLE_WORKSPACE_LOCKED.md` (the flat-list-card gram
 cause). Scheduled AFTER pipeline quality work; scope = full rebuild of both pages on the locked
 expandable-workspace grammar, not incremental patching. Interim mitigations shipped 2026-08-07:
 desktop twin links route to Twin Studio, and Studio's Produce tab is now viewer-first (model
-renders immediately on open).
+renders immediately on open); same day, LISTING-FIX (honest DRAFT chip, Active=running-job-only,
+model counts on cards) and NAV-FIX (Studio hero + Preview use TwinAuthenticatedViewer — Walk
+mode/orbit/recenter/measure — and versions carry version_label end-to-end).
+
+**Backlog promotion (2026-08-07, validated by two independent external AI reviews Brian relayed):
+MEAS-1 — collision mesh beside every splat.** Raycast picks/measures against a lightweight
+hidden mesh while rendering the splat; splat = look layer, mesh/floor-plan = measure layer.
+This is the highest-leverage missing piece for client-grade measurement honesty and should be
+scheduled with Phase C (depth supervision) and E1 (bake) ahead of new capture-source work.
 
 ---
 
