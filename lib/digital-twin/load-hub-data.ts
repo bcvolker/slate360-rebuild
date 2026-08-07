@@ -35,7 +35,7 @@ export async function loadDigitalTwinHubData(
 
   const admin = createAdminClient();
 
-  const [spacesResult, projectsResult, jobsResult, capturesResult] = await Promise.all([
+  const [spacesResult, projectsResult, jobsResult, capturesResult, modelsResult] = await Promise.all([
     admin
       .from("digital_twin_spaces")
       .select("id, title, status, project_id, updated_at, projects(name)")
@@ -62,6 +62,12 @@ export async function loadDigitalTwinHubData(
       .select("space_id")
       .eq("org_id", orgId)
       .limit(500),
+    admin
+      .from("digital_twin_models")
+      .select("space_id")
+      .eq("org_id", orgId)
+      .eq("status", "ready")
+      .limit(1000),
   ]);
 
   if (spacesResult.error) {
@@ -86,6 +92,12 @@ export async function loadDigitalTwinHubData(
     if (row.space_id) spacesWithCapture.add(row.space_id as string);
   }
 
+  const readyModelsBySpace = new Map<string, number>();
+  for (const row of modelsResult.data ?? []) {
+    if (!row.space_id) continue;
+    readyModelsBySpace.set(row.space_id, (readyModelsBySpace.get(row.space_id) ?? 0) + 1);
+  }
+
   const twins: HubTwin[] = ((spacesResult.data ?? []) as SpaceRow[])
     .filter((space) => {
       // Keep a space if it has a real capture, has a processing job, or has advanced
@@ -106,8 +118,12 @@ export async function loadDigitalTwinHubData(
         projectId: space.project_id,
         projectName: project?.name ?? null,
         updatedAt: space.updated_at,
+        readyModels: readyModelsBySpace.get(space.id) ?? 0,
       };
-    });
+    })
+    // Spaces that actually hold models are the reason this list exists — an
+    // empty draft shell must never outrank them (LISTING-FIX, 2026-08-07).
+    .sort((a, b) => Number(b.readyModels > 0) - Number(a.readyModels > 0));
 
   return {
     twins,

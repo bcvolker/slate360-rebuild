@@ -73,6 +73,7 @@ export const POST = (req: NextRequest) =>
         projectId: space.project_id,
         projectName: project.name,
         updatedAt: space.updated_at,
+        readyModels: 0,
       },
     });
   });

@@ -11,6 +11,8 @@ export type WorkspaceItem = {
   id: string;
   title: string;
   status: string;
+  /** What's inside — e.g. "4 models". The card's payoff line, not metadata. */
+  detail?: string | null;
   projectName?: string | null;
   updatedAt: string;
   href: string;
@@ -129,6 +131,7 @@ export function DashboardDomainWorkspace({
                     <span className="truncate text-sm font-semibold text-[var(--graphite-text-header)]">{i.title}</span>
                     <span className="truncate text-xs text-[var(--graphite-muted)]">
                       {i.status}
+                      {i.detail ? ` · ${i.detail}` : ""}
                       {i.projectName ? ` · ${i.projectName}` : ""}
                     </span>
                     <span className="text-[11px] text-[var(--graphite-muted)]">{fmt(i.updatedAt)}</span>

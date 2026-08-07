@@ -136,6 +136,7 @@ const MOCK_TWINS: HubTwin[] = [
     projectId: "dev-proj-1",
     projectName: "Riverside Medical Center",
     updatedAt: NOW,
+    readyModels: 2,
   },
   {
     id: "dev-twin-2",
@@ -145,6 +146,7 @@ const MOCK_TWINS: HubTwin[] = [
     projectId: "dev-proj-2",
     projectName: "Oakline Logistics Hub",
     updatedAt: YESTERDAY,
+    readyModels: 0,
   },
   {
     id: "dev-twin-3",
@@ -154,6 +156,7 @@ const MOCK_TWINS: HubTwin[] = [
     projectId: null,
     projectName: null,
     updatedAt: LAST_WEEK,
+    readyModels: 0,
   },
 ];
 

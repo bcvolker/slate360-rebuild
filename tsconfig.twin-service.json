@@ -32,6 +32,8 @@
     "components/dashboard-desktop/DashboardNeedsAttentionWidget.tsx",
     "components/dashboard-desktop/DashboardHomeContent.tsx",
     "components/dashboard-desktop/DashboardLibraryWidget.tsx",
-    "components/dashboard-desktop/DashboardTwinsContent.tsx"
+    "components/dashboard-desktop/DashboardTwinsContent.tsx",
+    "components/dashboard-desktop/DashboardDomainWorkspace.tsx",
+    "lib/types/digital-twin-hub.ts"
   ]
 }

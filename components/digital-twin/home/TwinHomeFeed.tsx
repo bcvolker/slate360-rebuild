@@ -16,9 +16,18 @@ const STATUS_LABEL: Record<TwinHubStatusChip, string> = {
   PROCESSING: "Processing",
   READY: "Ready",
   FAILED: "Failed",
+  DRAFT: "Draft",
 };
 
 function StatusChip({ chip }: { chip: TwinHubStatusChip }) {
+  if (chip === "DRAFT") {
+    // Quiet neutral — a draft with no live job is idle, not busy and not broken.
+    return (
+      <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">
+        {STATUS_LABEL.DRAFT}
+      </span>
+    );
+  }
   if (chip === "PROCESSING") {
     return (
       <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_10%,transparent)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--twin360-blue)]">

@@ -10,6 +10,8 @@ export type HubTwin = {
   projectId: string | null;
   projectName: string | null;
   updatedAt: string;
+  /** Count of ready models on the space — the thing the list exists to reach. */
+  readyModels: number;
 };
 
 export type HubTwinProject = {

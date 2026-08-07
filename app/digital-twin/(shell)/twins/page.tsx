@@ -27,10 +27,13 @@ function TwinCard({ twin }: { twin: HubTwin }) {
   const chip = twin.statusChip.toLowerCase();
   const isReady = chip === "ready";
   const isFailed = chip === "failed";
+  const isDraft = chip === "draft";
   // One accent (twin blue) on interactive/status state; failed reads neutral + red text.
   const chipClass = isFailed
     ? "border-white/10 bg-white/[0.04] text-[var(--destructive)]"
-    : isReady
+    : isDraft
+      ? "border-white/10 bg-white/[0.04] text-[var(--graphite-muted)]"
+      : isReady
       ? "border-[color-mix(in_srgb,var(--twin360-blue)_45%,transparent)] bg-[color-mix(in_srgb,var(--twin360-blue)_14%,transparent)] text-[var(--twin360-blue)]"
       : "border-[color-mix(in_srgb,var(--twin360-blue)_28%,transparent)] bg-[color-mix(in_srgb,var(--twin360-blue)_8%,transparent)] text-[var(--twin360-blue)]";
   return (

@@ -1,6 +1,6 @@
 /** Hub list status chip — shared by Twin 360 home dock and My Twins list. */
 
-export type TwinHubStatusChip = "PROCESSING" | "READY" | "FAILED";
+export type TwinHubStatusChip = "PROCESSING" | "READY" | "FAILED" | "DRAFT";
 
 export function resolveTwinHubStatusChip(
   spaceStatus: string,
@@ -8,15 +8,12 @@ export function resolveTwinHubStatusChip(
 ): TwinHubStatusChip {
   if (latestJobStatus === "failed") return "FAILED";
   if (spaceStatus === "ready") return "READY";
-  if (
-    spaceStatus === "processing" ||
-    spaceStatus === "capturing" ||
-    spaceStatus === "draft" ||
-    latestJobStatus === "queued" ||
-    latestJobStatus === "processing"
-  ) {
-    return "PROCESSING";
-  }
+  if (latestJobStatus === "queued" || latestJobStatus === "processing") return "PROCESSING";
+  if (spaceStatus === "processing") return "PROCESSING";
+  // A draft/capturing space with NO live job is not processing anything — calling
+  // it "PROCESSING" forever is the lie that hid Brian's real models behind an
+  // empty duplicate space (LISTING-FIX, 2026-08-07).
+  if (spaceStatus === "draft" || spaceStatus === "capturing") return "DRAFT";
   return "PROCESSING";
 }
 
@@ -24,7 +21,7 @@ export function twinHubStatusMetaTone(
   chip: TwinHubStatusChip,
 ): "neutral" | "primary" | "info" {
   if (chip === "READY") return "primary";
-  if (chip === "FAILED") return "neutral";
+  if (chip === "FAILED" || chip === "DRAFT") return "neutral";
   return "info";
 }
 
@@ -37,5 +34,6 @@ export function matchesTwinStatusFilter(
   if (normalized === "processing") return chip === "PROCESSING";
   if (normalized === "ready") return chip === "READY";
   if (normalized === "failed") return chip === "FAILED";
+  if (normalized === "draft") return chip === "DRAFT";
   return true;
 }

@@ -13,6 +13,7 @@ export function TwinStudioIndexContent({ twins }: { twins: HubTwin[] }) {
     id: tw.id,
     title: tw.title,
     status: tw.statusChip ?? tw.status,
+    detail: tw.readyModels > 0 ? `${tw.readyModels} model${tw.readyModels === 1 ? "" : "s"}` : "no models yet",
     projectName: tw.projectName,
     updatedAt: tw.updatedAt,
     href: `/twin-studio/${tw.id}`,
