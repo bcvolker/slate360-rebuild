@@ -65,6 +65,23 @@ hidden mesh while rendering the splat; splat = look layer, mesh/floor-plan = mea
 This is the highest-leverage missing piece for client-grade measurement honesty and should be
 scheduled with Phase C (depth supervision) and E1 (bake) ahead of new capture-source work.
 
+**NEW PHASE FUSE (added 2026-08-07, Brian's ask) — iPhone+LiDAR × 360 cross-capture fusion.
+Not in the original 28 slices; scheduled AFTER Phase C.** Today the pipeline is strictly
+one-capture-per-job (§7.19 ledger); the kitchen "combined walk" produced two separate models.
+Mechanism when built: one COLMAP reconstruction over BOTH image pools — the iPhone clip frames
+(sharp, posed, LiDAR-scaled) and the B3-unwrapped 360 perspective views (coverage) — with the
+iPhone/LiDAR side anchoring metric scale, then a single splat train over the joint model.
+Expected win: 360 fills occlusion holes and behind-the-operator gaps; sharpness still comes
+from the iPhone frames; sqft/measure accuracy stays LiDAR-anchored (estimating-grade ±2–5 cm
+language unchanged — fusion does NOT make it survey-grade). Risks: exposure mismatch between
+sensors, registration failure between pools, ghosting where the two passes saw moved objects.
+- **FUSE-1** — joint-registration experiment (Fable-class, worker.py): register both pools of
+  one same-scene session in one COLMAP model; gates = registration rate of 360 views into the
+  iPhone-anchored model, and PSNR + hole-coverage vs the iPhone-only baseline of the SAME walk.
+- **FUSE-2** — promote or close per the B-series rule (never promote on mechanism, only on
+  measured win). Brian's next dual-capture session is the designated test dataset — capture
+  both passes even though only iPhone is the hero product today.
+
 ---
 
 ## 0. Ground rules (non-negotiable, inherited from the ledger)
