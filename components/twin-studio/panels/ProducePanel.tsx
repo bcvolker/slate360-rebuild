@@ -5,7 +5,7 @@ import { Loader2, RefreshCw } from "lucide-react";
 import type { TwinStudioSpace } from "@/lib/digital-twin/load-twin-studio-data";
 import type { TwinSpaceViewerData } from "@/lib/digital-twin/load-space-viewer";
 import type { TwinJobSnapshot } from "@/hooks/useTwinJobRealtime";
-import { TwinModelViewer } from "@/components/digital-twin/TwinModelViewer";
+import { TwinAuthenticatedViewer } from "@/components/digital-twin/TwinAuthenticatedViewer";
 import { ProduceVersionList, type ProduceVersion } from "./ProduceVersionList";
 
 type Version = ProduceVersion;
@@ -120,15 +120,20 @@ export function ProducePanel({
 
   return (
     <div className="flex h-full min-h-0">
-      {/* Hero: the published/primary model, immediately — the whole point of
-          opening a space. Formats beyond splat (GLB, Potree, pano) render via
-          the same format-aware viewer the twin detail page uses. */}
+      {/* Hero: the published/primary model with the FULL navigation package
+          (orbit + Walk mode + recenter + measure) — the bare SplatViewer this
+          used first had no way to move through an interior at all. */}
       <div className="relative min-h-0 flex-1 overflow-hidden">
         {viewer ? (
-          <TwinModelViewer
+          <TwinAuthenticatedViewer
+            spaceId={space.spaceId}
+            modelId={viewer.modelId}
             viewerKind={viewer.viewerKind}
             modelUrl={viewer.modelUrl}
             modelTitle={viewer.modelTitle}
+            layerVisible={{ model: true, pins: true, measurements: true }}
+            overlayPins={[]}
+            overlayMeasurements={[]}
           />
         ) : (
           <div className="flex h-full flex-col items-center justify-center gap-1.5 p-6 text-center">

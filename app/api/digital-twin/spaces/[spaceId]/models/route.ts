@@ -36,7 +36,9 @@ export const GET = (req: NextRequest, ctx: { params: Promise<{ spaceId: string }
 
     const { data: models, error: modelsError } = await admin
       .from("digital_twin_models")
-      .select("id, title, created_at, is_primary, file_size_bytes, quality_metrics, capture_id")
+      .select(
+        "id, title, version_label, model_format, created_at, is_primary, file_size_bytes, quality_metrics, capture_id",
+      )
       .eq("space_id", spaceId)
       .eq("org_id", orgId)
       .eq("status", "ready")
@@ -49,6 +51,9 @@ export const GET = (req: NextRequest, ctx: { params: Promise<{ spaceId: string }
       return {
         id: m.id,
         title: m.title,
+        // D1's version_label — the human answer to "which run is this?"
+        versionLabel: m.version_label ?? null,
+        modelFormat: m.model_format ?? null,
         createdAt: m.created_at,
         isPublished: space.published_model_id
           ? m.id === space.published_model_id

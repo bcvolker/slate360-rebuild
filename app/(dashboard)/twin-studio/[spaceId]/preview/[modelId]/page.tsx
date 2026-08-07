@@ -21,7 +21,9 @@ export default async function TwinStudioVersionPreviewPage({ params }: PageProps
   const admin = createAdminClient();
   const { data: model } = await admin
     .from("digital_twin_models")
-    .select("id, title, created_at, quality_metrics, is_primary, space_id, model_format, storage_key")
+    .select(
+      "id, title, version_label, created_at, quality_metrics, is_primary, space_id, model_format, storage_key",
+    )
     .eq("id", modelId)
     .eq("org_id", orgId)
     .eq("space_id", spaceId)
@@ -50,9 +52,11 @@ export default async function TwinStudioVersionPreviewPage({ params }: PageProps
 
   const qm = (model.quality_metrics ?? {}) as { trainPsnr?: number };
   const created = new Date(model.created_at);
-  const label = Number.isNaN(created.getTime())
-    ? model.title
-    : created.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+  const label =
+    model.version_label ??
+    (Number.isNaN(created.getTime())
+      ? model.title
+      : created.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }));
   const isPublished = space?.published_model_id
     ? space.published_model_id === model.id
     : Boolean(model.is_primary);

@@ -5,10 +5,10 @@ import Link from "next/link";
 import { ArrowLeft, Check, Loader2 } from "lucide-react";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import type { TwinViewerKind } from "@/lib/digital-twin/viewer-format";
-// Format-aware viewer (splat/GLB/pano/lidar) — the first Preview shipped with the
-// splat viewer hardcoded, so previewing a GLB or Potree version silently failed
-// to load. TwinModelViewer already dynamic-imports each viewer client-side.
-import { TwinModelViewer } from "@/components/digital-twin/TwinModelViewer";
+// Full navigation package (orbit + Walk mode + recenter + measure), format-aware.
+// The first Preview shipped a bare splat viewer: GLB/Potree versions silently
+// failed to load, and even splats could only be zoomed, not walked through.
+import { TwinAuthenticatedViewer } from "@/components/digital-twin/TwinAuthenticatedViewer";
 
 /**
  * D-gap fix — preview ANY ready model version without publishing it. Found
@@ -91,7 +91,16 @@ export function VersionPreview({
         Not published — clients and share links do not see this version until you publish it.
       </p>
       <div className="relative min-h-0 flex-1 overflow-hidden">
-        <TwinModelViewer viewerKind={viewerKind} modelUrl={modelUrl} modelTitle={modelTitle} />
+        <TwinAuthenticatedViewer
+          spaceId={spaceId}
+          modelId={modelId}
+          viewerKind={viewerKind}
+          modelUrl={modelUrl}
+          modelTitle={modelTitle}
+          layerVisible={{ model: true, pins: true, measurements: true }}
+          overlayPins={[]}
+          overlayMeasurements={[]}
+        />
       </div>
     </div>
   );

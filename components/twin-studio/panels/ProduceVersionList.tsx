@@ -7,6 +7,8 @@ import { twinAccent } from "@/lib/digital-twin/twin-accent";
 export type ProduceVersion = {
   id: string;
   title: string | null;
+  versionLabel: string | null;
+  modelFormat: string | null;
   createdAt: string;
   isPublished: boolean;
   fileSizeBytes: number | null;
@@ -15,6 +17,13 @@ export type ProduceVersion = {
   quality: string | null;
   trainProfile: string | null;
   captureId: string | null;
+};
+
+const FORMAT_LABEL: Record<string, string> = {
+  spz: "Splat",
+  ply: "Splat",
+  glb: "Mesh",
+  lidar_potree: "LiDAR cloud",
 };
 
 function formatDate(iso: string): string {
@@ -50,8 +59,13 @@ export function ProduceVersionList({
           className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2.5"
         >
           <div className="min-w-0">
-            <p className="truncate text-xs font-medium text-zinc-100">{formatDate(v.createdAt)}</p>
+            {/* Label first — four rows of bare dates were indistinguishable. */}
+            <p className="truncate text-xs font-medium text-zinc-100">
+              {v.versionLabel ?? formatDate(v.createdAt)}
+            </p>
             <p className="mt-0.5 text-[10px] text-[var(--graphite-muted)]">
+              {v.modelFormat ? `${FORMAT_LABEL[v.modelFormat] ?? v.modelFormat} · ` : ""}
+              {v.versionLabel ? `${formatDate(v.createdAt)} · ` : ""}
               {v.psnr !== null ? `PSNR ${v.psnr.toFixed(2)}` : "PSNR —"}
               {v.quality ? ` · ${v.quality}` : ""}
               {v.trainProfile ? ` · ${v.trainProfile}` : ""}
