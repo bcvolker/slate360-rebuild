@@ -13,6 +13,7 @@ import {
 import { frameSplatMeshInterior, getSplatSceneBounds } from "@/lib/digital-twin/splat-camera-frame";
 import { raycastSplatMesh } from "@/lib/digital-twin/splat-raycast";
 import type { SplatManifest } from "@/lib/digital-twin/twin-manifest";
+import { applyWalkMovement, useWalkKeys } from "@/lib/digital-twin/walk-movement";
 import {
   INTERIOR_MAX_ZOOM,
   INTERIOR_MIN_ZOOM,
@@ -48,6 +49,8 @@ export function SplatInteriorNavigation({
   manifest?: SplatManifest | null;
 }) {
   const { camera, gl } = useThree();
+  // NAV-FIX-2: WASD/arrow locomotion — Walk mode was look-only before this.
+  const walkKeysRef = useWalkKeys(active);
   const boundsRef = useRef<THREE.Box3 | null>(null);
   const stateRef = useRef({ yaw: 0, pitch: 0, position: new THREE.Vector3() });
   const tweenRef = useRef(new CameraTweenRunner());
@@ -218,7 +221,12 @@ export function SplatInteriorNavigation({
       if (!hit) return;
       if (pickEnabled && onPick) {
         onPick({ x: hit.point.x, y: hit.point.y, z: hit.point.z });
+        return;
       }
+      // NAV-FIX-2: click/tap-to-move — glide to the clicked spot at eye height,
+      // the standard "advance through the space" gesture. Reuses the same fly
+      // helper the entry transition uses.
+      flyInteriorFromHit(mesh, camera, hit.point, stateRef, tweenRef);
     };
 
     canvas.addEventListener("wheel", onWheel, { passive: false });
@@ -236,12 +244,22 @@ export function SplatInteriorNavigation({
     };
   }, [active, applyStateToCamera, camera, gl, mesh, onPick, pickEnabled]);
 
-  useFrame(() => {
+  useFrame((_, delta) => {
     if (!active || !(camera instanceof THREE.PerspectiveCamera)) return;
     if (tweenRef.current.step(performance.now(), tweenScratch)) {
       stateRef.current.position.copy(tweenScratch.position);
       stateRef.current.yaw = tweenScratch.yaw;
       stateRef.current.pitch = tweenScratch.pitch;
+      applyStateToCamera();
+    } else if (
+      applyWalkMovement(
+        walkKeysRef.current,
+        stateRef.current.yaw,
+        Math.min(delta, 0.1),
+        boundsRef.current,
+        stateRef.current.position,
+      )
+    ) {
       applyStateToCamera();
     }
     camera.fov = THREE.MathUtils.clamp(60 / zoomRef.current, 28, 78);

@@ -1032,3 +1032,37 @@ exterior models ship without the Photo Explorer layer until fixed + reprocessed
 (~18 min via cache). B2/EXT-FIX now CLOSED: all four exterior defect classes
 fixed and confirmed on real data, deliverable produced, R7.5 visual gate on
 model `a45b9f8b` is Brian's (Studio → space `6b733e1a` → Produce → Preview).
+
+### 7.19 LOCKED 2026-08-07 — Studio operability round + DATA-SOURCE AUDIT (no fusion, iPhone uploads never landed)
+
+Four shipped fixes after Brian's live review (all deployed + verified via
+/api/deploy-info): **UX-FIX** 56a6553e (format-aware Preview — was splat-only,
+GLB/Potree previews never loaded; viewer-first Produce hero), **LISTING-FIX**
+6b0f6809 (draft spaces no longer masquerade as PROCESSING; Active = running job
+only; ready-model counts on cards; the empty duplicate "Mavic" draft shell was
+burying the real space), **NAV-FIX** 2eb95c2d (Studio hero + Preview render
+TwinAuthenticatedViewer — the bare SplatViewer had NO controls; version_label
+end-to-end + prod rows labeled; space 6b733e1a retitled "Pipeline test bench —
+kitchen + sundeck runs"), **NAV-FIX-2** (this commit: Walk mode was LOOK-ONLY —
+no locomotion existed at all; added click/tap-to-move via flyInteriorFromHit +
+WASD/arrows via lib/digital-twin/walk-movement.ts, bounds-clamped, + gesture
+hint line in TwinViewerControlsOverlay).
+
+**Data-source audit of space 6b733e1a (answers Brian's "is the iPhone data even
+used?" — verified against digital_twin_capture_assets):**
+- Kitchen splats 17.22 + 25.30 ← capture f5f85030 = **3× panorama_360 (.insv,
+  2.4 GB) ONLY**. No iPhone RGB, no LiDAR. Brian's suspicion CONFIRMED.
+- "iPhone LiDAR point cloud" model 082109c6 ← capture 3a4e8d2d = a **92 KB
+  `synthetic-deck.las` TEST FIXTURE** (from §7.10's Potree E2E), not a real
+  capture. Relabeled "Synthetic test LAS (not a real capture)" in prod.
+- Brian's actual iPhone kitchen captures: **3 capture rows stuck `uploading`
+  with ZERO assets** (622ed58a, 50bd8b19, ad3d8615) + 1 failed 360 attempt
+  (eb1d88d3, 107 MB partial). His phone uploads never completed — likely a
+  stale TestFlight build predating the resumable uploader; he should update
+  the app before the next capture.
+- **No cross-capture fusion exists in the pipeline today** — one capture per
+  job. iPhone+LiDAR+360-simultaneous-walk fusion is architecture (poses/depth
+  as priors) but NOT implemented; do not imply otherwise in UI copy.
+
+Open P0 order reaffirmed: Phase C depth supervision → MEAS-1 collision mesh →
+E1 bake → committed 100% Dashboard/Twin-360 overhaul.

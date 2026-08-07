@@ -40,7 +40,15 @@ export function TwinViewerControlsOverlay({
   const walkDisabled = !inWalkMode && !!walkDisabledReason;
 
   return (
-    <div
+    <div className="flex flex-col items-center gap-1.5">
+      {/* NAV-FIX-2: teach the gestures — icon-only controls were unreadable
+          ("controls that have never worked"). One quiet line, per mode. */}
+      <p className="pointer-events-none rounded-md border border-white/10 bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)] px-2 py-1 text-center font-mono text-[10px] uppercase tracking-wide text-zinc-400 backdrop-blur-md">
+        {inWalkMode
+          ? "Drag to look · click a spot or use W A S D to move"
+          : "Drag to orbit · scroll to zoom · double-click to focus"}
+      </p>
+      <div
       className={cn(glassCluster, className)}
       role="toolbar"
       aria-label="3D viewer controls"
@@ -101,6 +109,7 @@ export function TwinViewerControlsOverlay({
           <Maximize2 className="size-4" aria-hidden />
         )}
       </button>
+      </div>
     </div>
   );
 }
