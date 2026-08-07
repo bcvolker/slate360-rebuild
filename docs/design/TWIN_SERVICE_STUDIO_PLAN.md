@@ -48,6 +48,15 @@ Opus/Fable-class" guidance (§6) — flag to Brian before starting it. Same appl
 Phase C (depth-loss trainer), the re-scoped B2's exterior-pipeline debugging, and any future
 Modal worker math.
 
+**COMMITTED (Brian, 2026-08-07): 100% overhaul of the desktop Dashboard and the Twin 360
+(/digital-twins) pages.** Brian's verdict after reviewing them live: phone-grade minimal cards +
+KPI stat tiles, "unusable and unprofessional," nothing redeemable — matching the already-locked
+diagnosis in `DASHBOARD_EXPANDABLE_WORKSPACE_LOCKED.md` (the flat-list-card grammar is the root
+cause). Scheduled AFTER pipeline quality work; scope = full rebuild of both pages on the locked
+expandable-workspace grammar, not incremental patching. Interim mitigations shipped 2026-08-07:
+desktop twin links route to Twin Studio, and Studio's Produce tab is now viewer-first (model
+renders immediately on open).
+
 ---
 
 ## 0. Ground rules (non-negotiable, inherited from the ledger)

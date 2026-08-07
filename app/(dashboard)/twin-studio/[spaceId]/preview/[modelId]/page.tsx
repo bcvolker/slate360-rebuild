@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { VersionPreview } from "@/components/twin-studio/VersionPreview";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
+import { resolveTwinViewerKind } from "@/lib/digital-twin/viewer-format";
+import { resolveDigitalTwinModelUrl } from "@/lib/digital-twin/resolve-model-url";
 
 type PageProps = { params: Promise<{ spaceId: string; modelId: string }> };
 
@@ -19,14 +21,25 @@ export default async function TwinStudioVersionPreviewPage({ params }: PageProps
   const admin = createAdminClient();
   const { data: model } = await admin
     .from("digital_twin_models")
-    .select("id, title, created_at, quality_metrics, is_primary, space_id")
+    .select("id, title, created_at, quality_metrics, is_primary, space_id, model_format, storage_key")
     .eq("id", modelId)
     .eq("org_id", orgId)
     .eq("space_id", spaceId)
     .eq("status", "ready")
     .is("deleted_at", null)
     .maybeSingle();
-  if (!model) notFound();
+  if (!model?.storage_key) notFound();
+
+  // Format-aware URL, mirroring loadTwinSpaceViewerData: splats/lidar stream
+  // via same-origin org-scoped routes; GLB/pano get a presigned URL. The first
+  // Preview hardcoded the splat stream, so GLB/Potree versions never loaded.
+  const viewerKind = resolveTwinViewerKind(model.model_format, model.storage_key);
+  const modelUrl =
+    viewerKind === "splat"
+      ? `/api/digital-twin/models/${model.id}/splat`
+      : viewerKind === "lidar"
+        ? `/api/digital-twin/models/${model.id}/lidar/hierarchy.json`
+        : await resolveDigitalTwinModelUrl(model.storage_key);
 
   const { data: space } = await admin
     .from("digital_twin_spaces")
@@ -52,6 +65,9 @@ export default async function TwinStudioVersionPreviewPage({ params }: PageProps
         label={label}
         psnr={typeof qm.trainPsnr === "number" ? qm.trainPsnr : null}
         isPublished={isPublished}
+        viewerKind={viewerKind}
+        modelUrl={modelUrl}
+        modelTitle={model.title ?? label}
       />
     </div>
   );

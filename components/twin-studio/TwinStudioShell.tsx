@@ -12,6 +12,7 @@ import {
 import { useTwinJobRealtime } from "@/hooks/useTwinJobRealtime";
 import type { TwinStudioSpace } from "@/lib/digital-twin/load-twin-studio-data";
 import type { TwinDesktopEditorData } from "@/lib/digital-twin/load-desktop-editor";
+import type { TwinSpaceViewerData } from "@/lib/digital-twin/load-space-viewer";
 import { ProducePanel } from "./panels/ProducePanel";
 import { CleanPanel } from "./panels/CleanPanel";
 import { PlanPanel } from "./panels/PlanPanel";
@@ -35,9 +36,12 @@ const TABS: StudioTab<TwinStudioTab>[] = [
 export function TwinStudioShell({
   space,
   editorData,
+  viewer,
 }: {
   space: TwinStudioSpace;
   editorData: TwinDesktopEditorData | null;
+  /** Published/primary model of any format — Produce renders it immediately. */
+  viewer: TwinSpaceViewerData | null;
 }) {
   const [tab, setTab] = useState<TwinStudioTab>("produce");
   // Hoisted here (not inside ProducePanel) so the live job status survives a
@@ -75,7 +79,7 @@ export function TwinStudioShell({
         </>
       }
     >
-      {tab === "produce" ? <ProducePanel space={space} job={job} /> : null}
+      {tab === "produce" ? <ProducePanel space={space} job={job} viewer={viewer} /> : null}
       {tab === "clean" ? <CleanPanel editorData={editorData} /> : null}
       {tab === "plan" ? <PlanPanel modelId={editorData?.modelId ?? null} /> : null}
       {tab === "deliver" ? (

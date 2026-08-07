@@ -1,37 +1,17 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import Link from "next/link";
-import { Check, Eye, Loader2, RefreshCw } from "lucide-react";
-import { twinAccent } from "@/lib/digital-twin/twin-accent";
+import { Loader2, RefreshCw } from "lucide-react";
 import type { TwinStudioSpace } from "@/lib/digital-twin/load-twin-studio-data";
+import type { TwinSpaceViewerData } from "@/lib/digital-twin/load-space-viewer";
 import type { TwinJobSnapshot } from "@/hooks/useTwinJobRealtime";
+import { TwinModelViewer } from "@/components/digital-twin/TwinModelViewer";
+import { ProduceVersionList, type ProduceVersion } from "./ProduceVersionList";
 
-type Version = {
-  id: string;
-  title: string | null;
-  createdAt: string;
-  isPublished: boolean;
-  fileSizeBytes: number | null;
-  psnr: number | null;
-  splatCount: number | null;
-  quality: string | null;
-  trainProfile: string | null;
-  captureId: string | null;
-};
+type Version = ProduceVersion;
 
 type Quality = "standard" | "high";
 type TrainProfile = "" | "baseline" | "quality" | "visual";
-
-function formatDate(iso: string): string {
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  return (
-    d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }) +
-    " · " +
-    d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })
-  );
-}
 
 /**
  * F1 — the real content of Twin Studio's Produce tab: version history with
@@ -42,9 +22,13 @@ function formatDate(iso: string): string {
 export function ProducePanel({
   space,
   job,
+  viewer,
 }: {
   space: TwinStudioSpace;
   job: TwinJobSnapshot | null;
+  /** UX-FIX: published/primary model of any format, rendered as the hero —
+   * one click from the dashboard to actually seeing the model. */
+  viewer: TwinSpaceViewerData | null;
 }) {
   const [versions, setVersions] = useState<Version[]>([]);
   const [loading, setLoading] = useState(true);
@@ -135,8 +119,32 @@ export function ProducePanel({
   }
 
   return (
-    <div className="h-full min-h-0 overflow-y-auto p-4">
-      <div className="mx-auto max-w-3xl space-y-4">
+    <div className="flex h-full min-h-0">
+      {/* Hero: the published/primary model, immediately — the whole point of
+          opening a space. Formats beyond splat (GLB, Potree, pano) render via
+          the same format-aware viewer the twin detail page uses. */}
+      <div className="relative min-h-0 flex-1 overflow-hidden">
+        {viewer ? (
+          <TwinModelViewer
+            viewerKind={viewer.viewerKind}
+            modelUrl={viewer.modelUrl}
+            modelTitle={viewer.modelTitle}
+          />
+        ) : (
+          <div className="flex h-full flex-col items-center justify-center gap-1.5 p-6 text-center">
+            <p className="text-sm font-medium text-zinc-200">No published model yet</p>
+            <p className="max-w-sm text-xs text-[var(--graphite-muted)]">
+              {job?.status === "processing" || job?.status === "queued"
+                ? `Reconstruction is running — ${job.stage ?? "working"} ${job.progress_pct ?? 0}%.`
+                : "Once a reconstruction completes, publish a version on the right and it renders here."}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* Rail: dispatch + versions */}
+      <div className="w-[380px] shrink-0 overflow-y-auto border-l border-[var(--mobile-app-card-border)] p-3.5">
+      <div className="space-y-4">
         {/* Dispatch — the reprocess + A/B-arm control the plan's B-series
             experiments used from the CLI (scripts/ops/dispatch-twin-experiment.mjs),
             now reachable from the studio itself. */}
@@ -225,54 +233,14 @@ export function ProducePanel({
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">
             Versions · {versions.length}
           </p>
-          {versions.length === 0 ? (
-            <p className="text-xs text-[var(--graphite-muted)]">No ready versions yet.</p>
-          ) : (
-            <ul className="space-y-1.5">
-              {versions.map((v) => (
-                <li
-                  key={v.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-white/10 bg-white/[0.03] px-3 py-2.5"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-xs font-medium text-zinc-100">{formatDate(v.createdAt)}</p>
-                    <p className="mt-0.5 text-[10px] text-[var(--graphite-muted)]">
-                      {v.psnr !== null ? `PSNR ${v.psnr.toFixed(2)}` : "PSNR —"}
-                      {v.quality ? ` · ${v.quality}` : ""}
-                      {v.trainProfile ? ` · ${v.trainProfile}` : ""}
-                      {v.splatCount !== null ? ` · ${(v.splatCount / 1000).toFixed(0)}k pts` : ""}
-                    </p>
-                  </div>
-                  <div className="flex shrink-0 items-center gap-1.5">
-                    {/* D-gap fix: preview any version WITHOUT publishing it —
-                        the R7.5 visual gate previously required promoting a
-                        model just to look at it. */}
-                    <Link
-                      href={`/twin-studio/${space.spaceId}/preview/${v.id}`}
-                      className="flex items-center gap-1 rounded-md border border-white/10 px-2 py-1 text-[10px] font-semibold text-zinc-200 transition hover:border-[var(--accent-border-blue)] hover:text-[var(--twin360-blue)]"
-                    >
-                      <Eye className="size-3" aria-hidden /> Preview
-                    </Link>
-                    {v.isPublished ? (
-                      <span className={`flex items-center gap-1 rounded-md px-2 py-1 text-[10px] font-semibold ${twinAccent.iconChip}`}>
-                        <Check className="size-3" /> Live
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => void publish(v.id)}
-                        disabled={busy}
-                        className="rounded-md border border-white/10 px-2.5 py-1 text-[10px] font-semibold text-zinc-200 transition hover:border-[var(--accent-border-blue)] hover:text-[var(--twin360-blue)] disabled:opacity-50"
-                      >
-                        Publish
-                      </button>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+          <ProduceVersionList
+            spaceId={space.spaceId}
+            versions={versions}
+            busy={busy}
+            onPublish={(id) => void publish(id)}
+          />
         </section>
+      </div>
       </div>
     </div>
   );

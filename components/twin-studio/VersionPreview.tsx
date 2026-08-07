@@ -2,14 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import dynamic from "next/dynamic";
 import { ArrowLeft, Check, Loader2 } from "lucide-react";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
-
-const TwinShareSplatViewer = dynamic(
-  () => import("@/components/digital-twin/TwinShareSplatViewer").then((m) => m.TwinShareSplatViewer),
-  { ssr: false },
-);
+import type { TwinViewerKind } from "@/lib/digital-twin/viewer-format";
+// Format-aware viewer (splat/GLB/pano/lidar) — the first Preview shipped with the
+// splat viewer hardcoded, so previewing a GLB or Potree version silently failed
+// to load. TwinModelViewer already dynamic-imports each viewer client-side.
+import { TwinModelViewer } from "@/components/digital-twin/TwinModelViewer";
 
 /**
  * D-gap fix — preview ANY ready model version without publishing it. Found
@@ -24,12 +23,18 @@ export function VersionPreview({
   label,
   psnr,
   isPublished,
+  viewerKind,
+  modelUrl,
+  modelTitle,
 }: {
   spaceId: string;
   modelId: string;
   label: string;
   psnr: number | null;
   isPublished: boolean;
+  viewerKind: TwinViewerKind;
+  modelUrl: string;
+  modelTitle: string;
 }) {
   const [publishing, setPublishing] = useState(false);
   const [published, setPublished] = useState(isPublished);
@@ -86,7 +91,7 @@ export function VersionPreview({
         Not published — clients and share links do not see this version until you publish it.
       </p>
       <div className="relative min-h-0 flex-1 overflow-hidden">
-        <TwinShareSplatViewer src={`/api/digital-twin/models/${modelId}/splat`} />
+        <TwinModelViewer viewerKind={viewerKind} modelUrl={modelUrl} modelTitle={modelTitle} />
       </div>
     </div>
   );
