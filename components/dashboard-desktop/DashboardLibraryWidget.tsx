@@ -101,7 +101,7 @@ export function DashboardLibraryWidget({
           ) : (
             <div className="flex flex-col gap-2">
               {twins.slice(0, 8).map((tw) => (
-                <DashboardRowLink key={tw.id} href={`/digital-twin/twins/${tw.id}`} icon={Boxes} title={tw.title} meta={`${tw.status} · ${formatDashboardDate(tw.updatedAt)}`} />
+                <DashboardRowLink key={tw.id} href={`/twin-studio/${tw.id}`} icon={Boxes} title={tw.title} meta={`${tw.status} · ${formatDashboardDate(tw.updatedAt)}`} />
               ))}
             </div>
           )

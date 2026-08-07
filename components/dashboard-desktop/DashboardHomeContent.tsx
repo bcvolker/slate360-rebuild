@@ -44,7 +44,7 @@ export function DashboardHomeContent({
   const twinIsNewer =
     latestTwin && (!latestProject || new Date(latestTwin.updatedAt) > new Date(latestProject.createdAt));
   const featured = twinIsNewer
-    ? { kind: "twin" as const, name: latestTwin!.title, status: latestTwin!.status, date: latestTwin!.updatedAt, href: `/digital-twin/twins/${latestTwin!.id}`, imageUrl: latestTwin!.imageUrl }
+    ? { kind: "twin" as const, name: latestTwin!.title, status: latestTwin!.status, date: latestTwin!.updatedAt, href: `/twin-studio/${latestTwin!.id}`, imageUrl: latestTwin!.imageUrl }
     : latestProject
       ? { kind: "project" as const, name: latestProject.name, status: latestProject.status, date: latestProject.createdAt, href: `/projects/${latestProject.id}`, imageUrl: latestProject.imageUrl }
       : null;

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { Bell, CheckCircle2 } from "lucide-react";
 import type { DashboardNeedsAttentionItem } from "@/lib/dashboard/load-dashboard-home-data";
+import { desktopTwinHref } from "@/lib/dashboard/desktop-twin-links";
 
 function timeAgo(value: string): string {
   const ms = Date.now() - new Date(value).getTime();
@@ -34,7 +35,7 @@ export function DashboardNeedsAttentionWidget({ items }: { items: DashboardNeeds
       {items.slice(0, 6).map((item) => (
         <Link
           key={item.id}
-          href={item.linkPath ?? "#"}
+          href={desktopTwinHref(item.linkPath)}
           className="flex items-start gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 transition-colors hover:border-[color-mix(in_srgb,var(--graphite-primary)_42%,transparent)]"
         >
           <Bell className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--graphite-primary)]" />

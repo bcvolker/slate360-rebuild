@@ -8,7 +8,8 @@ export function DashboardTwinsContent({ twins }: { twins: HubTwin[] }) {
     status: tw.statusChip ?? tw.status,
     projectName: tw.projectName,
     updatedAt: tw.updatedAt,
-    href: `/digital-twin/twins/${tw.id}`,
+    // ROUTE-FIX: desktop opens the Studio cockpit, not the phone-first viewer.
+    href: `/twin-studio/${tw.id}`,
   }));
 
   return (

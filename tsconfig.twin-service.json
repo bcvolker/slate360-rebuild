@@ -27,6 +27,11 @@
     "components/dashboard-desktop/dashboard-nav-config.ts",
     "components/dashboard-desktop/TwinStudioIndexContent.tsx",
     "hooks/useTwinJobRealtime.ts",
-    "lib/digital-twin/load-desktop-editor.ts"
+    "lib/digital-twin/load-desktop-editor.ts",
+    "lib/dashboard/desktop-twin-links.ts",
+    "components/dashboard-desktop/DashboardNeedsAttentionWidget.tsx",
+    "components/dashboard-desktop/DashboardHomeContent.tsx",
+    "components/dashboard-desktop/DashboardLibraryWidget.tsx",
+    "components/dashboard-desktop/DashboardTwinsContent.tsx"
   ]
 }
