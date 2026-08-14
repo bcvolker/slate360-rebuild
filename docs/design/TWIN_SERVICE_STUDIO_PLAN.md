@@ -65,6 +65,16 @@ hidden mesh while rendering the splat; splat = look layer, mesh/floor-plan = mea
 This is the highest-leverage missing piece for client-grade measurement honesty and should be
 scheduled with Phase C (depth supervision) and E1 (bake) ahead of new capture-source work.
 
+**MASK-1 (added 2026-08-13, from Brian's external research — operator segmentation masking
+for 360 ingest).** The single biggest quality lever for the pure-360 sellable product: the
+operator + selfie stick in frame become ghosts/floaters in training. Add a person-segmentation
+pass (YOLO/SAM2-class model) over the B3-extracted perspective views in worker.py, feeding
+per-image masks to COLMAP and the trainer so operator pixels never contribute. Nadir masking
+(B3b) already exists; this extends it to the operator anywhere in frame — which also relaxes
+Brian's capture constraint in low-ceiling interiors (he no longer must be fully out of frame).
+Gate: A/B on the kitchen .insv rerun (25.30 baseline) — PSNR + visible-ghost count. Schedule:
+BEFORE Phase C for the 360 track (C targets LiDAR captures; MASK-1 targets the 360 product).
+
 **NEW PHASE FUSE (added 2026-08-07, Brian's ask) — iPhone+LiDAR × 360 cross-capture fusion.
 Not in the original 28 slices; scheduled AFTER Phase C.** Today the pipeline is strictly
 one-capture-per-job (§7.19 ledger); the kitchen "combined walk" produced two separate models.
