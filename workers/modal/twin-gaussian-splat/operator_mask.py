@@ -159,11 +159,17 @@ def inject_masks_into_transforms(
     are duplicated into masks_2/masks_4 (nearest-neighbour) so nerfstudio's
     auto-downscale finds a matching resolution whichever factor it picks.
 
+    nerfstudio HARD-ASSERTS all-or-nothing: `mask_path` must be present on
+    EVERY frame or on none (first live run failed exactly there — 24/55
+    frames masked → "Different number of image and mask filenames"). So once
+    any frame carries a real operator mask, every maskless frame gets a
+    full-white "keep everything" fill mask sized from its own image.
+
     Uses PIL (not cv2) so it stays unit-testable on machines without OpenCV.
     """
     from PIL import Image
 
-    stats: dict[str, Any] = {"masksApplied": 0, "framesTotal": 0}
+    stats: dict[str, Any] = {"masksApplied": 0, "fillMasksApplied": 0, "framesTotal": 0}
     transforms_path = processed_dir / "transforms.json"
     if not transforms_path.is_file():
         stats["injectError"] = "missing transforms.json"
@@ -176,6 +182,21 @@ def inject_masks_into_transforms(
         2: processed_dir / "masks_2",
         4: processed_dir / "masks_4",
     }
+
+    def write_mask_set(mask: "Image.Image", stem: str) -> None:
+        for factor, out_dir in out_dirs.items():
+            out_dir.mkdir(parents=True, exist_ok=True)
+            scaled = (
+                mask
+                if factor == 1
+                else mask.resize(
+                    (max(1, mask.width // factor), max(1, mask.height // factor)),
+                    Image.NEAREST,
+                )
+            )
+            scaled.save(out_dir / f"{stem}.png")
+
+    unmasked: list[dict[str, Any]] = []
     for frame in frames:
         basename = Path(str(frame.get("file_path", ""))).name
         if not basename:
@@ -183,22 +204,33 @@ def inject_masks_into_transforms(
         original = frame_map.get(basename, basename)
         src = masks_dir / f"{Path(original).stem}.png"
         if not src.is_file():
+            unmasked.append(frame)
             continue
         with Image.open(src) as img:
-            mask = img.convert("L")
-            for factor, out_dir in out_dirs.items():
-                out_dir.mkdir(parents=True, exist_ok=True)
-                scaled = (
-                    mask
-                    if factor == 1
-                    else mask.resize(
-                        (max(1, mask.width // factor), max(1, mask.height // factor)),
-                        Image.NEAREST,
-                    )
-                )
-                scaled.save(out_dir / f"{Path(basename).stem}.png")
+            write_mask_set(img.convert("L"), Path(basename).stem)
         frame["mask_path"] = f"masks/{Path(basename).stem}.png"
         stats["masksApplied"] += 1
+
+    if stats["masksApplied"] > 0:
+        for frame in unmasked:
+            file_path = str(frame.get("file_path", ""))
+            basename = Path(file_path).name
+            image_path = processed_dir / file_path
+            if not image_path.is_file():
+                image_path = Path(file_path)
+            if not image_path.is_file():
+                stats["injectError"] = f"cannot size fill mask: {file_path}"
+                print(f"[operator-mask] {stats['injectError']}")
+                continue
+            with Image.open(image_path) as img:
+                white = Image.new("L", img.size, 255)
+            write_mask_set(white, Path(basename).stem)
+            frame["mask_path"] = f"masks/{Path(basename).stem}.png"
+            stats["fillMasksApplied"] += 1
+
     transforms_path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-    print(f"[operator-mask] injected {stats['masksApplied']}/{stats['framesTotal']} mask paths")
+    print(
+        f"[operator-mask] injected {stats['masksApplied']} operator + "
+        f"{stats['fillMasksApplied']} fill masks across {stats['framesTotal']} frames"
+    )
     return stats

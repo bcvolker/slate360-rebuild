@@ -52,21 +52,34 @@ def _write_mask(masks_dir: Path, stem: str, size=(16, 12)) -> None:
     Image.new("L", size, 255).save(masks_dir / f"{stem}.png")
 
 
-def test_inject_with_ns_process_rename_map(tmp_path: Path):
+def test_inject_with_ns_process_rename_map_fills_all_frames(tmp_path: Path):
+    """nerfstudio asserts mask_path on EVERY frame or none — the exact
+    assertion that failed the first live MASK-1 run (24/55 masked). Frames
+    without an operator mask must receive a full-white fill mask."""
     processed = tmp_path / "processed"
     masks_dir = tmp_path / "operator_masks"
     _write_transforms(
         processed, ["images/frame_00001.jpg", "images/frame_00002.jpg"]
     )
     _write_mask(masks_dir, "viewA")  # only frame_00001's original has a mask
+    # frame_00002 has no operator mask — its fill mask is sized from its image.
+    (processed / "images").mkdir(parents=True, exist_ok=True)
+    Image.new("RGB", (16, 12), (128, 128, 128)).save(
+        processed / "images" / "frame_00002.jpg"
+    )
     frame_map = {"frame_00001.jpg": "viewA.jpg", "frame_00002.jpg": "viewB.jpg"}
 
     stats = inject_masks_into_transforms(processed, masks_dir, frame_map)
 
-    assert stats == {"masksApplied": 1, "framesTotal": 2}
+    assert stats == {"masksApplied": 1, "fillMasksApplied": 1, "framesTotal": 2}
     data = json.loads((processed / "transforms.json").read_text())
+    # EVERY frame carries a mask_path — the all-or-nothing invariant.
     assert data["frames"][0]["mask_path"] == "masks/frame_00001.png"
-    assert "mask_path" not in data["frames"][1]
+    assert data["frames"][1]["mask_path"] == "masks/frame_00002.png"
+    # The fill mask is all-white (keep everything) at the image's own size.
+    with Image.open(processed / "masks" / "frame_00002.png") as fill:
+        assert fill.size == (16, 12)
+        assert fill.getextrema() == (255, 255)
     # Full-res + both downscale copies exist with the right dimensions.
     assert (processed / "masks" / "frame_00001.png").is_file()
     with Image.open(processed / "masks_2" / "frame_00001.png") as m2:
