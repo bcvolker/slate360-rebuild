@@ -260,12 +260,25 @@ gpu_image = (
         "assert _C is not None, 'gsplat CUDA ops missing'; "
         "print('gsplat ok:', torch.__version__, getattr(_C, 'CameraModelType', None))\"",
     )
+    .run_commands(
+        # MASK-1 — operator segmentation. --no-deps so ultralytics cannot
+        # upgrade the pinned torch/torchvision or install full opencv-python
+        # beside the headless build; its small pure-python deps are added
+        # explicitly. Weights are baked at build so jobs never download.
+        "pip install ultralytics==8.3.87 --no-deps",
+        "pip install psutil py-cpuinfo pandas ultralytics-thop",
+        "mkdir -p /models && curl -fsSL -o /models/yolov8s-seg.pt "
+        "https://github.com/ultralytics/assets/releases/download/v8.3.0/yolov8s-seg.pt",
+        "python -c \"from ultralytics import YOLO; YOLO('/models/yolov8s-seg.pt'); "
+        "print('yolo-seg ok')\"",
+    )
     # Modal does not mount sibling source files automatically.
     .add_local_python_source(
         "align_backends", "pose_priors", "depth_evidence", "cameras_export",
         # F3: dormant since P4c — tested (test_floorplan.py, test_floorplan_commercial.py,
         # test_openings.py) but never mounted into the image, so never reachable.
         "floorplan", "openings",
+        "operator_mask",
     )
 )
 
@@ -3106,6 +3119,19 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
     )
     ingest_stats["projectionCorrections"] = projection_corrections
 
+    # MASK-1 — operator segmentation BEFORE alignment: mask person pixels out
+    # of training, cull operator-dominated views out of SfM entirely.
+    import operator_mask as om
+
+    operator_mask_stats: dict[str, Any] = {"enabled": False}
+    operator_masks_dir = work_root / "operator_masks"
+    if om.OPERATOR_MASKING:
+        post_progress(job.job_id, "align", 22)
+        operator_mask_stats = om.generate_operator_masks(images_dir, operator_masks_dir)
+        culled = om.cull_images(images_dir, operator_mask_stats.get("culledImages") or [])
+        if culled:
+            print(f"[operator-mask] culled {culled} operator-dominated views before alignment")
+
     match_tolerance = (
         job.match_tolerance_sec if job.match_tolerance_sec is not None else DEFAULT_MATCH_TOLERANCE_SEC
     )
@@ -3189,6 +3215,19 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             )
             apply_orientation_override(processed_dir, "up")
             align_backend_used = "colmap_vanilla"
+
+        # MASK-1 — after either alignment path has written transforms.json,
+        # point its frames at the masks so splatfacto drops those pixels from
+        # the loss. ns-process-data renames images to frame_NNNNN.jpg (mapped
+        # back via the shared helper); the pose-prior path keeps original
+        # names (identity fallback inside inject).
+        if operator_mask_stats.get("imagesMasked"):
+            frame_map = (
+                {} if used_pose_prior_alignment else _ns_process_data_frame_map(images_dir)
+            )
+            operator_mask_stats.update(
+                om.inject_masks_into_transforms(processed_dir, operator_masks_dir, frame_map)
+            )
 
         colmap_images_total = len([
             p for p in images_dir.iterdir()
@@ -3573,6 +3612,8 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             # top-level result keys (outputKey/fileSizeBytes/bounds/qualityMetrics/
             # floorplanKey) — a sibling key here would be silently dropped.
             "floorPlan": floor_plan_areas,
+            # MASK-1 — operator segmentation results (scanned/masked/culled + caveat).
+            "operatorMasking": operator_mask_stats,
         },
     }
 
