@@ -92,6 +92,22 @@ sensors, registration failure between pools, ghosting where the two passes saw m
   measured win). Brian's next dual-capture session is the designated test dataset — capture
   both passes even though only iPhone is the hero product today.
 
+**EXT-SPLAT direction (2026-08-14, Brian's anti-melt exterior recipe — no pipeline change
+needed for v1, it's a capture recipe + deliverable choice).** Exterior walkthroughs are sold
+as SPLATS (which cannot "melt" — they never invent surfaces between photos), produced by the
+EXISTING 360 ingest from: ground-level 360 walk + 360 stills + 360-drone orbit passes at 2–3
+heights. Mesh/ortho (photogrammetry grid missions, or DroneDeploy/RealityCapture output via
+IMPORT-1) remains the measurement/plan-view product — two deliverables, one capture visit.
+iPhone LiDAR on the first ~3–5 m of facade anchors metric scale for the WHOLE model (scale is
+global) and stabilizes the ground band; it does NOT sharpen upper floors — that's the drone
+orbit's job (RTK tightens upper-region accuracy when available). Accuracy language: ground
+band estimating-grade with LiDAR anchor; upper regions looser; never survey-grade.
+Interior↔exterior linking UX: exterior opens in ORBIT, interior in WALK; a "link"-kind pin on
+the entrance (pin-attachments already has the link type) jumps between the federated models
+with a camera transition — the federated answer until FUSE-class fusion earns promotion.
+Multi-level walk (stairs, floor selector) is tracked with MEAS-1 (needs floor/collision
+awareness).
+
 ---
 
 ## 0. Ground rules (non-negotiable, inherited from the ledger)
