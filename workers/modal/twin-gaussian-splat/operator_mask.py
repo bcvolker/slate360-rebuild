@@ -35,7 +35,12 @@ from typing import Any
 OPERATOR_MASKING = os.environ.get("OPERATOR_MASKING", "1").strip() != "0"
 MODEL_PATH = os.environ.get("OPERATOR_MASK_MODEL", "/models/yolov8s-seg.pt")
 CONF_THRESHOLD = float(os.environ.get("OPERATOR_MASK_CONF", "0.35"))
-CULL_COVERAGE = float(os.environ.get("OPERATOR_MASK_CULL_COVERAGE", "0.45"))
+# Culling DISABLED by default (>1.0 is unreachable): the first A/B (job
+# f90aac4f, 2026-08-14) culled 4 views from one video's sequential-match
+# chain and registration collapsed 91 -> 56 (PSNR 25.30 -> 22.53). Masks
+# alone never touch SfM; culling fragments the chain. Re-enable via env
+# only with per-capture evidence.
+CULL_COVERAGE = float(os.environ.get("OPERATOR_MASK_CULL_COVERAGE", "1.01"))
 DILATE_PX = int(os.environ.get("OPERATOR_MASK_DILATE_PX", "12"))
 PERSON_CLASS_ID = 0  # COCO
 _BATCH = 16
