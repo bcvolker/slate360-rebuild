@@ -279,6 +279,7 @@ gpu_image = (
         # test_openings.py) but never mounted into the image, so never reachable.
         "floorplan", "openings",
         "operator_mask",
+        "bake",
     )
 )
 
@@ -3732,6 +3733,97 @@ def process_job(payload: dict[str, Any]) -> None:
         shutil.rmtree(work_root, ignore_errors=True)
 
 
+@app.function(image=gpu_image, timeout=900, secrets=[worker_secret], retries=0)
+def bake_model(payload: dict[str, Any]) -> None:
+    """E1 — bake a model's edit_list into a sibling .spz (see bake.py).
+
+    Flow: download source spz → splat-transform to ply → apply the edit chain
+    in numpy (shader-parity math) → write ply → splat-transform back to spz →
+    upload to outputKey → signed callback to the app's bake-callback route.
+    Reports failure via the same callback so the app never strands a
+    "baking" state.
+    """
+    import requests
+    from bake import bake_structured_array
+
+    model_id = str(payload.get("modelId") or "")
+    source_key = str(payload.get("sourceKey") or "")
+    output_key = str(payload.get("outputKey") or "")
+    edit_list = payload.get("editList") or []
+    edit_hash = str(payload.get("editHash") or "")
+
+    def post_bake_callback(body: dict[str, Any]) -> None:
+        site_url = os.environ["SITE_URL"].rstrip("/")
+        secret = os.environ["GPU_WORKER_SECRET_KEY"]
+        raw = dumps_json(body)
+        resp = requests.post(
+            f"{site_url}/api/digital-twin/models/bake-callback",
+            data=raw,
+            headers={
+                "Content-Type": "application/json",
+                "x-worker-signature": sign_callback_body(raw, secret),
+            },
+            timeout=60,
+        )
+        if resp.status_code >= 400:
+            raise RuntimeError(f"Bake callback rejected ({resp.status_code}): {resp.text[:1000]}")
+
+    work = Path("/tmp") / f"twin-bake-{model_id or 'unknown'}"
+    if work.exists():
+        shutil.rmtree(work, ignore_errors=True)
+    work.mkdir(parents=True, exist_ok=True)
+    try:
+        if not model_id or not source_key or not output_key:
+            raise ValueError("modelId, sourceKey and outputKey are required")
+        s3 = s3_client()
+        bucket = os.environ["R2_BUCKET"]
+        src_spz = work / "source.spz"
+        src_ply = work / "source.ply"
+        baked_ply = work / "baked.ply"
+        baked_spz = work / "baked.spz"
+        s3.download_file(bucket, source_key, str(src_spz))
+        run_cmd(["npx", "-y", SPLAT_TRANSFORM_PKG, "-w", str(src_spz), str(src_ply)])
+
+        header_lines, arr = _read_ply_structured(src_ply)
+        out_arr, stats = bake_structured_array(arr, edit_list)
+        if stats["splatsKept"] <= 0:
+            raise RuntimeError("Bake removed every splat — refusing to produce an empty model")
+        _write_ply_structured(baked_ply, header_lines, out_arr)
+        run_cmd(
+            ["npx", "-y", SPLAT_TRANSFORM_PKG, "-w", str(baked_ply), "--filter-nan",
+             str(baked_spz), "--spz-version", "3"],
+        )
+        if not baked_spz.is_file() or baked_spz.stat().st_size <= 0:
+            raise RuntimeError("splat-transform produced no baked output")
+        s3.upload_file(
+            str(baked_spz), bucket, output_key,
+            ExtraArgs={"ContentType": "application/octet-stream"},
+        )
+        print(f"[bake] {model_id}: {stats['splatsKept']}/{stats['splatsTotal']} splats → {output_key}")
+        post_bake_callback(
+            {
+                "modelId": model_id,
+                "status": "ready",
+                "editHash": edit_hash,
+                "bakedKey": output_key,
+                "fileSizeBytes": baked_spz.stat().st_size,
+                "stats": stats,
+            }
+        )
+    except Exception as exc:
+        err = f"{type(exc).__name__}: {exc}"
+        print(f"[bake] FAILED {model_id}: {err}\n{traceback.format_exc()}")
+        try:
+            post_bake_callback(
+                {"modelId": model_id, "status": "failed", "editHash": edit_hash, "error": err[:2000]}
+            )
+        except Exception as cb_exc:  # noqa: BLE001
+            print(f"[bake] failure callback also failed: {cb_exc}")
+        raise
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+
+
 @app.function(image=web_image, secrets=[worker_secret], timeout=60)
 @modal.fastapi_endpoint(method="POST", label=WEB_ENDPOINT_LABEL)
 def reconstruct(body: dict[str, Any], x_dispatch_token: str = Header(default="")):
@@ -3776,6 +3868,24 @@ def reconstruct(body: dict[str, Any], x_dispatch_token: str = Header(default="")
 
     if not isinstance(body, dict):
         return JSONResponse(status_code=400, content={"error": "JSON object required"})
+
+    # E1 — bake dispatch rides the same authenticated endpoint.
+    if body.get("action") == "bake":
+        if not body.get("modelId") or not body.get("sourceKey") or not body.get("outputKey"):
+            return JSONResponse(
+                status_code=400,
+                content={"error": "modelId, sourceKey and outputKey are required"},
+            )
+        try:
+            fc = bake_model.spawn(body)
+        except Exception as exc:  # noqa: BLE001
+            return JSONResponse(status_code=500, content={"error": f"Failed to enqueue bake: {exc}"})
+        return JSONResponse(
+            status_code=200,
+            content={"accepted": True, "modelId": body["modelId"]},
+            headers={"x-modal-run-id": fc.object_id},
+        )
+
     if not body.get("jobId"):
         return JSONResponse(status_code=400, content={"error": "jobId is required"})
     if not body.get("sourceKeys"):

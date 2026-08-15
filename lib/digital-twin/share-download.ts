@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isBakeFresh, parseBakedExport } from "@/lib/digital-twin/bake-hash";
 import { resolveDigitalTwinModelUrl } from "@/lib/digital-twin/resolve-model-url";
 import type { TwinShareDenyReason } from "@/lib/digital-twin/share-token";
 
@@ -50,7 +51,7 @@ export async function resolveTwinShareDownload(token: string): Promise<TwinShare
 
   let modelQuery = admin
     .from("digital_twin_models")
-    .select("id, title, model_format, storage_key, status, is_primary")
+    .select("id, title, model_format, storage_key, status, is_primary, edit_list, baked_export")
     .eq("space_id", space.id)
     .eq("status", "ready")
     .is("deleted_at", null);
@@ -64,7 +65,13 @@ export async function resolveTwinShareDownload(token: string): Promise<TwinShare
   const { data: model } = await modelQuery.maybeSingle();
   if (!model?.storage_key) return { ok: false, reason: "unavailable" };
 
-  const downloadUrl = await resolveDigitalTwinModelUrl(model.storage_key);
+  // E1: clients download what they SEE. The share viewer renders edit_list
+  // over the raw file; when a fresh bake of those edits exists, the download
+  // is the baked file, so the exported artifact matches the cleaned view.
+  const downloadKey = isBakeFresh(model.baked_export, model.edit_list)
+    ? parseBakedExport(model.baked_export)!.bakedKey!
+    : model.storage_key;
+  const downloadUrl = await resolveDigitalTwinModelUrl(downloadKey);
   const ext = model.model_format ?? model.storage_key.split(".").pop() ?? "model";
   const safeTitle = (model.title || space.title || "twin-model").replace(/[^a-zA-Z0-9._\-() ]/g, "_");
 

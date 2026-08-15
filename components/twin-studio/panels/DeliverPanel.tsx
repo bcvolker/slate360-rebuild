@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Ban, Check, Copy, Download, Link2, Loader2 } from "lucide-react";
-import { twinAccent } from "@/lib/digital-twin/twin-accent";
+import { Ban, Check, Copy, Link2, Loader2 } from "lucide-react";
+import { BakeExportControl } from "./BakeExportControl";
 
 type ShareRole = "view" | "annotate" | "download";
 type TokenRow = {
@@ -232,13 +232,8 @@ export function DeliverPanel({ spaceId, modelId }: { spaceId: string; modelId: s
           </p>
           {modelId ? (
             <div className="flex flex-wrap gap-2">
-              <a
-                href={`/api/digital-twin/models/${modelId}/splat`}
-                download
-                className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-semibold ${twinAccent.cardHover} border-white/10 text-zinc-200`}
-              >
-                <Download className="size-3.5" aria-hidden /> Model (.spz)
-              </a>
+              {/* E1: bake-aware export — never silently hand out the uncleaned file. */}
+              <BakeExportControl modelId={modelId} />
               <p className="w-full text-[10px] leading-relaxed text-[var(--graphite-muted)]">
                 Floor-plan SVG/DXF downloads live on the Plan tab. For client-side downloads,
                 mint a link with the download role above.

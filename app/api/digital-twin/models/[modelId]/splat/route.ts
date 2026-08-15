@@ -2,6 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { withAuth } from "@/lib/server/api-auth";
 import { badRequest, notFound, serverError } from "@/lib/server/api-response";
+import { isBakeFresh, parseBakedExport } from "@/lib/digital-twin/bake-hash";
 import { BUCKET, s3 } from "@/lib/s3";
 
 export const runtime = "nodejs";
@@ -25,7 +26,7 @@ export function GET(req: NextRequest, ctx: Params) {
 
     const { data: model, error } = await admin
       .from("digital_twin_models")
-      .select("storage_key")
+      .select("storage_key, edit_list, baked_export")
       .eq("id", modelId)
       .eq("org_id", orgId)
       .eq("status", "ready")
@@ -35,9 +36,23 @@ export function GET(req: NextRequest, ctx: Params) {
     if (error) return serverError(error.message);
     if (!model?.storage_key) return notFound("Model not found");
 
+    // E1: downloads may request the baked file (?baked=1). The LIVE viewer must
+    // keep getting the RAW file — it applies edit_list non-destructively at
+    // render time, and serving it a baked file would double-apply the edits.
+    let key = model.storage_key;
+    let bakeState: "baked" | "stale" | "none" = "none";
+    if (req.nextUrl.searchParams.get("baked") === "1") {
+      if (isBakeFresh(model.baked_export, model.edit_list)) {
+        key = parseBakedExport(model.baked_export)!.bakedKey!;
+        bakeState = "baked";
+      } else if (Array.isArray(model.edit_list) && model.edit_list.length > 0) {
+        bakeState = "stale";
+      }
+    }
+
     try {
       const object = await s3.send(
-        new GetObjectCommand({ Bucket: BUCKET, Key: model.storage_key }),
+        new GetObjectCommand({ Bucket: BUCKET, Key: key }),
       );
       const body = object.Body as StreamBody | Blob | ReadableStream<Uint8Array> | undefined;
       let stream: ReadableStream<Uint8Array> | Blob | null = null;
@@ -52,6 +67,8 @@ export function GET(req: NextRequest, ctx: Params) {
         "Content-Type": object.ContentType ?? "application/octet-stream",
         "Cache-Control": "private, max-age=300",
         "Accept-Ranges": "bytes",
+        // E1 honesty header: "baked" | "stale" (edits exist, bake outdated) | "none".
+        "x-twin-bake": bakeState,
       });
       if (object.ContentLength != null) headers.set("Content-Length", String(object.ContentLength));
       return new NextResponse(stream as ReadableStream<Uint8Array>, { status: 200, headers });
