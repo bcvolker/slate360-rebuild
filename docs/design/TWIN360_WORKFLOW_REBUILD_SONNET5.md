@@ -1145,3 +1145,29 @@ site. FOLLOW-UP: worker-side filename join (`"photo"` tag → materialized
 `twin_photo_N_*.jpg`) so uploaded photos actually receive pose priors —
 that's the payoff slice, Modal redeploy required. NATIVE change → ships only
 via a fresh Codemagic TestFlight build.
+
+### 7.23 SHIPPED 2026-08-15 — worker filename join: photos receive pose priors (Modal deployed)
+
+Closes §7.22's follow-up (d6df7614). `build_pose_prior_keyframes` joined
+images to ARKit keyframes only via `frame_abs_times`, which
+`materialize_images` populates for video-extracted frames alone — uploaded
+photos never got priors. Now a v6 frame tagged `"photo": <upload filename>`
+joins by filename: sanitized stem → the materialized `{stem}_{idx:04d}.jpg`,
+emitting an ArkitKeyframe with the frame's transform_4x4 position/gravity
+alongside the timestamp-matched output. Omission-biased guards: a stem joins
+only 1 pose frame ↔ 1 materialized image, and images owned by the timestamp
+path (in `frame_abs_times`) are never claimed. Shared frame→keyframe
+construction extracted to `_keyframe_from_pose_frame`. Observability:
+`[pose-priors] photo filename join: N/M` in the job log.
+
+Out of scope (deliberate): the `arkit_bypass` transforms matcher
+(`_match_and_write_transforms`) still matches by timestamp only, so photos
+stay unmatched on that arm — bypass runs only on lidarPosesKey+PLY captures
+where clips dominate; revisit if a photos-heavy LiDAR capture surfaces.
+
+Tests: `test_photo_pose_join.py` (14 checks — join, prefix-stem +
+duplicate-stem disambiguation, sanitization symmetry, coexistence with the
+timestamp join, malformed transforms); pose-prior + train-profile suites
+still green. Modal deployed same day; endpoint URL unchanged
+(`https://bcvolker--reconstruct.modal.run` = MODAL_TWIN_ENDPOINT) ⇒ NO
+Trigger redeploy needed.
