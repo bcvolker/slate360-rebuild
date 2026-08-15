@@ -49,7 +49,16 @@ function buildEdit(op: TwinEditListOp): SplatEdit {
     rgbaBlendMode: BLEND_MODE[op.rgbaBlendMode ?? "multiply"],
     sdfSmooth: op.sdfSmooth ?? 0.1,
     softEdge: op.softEdge ?? 0.05,
-    invert: op.invert ?? false,
+    // `invert` is applied ONCE, on the SDF (buildSdf). Spark inverts the
+    // distance at BOTH the SDF and the edit level, so passing op.invert here
+    // too cancelled it out — which made the Crop tool (the only op that sets
+    // invert: true) erase the INSIDE of its box, i.e. behave identically to
+    // Erase, instead of keeping the inside and removing everything outside.
+    // Verified against spark.module.js evaluateSdfArray/modulateSdfArray and
+    // against defaultOpForTool's intent (erase = no invert = remove inside;
+    // crop = invert = remove outside). No saved edit_list in production
+    // contained any op when this was corrected, so nothing re-renders wrong.
+    invert: false,
   });
   const sdf = buildSdf(op);
   edit.addSdf(sdf);

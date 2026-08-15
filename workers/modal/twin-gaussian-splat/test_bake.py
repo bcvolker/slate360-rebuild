@@ -40,18 +40,21 @@ def test_erase_sphere_zeroes_inside_keeps_outside():
     assert stats["opsApplied"] == 1
 
 
-def test_crop_box_double_invert_erases_interior():
+def test_crop_box_keeps_interior_removes_outside():
     # Crop op exactly as defaultOpForTool builds it: box, invert=True,
-    # scale 1.2 → the two inverts cancel and the box interior is erased.
+    # scale 1.2. invert applies ONCE (SDF level), so the box KEEPS its
+    # interior and erases everything outside — real crop semantics. The
+    # earlier runtime passed invert at both the SDF and edit level, which
+    # cancelled and made Crop behave identically to Erase.
     op = _op(
         tool="crop", sdfType="box", invert=True,
         scale=[1.2, 1.2, 1.2], size=[1.2, 1.2, 1.2], radius=None,
     )
     xyz = _pts([0, 0, 0], [1.0, 0, 0], [5, 0, 0])
     alpha, _d, _s = evaluate_edit_ops(xyz, [op])
-    assert alpha[0] == 0.0          # centre: inside → erased
-    assert alpha[1] == 0.0          # inside half-extent 1.2 → erased
-    assert alpha[2] == 1.0          # far outside → kept
+    assert alpha[0] == 1.0          # centre: inside the crop box → KEPT
+    assert alpha[1] == 1.0          # inside half-extent 1.2 → KEPT
+    assert alpha[2] == 0.0          # far outside → erased
 
 
 def test_slice_plane_erases_negative_z_side():
@@ -70,8 +73,8 @@ def test_rotated_scaled_box():
     )
     xyz = _pts([0, 1.5, 0], [1.5, 0, 0])
     alpha, _d, _s = evaluate_edit_ops(xyz, [op])
-    assert alpha[0] == 0.0  # rotated long axis now along y → inside
-    assert alpha[1] == 1.0  # x direction now short (0.5) → outside
+    assert alpha[0] == 1.0  # rotated long axis now along y → inside → kept
+    assert alpha[1] == 0.0  # x direction now short (0.5) → outside → erased
 
 
 def test_soft_edge_partial_alpha_and_disabled_op():

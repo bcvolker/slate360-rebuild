@@ -11,9 +11,12 @@ so a baked file matches what every viewer renders with the edit_list applied:
   deliberately lost here too, for parity).
 - sizes = (1,1,1, radius ?? 0.5): our runtime never scales the SDF node
   itself, only the edit; box half-extents are carried by the edit scale.
-- op.invert is applied at BOTH the sdf level and the edit level (our
-  runtime sets both), which cancels — crop boxes therefore erase their
-  INTERIOR, exactly as rendered today. Parity over intent.
+- op.invert is applied ONCE (SDF level), matching the corrected viewer
+  runtime. Spark inverts at both the SDF and edit level, so the previous
+  runtime — which passed op.invert to both — cancelled it and made Crop
+  erase its INTERIOR (identical to Erase). splat-edit-runtime.ts now
+  passes invert:false at the edit level; this module mirrors that, so a
+  crop keeps its interior and removes everything outside.
 - Single SDF per edit → the smooth log-sum-exp accumulation is identity.
 - modulate = softEdge==0 ? step : clamp(-d/softEdge + 0.5, 0, 1).
 - multiply/set_rgb blend: alpha factor = mix(1, opacity, modulate);
@@ -148,8 +151,7 @@ def evaluate_edit_ops(xyz, ops: list[dict[str, Any]]):
         radius = float(op.get("radius") or DEFAULT_RADIUS)
         d = _primitive_distance(p_sdf, str(op.get("sdfType") or "sphere"), radius)
         if op.get("invert"):
-            d = -d  # sdf-level
-            d = -d  # edit-level — cancels, kept explicit for shader parity
+            d = -d  # SDF-level only — see module docstring
         soft = op.get("softEdge")
         soft = DEFAULT_SOFT_EDGE if soft is None else float(soft)
         if soft == 0.0:
