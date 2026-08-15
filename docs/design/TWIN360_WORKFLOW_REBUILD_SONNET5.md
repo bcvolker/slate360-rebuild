@@ -1171,3 +1171,24 @@ timestamp join, malformed transforms); pose-prior + train-profile suites
 still green. Modal deployed same day; endpoint URL unchanged
 (`https://bcvolker--reconstruct.modal.run` = MODAL_TWIN_ENDPOINT) ⇒ NO
 Trigger redeploy needed.
+
+### 7.24 LOCKED 2026-08-15 — E1 SHIPPED + VERIFIED LIVE (bake edit_list into downloadable SPZ)
+
+Trust-block step 1 (audit-locked order) complete: commit dbf19f65, Modal
+bake_model deployed, Vercel live. bake.py replicates Spark's SplatEdit shader
+chain exactly (inverse-TRS three.js decompose incl. shear loss, primitive
+SDFs, crop double-invert cancellation AS RENDERED, softEdge → opacity-logit
+fold, displacement); 9 unit tests. Dispatch = action:"bake" on the
+authenticated reconstruct endpoint; HMAC bake-callback with superseded-hash
+protection; freshness = sha256(edit_list) match. Downloads: Studio export
+uses /splat?baked=1 (+ x-twin-bake header), share download-role links serve
+the baked key automatically when fresh; live viewers keep RAW (render-time
+edits — baked would double-apply). digital_twin_models.baked_export jsonb
+added additively in prod.
+
+LIVE E2E on model 719fe8f9 (spare kitchen arm): erase-sphere op → bake
+completed in 20 s: 435,468 → 396,057 splats (39,411 removed), 9.3 MB baked
+spz at models/85a2e1ef….baked.spz, callback applied, hashFresh=true. Test
+model's edit_list/baked_export reset to clean after verification.
+
+NEXT (per locked order): VALID-1 + GATE-1 (per-job QC + UNSCALED gating).
