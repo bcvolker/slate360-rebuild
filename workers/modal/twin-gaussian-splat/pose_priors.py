@@ -63,11 +63,16 @@ SIGMA_MAX = 5.0
 
 @dataclass
 class ArkitKeyframe:
-    """One ARKit keyframe as persisted in poses.json (schema v4/v5).
+    """One ARKit keyframe as persisted in poses.json (schema v4-v6).
 
     v5 adds a `gps` block with `fixTime`/`age`; that path lives in gps_priors.py and does not
     change this dataclass. Local geometry comes from ARKit positions here; GPS only georeferences
     the finished block.
+
+    v6 adds photos-mode PHOTO pose frames: same transform/intrinsics/gps shape, tagged
+    `"photo": <upload filename>` and carrying no `clip_index` (snapped between clips). All
+    existing consumers match keyframes by timestamp and ignore unknown keys, so photo frames
+    ride along untouched today; a filename-based photo→pose join is the intended follow-up.
     """
     image_name: str
     position: tuple[float, float, float]

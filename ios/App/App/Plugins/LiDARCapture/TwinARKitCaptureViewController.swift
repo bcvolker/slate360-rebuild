@@ -169,6 +169,11 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private var captureMode: TwinCaptureMode = .video
     private var photoURLs: [(url: URL, filename: String)] = []   // main-thread-only
     private var photoShotCount = 0                                // word-sized for HUD reads
+    // Monotonic photo index assigned at SNAP time (main thread). photoURLs.count only
+    // grows after the async JPEG write lands, so a fast auto-capture cadence can snap
+    // again before the previous append — two stills sharing one index would overwrite
+    // each other's file and break the filename-tagged pose keyframe pairing below.
+    private var photoSnapCounter = 0
     // Default 1 s auto-capture — construction users walk and shoot; manual is the
     // power-user exception, never the default (CEO spec: 0.5/1/2/3/manual, default 1).
     private var photoIntervalSec: Double = 1
@@ -495,9 +500,35 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private func capturePhoto() {
         guard state == .ready, let frame = arSession.currentFrame else { return }
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-        let index = photoURLs.count + 1
+        photoSnapCounter += 1
+        let index = photoSnapCounter
+        let filename = "twin_photo_\(index).jpg"
         let url = URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent("\(sessionId)_photo\(index).jpg")
+
+        // Stills need pose priors too: session(_:didUpdate:) gates on isRecording, so
+        // photos-mode walks previously uploaded photos with NO ARKit poses. Record one
+        // keyframe per still at snap time, tagged with the photo's upload filename so
+        // the cloud can join pose → photo directly (poses JSON v6). A photo taken
+        // before the first clip also anchors the session time base here.
+        if !hasSessionStart {
+            sessionStartArkit = frame.timestamp
+            sessionStartUnix = Date().timeIntervalSince1970
+            hasSessionStart = true
+        }
+        var kf = buildKeyframe(arkitTs: frame.timestamp, transform: frame.camera.transform,
+                               intrinsics: frame.camera.intrinsics,
+                               resolution: frame.camera.imageResolution)
+        kf["photo"] = filename
+        // Photos snap between clips (state == .ready) — a clip_index here would
+        // wrongly imply membership in the worker's per-clip time matching.
+        kf.removeValue(forKey: "clip_index")
+        depthQueue.async { [weak self] in
+            guard let self = self else { return }
+            self.keyframes.append(kf)
+            self.keyframeCount = self.keyframes.count
+        }
+
         let ci = CIImage(cvPixelBuffer: frame.capturedImage)
         videoQueue.async { [weak self] in
             guard let self = self else { return }
@@ -507,7 +538,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             ) else { return }
             try? data.write(to: url)
             DispatchQueue.main.async {
-                self.photoURLs.append((url, "twin_photo_\(index).jpg"))
+                self.photoURLs.append((url, filename))
                 self.photoShotCount = self.photoURLs.count
                 self.tipText = "PHOTOS · \(self.photoShotCount) captured"
                 self.pushHudState(force: true)
@@ -554,7 +585,10 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         lastKeyframeArkit = 0
         sessionNeedsResume = false
         tipWarning = false
-        if clipVideos.isEmpty {
+        // Reset only on a truly fresh session: photos snapped before the first clip
+        // already recorded pose keyframes (same world origin) that must survive into
+        // the export — wiping them here would strip those photos' pose priors.
+        if clipVideos.isEmpty && photoURLs.isEmpty {
             pointCount = 0
             keyframeCount = 0
             // Reset the point cloud ON depthQueue — the only queue allowed to touch these
@@ -1261,10 +1295,14 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
 
     private func writePosesJSON(to url: URL, clips: [ClipRecord]) {
         let payload: [String: Any] = [
-            // v5 adds gps.fixTime / gps.age per keyframe. Purely additive — v4 readers
-            // ignore the new keys, and v5 readers must tolerate their absence on older
-            // captures (fall back to treating every fix as independent, as v4 did).
-            "version": 5,
+            // v6 adds PHOTO pose frames: photos-mode stills append a keyframe tagged
+            // "photo": <upload filename> and carrying NO clip_index (snapped between
+            // clips, not during one). Purely additive — readers match frames by
+            // timestamp and ignore unknown keys; photo frames have the same
+            // transform/intrinsics/gps shape as clip keyframes.
+            // v5 added gps.fixTime / gps.age per keyframe. v4 readers ignore the new
+            // keys, and newer readers must tolerate their absence on older captures.
+            "version": 6,
             "session_start_time": sessionStartUnix,
             "session_start_ar_timestamp": 0.0,
             // Per-clip video mapping: exact wall-clock start for each clip's video so

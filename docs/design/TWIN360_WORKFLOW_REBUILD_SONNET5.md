@@ -1117,3 +1117,31 @@ Fix (server live on push; native needs a Codemagic TestFlight build):
   purely the upload abort. Photos-mode stills carry no per-photo pose
   keyframes (photos snap in .ready state, accumulation gates on
   isRecording) — logged as a follow-up, needs worker-format care.
+
+### 7.22 2026-08-15 — Photos-mode pose keyframes (poses JSON v6, needs TestFlight)
+
+Closes §7.21's follow-up.
+
+Photos-mode stills recorded NO pose keyframe (`session(_:didUpdate:)` gates on
+`isRecording`), so photo-heavy walks uploaded photos with zero ARKit pose
+priors. `TwinARKitCaptureViewController.capturePhoto()` now records one
+keyframe per still at snap time — session time base anchored on the first
+photo if no clip started yet; frame tagged `"photo": <upload filename>`, no
+`clip_index`; appended on depthQueue. Poses JSON bumped v5→v6 (additive).
+Two adjacent fixes: photo filename index is now a snap-time monotonic counter
+(async JPEG writes could collide indices under fast auto-capture), and
+`startRecording`'s first-clip keyframe reset no longer wipes pre-clip photo
+keyframes (`clipVideos.isEmpty && photoURLs.isEmpty`).
+
+Worker tolerance verified (no worker deploy needed — nothing consumes the new
+frames yet): nothing reads `version` or `clip_index`; every consumer
+(`_match_and_write_transforms`, `build_pose_prior_keyframes`, metric-scale
+recovery, `resolve_video_start_times`, `gps_priors`) matches keyframes
+nearest-by-timestamp on the shared session timeline, and a photo pose is the
+true camera pose at its timestamp — extra candidates, never wrong ones. The
+pose-prior arm's photos-only edge (0 timestamp matches) already existed with
+empty frames and falls back to vanilla COLMAP via the try/except at the call
+site. FOLLOW-UP: worker-side filename join (`"photo"` tag → materialized
+`twin_photo_N_*.jpg`) so uploaded photos actually receive pose priors —
+that's the payoff slice, Modal redeploy required. NATIVE change → ships only
+via a fresh Codemagic TestFlight build.
