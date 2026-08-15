@@ -64,7 +64,6 @@
     "app/site-walk/(act-2-inputs)/assigned-work/page.tsx",
     "components/coordination/contacts/ContactDetail.tsx",
     "components/projects/ChangeHistory.tsx",
-    "components/projects/ProjectsPortfolioOverview.tsx",
     "components/site-walk/ProjectInbox.tsx"
   ]
 }
