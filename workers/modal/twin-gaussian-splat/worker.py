@@ -517,6 +517,42 @@ def resolve_matching_method(ingest_stats: dict[str, int]) -> str:
     return "exhaustive"
 
 
+# materialize_images names every flat asset "{sanitized stem}_{index:04d}.jpg".
+_MATERIALIZED_IMAGE_RE = re.compile(r"^(?P<stem>.+)_\d{4}\.jpg$")
+
+
+def _keyframe_from_pose_frame(frame: dict[str, Any], image_name: str) -> Any | None:
+    """Build an ArkitKeyframe from one poses.json frame, or None if unusable."""
+    import numpy as np
+    from align_backends import ArkitKeyframe
+
+    transform = frame.get("transform_4x4")
+    if not isinstance(transform, list) or len(transform) != 16:
+        return None
+    matrix = np.asarray(transform, dtype=float).reshape(4, 4, order="F")
+    position = tuple(float(value) for value in matrix[:3, 3])
+    gravity = frame.get("gravity")
+    gravity_tuple = (
+        tuple(float(value) for value in gravity)
+        if isinstance(gravity, list) and len(gravity) == 3
+        else None
+    )
+    return ArkitKeyframe(
+        image_name=image_name,
+        position=position,
+        timestamp=float(frame["timestamp"]),
+        tracking_state=str(
+            frame.get("tracking_state") or frame.get("trackingState") or "normal"
+        ),
+        gravity=gravity_tuple,
+        seconds_since_interruption=(
+            float(frame["seconds_since_interruption"])
+            if isinstance(frame.get("seconds_since_interruption"), (int, float))
+            else None
+        ),
+    )
+
+
 def build_pose_prior_keyframes(
     poses_data: dict[str, Any],
     images_dir: Path,
@@ -525,15 +561,17 @@ def build_pose_prior_keyframes(
 ) -> list[Any]:
     """Map extracted image names to the nearest persisted ARKit keyframe.
 
-    `align_backends` writes priors by COLMAP image name. The capture exporter
-    does not persist an image name in each ARKit frame, so the only safe join
-    key is the absolute video-frame timestamp produced by `materialize_images`.
-    Frames outside the timestamp tolerance are omitted rather than assigned a
-    misleading prior.
-    """
-    import numpy as np
-    from align_backends import ArkitKeyframe
+    Two join paths, both omission-biased (no prior beats a wrong prior):
 
+    - Video-extracted frames join by the absolute frame timestamp produced by
+      `materialize_images` (clip keyframes persist no image name, so the
+      timestamp is the only key). Frames outside the tolerance are omitted.
+    - Poses v6 photo frames carry `"photo": <upload filename>` and no
+      clip-relative time base, so they join by filename instead: the uploaded
+      photo materializes as "{sanitize_stem(stem)}_{idx:04d}.jpg", and a frame
+      joins only when its sanitized stem maps one pose frame to exactly one
+      materialized image.
+    """
     raw_frames = [
         frame
         for frame in poses_data.get("frames", [])
@@ -543,6 +581,7 @@ def build_pose_prior_keyframes(
         return []
 
     output: list[Any] = []
+    matched_names: set[str] = set()
     image_paths = sorted(
         path
         for path in images_dir.iterdir()
@@ -555,34 +594,42 @@ def build_pose_prior_keyframes(
         nearest = min(raw_frames, key=lambda frame: abs(float(frame["timestamp"]) - timestamp))
         if abs(float(nearest["timestamp"]) - timestamp) > tolerance_sec:
             continue
-        transform = nearest.get("transform_4x4")
-        if not isinstance(transform, list) or len(transform) != 16:
+        keyframe = _keyframe_from_pose_frame(nearest, image_path.name)
+        if keyframe is None:
             continue
-        matrix = np.asarray(transform, dtype=float).reshape(4, 4, order="F")
-        position = tuple(float(value) for value in matrix[:3, 3])
-        gravity = nearest.get("gravity")
-        gravity_tuple = (
-            tuple(float(value) for value in gravity)
-            if isinstance(gravity, list) and len(gravity) == 3
-            else None
-        )
-        output.append(
-            ArkitKeyframe(
-                image_name=image_path.name,
-                position=position,
-                timestamp=float(nearest["timestamp"]),
-                tracking_state=str(
-                    nearest.get("tracking_state")
-                    or nearest.get("trackingState")
-                    or "normal"
-                ),
-                gravity=gravity_tuple,
-                seconds_since_interruption=(
-                    float(nearest["seconds_since_interruption"])
-                    if isinstance(nearest.get("seconds_since_interruption"), (int, float))
-                    else None
-                ),
-            )
+        matched_names.add(image_path.name)
+        output.append(keyframe)
+
+    photo_frames: dict[str, list[dict[str, Any]]] = {}
+    for frame in raw_frames:
+        photo_name = frame.get("photo")
+        if isinstance(photo_name, str) and photo_name:
+            stem = sanitize_stem(Path(photo_name).stem)
+            if stem:
+                photo_frames.setdefault(stem, []).append(frame)
+
+    if photo_frames:
+        images_by_stem: dict[str, list[Path]] = {}
+        for image_path in image_paths:
+            # Timestamp-joined and video-extracted frames own the timestamp path.
+            if image_path.name in matched_names or image_path.name in frame_abs_times:
+                continue
+            match = _MATERIALIZED_IMAGE_RE.match(image_path.name)
+            if match:
+                images_by_stem.setdefault(match.group("stem"), []).append(image_path)
+        photo_joined = 0
+        for stem, frames in photo_frames.items():
+            candidates = images_by_stem.get(stem, [])
+            if len(frames) != 1 or len(candidates) != 1:
+                continue
+            keyframe = _keyframe_from_pose_frame(frames[0], candidates[0].name)
+            if keyframe is None:
+                continue
+            output.append(keyframe)
+            photo_joined += 1
+        print(
+            f"[pose-priors] photo filename join: {photo_joined}/{len(photo_frames)} "
+            "photo frames matched"
         )
     return output
 
