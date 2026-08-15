@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { SW360BottomNav } from "@/components/sw360/SW360BottomNav";
 import { SW360Header } from "@/components/sw360/SW360Header";
 import { SAFE_AREA_INSET_BOTTOM } from "@/lib/capacitor/safe-area-inset";
+import { sw360ContentBottomInset } from "@/lib/sw360/chrome-metrics";
 
 function initialsFrom(name: string | null, email: string | null): string {
   if (name?.trim()) {
@@ -34,11 +35,15 @@ export default async function SW360ShellLayout({ children }: { children: React.R
   const initials = initialsFrom(profile?.full_name ?? null, context.user.email ?? null);
 
   return (
-    <div className="flex min-h-[100dvh] flex-col">
+    // h-[100dvh] + overflow-hidden (was min-h + a never-engaging overflow-y-auto
+    // on an indefinite-height parent): gives <main> a definite height so it is
+    // the real scroller, instead of the document scrolling and the reserve
+    // becoming trailing layout space.
+    <div className="flex h-[100dvh] flex-col overflow-hidden">
       <SW360Header initials={initials} />
       <main
-        className="flex-1 overflow-y-auto"
-        style={{ paddingBottom: `calc(4.75rem + ${SAFE_AREA_INSET_BOTTOM})` }}
+        className="min-h-0 flex-1 overflow-y-auto"
+        style={{ paddingBottom: sw360ContentBottomInset(SAFE_AREA_INSET_BOTTOM) }}
       >
         {children}
       </main>

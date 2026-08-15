@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": false
+  },
+  "include": [
+    "next-env.d.ts",
+    "app/sw360/**/*.ts",
+    "app/sw360/**/*.tsx",
+    "components/sw360/**/*.ts",
+    "components/sw360/**/*.tsx",
+    "lib/sw360/**/*.ts"
+  ]
+}

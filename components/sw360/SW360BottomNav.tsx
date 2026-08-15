@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Home, FolderKanban, Camera, Inbox, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SAFE_AREA_INSET_BOTTOM } from "@/lib/capacitor/safe-area-inset";
+import { sw360NavHeight } from "@/lib/sw360/chrome-metrics";
 
 const TABS = [
   { href: "/sw360", label: "Home", icon: Home, raised: false },
@@ -31,7 +32,13 @@ export function SW360BottomNav() {
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-40 flex items-stretch justify-around border-t border-[var(--border)] bg-[var(--background)]/95 backdrop-blur-sm"
-      style={{ paddingBottom: SAFE_AREA_INSET_BOTTOM }}
+      // Explicit height (was intrinsic, ~48px, while the shell reserved 76px —
+      // that gap was the dead band above the nav). The shell reserves this
+      // exact value, so bar and reserve can never drift apart again.
+      style={{
+        height: sw360NavHeight(SAFE_AREA_INSET_BOTTOM),
+        paddingBottom: SAFE_AREA_INSET_BOTTOM,
+      }}
     >
       {TABS.map((tab) => {
         const active = tab.href === "/sw360" ? pathname === "/sw360" : pathname?.startsWith(tab.href);
