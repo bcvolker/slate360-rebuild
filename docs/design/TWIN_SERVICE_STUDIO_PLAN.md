@@ -92,8 +92,52 @@ sensors, registration failure between pools, ghosting where the two passes saw m
   measured win). Brian's next dual-capture session is the designated test dataset — capture
   both passes even though only iPhone is the hero product today.
 
-**EXT-SPLAT direction (2026-08-14, Brian's anti-melt exterior recipe — no pipeline change
-needed for v1, it's a capture recipe + deliverable choice).** Exterior walkthroughs are sold
+**2026-08-15 EXTERNAL AUDIT RECONCILIATION — NEW LOCKED ORDER (supersedes the C→FUSE→MEAS-1
+ordering below/above).** Two independent audits (Grok 4.6 with repo access, GLM 5.2) converged;
+reconciled and accepted. The build order is now TRUST-FIRST:
+
+1. **E1 bake** — edit_list baked into downloadable SPZ (share view == download). Cheap, first.
+2. **VALID-1 + GATE-1** — per-job QC JSON (Umeyama trajectories — never free-scale ICP on
+   curves; half-scene scale cross-check; residual-vs-distance drift profile; model-vs-own-
+   reference) + hard gates: jobs missing poses/PLY or with scaleSkipped ship as UNSCALED
+   (badge, measure UI hidden); scaled jobs badge SCALE ANCHORED. Driven by repo evidence:
+   hero capture produced 28.97 (scale applied) AND 26.77 (scaleSkipped=residual_too_high) —
+   silent metric downgrade is a live delivery bug.
+3. **MASK-2** — replace AGPL Ultralytics YOLOv8-seg with a permissive-license segmenter
+   (Apache-2.0 class; e.g. MediaPipe person seg or permissive ONNX): AGPL violates this
+   project's own license rule (ODM precedent). Quality-neutral acceptance: registration
+   parity + person coverage within tolerance on the kitchen capture, no AGPL in image SBOM.
+   Brian's counted ghost-check visual gate on MASK-1 remains OWED; until then say "operator
+   suppressed," never "operator-free" (masks act at training; COLMAP still sees operator).
+4. **Phase C** — LiDAR depth supervision via VENDORED gsplat simple_trainer (+depth loss,
+   lidar init) — splatfacto 1.1.5 cannot do depth loss. A/B on hero room AND a textureless
+   commercial room; gates = floater/hole visual win + scale still applied (PSNR may drop).
+5. **MEAS-1 collision mesh** — restores client measurement UI (picks on mesh, never splat).
+   Tape-validation gate: ≥8/10 lengths within 5 cm on a LiDAR room before client-visible.
+6. **FUSE — LAST**, extra gates added per audit: scale still applied + residual-vs-distance
+   not worse than iPhone-only + visual ghost check on the overlap band. Dual-pass SOP: same
+   visit, doors/lights unchanged, shared scale reference in both passes.
+7. Dashboard 100% overhaul after the trust block (unchanged).
+
+Accuracy language: **numeric tolerance (±2–5 cm) is REMOVED from all client-facing chrome**
+until VALID-1 prints a per-job number; client copy = "estimating-grade when scale-anchored;
+laser governs; interior and exterior are separate models." openings.py net-wall-area stays
+operator-only until tape-validated on ≥3 LiDAR twins.
+
+SOP amendments (audit-accepted): AE/WB lock is MANDATORY in the field (the photometric-
+absorber training arm is closed, so capture discipline is the only control); LiDAR pass
+first + one continuous ARSession; stairs = one clip per floor + 30–50% landing overlap;
+stills at every aisle intersection/loop-closure station on commercial sites; glass shot
+oblique only, holes accepted; 360-only is a PREVIEW SKU, never a measure SKU.
+
+Backlog arm (warehouse-only, own kill-gate): retrieval/learned matching for repetitive
+aisles (hloc + ALIKED/LightGlue class, BSD/Apache) — sequential SIFT will aisle-swap on
+long rack runs. Not scheduled; open after the trust block.
+
+**EXT-SPLAT direction (2026-08-14, Brian's anti-melt exterior recipe — AMENDED 2026-08-15
+per audit: NOT "no pipeline change." Multi-altitude drone orbits + ground 360 need
+spatial/GPS pairing (sequential matching will fragment the mid-facade), and mapping-grid
+stills must be hard-split from the splat job type — grid → mesh/ortho track only).** Exterior walkthroughs are sold
 as SPLATS (which cannot "melt" — they never invent surfaces between photos), produced by the
 EXISTING 360 ingest from: ground-level 360 walk + 360 stills + 360-drone orbit passes at 2–3
 heights. Mesh/ortho (photogrammetry grid missions, or DroneDeploy/RealityCapture output via
