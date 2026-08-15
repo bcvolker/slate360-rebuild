@@ -9,6 +9,10 @@ struct TwinUploadManifest: Codable {
     let uploadId: String        // digital_twin_multipart_uploads.id (server session id)
     let key: String             // storage key in R2
     let captureId: String
+    // digital_twin_capture_assets.id — lets the engine report a permanent failure to
+    // the server (status='failed' + error_text) instead of leaving a silent
+    // `uploading`/NULL-key row. Optional so manifests persisted by older builds decode.
+    let assetId: String?
     let apiBase: String
     let filePath: String        // absolute path of the source capture file
     let filename: String
@@ -176,33 +180,6 @@ enum TwinUploadHTTP {
             throw TwinUploader.UploadError.http(http.statusCode, msg)
         }
         return json
-    }
-
-    /// Blocking in-memory PUT (small files only — the single-upload path).
-    @discardableResult
-    static func putData(_ url: URL, _ data: Data, contentType: String) throws -> String {
-        var req = URLRequest(url: url)
-        req.httpMethod = "PUT"
-        req.setValue(contentType, forHTTPHeaderField: "Content-Type")
-
-        var outResponse: URLResponse?
-        var outError: Error?
-        let semaphore = DispatchSemaphore(value: 0)
-        api.uploadTask(with: req, from: data) { _, response, error in
-            outResponse = response; outError = error; semaphore.signal()
-        }.resume()
-        semaphore.wait()
-
-        if let error = outError { throw error }
-        guard let http = outResponse as? HTTPURLResponse else {
-            throw TwinUploader.UploadError.missing("PUT response")
-        }
-        guard (200..<300).contains(http.statusCode) else {
-            throw TwinUploader.UploadError.http(http.statusCode, "storage PUT")
-        }
-        let etag = http.value(forHTTPHeaderField: "Etag") ?? http.value(forHTTPHeaderField: "ETag") ?? ""
-        guard !etag.isEmpty else { throw TwinUploader.UploadError.missing("ETag header") }
-        return etag
     }
 
     /// Reads the WKWebView cookie store (works with no live WebView — e.g. during a

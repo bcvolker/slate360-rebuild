@@ -8,14 +8,19 @@ import Foundation
 /// WebContent process — the post-capture "Load failed" crash).
 ///
 /// Rebuilt 2026-07-01 per the locked upload consensus (TWIN_CAPTURE_UPLOAD_FIX.md):
-/// large files ride a **background URLSession** (`TwinUploadSession`) as file-based
+/// files ride a **background URLSession** (`TwinUploadSession`) as file-based
 /// parallel part PUTs with on-disk resume state, so screen-lock/backgrounding no
-/// longer kills the upload and a relaunch resumes only the missing parts. This class
-/// stays the per-capture orchestrator and keeps the old blocking contract:
-///   - files >= 8 MiB  → POST /upload/init (16 MiB parts) → batch sign-parts →
-///                       background PUTs → POST /upload/complete (engine-driven)
-///   - files <  8 MiB  → POST /upload/single {presign} → PUT → {finalize} (inline)
-/// A single `captureId` threads through every call so all assets attach to one capture.
+/// longer kills the upload and a relaunch resumes only the missing parts.
+///
+/// 2026-08-15: EVERY file now goes through /upload/init + the background engine —
+/// small files (photos, gz sidecars) are single-part multipart uploads. The old
+/// inline /upload/single path uploaded photos serially with 3 quick retries and
+/// aborted the whole queue on the first failure: the 2026-08-14 walk died at photo 3,
+/// which also prevented the ply/poses sidecars (queued after photos) from ever
+/// registering. Failures are now per-asset: one dead file no longer blocks the rest,
+/// the server records error_text, and the engine's on-disk manifest retries it on the
+/// next app launch. A single `captureId` threads through every call so all assets
+/// attach to one capture.
 final class TwinUploader {
 
     struct FileEntry {
@@ -44,13 +49,15 @@ final class TwinUploader {
         }
     }
 
-    // Multipart threshold — must equal TWIN_MULTIPART_PART_BYTES / TWIN_SINGLE_UPLOAD_MAX_BYTES
-    // on the server (files below this go through /upload/single).
-    private let multipartThreshold = 8 * 1024 * 1024
     // Requested part size — bigger parts (16 MiB, consensus range 16-25) mean fewer
     // round trips and better cellular throughput. The server clamps and its response
-    // (`partSizeBytes`) is authoritative.
+    // (`partSizeBytes`) is authoritative. Files smaller than a part upload as a
+    // single-part multipart (the last part is exempt from the S3 minimum).
     private let requestedPartBytes = 16 * 1024 * 1024
+    // Files per /upload/init POST — the server upserts each file's asset row inside
+    // the request, so a 100-photo walk is split across a few quick calls instead of
+    // one long one.
+    private let initBatchSize = 25
 
     private let apiBase: String
     private let cookieHeader: String
@@ -88,11 +95,23 @@ final class TwinUploader {
         }
     }
 
-    /// Uploads every file and returns the resulting capture id. Blocking — call on a
-    /// background queue. Throws `UploadError` (or the underlying URL error) on failure.
-    /// The heavy transfers run on the background session, so the app being locked or
-    /// suspended mid-upload pauses this thread but no longer kills the upload.
-    func upload(files: [FileEntry]) throws -> String {
+    /// Result of an upload session. `failedFiles` lists files that exhausted their
+    /// engine retries THIS session — their asset rows are marked failed server-side
+    /// (with error_text) and their engine manifests stay on disk, so the next app
+    /// launch retries them automatically. `unregisteredFiles` never made it past
+    /// /upload/init (even after retries): no asset row, no manifest, no auto-retry —
+    /// the caller must not promise the user they'll recover on their own.
+    struct Outcome {
+        let captureId: String
+        let failedFiles: [String]
+        let unregisteredFiles: [String]
+    }
+
+    /// Uploads every file via the background engine and returns the capture id plus
+    /// any per-file failures. Blocking — call on a background queue. Throws only when
+    /// NOTHING could be uploaded (no captureId, or every file failed); a partial
+    /// failure returns normally so one dead photo can't strand the whole walk.
+    func upload(files: [FileEntry]) throws -> Outcome {
         // Self-heal: if the web layer didn't pass a workspace (e.g. a stale cached web
         // bundle), create a quick-scan space natively so the capture isn't lost.
         if spaceId.isEmpty {
@@ -106,20 +125,65 @@ final class TwinUploader {
         uploadedBytes = 0
 
         var captureId: String?
-        let multipart = files.filter { fileSize($0.url) >= multipartThreshold }
-        let singles = files.filter { fileSize($0.url) < multipartThreshold }
+        var firstError: Error?
+        var failedFiles: [String] = []
+        var unregisteredFiles: [String] = []
+        let group = DispatchGroup()
+        let errorLock = NSLock()
 
-        if !multipart.isEmpty {
-            captureId = try initAndUploadMultipart(multipart, captureId: captureId)
-        }
-        for entry in singles {
-            onStep?(stepLabel(for: entry))
-            captureId = try uploadSingle(entry, captureId: captureId)
+        var index = 0
+        while index < files.count {
+            let batch = Array(files[index..<min(index + initBatchSize, files.count)])
+            index += initBatchSize
+            do {
+                // 3 attempts — a transient network blip on one init POST must not
+                // orphan a whole batch (init-failed files have no manifest, so
+                // nothing would ever retry them).
+                captureId = try withRetries(3) {
+                    try initAndStartBatch(
+                        batch, captureId: captureId, group: group
+                    ) { filename, error in
+                        errorLock.lock()
+                        failedFiles.append(filename)
+                        if firstError == nil { firstError = error }
+                        errorLock.unlock()
+                    }
+                }
+            } catch {
+                // First init failing means no capture exists yet — nothing to salvage.
+                guard captureId != nil else { throw error }
+                // A later batch failing must not abandon the uploads already running.
+                // These files were never registered — they get no auto-retry.
+                errorLock.lock()
+                unregisteredFiles.append(contentsOf: batch.map { $0.filename })
+                if firstError == nil { firstError = error }
+                errorLock.unlock()
+            }
         }
 
+        group.wait()
         onStep?("Finishing up…")
         guard let cid = captureId else { throw UploadError.missing("captureId") }
-        return cid
+        errorLock.lock()
+        let failed = failedFiles
+        let unregistered = unregisteredFiles
+        let error = firstError
+        errorLock.unlock()
+        if failed.count + unregistered.count >= files.count, let error = error { throw error }
+        return Outcome(captureId: cid, failedFiles: failed, unregisteredFiles: unregistered)
+    }
+
+    /// Runs `work` up to `attempts` times with a short growing delay between tries.
+    private func withRetries<T>(_ attempts: Int, _ work: () throws -> T) throws -> T {
+        var lastError: Error?
+        for attempt in 1...max(1, attempts) {
+            do { return try work() }
+            catch {
+                lastError = error
+                if attempt < attempts { Thread.sleep(forTimeInterval: 2.0 * Double(attempt)) }
+            }
+        }
+        throw lastError ?? UploadError.missing("retry result")
     }
 
     // MARK: - Workspace fallback
@@ -139,9 +203,18 @@ final class TwinUploader {
         return (sid, pid)
     }
 
-    // MARK: - Multipart (background engine)
+    // MARK: - Init + background engine
 
-    private func initAndUploadMultipart(_ files: [FileEntry], captureId: String?) throws -> String {
+    /// Registers one batch of files with /upload/init and hands each to the background
+    /// engine. Returns the captureId; does NOT wait for transfers — the caller's group
+    /// gates on every file's completion. `onFileFailed` fires (engine queue) for each
+    /// file whose upload permanently fails this session.
+    private func initAndStartBatch(
+        _ files: [FileEntry],
+        captureId: String?,
+        group: DispatchGroup,
+        onFileFailed: @escaping (String, Error) -> Void
+    ) throws -> String {
         let fileSpecs: [[String: Any]] = files.map { entry in
             var spec: [String: Any] = [
                 "filename": entry.filename,
@@ -167,20 +240,34 @@ final class TwinUploader {
             throw UploadError.missing("init response fields")
         }
 
-        // Hand every file to the background engine, then block until all complete.
-        // The engine persists per-part progress, retries with re-sign, and POSTs
-        // /upload/complete itself (so it also finishes after a background relaunch).
-        let group = DispatchGroup()
-        let errorLock = NSLock()
-        var uploadErrors: [Error] = []
-
+        // Hand every file to the background engine. The engine persists per-part
+        // progress, retries with re-sign, and POSTs /upload/complete itself (so it
+        // also finishes after a background relaunch).
+        //
+        // NO throws below this point: earlier iterations have already entered the
+        // caller's group and started engine transfers, so a malformed row must fail
+        // ONLY its own file (via onFileFailed) — throwing here would make the caller
+        // mark already-started files as failed too, and a spurious "everything
+        // failed" could abort a walk whose uploads were actually landing.
         for (index, entry) in files.enumerated() {
-            guard index < uploads.count else { throw UploadError.missing("upload row \(index)") }
+            guard index < uploads.count else {
+                onFileFailed(entry.filename, UploadError.missing("upload row \(index)"))
+                continue
+            }
             let upload = uploads[index]
+            // Fingerprint dedup: this file's bytes already landed in a previous
+            // attempt — count it as done and move on (retry-after-partial-failure).
+            // Delete the local copy here: the engine only cleans up files it uploads.
+            if (upload["alreadyComplete"] as? Bool) == true {
+                addProgress(Int64(fileSize(entry.url)))
+                try? FileManager.default.removeItem(at: entry.url)
+                continue
+            }
             guard let uploadId = upload["uploadId"] as? String,
                   let key = upload["key"] as? String,
                   let totalParts = (upload["totalParts"] as? NSNumber)?.intValue else {
-                throw UploadError.missing("multipart upload row")
+                onFileFailed(entry.filename, UploadError.missing("multipart upload row"))
+                continue
             }
             let partBytes = (upload["partSizeBytes"] as? NSNumber)?.intValue ?? requestedPartBytes
 
@@ -188,6 +275,7 @@ final class TwinUploader {
                 uploadId: uploadId,
                 key: key,
                 captureId: cid,
+                assetId: upload["assetId"] as? String,
                 apiBase: apiBase,
                 filePath: entry.url.path,
                 filename: entry.filename,
@@ -199,22 +287,18 @@ final class TwinUploader {
             )
 
             onStep?(stepLabel(for: entry))
+            let filename = entry.filename
             group.enter()
             TwinUploadSession.shared.start(
                 manifest: manifest,
                 cookieHeader: cookieHeader,
                 onBytes: { [weak self] delta in self?.addProgress(delta) },
                 onDone: { error in
-                    if let error = error {
-                        errorLock.lock(); uploadErrors.append(error); errorLock.unlock()
-                    }
+                    if let error = error { onFileFailed(filename, error) }
                     group.leave()
                 }
             )
         }
-
-        group.wait()
-        if let first = uploadErrors.first { throw first }
         return cid
     }
 
@@ -224,51 +308,6 @@ final class TwinUploader {
         let frac = min(1.0, Double(uploadedBytes) / Double(totalBytes))
         progressLock.unlock()
         onProgress?(frac)
-    }
-
-    // MARK: - Single (small files, inline)
-
-    private func uploadSingle(_ entry: FileEntry, captureId: String?) throws -> String {
-        let size = fileSize(entry.url)
-        var presignBody: [String: Any] = [
-            "phase": "presign",
-            "space_id": spaceId,
-            "project_id": projectId,
-            "filename": entry.filename,
-            "contentType": entry.contentType,
-            "sizeBytes": size,
-            "clientFingerprint": clientFingerprint(for: entry),
-        ]
-        if let cid = captureId { presignBody["capture_id"] = cid }
-        if let t = title { presignBody["title"] = t }
-        if let kind = entry.assetKind { presignBody["assetKind"] = kind }
-
-        let presign = try postJSON("/api/digital-twin/upload/single", presignBody)
-        guard let cid = presign["captureId"] as? String,
-              let assetId = presign["assetId"] as? String,
-              let key = presign["key"] as? String,
-              let signed = presign["signedUrl"] as? String,
-              let url = URL(string: signed) else {
-            throw UploadError.missing("single presign response")
-        }
-
-        let data = try Data(contentsOf: entry.url, options: .mappedIfSafe)
-        var lastError: Error?
-        var ok = false
-        for attempt in 1...3 {
-            do { _ = try TwinUploadHTTP.putData(url, data, contentType: entry.contentType); ok = true; break }
-            catch { lastError = error; Thread.sleep(forTimeInterval: 0.5 * Double(attempt)) }
-        }
-        guard ok else { throw lastError ?? UploadError.missing("single PUT") }
-        addProgress(Int64(data.count))
-
-        _ = try postJSON("/api/digital-twin/upload/single", [
-            "phase": "finalize",
-            "assetId": assetId,
-            "key": key,
-            "sizeBytes": size,
-        ])
-        return cid
     }
 
     // MARK: - Helpers

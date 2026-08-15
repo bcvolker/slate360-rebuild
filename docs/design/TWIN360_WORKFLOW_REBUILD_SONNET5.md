@@ -1087,3 +1087,33 @@ Same day: Twin app upload defects characterized on Brian's car capture
 silently at photo 3; NO lidar/poses sidecar registered) — chipped as its
 own TestFlight-bound fix. Car model from the phone video dispatched as
 job a1d04286 (no LiDAR ⇒ no metric scale; orbit-view deliverable).
+
+### 7.21 SHIPPED 2026-08-15 — upload queue rebuilt: every capture file rides the background engine (TestFlight-bound)
+
+Root cause of the 2edca824 defects (§7.20): photos + gz sidecars used the
+inline serial /upload/single path (3 quick retries, whole-queue abort on
+first failure) while only ≥8 MiB files rode the background-URLSession
+engine. Photo 3's PUT died → loop aborted → remaining photos AND the
+ply/poses/depth sidecars (queued after photos) never registered; the row
+sat 'uploading'/NULL-key with no error_text.
+
+Fix (server live on push; native needs a Codemagic TestFlight build):
+- /upload/init now accepts small files (single-part multipart — last part
+  is exempt from the S3 5 MiB minimum). TwinUploader routes EVERY file
+  through init + the background engine: parallel PUTs, 5 retries w/
+  re-sign + backoff, on-disk manifest resume across relaunches.
+- Per-asset failure isolation: one dead file no longer blocks the rest;
+  TwinUploader throws only if nothing uploads. Partial failures surface a
+  native notice and retry automatically on next app launch.
+- Failures are never silent: the engine POSTs {phase:"fail"} →
+  status='failed' + error_text on the asset row (manifest kept, so a later
+  resume + finalize flips it back to ready).
+- markCaptureUploadedIfReady treats 'failed' as settled (capture can't
+  strand in 'uploading' forever behind one dead photo).
+- Registration order fixed: video → ply/poses/depth sidecars → photos, so
+  sidecars register even if photo uploads die.
+- Capture-mode audit: video walks DO record voxels+keyframes and export
+  always writes ply/poses — the missing sidecar assets on 2edca824 were
+  purely the upload abort. Photos-mode stills carry no per-photo pose
+  keyframes (photos snap in .ready state, accumulation gates on
+  isRecording) — logged as a follow-up, needs worker-format care.

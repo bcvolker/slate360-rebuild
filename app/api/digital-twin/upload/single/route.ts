@@ -48,7 +48,17 @@ type FinalizeBody = {
   sizeBytes: number;
 };
 
-type SingleBody = PresignBody | FinalizeBody;
+/** Client-side upload gave up (retries exhausted) — record why so the row is never a
+ *  silent `uploading`/NULL-key mystery. The asset may still recover: the native
+ *  engine keeps its manifest on disk and re-uploads on next app launch, and finalize/
+ *  complete flip the row back to `ready` when the bytes eventually land. */
+type FailBody = {
+  phase: "fail";
+  assetId: string;
+  error?: string;
+};
+
+type SingleBody = PresignBody | FinalizeBody | FailBody;
 
 export const POST = (req: NextRequest) =>
   withAuth(req, async ({ user, admin, orgId }) => {
@@ -221,6 +231,40 @@ export const POST = (req: NextRequest) =>
           storageKey: body.key,
           bytesMetered: body.sizeBytes,
         });
+      }
+
+      if (body.phase === "fail") {
+        if (!body.assetId) return badRequest("assetId is required");
+
+        const { data: asset, error: assetError } = await admin
+          .from("digital_twin_capture_assets")
+          .select("id, capture_id, status")
+          .eq("id", body.assetId)
+          .eq("org_id", orgId)
+          .maybeSingle();
+
+        if (assetError) return serverError(assetError.message);
+        if (!asset) return badRequest("Asset not found");
+        // Never walk a finished upload backwards — a late/duplicate failure report
+        // must not clobber a row whose bytes already landed.
+        if (asset.status === "ready") {
+          return ok({ assetId: asset.id, status: "ready", ignored: true });
+        }
+
+        const errorText = (body.error ?? "Upload failed on device").slice(0, 500);
+        await admin
+          .from("digital_twin_capture_assets")
+          .update({ status: "failed", error_text: errorText })
+          .eq("id", asset.id);
+
+        // The failing asset almost always settles LAST (its retries outlive every
+        // successful sibling's finalize), so this report is the capture's final
+        // settle event — without re-checking here the capture would sit in
+        // `uploading` forever, which is the exact stranded state this phase exists
+        // to prevent.
+        await markCaptureUploadedIfReady(admin, asset.capture_id, orgId);
+
+        return ok({ assetId: asset.id, status: "failed" });
       }
 
       return badRequest("Unknown phase");

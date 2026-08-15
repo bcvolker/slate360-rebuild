@@ -68,7 +68,23 @@ final class TwinUploadSession: NSObject, URLSessionDataDelegate {
         excludingParts: Set<Int> = []
     ) {
         queue.async {
-            guard !self.activeUploads.contains(manifest.uploadId) else { return }
+            // Already running (e.g. a fresh upload racing the on-launch resume pass,
+            // now reachable because /upload/init reuses active multipart sessions by
+            // fingerprint). Chain the new callbacks onto the live entry instead of
+            // dropping them — a dropped onDone leaks the caller's DispatchGroup enter
+            // and blocks its upload() forever.
+            guard !self.activeUploads.contains(manifest.uploadId) else {
+                let existing = self.handlers[manifest.uploadId]
+                let prevDone = existing?.onDone
+                self.handlers[manifest.uploadId] = Handlers(
+                    onBytes: existing?.onBytes ?? onBytes,
+                    onDone: { error in
+                        prevDone?(error)
+                        onDone?(error)
+                    }
+                )
+                return
+            }
             self.activeUploads.insert(manifest.uploadId)
             self.handlers[manifest.uploadId] = Handlers(onBytes: onBytes, onDone: onDone)
             self.cookieHeaders[manifest.uploadId] = cookieHeader
@@ -221,9 +237,10 @@ final class TwinUploadSession: NSObject, URLSessionDataDelegate {
                             body: ["uploadId": manifest.uploadId, "key": manifest.key, "parts": parts]
                         )
                         TwinUploadStore.shared.remove(manifest.uploadId)
-                        // The plugin only deletes source files on the foreground path;
-                        // resume/background completions must clean up here or a
-                        // multi-hundred-MB capture lingers in tmp.
+                        // The engine is the sole owner of source-file cleanup (the
+                        // plugin never deletes) — failed files must stay on disk for
+                        // the resume pass, and completed ones are removed here so a
+                        // multi-hundred-MB capture doesn't linger in tmp.
                         try? FileManager.default.removeItem(atPath: manifest.filePath)
                         NSLog("[Slate360] Twin multipart complete: \(manifest.filename)")
                         self.finish(manifest.uploadId, error: nil)
@@ -267,11 +284,41 @@ final class TwinUploadSession: NSObject, URLSessionDataDelegate {
 
     private func finish(_ uploadId: String, error: Error?) {
         let done = handlers[uploadId]?.onDone
+        // Snapshot the cookie BEFORE clearing state — the failure report below needs it.
+        let cookie = cookieHeaders[uploadId]
         handlers[uploadId] = nil
         cookieHeaders[uploadId] = nil
         activeUploads.remove(uploadId)
         retryCounts = retryCounts.filter { !$0.key.hasPrefix(uploadId + "|") }
+        if error != nil { reportFailure(uploadId, error: error, cookieHeader: cookie) }
         done?(error)
+    }
+
+    /// Best-effort: tells the server this asset's upload gave up so the row carries
+    /// `status='failed'` + `error_text` instead of sitting as a silent `uploading` /
+    /// NULL-key mystery (the 2026-08-14 walk symptom). The manifest stays on disk, so
+    /// a later resume can still land the bytes — finalize/complete flips the row back.
+    private func reportFailure(_ uploadId: String, error: Error?, cookieHeader: String?) {
+        guard let manifest = TwinUploadStore.shared.load(uploadId),
+              let assetId = manifest.assetId else { return }
+        let message = "\(manifest.filename): \(error?.localizedDescription ?? "upload failed")"
+        // Global queue — postJSON blocks on a semaphore and must never stall the
+        // serial engine queue that drives part completions.
+        let send: (String) -> Void = { header in
+            DispatchQueue.global(qos: .utility).async {
+                _ = try? TwinUploadHTTP.postJSON(
+                    apiBase: manifest.apiBase,
+                    path: "/api/digital-twin/upload/single",
+                    cookieHeader: header,
+                    body: ["phase": "fail", "assetId": assetId, "error": message]
+                )
+            }
+        }
+        if let header = cookieHeader, !header.isEmpty {
+            send(header)
+        } else {
+            TwinUploadHTTP.fetchCookieHeader { send($0) }
+        }
     }
 
     /// Uses the in-memory cookie header when the upload started this launch; falls back

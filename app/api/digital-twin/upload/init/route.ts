@@ -66,9 +66,11 @@ export const POST = (req: NextRequest) =>
       if (file.assetKind === "lidar_scan" && !isExternalLidarScan) {
         return badRequest("LiDAR scan uploads must be LAS, LAZ, or E57 files");
       }
-      if (file.sizeBytes <= TWIN_MULTIPART_PART_BYTES - 1) {
-        return badRequest(`File ${file.filename} is too small for multipart — use /upload/single`);
-      }
+      // Small files are allowed as single-part multipart uploads (S3/R2 exempts the
+      // last part from the 5 MiB minimum). The native uploader routes EVERY capture
+      // file — photos and gz sidecars included — through this path so they all get the
+      // background-URLSession engine's retry/resume instead of the fragile serial
+      // /upload/single loop that silently stranded the 2026-08-14 walk at photo 3.
     }
 
     try {

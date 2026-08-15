@@ -217,12 +217,14 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
             self.uploadQueue.async {
                 // Build entries here — gzip of the PLY/poses is CPU work that must not
                 // run on the main thread (uploadCapture is called mid-dismissal).
+                // Order: video + LiDAR/pose sidecars FIRST, photos last. The sidecars
+                // are tiny and load-bearing for reconstruction; on the 2026-08-14 walk
+                // they were queued after the photos and never even registered when a
+                // photo upload died. (All files upload via the background engine in
+                // parallel, but registration/start order still follows this list.)
                 var entries: [TwinUploader.FileEntry] = []
                 for video in videoFiles {
                     entries.append(.init(url: video.url, filename: video.filename, contentType: "video/mp4", assetKind: "video"))
-                }
-                for photo in photoFiles {
-                    entries.append(.init(url: photo.url, filename: photo.filename, contentType: "image/jpeg", assetKind: "photo"))
                 }
                 if let url = plyUrl {
                     entries.append(self.gzippedEntry(
@@ -241,6 +243,9 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                         contentType: "application/octet-stream",
                         assetKind: "lidar_depth"
                     ))
+                }
+                for photo in photoFiles {
+                    entries.append(.init(url: photo.url, filename: photo.filename, contentType: "image/jpeg", assetKind: "photo"))
                 }
                 // Pass spaceId through even if empty — the uploader self-heals by creating a
                 // quick-scan workspace, so a stale web bundle can't strand the capture.
@@ -261,13 +266,29 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                     self?.notifyListeners("uploadPhase", data: ["phase": "uploading", "progress": pct])
                 }
                 do {
-                    let captureId = try uploader.upload(files: entries)
-                    NSLog("[Slate360] Twin native upload complete; captureId=\(captureId)")
-                    for entry in entries { try? FileManager.default.removeItem(at: entry.url) }
+                    let outcome = try uploader.upload(files: entries)
+                    let captureId = outcome.captureId
+                    NSLog("[Slate360] Twin native upload complete; captureId=\(captureId) failed=\(outcome.failedFiles.count) unregistered=\(outcome.unregisteredFiles.count)")
+                    // Source files are NOT deleted here — the engine deletes each one
+                    // when its upload completes, and failed files must stay on disk so
+                    // the on-launch resume pass can retry them.
+                    let failedCount = outcome.failedFiles.count + outcome.unregisteredFiles.count
+                    if failedCount > 0 {
+                        // Only engine-failed files auto-retry (their manifests are on
+                        // disk); files that never registered with the server will not —
+                        // never promise a retry that can't happen.
+                        let retryNote = outcome.unregisteredFiles.isEmpty
+                            ? "They'll retry automatically next time you open the app."
+                            : "Some may need the scan re-run — check the capture's files."
+                        self.presentNativeNotice(
+                            "\(failedCount) of \(entries.count) files couldn't upload. \(retryNote) Everything else is up."
+                        )
+                    }
                     var result = manifest
                     result["cancelled"] = false
                     result["captureId"] = captureId
                     result["uploaded"] = true
+                    result["failedFileCount"] = failedCount
                     result["videoUri"] = NSNull()
                     result["videoUris"] = NSNull()
                     result["photoUris"] = NSNull()

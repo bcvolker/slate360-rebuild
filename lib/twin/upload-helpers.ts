@@ -206,15 +206,22 @@ export async function markCaptureUploadedIfReady(
   if (error) throw new Error(error.message);
   if (!pending?.length) return;
 
-  const allReady = pending.every((row) => row.status === "ready");
-  if (!allReady) return;
+  // `failed` is terminal for this pass (the device reported it gave up), so it must not
+  // hold the capture in `uploading` forever — the submit funnel proceeds with what
+  // landed, and the failed row keeps its error_text. If a background resume later
+  // uploads the bytes, finalize/complete flips the row to `ready` and re-runs this
+  // check, which also lifts an all-failed capture out of `failed`.
+  const allSettled = pending.every((row) => row.status === "ready" || row.status === "failed");
+  if (!allSettled) return;
+  const anyReady = pending.some((row) => row.status === "ready");
 
   const { error: captureError } = await admin
     .from("digital_twin_captures")
-    .update({
-      capture_status: "uploaded",
-      uploaded_at: new Date().toISOString(),
-    })
+    .update(
+      anyReady
+        ? { capture_status: "uploaded", uploaded_at: new Date().toISOString(), error_text: null }
+        : { capture_status: "failed", error_text: "All capture uploads failed" },
+    )
     .eq("id", captureId)
     .eq("org_id", orgId);
 
