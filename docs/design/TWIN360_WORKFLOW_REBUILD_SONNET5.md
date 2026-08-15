@@ -1066,3 +1066,24 @@ used?" — verified against digital_twin_capture_assets):**
 
 Open P0 order reaffirmed: Phase C depth supervision → MEAS-1 collision mesh →
 E1 bake → committed 100% Dashboard/Twin-360 overhaul.
+
+### 7.20 LOCKED 2026-08-15 — MASK-1 PROMOTED (masks-only); cull arm rejected on replicated evidence
+
+Operator segmentation masking (operator_mask.py, YOLOv8s-seg, conf 0.35,
+dilate 12 px, nerfstudio mask_path all-or-nothing with white fill masks)
+A/B'd on kitchen capture f5f85030 vs the 25.30 unmasked baseline:
+- masks+cull arm: 22.53 / 56-of-404 registered, REPLICATED 22.47 / 55 —
+  culling views out of a sequential-match chain fragments registration.
+  Arm REJECTED; cull disabled by default (OPERATOR_MASK_CULL_COVERAGE=1.01).
+- masks-only arm (model 9381f062): **25.58 PSNR, 91 registered — matches
+  baseline registration exactly and edges past its PSNR with operator
+  pixels excluded from training.** PROMOTED as deployed default. PSNR
+  caveat stands (masked eval scores kept pixels); Brian's visual gate on
+  ghost reduction still owed. First live run also caught the nerfstudio
+  all-or-nothing mask assertion (fill masks fix, commit 83353ec0).
+
+Same day: Twin app upload defects characterized on Brian's car capture
+2edca824 (video 92 MB OK via resumable uploader; serial photo queue died
+silently at photo 3; NO lidar/poses sidecar registered) — chipped as its
+own TestFlight-bound fix. Car model from the phone video dispatched as
+job a1d04286 (no LiDAR ⇒ no metric scale; orbit-view deliverable).
