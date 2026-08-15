@@ -560,7 +560,7 @@ function SiteWalk({ state }: { state: SiteState }) {
               </button>
             ))}
             <span className="mx-1 h-5 w-px" style={{ background: GLASS_BORDER }} />
-            {["#00E699", "#FF5A6A", "#FFFFFF"].map((c, i) => (
+            {["var(--graphite-primary)", "#FF5A6A", "#FFFFFF"].map((c, i) => (
               <span key={c} className="h-5 w-5 rounded-full" style={{ background: c, outline: i === 0 ? `2px solid ${accent}` : "none", outlineOffset: 2 }} />
             ))}
             <span className="mx-1 h-5 w-px" style={{ background: GLASS_BORDER }} />

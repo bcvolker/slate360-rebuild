@@ -27,7 +27,7 @@ import {
 
 const CANVAS = "var(--graphite-canvas)";
 const BLUE = "var(--twin360-blue)";
-const GREEN = "var(--graphite-primary)"; // Site Walk teal/green #00E699
+const GREEN = "var(--graphite-primary)"; // Site Walk teal/green token
 const MUTED = "var(--graphite-muted)";
 const BODY = "var(--graphite-text-body)";
 const glass = (a = 64) =>
@@ -109,8 +109,8 @@ function TwinCapture({ state, mode, ae, torch, set }: {
         {state === "recording" ? (
           <span className={`rounded-xl px-3.5 py-2 text-center text-[12px] font-medium ${glass()}`} style={{ color: BODY }}>Move slowly · keep steady</span>
         ) : state === "warning" ? (
-          <span className="flex items-center gap-2 rounded-xl border border-amber-400/30 bg-amber-400/15 px-3.5 py-2 text-[12px] font-semibold text-amber-200 backdrop-blur-md">
-            <AlertTriangle className="h-4 w-4" /> Device warming — finish soon
+          <span className={`flex items-center gap-2 rounded-xl px-3.5 py-2 text-[12px] font-semibold ${glass()}`} style={{ color: BODY }}>
+            <AlertTriangle className="h-4 w-4" style={{ color: MUTED }} /> Device warming — finish soon
           </span>
         ) : null}
       </div>
@@ -278,10 +278,9 @@ export default function TwinScreensPreview() {
     <div
       className="min-h-screen w-full bg-black px-4 py-8"
       style={{
-        // Self-contained tokens so the bare /preview route never depends on global CSS.
+        // Neutral fallbacks for the bare /preview route; the brand accents
+        // (--twin360-blue / --graphite-primary) come from globals.css tokens.
         "--graphite-canvas": "#0B0F15",
-        "--twin360-blue": "#3D8EFF",
-        "--graphite-primary": "#00E699",
         "--graphite-muted": "#A3AED0",
         "--graphite-text-body": "#F8FAFC",
       } as React.CSSProperties}
