@@ -65,6 +65,45 @@ hidden mesh while rendering the splat; splat = look layer, mesh/floor-plan = mea
 This is the highest-leverage missing piece for client-grade measurement honesty and should be
 scheduled with Phase C (depth supervision) and E1 (bake) ahead of new capture-source work.
 
+**2026-08-15 SECOND AUDIT ROUND — accepted corrections + LANE OWNERSHIP.** Two platforms
+reviewed the full-system brief and converged. Accepted and actioned:
+
+1. **Crop double-invert was a real bug, now FIXED** (commit c1171505), not just baked
+   parity. Spark inverts at both the SDF and edit level; the runtime passed `op.invert` to
+   both, cancelling it, so Crop (the only tool setting invert) erased its INTERIOR — i.e.
+   behaved identically to Erase. invert now applies once; crop keeps interior, removes
+   outside; bake mirrors it. Blast radius verified zero (no production model had a
+   non-empty edit_list) so no rebake or migration was needed.
+2. **Accuracy bounds for photo measurement corrected** (my earlier ±1 cm @ 1 m was too
+   tight for a 256×192 depth map): **±1–2 cm @ 1 m, ±3–5 cm @ 3 m, REFUSE beyond ~5–8 m,
+   on low confidence, or on depth discontinuities (window/door frames).** Never printed in
+   client chrome; the client string stays "approximate — verify critical dimensions with a
+   laser; available only on LiDAR-captured photos."
+3. **Single highest-leverage cross-cutting change (both audits agree): ONE native
+   MeasuredPhoto frame package** — JPEG + depth (16-bit m) + confidence + intrinsics at
+   both resolutions + colorSize/depthSize mapping + pose + timestamp — consumed by BOTH
+   Twin photo mode (Gap A) and Site Walk measured photos (Gap B). One plugin, one sidecar
+   format (extend S360DEPTH1), one unproject helper, one cloud validator, two UIs. Rides
+   the existing background URLSession queue with per-asset failure isolation; a missing
+   depth sidecar must never fail its JPEG, and the cloud refuses "measurable" status
+   without it.
+4. **Measurement kinds must include a REFUSE path per kind** (edge/variance/confidence/
+   range/plane-residual). Declining beats a plausible wrong window width.
+5. **Plan overlay registration = 2-point similarity** (translate + rotate + uniform scale
+   from two landmark correspondences), residual shown, refuse save on high residual;
+   opacity/toggle/nudge only AFTER the fit; persisted per model/sheet in its own row, not
+   browser CSS state. NOT a free 4-corner homography in v1. This is a separate lane from
+   the twin pipeline — do not merge it into VALID-1.
+
+**LANE OWNERSHIP (to stop two AI platforms editing the same files):**
+- **This lane (Claude Code / pipeline):** VALID-1 + GATE-1 → MASK-2 → Phase C → MEAS-1 →
+  FUSE, plus the twin worker and share/download surfaces.
+- **Other platform lane:** SW360 capture wrap (reskin capture-v2 in Field System chrome,
+  no rebuild) + plan-overlay registration.
+- **Shared, sequence-sensitive:** the MeasuredPhoto plugin (native Swift). Whoever takes it
+  owns `ios/App/App/Plugins/**` exclusively for that slice; it must land before Site Walk
+  measurement UI. Native changes require a Codemagic TestFlight build to reach the phone.
+
 **MASK-1 (added 2026-08-13, from Brian's external research — operator segmentation masking
 for 360 ingest).** The single biggest quality lever for the pure-360 sellable product: the
 operator + selfie stick in frame become ghosts/floaters in training. Add a person-segmentation
