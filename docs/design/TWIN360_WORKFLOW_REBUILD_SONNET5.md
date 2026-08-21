@@ -1192,3 +1192,50 @@ spz at models/85a2e1ef….baked.spz, callback applied, hashFresh=true. Test
 model's edit_list/baked_export reset to clean after verification.
 
 NEXT (per locked order): VALID-1 + GATE-1 (per-job QC + UNSCALED gating).
+
+### 7.25 LOCKED 2026-08-21 — AOB205: stills degenerate, video healthier, PSNR anti-correlated
+
+AOB205 (ASU classroom, ~41x30 ft). Two runs, same room, same session:
+- **20 stationary 360 stills** -> 320 views, 268 registered, **PSNR 29.68** (highest this
+  pipeline has ever scored) and **visually worthless** on the client link: needle haze,
+  dark polygonal shards, no walkable interior. Every ready-gate PASSED.
+- **Walking 360 video** (one .insv pass) -> 784 views, 573 registered, **PSNR 20.97**.
+
+Root cause of the stills failure (confirmed by three independent external audits): the 16
+`v360` unwraps per still share ONE optical centre, so 20 stills = 20 real camera positions
+and every intra-station pair has zero baseline — degenerate for triangulation. COLMAP solves
+rotation fine (84% registered means nothing here); depth stays unconstrained; splatfacto then
+overfits gaussians to the 20 training stations, which RAISES train PSNR as geometry degrades.
+45k iterations amplified it.
+
+**Measured comparison of the two exported models (prototype of the VALID-1 gate):**
+
+| metric | stills (29.68) | video (20.97) |
+|---|---|---|
+| gaussians | 553,174 | 498,682 |
+| anisotropy median | 7.87 | **4.48** |
+| anisotropy p95 / p99 | 10.10 / 10.10 | 9.49 / 10.10 |
+| frac ratio > 12 | 0.000 | 0.000 |
+| max-axis p99 | 0.0302 | 0.0221 |
+| frac axis > 5% of diag | 0.0000 | 0.0000 |
+| opacity median | 0.996 | 0.961 |
+
+**Two corrections to the audit consensus, from this data:**
+1. The claim that `baseline` trains with "no anisotropy ceiling whatsoever" is WRONG. The
+   failed job's own config dump shows `use_scale_regularization=True, max_gauss_ratio=10.0` —
+   splatfacto's default was active, and the measured p99 ratio clips at 10.10 in BOTH models,
+   confirming it bound. Commit 04364d3e sets the flag explicitly to 5.0 on every profile,
+   which is a genuine tightening, but its effect is smaller than the audits implied.
+2. The dark polygonal shards are NOT oversized gaussians. `frac axis > 5% of scene diagonal`
+   is **0.0000** in both models and the p99 max-axis is ~3% of a 5.2-unit diagonal. Whatever
+   produces those shards, it is not gaussian extent — treat the renderer/SH path as an open
+   suspect rather than assuming the cull will fix it.
+
+What DID ship from the audits (commit 04364d3e) and remains correct: the metric spike clamp
+used to run only inside `if scale_applied:`, so it never ran on no-LiDAR captures at all.
+It is now unconditional, with a scene-relative bound (5% of diagonal) when scale is absent.
+
+Standing conclusion: **walking parallax is the geometry source; stationary 360 stills are
+not.** PSNR is an overfit meter on degenerate input and must be removed as a publish gate
+(VALID-1: hold out whole STATIONS, not random views — intra-station views are near-duplicates
+so random holdout is meaningless).
