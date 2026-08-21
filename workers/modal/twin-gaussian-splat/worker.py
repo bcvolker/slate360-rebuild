@@ -470,6 +470,13 @@ def build_train_args(
         # then refinement-only for the remainder.
         "--pipeline.model.stop-split-at",
         str(max(6_000, int(iterations * 0.57))),
+        # Anisotropy ceiling on EVERY profile. This was previously set only on
+        # quality/visual, so the promoted `baseline` profile trained with no cap
+        # at all — the direct cause of the needle haze in the AOB205 run. It is a
+        # shape constraint, not a quality tier, and the arm that "lost" the A/B
+        # lost on train PSNR, which we no longer treat as a quality signal.
+        "--pipeline.model.max-gauss-ratio",
+        str(MAX_GAUSS_RATIO_QUALITY),
     ]
     if enhanced:
         args += [
@@ -484,8 +491,8 @@ def build_train_args(
             "antialiased",
             "--pipeline.model.densify-grad-thresh",
             str(DENSIFY_GRAD_THRESH_QUALITY),
-            "--pipeline.model.max-gauss-ratio",
-            str(MAX_GAUSS_RATIO_QUALITY),
+            # (max-gauss-ratio moved to the shared args above — it now applies to
+            # every profile, so repeating it here would duplicate the CLI flag.)
         ]
     # Camera pose refinement is stated EXPLICITLY in both directions rather than relying on the
     # library default. splatfacto 1.1.5 defaults this to "off", which is what we want — but a
@@ -2291,6 +2298,13 @@ SALIENCY_TARGET_COUNTS = [1_500_000, 750_000, 350_000]  # AF5: progressive salie
 # supports — it's a spike. Only meaningful once units are known, hence gated
 # on scale_applied; on ungated (still-arbitrary-unit) models 0.5 means nothing.
 MAX_METRIC_GAUSSIAN_EXTENT_M = 0.5
+# Unscaled fallback for the same clamp: a single gaussian may not span more than
+# this fraction of the model's own diagonal. Keeps the ceiling meaningful when
+# metric scale was never recovered (the AOB205 case).
+UNSCALED_MAX_EXTENT_FRACTION = 0.05
+# Needle cull: longest/shortest axis ratio above this is a training artifact.
+MAX_ANISOTROPY_RATIO = 12.0
+ANISO_MAX_REMOVAL_FRACTION = 0.35
 
 # A3 (noise removal): statistical outlier removal (SOR) — the classic Open3D/PCL
 # floater killer. For each splat, the mean distance to its K nearest neighbors is
@@ -2502,10 +2516,19 @@ def crop_recenter_and_cap_ply(ply_path: Path, out_path: Path, scale_factor: floa
 
     scale_applied = scale_factor != 1.0
     clamped_count = 0
+    aniso_dropped = 0
+    prop_names = out_arr.dtype.names or ()
+    has_scales = all(f"scale_{i}" in prop_names for i in range(3))
+
+    # AOB205 (2026-08-21): the spike clamp used to live INSIDE `if scale_applied`,
+    # so on every no-LiDAR run — the runs with the weakest geometry and the most
+    # spikes — no size ceiling ran at all. Three independent audits identified this
+    # as the wiring error that let needle/black-card gaussians reach a client link.
+    # The clamp is now unconditional: metric bound when scale is known, otherwise a
+    # scene-relative bound derived from the model's own extent.
     if scale_applied:
         if not crop_applied:
             out_arr = out_arr.copy()
-        prop_names = out_arr.dtype.names or ()
         log_scale_factor = float(np.log(scale_factor))
         for axis in ("x", "y", "z"):
             out_arr[axis] = (out_arr[axis].astype(np.float64) * scale_factor).astype(out_arr[axis].dtype)
@@ -2514,15 +2537,43 @@ def crop_recenter_and_cap_ply(ply_path: Path, out_path: Path, scale_factor: floa
         # piece of geometry, it's a training-time spike. Clamped in the SAME
         # log-space the R7.2 bake above operates in.
         max_log_scale = float(np.log(MAX_METRIC_GAUSSIAN_EXTENT_M))
+        clamp_basis = "metric"
+    else:
+        if not crop_applied:
+            out_arr = out_arr.copy()
+        # Unscaled scene: express the same intent relative to the model's own
+        # diagonal. SPLAT_SCALE_CAP (0.3) is in COLMAP units and is meaningless
+        # here — a flat card 0.29 across can still cover a third of the viewport.
+        kept_xyz = np.stack(
+            [out_arr["x"].astype(np.float64), out_arr["y"].astype(np.float64),
+             out_arr["z"].astype(np.float64)], axis=1,
+        )
+        diag = float(np.linalg.norm(kept_xyz.max(axis=0) - kept_xyz.min(axis=0))) if len(kept_xyz) else 0.0
+        max_log_scale = float(np.log(max(diag * UNSCALED_MAX_EXTENT_FRACTION, 1e-6)))
+        clamp_basis = "scene_relative"
+
+    if has_scales:
         for i in range(3):
             nm = f"scale_{i}"
-            if nm in prop_names:
+            base = out_arr[nm].astype(np.float64)
+            if scale_applied:
                 # R7.2: scale_0/1/2 are log-encoded (3DGS convention) — additive
                 # in log-space, NOT a linear multiply (see docstring above).
-                new_log = out_arr[nm].astype(np.float64) + log_scale_factor
-                clamped_count += int(np.count_nonzero(new_log > max_log_scale))
-                new_log = np.minimum(new_log, max_log_scale)
-                out_arr[nm] = new_log.astype(out_arr[nm].dtype)
+                base = base + float(np.log(scale_factor))
+            clamped_count += int(np.count_nonzero(base > max_log_scale))
+            out_arr[nm] = np.minimum(base, max_log_scale).astype(out_arr[nm].dtype)
+
+        # Anisotropy cull — needles. A gaussian whose longest axis dwarfs its
+        # shortest is a training artifact, not surface. Ratios are computed on the
+        # LINEAR scales (exp of the stored logs), post-clamp.
+        lin = np.exp(np.stack([out_arr[f"scale_{i}"].astype(np.float64) for i in range(3)], axis=1))
+        ratio = lin.max(axis=1) / np.maximum(lin.min(axis=1), 1e-12)
+        keep_aniso = ratio <= MAX_ANISOTROPY_RATIO
+        # Never let the filter eat the model: if it would remove a majority, the
+        # problem is the solve, not the noise — leave it for the QC gate to fail.
+        if 0 < int(keep_aniso.sum()) and int((~keep_aniso).sum()) <= len(out_arr) * ANISO_MAX_REMOVAL_FRACTION:
+            aniso_dropped = int((~keep_aniso).sum())
+            out_arr = out_arr[keep_aniso]
 
     _write_ply_structured(out_path, header_lines, out_arr)
 
@@ -2537,7 +2588,10 @@ def crop_recenter_and_cap_ply(ply_path: Path, out_path: Path, scale_factor: floa
         "cropCenter": center.tolist() if crop_applied else [0.0, 0.0, 0.0],
         "splatCapApplied": capped,
         "spikeClampedCount": clamped_count,
+        "spikeClampBasis": clamp_basis,
         "spikeClampMaxExtentM": MAX_METRIC_GAUSSIAN_EXTENT_M if scale_applied else None,
+        "anisotropyDropped": aniso_dropped,
+        "anisotropyMaxRatio": MAX_ANISOTROPY_RATIO,
         "splatCountFinal": int(len(out_arr)),
         "maxSplatCount": MAX_SPLAT_COUNT,
         "scaleFactorApplied": scale_factor if scale_applied else None,
