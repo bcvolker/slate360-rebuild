@@ -108,8 +108,8 @@ if (
   console.error(`Invalid --align-backend "${alignBackend}"`);
   process.exit(1);
 }
-if (quality !== "draft" && quality !== "standard") {
-  console.error(`Invalid --quality "${quality}" (expected draft|standard)`);
+if (quality !== "draft" && quality !== "standard" && quality !== "high") {
+  console.error(`Invalid --quality "${quality}" (expected draft|standard|high)`);
   process.exit(1);
 }
 if (speed !== "fast" && speed !== "standard") {
