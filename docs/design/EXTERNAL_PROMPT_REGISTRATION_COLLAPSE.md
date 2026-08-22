@@ -74,6 +74,33 @@ baseline** and are degenerate for triangulation. Fine.
 **But the iPhone capture is a continuously moving camera with genuine parallax, plus LiDAR
 depth, plus ARKit poses — and it still collapsed.** That is what we do not understand.
 
+
+## DECISIVE EVIDENCE — the LiDAR cloud proves the capture was fine
+
+We measured the raw ARKit LiDAR point cloud (which is natively in metres) against the two
+splat models built from the same room.
+
+| source | extent (m) | diagonal | shape |
+|---|---|---|---|
+| **LiDAR cloud (ground truth)** | **9.56 x 2.83 x 9.40** | **13.71 m** | flat slab — a real room |
+| iPhone splat model (metric, scale applied) | 1.67 x 1.95 x 1.96 | 3.23 m | near-cube |
+| 360-video splat model (unscaled units) | 3.04 x 2.99 x 2.98 | 5.20 | near-cube |
+
+**The LiDAR mapped the entire kitchen + dining area correctly — ~10 m x 9 m footprint with a
+2.8 m ceiling.** ARKit tracking did not fail. The capture is good.
+
+**Both splat reconstructions collapsed to a near-CUBE**, from two completely different sensors
+(iPhone rolling-shutter video, and Insta360 dual-fisheye 360 video), processed independently.
+A kitchen/dining space has an aspect ratio of roughly 3.4 : 1 : 3.3 — wide, low, deep. Both
+models came out ~1 : 1 : 1.
+
+This gives us a **scale-free** gate: the reconstruction's aspect ratio should resemble the
+space's aspect ratio. A cube-shaped model of a slab-shaped room is collapsed, and you can
+detect it without ever recovering metric scale.
+
+It also means the failure is in the **reconstruction stage, not the capture**, and it is
+reproducible across sensors. That is the single most important fact in this document.
+
 # What we need from you
 
 ## 1. Root cause of the collapse
