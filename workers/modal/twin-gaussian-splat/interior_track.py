@@ -86,6 +86,7 @@ def run_interior_track(
     out_dir: str | Path,
     *,
     reference_diagonal: float | None = None,
+    reference_points: Any = None,
     target_triangles: int = DOLLHOUSE_TARGET_TRIANGLES,
 ) -> dict[str, Any]:
     """Build the interior mesh and its dollhouse from posed ARKit depth.
@@ -172,6 +173,22 @@ def run_interior_track(
         except Exception as exc:  # noqa: BLE001
             stats["floorplan"] = {"skipped": f"{type(exc).__name__}: {exc}"}
 
+    # --- 4b. Accuracy evidence (ACC-1) -------------------------------------
+    # Measured on the RAW fused mesh, not the dollhouse: the dollhouse has had
+    # its ceiling removed, so every ceiling point in the reference cloud would
+    # register as a huge residual against geometry we deliberately deleted.
+    if reference_points is None:
+        stats["accuracy"] = {"skipped": "no_reference_points"}
+    else:
+        try:
+            import mesh_accuracy as ma
+
+            stats["accuracy"] = ma.evaluate_accuracy(
+                mesh, reference_points, stats.get("floorplan") or {}, floor_y, ceiling_y
+            )
+        except Exception as exc:  # noqa: BLE001
+            stats["accuracy"] = {"skipped": f"{type(exc).__name__}: {exc}"}
+
     # --- 5. Artefacts -------------------------------------------------------
     stats["files"] = {
         "raw": _write_mesh(mesh, out, "interior_mesh"),
@@ -204,6 +221,9 @@ def summarize_for_callback(stats: dict[str, Any]) -> dict[str, Any]:
         "triangles": (dh.get("decimate") or {}).get("after"),
         "floorArea": (stats.get("floorplan") or {}).get("floor_area"),
         "floorAreaSource": (stats.get("floorplan") or {}).get("floor_area_source"),
+        "accuracySummary": (stats.get("accuracy") or {}).get("summary"),
+        "fusionMedianMm": ((stats.get("accuracy") or {}).get("fusion") or {}).get("medianMm"),
+        "standardsVerdict": ((stats.get("accuracy") or {}).get("standards") or {}).get("verdict"),
         "perimeter": (stats.get("floorplan") or {}).get("perimeter"),
         "netWallArea": (
             ((stats.get("floorplan") or {}).get("wall_area_takeoff") or {}).get("totals") or {}

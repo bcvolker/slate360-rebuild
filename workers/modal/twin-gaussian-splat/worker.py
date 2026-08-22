@@ -283,7 +283,7 @@ gpu_image = (
         "operator_mask",
         "bake",
         "interior_mesh", "mesh_dollhouse", "interior_track",
-        "mesh_floorplan", "mesh_registration", "zone_planner",
+        "mesh_floorplan", "mesh_registration", "zone_planner", "mesh_accuracy",
     )
 )
 
@@ -3288,12 +3288,14 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             try:
                 post_progress(job.job_id, "align", 18)
                 reference_diagonal: float | None = None
+                interior_reference_points = None
                 if job.lidar_ply_key:
                     try:
                         mesh_ref_ply = source_dir / "_interior_reference.ply"
                         s3.download_file(bucket, job.lidar_ply_key, str(mesh_ref_ply))
                         maybe_gunzip(mesh_ref_ply)
                         reference_diagonal = _ply_extent_diagonal(mesh_ref_ply)
+                        interior_reference_points = _read_ply_xyz(mesh_ref_ply)
                     except Exception as ref_exc:  # noqa: BLE001
                         print(f"[interior-track] reference PLY unavailable: {ref_exc}")
 
@@ -3302,6 +3304,7 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
                     poses_prefetch_path,
                     work_root / "interior",
                     reference_diagonal=reference_diagonal,
+                    reference_points=interior_reference_points,
                 )
                 print(f"[interior-track] {json.dumps(interior_track_mod.summarize_for_callback(interior_track_stats))}")
 
@@ -3963,19 +3966,22 @@ def interior_only(payload: dict[str, Any]) -> dict[str, Any]:
         maybe_gunzip(poses_path)
 
         reference_diagonal: float | None = None
+        reference_points = None
         if payload.get("plyKey"):
             try:
                 ref = root / "reference.ply"
                 s3.download_file(bucket, str(payload["plyKey"]), str(ref))
                 maybe_gunzip(ref)
                 reference_diagonal = _ply_extent_diagonal(ref)
+                reference_points = _read_ply_xyz(ref)
             except Exception as exc:  # noqa: BLE001
                 print(f"[interior-only] reference PLY unavailable: {exc}")
 
         import interior_track as it
 
         stats = it.run_interior_track(
-            depth_path, poses_path, root / "out", reference_diagonal=reference_diagonal
+            depth_path, poses_path, root / "out",
+            reference_diagonal=reference_diagonal, reference_points=reference_points,
         )
         print(f"[interior-only] {json.dumps(it.summarize_for_callback(stats))}")
 
@@ -4000,6 +4006,7 @@ def interior_only(payload: dict[str, Any]) -> dict[str, Any]:
     summary["coverage"] = stats.get("coverage")
     summary["dollhouse"] = stats.get("dollhouse")
     fp = stats.get("floorplan") or {}
+    summary["accuracy"] = stats.get("accuracy")
     summary["floorplan"] = {
         k: v for k, v in fp.items() if k != "fit_wall_segments"
     } | {"segmentCount": (fp.get("fit_wall_segments") or {}).get("count")}
