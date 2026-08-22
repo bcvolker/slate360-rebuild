@@ -283,7 +283,7 @@ gpu_image = (
         "operator_mask",
         "bake",
         "interior_mesh", "mesh_dollhouse", "interior_track",
-        "mesh_floorplan", "mesh_registration", "zone_planner", "mesh_accuracy",
+        "mesh_floorplan", "mesh_registration", "zone_planner", "mesh_accuracy", "walk_stations",
     )
 )
 
@@ -4007,6 +4007,7 @@ def interior_only(payload: dict[str, Any]) -> dict[str, Any]:
     summary["dollhouse"] = stats.get("dollhouse")
     fp = stats.get("floorplan") or {}
     summary["accuracy"] = stats.get("accuracy")
+    summary["walk"] = stats.get("walk")
     summary["floorplan"] = {
         k: v for k, v in fp.items() if k != "fit_wall_segments"
     } | {"segmentCount": (fp.get("fit_wall_segments") or {}).get("count")}

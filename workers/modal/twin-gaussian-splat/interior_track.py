@@ -189,6 +189,18 @@ def run_interior_track(
         except Exception as exc:  # noqa: BLE001
             stats["accuracy"] = {"skipped": f"{type(exc).__name__}: {exc}"}
 
+    # --- 4c. Walk stations (M6b data) --------------------------------------
+    # Computed here, not on the phone: the viewer must not parse a 6,000-frame
+    # pose file to decide where a user is allowed to stand.
+    try:
+        import walk_stations as ws
+
+        stats["walk"] = ws.build_walk_stations(
+            poses, floor_elevations=[float(floor_y)] if floor_y is not None else None
+        )
+    except Exception as exc:  # noqa: BLE001
+        stats["walk"] = {"skipped": f"{type(exc).__name__}: {exc}", "stations": [], "floors": []}
+
     # --- 5. Artefacts -------------------------------------------------------
     stats["files"] = {
         "raw": _write_mesh(mesh, out, "interior_mesh"),
@@ -224,6 +236,8 @@ def summarize_for_callback(stats: dict[str, Any]) -> dict[str, Any]:
         "accuracySummary": (stats.get("accuracy") or {}).get("summary"),
         "fusionMedianMm": ((stats.get("accuracy") or {}).get("fusion") or {}).get("medianMm"),
         "standardsVerdict": ((stats.get("accuracy") or {}).get("standards") or {}).get("verdict"),
+        "stationCount": len((stats.get("walk") or {}).get("stations") or []),
+        "floorCount": len((stats.get("walk") or {}).get("floors") or []),
         "perimeter": (stats.get("floorplan") or {}).get("perimeter"),
         "netWallArea": (
             ((stats.get("floorplan") or {}).get("wall_area_takeoff") or {}).get("totals") or {}

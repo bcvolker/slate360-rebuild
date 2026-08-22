@@ -60,7 +60,9 @@ rooms are different problems, and Delaunay is correct there.
 | **M4** | Dollhouse post: floor/ceiling RANSAC, Manhattan wall snap, decimate to ~250k | **DONE (code)** (`7d40ceb7`) | 12 tests; 7 Open3D-gated ones run on Modal with M3. Planar hole fill deferred to M7 |
 | **M5** | Floor plan + area take-off on the MESH | **RUNNING on real data** | kitchen: floor **28.35 m2 / 305 sq ft** from 61,412 floor triangles, perimeter 32.8 m, net wall 86.6 m2. Still needs tape validation on one real wall |
 | **M6a** | Navigation logic + control bar — click-to-move, three modes, floor selector | **DONE (code)** (`7d40ceb7`) | 26 tests; all four gates pass |
-| **M6b** | Wire into `SplatViewer`, delete orbit/WASD, derive stations from poses | not started | click-to-move works on the kitchen twin on a real phone |
+| **M6b-data** | Walk stations + floors derived from poses, server-side | **DONE + VALIDATED** | kitchen: **10 stations, 1 floor at -0.537 m** (cross-checks RANSAC floor -0.545 m to 8 mm); 24 tests |
+| **M6b-view** | Mesh viewer component consuming stations + dollhouse GLB | next | click-to-move works on the kitchen twin on a real phone |
+| **ACC-1** | Accuracy evidence with no tape measure | **DONE + VALIDATED** | ceiling 9.12 ft vs 9 ft standard (1.4%); fusion residual median 23.4 mm; 12 tests |
 | **M7** | Appearance layer: texture the mesh and/or align the splat to mesh geometry | not started | no ghost operator; walls read as surfaces not fuzz |
 | **M8** | Zone splitting for large buildings (>~1,500 views exceeds the 2 h job ceiling) | not started | a warehouse processes as N zones stitched in one frame |
 | **MASK-2** | Replace AGPL Ultralytics with Mask R-CNN / SAM 2 | not started | no AGPL in the image SBOM |
@@ -81,6 +83,24 @@ Pattern: ~15 min fixed overhead + 3–4 s/view. **Hard ceiling: 2 h per job**
 **Two-speed delivery** the depth-first split unlocks: the TSDF mesh (measurement, floor plan,
 dollhouse) is CPU-only and returns in **minutes**; the photoreal layer finishes in **hours**.
 Sell the measurable deliverable same-day, the walkthrough overnight.
+
+## Accuracy — what we can and cannot claim
+
+Measured on the kitchen, with no tape measure involved:
+
+| check | result | what it proves |
+|---|---|---|
+| Storey height vs standard | 2.781 m = **9.12 ft** vs the 9 ft standard, 38 mm out (**1.4%**) | **absolute scale** — nothing in the pipeline knows ceilings come in 8/9/10 ft, so agreement is external evidence |
+| Fusion residual to LiDAR | median **23.4 mm**, p95 173 mm, 52% within 25 mm | **fusion fidelity** — 123 depth frames integrated without warp or drift |
+| Floor plane cross-check | RANSAC -0.545 m vs trajectory-inferred -0.537 m (**8 mm**) | two independent paths agree |
+
+The residual is ~2 voxels at the 12 mm TSDF voxel size: **resolution-limited, not
+error-limited.** Finer voxels would improve it at a memory and time cost.
+
+**The operator never measures anything.** The LiDAR is the instrument; a tape is only ever
+an engineering spot-check of our own code. Client-facing wording stays estimating-grade
+with a laser governing, and a test asserts the summary never says certified, compliant,
+guaranteed or exact.
 
 ## Capture SOP (interior, iPhone + 360)
 
