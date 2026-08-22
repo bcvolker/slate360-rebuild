@@ -3982,6 +3982,8 @@ def interior_only(payload: dict[str, Any]) -> dict[str, Any]:
         stats = it.run_interior_track(
             depth_path, poses_path, root / "out",
             reference_diagonal=reference_diagonal, reference_points=reference_points,
+            voxel_length=payload.get("voxelLength"),
+            min_confidence=payload.get("minConfidence"),
         )
         print(f"[interior-only] {json.dumps(it.summarize_for_callback(stats))}")
 

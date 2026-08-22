@@ -88,6 +88,8 @@ def run_interior_track(
     reference_diagonal: float | None = None,
     reference_points: Any = None,
     target_triangles: int = DOLLHOUSE_TARGET_TRIANGLES,
+    voxel_length: float | None = None,
+    min_confidence: int | None = None,
 ) -> dict[str, Any]:
     """Build the interior mesh and its dollhouse from posed ARKit depth.
 
@@ -118,7 +120,11 @@ def run_interior_track(
     # --- 1. TSDF fusion -----------------------------------------------------
     raw_path = out / "interior_raw.ply"
     try:
-        fuse_stats = im.build_tsdf_mesh(depth, poses, raw_path)
+        fuse_stats = im.build_tsdf_mesh(
+            depth, poses, raw_path,
+            voxel_length=voxel_length if voxel_length else im.VOXEL_LENGTH_M,
+            min_confidence=min_confidence if min_confidence is not None else im.MIN_CONFIDENCE,
+        )
     except Exception as exc:  # noqa: BLE001
         stats["skipped"] = f"tsdf_failed: {type(exc).__name__}: {exc}"
         return stats
