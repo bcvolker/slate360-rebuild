@@ -1353,6 +1353,40 @@ MIN_SPZ_BYTES = 1024 * 1024  # 1 MiB
 EXPLOSION_SPLAT_COUNT = 3_000_000
 
 
+# COVERAGE-1 (2026-08-22): the model must actually SPAN the space that was
+# scanned. A kitchen+dining walk produced a model whose bounding box was
+# 1.67 x 1.95 x 1.96 m while its own LiDAR cloud measured 9.56 x 2.83 x 9.40 m —
+# COLMAP had registered one ~2 m connected component and dropped the rest of the
+# walk. Every existing gate passed it (train PSNR 32.65, the highest ever, BECAUSE
+# a small overfit scene is the easiest thing to fit), and the metric-scale check
+# reported a healthy 4% residual because that residual asks "are these 88 cameras
+# a similarity of those 88 ARKit poses" — a LOCAL consistency question that is
+# silent about coverage. Three independent audits ranked this comparison the single
+# highest-value gate available. It needs no ground truth beyond files we already have.
+COVERAGE_MIN_EXTENT_RATIO = 0.45
+
+
+def evaluate_coverage_gate(
+    model_diag: float | None,
+    reference_diag: float | None,
+    reference_label: str,
+) -> dict[str, Any]:
+    """Compare the model's own extent against an independent measure of the same
+    physical space (the LiDAR cloud, or the ARKit trajectory). Skips honestly when
+    no reference exists rather than inventing a pass."""
+    if not model_diag or not reference_diag or reference_diag <= 0:
+        return {"gate": "coverage_unavailable", "ratio": None, "reference": reference_label}
+    ratio = float(model_diag) / float(reference_diag)
+    return {
+        "gate": "pass" if ratio >= COVERAGE_MIN_EXTENT_RATIO else "fail",
+        "ratio": round(ratio, 4),
+        "modelDiagonal": round(float(model_diag), 3),
+        "referenceDiagonal": round(float(reference_diag), 3),
+        "reference": reference_label,
+        "minRatio": COVERAGE_MIN_EXTENT_RATIO,
+    }
+
+
 def evaluate_ready_gates(train_psnr: float | None, splat_count: int, file_size_bytes: int) -> dict[str, Any]:
     """Fail (and thus never publish/charge — the worker raises on gate failure,
     which routes to the failure callback, which never creates a model row or
@@ -2632,6 +2666,25 @@ def _saliency_reduce_ply(
     return int(top_idx.size)
 
 
+def _bounds_diagonal(bounds: dict[str, dict[str, float]]) -> float:
+    """Diagonal of a compute_ply_bounds() box."""
+    mn, mx = bounds["min"], bounds["max"]
+    return float(
+        ((mx["x"] - mn["x"]) ** 2 + (mx["y"] - mn["y"]) ** 2 + (mx["z"] - mn["z"]) ** 2) ** 0.5
+    )
+
+
+def _ply_extent_diagonal(ply_path: Path) -> float:
+    """Robust extent of a reference cloud. Uses the 1st-99th percentile box so a
+    handful of stray returns cannot inflate the reference and mask a collapse."""
+    import numpy as np
+
+    xyz = _read_ply_xyz(ply_path)
+    lo = np.percentile(xyz, 1, axis=0)
+    hi = np.percentile(xyz, 99, axis=0)
+    return float(np.linalg.norm(hi - lo))
+
+
 def compute_ply_bounds(ply_path: Path) -> dict[str, dict[str, float]]:
     import numpy as np
 
@@ -3503,6 +3556,28 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
     splat_count = _ply_vertex_count(ply_path)
     file_size = spz_path.stat().st_size
 
+    # COVERAGE-1 — does the model actually span the scanned space? The LiDAR
+    # cloud is an INDEPENDENT metric measurement of the same room, so it is the
+    # reference when present. Non-fatal to evaluate: a download failure must
+    # never fail an otherwise-good job, it just leaves the gate unavailable.
+    coverage_gate: dict[str, Any] = {"gate": "coverage_unavailable", "reference": "none"}
+    if job.lidar_ply_key:
+        try:
+            ref_ply = source_dir / "_coverage_reference.ply"
+            s3.download_file(bucket, job.lidar_ply_key, str(ref_ply))
+            maybe_gunzip(ref_ply)
+            coverage_gate = evaluate_coverage_gate(
+                _bounds_diagonal(bounds), _ply_extent_diagonal(ref_ply), "lidar_cloud",
+            )
+            print(f"[coverage] {json.dumps(coverage_gate)}")
+        except Exception as cov_exc:  # noqa: BLE001
+            coverage_gate = {
+                "gate": "coverage_unavailable",
+                "reference": "lidar_cloud",
+                "error": f"{type(cov_exc).__name__}: {cov_exc}",
+            }
+            print(f"[coverage] reference unavailable (non-fatal): {coverage_gate['error']}")
+
     # AF1: ready-gate, evaluated on the LOCAL files before uploading anything
     # to R2 — a failing job should never publish or charge, and shouldn't
     # waste an upload + manifest + floor-plan pass either. Raising here routes
@@ -3510,6 +3585,16 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
     # callback route never creates a model row or deducts credits for a
     # failed job, so this is the actual enforcement point.
     ready_gates = evaluate_ready_gates(train_psnr, splat_count, file_size)
+    ready_gates["coverage"] = coverage_gate
+    if coverage_gate.get("gate") == "fail":
+        # Blocking on purpose: this is the failure class every other gate passed.
+        ready_gates["failed"] = True
+        pct = round((coverage_gate.get("ratio") or 0) * 100)
+        ready_gates["userMessage"] = (
+            f"Reconstruction only covered about {pct}% of the scanned space — the camera "
+            "solve dropped part of the walk. Recapture more slowly with steady lighting, "
+            "pausing briefly at corners and returning to your starting point."
+        )
     if ready_gates["failed"]:
         print(f"[ready-gate] FAILED: {json.dumps(ready_gates)}")
         raise RuntimeError(ready_gates["userMessage"])
