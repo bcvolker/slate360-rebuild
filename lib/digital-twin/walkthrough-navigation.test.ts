@@ -167,6 +167,29 @@ describe("poseForMode", () => {
     expect(pose?.position[1]).toBeGreaterThan(EYE_HEIGHT_M);
   });
 
+  it("dollhouse actually LOOKS AT the room, not away from it", () => {
+    // The whole mode is worthless if the sign is flipped: the camera sits
+    // behind the room and frames empty space. Walk the view ray forward and
+    // assert it closes on the floor centre.
+    for (const yaw of [0, Math.PI / 3, -2.1, Math.PI]) {
+      const pose = poseForMode("dollhouse", STATIONS[0], FLOORS, STATIONS, 0, yaw)!;
+      const forward = [-Math.sin(pose.yaw), 0, -Math.cos(pose.yaw)];
+      const centre = [2.5, 3];
+      const here = Math.hypot(pose.position[0] - centre[0], pose.position[2] - centre[1]);
+      const ahead = Math.hypot(
+        pose.position[0] + forward[0] - centre[0],
+        pose.position[2] + forward[2] - centre[1],
+      );
+      expect(ahead).toBeLessThan(here);
+    }
+  });
+
+  it("floorplan sits directly over the floor centre", () => {
+    const pose = poseForMode("floorplan", STATIONS[0], FLOORS, STATIONS, 0, 1.2)!;
+    expect(pose.position[0]).toBeCloseTo(2.5, 6);
+    expect(pose.position[2]).toBeCloseTo(3, 6);
+  });
+
   it("returns null for an overview of a floor with no stations", () => {
     expect(poseForMode("dollhouse", null, FLOORS, STATIONS, 9, 0)).toBeNull();
   });

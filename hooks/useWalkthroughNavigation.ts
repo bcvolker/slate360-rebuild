@@ -16,6 +16,8 @@ import { useCallback, useMemo, useRef, useState } from "react";
 
 import {
   clampPitch,
+  EYE_HEIGHT_M,
+  eyeHeightFor,
   lerpPose,
   MAX_CLICK_DISTANCE_M,
   nearestStation,
@@ -80,10 +82,14 @@ export function useWalkthroughNavigation(options: {
 
   // Live pose lives in refs, not state: it changes every frame and must never
   // trigger a React render.
+  // Eye height is measured from the FLOOR PLANE, not from the station's own Y.
+  // A station's Y is already the capture camera's height (~1.0 m), so adding
+  // 1.6 to it put the viewer at 2.6 m — above the cut ceiling, looking down
+  // into a roofless room instead of standing in it.
   const poseRef = useRef<WalkPose>({
     position: initial
-      ? [initial.position[0], initial.position[1] + 1.6, initial.position[2]]
-      : [0, 1.6, 0],
+      ? [initial.position[0], eyeHeightFor(initial, floors), initial.position[2]]
+      : [0, EYE_HEIGHT_M, 0],
     yaw: initial?.headingY ?? 0,
     pitch: 0,
   });

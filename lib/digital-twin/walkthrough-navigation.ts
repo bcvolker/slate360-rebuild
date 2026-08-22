@@ -187,12 +187,17 @@ export function poseForMode(
   }
   // Dollhouse: back off along the current yaw so the pull-back reads as a
   // continuation of where the user was already facing.
+  //
+  // The sign matters and is easy to get backwards. A camera at yaw looks along
+  // (-sin yaw, 0, -cos yaw), so to end up looking AT the centre it must be
+  // placed on the +(sin, cos) side of it. Subtracting instead puts the room
+  // behind the camera and frames empty space.
   const back = spread * 0.9;
   return {
     position: [
-      cx - Math.sin(currentYaw) * back,
+      cx + Math.sin(currentYaw) * back,
       baseY + spread * 0.75,
-      cz - Math.cos(currentYaw) * back,
+      cz + Math.cos(currentYaw) * back,
     ],
     yaw: currentYaw,
     pitch: DOLLHOUSE_PITCH,
