@@ -97,13 +97,23 @@ def test_near_beats_far():
     assert view_quality(near, [0], xf)[0] > view_quality(far, [0], xf)[0]
 
 
-def test_quality_stays_in_range_and_back_facing_is_zero():
+def test_quality_stays_in_range():
     xf = _camera_at(3.0)
-    for normal in ([0, 0, 1], [1, 0, 0], [0, 1, 0], [0.3, 0.3, 0.9]):
+    for normal in ([0, 0, 1], [1, 0, 0], [0, 1, 0], [0.3, 0.3, 0.9], [0, 0, -1]):
         q = view_quality(_Mesh([[0, 0, 0]], [normal]), [0], xf)[0]
         assert 0.0 <= q <= 1.0
-    # Normal pointing away from the camera must contribute nothing.
-    assert view_quality(_Mesh([[0, 0, 0]], [[0, 0, -1]]), [0], xf)[0] == 0.0
+
+
+def test_a_flipped_normal_scores_the_same_as_a_correct_one():
+    """TSDF normals come back inconsistently oriented. On the kitchen, floor
+    vertices with DOWN-pointing normals were 84.6% untextured against 12.5% for
+    correctly-oriented ones — solely because a clamped dot product scored them
+    zero. Visibility is settled by the occlusion raycast, so only |cos| matters."""
+    xf = _camera_at(3.0)
+    up = view_quality(_Mesh([[0, 0, 0]], [[0, 0, 1]]), [0], xf)[0]
+    down = view_quality(_Mesh([[0, 0, 0]], [[0, 0, -1]]), [0], xf)[0]
+    assert down == pytest.approx(up)
+    assert up > 0.0
 
 
 def test_quality_degenerates_to_zero_rather_than_raising():
