@@ -282,7 +282,7 @@ gpu_image = (
         "floorplan", "openings",
         "operator_mask",
         "bake",
-        "interior_mesh",
+        "interior_mesh", "mesh_dollhouse", "interior_track",
     )
 )
 
@@ -3247,6 +3247,9 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
     poses_data: dict[str, Any] | None = None
     video_start_times: dict[int, float] = {}
     depth_evidence_stats: dict[str, Any] = {}
+    # Bound unconditionally: the interior track below reads it, and a depth-only
+    # job would otherwise hit a NameError instead of skipping cleanly.
+    poses_prefetch_path: Path | None = None
     if job.lidar_poses_key:
         try:
             poses_prefetch_path = source_dir / "_lidar_poses_prefetch.json"
@@ -3258,6 +3261,11 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
         except Exception as poses_exc:  # noqa: BLE001
             print(f"[scale-recovery] poses prefetch failed (non-fatal): {type(poses_exc).__name__}: {poses_exc}")
             poses_data = None
+    # Safe at module scope: interior_track imports only stdlib up front and
+    # defers numpy/open3d into its functions.
+    import interior_track as interior_track_mod
+
+    interior_track_stats: dict[str, Any] = {"enabled": False}
     if job.lidar_depth_key:
         try:
             depth_path = source_dir / "_lidar_depth.s360depth"
@@ -3270,6 +3278,51 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
                 "validationError": f"{type(depth_exc).__name__}: {depth_exc}",
             }
             print(f"[depth-evidence] validation failed (non-fatal): {depth_evidence_stats['validationError']}")
+
+        # M3 — the interior mesh track. Runs here, before training, because it is
+        # CPU-only and finishes in minutes: the measurable deliverable ships the
+        # day of the scan and survives a training run that later fails.
+        # Wholly non-fatal — a missing mesh must never fail a good splat job.
+        if poses_prefetch_path is not None and poses_prefetch_path.is_file():
+            try:
+                post_progress(job.job_id, "align", 18)
+                reference_diagonal: float | None = None
+                if job.lidar_ply_key:
+                    try:
+                        mesh_ref_ply = source_dir / "_interior_reference.ply"
+                        s3.download_file(bucket, job.lidar_ply_key, str(mesh_ref_ply))
+                        maybe_gunzip(mesh_ref_ply)
+                        reference_diagonal = _ply_extent_diagonal(mesh_ref_ply)
+                    except Exception as ref_exc:  # noqa: BLE001
+                        print(f"[interior-track] reference PLY unavailable: {ref_exc}")
+
+                interior_track_stats = interior_track_mod.run_interior_track(
+                    depth_path,
+                    poses_prefetch_path,
+                    work_root / "interior",
+                    reference_diagonal=reference_diagonal,
+                )
+                print(f"[interior-track] {json.dumps(interior_track_mod.summarize_for_callback(interior_track_stats))}")
+
+                for label, written in (interior_track_stats.get("files") or {}).items():
+                    for ext, local in written.items():
+                        if ext == "glbError" or not Path(local).is_file():
+                            continue
+                        mesh_key = (
+                            f"orgs/{job.org_id}/digital-twin/{job.space_id}"
+                            f"/models/{job.job_id}.{label}.{ext}"
+                        )
+                        s3.upload_file(
+                            local, bucket, mesh_key,
+                            ExtraArgs={
+                                "ContentType": "model/gltf-binary" if ext == "glb" else "application/octet-stream",
+                                "CacheControl": "public, max-age=31536000, immutable",
+                            },
+                        )
+                        interior_track_stats.setdefault("keys", {})[f"{label}_{ext}"] = mesh_key
+            except Exception as mesh_exc:  # noqa: BLE001
+                interior_track_stats = {"enabled": True, "skipped": f"{type(mesh_exc).__name__}: {mesh_exc}"}
+                print(f"[interior-track] failed (non-fatal): {interior_track_stats['skipped']}")
 
     ingest_stats = materialize_images(
         source_dir, images_dir, job.source_keys, effective_360_flags,
@@ -3780,6 +3833,9 @@ def run_pipeline(job: JobInput, work_root: Path) -> dict[str, Any]:
             "sharpFrameSelection": ingest_stats.get("sharpFrameSelection") or bypass_stats.get("sharpFrameSelection"),
             "gravityDataAvailable": bool(job.lidar_poses_key),
             "depthEvidence": depth_evidence_stats or None,
+            # M3 — interior mesh track (TSDF geometry, independent of training).
+            "interiorMesh": interior_track_mod.summarize_for_callback(interior_track_stats),
+            "interiorMeshKeys": interior_track_stats.get("keys") or None,
             # Q1 (metric scale) + Q2 (measured-gravity orientation) — both
             # derived from the same ARKit<->COLMAP correspondence.
             "scaleFactor": scale_info.get("scaleFactor"),
