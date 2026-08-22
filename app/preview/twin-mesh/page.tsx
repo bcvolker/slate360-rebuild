@@ -47,7 +47,7 @@ export default async function TwinMeshPreviewPage({
   if (!walk) notFound();
 
   return (
-    <main className="h-dvh w-full bg-[var(--background)] p-3">
+    <main className="h-dvh w-full bg-[var(--graphite-canvas)] p-3">
       <MeshTwinViewerClient
         meshUrl={`/preview/twin-mesh/asset?label=${encodeURIComponent(label)}&kind=dollhouse.ply`}
         stations={(walk.stations as never) ?? []}

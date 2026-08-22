@@ -220,9 +220,17 @@ export function MeshTwinViewer({
           dragRef.current = null;
         }}
       >
-        <Canvas camera={{ fov: 75, near: 0.05, far: 200 }} dpr={[1, 2]}>
-          <hemisphereLight intensity={0.9} groundColor={cssColor("--background", MESH_GROUND_FALLBACK)} />
-          <directionalLight position={[6, 12, 6]} intensity={1.1} />
+        <Canvas
+          camera={{ fov: 75, near: 0.05, far: 200 }}
+          dpr={[1, 2]}
+          // Graphite canvas, not the page default. On white, an unscanned hole
+          // reads as missing paint on a wall; on the dark canvas it reads as a
+          // hole, which is what it is.
+          onCreated={({ gl }) => gl.setClearColor(cssColor("--graphite-canvas", MESH_GROUND_FALLBACK), 1)}
+        >
+          {/* Flat, bright ambient: vertex colours ARE the albedo, so directional
+              shading would only wash the captured detail out. */}
+          <ambientLight intensity={2.2} />
           <Suspense fallback={null}>
             <MeshBody url={meshUrl} />
           </Suspense>

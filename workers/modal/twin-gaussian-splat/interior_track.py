@@ -173,6 +173,34 @@ def run_interior_track(
         except Exception as exc:  # noqa: BLE001
             stats["floorplan"] = {"skipped": f"{type(exc).__name__}: {exc}"}
 
+    # --- 4a. Projective texturing (M7-A) -----------------------------------
+    # The TSDF baked colour per VOXEL from depth-resolution images. Here we
+    # resample the surface from the FULL-RESOLUTION frames with occlusion
+    # testing, which is what turns blotchy voxel averages into real detail.
+    try:
+        import mesh_texture as mt
+
+        frames: list[dict[str, Any]] = []
+        pose_by_index = {i: f for i, f in enumerate(im.load_pose_frames(poses))}
+        for rec in im.iter_depth_records(depth):
+            pose = pose_by_index.get(rec["index"])
+            if pose is None or not rec.get("rgb_jpeg"):
+                continue
+            frames.append({
+                "jpeg": rec["rgb_jpeg"],
+                "transform": pose["transform_4x4"],
+                # Intrinsics are stored at RGB resolution, which is exactly the
+                # resolution we are now sampling — no rescaling needed.
+                "intrinsics": pose["intrinsics"],
+            })
+        if frames:
+            dollhouse, tex_stats = mt.bake_vertex_colors(dollhouse, frames)
+            stats["texture"] = tex_stats
+        else:
+            stats["texture"] = {"skipped": "no_posed_rgb_frames"}
+    except Exception as exc:  # noqa: BLE001
+        stats["texture"] = {"skipped": f"{type(exc).__name__}: {exc}"}
+
     # --- 4b. Accuracy evidence (ACC-1) -------------------------------------
     # Measured on the RAW fused mesh, not the dollhouse: the dollhouse has had
     # its ceiling removed, so every ceiling point in the reference cloud would
@@ -228,6 +256,11 @@ def summarize_for_callback(stats: dict[str, Any]) -> dict[str, Any]:
         "extentDiagonal": stats.get("extentDiagonal"),
         "pairsIntegrated": (stats.get("tsdf") or {}).get("pairsIntegrated"),
         "colorIntegrated": (stats.get("tsdf") or {}).get("colorIntegrated"),
+        "textureFramesUsed": (stats.get("texture") or {}).get("framesUsed"),
+        "verticesColored": (stats.get("texture") or {}).get("verticesColored"),
+        "verticesUncolored": (stats.get("texture") or {}).get("verticesUncolored"),
+        "meanViewsPerVertex": (stats.get("texture") or {}).get("meanViewsPerVertex"),
+        "textureSkipped": (stats.get("texture") or {}).get("skipped"),
         "rgbFramesAvailable": (stats.get("tsdf") or {}).get("rgbFramesAvailable"),
         "rgbFramesDecoded": (stats.get("tsdf") or {}).get("rgbFramesDecoded"),
         "ceilingCut": detect.get("ceiling_y") is not None,
