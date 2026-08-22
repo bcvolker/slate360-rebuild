@@ -42,9 +42,10 @@ rooms are different problems, and Delaunay is correct there.
 | **M1** | S360DEPTH1 parser + pose pairing + intrinsic/extrinsic math | **DONE** (`3153e0f8`) | 123 records paired 1:1; unprojection reproduces 10.97 m; 9 tests |
 | **M2** | TSDF integration → mesh, component filtering | **DONE** (code) | needs a real run on Modal (Open3D not installable locally) |
 | **M3** | Wire into the job; run the kitchen capture end to end | **NEXT** | mesh extent ≥ 0.7 × LiDAR extent; passes COVERAGE-1 |
-| **M4** | Dollhouse post: floor/ceiling RANSAC, Manhattan wall snap, planar hole fill, decimate to ~250k | not started | ceiling cut yields a top-down view with flat walls |
+| **M4** | Dollhouse post: floor/ceiling RANSAC, Manhattan wall snap, decimate to ~250k | **DONE (code)** (`7d40ceb7`) | 12 tests; 7 Open3D-gated ones run on Modal with M3. Planar hole fill deferred to M7 |
 | **M5** | Floor plan + area take-off surfaced client-side (existing `floorplan.py` / `openings.py` run on the MESH, not the splat) | not started | net wall area within 5% of tape on one real wall |
-| **M6** | **Viewer rebuild — Matterport-style navigation** | not started | click-to-move between positions; dollhouse/floor-plan/inside modes; floor selector; measurement on mesh |
+| **M6a** | Navigation logic + control bar — click-to-move, three modes, floor selector | **DONE (code)** (`7d40ceb7`) | 26 tests; all four gates pass |
+| **M6b** | Wire into `SplatViewer`, delete orbit/WASD, derive stations from poses | not started | click-to-move works on the kitchen twin on a real phone |
 | **M7** | Appearance layer: texture the mesh and/or align the splat to mesh geometry | not started | no ghost operator; walls read as surfaces not fuzz |
 | **M8** | Zone splitting for large buildings (>~1,500 views exceeds the 2 h job ceiling) | not started | a warehouse processes as N zones stitched in one frame |
 | **MASK-2** | Replace AGPL Ultralytics with Mask R-CNN / SAM 2 | not started | no AGPL in the image SBOM |
@@ -75,6 +76,121 @@ Sell the measurable deliverable same-day, the walkthrough overnight.
 3. Optional 360 stills every 3–5 m **while walking the route** — texture and pose anchors,
    never a station grid (that is the AOB205 zero-baseline failure).
 4. Scale reference when no LiDAR: one tape-measured wall, or an architectural drawing.
+
+## Progress
+
+Counting M4 and M6a as landed: **~45%** of the interior twin track.
+
+The remaining 55% is unevenly distributed. M3 is the only slice standing between
+"code that passes tests" and "a model Brian can look at" — everything from M1 to M6a is
+written but has never run on a real capture end to end. M7 (appearance) and M8 (zoning)
+are the genuinely large pieces left.
+
+| band | slices | state |
+|---|---|---|
+| Geometry | G0 · M1 · M2 · M4 | code complete, unproven on a real run |
+| Wiring | **M3** | the gate everything else waits behind |
+| Client surfaces | M5 · M6b | short, once M3 proves geometry |
+| Hard remainder | M7 · M8 · MASK-2 | not started |
+
+**Nearest honest date for a clean model:** M3 is one working session. Once it runs, the
+kitchen either passes COVERAGE-1 (≥ 0.7 × the 13.71 m LiDAR diagonal) or it does not, and
+that single number decides whether the depth-first ruling was right. Nothing downstream is
+worth building until it does.
+
+## Product architecture — what the twin becomes
+
+Locked here so it is not re-litigated. None of this is scheduled; it is the shape the
+geometry work is deliberately making possible.
+
+### Cropping
+
+Two different operations that must not be conflated:
+
+- **Automatic** — the ceiling cut (M4) and COVERAGE-1 (G0). No user involvement.
+- **Manual** — the box/lasso crop that already exists in `lib/digital-twin/splat-edit-runtime.ts`,
+  applied as a *non-destructive edit list* on the stored model. That distinction is the whole
+  design: the client's crop is a saved view, the master model is never cut. Same mechanism
+  extends to a per-floor crop and a per-room crop with no new storage model.
+
+The blob problem was never solved by cropping. It was solved by replacing the geometry
+source. Cropping is a presentation tool, not a repair tool.
+
+### Floors and levels
+
+Floors come out of the geometry, not out of a form: M4's RANSAC returns floor and ceiling
+planes per storey, and station Y clusters around them. `FloorInfo[]` is populated from that,
+with the operator able to rename "Level 2" to "Mezzanine".
+
+**Dropdown, not icons.** Icons work for 3–4 floors and fall apart at 12; a dropdown is
+uniform at any building height, and it is what Matterport settled on. The control bar
+already renders it only when `floors.length > 1`, so a single-storey house shows no floor UI
+at all. Vertical movement is by *selecting a floor*, never by flying — stairwell imagery is
+usually the worst in a capture.
+
+### Mobile
+
+Designed for the phone first, because that is where a superintendent opens a link on a job
+site. Concretely: 44 px minimum targets, `env(safe-area-inset-bottom)` respected, mode labels
+collapse to icons under `sm`, and the whole interaction model is one-finger (tap to move,
+drag to look) with no gesture requiring two hands. The 250k-triangle decimation target in M4
+is a mobile GPU budget, not an aesthetic one.
+
+### Twin-as-focal-point project management
+
+This is the actual product thesis: the twin is not a deliverable filed in a folder, it is the
+*index* into the project. The pieces already in the codebase:
+
+- **Pin attachment kinds** already include `document`, `image`, `panorama_360`, `thermal`,
+  `link`, and `proposal`/`invoice`. Invoices, RFIs, submittals and POs are new *types* on an
+  existing schema — not a new subsystem. That is the cheapest item on this whole list.
+- **Version history and progression compare** already exist for models.
+- **SlateDrop** already auto-provisions per-project folders, so a pinned submittal is a real
+  file in the project's file system, not an orphan blob.
+
+What is missing is the *spatial* half: a pin's position must survive re-scanning. A pin
+dropped on a wall in the March scan has to still be on that wall in the June scan. That
+needs scan-to-scan registration — which the TSDF mesh makes tractable (align geometry to
+geometry) and which photogrammetry never would have.
+
+### Progression and historical access
+
+Scans of the same site become a **timeline on one space**, not four unrelated models. Given
+registration, the client gets a date slider and a side-by-side compare. This is the single
+highest-value feature for the service business — a contractor paying for monthly scans is
+buying the *diff*, not the model.
+
+### Overlays for in-wall / floor / ceiling detail
+
+An overlay is a second geometry layer registered to the twin and toggled per-discipline
+(structural, mechanical, electrical, plumbing). The mechanism is the same one the pin
+positions need. The value case is obvious and correct: the pre-drywall scan *is* the
+as-built record of what is inside the wall, and it is worth more after drywall than before.
+
+### Comparison against permitted drawings
+
+Brian's scenario — contractor uploads the permitted set, scan two months in, check that
+everything is in the correct place and complete — is the killer application, and it is also
+the hardest thing on this page. It requires:
+
+1. A metrically correct scan. **This is what the depth-first pivot buys.** Comparison against
+   drawings is meaningless on a model with a 24% coverage ratio, which is exactly why this
+   was not attempted on the splat pipeline.
+2. Drawing-to-twin alignment — 2D plan georeferenced into the twin's coordinate frame.
+   Semi-automatic at best; assume the operator picks 3 corresponding points.
+3. Deviation measurement and tolerance thresholds.
+
+**Liability line, non-negotiable:** the output is *"this wall is 90 mm from where the drawing
+places it"* — a measurement with a stated method and tolerance. It is never *"this is
+non-compliant"* or *"this passes inspection."* Brian is not the Engineer of Record and the
+deliverable must not read as though he is. Same rule already locked for thermal reports.
+
+### Clash detection
+
+Deliberately last. Real clash detection is a BIM-model-versus-BIM-model operation; what a
+scan supports is **as-built versus design-intent**, which is a different and more defensible
+claim. Worth building only after registration, overlays, and drawing comparison exist — it is
+a consequence of them, not a separate feature.
 
 ## Standing rules
 
