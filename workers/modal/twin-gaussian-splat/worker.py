@@ -3931,6 +3931,76 @@ def process_job(payload: dict[str, Any]) -> None:
         shutil.rmtree(work_root, ignore_errors=True)
 
 
+@app.function(image=gpu_image, timeout=1800, secrets=[worker_secret], retries=0)
+def interior_only(payload: dict[str, Any]) -> dict[str, Any]:
+    """M3 — run ONLY the interior mesh track on an existing capture's assets.
+
+    No COLMAP, no training, no GPU work: this is TSDF fusion plus the dollhouse
+    post-process, which is exactly the CPU-only half of the pipeline. It exists
+    so geometry can be re-run — after a parameter change, or to answer a
+    coverage question — without paying for a reconstruction that would be
+    unchanged. It writes the same R2 artefacts as the in-job track.
+
+    Returns the summary rather than posting a callback: the caller is an
+    operator or a diagnostic, not the job state machine, so nothing here may
+    move a job row.
+    """
+    import tempfile
+
+    s3 = s3_client()
+    bucket = os.environ["R2_BUCKET"]
+    org_id = str(payload.get("orgId") or "")
+    space_id = str(payload.get("spaceId") or "")
+    label = str(payload.get("label") or "interior")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        depth_path = root / "depth.s360depth"
+        poses_path = root / "poses.json"
+        s3.download_file(bucket, str(payload["depthKey"]), str(depth_path))
+        s3.download_file(bucket, str(payload["posesKey"]), str(poses_path))
+        maybe_gunzip(poses_path)
+
+        reference_diagonal: float | None = None
+        if payload.get("plyKey"):
+            try:
+                ref = root / "reference.ply"
+                s3.download_file(bucket, str(payload["plyKey"]), str(ref))
+                maybe_gunzip(ref)
+                reference_diagonal = _ply_extent_diagonal(ref)
+            except Exception as exc:  # noqa: BLE001
+                print(f"[interior-only] reference PLY unavailable: {exc}")
+
+        import interior_track as it
+
+        stats = it.run_interior_track(
+            depth_path, poses_path, root / "out", reference_diagonal=reference_diagonal
+        )
+        print(f"[interior-only] {json.dumps(it.summarize_for_callback(stats))}")
+
+        keys: dict[str, str] = {}
+        if org_id and space_id:
+            for group, written in (stats.get("files") or {}).items():
+                for ext, local in written.items():
+                    if ext == "glbError" or not Path(local).is_file():
+                        continue
+                    key = f"orgs/{org_id}/digital-twin/{space_id}/models/{label}.{group}.{ext}"
+                    s3.upload_file(
+                        local, bucket, key,
+                        ExtraArgs={
+                            "ContentType": "model/gltf-binary" if ext == "glb" else "application/octet-stream",
+                            "CacheControl": "public, max-age=31536000, immutable",
+                        },
+                    )
+                    keys[f"{group}_{ext}"] = key
+
+    summary = it.summarize_for_callback(stats)
+    summary["keys"] = keys
+    summary["coverage"] = stats.get("coverage")
+    summary["dollhouse"] = stats.get("dollhouse")
+    return summary
+
+
 @app.function(image=gpu_image, timeout=900, secrets=[worker_secret], retries=0)
 def bake_model(payload: dict[str, Any]) -> None:
     """E1 — bake a model's edit_list into a sibling .spz (see bake.py).
@@ -4066,6 +4136,22 @@ def reconstruct(body: dict[str, Any], x_dispatch_token: str = Header(default="")
 
     if not isinstance(body, dict):
         return JSONResponse(status_code=400, content={"error": "JSON object required"})
+
+    # M3 — interior-only dispatch. CPU-only geometry re-run, no job row touched.
+    if body.get("action") == "interior":
+        if not body.get("depthKey") or not body.get("posesKey"):
+            return JSONResponse(
+                status_code=400, content={"error": "depthKey and posesKey are required"}
+            )
+        try:
+            fc = interior_only.spawn(body)
+        except Exception as exc:  # noqa: BLE001
+            return JSONResponse(status_code=500, content={"error": f"Failed to enqueue interior: {exc}"})
+        return JSONResponse(
+            status_code=200,
+            content={"accepted": True, "callId": fc.object_id},
+            headers={"x-modal-run-id": fc.object_id},
+        )
 
     # E1 — bake dispatch rides the same authenticated endpoint.
     if body.get("action") == "bake":
