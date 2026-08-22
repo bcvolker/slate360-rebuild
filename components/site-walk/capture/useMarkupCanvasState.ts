@@ -3,7 +3,7 @@ import type { MarkupData, MarkupShape } from "@/lib/site-walk/markup-types";
 import { VECTOR_TOOL_EVENT, type VectorTool } from "./UnifiedVectorToolbar";
 import { buildShape, buildText, findShapeAtPoint, MARKUP_HEIGHT, MARKUP_WIDTH, moveShape, type DraftPoint, type PointerPoint, type Transform } from "./markupCanvasGeometry";
 import { recolorShape, resizeShapeFromHandle, setShapeStrokeWidth, type ResizeHandle } from "./markupShapeEdits";
-import { applyWheelZoom, beginPinch, computePanTransform, computePinchScale, reanchorPan, type PanAnchor, type PinchAnchor } from "./markupPanTransform";
+import { applyWheelZoom, beginPinch, clampTransformToStage, computePanTransform, computePinchScale, reanchorPan, type PanAnchor, type PinchAnchor } from "./markupPanTransform";
 
 export type DraftPin = { xPct: number; yPct: number } | null;
 
@@ -94,7 +94,7 @@ export function useMarkupCanvasState({ imageUrl, markupEnabled, initialMarkup, o
   }
 
   function updateTransform(nextTransform: Transform | ((current: Transform) => Transform)) {
-    const resolved = typeof nextTransform === "function" ? nextTransform(transformRef.current) : nextTransform;
+    const resolved = clampTransformToStage(typeof nextTransform === "function" ? nextTransform(transformRef.current) : nextTransform, stageRef.current?.getBoundingClientRect());
     transformRef.current = resolved; setTransform(resolved);
   }
 
@@ -179,7 +179,7 @@ export function useMarkupCanvasState({ imageUrl, markupEnabled, initialMarkup, o
 
   function processPointerMove(move: PendingMove) {
     if (pointersRef.current.size === 2 && pinchRef.current) {
-      const scale = computePinchScale(pointersRef.current, pinchRef.current);
+      const scale = computePinchScale(pointersRef.current, pinchRef.current, 1);
       updateTransform((current) => ({ ...current, scale }));
       return;
     }

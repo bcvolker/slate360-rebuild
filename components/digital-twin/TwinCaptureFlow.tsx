@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Capacitor } from "@capacitor/core";
 import { IconLoader2 } from "@tabler/icons-react";
-import { isNativeTwinCaptureAvailable } from "@/src/plugins/LiDARCapture";
+import { probeNativeTwinCapture, type NativeCaptureProbe } from "@/src/plugins/LiDARCapture";
 import { TwinNativeCaptureLauncher } from "./TwinNativeCaptureLauncher";
 import { TwinCaptureScreen, type TwinCaptureFinishResult } from "./TwinCaptureScreen";
 import { formatQuickScanSpaceTitle } from "@/lib/digital-twin/quick-scan-title";
@@ -47,6 +47,10 @@ export function TwinCaptureFlow({
   const [nativeLidar, setNativeLidar] = useState<boolean | null>(
     Capacitor.getPlatform() === "ios" ? null : false,
   );
+  const [probe, setProbe] = useState<NativeCaptureProbe | null>(null);
+  // Explicit opt-in to the no-LiDAR web recorder. Previously the app dropped to
+  // it silently, so a "LiDAR scan" could return a lone .mp4 with no point cloud.
+  const [acceptedNoLidar, setAcceptedNoLidar] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -89,8 +93,10 @@ export function TwinCaptureFlow({
   useEffect(() => {
     if (nativeLidar !== null) return;
     let cancelled = false;
-    void isNativeTwinCaptureAvailable().then((available) => {
-      if (!cancelled) setNativeLidar(available);
+    void probeNativeTwinCapture().then((result) => {
+      if (cancelled) return;
+      setProbe(result);
+      setNativeLidar(result.nativeCapture);
     });
     return () => {
       cancelled = true;
@@ -180,6 +186,14 @@ export function TwinCaptureFlow({
     );
   }
 
+  // No silent downgrade: if native LiDAR capture is unavailable, say so, show which
+  // build is installed, and make continuing without LiDAR a deliberate choice.
+  if (!acceptedNoLidar) {
+    return (
+      <NoLidarNotice probe={probe} onContinue={() => setAcceptedNoLidar(true)} onCancel={handleCancel} />
+    );
+  }
+
   return (
     <TwinCaptureScreen
       projectName={projectName}
@@ -188,6 +202,62 @@ export function TwinCaptureFlow({
       onFinish={handleCaptureFinish}
       debug={debugCapture}
     />
+  );
+}
+
+const REASON_COPY: Record<NativeCaptureProbe["reason"], { title: string; body: string }> = {
+  ok: { title: "", body: "" },
+  not_native_app: {
+    title: "Not running in the Slate360 app",
+    body: "LiDAR capture needs the installed iOS app. This looks like a browser tab or a different app — open Slate360 from your home screen and try again.",
+  },
+  no_lidar_device: {
+    title: "This device has no LiDAR",
+    body: "Scanning depth needs an iPhone Pro / Pro Max (12 Pro or newer). Video will still record, but no point cloud or measurements can be produced.",
+  },
+  old_build: {
+    title: "Installed build is too old for LiDAR capture",
+    body: "Update to the latest TestFlight build, then reopen this screen.",
+  },
+};
+
+function NoLidarNotice({
+  probe,
+  onContinue,
+  onCancel,
+}: {
+  probe: NativeCaptureProbe | null;
+  onContinue: () => void;
+  onCancel: () => void;
+}) {
+  const copy = REASON_COPY[probe?.reason ?? "not_native_app"];
+  return (
+    <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 px-6 py-8 text-center">
+      <p className="text-base font-semibold text-[var(--graphite-text-header)]">{copy.title}</p>
+      <p className="max-w-sm text-sm leading-relaxed text-[var(--graphite-muted)]">{copy.body}</p>
+      <p className="max-w-sm text-xs leading-relaxed text-[var(--graphite-muted)]">
+        Continuing records <strong>video only</strong> — no depth, no scale, and no measurements.
+      </p>
+      <div className="flex flex-col items-stretch gap-2 pt-2">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="min-h-12 rounded-xl bg-[var(--twin360-blue)] px-5 text-sm font-bold text-[var(--graphite-canvas)]"
+        >
+          Go back
+        </button>
+        <button
+          type="button"
+          onClick={onContinue}
+          className="min-h-12 rounded-xl border border-white/10 px-5 text-sm font-semibold text-[var(--graphite-text-body)]"
+        >
+          Record video without LiDAR
+        </button>
+      </div>
+      <p className="pt-2 font-mono text-[10px] uppercase tracking-wide text-[var(--graphite-muted)]">
+        build {probe?.buildNumber ?? "?"} · {probe?.buildCommit ?? "unknown"}
+      </p>
+    </div>
   );
 }
 

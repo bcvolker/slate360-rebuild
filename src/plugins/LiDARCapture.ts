@@ -70,7 +70,14 @@ export interface LiDARUploadPhaseEvent {
 }
 
 export interface LiDARCapturePlugin {
-  isAvailable(): Promise<{ available: boolean; nativeCapture?: boolean }>;
+  isAvailable(): Promise<{
+    available: boolean;
+    nativeCapture?: boolean;
+    /** Short git SHA of the installed native build (Info.plist SlateBuildCommit). */
+    buildCommit?: string;
+    /** CFBundleVersion of the installed build — the number TestFlight shows. */
+    buildNumber?: string;
+  }>;
   /**
    * Native-led Twin capture: presents a full-screen ARKit capture screen that owns the camera
    * and records video + LiDAR depth + poses in one pass. Resolves with the capture manifest
@@ -111,10 +118,40 @@ export async function isLiDARAvailable(): Promise<boolean> {
  *  AND the device has LiDAR. Older installed builds (no `nativeCapture` flag) return false,
  *  so the web getUserMedia path keeps working until the new build is installed. */
 export async function isNativeTwinCaptureAvailable(): Promise<boolean> {
+  return (await probeNativeTwinCapture()).nativeCapture;
+}
+
+export type NativeCaptureProbe = {
+  /** True only when this build can run the native ARKit + LiDAR capture. */
+  nativeCapture: boolean;
+  /** Why native is unavailable — shown to the operator instead of a silent fallback. */
+  reason: "ok" | "not_native_app" | "no_lidar_device" | "old_build";
+  buildCommit: string | null;
+  buildNumber: string | null;
+};
+
+/**
+ * Full probe, not just a boolean. The capture flow used to fall back to the web
+ * getUserMedia recorder SILENTLY whenever this returned false — which is how a
+ * "LiDAR scan" produced a lone .mp4 with no point cloud, three separate times.
+ * The operator now sees which build is installed and why native was refused.
+ */
+export async function probeNativeTwinCapture(): Promise<NativeCaptureProbe> {
   try {
-    const result = await LiDARCapture.isAvailable();
-    return result.available === true && result.nativeCapture === true;
+    const r = await LiDARCapture.isAvailable();
+    const buildCommit = r.buildCommit ?? null;
+    const buildNumber = r.buildNumber ?? null;
+    if (r.available === true && r.nativeCapture === true) {
+      return { nativeCapture: true, reason: "ok", buildCommit, buildNumber };
+    }
+    // Reached the native plugin, so this IS the app — distinguish a device
+    // without LiDAR from an installed build that predates native capture.
+    if (r.available !== true) {
+      return { nativeCapture: false, reason: "no_lidar_device", buildCommit, buildNumber };
+    }
+    return { nativeCapture: false, reason: "old_build", buildCommit, buildNumber };
   } catch {
-    return false;
+    // The plugin isn't there at all: a browser tab, or a non-Capacitor shell.
+    return { nativeCapture: false, reason: "not_native_app", buildCommit: null, buildNumber: null };
   }
 }

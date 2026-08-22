@@ -3,7 +3,7 @@ import type { MarkupData, MarkupShape } from "@/lib/site-walk/markup-types";
 import { VECTOR_TOOL_EVENT, type VectorTool } from "@/components/site-walk/capture/UnifiedVectorToolbar";
 import { buildShape, buildText, findShapeAtPoint, MARKUP_HEIGHT, MARKUP_WIDTH, moveShape, type DraftPoint, type PointerPoint, type Transform } from "@/components/site-walk/capture/markupCanvasGeometry";
 import { resizeShapeFromHandle, type ResizeHandle } from "@/components/site-walk/capture/markupShapeEdits";
-import { applyWheelZoom, beginPinch, computePanTransform, computePinchTransform, reanchorPan, type PanAnchor, type PinchAnchor } from "@/components/site-walk/capture/markupPanTransform";
+import { applyWheelZoom, beginPinch, clampTransformToStage, computePanTransform, computePinchTransform, reanchorPan, type PanAnchor, type PinchAnchor } from "@/components/site-walk/capture/markupPanTransform";
 import { readCaptureMarkupColor } from "./capture-canvas-markup-colors";
 import { createMarkupMutations } from "./capture-v2-markup-mutations";
 import { applyDoubleTapZoom, createDoubleTapTracker, isDoubleTap } from "./capture-v2-double-tap";
@@ -236,9 +236,9 @@ export function useCaptureV2PhotoCanvasState({
   }
 
   function clampTransform(next: Transform): Transform {
-    const scale = Math.min(4, Math.max(1, next.scale));
-    if (scale <= 1.001) return { x: 0, y: 0, scale: 1 };
-    return { ...next, scale };
+    // Clamps translation as well as scale — a scale-only clamp still let the
+    // photo be dragged off the stage, exposing black background behind it.
+    return clampTransformToStage(next, stageRef.current?.getBoundingClientRect());
   }
 
   function processPointerMove(move: PendingMove) {
@@ -247,7 +247,7 @@ export function useCaptureV2PhotoCanvasState({
       return;
     }
     if (canPanGesture() && panRef.current) {
-      updateTransform(computePanTransform(panRef.current, move.clientX, move.clientY));
+      updateTransform(clampTransform(computePanTransform(panRef.current, move.clientX, move.clientY)));
       if (!markupEnabled) return;
     }
     if (!markupEnabled) return;
