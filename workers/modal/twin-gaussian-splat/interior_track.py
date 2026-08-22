@@ -157,7 +157,22 @@ def run_interior_track(
         stats["dollhouse"] = {"skipped": f"{type(exc).__name__}: {exc}"}
         dollhouse = mesh
 
-    # --- 4. Artefacts -------------------------------------------------------
+    # --- 4. Floor plan + area take-off (M5) --------------------------------
+    # Runs on the DOLLHOUSE, whose ceiling is already gone, and uses the floor
+    # and ceiling planes M4 measured rather than re-detecting them.
+    detect = (stats.get("dollhouse") or {}).get("detect_horizontal_planes") or {}
+    floor_y, ceiling_y = detect.get("floor_y"), detect.get("ceiling_y")
+    if floor_y is None or ceiling_y is None:
+        stats["floorplan"] = {"skipped": "no_floor_ceiling_pair"}
+    else:
+        try:
+            import mesh_floorplan as mf
+
+            stats["floorplan"] = mf.build_floorplan(dollhouse, float(floor_y), float(ceiling_y))
+        except Exception as exc:  # noqa: BLE001
+            stats["floorplan"] = {"skipped": f"{type(exc).__name__}: {exc}"}
+
+    # --- 5. Artefacts -------------------------------------------------------
     stats["files"] = {
         "raw": _write_mesh(mesh, out, "interior_mesh"),
         "dollhouse": _write_mesh(dollhouse, out, "interior_dollhouse"),
@@ -187,4 +202,12 @@ def summarize_for_callback(stats: dict[str, Any]) -> dict[str, Any]:
         "floorY": detect.get("floor_y"),
         "ceilingY": detect.get("ceiling_y"),
         "triangles": (dh.get("decimate") or {}).get("after"),
+        "floorArea": (stats.get("floorplan") or {}).get("floor_area"),
+        "perimeter": (stats.get("floorplan") or {}).get("perimeter"),
+        "netWallArea": (
+            ((stats.get("floorplan") or {}).get("wall_area_takeoff") or {}).get("totals") or {}
+        ).get("net_area"),
+        "unverifiedOpeningArea": (
+            ((stats.get("floorplan") or {}).get("wall_area_takeoff") or {}).get("totals") or {}
+        ).get("unverified_opening_area"),
     }

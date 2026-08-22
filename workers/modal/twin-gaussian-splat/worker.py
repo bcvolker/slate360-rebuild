@@ -283,6 +283,7 @@ gpu_image = (
         "operator_mask",
         "bake",
         "interior_mesh", "mesh_dollhouse", "interior_track",
+        "mesh_floorplan", "mesh_registration", "zone_planner",
     )
 )
 
