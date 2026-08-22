@@ -27,6 +27,9 @@ const PINNED_SPACE = "8604e6dd-24b9-4c22-86df-67c784466b86";
 const ALLOWED_SUFFIXES: Record<string, string> = {
   "dollhouse.glb": "model/gltf-binary",
   "raw.glb": "model/gltf-binary",
+  // PLY carries vertex colours; Open3D's glTF writer silently drops them.
+  "dollhouse.ply": "application/octet-stream",
+  "raw.ply": "application/octet-stream",
   "walk.json": "application/json",
   "floorplan.json": "application/json",
 };

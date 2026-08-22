@@ -210,3 +210,28 @@ def test_snap_walls_does_not_move_already_straight_walls_far():
     if stats["skipped"] is None:
         moved = np.linalg.norm(np.asarray(out.vertices) - before, axis=1)
         assert moved.max() < 0.04   # never drags geometry across the room
+
+
+def test_cut_ceiling_preserves_vertex_colours():
+    """Colour is baked into vertices by the fusion. Building a bare
+    TriangleMesh drops it, which silently un-textured every dollhouse."""
+    o3d = pytest.importorskip("open3d")
+    m = _room_mesh()
+    n = np.asarray(m.vertices).shape[0]
+    m.vertex_colors = o3d.utility.Vector3dVector(np.tile([0.2, 0.6, 0.9], (n, 1)))
+
+    out, stats = cut_ceiling(m, 2.6)
+    assert stats["skipped"] is None
+    colors = np.asarray(out.vertex_colors)
+    assert colors.shape[0] == np.asarray(out.vertices).shape[0]
+    assert colors.shape[0] > 0
+    assert colors[0] == pytest.approx([0.2, 0.6, 0.9], abs=1e-6)
+
+
+def test_build_dollhouse_reports_whether_colour_survived():
+    o3d = pytest.importorskip("open3d")
+    m = _room_mesh()
+    n = np.asarray(m.vertices).shape[0]
+    m.vertex_colors = o3d.utility.Vector3dVector(np.tile([0.5, 0.5, 0.5], (n, 1)))
+    _, stats = build_dollhouse(m)
+    assert stats["has_vertex_colors"] is True

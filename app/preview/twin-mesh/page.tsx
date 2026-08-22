@@ -49,7 +49,7 @@ export default async function TwinMeshPreviewPage({
   return (
     <main className="h-dvh w-full bg-[var(--background)] p-3">
       <MeshTwinViewerClient
-        meshUrl={`/preview/twin-mesh/asset?label=${encodeURIComponent(label)}&kind=dollhouse.glb`}
+        meshUrl={`/preview/twin-mesh/asset?label=${encodeURIComponent(label)}&kind=dollhouse.ply`}
         stations={(walk.stations as never) ?? []}
         floors={(walk.floors as never) ?? []}
         label={label}

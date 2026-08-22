@@ -245,6 +245,15 @@ def cut_ceiling(
     out = o3d.geometry.TriangleMesh()
     out.vertices = o3d.utility.Vector3dVector(verts)
     out.triangles = o3d.utility.Vector3iVector(tris[keep])
+    # Carry per-vertex attributes across. Building a bare TriangleMesh drops
+    # them, and that silently un-textured every dollhouse: the fusion baked
+    # colour into the vertices and this stage threw it away.
+    colors = np.asarray(mesh.vertex_colors)
+    if colors.shape[0] == verts.shape[0]:
+        out.vertex_colors = o3d.utility.Vector3dVector(colors)
+    normals = np.asarray(mesh.vertex_normals)
+    if normals.shape[0] == verts.shape[0]:
+        out.vertex_normals = o3d.utility.Vector3dVector(normals)
     if int(keep.sum()) > 0:
         out.remove_unreferenced_vertices()
     return out, {"skipped": None, "triangles_removed": removed, "cut_y": cut_y}
@@ -367,6 +376,7 @@ def build_dollhouse(mesh: Any, *, target_triangles: int = 250_000) -> tuple[Any,
         diag = float(np.linalg.norm(span))
 
     return done, {
+        "has_vertex_colors": bool(np.asarray(done.vertex_colors).shape[0] == verts.shape[0] and verts.shape[0] > 0),
         "detect_horizontal_planes": detect,
         "cut_ceiling": cut_stats,
         "snap_walls_to_manhattan": snap_stats,

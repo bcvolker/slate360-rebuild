@@ -68,10 +68,13 @@ def iter_depth_records(path: str | Path) -> Iterator[dict[str, Any]]:
                 raise ValueError("S360 depth record dimensions do not match payload")
             depth_raw = handle.read(depth_bytes)
             conf_raw = handle.read(conf_bytes)
-            if rgb_bytes:
-                handle.read(rgb_bytes)
+            rgb_raw = handle.read(rgb_bytes) if rgb_bytes else b""
             if len(depth_raw) != depth_bytes or len(conf_raw) != conf_bytes:
                 raise ValueError("Truncated S360 depth record payload")
+            # The capture writes camera RGB alongside each depth frame, as
+            # JPEG at CAMERA resolution (~1920x1440) — not raw bytes at depth
+            # resolution. Kept encoded here; decoding every frame is the
+            # caller's cost to pay only when it actually wants colour.
             yield {
                 "index": index,
                 "timestamp": float(timestamp),
@@ -79,8 +82,45 @@ def iter_depth_records(path: str | Path) -> Iterator[dict[str, Any]]:
                 "height": int(height),
                 "depth_mm": np.frombuffer(depth_raw, dtype="<u2").reshape(height, width),
                 "confidence": np.frombuffer(conf_raw, dtype=np.uint8).reshape(height, width),
+                "rgb_jpeg": rgb_raw or None,
+                "rgb_bytes": int(rgb_bytes),
             }
             index += 1
+
+
+def decode_rgb_to_depth_grid(jpeg_bytes: bytes | None, width: int, height: int):
+    """Decode a frame's JPEG and resample it to the depth grid.
+
+    The capture stores colour at camera resolution while depth is 256x192, and
+    Open3D's RGBD constructor requires both planes to be the same size. Nearest
+    neighbour is deliberate: this colour is projected onto voxels, so a sharp
+    but slightly aliased sample beats an interpolated one that bleeds a wall's
+    colour onto the window beside it.
+
+    Returns None when the payload is absent or undecodable — colour is a bonus,
+    and a bad JPEG must never cost us the geometry.
+    """
+    if not jpeg_bytes:
+        return None
+    import io
+
+    import numpy as np
+
+    try:
+        from PIL import Image
+
+        with Image.open(io.BytesIO(jpeg_bytes)) as img:
+            arr = np.asarray(img.convert("RGB"), dtype=np.uint8)
+    except Exception:  # noqa: BLE001
+        return None
+    if arr.ndim != 3 or arr.shape[2] != 3 or arr.size == 0:
+        return None
+    src_h, src_w = arr.shape[:2]
+    if (src_h, src_w) == (height, width):
+        return np.ascontiguousarray(arr)
+    rows = np.clip((np.arange(height) * src_h // height), 0, src_h - 1)
+    cols = np.clip((np.arange(width) * src_w // width), 0, src_w - 1)
+    return np.ascontiguousarray(arr[rows][:, cols])
 
 
 def load_pose_frames(path: str | Path) -> list[dict[str, Any]]:
@@ -193,10 +233,21 @@ def build_tsdf_mesh(
             f"{len(frames)} pose frames)"
         )
 
+    # Colour is integrated when the capture carried per-frame RGB. Without it
+    # the mesh renders as bare grey geometry, which is exactly how every model
+    # looked until the parser stopped discarding the RGB payload.
+    has_rgb = any(r.get("rgb_jpeg") for r, _ in pairs)
+    stats["colorIntegrated"] = bool(has_rgb)
+    stats["rgbFramesAvailable"] = int(sum(1 for r, _ in pairs if r.get("rgb_jpeg")))
+    stats["rgbFramesDecoded"] = 0
     volume = o3d.pipelines.integration.ScalableTSDFVolume(
         voxel_length=voxel_length,
         sdf_trunc=sdf_trunc,
-        color_type=o3d.pipelines.integration.TSDFVolumeColorType.NoColor,
+        color_type=(
+            o3d.pipelines.integration.TSDFVolumeColorType.RGB8
+            if has_rgb
+            else o3d.pipelines.integration.TSDFVolumeColorType.NoColor
+        ),
     )
 
     for record, frame in pairs:
@@ -215,8 +266,20 @@ def build_tsdf_mesh(
         intrinsic = o3d.camera.PinholeCameraIntrinsic(
             record["width"], record["height"], fx, fy, cx, cy
         )
+        frame_rgb = (
+            decode_rgb_to_depth_grid(record.get("rgb_jpeg"), record["width"], record["height"])
+            if has_rgb
+            else None
+        )
+        if frame_rgb is not None:
+            stats["rgbFramesDecoded"] += 1
+        color_image = (
+            frame_rgb
+            if frame_rgb is not None
+            else np.zeros((record["height"], record["width"], 3), dtype=np.uint8)
+        )
         rgbd = o3d.geometry.RGBDImage.create_from_color_and_depth(
-            o3d.geometry.Image(np.zeros((record["height"], record["width"], 3), dtype=np.uint8)),
+            o3d.geometry.Image(color_image),
             o3d.geometry.Image(np.ascontiguousarray(depth_m)),
             depth_scale=1.0,
             depth_trunc=depth_trunc,

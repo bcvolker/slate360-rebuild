@@ -15,7 +15,8 @@
  */
 
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
-import { useGLTF } from "@react-three/drei";
+import { PLYLoader } from "three/examples/jsm/loaders/PLYLoader.js";
+import { useLoader } from "@react-three/fiber";
 import { useCallback, useMemo, useRef, useState, Suspense, type ReactElement } from "react";
 import * as THREE from "three";
 
@@ -38,23 +39,30 @@ export type MeshTwinViewerProps = {
   caption?: string;
 };
 
+/**
+ * Loads PLY, not GLB. Open3D's glTF writer silently drops vertex colours — the
+ * exported GLB carries only POSITION and NORMAL — so a GLB of a fully coloured
+ * fusion still renders as a black silhouette. PLY keeps the colours, and it is
+ * the guaranteed artefact of the pipeline anyway.
+ */
 function MeshBody({ url }: { url: string }): ReactElement {
-  const { scene } = useGLTF(url);
-  const prepared = useMemo(() => {
-    const root = scene.clone(true);
-    root.traverse((child) => {
-      if (!(child instanceof THREE.Mesh)) return;
-      child.material = new THREE.MeshStandardMaterial({
-        color: cssColor("--muted-foreground", MESH_SURFACE_FALLBACK),
-        roughness: 0.95,
-        metalness: 0,
-        side: THREE.DoubleSide,
-      });
-      child.geometry.computeVertexNormals();
+  const geometry = useLoader(PLYLoader, url);
+  const material = useMemo(() => {
+    const hasVertexColors = Boolean(geometry.getAttribute("color"));
+    if (!geometry.getAttribute("normal")) geometry.computeVertexNormals();
+    return new THREE.MeshStandardMaterial({
+      // White base so vertex colours pass through unmodulated; the token
+      // colour is only for an untextured capture.
+      color: hasVertexColors
+        ? new THREE.Color(1, 1, 1)
+        : cssColor("--muted-foreground", MESH_SURFACE_FALLBACK),
+      vertexColors: hasVertexColors,
+      roughness: 0.95,
+      metalness: 0,
+      side: THREE.DoubleSide,
     });
-    return root;
-  }, [scene]);
-  return <primitive object={prepared} />;
+  }, [geometry]);
+  return <mesh geometry={geometry} material={material} />;
 }
 
 /** Dots the user can walk to. Rendered only on the current floor — a station
