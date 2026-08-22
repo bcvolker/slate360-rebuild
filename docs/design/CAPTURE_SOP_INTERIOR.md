@@ -8,6 +8,25 @@ bug. The walk was one pass at normal speed. The LiDAR reaches ~5 m and degrades 
 grazing angles, so a wall glanced at from across the room is measured far worse than one
 walked past at a metre. No amount of code recovers a surface the sensor barely touched.
 
+## Why tuning cannot substitute for this (measured 2026-08-22)
+
+Four TSDF settings run on the same kitchen capture:
+
+| voxel / min confidence | coverage | fusion residual median / p95 | untextured |
+|---|---|---|---|
+| **12 mm / conf >= 1 (default)** | 1.030 | **23.4 / 172.8 mm** | 14.2% |
+| 12 mm / conf >= 2 | 1.007 | 32.1 / **480.2 mm** | 7.3% |
+| 8 mm / conf >= 1 | 1.030 | **21.4 / 161.3 mm** | 16.2% |
+| 8 mm / conf >= 2 | 1.025 | 30.6 / 483.3 mm | 9.4% |
+
+Filtering to high-confidence depth only made it **worse** — p95 residual nearly tripled,
+because discarding that much depth leaves the mesh not covering regions the LiDAR genuinely
+measured. That was the leading theory for the streaked walls and it is wrong.
+
+Halving the voxel bought ~9% on median residual and cost 2 points of untextured coverage.
+Real, but modest, and the residual stays near two voxels whichever way it is set:
+**resolution-limited, not error-limited.** The capture is the lever.
+
 ---
 
 ## Before you start
