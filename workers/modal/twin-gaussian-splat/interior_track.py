@@ -203,6 +203,7 @@ def summarize_for_callback(stats: dict[str, Any]) -> dict[str, Any]:
         "ceilingY": detect.get("ceiling_y"),
         "triangles": (dh.get("decimate") or {}).get("after"),
         "floorArea": (stats.get("floorplan") or {}).get("floor_area"),
+        "floorAreaSource": (stats.get("floorplan") or {}).get("floor_area_source"),
         "perimeter": (stats.get("floorplan") or {}).get("perimeter"),
         "netWallArea": (
             ((stats.get("floorplan") or {}).get("wall_area_takeoff") or {}).get("totals") or {}

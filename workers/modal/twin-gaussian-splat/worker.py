@@ -3999,6 +3999,10 @@ def interior_only(payload: dict[str, Any]) -> dict[str, Any]:
     summary["keys"] = keys
     summary["coverage"] = stats.get("coverage")
     summary["dollhouse"] = stats.get("dollhouse")
+    fp = stats.get("floorplan") or {}
+    summary["floorplan"] = {
+        k: v for k, v in fp.items() if k != "fit_wall_segments"
+    } | {"segmentCount": (fp.get("fit_wall_segments") or {}).get("count")}
     return summary
 
 

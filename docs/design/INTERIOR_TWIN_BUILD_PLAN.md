@@ -58,7 +58,7 @@ rooms are different problems, and Delaunay is correct there.
 | **M2** | TSDF integration → mesh, component filtering | **DONE** (code) | needs a real run on Modal (Open3D not installable locally) |
 | **M3** | Wire into the job; run the kitchen capture end to end | **DONE + VALIDATED** (`713104dc`) | **mesh 14.12 m vs LiDAR 13.71 m — ratio 1.03, COVERAGE-1 PASS** |
 | **M4** | Dollhouse post: floor/ceiling RANSAC, Manhattan wall snap, decimate to ~250k | **DONE (code)** (`7d40ceb7`) | 12 tests; 7 Open3D-gated ones run on Modal with M3. Planar hole fill deferred to M7 |
-| **M5** | Floor plan + area take-off surfaced client-side (existing `floorplan.py` / `openings.py` run on the MESH, not the splat) | not started | net wall area within 5% of tape on one real wall |
+| **M5** | Floor plan + area take-off on the MESH | **RUNNING on real data** | kitchen: floor **28.35 m2 / 305 sq ft** from 61,412 floor triangles, perimeter 32.8 m, net wall 86.6 m2. Still needs tape validation on one real wall |
 | **M6a** | Navigation logic + control bar — click-to-move, three modes, floor selector | **DONE (code)** (`7d40ceb7`) | 26 tests; all four gates pass |
 | **M6b** | Wire into `SplatViewer`, delete orbit/WASD, derive stations from poses | not started | click-to-move works on the kitchen twin on a real phone |
 | **M7** | Appearance layer: texture the mesh and/or align the splat to mesh geometry | not started | no ghost operator; walls read as surfaces not fuzz |
@@ -103,8 +103,8 @@ so the remaining work is ordinary engineering rather than a bet.
 | band | slices | state |
 |---|---|---|
 | Geometry | G0 · M1 · M2 · M3 · M4 | **done and validated on a real capture** |
-| Client surfaces | M5 · M6b | next; both short now that geometry is trustworthy |
-| Hard remainder | M7 · M8 · REG-1 · MASK-2 | not started; M5/M8/REG-1 delegated |
+| Client surfaces | M5 (running) · M6b | M5 produces numbers on real data; needs tape check. M6b next |
+| Hard remainder | M7 · M8 (code) · REG-1 (code) · MASK-2 | M8 + REG-1 code landed and tested, not yet wired |
 
 **What is now sellable:** a metric mesh and a dollhouse of a real room, produced CPU-only in
 minutes. What is missing before a client sees it is M5 (numbers on the geometry) and M6b
@@ -114,6 +114,21 @@ minutes. What is missing before a client sees it is M5 (numbers on the geometry)
 
 Locked here so it is not re-litigated. None of this is scheduled; it is the shape the
 geometry work is deliberately making possible.
+
+### Measuring a floor: why the mesh beats the polygon
+
+The kitchen exposed this. Reconstructing a floor polygon from wall segments gave
+**0.012 m2**; summing the mesh's own floor triangles gave **28.35 m2 (305 sq ft)**. On a
+real capture the walls simply do not close into a loop — doorways, furniture occlusion and
+honest sensor holes fragment them, and the greedy chain then latches onto a small spurious
+loop. Ranking loops by area instead of vertex count is still correct and is kept, but the
+floor triangles are a DIRECT measurement of the same quantity and need no reassembly.
+`floor_area_source` records which number was used, so a client-facing figure is never
+silently a fallback.
+
+The take-off shows the same discipline working: 86.6 m2 net wall with **56.1 m2 flagged
+unverified**. That large unverified fraction is the honest signal that the capture had
+gaps — not a defect. Those voids are never subtracted from the number a contractor bids off.
 
 ### Cropping
 

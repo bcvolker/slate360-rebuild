@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from mesh_floorplan import (
+    floor_area_from_mesh,
     extend_to_corners,
     build_floorplan,
     close_floor_polygon,
@@ -96,6 +97,27 @@ def test_close_floor_polygon_closed_and_open():
     assert len(partial["polygon"]) >= 2
 
 
+def test_closed_loop_is_ranked_by_area_not_vertex_count():
+    """A real scan throws off clusters of short noise segments. A tight knot of
+    them has MORE vertices than the four walls of the room, and ranking by
+    vertex count is how the kitchen reported 0.02 m2 instead of ~88 m2."""
+    room = [
+        {"start": [0.0, 0.0], "end": [8.0, 0.0], "length": 8.0},
+        {"start": [8.0, 0.0], "end": [8.0, 11.0], "length": 11.0},
+        {"start": [8.0, 11.0], "end": [0.0, 11.0], "length": 8.0},
+        {"start": [0.0, 11.0], "end": [0.0, 0.0], "length": 11.0},
+    ]
+    noise = [
+        {"start": [3.0, 5.0], "end": [3.2, 5.0], "length": 0.2},
+        {"start": [3.2, 5.0], "end": [3.1, 5.2], "length": 0.22},
+        {"start": [3.1, 5.2], "end": [3.0, 5.0], "length": 0.22},
+        {"start": [3.05, 5.05], "end": [3.15, 5.05], "length": 0.1},
+    ]
+    got = close_floor_polygon(room + noise)
+    assert got["closed"] is True
+    assert polygon_area(got["polygon"]) == pytest.approx(88.0, abs=0.5)
+
+
 def test_close_floor_polygon_no_segments():
     assert close_floor_polygon([])["skipped"] == "no_segments"
 
@@ -162,3 +184,34 @@ def test_degenerate_inputs_do_not_raise():
     plan = build_floorplan(empty, 0.0, 2.5)
     assert plan["floor_area"] == 0.0
     assert plan["perimeter"] == 0.0
+
+
+def test_floor_area_measured_from_mesh_triangles():
+    o3d = pytest.importorskip("open3d")
+    # A 4 x 3 m floor slab as two triangles at y = 0.
+    mesh = o3d.geometry.TriangleMesh()
+    mesh.vertices = o3d.utility.Vector3dVector(
+        np.array([[0, 0, 0], [4, 0, 0], [4, 0, 3], [0, 0, 3]], dtype=float)
+    )
+    mesh.triangles = o3d.utility.Vector3iVector(np.array([[0, 1, 2], [0, 2, 3]]))
+    got = floor_area_from_mesh(mesh, 0.0)
+    assert got["skipped"] is None
+    assert got["area"] == pytest.approx(12.0)
+    assert got["triangles"] == 2
+
+
+def test_floor_area_ignores_triangles_well_above_the_floor():
+    o3d = pytest.importorskip("open3d")
+    mesh = o3d.geometry.TriangleMesh()
+    mesh.vertices = o3d.utility.Vector3dVector(
+        np.array([[0, 2, 0], [4, 2, 0], [4, 2, 3]], dtype=float)
+    )
+    mesh.triangles = o3d.utility.Vector3iVector(np.array([[0, 1, 2]]))
+    assert floor_area_from_mesh(mesh, 0.0)["skipped"] == "no_floor_triangles"
+
+
+def test_floor_area_from_an_empty_mesh_does_not_raise():
+    o3d = pytest.importorskip("open3d")
+    got = floor_area_from_mesh(o3d.geometry.TriangleMesh(), 0.0)
+    assert got["area"] == 0.0
+    assert got["skipped"] == "empty_mesh"

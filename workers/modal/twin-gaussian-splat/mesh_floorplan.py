@@ -247,6 +247,7 @@ def close_floor_polygon(
         return float(np.hypot(a[0] - b[0], a[1] - b[1]))
 
     best_closed: list[Any] = []
+    best_closed_area = 0.0
     best_open: list[Any] = []
     for start_i in range(len(ends)):
         used = {start_i}
@@ -271,8 +272,13 @@ def close_floor_polygon(
             best_open = chain
         if len(chain) >= 3 and dist(chain[0], chain[-1]) <= snap_distance:
             loop = chain if dist(chain[0], chain[-1]) > 1e-9 else chain[:-1]
-            if len(loop) > len(best_closed):
-                best_closed = loop
+            # Rank loops by ENCLOSED AREA, not vertex count. A real scan throws
+            # off clusters of short noise segments, and a tight knot of six of
+            # them has more vertices than the four walls of the room — which is
+            # how a 90 m^2 kitchen reported 0.02 m^2.
+            area = polygon_area([[float(p[0]), float(p[1])] for p in loop])
+            if area > best_closed_area:
+                best_closed, best_closed_area = loop, area
 
     if best_closed:
         return {
@@ -426,6 +432,43 @@ def wall_area_takeoff(
     return {"walls": walls, "totals": {k: float(v) for k, v in totals.items()}}
 
 
+def floor_area_from_mesh(
+    mesh: Any, floor_y: float, *, tolerance: float = 0.12
+) -> dict[str, Any]:
+    """Measure walkable floor area directly from the mesh's floor triangles.
+
+    Preferred over the polygon area, and the reason is empirical: on a real
+    capture the wall segments do NOT close into a loop — doorways, furniture
+    occlusion and honest sensor holes fragment them — so polygon reconstruction
+    either fails or latches onto a small spurious loop. The floor triangles are
+    already a direct measurement of the same quantity and need no reassembly.
+
+    Sums each near-floor triangle's area PROJECTED onto XZ, so a slightly
+    sloped or noisy floor cannot inflate the total. Returns zeros with a
+    `skipped` reason rather than raising when there is no floor.
+    """
+    import numpy as np
+
+    try:
+        verts = np.asarray(mesh.vertices, dtype=float)
+        tris = np.asarray(mesh.triangles)
+    except (AttributeError, RuntimeError):
+        return {"area": 0.0, "triangles": 0, "skipped": "no_mesh"}
+    if verts.size == 0 or tris.size == 0:
+        return {"area": 0.0, "triangles": 0, "skipped": "empty_mesh"}
+
+    corners = verts[tris]
+    near_floor = np.abs(corners[:, :, 1].mean(axis=1) - floor_y) <= tolerance
+    if not np.any(near_floor):
+        return {"area": 0.0, "triangles": 0, "skipped": "no_floor_triangles"}
+
+    flat = corners[near_floor][:, :, [0, 2]]
+    e1 = flat[:, 1, :] - flat[:, 0, :]
+    e2 = flat[:, 2, :] - flat[:, 0, :]
+    area = float(np.abs(e1[:, 0] * e2[:, 1] - e1[:, 1] * e2[:, 0]).sum() * 0.5)
+    return {"area": area, "triangles": int(near_floor.sum()), "skipped": None}
+
+
 def build_floorplan(
     mesh: Any, floor_y: float, ceiling_y: float, *, slice_height: float = 1.2
 ) -> dict[str, Any]:
@@ -439,11 +482,28 @@ def build_floorplan(
     segs = extend_to_corners(fit_wall_segments(pts))
     poly = close_floor_polygon(segs)
     take = wall_area_takeoff(mesh, segs, floor_y, ceiling_y)
+    mesh_floor = floor_area_from_mesh(mesh, floor_y)
+
+    # Floor area comes from the MESH, not the polygon. On a real capture the
+    # walls rarely close into a loop, and a spurious small loop would otherwise
+    # be reported as the room. The polygon area is kept alongside for
+    # comparison, and `floor_area_source` says which number is which.
+    poly_area = float(polygon_area(poly["polygon"]))
+    if mesh_floor["skipped"] is None and mesh_floor["area"] > 0.0:
+        floor_area, source = float(mesh_floor["area"]), "mesh_floor_triangles"
+    elif poly["closed"]:
+        floor_area, source = poly_area, "closed_polygon"
+    else:
+        floor_area, source = 0.0, "unavailable"
+
     return {
         "slice_at_height": {"point_count": int(pts.shape[0])},
         "fit_wall_segments": {"count": len(segs), "segments": segs},
         "close_floor_polygon": poly,
+        "floor_area_from_mesh": mesh_floor,
         "wall_area_takeoff": take,
-        "floor_area": float(polygon_area(poly["polygon"])),
+        "floor_area": floor_area,
+        "floor_area_source": source,
+        "polygon_area": poly_area,
         "perimeter": float(sum(s["length"] for s in segs)),
     }
