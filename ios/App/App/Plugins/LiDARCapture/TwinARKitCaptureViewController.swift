@@ -84,7 +84,22 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private var voxelGrid: [SIMD3<Int32>: PointData] = [:]
     private var keyframes: [[String: Any]] = []
     private let voxelSize: Float = 0.02
-    private let keyframeInterval: TimeInterval = 0.5
+    // Keyframing is DISTANCE-based, not time-based. A flat 0.5 s interval
+    // recorded one depth frame every ~31 cm on a genuinely slow 0.48 m/s walk
+    // and discarded the other 29 of every 30 frames ARKit delivered — measured
+    // on the kitchen capture: 123 frames over 79 s, median gap exactly 0.500 s.
+    // That sparsity, not the operator's technique, is what left walls streaky.
+    //
+    // Distance-based also scales the way a commercial job needs: data grows with
+    // ground covered, not with time spent, so pausing to talk to a super costs
+    // nothing and a large warehouse costs what it should.
+    private let keyframeMinTranslation: Float = 0.08   // metres moved
+    private let keyframeMinRotation: Float = 0.14      // radians (~8 degrees)
+    /// Ceiling so a fast pan cannot flood storage or the upload.
+    private let keyframeMinInterval: TimeInterval = 0.1
+    /// Floor so a stationary operator still refreshes a view occasionally.
+    private let keyframeMaxInterval: TimeInterval = 2.0
+    private var lastKeyframeTransform: simd_float4x4?
     private var depthEvidenceURL: URL?
     private var depthEvidenceHandle: FileHandle?
     private var depthEvidenceFrameCount = 0
@@ -583,6 +598,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         droppedVideoFrames = 0
         lastVideoPTS = -Double.infinity
         lastKeyframeArkit = 0
+        lastKeyframeTransform = nil
         sessionNeedsResume = false
         tipWarning = false
         // Reset only on a truly fresh session: photos snapped before the first clip
@@ -872,10 +888,29 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         let sy = Float(height) / Float(imageRes.height)
         let fx = intrinsics[0][0] * sx, fy = intrinsics[1][1] * sy
         let cx = intrinsics[2][0] * sx, cy = intrinsics[2][1] * sy
-        let recordKeyframe = arkitTs - lastKeyframeArkit >= keyframeInterval
-        // lastKeyframeArkit is read and written only on the serial ARKit
-        // delegate thread.
-        if recordKeyframe { lastKeyframeArkit = arkitTs }
+        // lastKeyframeArkit / lastKeyframeTransform are read and written only on
+        // the serial ARKit delegate thread.
+        let elapsed = arkitTs - lastKeyframeArkit
+        let camTransform = frame.camera.transform
+        var recordKeyframe: Bool
+        if elapsed < keyframeMinInterval {
+            recordKeyframe = false            // hard rate ceiling
+        } else if elapsed >= keyframeMaxInterval || lastKeyframeTransform == nil {
+            recordKeyframe = true             // standing still, or the first frame
+        } else {
+            let prev = lastKeyframeTransform!
+            let moved = simd_distance(simd_make_float3(prev.columns.3),
+                                      simd_make_float3(camTransform.columns.3))
+            // Angle between the two view directions (camera looks down its -Z).
+            let a = -simd_make_float3(prev.columns.2)
+            let b = -simd_make_float3(camTransform.columns.2)
+            let turned = acos(max(-1, min(1, simd_dot(simd_normalize(a), simd_normalize(b)))))
+            recordKeyframe = moved >= keyframeMinTranslation || turned >= keyframeMinRotation
+        }
+        if recordKeyframe {
+            lastKeyframeArkit = arkitTs
+            lastKeyframeTransform = camTransform
+        }
 
         CVPixelBufferLockBaseAddress(depthMap, .readOnly)
         CVPixelBufferLockBaseAddress(confMap, .readOnly)
