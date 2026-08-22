@@ -3985,6 +3985,16 @@ def interior_only(payload: dict[str, Any]) -> dict[str, Any]:
         )
         print(f"[interior-only] {json.dumps(it.summarize_for_callback(stats))}")
 
+        # Sidecars the viewer consumes: stations/floors and the take-off.
+        import json as _json
+
+        for name, payload_obj in (("walk", stats.get("walk")), ("floorplan", stats.get("floorplan"))):
+            if not payload_obj:
+                continue
+            sidecar = root / "out" / f"{name}.json"
+            sidecar.write_text(_json.dumps(payload_obj), encoding="utf-8")
+            stats.setdefault("files", {})[name] = {"json": str(sidecar)}
+
         keys: dict[str, str] = {}
         if org_id and space_id:
             for group, written in (stats.get("files") or {}).items():
@@ -3995,7 +4005,9 @@ def interior_only(payload: dict[str, Any]) -> dict[str, Any]:
                     s3.upload_file(
                         local, bucket, key,
                         ExtraArgs={
-                            "ContentType": "model/gltf-binary" if ext == "glb" else "application/octet-stream",
+                            "ContentType": {"glb": "model/gltf-binary", "json": "application/json"}.get(
+                                ext, "application/octet-stream"
+                            ),
                             "CacheControl": "public, max-age=31536000, immutable",
                         },
                     )

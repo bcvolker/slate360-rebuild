@@ -34,9 +34,13 @@ const LOOK_SENSITIVITY = 0.005;
 
 /** Minimal structural type for the camera, so this hook does not import
  *  three.js and can be tested without a WebGL context. */
+// Declared with METHOD syntax, not arrow properties: methods are checked
+// bivariantly, so three.js's narrower `EulerOrder` parameter still satisfies
+// this shape. Arrow-property syntax is strictly contravariant and would reject
+// the real camera.
 type CameraLike = {
-  position: { set: (x: number, y: number, z: number) => void };
-  rotation: { set: (x: number, y: number, z: number, order?: string) => void };
+  position: { set(x: number, y: number, z: number): unknown };
+  rotation: { set(x: number, y: number, z: number, order?: string): unknown };
 };
 
 export type WalkthroughNavigation = {
