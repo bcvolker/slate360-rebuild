@@ -244,6 +244,8 @@ gpu_image = (
         # F3: floorplan.py's room-polygon closure (polygonize/unary_union) — BSD-3,
         # no GPL/AGPL/non-commercial concern.
         "shapely==2.0.6",
+        # M1-M3 interior mesh: TSDF integration of ARKit depth (MIT).
+        "open3d==0.18.0",
     )
     .run_commands(
         # torch 2.4.1+cu121: matches gsplat 1.4.0 prebuilt wheel index pt24cu121.
@@ -280,6 +282,7 @@ gpu_image = (
         "floorplan", "openings",
         "operator_mask",
         "bake",
+        "interior_mesh",
     )
 )
 
