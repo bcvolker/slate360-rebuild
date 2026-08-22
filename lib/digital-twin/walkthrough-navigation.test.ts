@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  applyLookDrag,
   clampPitch,
   distance3,
   EYE_HEIGHT_M,
@@ -209,5 +210,35 @@ describe("lerpPose", () => {
     const to = { position: [10, 0, 0] as [number, number, number], yaw: 0, pitch: 0 };
     expect(lerpPose(from, to, 0.25).position[0]).toBeLessThan(2.5);
     expect(lerpPose(from, to, 0.5).position[0]).toBeCloseTo(5, 6);
+  });
+});
+
+
+describe("applyLookDrag", () => {
+  const at = (yaw: number, pitch: number) => ({
+    position: [0, 1.6, 0] as [number, number, number],
+    yaw,
+    pitch,
+  });
+
+  it("drags the world with the finger, not against it", () => {
+    // Grab-the-world: dragging RIGHT must increase yaw, which turns the camera
+    // left and slides the room right under the finger. Both signs shipped
+    // inverted once; this test is why it cannot happen quietly again.
+    expect(applyLookDrag(at(0, 0), 100, 0, 0.005).yaw).toBeGreaterThan(0);
+    expect(applyLookDrag(at(0, 0), -100, 0, 0.005).yaw).toBeLessThan(0);
+    expect(applyLookDrag(at(0, 0), 0, 100, 0.005).pitch).toBeGreaterThan(0);
+    expect(applyLookDrag(at(0, 0), 0, -100, 0.005).pitch).toBeLessThan(0);
+  });
+
+  it("keeps the viewer standing where they are", () => {
+    const before = at(0.4, 0.1);
+    expect(applyLookDrag(before, 50, 50, 0.005).position).toEqual(before.position);
+  });
+
+  it("still clamps pitch and wraps yaw under a violent drag", () => {
+    const spun = applyLookDrag(at(0, 0), 100000, 100000, 0.005);
+    expect(Math.abs(spun.yaw)).toBeLessThanOrEqual(Math.PI);
+    expect(spun.pitch).toBeCloseTo(MAX_PITCH_RAD, 6);
   });
 });

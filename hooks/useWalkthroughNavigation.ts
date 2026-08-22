@@ -15,6 +15,7 @@
 import { useCallback, useMemo, useRef, useState } from "react";
 
 import {
+  applyLookDrag,
   clampPitch,
   EYE_HEIGHT_M,
   eyeHeightFor,
@@ -169,10 +170,14 @@ export function useWalkthroughNavigation(options: {
 
   const handleLookDrag = useCallback(
     (deltaX: number, deltaY: number) => {
+      // Only a station-to-station transition blocks looking; standing still and
+      // spinning must always work, since that is how a contractor inspects the
+      // wall behind them.
       if (isTransitioning) return;
       const pose = poseRef.current;
-      pose.yaw = wrapYaw(pose.yaw - deltaX * LOOK_SENSITIVITY);
-      pose.pitch = clampPitch(pose.pitch - deltaY * LOOK_SENSITIVITY);
+      const next = applyLookDrag(pose, deltaX, deltaY, LOOK_SENSITIVITY);
+      pose.yaw = next.yaw;
+      pose.pitch = next.pitch;
     },
     [isTransitioning],
   );

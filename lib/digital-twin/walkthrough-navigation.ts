@@ -205,6 +205,25 @@ export function poseForMode(
 }
 
 /**
+ * Apply a look-drag to a pose. Grab-the-world: dragging right slides the room
+ * right, as if pinned to the finger — the convention Matterport and Street
+ * View use. Extracted from the hook so the sign is pinned by a test; it was
+ * inverted on both axes and every drag moved the model the wrong way.
+ */
+export function applyLookDrag(
+  pose: WalkPose,
+  deltaX: number,
+  deltaY: number,
+  sensitivity: number,
+): WalkPose {
+  return {
+    position: pose.position,
+    yaw: wrapYaw(pose.yaw + deltaX * sensitivity),
+    pitch: clampPitch(pose.pitch + deltaY * sensitivity),
+  };
+}
+
+/**
  * Blend two poses. Position and pitch interpolate linearly; yaw takes the
  * short way round via {@link lerpYaw}.
  */

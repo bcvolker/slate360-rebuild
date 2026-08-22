@@ -171,7 +171,7 @@ export function MeshTwinViewer({
   const [measureActive, setMeasureActive] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const raycastRef = useRef<((x: number, y: number) => [number, number, number] | null) | null>(null);
-  const dragRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
+  const dragRef = useRef<{ x: number; y: number; moved: boolean; onCanvas: boolean } | null>(null);
   const shellRef = useRef<HTMLDivElement | null>(null);
   const fovRef = useRef<number>(DEFAULT_FOV);
   const pinchRef = useRef<Map<number, { x: number; y: number }>>(new Map());
@@ -203,7 +203,11 @@ export function MeshTwinViewer({
     // Capture so a drag that leaves the element keeps rotating — without this,
     // spinning in place stops the moment the pointer crosses the edge.
     e.currentTarget.setPointerCapture?.(e.pointerId);
-    dragRef.current = { x: e.clientX, y: e.clientY, moved: false };
+    // `onCanvas` is recorded HERE and trusted later. Pointer capture retargets
+    // every subsequent event to the capturing element, so by pointer-up the
+    // target is this wrapper div, not the canvas — re-checking it there
+    // rejected every legitimate click on the model.
+    dragRef.current = { x: e.clientX, y: e.clientY, moved: false, onCanvas: true };
   }, []);
 
   const handlePointerMove = useCallback(
@@ -242,7 +246,7 @@ export function MeshTwinViewer({
       pinchRef.current.delete(e.pointerId);
       if (pinchRef.current.size < 2) lastPinchRef.current = 0;
       e.currentTarget.releasePointerCapture?.(e.pointerId);
-      if (!drag || drag.moved || !fromCanvas(e)) return;
+      if (!drag || drag.moved || !drag.onCanvas) return;
       const rect = e.currentTarget.getBoundingClientRect();
       nav.handleCanvasClick(e.clientX - rect.left, e.clientY - rect.top);
     },
