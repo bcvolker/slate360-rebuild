@@ -30,6 +30,15 @@ import {
 import { useWalkthroughNavigation } from "@/hooks/useWalkthroughNavigation";
 import type { FloorInfo, WalkStation } from "@/lib/digital-twin/walkthrough-navigation";
 
+/** Zoom is expressed as field of view: a narrower lens from the same standing
+ *  position, never a dolly off the station. */
+const DEFAULT_FOV = 75;
+const MIN_FOV = 25;
+const MAX_FOV = 90;
+const FOV_STEP = 4;
+/** Degrees of FOV per pixel of pinch spread. */
+const PINCH_SENSITIVITY = 0.08;
+
 export type MeshTwinViewerProps = {
   /** URL of the dollhouse GLB. */
   meshUrl: string;
@@ -114,11 +123,13 @@ function NavigationRig({
   stations,
   floors,
   nav,
+  fovRef,
   onFloorHit,
 }: {
   stations: WalkStation[];
   floors: FloorInfo[];
   nav: ReturnType<typeof useWalkthroughNavigation>;
+  fovRef: React.MutableRefObject<number>;
   onFloorHit: (fn: (x: number, y: number) => [number, number, number] | null) => void;
 }): null {
   const { camera, scene, size } = useThree();
@@ -140,7 +151,14 @@ function NavigationRig({
   );
 
   onFloorHit(raycastFloor);
-  useFrame((_, delta) => nav.updateCamera(camera, delta));
+  useFrame((_, delta) => {
+    nav.updateCamera(camera, delta);
+    const perspective = camera as THREE.PerspectiveCamera;
+    if (perspective.isPerspectiveCamera && perspective.fov !== fovRef.current) {
+      perspective.fov = fovRef.current;
+      perspective.updateProjectionMatrix();
+    }
+  });
   return null;
 }
 
@@ -155,6 +173,9 @@ export function MeshTwinViewer({
   const raycastRef = useRef<((x: number, y: number) => [number, number, number] | null) | null>(null);
   const dragRef = useRef<{ x: number; y: number; moved: boolean } | null>(null);
   const shellRef = useRef<HTMLDivElement | null>(null);
+  const fovRef = useRef<number>(DEFAULT_FOV);
+  const pinchRef = useRef<Map<number, { x: number; y: number }>>(new Map());
+  const lastPinchRef = useRef<number>(0);
 
   const nav = useWalkthroughNavigation({
     stations,
@@ -162,12 +183,44 @@ export function MeshTwinViewer({
     raycastFloor: (x, y) => raycastRef.current?.(x, y) ?? null,
   });
 
-  const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent> | React.PointerEvent) => {
+  // Navigation must be driven ONLY by the canvas. Without this check any
+  // pointer-up reaching the wrapper counts as a click on the model, so a press
+  // that lands on the control bar's padding rather than exactly on a button
+  // falls through and walks the user to a station instead of switching mode.
+  const fromCanvas = (e: React.PointerEvent | React.WheelEvent) =>
+    e.target instanceof HTMLCanvasElement;
+
+  const handlePointerDown = useCallback((e: React.PointerEvent) => {
+    if (!fromCanvas(e)) return;
+    pinchRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinchRef.current.size >= 2) {
+      // A second finger converts the gesture to a pinch; drop the drag so the
+      // view does not lurch as the fingers separate.
+      dragRef.current = null;
+      lastPinchRef.current = 0;
+      return;
+    }
+    // Capture so a drag that leaves the element keeps rotating — without this,
+    // spinning in place stops the moment the pointer crosses the edge.
+    e.currentTarget.setPointerCapture?.(e.pointerId);
     dragRef.current = { x: e.clientX, y: e.clientY, moved: false };
   }, []);
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent) => {
+      // Two fingers down: pinch to zoom, and suppress look-drag so the gesture
+      // does not also spin the view while the user is scaling it.
+      if (pinchRef.current.size >= 2) {
+        pinchRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
+        const [a, b] = Array.from(pinchRef.current.values());
+        const spread = Math.hypot(a.x - b.x, a.y - b.y);
+        if (lastPinchRef.current > 0) {
+          const delta = (lastPinchRef.current - spread) * PINCH_SENSITIVITY;
+          fovRef.current = Math.min(MAX_FOV, Math.max(MIN_FOV, fovRef.current + delta));
+        }
+        lastPinchRef.current = spread;
+        return;
+      }
       const drag = dragRef.current;
       if (!drag) return;
       const dx = e.clientX - drag.x;
@@ -186,12 +239,24 @@ export function MeshTwinViewer({
     (e: React.PointerEvent) => {
       const drag = dragRef.current;
       dragRef.current = null;
-      if (!drag || drag.moved) return;
+      pinchRef.current.delete(e.pointerId);
+      if (pinchRef.current.size < 2) lastPinchRef.current = 0;
+      e.currentTarget.releasePointerCapture?.(e.pointerId);
+      if (!drag || drag.moved || !fromCanvas(e)) return;
       const rect = e.currentTarget.getBoundingClientRect();
       nav.handleCanvasClick(e.clientX - rect.left, e.clientY - rect.top);
     },
     [nav],
   );
+
+  // Zoom is field of view, not dolly. Moving the camera off a station would
+  // put the viewer where no imagery exists; narrowing the lens lets a
+  // contractor read a detail on a far wall from where they are standing.
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    if (!fromCanvas(e)) return;
+    const next = fovRef.current + (e.deltaY > 0 ? FOV_STEP : -FOV_STEP);
+    fovRef.current = Math.min(MAX_FOV, Math.max(MIN_FOV, next));
+  }, []);
 
   const toggleFullscreen = useCallback(() => {
     const el = shellRef.current;
@@ -216,12 +281,15 @@ export function MeshTwinViewer({
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        onPointerLeave={() => {
+        onPointerCancel={(e) => {
           dragRef.current = null;
+          pinchRef.current.delete(e.pointerId);
+          lastPinchRef.current = 0;
         }}
+        onWheel={handleWheel}
       >
         <Canvas
-          camera={{ fov: 75, near: 0.05, far: 200 }}
+          camera={{ fov: DEFAULT_FOV, near: 0.05, far: 200 }}
           dpr={[1, 2]}
           // Graphite canvas, not the page default. On white, an unscanned hole
           // reads as missing paint on a wall; on the dark canvas it reads as a
@@ -245,6 +313,7 @@ export function MeshTwinViewer({
             stations={stations}
             floors={floors}
             nav={nav}
+            fovRef={fovRef}
             onFloorHit={(fn) => {
               raycastRef.current = fn;
             }}

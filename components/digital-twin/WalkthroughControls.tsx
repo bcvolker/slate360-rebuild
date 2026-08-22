@@ -104,7 +104,14 @@ export function WalkthroughControls({
       className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center px-4"
       style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}
     >
-      <div className="pointer-events-auto flex items-stretch overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur-xl">
+      {/* Swallow pointer events here as well as checking the target on the
+          canvas side. Belt and braces: a press that lands on this bar must
+          never also register as a click on the model. */}
+      <div
+        className="pointer-events-auto flex items-stretch overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur-xl"
+        onPointerDown={(e) => e.stopPropagation()}
+        onPointerUp={(e) => e.stopPropagation()}
+      >
         {MODES.map(({ id, label }) => {
           const Icon = MODE_ICONS[id];
           const active = mode === id;
