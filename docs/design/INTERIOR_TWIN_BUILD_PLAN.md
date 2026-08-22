@@ -23,6 +23,21 @@ question, silent about coverage.
 **Ruling: when metric depth exists, depth IS the geometry.** TSDF cannot fail this way —
 each depth frame contributes independently, with no matching chain to break.
 
+### The ruling is now confirmed, not predicted (M3, 2026-08-22)
+
+Same kitchen walk, run through the finished TSDF track:
+
+| source | extent | diagonal | COVERAGE-1 |
+|---|---|---|---|
+| ARKit LiDAR cloud (ground truth) | 9.56 × 2.83 × 9.40 m | 13.71 m | reference |
+| **TSDF mesh** | **8.08 × 3.09 × 11.16 m** | **14.12 m** | **PASS (1.03)** |
+| SfM + splat, same room | 1.67 × 1.95 × 1.96 m | 3.23 m | FAIL (0.24) |
+
+123 depth/pose pairs integrated → 3,430,334 triangles. Floor plane −0.545 m, ceiling
+2.251 m: a **2.80 m storey**, i.e. a real room rather than the ~2 m fragment SfM collapsed
+to. Dollhouse cut removed 1,003,619 triangles, 8 wall planes snapped (grid 64.6°),
+decimated to 250k for the mobile budget. Photogrammetry was never going to recover this.
+
 ## Layer model
 
 | layer | source | serves |
@@ -41,7 +56,7 @@ rooms are different problems, and Delaunay is correct there.
 | **G0** | COVERAGE-1 gate — model must span the scanned space | **DONE** (`2832877b`) | kitchen collapse (ratio 0.24) fails; 5 tests |
 | **M1** | S360DEPTH1 parser + pose pairing + intrinsic/extrinsic math | **DONE** (`3153e0f8`) | 123 records paired 1:1; unprojection reproduces 10.97 m; 9 tests |
 | **M2** | TSDF integration → mesh, component filtering | **DONE** (code) | needs a real run on Modal (Open3D not installable locally) |
-| **M3** | Wire into the job; run the kitchen capture end to end | **NEXT** | mesh extent ≥ 0.7 × LiDAR extent; passes COVERAGE-1 |
+| **M3** | Wire into the job; run the kitchen capture end to end | **DONE + VALIDATED** (`713104dc`) | **mesh 14.12 m vs LiDAR 13.71 m — ratio 1.03, COVERAGE-1 PASS** |
 | **M4** | Dollhouse post: floor/ceiling RANSAC, Manhattan wall snap, decimate to ~250k | **DONE (code)** (`7d40ceb7`) | 12 tests; 7 Open3D-gated ones run on Modal with M3. Planar hole fill deferred to M7 |
 | **M5** | Floor plan + area take-off surfaced client-side (existing `floorplan.py` / `openings.py` run on the MESH, not the splat) | not started | net wall area within 5% of tape on one real wall |
 | **M6a** | Navigation logic + control bar — click-to-move, three modes, floor selector | **DONE (code)** (`7d40ceb7`) | 26 tests; all four gates pass |
@@ -79,24 +94,21 @@ Sell the measurable deliverable same-day, the walkthrough overnight.
 
 ## Progress
 
-Counting M4 and M6a as landed: **~45%** of the interior twin track.
+With M3 validated on real data: **~60%** of the interior twin track.
 
-The remaining 55% is unevenly distributed. M3 is the only slice standing between
-"code that passes tests" and "a model Brian can look at" — everything from M1 to M6a is
-written but has never run on a real capture end to end. M7 (appearance) and M8 (zoning)
-are the genuinely large pieces left.
+The jump from 45% is not bookkeeping. Every geometry slice was written but unproven, and
+the whole architecture rested on an untested claim. That claim is now measured and correct,
+so the remaining work is ordinary engineering rather than a bet.
 
 | band | slices | state |
 |---|---|---|
-| Geometry | G0 · M1 · M2 · M4 | code complete, unproven on a real run |
-| Wiring | **M3** | the gate everything else waits behind |
-| Client surfaces | M5 · M6b | short, once M3 proves geometry |
-| Hard remainder | M7 · M8 · MASK-2 | not started |
+| Geometry | G0 · M1 · M2 · M3 · M4 | **done and validated on a real capture** |
+| Client surfaces | M5 · M6b | next; both short now that geometry is trustworthy |
+| Hard remainder | M7 · M8 · REG-1 · MASK-2 | not started; M5/M8/REG-1 delegated |
 
-**Nearest honest date for a clean model:** M3 is one working session. Once it runs, the
-kitchen either passes COVERAGE-1 (≥ 0.7 × the 13.71 m LiDAR diagonal) or it does not, and
-that single number decides whether the depth-first ruling was right. Nothing downstream is
-worth building until it does.
+**What is now sellable:** a metric mesh and a dollhouse of a real room, produced CPU-only in
+minutes. What is missing before a client sees it is M5 (numbers on the geometry) and M6b
+(a viewer wired to it) — both small, both unblocked.
 
 ## Product architecture — what the twin becomes
 
