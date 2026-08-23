@@ -225,9 +225,25 @@ def detect_horizontal_planes(
 
 
 def cut_ceiling(
-    mesh: Any, ceiling_y: float | None, *, margin: float = 0.05, up_axis: int = 1
+    mesh: Any,
+    ceiling_y: float | None,
+    *,
+    margin: float = 0.05,
+    up_axis: int = 1,
+    remove: bool = True,
 ) -> tuple[Any, dict[str, Any]]:
-    """Drop triangles whose CENTROID sits above `ceiling_y - margin`."""
+    """Identify the ceiling, and optionally remove it.
+
+    Triangles are selected by CENTROID, so a wall triangle whose top vertex
+    touches the ceiling survives rather than being punched out.
+
+    `remove=False` keeps every triangle and only REPORTS `cut_y`. That is the
+    shipping default for the viewer: the client needs three ceiling states —
+    open (dollhouse), closed (soffits, finishes, leak staining) and plenum
+    (lid ghosted, duct and tray visible before burial) — and a mesh with the lid
+    already deleted can only ever show the first. Destroying geometry at
+    processing time is a decision the viewer should be making at render time.
+    """
     import numpy as np
     import open3d as o3d
 
@@ -241,7 +257,16 @@ def cut_ceiling(
         return mesh, {"skipped": None, "triangles_removed": 0, "cut_y": cut_y}
 
     keep = verts[tris].mean(axis=1)[:, up_axis] <= cut_y
-    removed = int((~keep).sum())
+    above = int((~keep).sum())
+    if not remove:
+        return mesh, {
+            "skipped": None,
+            "triangles_removed": 0,
+            "triangles_above_cut": above,
+            "cut_y": cut_y,
+            "removed": False,
+        }
+    removed = above
     out = o3d.geometry.TriangleMesh()
     out.vertices = o3d.utility.Vector3dVector(verts)
     out.triangles = o3d.utility.Vector3iVector(tris[keep])
@@ -256,7 +281,13 @@ def cut_ceiling(
         out.vertex_normals = o3d.utility.Vector3dVector(normals)
     if int(keep.sum()) > 0:
         out.remove_unreferenced_vertices()
-    return out, {"skipped": None, "triangles_removed": removed, "cut_y": cut_y}
+    return out, {
+        "skipped": None,
+        "triangles_removed": removed,
+        "triangles_above_cut": above,
+        "cut_y": cut_y,
+        "removed": True,
+    }
 
 
 def _no_grid(reason: str = "no_manhattan_grid") -> dict[str, Any]:
@@ -357,13 +388,15 @@ def decimate(mesh: Any, target_triangles: int = 250_000) -> tuple[Any, dict[str,
     return out, {"before": n, "after": triangle_count(out), "skipped": None}
 
 
-def build_dollhouse(mesh: Any, *, target_triangles: int = 250_000) -> tuple[Any, dict[str, Any]]:
+def build_dollhouse(
+    mesh: Any, *, target_triangles: int = 250_000, remove_ceiling: bool = False
+) -> tuple[Any, dict[str, Any]]:
     """Detect planes, cut the ceiling, snap walls, decimate. Always returns a
     mesh; each stage nests its own stats and skips rather than raising."""
     import numpy as np
 
     detect = detect_horizontal_planes(mesh)
-    cut_mesh, cut_stats = cut_ceiling(mesh, detect.get("ceiling_y"))
+    cut_mesh, cut_stats = cut_ceiling(mesh, detect.get("ceiling_y"), remove=remove_ceiling)
     snapped, snap_stats = snap_walls_to_manhattan(cut_mesh)
     done, dec_stats = decimate(snapped, target_triangles=target_triangles)
 

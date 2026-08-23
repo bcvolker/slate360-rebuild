@@ -11,6 +11,7 @@
 
 import type { ReactElement } from "react";
 
+import type { CeilingState } from "@/components/digital-twin/MeshTwinViewer";
 import type { FloorInfo, ViewMode } from "@/lib/digital-twin/walkthrough-navigation";
 
 export type WalkthroughControlsProps = {
@@ -19,6 +20,10 @@ export type WalkthroughControlsProps = {
   floors: FloorInfo[];
   currentFloorIndex: number;
   onFloorChange: (index: number) => void;
+  ceilingState: CeilingState;
+  onCeilingStateChange: (state: CeilingState) => void;
+  /** False when the pipeline found no ceiling plane — the control is hidden. */
+  ceilingAvailable: boolean;
   measureActive: boolean;
   onToggleMeasure: () => void;
   isFullscreen: boolean;
@@ -88,12 +93,21 @@ const MODE_ICONS: Record<ViewMode, () => ReactElement> = {
   floorplan: IconFloorplan,
 };
 
+const CEILINGS: { id: CeilingState; label: string; hint: string }[] = [
+  { id: "open", label: "Open", hint: "Ceiling removed — dollhouse" },
+  { id: "closed", label: "Closed", hint: "Full envelope — soffits and finishes" },
+  { id: "plenum", label: "Plenum", hint: "Above the grid — duct, tray, sprinkler" },
+];
+
 export function WalkthroughControls({
   mode,
   onModeChange,
   floors,
   currentFloorIndex,
   onFloorChange,
+  ceilingState,
+  onCeilingStateChange,
+  ceilingAvailable,
   measureActive,
   onToggleMeasure,
   isFullscreen,
@@ -146,6 +160,25 @@ export function WalkthroughControls({
               {floors.map((floor) => (
                 <option key={floor.index} value={floor.index} className="bg-[var(--background)]">
                   {floor.label}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
+
+        {ceilingAvailable ? (
+          <label className="flex items-center border-l border-white/10">
+            <span className="sr-only">Ceiling</span>
+            <select
+              value={ceilingState}
+              onChange={(e) => onCeilingStateChange(e.target.value as CeilingState)}
+              aria-label="Ceiling view"
+              title={CEILINGS.find((c) => c.id === ceilingState)?.hint}
+              className="min-h-[44px] cursor-pointer bg-transparent px-3 text-xs font-medium uppercase tracking-wide text-white/80 outline-none focus-visible:text-[var(--twin360-blue)]"
+            >
+              {CEILINGS.map((c) => (
+                <option key={c.id} value={c.id} className="bg-[var(--graphite-canvas)]">
+                  {c.label}
                 </option>
               ))}
             </select>

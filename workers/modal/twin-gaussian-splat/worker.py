@@ -3990,7 +3990,7 @@ def interior_only(payload: dict[str, Any]) -> dict[str, Any]:
         # Sidecars the viewer consumes: stations/floors and the take-off.
         import json as _json
 
-        for name, payload_obj in (("walk", stats.get("walk")), ("floorplan", stats.get("floorplan"))):
+        for name, payload_obj in (("walk", stats.get("walk")), ("floorplan", stats.get("floorplan")), ("layers", stats.get("layers"))):
             if not payload_obj:
                 continue
             sidecar = root / "out" / f"{name}.json"
@@ -4022,6 +4022,7 @@ def interior_only(payload: dict[str, Any]) -> dict[str, Any]:
     fp = stats.get("floorplan") or {}
     summary["accuracy"] = stats.get("accuracy")
     summary["texture"] = stats.get("texture")
+    summary["layers"] = stats.get("layers")
     summary["walk"] = stats.get("walk")
     summary["floorplan"] = {
         k: v for k, v in fp.items() if k != "fit_wall_segments"

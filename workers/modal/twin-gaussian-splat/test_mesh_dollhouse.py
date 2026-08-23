@@ -183,11 +183,34 @@ def test_countertop_is_not_mistaken_for_a_ceiling():
     assert got["ceiling_y"] is None
 
 
+def test_cut_ceiling_reports_without_removing_by_default_for_the_viewer():
+    """The viewer needs open / closed / plenum ceiling states. A mesh shipped
+    with the lid already deleted can only ever show the first, so the default
+    reports the cut height and keeps every triangle."""
+    pytest.importorskip("open3d")
+    m = _room_mesh()
+    before = np.asarray(m.triangles).shape[0]
+    out, stats = cut_ceiling(m, 2.6, remove=False)
+    assert out is m
+    assert np.asarray(out.triangles).shape[0] == before
+    assert stats["removed"] is False
+    assert stats["triangles_removed"] == 0
+    assert stats["triangles_above_cut"] > 0
+    assert stats["cut_y"] == pytest.approx(2.55)
+
+
+def test_build_dollhouse_keeps_the_ceiling_by_default():
+    pytest.importorskip("open3d")
+    _, stats = build_dollhouse(_room_mesh())
+    assert stats["cut_ceiling"]["removed"] is False
+    assert stats["cut_ceiling"]["cut_y"] is not None
+
+
 def test_cut_ceiling_removes_the_lid_and_keeps_the_walls():
     pytest.importorskip("open3d")
     m = _room_mesh()
     before = np.asarray(m.triangles).shape[0]
-    out, stats = cut_ceiling(m, 2.6)
+    out, stats = cut_ceiling(m, 2.6, remove=True)
     assert 0 < stats["triangles_removed"] < before
     kept = np.asarray(out.vertices)
     assert kept[:, 1].max() < 2.6           # lid gone

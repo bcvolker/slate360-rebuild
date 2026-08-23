@@ -235,6 +235,23 @@ def run_interior_track(
     except Exception as exc:  # noqa: BLE001
         stats["walk"] = {"skipped": f"{type(exc).__name__}: {exc}", "stations": [], "floors": []}
 
+    # --- 4d. Viewer layer metadata -----------------------------------------
+    # The ceiling is a render-time layer, not a processing-time deletion. The
+    # viewer clips at cut_y for the dollhouse, shows everything for the closed
+    # state, and ghosts above cut_y for the plenum/MEP state.
+    dh = stats.get("dollhouse") or {}
+    stats["layers"] = {
+        "floorY": floor_y,
+        "ceilingY": ceiling_y,
+        "ceilingCutY": (dh.get("cut_ceiling") or {}).get("cut_y"),
+        "storeyHeightM": (
+            round(float(ceiling_y) - float(floor_y), 3)
+            if floor_y is not None and ceiling_y is not None else None
+        ),
+        "ceilingStates": ["open", "closed", "plenum"],
+        "defaultCeilingState": "open",
+    }
+
     # --- 5. Artefacts -------------------------------------------------------
     stats["files"] = {
         "raw": _write_mesh(mesh, out, "interior_mesh"),
@@ -272,6 +289,8 @@ def summarize_for_callback(stats: dict[str, Any]) -> dict[str, Any]:
         "ceilingCut": detect.get("ceiling_y") is not None,
         "floorY": detect.get("floor_y"),
         "ceilingY": detect.get("ceiling_y"),
+        "ceilingCutY": ((stats.get("dollhouse") or {}).get("cut_ceiling") or {}).get("cut_y"),
+        "ceilingRemoved": ((stats.get("dollhouse") or {}).get("cut_ceiling") or {}).get("removed"),
         "triangles": (dh.get("decimate") or {}).get("after"),
         "floorArea": (stats.get("floorplan") or {}).get("floor_area"),
         "floorAreaSource": (stats.get("floorplan") or {}).get("floor_area_source"),

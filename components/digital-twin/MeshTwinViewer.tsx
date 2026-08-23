@@ -39,9 +39,19 @@ const FOV_STEP = 4;
 /** Degrees of FOV per pixel of pinch spread. */
 const PINCH_SENSITIVITY = 0.08;
 
+/**
+ * Ceiling is a render-time layer, never a deletion. `open` is the dollhouse
+ * everyone knows; `closed` is needed for soffits, finishes and leak staining;
+ * `plenum` ghosts the lid so duct, tray and sprinkler read before they are
+ * buried — the MEP view a cut-away dollhouse cannot show at all.
+ */
+export type CeilingState = "open" | "closed" | "plenum";
+
 export type MeshTwinViewerProps = {
-  /** URL of the dollhouse GLB. */
+  /** URL of the dollhouse mesh (PLY — Open3D's glTF writer drops colours). */
   meshUrl: string;
+  /** World Y to clip the ceiling at, from the pipeline's layers sidecar. */
+  ceilingCutY?: number | null;
   stations: WalkStation[];
   floors: FloorInfo[];
   /** Shown bottom-left — e.g. the estimating-grade accuracy line. */
@@ -54,7 +64,15 @@ export type MeshTwinViewerProps = {
  * fusion still renders as a black silhouette. PLY keeps the colours, and it is
  * the guaranteed artefact of the pipeline anyway.
  */
-function MeshBody({ url }: { url: string }): ReactElement {
+function MeshBody({
+  url,
+  ceilingCutY,
+  ceilingState,
+}: {
+  url: string;
+  ceilingCutY?: number | null;
+  ceilingState: CeilingState;
+}): ReactElement {
   const geometry = useLoader(PLYLoader, url);
   const material = useMemo(() => {
     const hasVertexColors = Boolean(geometry.getAttribute("color"));
@@ -71,7 +89,37 @@ function MeshBody({ url }: { url: string }): ReactElement {
       side: THREE.DoubleSide,
     });
   }, [geometry]);
-  return <mesh geometry={geometry} material={material} />;
+  // Clip in the shader rather than rebuilding geometry, so toggling is instant
+  // and the same buffers serve all three states.
+  const clipped = useMemo(() => {
+    if (ceilingCutY == null || ceilingState === "closed") return material;
+    const m = material.clone();
+    m.clippingPlanes = [new THREE.Plane(new THREE.Vector3(0, -1, 0), ceilingCutY)];
+    m.clipShadows = true;
+    return m;
+  }, [material, ceilingCutY, ceilingState]);
+
+  // Built unconditionally — a hook cannot live inside a conditional branch of
+  // the JSX below. Only its USE is conditional.
+  const ghostLid = useMemo(() => {
+    if (ceilingCutY == null) return null;
+    const m = material.clone();
+    m.clippingPlanes = [new THREE.Plane(new THREE.Vector3(0, 1, 0), -ceilingCutY)];
+    m.transparent = true;
+    m.opacity = 0.22;
+    m.depthWrite = false;
+    return m;
+  }, [material, ceilingCutY]);
+
+  return (
+    <>
+      <mesh geometry={geometry} material={clipped} />
+      {/* Plenum: the lid returns, ghosted, so what is above it stays readable. */}
+      {ceilingState === "plenum" && ghostLid ? (
+        <mesh geometry={geometry} material={ghostLid} />
+      ) : null}
+    </>
+  );
 }
 
 /** Dots the user can walk to. Rendered only on the current floor — a station
@@ -164,10 +212,12 @@ function NavigationRig({
 
 export function MeshTwinViewer({
   meshUrl,
+  ceilingCutY,
   stations,
   floors,
   caption,
 }: MeshTwinViewerProps): ReactElement {
+  const [ceilingState, setCeilingState] = useState<CeilingState>("open");
   const [measureActive, setMeasureActive] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const raycastRef = useRef<((x: number, y: number) => [number, number, number] | null) | null>(null);
@@ -298,13 +348,16 @@ export function MeshTwinViewer({
           // Graphite canvas, not the page default. On white, an unscanned hole
           // reads as missing paint on a wall; on the dark canvas it reads as a
           // hole, which is what it is.
-          onCreated={({ gl }) => gl.setClearColor(cssColor("--graphite-canvas", MESH_GROUND_FALLBACK), 1)}
+          onCreated={({ gl }) => {
+            gl.setClearColor(cssColor("--graphite-canvas", MESH_GROUND_FALLBACK), 1);
+            gl.localClippingEnabled = true;
+          }}
         >
           {/* Flat, bright ambient: vertex colours ARE the albedo, so directional
               shading would only wash the captured detail out. */}
           <ambientLight intensity={2.2} />
           <Suspense fallback={null}>
-            <MeshBody url={meshUrl} />
+            <MeshBody url={meshUrl} ceilingCutY={ceilingCutY} ceilingState={ceilingState} />
           </Suspense>
           <StationMarkers
             stations={stations}
@@ -337,6 +390,9 @@ export function MeshTwinViewer({
         floors={floors}
         currentFloorIndex={nav.currentFloorIndex}
         onFloorChange={nav.setFloorIndex}
+        ceilingState={ceilingState}
+        onCeilingStateChange={setCeilingState}
+        ceilingAvailable={ceilingCutY != null}
         measureActive={measureActive}
         onToggleMeasure={() => setMeasureActive((v) => !v)}
         isFullscreen={isFullscreen}
