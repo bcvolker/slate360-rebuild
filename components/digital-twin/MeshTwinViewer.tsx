@@ -15,37 +15,22 @@
  */
 
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
-import { PLYLoader } from "three/examples/jsm/loaders/PLYLoader.js";
-import { useLoader } from "@react-three/fiber";
 import { useCallback, useMemo, useRef, useState, Suspense, type ReactElement } from "react";
 import * as THREE from "three";
 
+import { MeshBody, type CeilingState } from "@/components/digital-twin/mesh-body";
+import { useViewerGestures, DEFAULT_FOV } from "@/components/digital-twin/use-viewer-gestures";
 import { WalkthroughControls } from "@/components/digital-twin/WalkthroughControls";
 import {
   cssColor,
   MESH_GROUND_FALLBACK,
-  MESH_SURFACE_FALLBACK,
   TWIN_ACCENT_FALLBACK,
 } from "@/lib/digital-twin/css-color";
 import { useWalkthroughNavigation } from "@/hooks/useWalkthroughNavigation";
 import type { FloorInfo, WalkStation } from "@/lib/digital-twin/walkthrough-navigation";
 
-/** Zoom is expressed as field of view: a narrower lens from the same standing
- *  position, never a dolly off the station. */
-const DEFAULT_FOV = 75;
-const MIN_FOV = 25;
-const MAX_FOV = 90;
-const FOV_STEP = 4;
-/** Degrees of FOV per pixel of pinch spread. */
-const PINCH_SENSITIVITY = 0.08;
 
-/**
- * Ceiling is a render-time layer, never a deletion. `open` is the dollhouse
- * everyone knows; `closed` is needed for soffits, finishes and leak staining;
- * `plenum` ghosts the lid so duct, tray and sprinkler read before they are
- * buried — the MEP view a cut-away dollhouse cannot show at all.
- */
-export type CeilingState = "open" | "closed" | "plenum";
+export type { CeilingState };
 
 export type MeshTwinViewerProps = {
   /** URL of the dollhouse mesh (PLY — Open3D's glTF writer drops colours). */
@@ -57,70 +42,6 @@ export type MeshTwinViewerProps = {
   /** Shown bottom-left — e.g. the estimating-grade accuracy line. */
   caption?: string;
 };
-
-/**
- * Loads PLY, not GLB. Open3D's glTF writer silently drops vertex colours — the
- * exported GLB carries only POSITION and NORMAL — so a GLB of a fully coloured
- * fusion still renders as a black silhouette. PLY keeps the colours, and it is
- * the guaranteed artefact of the pipeline anyway.
- */
-function MeshBody({
-  url,
-  ceilingCutY,
-  ceilingState,
-}: {
-  url: string;
-  ceilingCutY?: number | null;
-  ceilingState: CeilingState;
-}): ReactElement {
-  const geometry = useLoader(PLYLoader, url);
-  const material = useMemo(() => {
-    const hasVertexColors = Boolean(geometry.getAttribute("color"));
-    if (!geometry.getAttribute("normal")) geometry.computeVertexNormals();
-    return new THREE.MeshStandardMaterial({
-      // White base so vertex colours pass through unmodulated; the token
-      // colour is only for an untextured capture.
-      color: hasVertexColors
-        ? new THREE.Color(1, 1, 1)
-        : cssColor("--muted-foreground", MESH_SURFACE_FALLBACK),
-      vertexColors: hasVertexColors,
-      roughness: 0.95,
-      metalness: 0,
-      side: THREE.DoubleSide,
-    });
-  }, [geometry]);
-  // Clip in the shader rather than rebuilding geometry, so toggling is instant
-  // and the same buffers serve all three states.
-  const clipped = useMemo(() => {
-    if (ceilingCutY == null || ceilingState === "closed") return material;
-    const m = material.clone();
-    m.clippingPlanes = [new THREE.Plane(new THREE.Vector3(0, -1, 0), ceilingCutY)];
-    m.clipShadows = true;
-    return m;
-  }, [material, ceilingCutY, ceilingState]);
-
-  // Built unconditionally — a hook cannot live inside a conditional branch of
-  // the JSX below. Only its USE is conditional.
-  const ghostLid = useMemo(() => {
-    if (ceilingCutY == null) return null;
-    const m = material.clone();
-    m.clippingPlanes = [new THREE.Plane(new THREE.Vector3(0, 1, 0), -ceilingCutY)];
-    m.transparent = true;
-    m.opacity = 0.22;
-    m.depthWrite = false;
-    return m;
-  }, [material, ceilingCutY]);
-
-  return (
-    <>
-      <mesh geometry={geometry} material={clipped} />
-      {/* Plenum: the lid returns, ghosted, so what is above it stays readable. */}
-      {ceilingState === "plenum" && ghostLid ? (
-        <mesh geometry={geometry} material={ghostLid} />
-      ) : null}
-    </>
-  );
-}
 
 /** Dots the user can walk to. Rendered only on the current floor — a station
  *  one storey up is visually confusing and not reachable by clicking. */
@@ -221,11 +142,7 @@ export function MeshTwinViewer({
   const [measureActive, setMeasureActive] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const raycastRef = useRef<((x: number, y: number) => [number, number, number] | null) | null>(null);
-  const dragRef = useRef<{ x: number; y: number; moved: boolean; onCanvas: boolean } | null>(null);
   const shellRef = useRef<HTMLDivElement | null>(null);
-  const fovRef = useRef<number>(DEFAULT_FOV);
-  const pinchRef = useRef<Map<number, { x: number; y: number }>>(new Map());
-  const lastPinchRef = useRef<number>(0);
 
   const nav = useWalkthroughNavigation({
     stations,
@@ -233,84 +150,14 @@ export function MeshTwinViewer({
     raycastFloor: (x, y) => raycastRef.current?.(x, y) ?? null,
   });
 
-  // Navigation must be driven ONLY by the canvas. Without this check any
-  // pointer-up reaching the wrapper counts as a click on the model, so a press
-  // that lands on the control bar's padding rather than exactly on a button
-  // falls through and walks the user to a station instead of switching mode.
-  const fromCanvas = (e: React.PointerEvent | React.WheelEvent) =>
-    e.target instanceof HTMLCanvasElement;
-
-  const handlePointerDown = useCallback((e: React.PointerEvent) => {
-    if (!fromCanvas(e)) return;
-    pinchRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pinchRef.current.size >= 2) {
-      // A second finger converts the gesture to a pinch; drop the drag so the
-      // view does not lurch as the fingers separate.
-      dragRef.current = null;
-      lastPinchRef.current = 0;
-      return;
-    }
-    // Capture so a drag that leaves the element keeps rotating — without this,
-    // spinning in place stops the moment the pointer crosses the edge.
-    e.currentTarget.setPointerCapture?.(e.pointerId);
-    // `onCanvas` is recorded HERE and trusted later. Pointer capture retargets
-    // every subsequent event to the capturing element, so by pointer-up the
-    // target is this wrapper div, not the canvas — re-checking it there
-    // rejected every legitimate click on the model.
-    dragRef.current = { x: e.clientX, y: e.clientY, moved: false, onCanvas: true };
-  }, []);
-
-  const handlePointerMove = useCallback(
-    (e: React.PointerEvent) => {
-      // Two fingers down: pinch to zoom, and suppress look-drag so the gesture
-      // does not also spin the view while the user is scaling it.
-      if (pinchRef.current.size >= 2) {
-        pinchRef.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-        const [a, b] = Array.from(pinchRef.current.values());
-        const spread = Math.hypot(a.x - b.x, a.y - b.y);
-        if (lastPinchRef.current > 0) {
-          const delta = (lastPinchRef.current - spread) * PINCH_SENSITIVITY;
-          fovRef.current = Math.min(MAX_FOV, Math.max(MIN_FOV, fovRef.current + delta));
-        }
-        lastPinchRef.current = spread;
-        return;
-      }
-      const drag = dragRef.current;
-      if (!drag) return;
-      const dx = e.clientX - drag.x;
-      const dy = e.clientY - drag.y;
-      // A few pixels of slop so a tap with a shaky thumb still reads as a tap.
-      if (!drag.moved && Math.hypot(dx, dy) < 4) return;
-      drag.moved = true;
-      nav.handleLookDrag(dx, dy);
-      drag.x = e.clientX;
-      drag.y = e.clientY;
-    },
-    [nav],
-  );
-
-  const handlePointerUp = useCallback(
-    (e: React.PointerEvent) => {
-      const drag = dragRef.current;
-      dragRef.current = null;
-      pinchRef.current.delete(e.pointerId);
-      if (pinchRef.current.size < 2) lastPinchRef.current = 0;
-      e.currentTarget.releasePointerCapture?.(e.pointerId);
-      if (!drag || drag.moved || !drag.onCanvas) return;
-      const rect = e.currentTarget.getBoundingClientRect();
-      nav.handleCanvasClick(e.clientX - rect.left, e.clientY - rect.top);
-    },
-    [nav],
-  );
-
-  // Zoom is field of view, not dolly. Moving the camera off a station would
-  // put the viewer where no imagery exists; narrowing the lens lets a
-  // contractor read a detail on a far wall from where they are standing.
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    if (!fromCanvas(e)) return;
-    const next = fovRef.current + (e.deltaY > 0 ? FOV_STEP : -FOV_STEP);
-    fovRef.current = Math.min(MAX_FOV, Math.max(MIN_FOV, next));
-  }, []);
+  const {
+    fovRef,
+    handlePointerDown,
+    handlePointerMove,
+    handlePointerUp,
+    handlePointerCancel,
+    handleWheel,
+  } = useViewerGestures(nav);
 
   const toggleFullscreen = useCallback(() => {
     const el = shellRef.current;
@@ -335,11 +182,7 @@ export function MeshTwinViewer({
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
-        onPointerCancel={(e) => {
-          dragRef.current = null;
-          pinchRef.current.delete(e.pointerId);
-          lastPinchRef.current = 0;
-        }}
+        onPointerCancel={handlePointerCancel}
         onWheel={handleWheel}
       >
         <Canvas
