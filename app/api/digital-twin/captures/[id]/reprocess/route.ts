@@ -33,6 +33,8 @@ export const POST = (req: NextRequest, ctx: { params: Promise<{ id: string }> })
     const trainProfile = parseTrainProfile(body.trainProfile);
 
     const result = await createReconstructionJob(admin, {
+      // A reprocess route is explicit by definition — the caller asked for it.
+      confirmProcessing: true,
       orgId,
       userId: user.id,
       userEmail: user.email,

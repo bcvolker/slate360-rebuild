@@ -45,6 +45,8 @@ export const POST = (req: NextRequest, ctx: { params: Promise<{ modelId: string 
     if (!model.capture_id) return badRequest("This model has no source capture to reprocess.");
 
     const result = await createReconstructionJob(admin, {
+      // A reprocess route is explicit by definition — the caller asked for it.
+      confirmProcessing: true,
       orgId,
       userId: user.id,
       userEmail: user.email,

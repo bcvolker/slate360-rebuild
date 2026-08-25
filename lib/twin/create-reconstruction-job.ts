@@ -45,6 +45,14 @@ export async function createReconstructionJob(
      * (owner/reprocess-only lever — not the client submit flow). Omit for
      * the promoted default. */
     trainProfile?: TwinTrainProfile;
+    /**
+     * Explicit operator intent to spend GPU time. REQUIRED — this function
+     * inserts straight into digital_twin_processing_jobs, so it bypasses the
+     * guard on POST /api/digital-twin/jobs entirely. A capture arriving must
+     * never become a bill as a side effect, and that has to hold on every path
+     * to the table, not just the one that happens to go through the endpoint.
+     */
+    confirmProcessing: true;
   },
 ): Promise<CreateReconstructionJobResult> {
   const { orgId, userId, userEmail, captureId, quality, trainProfile } = params;
