@@ -47,6 +47,8 @@ type JobBody = {
   lidar_prior_asset_id?: string | null;
   quality?: string;
   align_backend?: "colmap_vanilla" | "colmap_pose_prior";
+  /** Explicit operator intent to spend GPU time. Required for paid job types. */
+  confirm_processing?: boolean;
 };
 
 const OUTPUT_FORMATS = new Set(["spz", "ply", "glb", "lidar_potree"]);
@@ -62,6 +64,19 @@ export const POST = (req: NextRequest) =>
     const outputFormat = body.output_format ?? "spz";
     const jobType = body.job_type ?? "gaussian_splat";
     const quality = parseQuality(body.quality);
+
+    // A capture must never turn into GPU spend as a side effect of uploading.
+    // The capture flow was auto-enqueuing a gaussian_splat job the moment assets
+    // landed, so a scan taken purely to be archived or processed elsewhere still
+    // billed for a photoreal reconstruction nobody asked for. Intent is now
+    // explicit, and it is enforced HERE rather than in any one caller so no
+    // future screen can reintroduce the same surprise.
+    if (!body.confirm_processing) {
+      return badRequest(
+        "Processing must be explicitly requested. Upload and archive do not start a job; " +
+          "send confirm_processing:true to spend GPU time.",
+      );
+    }
 
     if (!OUTPUT_FORMATS.has(outputFormat)) return badRequest("Invalid output_format");
     if (!JOB_TYPES.has(jobType)) return badRequest("Invalid job_type");

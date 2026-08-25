@@ -235,7 +235,15 @@ export function useMultipartTwinUpload() {
       if (!cid) throw new Error("No capture id — upload assets first");
       return twinApiPost<{ job: { id: string; status: string; progress_pct: number } }>(
         "/api/digital-twin/jobs",
-        { capture_id: cid, output_format: outputFormat, quality, job_type: jobType },
+        {
+          capture_id: cid,
+          output_format: outputFormat,
+          quality,
+          job_type: jobType,
+          // enqueueJob is only ever reached from an explicit button press, so the
+          // intent flag belongs here. Uploading alone never calls this.
+          confirm_processing: true,
+        },
       );
     },
     [captureId],
