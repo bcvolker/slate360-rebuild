@@ -17,9 +17,11 @@ export const dynamic = "force-dynamic";
  * kitchen validation capture is reachable here.
  */
 
-const DEFAULT_LABEL = "kitchen-walk";
+// The 2026-08-25 capture, reprocessed after the frame-truncation fix took
+// untextured vertices from 37.3% to 20.0%.
+const DEFAULT_LABEL = "kitchen-aug25";
 const PINNED_ORG = "c5538bfd-a67a-4930-8481-0e5e331ec7cc";
-const PINNED_SPACE = "8604e6dd-24b9-4c22-86df-67c784466b86";
+const PINNED_SPACE = "f10a56ab-cd2b-42e0-b328-363e8940172e";
 const LABEL_RE = /^[a-z0-9][a-z0-9-]{0,63}$/i;
 
 async function readJsonKey(key: string): Promise<Record<string, unknown> | null> {

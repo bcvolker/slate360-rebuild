@@ -22,7 +22,7 @@ import { s3, BUCKET } from "@/lib/s3";
  */
 
 const PINNED_ORG = "c5538bfd-a67a-4930-8481-0e5e331ec7cc";
-const PINNED_SPACE = "8604e6dd-24b9-4c22-86df-67c784466b86";
+const PINNED_SPACE = "f10a56ab-cd2b-42e0-b328-363e8940172e";
 
 const ALLOWED_SUFFIXES: Record<string, string> = {
   "dollhouse.glb": "model/gltf-binary",
