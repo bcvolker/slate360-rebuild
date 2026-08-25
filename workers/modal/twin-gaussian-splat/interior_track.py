@@ -299,9 +299,12 @@ def summarize_for_callback(stats: dict[str, Any]) -> dict[str, Any]:
         "pairsIntegrated": (stats.get("tsdf") or {}).get("pairsIntegrated"),
         "colorIntegrated": (stats.get("tsdf") or {}).get("colorIntegrated"),
         "textureFramesUsed": (stats.get("texture") or {}).get("framesUsed"),
+        "textureFramesOffered": (stats.get("texture") or {}).get("framesOffered"),
+        "textureFramesSelected": (stats.get("texture") or {}).get("framesSelected"),
         "videoFramesPosed": sum(
             int(v.get("posed") or 0) for v in (stats.get("videoTexture") or [])
         ),
+        "videoTexture": stats.get("videoTexture"),
         "verticesColored": (stats.get("texture") or {}).get("verticesColored"),
         "verticesUncolored": (stats.get("texture") or {}).get("verticesUncolored"),
         "meanViewsPerVertex": (stats.get("texture") or {}).get("meanViewsPerVertex"),

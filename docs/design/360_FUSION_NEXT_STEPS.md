@@ -154,3 +154,53 @@ of known size is in the scene, and is the approach that already failed once on i
 **The honest answer:** 360-only should be sold as a *tour*, not a twin, unless there is a
 separate source of scale and geometry. That is a real product with real buyers, and it is far
 better than a twin nobody can measure.
+
+---
+
+## MEASURED RESULT — video texturing, 2026-08-25
+
+Four AI platforms independently recommended "use the unused iPhone video frames
+first," ahead of any 360 work. It was built (`video_texture.py`, M7-C), deployed,
+and run against the 2026-08-25 kitchen (capture `45daa2c3`, 387 keyframes, 231 s).
+
+**The recommendation was the wrong priority. The real defect was a truncation bug.**
+
+| run | frames used | views/vertex | untextured |
+|---|---|---|---|
+| before | 200 | 21.1 | **37.3%** |
+| stills, truncation fixed | 387 | 29.5 | **20.0%** |
+| stills + video | 784 (397 video) | 63.0 | **19.7%** |
+
+`bake_vertex_colors` capped frames at 200 by *truncation* — `frames[:200]`. Frames
+arrive in capture order, so it kept the start of every walk and discarded the end.
+Fixing that one line, with no video involved, cut untextured from 37.3% to 20.0%.
+
+Adding 397 posed video frames on top bought **0.3 percentage points**, for roughly
+3x the texture compute plus a 135 MB download and an ffmpeg decode.
+
+### Why video cannot help coverage — this is structural, do not retry it
+
+A video frame is posed by interpolating between the keyframes bracketing it, and it
+is only accepted when those keyframes are close in space (12 cm / 12 deg). So every
+accepted video frame sits *between two keyframes*, metres from nothing the keyframes
+did not already see. It adds view density, not view angles.
+
+The frames that would add coverage are exactly the ones in the wide-motion gaps —
+and those are correctly rejected, because there we do not know where the camera was.
+
+Confirmed by where the remaining grey actually is: spread evenly across every height
+band of the room (15–30% per band, top quarter holds 38.6% of it). It is not a
+ceiling problem or a floor problem. It is surface no camera was ever pointed at —
+occluded backs of cabinets, behind fixtures, wall exteriors the TSDF closed over.
+
+### Standing conclusions
+
+1. **Video texturing stays OFF by default.** It is opt-in via `videoKeys` in the
+   `interior` payload; the in-job track does not pass it. Do not enable it for the
+   0.3 points. It remains built and deployed for the case where stills are missing.
+2. **The remaining ~20% will not be closed by post-processing.** It closes by
+   capture technique (point the camera at what must be textured) or by a genuinely
+   new viewpoint — which is what the 360 camera is actually for.
+3. A time-based gate on pose interpolation is wrong. Measured on this capture,
+   brackets longer than 1 s carry a median **29.5 cm** of travel while brackets
+   under 0.3 s carry 8.2 cm. Gate on motion.
