@@ -87,6 +87,8 @@ def run_interior_track(
     *,
     reference_diagonal: float | None = None,
     reference_points: Any = None,
+    video_paths: dict[int, Any] | None = None,
+    poses_data: dict[str, Any] | None = None,
     target_triangles: int = DOLLHOUSE_TARGET_TRIANGLES,
     voxel_length: float | None = None,
     min_confidence: int | None = None,
@@ -187,6 +189,23 @@ def run_interior_track(
         import mesh_texture as mt
 
         frames: list[dict[str, Any]] = []
+
+        # Video frames FIRST — the capture records depth about every 8 cm but
+        # records video continuously, so these are the bulk of the available
+        # colour and they cover angles the sparse keyframes missed. On the
+        # 2026-08-25 kitchen the stills alone left 37.3% of the mesh grey.
+        if video_paths and poses_data:
+            import video_texture as vt
+
+            video_stats: list[dict[str, Any]] = []
+            for clip_index, path in video_paths.items():
+                vframes, vstats = vt.build_video_frames(
+                    path, int(clip_index), poses_data, out / "video_frames"
+                )
+                frames.extend(vframes)
+                video_stats.append(vstats)
+            stats["videoTexture"] = video_stats
+
         pose_by_index = {i: f for i, f in enumerate(im.load_pose_frames(poses))}
         for rec in im.iter_depth_records(depth):
             pose = pose_by_index.get(rec["index"])
@@ -280,6 +299,9 @@ def summarize_for_callback(stats: dict[str, Any]) -> dict[str, Any]:
         "pairsIntegrated": (stats.get("tsdf") or {}).get("pairsIntegrated"),
         "colorIntegrated": (stats.get("tsdf") or {}).get("colorIntegrated"),
         "textureFramesUsed": (stats.get("texture") or {}).get("framesUsed"),
+        "videoFramesPosed": sum(
+            int(v.get("posed") or 0) for v in (stats.get("videoTexture") or [])
+        ),
         "verticesColored": (stats.get("texture") or {}).get("verticesColored"),
         "verticesUncolored": (stats.get("texture") or {}).get("verticesUncolored"),
         "meanViewsPerVertex": (stats.get("texture") or {}).get("meanViewsPerVertex"),

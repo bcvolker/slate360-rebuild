@@ -283,7 +283,7 @@ gpu_image = (
         "operator_mask",
         "bake",
         "interior_mesh", "mesh_dollhouse", "interior_track",
-        "mesh_floorplan", "mesh_registration", "zone_planner", "mesh_accuracy", "walk_stations", "mesh_texture",
+        "mesh_floorplan", "mesh_registration", "zone_planner", "mesh_accuracy", "walk_stations", "mesh_texture", "video_texture",
     )
 )
 
@@ -3935,7 +3935,7 @@ def process_job(payload: dict[str, Any]) -> None:
         shutil.rmtree(work_root, ignore_errors=True)
 
 
-@app.function(image=gpu_image, timeout=1800, secrets=[worker_secret], retries=0)
+@app.function(image=gpu_image, timeout=3600, secrets=[worker_secret], retries=0)
 def interior_only(payload: dict[str, Any]) -> dict[str, Any]:
     """M3 — run ONLY the interior mesh track on an existing capture's assets.
 
@@ -3977,11 +3977,29 @@ def interior_only(payload: dict[str, Any]) -> dict[str, Any]:
             except Exception as exc:  # noqa: BLE001
                 print(f"[interior-only] reference PLY unavailable: {exc}")
 
+        # Video clips carry far more colour than the sparse depth keyframes.
+        # On the 2026-08-25 kitchen: 387 keyframes against ~231 s of video.
+        video_paths: dict[int, Any] = {}
+        poses_data = None
+        try:
+            with poses_path.open(encoding="utf-8") as fh:
+                poses_data = json.load(fh)
+            for spec in payload.get("videoKeys") or []:
+                idx = int(spec["clipIndex"])
+                local = root / f"clip{idx}.mp4"
+                s3.download_file(bucket, str(spec["key"]), str(local))
+                video_paths[idx] = local
+        except Exception as exc:  # noqa: BLE001
+            print(f"[interior-only] video clips unavailable (non-fatal): {exc}")
+
         import interior_track as it
 
         stats = it.run_interior_track(
             depth_path, poses_path, root / "out",
-            reference_diagonal=reference_diagonal, reference_points=reference_points,
+            reference_diagonal=reference_diagonal,
+            reference_points=reference_points,
+            video_paths=video_paths or None,
+            poses_data=poses_data,
             voxel_length=payload.get("voxelLength"),
             min_confidence=payload.get("minConfidence"),
         )

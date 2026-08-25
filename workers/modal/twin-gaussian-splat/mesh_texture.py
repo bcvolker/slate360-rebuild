@@ -261,8 +261,28 @@ def _sample_bilinear(image: Any, uv: Any):
     return top * (1 - sy) + bottom * sy
 
 
+# Raycasting every frame against a 250k-triangle mesh is the cost here, so the
+# frame count is capped. 800 is what fits the interior job's budget with room to
+# spare; the old cap of 200 silently threw away half of a 387-frame walk.
+DEFAULT_MAX_FRAMES = 800
+
+
+def select_frames(frames: list[dict[str, Any]], max_frames: int) -> list[dict[str, Any]]:
+    """Thin the frame list to `max_frames` by EVEN STRIDE across the walk.
+
+    Never by truncation. Frames arrive in capture order, so `frames[:max]` keeps
+    the start of the walk and discards the end — which is why the 2026-08-25
+    kitchen textured its first rooms and left the last ones grey. A stride keeps
+    the whole route and merely lowers its density.
+    """
+    if max_frames <= 0 or len(frames) <= max_frames:
+        return frames
+    step = len(frames) / float(max_frames)
+    return [frames[min(int(i * step), len(frames) - 1)] for i in range(max_frames)]
+
+
 def bake_vertex_colors(
-    mesh: Any, frames: list[dict[str, Any]], *, max_frames: int = 200
+    mesh: Any, frames: list[dict[str, Any]], *, max_frames: int = DEFAULT_MAX_FRAMES
 ) -> tuple[Any, dict[str, Any]]:
     """Blend every good view of each vertex into a single colour.
 
@@ -298,7 +318,11 @@ def bake_vertex_colors(
     views = np.zeros(n, dtype=float)
     used = 0
 
-    for frame in frames[: int(max_frames)]:
+    selected = select_frames(frames, int(max_frames))
+    stats["framesOffered"] = len(frames)
+    stats["framesSelected"] = len(selected)
+
+    for frame in selected:
         transform = frame.get("transform")
         intrinsics = frame.get("intrinsics") or {}
         if transform is None or _world_to_camera(transform) is None:

@@ -204,3 +204,43 @@ def test_two_views_blend_toward_the_closer_one():
     ])
     near_wall = np.asarray(out.vertex_colors)[:4].mean(axis=0)
     assert near_wall[0] > near_wall[2]
+
+
+# --- frame selection -------------------------------------------------------
+
+
+def test_select_frames_keeps_everything_under_the_cap():
+    from mesh_texture import select_frames
+
+    frames = [{"i": i} for i in range(50)]
+    assert select_frames(frames, 800) is frames
+
+
+def test_select_frames_thins_by_stride_not_truncation():
+    """The bug this replaced: frames[:max] keeps the START of the walk and
+    discards the end, leaving the last rooms scanned permanently grey."""
+    from mesh_texture import select_frames
+
+    frames = [{"i": i} for i in range(1000)]
+    got = select_frames(frames, 100)
+    assert len(got) == 100
+    assert got[0]["i"] == 0
+    # The end of the walk MUST survive.
+    assert got[-1]["i"] > 900
+
+
+def test_select_frames_spans_the_whole_list_evenly():
+    from mesh_texture import select_frames
+
+    got = [f["i"] for f in select_frames([{"i": i} for i in range(1000)], 10)]
+    assert got == [0, 100, 200, 300, 400, 500, 600, 700, 800, 900]
+
+
+def test_select_frames_never_indexes_past_the_end():
+    from mesh_texture import select_frames
+
+    for total in (3, 7, 101, 999):
+        for cap in (1, 2, 5, 100):
+            got = select_frames([{"i": i} for i in range(total)], cap)
+            assert len(got) == min(total, cap)
+            assert all(0 <= f["i"] < total for f in got)
