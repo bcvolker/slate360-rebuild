@@ -292,10 +292,18 @@ def export_textured_glb(
     verts = np.asarray(mesh.vertices, dtype=float)
     split = verts[np.asarray(vertex_map)]
     faces = np.asarray(face_indices)
+    # NO V-FLIP. glTF's UV origin is TOP-left and loaders set flipY=false for
+    # glTF textures, which matches how rasterize_atlas addresses the image:
+    # row index = v * size, also top-left. Flipping here mirrored the atlas
+    # against the layout that painted it.
+    #
+    # With a normal chart atlas that mistake shows as an upside-down room. With
+    # the per-triangle grid it is invisible and total: each cell paints only its
+    # LOWER-left half, so a vertical mirror makes every triangle sample the
+    # EMPTY upper half of some other cell — which is NEUTRAL_GREY. The result is
+    # a uniformly grey model that looks exactly like an untextured one, while
+    # every stat (coverage, texel counts, atlas detail) stays perfect.
     uv = np.asarray(uvs, dtype=float).copy()
-    # glTF's texture origin is the BOTTOM-left; xatlas hands back top-left, and
-    # getting this wrong flips every surface vertically without erroring.
-    uv[:, 1] = 1.0 - uv[:, 1]
 
     # JPEG, not PNG. The atlas is a photograph, and lossless encoding of a
     # photograph is enormous — the 8192px kitchen atlas is 46 MB as PNG against
