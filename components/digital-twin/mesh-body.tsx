@@ -147,6 +147,21 @@ function GlbBody({ url, ceilingCutY, ceilingState }: BodyProps): ReactElement {
       // glTF textures decode as sRGB; left linear the whole room washes out to
       // a pale, chalky version of the photographs.
       source.map.colorSpace = THREE.SRGBColorSpace;
+
+      // NO MIPMAPS. This is the whole reason the baked atlas rendered as a flat
+      // grey blob. The grid UV layout leaves ~65% of the sheet outside any
+      // chart, and that space is neutral grey — so every mip level averages a
+      // 20 px cell of real photograph together with the grey around it. By mip
+      // 4 the cell is gone and the surface is uniformly 165 grey, which ambient
+      // light then lifts to near-white. Every zoomed-out view — dollhouse,
+      // floor plan, walking back from a wall — is exactly the minified case.
+      //
+      // Sampling the base level always costs some shimmer at distance. That is
+      // a far better trade than showing a photograph as a blank surface, and it
+      // stops being necessary once the layout packs charts tightly.
+      source.map.generateMipmaps = false;
+      source.map.minFilter = THREE.LinearFilter;
+      source.map.magFilter = THREE.LinearFilter;
       source.map.needsUpdate = true;
     } else if (typeof console !== "undefined") {
       // Loud, because the silent version of this is a flat grey model that
