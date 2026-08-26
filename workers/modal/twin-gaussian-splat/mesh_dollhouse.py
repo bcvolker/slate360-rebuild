@@ -388,6 +388,52 @@ def decimate(mesh: Any, target_triangles: int = 250_000) -> tuple[Any, dict[str,
     return out, {"before": n, "after": triangle_count(out), "skipped": None}
 
 
+# Quadric decimation shatters thin and near-degenerate regions into confetti:
+# measured on the 2026-08-25 kitchen, the raw mesh was culled to a few clean
+# components and the DECIMATED result still carried 5,854 of them — 5,848 under
+# 200 vertices, holding 6.7% of the mesh. Those are the floating shards and
+# fringe that make a good scan look broken.
+#
+# An ABSOLUTE threshold, not a fraction of the largest. A fraction big enough to
+# catch confetti also deletes real furniture; 200 triangles at dollhouse density
+# is a patch a few centimetres across, which is debris by any reading.
+MIN_ISLAND_TRIANGLES = 200
+
+
+def drop_decimation_debris(mesh, min_triangles: int = MIN_ISLAND_TRIANGLES):
+    """Remove tiny disconnected islands left behind by decimation.
+
+    Subtractive only — it deletes measured-but-meaningless fragments and never
+    invents surface, so a hole stays an honest hole.
+    """
+    import numpy as np
+
+    stats = {"componentsBefore": 0, "componentsRemoved": 0, "trianglesRemoved": 0}
+    try:
+        labels, counts, _ = mesh.cluster_connected_triangles()
+    except (RuntimeError, AttributeError) as exc:  # noqa: BLE001
+        return mesh, {**stats, "skipped": f"{type(exc).__name__}: {exc}"}
+
+    counts = np.asarray(counts)
+    if counts.size == 0:
+        return mesh, stats
+    stats["componentsBefore"] = int(counts.size)
+
+    # Never strip the mesh to nothing: the largest component always survives,
+    # even in the degenerate case where every island is under the threshold.
+    doomed = counts < int(min_triangles)
+    doomed[int(np.argmax(counts))] = False
+    if not doomed.any():
+        return mesh, stats
+
+    remove = np.isin(np.asarray(labels), np.flatnonzero(doomed))
+    stats["componentsRemoved"] = int(doomed.sum())
+    stats["trianglesRemoved"] = int(remove.sum())
+    mesh.remove_triangles_by_mask(remove)
+    mesh.remove_unreferenced_vertices()
+    return mesh, stats
+
+
 def build_dollhouse(
     mesh: Any, *, target_triangles: int = 250_000, remove_ceiling: bool = False
 ) -> tuple[Any, dict[str, Any]]:
@@ -399,6 +445,8 @@ def build_dollhouse(
     cut_mesh, cut_stats = cut_ceiling(mesh, detect.get("ceiling_y"), remove=remove_ceiling)
     snapped, snap_stats = snap_walls_to_manhattan(cut_mesh)
     done, dec_stats = decimate(snapped, target_triangles=target_triangles)
+    # AFTER decimation, not before: this debris is what decimation created.
+    done, debris_stats = drop_decimation_debris(done)
 
     verts = np.asarray(done.vertices)
     if verts.size == 0:
@@ -414,6 +462,7 @@ def build_dollhouse(
         "cut_ceiling": cut_stats,
         "snap_walls_to_manhattan": snap_stats,
         "decimate": dec_stats,
+        "drop_decimation_debris": debris_stats,
         "extent": extent,
         "extent_diagonal": diag,
     }

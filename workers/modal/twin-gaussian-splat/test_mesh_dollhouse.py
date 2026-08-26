@@ -258,3 +258,71 @@ def test_build_dollhouse_reports_whether_colour_survived():
     m.vertex_colors = o3d.utility.Vector3dVector(np.tile([0.5, 0.5, 0.5], (n, 1)))
     _, stats = build_dollhouse(m)
     assert stats["has_vertex_colors"] is True
+
+
+# --- decimation debris -----------------------------------------------------
+
+
+class _FakeMesh:
+    """Stands in for an Open3D mesh's clustering API, which needs no geometry
+    here — only the label/count contract drop_decimation_debris relies on."""
+
+    def __init__(self, labels, counts):
+        self._labels, self._counts = list(labels), list(counts)
+        self.removed_mask = None
+        self.unreferenced_cleaned = False
+
+    def cluster_connected_triangles(self):
+        return self._labels, self._counts, None
+
+    def remove_triangles_by_mask(self, mask):
+        self.removed_mask = list(mask)
+
+    def remove_unreferenced_vertices(self):
+        self.unreferenced_cleaned = True
+
+
+def test_drops_small_islands_and_keeps_the_room():
+    from mesh_dollhouse import drop_decimation_debris
+
+    # one big room, three confetti fragments
+    labels = [0] * 5000 + [1] * 10 + [2] * 5 + [3] * 3
+    mesh, stats = drop_decimation_debris(_FakeMesh(labels, [5000, 10, 5, 3]))
+    assert stats["componentsRemoved"] == 3
+    assert stats["trianglesRemoved"] == 18
+    assert mesh.unreferenced_cleaned
+    # the room's triangles survive
+    assert not any(mesh.removed_mask[:5000])
+    assert all(mesh.removed_mask[5000:])
+
+
+def test_keeps_islands_at_or_above_the_threshold():
+    from mesh_dollhouse import MIN_ISLAND_TRIANGLES, drop_decimation_debris
+
+    n = MIN_ISLAND_TRIANGLES
+    mesh, stats = drop_decimation_debris(_FakeMesh([0] * 5000 + [1] * n, [5000, n]))
+    assert stats["componentsRemoved"] == 0
+    assert mesh.removed_mask is None
+
+
+def test_never_strips_the_mesh_to_nothing():
+    """If every island is under the threshold the largest still survives —
+    returning an empty mesh would turn a cosmetic cleanup into data loss."""
+    from mesh_dollhouse import drop_decimation_debris
+
+    mesh, stats = drop_decimation_debris(_FakeMesh([0] * 9 + [1] * 4, [9, 4]))
+    assert stats["componentsRemoved"] == 1
+    assert not any(mesh.removed_mask[:9])
+    assert all(mesh.removed_mask[9:])
+
+
+def test_reports_and_skips_when_clustering_is_unavailable():
+    from mesh_dollhouse import drop_decimation_debris
+
+    class Broken(_FakeMesh):
+        def cluster_connected_triangles(self):
+            raise RuntimeError("no clustering")
+
+    mesh, stats = drop_decimation_debris(Broken([], []))
+    assert "skipped" in stats
+    assert mesh.removed_mask is None
