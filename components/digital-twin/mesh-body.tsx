@@ -29,43 +29,23 @@ type BodyProps = {
 };
 
 /**
- * The shared half: material, ceiling clipping, and the two draw calls. Takes an
- * already-loaded geometry so the PLY and GLB paths can each call their own
- * loader hook unconditionally.
+ * Ceiling clipping and the two draw calls. Takes a FINISHED material rather
+ * than building one: the GLB path must render the material glTF already
+ * described, and reconstructing it by hand is how the baked atlas ended up
+ * invisible — one missed field and the mesh silently falls back to a flat
+ * token colour that looks like a deliberate design choice.
  */
 function Surface({
   geometry,
-  map,
+  material,
   ceilingCutY,
   ceilingState,
 }: {
   geometry: THREE.BufferGeometry;
-  map: THREE.Texture | null;
+  material: THREE.Material;
   ceilingCutY?: number | null;
   ceilingState: CeilingState;
 }): ReactElement {
-  const material = useMemo(() => {
-    const hasVertexColors = Boolean(geometry.getAttribute("color"));
-    if (!geometry.getAttribute("normal")) geometry.computeVertexNormals();
-    return new THREE.MeshStandardMaterial({
-      // White base so a texture map or vertex colours pass through
-      // unmodulated; the token colour is only for an untextured capture.
-      color:
-        map || hasVertexColors
-          ? new THREE.Color(1, 1, 1)
-          : cssColor("--muted-foreground", MESH_SURFACE_FALLBACK),
-      map: map ?? undefined,
-      // An atlas supersedes vertex colours — leaving both on multiplies the
-      // 4.5 cm vertex wash back over the texture we baked to escape it.
-      vertexColors: map ? false : hasVertexColors,
-      roughness: 0.95,
-      metalness: 0,
-      side: THREE.DoubleSide,
-    });
-  }, [geometry, map]);
-
-  // Clip in the shader rather than rebuilding geometry, so toggling is instant
-  // and the same buffers serve all three states.
   const clipped = useMemo(() => {
     if (ceilingCutY == null || ceilingState === "closed") return material;
     const m = material.clone();
@@ -100,14 +80,28 @@ function Surface({
 /**
  * PLY carries per-vertex colour: one sample per vertex, so on a 250k-triangle
  * dollhouse that is a colour every ~4.5 cm however good the photographs were.
- * Kept as the fallback for captures with no baked atlas.
+ * The fallback for captures with no baked atlas.
  */
 function PlyBody({ url, ceilingCutY, ceilingState }: BodyProps): ReactElement {
   const geometry = useLoader(PLYLoader, url);
+  const material = useMemo(() => {
+    const hasVertexColors = Boolean(geometry.getAttribute("color"));
+    if (!geometry.getAttribute("normal")) geometry.computeVertexNormals();
+    return new THREE.MeshStandardMaterial({
+      color: hasVertexColors
+        ? new THREE.Color(1, 1, 1)
+        : cssColor("--muted-foreground", MESH_SURFACE_FALLBACK),
+      vertexColors: hasVertexColors,
+      roughness: 0.95,
+      metalness: 0,
+      side: THREE.DoubleSide,
+    });
+  }, [geometry]);
+
   return (
     <Surface
       geometry={geometry}
-      map={null}
+      material={material}
       ceilingCutY={ceilingCutY}
       ceilingState={ceilingState}
     />
@@ -115,34 +109,60 @@ function PlyBody({ url, ceilingCutY, ceilingState }: BodyProps): ReactElement {
 }
 
 /**
- * GLB carrying a UV atlas — the sharp path. Texture resolution is decoupled
- * from mesh resolution here, which is the whole reason the atlas exists.
+ * GLB carrying a UV atlas — the sharp path, where texture resolution is
+ * decoupled from mesh density.
+ *
+ * Uses the material GLTFLoader produced, adjusted in place rather than rebuilt.
+ * The mesh is exported single-sided and a TSDF's winding is not reliable, so
+ * back faces would drop out; ambient-only lighting also needs roughness pinned
+ * or the surface reads as plastic.
  */
 function GlbBody({ url, ceilingCutY, ceilingState }: BodyProps): ReactElement {
   const gltf = useLoader(GLTFLoader, url);
-  const { geometry, map } = useMemo(() => {
-    let found: THREE.Mesh | null = null;
+
+  const { geometry, material } = useMemo(() => {
+    let mesh: THREE.Mesh | null = null;
     gltf.scene.traverse((child) => {
-      if (!found && (child as THREE.Mesh).isMesh) found = child as THREE.Mesh;
+      const candidate = child as THREE.Mesh;
+      if (!mesh && candidate.isMesh) mesh = candidate;
     });
-    const mesh = found as THREE.Mesh | null;
-    if (!mesh) return { geometry: new THREE.BufferGeometry(), map: null };
-    const source = mesh.material as THREE.MeshStandardMaterial | undefined;
-    const texture = source?.map ?? null;
-    if (texture) {
-      // glTF textures decode as sRGB; leaving them linear washes the whole
-      // room out to a pale, chalky version of the photographs.
-      texture.colorSpace = THREE.SRGBColorSpace;
-      texture.flipY = false;
-      texture.needsUpdate = true;
+    const found = mesh as THREE.Mesh | null;
+    if (!found) {
+      return {
+        geometry: new THREE.BufferGeometry(),
+        material: new THREE.MeshStandardMaterial({
+          color: cssColor("--muted-foreground", MESH_SURFACE_FALLBACK),
+          side: THREE.DoubleSide,
+        }),
+      };
     }
-    return { geometry: mesh.geometry, map: texture };
+
+    const source = (
+      Array.isArray(found.material) ? found.material[0] : found.material
+    ) as THREE.MeshStandardMaterial;
+    source.side = THREE.DoubleSide;
+    source.roughness = 0.95;
+    source.metalness = 0;
+    if (source.map) {
+      // glTF textures decode as sRGB; left linear the whole room washes out to
+      // a pale, chalky version of the photographs.
+      source.map.colorSpace = THREE.SRGBColorSpace;
+      source.map.needsUpdate = true;
+    } else if (typeof console !== "undefined") {
+      // Loud, because the silent version of this is a flat grey model that
+      // looks like a rendering choice rather than a missing texture.
+      console.error("[twin] GLB carries no baseColorTexture — mesh will render untextured");
+    }
+    source.needsUpdate = true;
+
+    if (!found.geometry.getAttribute("normal")) found.geometry.computeVertexNormals();
+    return { geometry: found.geometry, material: source };
   }, [gltf]);
 
   return (
     <Surface
       geometry={geometry}
-      map={map}
+      material={material}
       ceilingCutY={ceilingCutY}
       ceilingState={ceilingState}
     />
