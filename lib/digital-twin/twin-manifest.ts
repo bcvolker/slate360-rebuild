@@ -72,8 +72,20 @@ export async function fetchSplatManifest(modelUrl: string): Promise<SplatManifes
       : authMatch
         ? `/api/digital-twin/models/${authMatch[1]}/manifest`
         : `/api/digital-twin/splat-manifest?u=${encodeURIComponent(modelUrl)}`;
-    const res = await fetch(endpoint);
-    if (!res.ok) return null;
+    let res = await fetch(endpoint);
+    if (!res.ok) {
+      // Fall back to a sibling manifest on the same URL shape. The generic
+      // route is authenticated, so an unauthenticated harness gets nothing from
+      // it — and a null manifest means NO ORIENTATION CORRECTION, which on a
+      // capture with tilt_deg 179.9 renders the model upside down while looking
+      // like a bad reconstruction rather than a missing fetch.
+      const sibling = modelUrl.includes("kind=spz")
+        ? modelUrl.replace("kind=spz", "kind=manifest.json")
+        : null;
+      if (!sibling) return null;
+      res = await fetch(sibling);
+      if (!res.ok) return null;
+    }
     const data = (await res.json()) as SplatManifest | null;
     return data && typeof data === "object" ? data : null;
   } catch {

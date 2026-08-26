@@ -30,6 +30,9 @@ const ALLOWED_SUFFIXES: Record<string, string> = {
   // projected onto geometry carrying 27 mm of error, which is the limit the
   // textured mesh could never get past.
   "spz": "application/octet-stream",
+  // Carries the orientation correction (tilt/quaternion) and the interior entry
+  // point. Without it a splat renders uncorrected — upside down on this capture.
+  "manifest.json": "application/json",
   // The atlas-textured mesh — sharp, because its texture resolution is
   // decoupled from the mesh's ~4.5 cm vertex spacing.
   "textured.glb": "model/gltf-binary",

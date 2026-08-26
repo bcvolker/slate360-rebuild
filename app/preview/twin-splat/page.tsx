@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import SplatViewer from "@/components/digital-twin/SplatViewer";
+import { SplatViewerCore } from "@/components/digital-twin/splat-viewer-core";
 
 /**
  * Preview harness for the Gaussian splat — the CLIENT-facing half of a capture.
@@ -33,7 +33,10 @@ export default async function TwinSplatPreviewPage({
   return (
     <main className="h-dvh w-full bg-[var(--graphite-canvas)] p-3" data-app="twin360">
       <div className="relative h-full w-full overflow-hidden rounded-xl border border-white/10">
-        <SplatViewer src={src} className="h-full w-full" />
+        {/* interior, not orbit: a splat of a room seen from OUTSIDE is a fuzzy
+            ball of the far sides of every surface. The room only reads as a room
+            from a camera standing in it. */}
+        <SplatViewerCore src={src} className="h-full w-full" cameraMode="interior" />
         <p className="pointer-events-none absolute left-4 top-4 font-mono text-[10px] uppercase tracking-wide text-white/50">
           {requested} · visualisation only · not for measurement
         </p>
