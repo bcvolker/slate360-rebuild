@@ -25,6 +25,9 @@ const PINNED_ORG = "c5538bfd-a67a-4930-8481-0e5e331ec7cc";
 const PINNED_SPACE = "f10a56ab-cd2b-42e0-b328-363e8940172e";
 
 const ALLOWED_SUFFIXES: Record<string, string> = {
+  // The atlas-textured mesh — sharp, because its texture resolution is
+  // decoupled from the mesh's ~4.5 cm vertex spacing.
+  "textured.glb": "model/gltf-binary",
   "dollhouse.glb": "model/gltf-binary",
   "raw.glb": "model/gltf-binary",
   // PLY carries vertex colours; Open3D's glTF writer silently drops them.

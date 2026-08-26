@@ -226,6 +226,24 @@ def run_interior_track(
     except Exception as exc:  # noqa: BLE001
         stats["texture"] = {"skipped": f"{type(exc).__name__}: {exc}"}
 
+    # --- 4a-2. UV atlas texturing (M7-D) -----------------------------------
+    # The real fix for how the twin LOOKS. Per-vertex colour capped the model at
+    # one sample every 4.5 cm against 1.5 mm source imagery; an atlas decouples
+    # texture resolution from mesh resolution. Runs after the vertex bake and
+    # does not replace it — the PLY keeps its vertex colours as a fallback for
+    # viewers that cannot sample a texture.
+    try:
+        import mesh_atlas as ma
+
+        glb_path = out / "textured.glb"
+        stats["atlas"] = ma.build_atlas(dollhouse, frames, glb_path)
+        if glb_path.is_file() and not (stats["atlas"] or {}).get("skipped"):
+            # Registered under "files" so the caller's uploader ships it as
+            # <label>.textured.glb alongside the dollhouse.
+            stats.setdefault("files", {})["textured"] = {"glb": str(glb_path)}
+    except Exception as exc:  # noqa: BLE001
+        stats["atlas"] = {"skipped": f"{type(exc).__name__}: {exc}"}
+
     # --- 4b. Accuracy evidence (ACC-1) -------------------------------------
     # Measured on the RAW fused mesh, not the dollhouse: the dollhouse has had
     # its ceiling removed, so every ceiling point in the reference cloud would
@@ -298,6 +316,10 @@ def summarize_for_callback(stats: dict[str, Any]) -> dict[str, Any]:
         "extentDiagonal": stats.get("extentDiagonal"),
         "pairsIntegrated": (stats.get("tsdf") or {}).get("pairsIntegrated"),
         "colorIntegrated": (stats.get("tsdf") or {}).get("colorIntegrated"),
+        "atlasTexelCoverage": (stats.get("atlas") or {}).get("texelCoverage"),
+        "atlasSkipped": (stats.get("atlas") or {}).get("skipped"),
+        "atlasFacesAssigned": ((stats.get("atlas") or {}).get("viewSelection") or {}).get("facesAssigned"),
+        "atlasFacesUnobserved": ((stats.get("atlas") or {}).get("viewSelection") or {}).get("facesUnobserved"),
         "textureFramesUsed": (stats.get("texture") or {}).get("framesUsed"),
         "textureFramesOffered": (stats.get("texture") or {}).get("framesOffered"),
         "textureFramesSelected": (stats.get("texture") or {}).get("framesSelected"),

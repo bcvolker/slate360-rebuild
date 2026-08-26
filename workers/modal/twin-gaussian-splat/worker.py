@@ -246,6 +246,10 @@ gpu_image = (
         "shapely==2.0.6",
         # M1-M3 interior mesh: TSDF integration of ARKit depth (MIT).
         "open3d==0.18.0",
+        # M7-D atlas texturing. xatlas unwraps (MIT); trimesh writes a GLB that
+        # actually carries the UV map — Open3D's GLB writer drops it.
+        "xatlas==0.0.9",
+        "trimesh==4.5.3",
     )
     .run_commands(
         # torch 2.4.1+cu121: matches gsplat 1.4.0 prebuilt wheel index pt24cu121.
@@ -283,7 +287,7 @@ gpu_image = (
         "operator_mask",
         "bake",
         "interior_mesh", "mesh_dollhouse", "interior_track",
-        "mesh_floorplan", "mesh_registration", "zone_planner", "mesh_accuracy", "walk_stations", "mesh_texture", "video_texture",
+        "mesh_floorplan", "mesh_registration", "zone_planner", "mesh_accuracy", "walk_stations", "mesh_texture", "video_texture", "mesh_atlas",
     )
 )
 
