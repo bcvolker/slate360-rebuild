@@ -25,6 +25,11 @@ const PINNED_ORG = "c5538bfd-a67a-4930-8481-0e5e331ec7cc";
 const PINNED_SPACE = "f10a56ab-cd2b-42e0-b328-363e8940172e";
 
 const ALLOWED_SUFFIXES: Record<string, string> = {
+  // The trained Gaussian splat — the CLIENT-facing artefact. A splat has no
+  // fixed surface, so photographic detail does not have to survive being
+  // projected onto geometry carrying 27 mm of error, which is the limit the
+  // textured mesh could never get past.
+  "spz": "application/octet-stream",
   // The atlas-textured mesh — sharp, because its texture resolution is
   // decoupled from the mesh's ~4.5 cm vertex spacing.
   "textured.glb": "model/gltf-binary",
