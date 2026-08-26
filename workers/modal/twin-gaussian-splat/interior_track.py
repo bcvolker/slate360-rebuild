@@ -316,7 +316,15 @@ def summarize_for_callback(stats: dict[str, Any]) -> dict[str, Any]:
         "ceilingY": detect.get("ceiling_y"),
         "ceilingCutY": ((stats.get("dollhouse") or {}).get("cut_ceiling") or {}).get("cut_y"),
         "ceilingRemoved": ((stats.get("dollhouse") or {}).get("cut_ceiling") or {}).get("removed"),
-        "triangles": (dh.get("decimate") or {}).get("after"),
+        # AFTER the debris cull, not after decimation — reporting the
+        # pre-cull count overstates the mesh we actually ship.
+        "triangles": (
+            (dh.get("decimate") or {}).get("after", 0)
+            - ((dh.get("drop_decimation_debris") or {}).get("trianglesRemoved") or 0)
+        ),
+        "debrisIslandsRemoved": (dh.get("drop_decimation_debris") or {}).get(
+            "componentsRemoved"
+        ),
         "floorArea": (stats.get("floorplan") or {}).get("floor_area"),
         "floorAreaSource": (stats.get("floorplan") or {}).get("floor_area_source"),
         "accuracySummary": (stats.get("accuracy") or {}).get("summary"),
