@@ -23,11 +23,13 @@ export function MeshTwinViewerClient({
   meshUrl,
   stations,
   floors,
+  ceilingCutY,
   label,
 }: {
   meshUrl: string;
   stations: WalkStation[];
   floors: FloorInfo[];
+  ceilingCutY?: number | null;
   label: string;
 }): ReactElement {
   if (stations.length === 0) {
@@ -40,6 +42,7 @@ export function MeshTwinViewerClient({
       meshUrl={meshUrl}
       stations={stations}
       floors={floors}
+      ceilingCutY={ceilingCutY}
       caption={`${label} · ${stations.length} stations · estimating-grade, laser governs`}
     />
   );

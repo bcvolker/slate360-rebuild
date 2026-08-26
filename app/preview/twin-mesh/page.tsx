@@ -48,12 +48,21 @@ export default async function TwinMeshPreviewPage({
   const walk = await readJsonKey(`${base}.walk.json`);
   if (!walk) notFound();
 
+  // The processor CUTS the ceiling but deliberately does not REMOVE it, so the
+  // viewer can offer open/closed/plenum. That makes ceilingCutY mandatory here:
+  // without it nothing clips, and dollhouse mode looks down at a sealed roof
+  // instead of into the room.
+  const layers = await readJsonKey(`${base}.layers.json`);
+  const ceilingCutY =
+    typeof layers?.ceilingCutY === "number" ? layers.ceilingCutY : null;
+
   return (
     <main className="h-dvh w-full bg-[var(--graphite-canvas)] p-3">
       <MeshTwinViewerClient
         meshUrl={`/preview/twin-mesh/asset?label=${encodeURIComponent(label)}&kind=dollhouse.ply`}
         stations={(walk.stations as never) ?? []}
         floors={(walk.floors as never) ?? []}
+        ceilingCutY={ceilingCutY}
         label={label}
       />
     </main>
