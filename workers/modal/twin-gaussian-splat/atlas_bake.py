@@ -184,10 +184,57 @@ def bake(
         atlas[yy, xx] = rgb[vi, ui]
         painted[yy, xx] = True
 
+    # Fallback for faces no camera could supply: the mesh's own vertex colours,
+    # which the TSDF integrated from the same photographs at voxel resolution.
+    # Soft, but MEASURED — it is the difference between "we saw this and can
+    # only show it coarsely" and a grey void. Nothing is invented: a face with
+    # no colour at all still ends up grey.
+    stats["texelsFromPhoto"] = int(painted.sum())
+    filled = _fill_from_vertex_colours(mesh, face_id, bary, fv, atlas, painted)
+    stats["texelsFromVoxelColour"] = int(filled)
+
     stats["texelsPainted"] = int(painted.sum())
     stats["texelsUnobserved"] = int(stats["texelsInChart"] - stats["texelsPainted"])
     atlas = dilate(atlas, painted)
     return atlas, stats
+
+
+def _fill_from_vertex_colours(mesh, face_id, bary, face_view, atlas, painted) -> int:
+    """Paint texels whose face had no usable camera, from vertex colours.
+
+    Returns how many texels it filled. A mesh with no vertex colours fills none
+    and says so by returning 0 — it must never guess.
+    """
+    import numpy as np
+
+    try:
+        colours = np.asarray(mesh.vertex_colors, dtype=float)
+    except (AttributeError, RuntimeError):
+        return 0
+    verts = np.asarray(mesh.vertices, dtype=float)
+    if colours.shape[0] != verts.shape[0] or colours.size == 0:
+        return 0
+
+    tris = np.asarray(mesh.triangles)
+    need = (face_id >= 0) & (~painted)
+    ty, tx = np.nonzero(need)
+    if ty.size == 0:
+        return 0
+    tf = face_id[ty, tx]
+    tb = bary[ty, tx]
+    rgb = (
+        colours[tris[tf, 0]] * tb[:, 0:1]
+        + colours[tris[tf, 1]] * tb[:, 1:2]
+        + colours[tris[tf, 2]] * tb[:, 2:3]
+    )
+    # A vertex the texturer never coloured is already NEUTRAL_GREY, so copying
+    # it here changes nothing and claims nothing.
+    # Round, don't truncate: astype floors, so an exact 1.0 channel lands on
+    # 254 and every texel loses a level.
+    atlas[ty, tx] = np.rint(np.clip(rgb * 255.0, 0, 255)).astype(np.uint8)
+    painted[ty, tx] = True
+    _ = face_view
+    return int(ty.size)
 
 
 def dilate(atlas: Any, painted: Any, iterations: int = 4):
@@ -242,7 +289,20 @@ def export_textured_glb(
     # getting this wrong flips every surface vertically without erroring.
     uv[:, 1] = 1.0 - uv[:, 1]
 
-    image = Image.fromarray(np.asarray(atlas, dtype=np.uint8), mode="RGB")
+    # JPEG, not PNG. The atlas is a photograph, and lossless encoding of a
+    # photograph is enormous — the 8192px kitchen atlas is 46 MB as PNG against
+    # a few MB as JPEG, and a client waiting on a 46 MB download to look at a
+    # room will assume the viewer is broken. Round-tripping through a buffer is
+    # what makes the exporter keep JPEG rather than re-encoding to PNG.
+    import io as _io
+
+    buffer = _io.BytesIO()
+    Image.fromarray(np.asarray(atlas, dtype=np.uint8), mode="RGB").save(
+        buffer, format="JPEG", quality=92, subsampling=0, optimize=True
+    )
+    buffer.seek(0)
+    image = Image.open(buffer)
+    image.load()
     material = trimesh.visual.material.PBRMaterial(
         baseColorTexture=image, metallicFactor=0.0, roughnessFactor=1.0
     )

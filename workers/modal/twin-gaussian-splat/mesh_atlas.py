@@ -61,11 +61,17 @@ CHART_UNWRAP_MAX_FACES = 30_000
 GRID_ATLAS_SIZE = 8192
 # A refusal point above the target, for a mesh that somehow arrives undecimated.
 MAX_UNWRAP_FACES = 400_000
-MAX_VIEW_ANGLE_DEG = 60.0
-MAX_VIEW_DISTANCE_M = 4.0
+# Loosened after measuring. The vertex baker accepted essentially any view and
+# coloured 83% of vertices; these limits were the difference between that and
+# 45.5% texel coverage. A 10 m room simply is not covered by a 4 m reach, and a
+# wall seen at 70 degrees still carries usable pixels — worse than face-on, but
+# far better than grey. Quality still decides WHICH view wins; these only decide
+# which are allowed to compete.
+MAX_VIEW_ANGLE_DEG = 78.0
+MAX_VIEW_DISTANCE_M = 9.0
 # Occlusion tolerance along the ray. The mesh carries ~27 mm of median error, so
 # a stricter test rejects faces that are merely slightly off, not occluded.
-OCCLUSION_TOLERANCE_M = 0.08
+OCCLUSION_TOLERANCE_M = 0.15
 # How far off the surface the visibility ray starts. Must clear the mesh's own
 # error, or the ray re-hits the triangle it left and the face is recorded as
 # occluded by itself. At 1 mm this rejected three quarters of the mesh: only
@@ -215,7 +221,7 @@ def select_face_views(
     mesh: Any,
     frames: list[dict[str, Any]],
     *,
-    top_k: int = 12,
+    top_k: int = 80,
     occlusion_tolerance: float = OCCLUSION_TOLERANCE_M,
 ) -> tuple[Any, dict[str, Any]]:
     """Choose ONE camera per face — the sharpest available, not an average.

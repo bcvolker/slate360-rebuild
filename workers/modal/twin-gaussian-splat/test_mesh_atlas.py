@@ -288,3 +288,41 @@ def test_a_face_inside_the_frame_still_scores():
     straight_ahead = np.array([[0.0, 0.0, -2.0]])
     normals = np.array([[0.0, 0.0, 1.0]])
     assert score_views(straight_ahead, normals, [_camera((0.0, 0.0, 0.0))])[0, 0] > 0
+
+
+# --- voxel-colour fallback -------------------------------------------------
+
+
+def _coloured_quad_mesh():
+    mesh = _quad_mesh()
+    # solid green vertex colours, as the TSDF would have integrated them
+    mesh.vertex_colors = np.tile(np.array([0.0, 1.0, 0.0]), (4, 1))
+    return mesh
+
+
+def test_a_face_with_no_camera_falls_back_to_measured_vertex_colour():
+    """Soft but MEASURED beats a grey void — the TSDF integrated this colour
+    from the same photographs, just at voxel resolution."""
+    mesh = _coloured_quad_mesh()
+    uv, idx = _uv_for_quad()
+    atlas, stats = bake(mesh, uv, idx, np.array([-1, -1]), [_solid_frame((255, 0, 0))], size=32)
+    assert stats["texelsFromPhoto"] == 0
+    assert stats["texelsFromVoxelColour"] > 0
+    assert atlas[16, 16].tolist() == [0, 255, 0]
+
+
+def test_photo_colour_always_wins_over_the_fallback():
+    mesh = _coloured_quad_mesh()
+    uv, idx = _uv_for_quad()
+    atlas, stats = bake(mesh, uv, idx, np.array([0, 0]), [_solid_frame((255, 0, 0))], size=32)
+    assert stats["texelsFromPhoto"] > 0
+    assert atlas[16, 16].tolist() == [255, 0, 0]
+
+
+def test_a_mesh_without_vertex_colours_fills_nothing():
+    """It must never guess. No colour anywhere means the texel stays grey."""
+    mesh = _quad_mesh()
+    uv, idx = _uv_for_quad()
+    atlas, stats = bake(mesh, uv, idx, np.array([-1, -1]), [_solid_frame((255, 0, 0))], size=16)
+    assert stats["texelsFromVoxelColour"] == 0
+    assert atlas[8, 8].tolist() == [int(c * 255) for c in NEUTRAL_GREY]
