@@ -69,9 +69,16 @@ MAX_UNWRAP_FACES = 400_000
 # which are allowed to compete.
 MAX_VIEW_ANGLE_DEG = 78.0
 MAX_VIEW_DISTANCE_M = 9.0
-# Occlusion tolerance along the ray. The mesh carries ~27 mm of median error, so
-# a stricter test rejects faces that are merely slightly off, not occluded.
-OCCLUSION_TOLERANCE_M = 0.15
+# Far-end epsilon only. This was 150 mm and it was BACKWARDS: the slack is
+# measured from the CAMERA, so 150 mm forgave any occluder within 150 mm of the
+# lens. A cabinet 100 mm in front of the phone stopped occluding anything, and
+# the wall behind it was painted with cabinet pixels — the exact "cabinet on the
+# wall" failure this pipeline claims to guard against, built in by hand.
+#
+# Slack near the SURFACE is what mesh error needs, and RAY_ORIGIN_OFFSET_M
+# already provides it by starting the ray 30 mm out. All this needs is enough to
+# absorb float error at the far end.
+OCCLUSION_TOLERANCE_M = 0.01
 # How far off the surface the visibility ray starts. Must clear the mesh's own
 # error, or the ray re-hits the triangle it left and the face is recorded as
 # occluded by itself. At 1 mm this rejected three quarters of the mesh: only

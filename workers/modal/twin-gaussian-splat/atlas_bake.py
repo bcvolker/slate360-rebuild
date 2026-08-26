@@ -174,14 +174,22 @@ def bake(
         if not ok.any():
             continue
 
-        # Nearest sampling: the texel grid is already finer than the mesh error,
-        # so interpolation would only add blur to a pipeline whose whole problem
-        # was blur.
-        ui = np.rint(u[ok]).astype(int)
-        vi = np.rint(v[ok]).astype(int)
+        # BILINEAR, not nearest. The old reasoning — "the texel grid is finer
+        # than the mesh error, so interpolation only adds blur" — confused two
+        # independent things. Mesh error is a REGISTRATION offset; sampling error
+        # is separate. At a 78 degree grazing limit a texel's footprint spans
+        # several source pixels, and nearest then picks one of them at random:
+        # grout lines and tile edges alias into shimmer. Sharp and wrong is worse
+        # than slightly soft and stable.
+        uu, vv = u[ok], v[ok]
+        x0 = np.floor(uu).astype(int); y0 = np.floor(vv).astype(int)
+        x1 = np.minimum(x0 + 1, w - 1); y1 = np.minimum(y0 + 1, h - 1)
+        fx = (uu - x0)[:, None]; fy = (vv - y0)[:, None]
+        top = rgb[y0, x0] * (1 - fx) + rgb[y0, x1] * fx
+        bot = rgb[y1, x0] * (1 - fx) + rgb[y1, x1] * fx
         yy = ty[sel][ok]
         xx = tx[sel][ok]
-        atlas[yy, xx] = rgb[vi, ui]
+        atlas[yy, xx] = np.rint(top * (1 - fy) + bot * fy).astype(np.uint8)
         painted[yy, xx] = True
 
     # Fallback for faces no camera could supply: the mesh's own vertex colours,
