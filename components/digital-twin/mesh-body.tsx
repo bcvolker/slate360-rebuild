@@ -171,6 +171,29 @@ function GlbBody({ url, ceilingCutY, ceilingState }: BodyProps): ReactElement {
     source.needsUpdate = true;
 
     if (!found.geometry.getAttribute("normal")) found.geometry.computeVertexNormals();
+
+    // Reports what the SHADER will actually get. Every previous diagnosis was
+    // made from the file on disk, which has been correct for days while the
+    // screen stayed grey — a uniform grey surface is what a textured material
+    // renders when the uv attribute never reaches it and every fragment samples
+    // texel (0,0).
+    const uvAttr = found.geometry.getAttribute("uv");
+    console.warn("[twin/diag]", JSON.stringify({
+      hasMap: Boolean(source.map),
+      mapImage: source.map?.image
+        ? [
+            (source.map.image as { width?: number }).width ?? 0,
+            (source.map.image as { height?: number }).height ?? 0,
+          ]
+        : null,
+      hasUv: Boolean(uvAttr),
+      uvCount: uvAttr ? uvAttr.count : 0,
+      positionCount: found.geometry.getAttribute("position")?.count ?? 0,
+      materialType: source.type,
+      mapFlipY: source.map?.flipY ?? null,
+      mapColorSpace: source.map?.colorSpace ?? null,
+    }));
+
     return { geometry: found.geometry, material: source };
   }, [gltf]);
 
