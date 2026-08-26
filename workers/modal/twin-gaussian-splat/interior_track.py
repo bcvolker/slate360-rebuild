@@ -290,10 +290,12 @@ def run_interior_track(
     }
 
     # --- 5. Artefacts -------------------------------------------------------
-    stats["files"] = {
+    # UPDATE, never assign: the atlas stage already registered its textured GLB
+    # here, and replacing the dict wholesale silently dropped it from the upload.
+    stats.setdefault("files", {}).update({
         "raw": _write_mesh(mesh, out, "interior_mesh"),
         "dollhouse": _write_mesh(dollhouse, out, "interior_dollhouse"),
-    }
+    })
     return stats
 
 
@@ -317,6 +319,10 @@ def summarize_for_callback(stats: dict[str, Any]) -> dict[str, Any]:
         "pairsIntegrated": (stats.get("tsdf") or {}).get("pairsIntegrated"),
         "colorIntegrated": (stats.get("tsdf") or {}).get("colorIntegrated"),
         "atlasTexelCoverage": (stats.get("atlas") or {}).get("texelCoverage"),
+        "atlasUnwrapMode": (stats.get("atlas") or {}).get("unwrapMode"),
+        "atlasUnwrapSeconds": (stats.get("atlas") or {}).get("unwrapSeconds"),
+        "atlasBakeSeconds": (stats.get("atlas") or {}).get("bakeSeconds"),
+        "atlasGlb": ((stats.get("atlas") or {}).get("glb") or {}).get("path"),
         "atlasSkipped": (stats.get("atlas") or {}).get("skipped"),
         "atlasFacesAssigned": ((stats.get("atlas") or {}).get("viewSelection") or {}).get("facesAssigned"),
         "atlasFacesUnobserved": ((stats.get("atlas") or {}).get("viewSelection") or {}).get("facesUnobserved"),

@@ -287,7 +287,7 @@ gpu_image = (
         "operator_mask",
         "bake",
         "interior_mesh", "mesh_dollhouse", "interior_track",
-        "mesh_floorplan", "mesh_registration", "zone_planner", "mesh_accuracy", "walk_stations", "mesh_texture", "video_texture", "mesh_atlas", "atlas_bake",
+        "mesh_floorplan", "mesh_registration", "zone_planner", "mesh_accuracy", "walk_stations", "mesh_texture", "video_texture", "mesh_atlas", "atlas_bake", "atlas_unwrap",
     )
 )
 
@@ -3939,6 +3939,75 @@ def process_job(payload: dict[str, Any]) -> None:
         shutil.rmtree(work_root, ignore_errors=True)
 
 
+@app.function(image=gpu_image, timeout=1800, secrets=[worker_secret], retries=1)
+def atlas_only(payload: dict[str, Any]) -> dict[str, Any]:
+    """M7-D — bake an atlas onto a dollhouse mesh that ALREADY EXISTS in R2.
+
+    Exists because the atlas stage costs ~15 s inside a job that costs ~25
+    minutes: re-fusing the TSDF and re-baking vertex colour to test a texture
+    change meant a half-hour round trip per attempt, and left every attempt
+    exposed to preemption on a long-running container. This loads the finished
+    mesh and the capture's frames and does the appearance work alone.
+
+    Never touches geometry: it reads the dollhouse PLY and writes a GLB beside
+    it. The measured mesh is unchanged.
+    """
+    import tempfile
+
+    import interior_mesh as im
+    import mesh_atlas as ma
+    import open3d as o3d
+
+    s3 = s3_client()
+    bucket = os.environ["R2_BUCKET"]
+    org_id = str(payload.get("orgId") or "")
+    space_id = str(payload.get("spaceId") or "")
+    label = str(payload.get("label") or "interior")
+    size = int(payload.get("atlasSize") or ma.DEFAULT_ATLAS_SIZE)
+
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        mesh_path = root / "dollhouse.ply"
+        depth_path = root / "depth.s360depth"
+        poses_path = root / "poses.json"
+        s3.download_file(bucket, str(payload["meshKey"]), str(mesh_path))
+        s3.download_file(bucket, str(payload["depthKey"]), str(depth_path))
+        s3.download_file(bucket, str(payload["posesKey"]), str(poses_path))
+        maybe_gunzip(poses_path)
+
+        mesh = o3d.io.read_triangle_mesh(str(mesh_path))
+        print(f"[atlas-only] mesh {len(mesh.triangles)} triangles", flush=True)
+
+        frames: list[dict[str, Any]] = []
+        pose_by_index = {i: f for i, f in enumerate(im.load_pose_frames(poses_path))}
+        for rec in im.iter_depth_records(depth_path):
+            pose = pose_by_index.get(rec["index"])
+            if pose is None or not rec.get("rgb_jpeg"):
+                continue
+            frames.append({
+                "jpeg": rec["rgb_jpeg"],
+                "transform": pose["transform_4x4"],
+                "intrinsics": pose["intrinsics"],
+            })
+        print(f"[atlas-only] {len(frames)} posed frames", flush=True)
+
+        out = root / "textured.glb"
+        stats = ma.build_atlas(mesh, frames, out, size=size)
+        print(f"[atlas-only] {json.dumps({k: v for k, v in stats.items() if k != 'bake'})}", flush=True)
+
+        key = None
+        if out.is_file() and org_id and space_id and not stats.get("skipped"):
+            key = f"orgs/{org_id}/digital-twin/{space_id}/models/{label}.textured.glb"
+            s3.upload_file(
+                str(out), bucket, key,
+                ExtraArgs={"ContentType": "model/gltf-binary",
+                           "CacheControl": "public, max-age=31536000, immutable"},
+            )
+            stats["bytes"] = out.stat().st_size
+        stats["key"] = key
+        return stats
+
+
 @app.function(image=gpu_image, timeout=3600, secrets=[worker_secret], retries=0)
 def interior_only(payload: dict[str, Any]) -> dict[str, Any]:
     """M3 — run ONLY the interior mesh track on an existing capture's assets.
@@ -4203,6 +4272,17 @@ def reconstruct(body: dict[str, Any], x_dispatch_token: str = Header(default="")
             content={"accepted": True, "callId": fc.object_id},
             headers={"x-modal-run-id": fc.object_id},
         )
+
+    # M7-D — atlas-only dispatch. Appearance on an existing mesh, no refusion.
+    if body.get("action") == "atlas":
+        for field in ("meshKey", "depthKey", "posesKey"):
+            if not body.get(field):
+                return JSONResponse(status_code=400, content={"error": f"{field} is required"})
+        try:
+            fc = atlas_only.spawn(body)
+        except Exception as exc:  # noqa: BLE001
+            return JSONResponse(status_code=500, content={"error": f"Failed to enqueue atlas: {exc}"})
+        return JSONResponse(status_code=200, content={"accepted": True, "callId": fc.object_id})
 
     # E1 — bake dispatch rides the same authenticated endpoint.
     if body.get("action") == "bake":

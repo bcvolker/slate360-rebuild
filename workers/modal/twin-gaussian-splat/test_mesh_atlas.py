@@ -226,3 +226,65 @@ def test_dilate_on_an_empty_mask_is_a_no_op():
     atlas = np.full((8, 8, 3), 5, dtype=np.uint8)
     out = dilate(atlas, np.zeros((8, 8), dtype=bool), iterations=3)
     assert (out == 5).all()
+
+
+# --- unwrap fallback -------------------------------------------------------
+
+
+def test_grid_unwrap_gives_every_triangle_its_own_texels():
+    """The deterministic fallback. It exists because a chart unwrap that
+    overruns does not fail — it holds the GIL, starves the worker heartbeat,
+    and gets the whole container killed and retried."""
+    from atlas_unwrap import unwrap_grid
+
+    tris = np.arange(30).reshape(10, 3)
+    vmap, idx, uv = unwrap_grid(tris, resolution=1024)
+    assert len(idx) == 10
+    assert uv.shape == (30, 2)
+    assert vmap.tolist() == tris.reshape(-1).tolist()
+    assert (uv >= 0).all() and (uv <= 1).all()
+
+
+def test_grid_unwrap_cells_do_not_overlap():
+    from atlas_unwrap import unwrap_grid
+
+    _, idx, uv = unwrap_grid(np.arange(48).reshape(16, 3), resolution=1024)
+    boxes = [(uv[f].min(axis=0), uv[f].max(axis=0)) for f in idx]
+    for i in range(len(boxes)):
+        for j in range(i + 1, len(boxes)):
+            (lo_a, hi_a), (lo_b, hi_b) = boxes[i], boxes[j]
+            disjoint = (hi_a[0] <= lo_b[0]) or (hi_b[0] <= lo_a[0]) or \
+                       (hi_a[1] <= lo_b[1]) or (hi_b[1] <= lo_a[1])
+            assert disjoint, f"cells {i} and {j} overlap"
+
+
+def test_grid_unwrap_handles_an_empty_mesh():
+    from atlas_unwrap import unwrap_grid
+
+    vmap, idx, uv = unwrap_grid(np.zeros((0, 3), dtype=int), resolution=512)
+    assert len(vmap) == 0 and len(idx) == 0 and len(uv) == 0
+
+
+def test_grid_unwrap_leaves_padding_between_cells():
+    """Without padding, bilinear filtering samples the neighbouring triangle
+    and every edge in the model gets a wrong-coloured fringe."""
+    from atlas_unwrap import unwrap_grid
+
+    _, idx, uv = unwrap_grid(np.arange(12).reshape(4, 3), resolution=1024)
+    assert uv.min() > 0.0
+
+
+def test_a_face_outside_the_frame_scores_zero():
+    """Close and square-on is not the same as visible. Without a frustum test a
+    face gets assigned to a camera pointing elsewhere and then paints nothing —
+    69% of faces held a view while only 5.9% of texels took colour."""
+    # camera at the origin looking down -Z; this point is far off to the side
+    off_to_the_side = np.array([[8.0, 0.0, -2.0]])
+    normals = np.array([[0.0, 0.0, 1.0]])
+    assert score_views(off_to_the_side, normals, [_camera((0.0, 0.0, 0.0))])[0, 0] == 0.0
+
+
+def test_a_face_inside_the_frame_still_scores():
+    straight_ahead = np.array([[0.0, 0.0, -2.0]])
+    normals = np.array([[0.0, 0.0, 1.0]])
+    assert score_views(straight_ahead, normals, [_camera((0.0, 0.0, 0.0))])[0, 0] > 0
