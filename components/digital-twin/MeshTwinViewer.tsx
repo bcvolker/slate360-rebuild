@@ -198,7 +198,14 @@ export function MeshTwinViewer({
         >
           {/* Flat, bright ambient: vertex colours ARE the albedo, so directional
               shading would only wash the captured detail out. */}
-          <ambientLight intensity={2.2} />
+          {/* 1.0, not 2.2. The baked atlas has a mean channel value of ~160,
+              and at 2.2 every texel above ~116 clips to pure white — which is
+              ~85% of the sheet. The photographs were reaching the screen the
+              whole time and being blown out into a flat white surface that read
+              as "no texture". Vertex colours survived 2.2 because they averaged
+              darker; a real photograph does not. Exposure belongs in the
+              capture, not in the light. */}
+          <ambientLight intensity={1.0} />
           <Suspense fallback={null}>
             <MeshBody url={meshUrl} ceilingCutY={ceilingCutY} ceilingState={ceilingState} />
           </Suspense>
