@@ -103,13 +103,11 @@ function PlyBody({ url, ceilingCutY, ceilingState, display }: BodyProps): ReactE
   const material = useMemo(() => {
     const hasVertexColors = Boolean(geometry.getAttribute("color"));
     if (!geometry.getAttribute("normal")) geometry.computeVertexNormals();
-    return new THREE.MeshStandardMaterial({
+    return new THREE.MeshBasicMaterial({
       color: hasVertexColors
         ? new THREE.Color(1, 1, 1)
         : cssColor("--muted-foreground", MESH_SURFACE_FALLBACK),
       vertexColors: hasVertexColors,
-      roughness: 0.95,
-      metalness: 0,
       side: THREE.DoubleSide,
     });
   }, [geometry]);
@@ -147,7 +145,7 @@ function GlbBody({ url, ceilingCutY, ceilingState, display }: BodyProps): ReactE
     if (!found) {
       return {
         geometry: new THREE.BufferGeometry(),
-        material: new THREE.MeshStandardMaterial({
+        material: new THREE.MeshBasicMaterial({
           color: cssColor("--muted-foreground", MESH_SURFACE_FALLBACK),
           side: THREE.DoubleSide,
         }),
@@ -157,9 +155,6 @@ function GlbBody({ url, ceilingCutY, ceilingState, display }: BodyProps): ReactE
     const source = (
       Array.isArray(found.material) ? found.material[0] : found.material
     ) as THREE.MeshStandardMaterial;
-    source.side = THREE.DoubleSide;
-    source.roughness = 0.95;
-    source.metalness = 0;
     if (source.map) {
       // glTF textures decode as sRGB; left linear the whole room washes out to
       // a pale, chalky version of the photographs.
@@ -172,20 +167,25 @@ function GlbBody({ url, ceilingCutY, ceilingState, display }: BodyProps): ReactE
       // 4 the cell is gone and the surface is uniformly 165 grey, which ambient
       // light then lifts to near-white. Every zoomed-out view — dollhouse,
       // floor plan, walking back from a wall — is exactly the minified case.
-      //
-      // Sampling the base level always costs some shimmer at distance. That is
-      // a far better trade than showing a photograph as a blank surface, and it
-      // stops being necessary once the layout packs charts tightly.
       source.map.generateMipmaps = false;
       source.map.minFilter = THREE.LinearFilter;
       source.map.magFilter = THREE.LinearFilter;
       source.map.needsUpdate = true;
     } else if (typeof console !== "undefined") {
-      // Loud, because the silent version of this is a flat grey model that
-      // looks like a rendering choice rather than a missing texture.
       console.error("[twin] GLB carries no baseColorTexture — mesh will render untextured");
     }
-    source.needsUpdate = true;
+
+    // Baked albedo, unlit. MeshStandard + even dim ambient still lifts the
+    // atlas toward grey at dollhouse distance; the photographs already contain
+    // the lighting.
+    const material = new THREE.MeshBasicMaterial({
+      map: source.map ?? null,
+      color: source.map
+        ? new THREE.Color(1, 1, 1)
+        : cssColor("--muted-foreground", MESH_SURFACE_FALLBACK),
+      vertexColors: Boolean(found.geometry.getAttribute("color")),
+      side: THREE.DoubleSide,
+    });
 
     if (!found.geometry.getAttribute("normal")) found.geometry.computeVertexNormals();
 
@@ -206,12 +206,12 @@ function GlbBody({ url, ceilingCutY, ceilingState, display }: BodyProps): ReactE
       hasUv: Boolean(uvAttr),
       uvCount: uvAttr ? uvAttr.count : 0,
       positionCount: found.geometry.getAttribute("position")?.count ?? 0,
-      materialType: source.type,
+      materialType: material.type,
       mapFlipY: source.map?.flipY ?? null,
       mapColorSpace: source.map?.colorSpace ?? null,
     }));
 
-    return { geometry: found.geometry, material: source };
+    return { geometry: found.geometry, material };
   }, [gltf]);
 
   return (

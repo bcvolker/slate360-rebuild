@@ -163,6 +163,7 @@ export function MeshTwinViewer({
   const nav = useWalkthroughNavigation({
     stations,
     floors,
+    ceilingCutY,
     raycastFloor: (x, y) => raycastRef.current?.(x, y) ?? null,
   });
 
@@ -210,6 +211,8 @@ export function MeshTwinViewer({
           onCreated={({ gl }) => {
             gl.setClearColor(cssColor("--graphite-canvas", MESH_GROUND_FALLBACK), 1);
             gl.localClippingEnabled = true;
+            gl.toneMapping = THREE.NoToneMapping;
+            gl.outputColorSpace = THREE.SRGBColorSpace;
           }}
         >
           {/* Flat, bright ambient: vertex colours ARE the albedo, so directional

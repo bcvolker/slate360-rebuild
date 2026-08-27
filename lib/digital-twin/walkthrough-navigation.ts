@@ -138,16 +138,13 @@ export function floorBounds(
   return { min, max };
 }
 
-/** Pitch used by the pulled-back dollhouse view — looking down at ~35°. */
-const DOLLHOUSE_PITCH = (-35 * Math.PI) / 180;
-
 /**
  * The pose a given mode wants, given where the user currently stands.
  *
- * `inside` stands at the station. `dollhouse` pulls back and above, framing
- * the floor's full station spread. `floorplan` goes straight overhead. All
- * three are ordinary poses, so switching mode animates through the same
- * interpolation path as walking — no snapping.
+ * `inside` stands at the station. `dollhouse` sits above the open ceiling and
+ * looks at the floor centre. `floorplan` goes straight overhead. All three are
+ * ordinary poses, so switching mode animates through the same interpolation
+ * path as walking — no snapping.
  */
 export function poseForMode(
   mode: ViewMode,
@@ -156,6 +153,7 @@ export function poseForMode(
   stations: readonly WalkStation[],
   floorIndex: number,
   currentYaw: number,
+  ceilingCutY?: number | null,
 ): WalkPose | null {
   if (mode === "inside") {
     if (!station) return null;
@@ -181,26 +179,33 @@ export function poseForMode(
   );
   const floor = floors.find((f) => f.index === floorIndex);
   const baseY = floor ? floor.elevationY : bounds.min[1];
+  const roof =
+    typeof ceilingCutY === "number" && Number.isFinite(ceilingCutY)
+      ? ceilingCutY
+      : baseY + 2.4;
 
   if (mode === "floorplan") {
-    return { position: [cx, baseY + spread * 1.4, cz], yaw: currentYaw, pitch: -Math.PI / 2 };
+    return {
+      position: [cx, Math.max(roof, baseY) + spread * 1.4, cz],
+      yaw: currentYaw,
+      pitch: -Math.PI / 2,
+    };
   }
-  // Dollhouse: back off along the current yaw so the pull-back reads as a
-  // continuation of where the user was already facing.
-  //
-  // The sign matters and is easy to get backwards. A camera at yaw looks along
-  // (-sin yaw, 0, -cos yaw), so to end up looking AT the centre it must be
-  // placed on the +(sin, cos) side of it. Subtracting instead puts the room
-  // behind the camera and frames empty space.
-  const back = spread * 0.9;
+  // A shallow 35° pull-back from the station spread hits the exterior wall
+  // and fills the screen with untextured TSDF hull. Sit higher, closer to
+  // overhead, and pitch at the floor centre so the look ray enters through
+  // the open ceiling. Sign: yaw looks along (-sin, -cos), so the camera sits
+  // on the +(sin, cos) side of the centre.
+  const back = spread * 0.55;
+  const height = Math.max(roof + spread * 0.55, baseY + spread * 1.05);
   return {
     position: [
       cx + Math.sin(currentYaw) * back,
-      baseY + spread * 0.75,
+      height,
       cz + Math.cos(currentYaw) * back,
     ],
     yaw: currentYaw,
-    pitch: DOLLHOUSE_PITCH,
+    pitch: clampPitch(-Math.atan2(height - baseY, back)),
   };
 }
 

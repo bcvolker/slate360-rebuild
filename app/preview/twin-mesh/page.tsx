@@ -76,15 +76,17 @@ export default async function TwinMeshPreviewPage({
   const splatLabel =
     splatParam && splatParam !== "sample" && LABEL_RE.test(splatParam)
       ? splatParam
-      : `${label}-splat`;
-  const storedSplat = sampleSplat
-    ? false
-    : await objectExists(
+      : null;
+  // Do not auto-attach kitchen-aug25-splat — that train collapsed. Opt in with
+  // ?splat=sample or ?splat=<label>.
+  const storedSplat = splatLabel
+    ? await objectExists(
         `orgs/${PINNED_ORG}/digital-twin/${PINNED_SPACE}/models/${splatLabel}.spz`,
-      );
+      )
+    : false;
   const splatUrl = sampleSplat
     ? "/marketing/sample-twin.spz"
-    : storedSplat
+    : storedSplat && splatLabel
       ? `/preview/twin-mesh/asset?label=${encodeURIComponent(splatLabel)}&kind=spz`
       : null;
 
@@ -97,7 +99,7 @@ export default async function TwinMeshPreviewPage({
         floors={(walk.floors as never) ?? []}
         ceilingCutY={ceilingCutY}
         label={label}
-        splatSource={sampleSplat ? "sample" : storedSplat ? splatLabel : null}
+        splatSource={sampleSplat ? "sample" : storedSplat && splatLabel ? splatLabel : null}
       />
     </main>
   );
