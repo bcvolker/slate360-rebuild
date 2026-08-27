@@ -90,3 +90,7 @@ reference/
 # Local-only AI backend secrets pack (never push)
 .local/
 
+# Imperial NC academic clones — never vendor into the commercial product tree
+/research-workers/odgs-slam/
+/research-workers/odgs/
+
