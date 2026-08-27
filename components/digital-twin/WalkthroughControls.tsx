@@ -12,6 +12,10 @@
 import type { ReactElement } from "react";
 
 import type { CeilingState } from "@/components/digital-twin/MeshTwinViewer";
+import {
+  WalkthroughLayerToggle,
+  type TwinLayerMode,
+} from "@/components/digital-twin/WalkthroughLayerToggle";
 import type { FloorInfo, ViewMode } from "@/lib/digital-twin/walkthrough-navigation";
 
 export type WalkthroughControlsProps = {
@@ -24,6 +28,8 @@ export type WalkthroughControlsProps = {
   onCeilingStateChange: (state: CeilingState) => void;
   /** False when the pipeline found no ceiling plane — the control is hidden. */
   ceilingAvailable: boolean;
+  layerMode?: TwinLayerMode;
+  onLayerModeChange?: (mode: TwinLayerMode) => void;
   measureActive: boolean;
   onToggleMeasure: () => void;
   isFullscreen: boolean;
@@ -108,6 +114,8 @@ export function WalkthroughControls({
   ceilingState,
   onCeilingStateChange,
   ceilingAvailable,
+  layerMode,
+  onLayerModeChange,
   measureActive,
   onToggleMeasure,
   isFullscreen,
@@ -115,9 +123,13 @@ export function WalkthroughControls({
 }: WalkthroughControlsProps): ReactElement {
   return (
     <div
-      className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex justify-center px-4"
+      className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex flex-col items-center gap-2 px-4"
       style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 1rem)" }}
     >
+      {layerMode && onLayerModeChange ? (
+        <WalkthroughLayerToggle layerMode={layerMode} onLayerModeChange={onLayerModeChange} />
+      ) : null}
+
       {/* Swallow pointer events here as well as checking the target on the
           canvas side. Belt and braces: a press that lands on this bar must
           never also register as a click on the model. */}

@@ -7,6 +7,7 @@ import {
 } from "@/lib/twin/job-credits-estimate";
 import { assertDigitalTwinProcessingEntitlement } from "@/lib/twin/processing-entitlement";
 import { isOwnerEmail } from "@/lib/server/beta-access";
+import { assertTwinGpuHoldClear, TwinGpuHoldError } from "@/lib/twin/gpu-dispatch-hold";
 import type { TwinProcessingQuality } from "@/lib/twin/processing-estimate-types";
 
 export const runtime = "nodejs";
@@ -76,6 +77,13 @@ export const POST = (req: NextRequest) =>
         "Processing must be explicitly requested. Upload and archive do not start a job; " +
           "send confirm_processing:true to spend GPU time.",
       );
+    }
+
+    try {
+      assertTwinGpuHoldClear();
+    } catch (holdErr) {
+      if (holdErr instanceof TwinGpuHoldError) return badRequest(holdErr.message);
+      throw holdErr;
     }
 
     if (!OUTPUT_FORMATS.has(outputFormat)) return badRequest("Invalid output_format");

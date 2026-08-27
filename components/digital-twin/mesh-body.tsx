@@ -22,10 +22,17 @@ import { cssColor, MESH_SURFACE_FALLBACK } from "@/lib/digital-twin/css-color";
  */
 export type CeilingState = "open" | "closed" | "plenum";
 
+export type MeshDisplay = "shown" | "collision";
+
 type BodyProps = {
   url: string;
   ceilingCutY?: number | null;
   ceilingState: CeilingState;
+  /**
+   * `collision` keeps the LiDAR surface in the raycaster (click-to-walk) while
+   * drawing nothing — splat-only mode still needs a floor to walk on.
+   */
+  display?: MeshDisplay;
 };
 
 /**
@@ -40,38 +47,47 @@ function Surface({
   material,
   ceilingCutY,
   ceilingState,
+  display = "shown",
 }: {
   geometry: THREE.BufferGeometry;
   material: THREE.Material;
   ceilingCutY?: number | null;
   ceilingState: CeilingState;
+  display?: MeshDisplay;
 }): ReactElement {
   const clipped = useMemo(() => {
-    if (ceilingCutY == null || ceilingState === "closed") return material;
-    const m = material.clone();
-    m.clippingPlanes = [new THREE.Plane(new THREE.Vector3(0, -1, 0), ceilingCutY)];
-    m.clipShadows = true;
+    let m = material;
+    if (ceilingCutY != null && ceilingState !== "closed") {
+      m = material.clone();
+      m.clippingPlanes = [new THREE.Plane(new THREE.Vector3(0, -1, 0), ceilingCutY)];
+      m.clipShadows = true;
+    }
+    if (display === "collision") {
+      m = m.clone();
+      m.colorWrite = false;
+      m.depthWrite = false;
+    }
     return m;
-  }, [material, ceilingCutY, ceilingState]);
+  }, [material, ceilingCutY, ceilingState, display]);
 
   // Built unconditionally — a hook cannot live inside a conditional branch of
   // the JSX below. Only its USE is conditional.
   const ghostLid = useMemo(() => {
-    if (ceilingCutY == null) return null;
+    if (ceilingCutY == null || display === "collision") return null;
     const m = material.clone();
     m.clippingPlanes = [new THREE.Plane(new THREE.Vector3(0, 1, 0), -ceilingCutY)];
     m.transparent = true;
     m.opacity = 0.22;
     m.depthWrite = false;
     return m;
-  }, [material, ceilingCutY]);
+  }, [material, ceilingCutY, display]);
 
   return (
     <>
-      <mesh geometry={geometry} material={clipped} />
+      <mesh geometry={geometry} material={clipped} userData={{ twinWalkSurface: true }} />
       {/* Plenum: the lid returns, ghosted, so what is above it stays readable. */}
       {ceilingState === "plenum" && ghostLid ? (
-        <mesh geometry={geometry} material={ghostLid} />
+        <mesh geometry={geometry} material={ghostLid} userData={{ twinWalkSurface: true }} />
       ) : null}
     </>
   );
@@ -82,7 +98,7 @@ function Surface({
  * dollhouse that is a colour every ~4.5 cm however good the photographs were.
  * The fallback for captures with no baked atlas.
  */
-function PlyBody({ url, ceilingCutY, ceilingState }: BodyProps): ReactElement {
+function PlyBody({ url, ceilingCutY, ceilingState, display }: BodyProps): ReactElement {
   const geometry = useLoader(PLYLoader, url);
   const material = useMemo(() => {
     const hasVertexColors = Boolean(geometry.getAttribute("color"));
@@ -104,6 +120,7 @@ function PlyBody({ url, ceilingCutY, ceilingState }: BodyProps): ReactElement {
       material={material}
       ceilingCutY={ceilingCutY}
       ceilingState={ceilingState}
+      display={display}
     />
   );
 }
@@ -117,7 +134,7 @@ function PlyBody({ url, ceilingCutY, ceilingState }: BodyProps): ReactElement {
  * back faces would drop out; ambient-only lighting also needs roughness pinned
  * or the surface reads as plastic.
  */
-function GlbBody({ url, ceilingCutY, ceilingState }: BodyProps): ReactElement {
+function GlbBody({ url, ceilingCutY, ceilingState, display }: BodyProps): ReactElement {
   const gltf = useLoader(GLTFLoader, url);
 
   const { geometry, material } = useMemo(() => {
@@ -203,6 +220,7 @@ function GlbBody({ url, ceilingCutY, ceilingState }: BodyProps): ReactElement {
       material={material}
       ceilingCutY={ceilingCutY}
       ceilingState={ceilingState}
+      display={display}
     />
   );
 }

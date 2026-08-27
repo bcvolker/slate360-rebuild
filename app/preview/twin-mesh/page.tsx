@@ -71,14 +71,33 @@ export default async function TwinMeshPreviewPage({
   const ceilingCutY =
     typeof layers?.ceilingCutY === "number" ? layers.ceilingCutY : null;
 
+  const splatParam = Array.isArray(params.splat) ? params.splat[0] : params.splat;
+  const sampleSplat = splatParam === "sample";
+  const splatLabel =
+    splatParam && splatParam !== "sample" && LABEL_RE.test(splatParam)
+      ? splatParam
+      : `${label}-splat`;
+  const storedSplat = sampleSplat
+    ? false
+    : await objectExists(
+        `orgs/${PINNED_ORG}/digital-twin/${PINNED_SPACE}/models/${splatLabel}.spz`,
+      );
+  const splatUrl = sampleSplat
+    ? "/marketing/sample-twin.spz"
+    : storedSplat
+      ? `/preview/twin-mesh/asset?label=${encodeURIComponent(splatLabel)}&kind=spz`
+      : null;
+
   return (
     <main className="h-dvh w-full bg-[var(--graphite-canvas)] p-3">
       <MeshTwinViewerClient
         meshUrl={`/preview/twin-mesh/asset?label=${encodeURIComponent(label)}&kind=${meshKind}`}
+        splatUrl={splatUrl}
         stations={(walk.stations as never) ?? []}
         floors={(walk.floors as never) ?? []}
         ceilingCutY={ceilingCutY}
         label={label}
+        splatSource={sampleSplat ? "sample" : storedSplat ? splatLabel : null}
       />
     </main>
   );

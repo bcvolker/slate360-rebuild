@@ -19,8 +19,10 @@ import { useCallback, useMemo, useRef, useState, Suspense, type ReactElement } f
 import * as THREE from "three";
 
 import { MeshBody, type CeilingState } from "@/components/digital-twin/mesh-body";
+import { MeshSplatLayer } from "@/components/digital-twin/MeshSplatLayer";
 import { useViewerGestures, DEFAULT_FOV } from "@/components/digital-twin/use-viewer-gestures";
 import { WalkthroughControls } from "@/components/digital-twin/WalkthroughControls";
+import type { TwinLayerMode } from "@/components/digital-twin/WalkthroughLayerToggle";
 import {
   cssColor,
   MESH_GROUND_FALLBACK,
@@ -35,6 +37,8 @@ export type { CeilingState };
 export type MeshTwinViewerProps = {
   /** URL of the dollhouse mesh (PLY — Open3D's glTF writer drops colours). */
   meshUrl: string;
+  /** Optional Spark splat in the same canvas. Look-only — never the walk surface. */
+  splatUrl?: string | null;
   /** World Y to clip the ceiling at, from the pipeline's layers sidecar. */
   ceilingCutY?: number | null;
   stations: WalkStation[];
@@ -112,7 +116,7 @@ function NavigationRig({
       );
       raycaster.setFromCamera(ndc, camera);
       const hits = raycaster.intersectObjects(scene.children, true);
-      const hit = hits.find((h) => h.object.type === "Mesh");
+      const hit = hits.find((h) => Boolean(h.object.userData?.twinWalkSurface));
       if (!hit) return null;
       return [hit.point.x, hit.point.y, hit.point.z];
     },
@@ -133,14 +137,18 @@ function NavigationRig({
 
 export function MeshTwinViewer({
   meshUrl,
+  splatUrl,
   ceilingCutY,
   stations,
   floors,
   caption,
 }: MeshTwinViewerProps): ReactElement {
   const [ceilingState, setCeilingState] = useState<CeilingState>("open");
+  const [layerMode, setLayerMode] = useState<TwinLayerMode>(splatUrl ? "both" : "mesh");
   const [measureActive, setMeasureActive] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const showMesh = layerMode !== "splat";
+  const showSplat = Boolean(splatUrl) && layerMode !== "mesh";
   const raycastRef = useRef<((x: number, y: number) => [number, number, number] | null) | null>(null);
   const shellRef = useRef<HTMLDivElement | null>(null);
 
@@ -207,7 +215,13 @@ export function MeshTwinViewer({
               capture, not in the light. */}
           <ambientLight intensity={1.0} />
           <Suspense fallback={null}>
-            <MeshBody url={meshUrl} ceilingCutY={ceilingCutY} ceilingState={ceilingState} />
+            <MeshBody
+              url={meshUrl}
+              ceilingCutY={ceilingCutY}
+              ceilingState={ceilingState}
+              display={showMesh ? "shown" : "collision"}
+            />
+            {splatUrl ? <MeshSplatLayer url={splatUrl} visible={showSplat} /> : null}
           </Suspense>
           <StationMarkers
             stations={stations}
@@ -243,6 +257,8 @@ export function MeshTwinViewer({
         ceilingState={ceilingState}
         onCeilingStateChange={setCeilingState}
         ceilingAvailable={ceilingCutY != null}
+        layerMode={splatUrl ? layerMode : undefined}
+        onLayerModeChange={splatUrl ? setLayerMode : undefined}
         measureActive={measureActive}
         onToggleMeasure={() => setMeasureActive((v) => !v)}
         isFullscreen={isFullscreen}

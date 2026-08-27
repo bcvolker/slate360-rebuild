@@ -5,6 +5,7 @@ import {
   assertTwinJobCredits,
   InsufficientTwinCreditsError,
 } from "@/lib/twin/job-credits-estimate";
+import { assertTwinGpuHoldClear, TwinGpuHoldError } from "@/lib/twin/gpu-dispatch-hold";
 import { assertDigitalTwinProcessingEntitlement } from "@/lib/twin/processing-entitlement";
 import { isOwnerEmail } from "@/lib/server/beta-access";
 import type { TwinProcessingQuality } from "@/lib/twin/processing-estimate-types";
@@ -56,6 +57,15 @@ export async function createReconstructionJob(
   },
 ): Promise<CreateReconstructionJobResult> {
   const { orgId, userId, userEmail, captureId, quality, trainProfile } = params;
+
+  try {
+    assertTwinGpuHoldClear();
+  } catch (holdErr) {
+    if (holdErr instanceof TwinGpuHoldError) {
+      return { ok: false, status: 400, error: holdErr.message };
+    }
+    throw holdErr;
+  }
 
   try {
     await assertDigitalTwinProcessingEntitlement(admin, {
