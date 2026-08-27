@@ -68,15 +68,25 @@ export function useWalkthroughNavigation(options: {
    *  Supplied by the caller — this hook deliberately owns no scene graph. */
   raycastFloor: (screenX: number, screenY: number) => [number, number, number] | null;
   initialStationId?: string;
+  /** World Y of the open-ceiling cut, so dollhouse can sit above the lid. */
+  ceilingCutY?: number | null;
+  initialMode?: ViewMode;
 }): WalkthroughNavigation {
-  const { stations, floors, raycastFloor, initialStationId } = options;
+  const {
+    stations,
+    floors,
+    raycastFloor,
+    initialStationId,
+    ceilingCutY,
+    initialMode = "dollhouse",
+  } = options;
 
   const initial = useMemo(
     () => stations.find((s) => s.id === initialStationId) ?? stations[0] ?? null,
     [stations, initialStationId],
   );
 
-  const [mode, setModeState] = useState<ViewMode>("inside");
+  const [mode, setModeState] = useState<ViewMode>(initialMode);
   const [currentStationId, setCurrentStationId] = useState<string | null>(initial?.id ?? null);
   const [currentFloorIndex, setCurrentFloorIndex] = useState<number>(initial?.floorIndex ?? 0);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -87,13 +97,23 @@ export function useWalkthroughNavigation(options: {
   // A station's Y is already the capture camera's height (~1.0 m), so adding
   // 1.6 to it put the viewer at 2.6 m — above the cut ceiling, looking down
   // into a roofless room instead of standing in it.
-  const poseRef = useRef<WalkPose>({
-    position: initial
-      ? [initial.position[0], eyeHeightFor(initial, floors), initial.position[2]]
-      : [0, EYE_HEIGHT_M, 0],
-    yaw: initial?.headingY ?? 0,
-    pitch: 0,
-  });
+  const poseRef = useRef<WalkPose>(
+    poseForMode(
+      initialMode,
+      initial,
+      floors,
+      stations,
+      initial?.floorIndex ?? 0,
+      initial?.headingY ?? 0,
+      ceilingCutY,
+    ) ?? {
+      position: initial
+        ? [initial.position[0], eyeHeightFor(initial, floors), initial.position[2]]
+        : [0, EYE_HEIGHT_M, 0],
+      yaw: initial?.headingY ?? 0,
+      pitch: 0,
+    },
+  );
   const fromRef = useRef<WalkPose | null>(null);
   const toRef = useRef<WalkPose | null>(null);
   const elapsedRef = useRef(0);
@@ -116,12 +136,13 @@ export function useWalkthroughNavigation(options: {
         stations,
         currentFloorIndex,
         poseRef.current.yaw,
+        ceilingCutY,
       );
       if (!target) return;
       setModeState(next);
       beginTransition(target);
     },
-    [beginTransition, currentFloorIndex, currentStationId, floors, stations],
+    [beginTransition, ceilingCutY, currentFloorIndex, currentStationId, floors, stations],
   );
 
   const goToStation = useCallback(
@@ -133,13 +154,14 @@ export function useWalkthroughNavigation(options: {
         stations,
         station.floorIndex,
         poseRef.current.yaw,
+        ceilingCutY,
       );
       if (!target) return;
       setCurrentStationId(station.id);
       setCurrentFloorIndex(station.floorIndex);
       beginTransition(target);
     },
-    [beginTransition, floors, mode, stations],
+    [beginTransition, ceilingCutY, floors, mode, stations],
   );
 
   const handleCanvasClick = useCallback(

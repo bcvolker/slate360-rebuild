@@ -168,6 +168,31 @@ describe("poseForMode", () => {
     expect(pose?.position[1]).toBeGreaterThan(EYE_HEIGHT_M);
   });
 
+  it("dollhouse look ray enters through the ceiling opening", () => {
+    // Kitchen-aug25 scale: a 35° side pull-back hit the exterior wall.
+    const kitchen: WalkStation[] = [
+      { id: "a", position: [0, 0, -2.8], floorIndex: 0 },
+      { id: "b", position: [6.1, 0, 1.5], floorIndex: 0 },
+    ];
+    const kitchenFloors: FloorInfo[] = [{ index: 0, label: "Ground", elevationY: -1.49 }];
+    const cut = 1.25;
+    const pose = poseForMode("dollhouse", kitchen[0], kitchenFloors, kitchen, 0, 0, cut)!;
+    const cy = Math.cos(pose.pitch);
+    const forward = [
+      -Math.sin(pose.yaw) * cy,
+      Math.sin(pose.pitch),
+      -Math.cos(pose.yaw) * cy,
+    ];
+    const t = (cut - pose.position[1]) / forward[1];
+    expect(t).toBeGreaterThan(0);
+    const x = pose.position[0] + forward[0] * t;
+    const z = pose.position[2] + forward[2] * t;
+    expect(x).toBeGreaterThan(0);
+    expect(x).toBeLessThan(6.1);
+    expect(z).toBeGreaterThan(-2.8);
+    expect(z).toBeLessThan(1.5);
+  });
+
   it("dollhouse actually LOOKS AT the room, not away from it", () => {
     // The whole mode is worthless if the sign is flipped: the camera sits
     // behind the room and frames empty space. Walk the view ray forward and
