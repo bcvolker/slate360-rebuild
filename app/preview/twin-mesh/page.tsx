@@ -57,11 +57,16 @@ export default async function TwinMeshPreviewPage({
   const walk = await readJsonKey(`${base}.walk.json`);
   if (!walk) notFound();
 
-  // Prefer the atlas-textured GLB. The vertex-coloured PLY is the fallback for
-  // captures processed before atlas baking existed — it carries one colour per
-  // vertex, roughly one sample every 4.5 cm, which is why it looks soft.
+  // The atlas GLB is a per-triangle postage-stamp sheet with no normals. At
+  // dollhouse distance it reads as a flat shade, which is what this preview
+  // had been showing. The PLY is the geometry of record: vertex colour plus
+  // real normals, so lighting can give the room depth. Opt in to the atlas
+  // with ?mesh=glb.
+  const meshParam = Array.isArray(params.mesh) ? params.mesh[0] : params.mesh;
+  const wantAtlas = meshParam === "glb" || meshParam === "atlas";
   const textured = await objectExists(`${base}.textured.glb`);
-  const meshKind = textured ? "textured.glb" : "dollhouse.ply";
+  const ply = await objectExists(`${base}.dollhouse.ply`);
+  const meshKind = wantAtlas && textured ? "textured.glb" : ply ? "dollhouse.ply" : "textured.glb";
 
   // The processor CUTS the ceiling but deliberately does not REMOVE it, so the
   // viewer can offer open/closed/plenum. That makes ceilingCutY mandatory here:

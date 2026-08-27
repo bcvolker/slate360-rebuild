@@ -26,7 +26,6 @@ export function MeshTwinViewerClient({
   floors,
   ceilingCutY,
   label,
-  splatSource,
 }: {
   meshUrl: string;
   splatUrl?: string | null;
@@ -41,11 +40,11 @@ export function MeshTwinViewerClient({
     // nothing — an empty station list is a pipeline problem, not a UI state.
     return <ViewerFallback message={`No walk stations for "${label}"`} />;
   }
-  const splatNote = splatSource
-    ? splatSource === "sample"
-      ? " · public sample splat (not this room)"
-      : " · Mesh is the room · Splat is a failed reconstruction"
-    : " · mesh only";
+  const kind = meshUrl.includes("dollhouse.ply")
+    ? "vertex colour"
+    : meshUrl.includes("textured.glb")
+      ? "photo atlas"
+      : "mesh";
   return (
     <MeshTwinViewer
       meshUrl={meshUrl}
@@ -53,7 +52,7 @@ export function MeshTwinViewerClient({
       stations={stations}
       floors={floors}
       ceilingCutY={ceilingCutY}
-      caption={`${label}${splatNote} · GPU $0 this page`}
+      caption={`${label} · ${kind} · GPU $0 this page`}
     />
   );
 }

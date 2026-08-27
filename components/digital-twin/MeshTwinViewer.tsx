@@ -26,6 +26,7 @@ import type { TwinLayerMode } from "@/components/digital-twin/WalkthroughLayerTo
 import {
   cssColor,
   MESH_GROUND_FALLBACK,
+  MESH_SURFACE_FALLBACK,
   TWIN_ACCENT_FALLBACK,
 } from "@/lib/digital-twin/css-color";
 import { useWalkthroughNavigation } from "@/hooks/useWalkthroughNavigation";
@@ -215,16 +216,16 @@ export function MeshTwinViewer({
             gl.outputColorSpace = THREE.SRGBColorSpace;
           }}
         >
-          {/* Flat, bright ambient: vertex colours ARE the albedo, so directional
-              shading would only wash the captured detail out. */}
-          {/* 1.0, not 2.2. The baked atlas has a mean channel value of ~160,
-              and at 2.2 every texel above ~116 clips to pure white — which is
-              ~85% of the sheet. The photographs were reaching the screen the
-              whole time and being blown out into a flat white surface that read
-              as "no texture". Vertex colours survived 2.2 because they averaged
-              darker; a real photograph does not. Exposure belongs in the
-              capture, not in the light. */}
-          <ambientLight intensity={1.0} />
+          {/* Form lighting. Unlit + a mesh with no normals is a 2D sticker —
+              which is what dollhouse had been showing. Vertex colours already
+              hold the photographs; the lights only make walls read as walls. */}
+          <hemisphereLight
+            intensity={0.55}
+            color={cssColor("--muted-foreground", MESH_SURFACE_FALLBACK)}
+            groundColor={cssColor("--graphite-canvas", MESH_GROUND_FALLBACK)}
+          />
+          <directionalLight intensity={0.9} position={[6, 10, 4]} />
+          <ambientLight intensity={0.22} />
           <Suspense fallback={null}>
             <MeshBody
               url={meshUrl}

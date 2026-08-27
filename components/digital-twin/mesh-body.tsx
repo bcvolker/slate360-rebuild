@@ -103,7 +103,7 @@ function PlyBody({ url, ceilingCutY, ceilingState, display }: BodyProps): ReactE
   const material = useMemo(() => {
     const hasVertexColors = Boolean(geometry.getAttribute("color"));
     if (!geometry.getAttribute("normal")) geometry.computeVertexNormals();
-    return new THREE.MeshBasicMaterial({
+    return new THREE.MeshLambertMaterial({
       color: hasVertexColors
         ? new THREE.Color(1, 1, 1)
         : cssColor("--muted-foreground", MESH_SURFACE_FALLBACK),
@@ -145,7 +145,7 @@ function GlbBody({ url, ceilingCutY, ceilingState, display }: BodyProps): ReactE
     if (!found) {
       return {
         geometry: new THREE.BufferGeometry(),
-        material: new THREE.MeshBasicMaterial({
+        material: new THREE.MeshLambertMaterial({
           color: cssColor("--muted-foreground", MESH_SURFACE_FALLBACK),
           side: THREE.DoubleSide,
         }),
@@ -155,18 +155,15 @@ function GlbBody({ url, ceilingCutY, ceilingState, display }: BodyProps): ReactE
     const source = (
       Array.isArray(found.material) ? found.material[0] : found.material
     ) as THREE.MeshStandardMaterial;
+    // Keep the glTF material. Rebuilding it (MeshBasic, dropped map, UV channel)
+    // is how this preview went to a flat sticker for days while the JPEG sat
+    // inside the GLB unused.
+    source.side = THREE.DoubleSide;
+    source.roughness = 0.95;
+    source.metalness = 0;
+    if (!found.geometry.getAttribute("normal")) found.geometry.computeVertexNormals();
     if (source.map) {
-      // glTF textures decode as sRGB; left linear the whole room washes out to
-      // a pale, chalky version of the photographs.
       source.map.colorSpace = THREE.SRGBColorSpace;
-
-      // NO MIPMAPS. This is the whole reason the baked atlas rendered as a flat
-      // grey blob. The grid UV layout leaves ~65% of the sheet outside any
-      // chart, and that space is neutral grey — so every mip level averages a
-      // 20 px cell of real photograph together with the grey around it. By mip
-      // 4 the cell is gone and the surface is uniformly 165 grey, which ambient
-      // light then lifts to near-white. Every zoomed-out view — dollhouse,
-      // floor plan, walking back from a wall — is exactly the minified case.
       source.map.generateMipmaps = false;
       source.map.minFilter = THREE.LinearFilter;
       source.map.magFilter = THREE.LinearFilter;
@@ -174,26 +171,8 @@ function GlbBody({ url, ceilingCutY, ceilingState, display }: BodyProps): ReactE
     } else if (typeof console !== "undefined") {
       console.error("[twin] GLB carries no baseColorTexture — mesh will render untextured");
     }
+    source.needsUpdate = true;
 
-    // Baked albedo, unlit. MeshStandard + even dim ambient still lifts the
-    // atlas toward grey at dollhouse distance; the photographs already contain
-    // the lighting.
-    const material = new THREE.MeshBasicMaterial({
-      map: source.map ?? null,
-      color: source.map
-        ? new THREE.Color(1, 1, 1)
-        : cssColor("--muted-foreground", MESH_SURFACE_FALLBACK),
-      vertexColors: Boolean(found.geometry.getAttribute("color")),
-      side: THREE.DoubleSide,
-    });
-
-    if (!found.geometry.getAttribute("normal")) found.geometry.computeVertexNormals();
-
-    // Reports what the SHADER will actually get. Every previous diagnosis was
-    // made from the file on disk, which has been correct for days while the
-    // screen stayed grey — a uniform grey surface is what a textured material
-    // renders when the uv attribute never reaches it and every fragment samples
-    // texel (0,0).
     const uvAttr = found.geometry.getAttribute("uv");
     console.warn("[twin/diag]", JSON.stringify({
       hasMap: Boolean(source.map),
@@ -206,12 +185,12 @@ function GlbBody({ url, ceilingCutY, ceilingState, display }: BodyProps): ReactE
       hasUv: Boolean(uvAttr),
       uvCount: uvAttr ? uvAttr.count : 0,
       positionCount: found.geometry.getAttribute("position")?.count ?? 0,
-      materialType: material.type,
+      hasNormal: Boolean(found.geometry.getAttribute("normal")),
+      materialType: source.type,
       mapFlipY: source.map?.flipY ?? null,
-      mapColorSpace: source.map?.colorSpace ?? null,
     }));
 
-    return { geometry: found.geometry, material };
+    return { geometry: found.geometry, material: source };
   }, [gltf]);
 
   return (
