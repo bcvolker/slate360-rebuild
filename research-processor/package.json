@@ -1,0 +1,38 @@
+{
+  "name": "slate360-research-processor",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local Windows research workstation for ODGS-SLAM (non-commercial academic use).",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -p tsconfig.json --noEmit && vite build",
+    "preview": "vite preview --port 1420 --strictPort",
+    "processor": "node engine/orchestrator.mjs",
+    "start": "node engine/start.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "test:spz-roundtrip": "node engine/ply-to-spz.mjs --self-test",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
+    "@sparkjsdev/spark": "^2.1.0",
+    "@tauri-apps/api": "^2.9.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.9.1",
+    "@types/react": "^19.1.8",
+    "@types/react-dom": "^19.1.6",
+    "@types/three": "^0.180.0",
+    "@vitejs/plugin-react": "^4.7.0",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5"
+  }
+}

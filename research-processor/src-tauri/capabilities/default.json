@@ -1,0 +1,9 @@
+{
+  "identifier": "default",
+  "description": "Default capabilities for Slate360 Research Processor",
+  "windows": ["main"],
+  "permissions": [
+    "core:default",
+    "opener:default"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "s360-research-job-1",
+  "type": "object",
+  "required": ["schema", "engine", "licenseMode", "input", "quality"],
+  "properties": {
+    "schema": { "const": "s360-research-job-1" },
+    "projectName": { "type": "string" },
+    "engine": { "const": "odgs-slam" },
+    "engineCommit": { "type": "string" },
+    "licenseMode": { "const": "research-only" },
+    "mode": { "const": "phd-research" },
+    "captureType": { "enum": ["unknown", "high", "low", "normal"] },
+    "quality": { "enum": ["preview", "standard", "research-high"] },
+    "frameRate": { "type": "number" },
+    "imageDownsample": { "type": "integer" },
+    "maxSeconds": { "type": ["integer", "null"] },
+    "input": {
+      "type": "object",
+      "required": ["path", "kind"],
+      "properties": {
+        "path": { "type": "string" },
+        "kind": { "const": "equirect_mp4" }
+      }
+    }
+  }
+}

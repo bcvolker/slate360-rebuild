@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Slate360 Research Processor",
+  "version": "0.1.0",
+  "identifier": "ai.slate360.research-processor",
+  "build": {
+    "beforeDevCommand": "npm run start",
+    "devUrl": "http://127.0.0.1:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Slate360 Research Processor",
+        "width": 1280,
+        "height": 860
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis"],
+    "windows": {
+      "nsis": {
+        "displayLanguageSelector": false
+      }
+    }
+  }
+}
