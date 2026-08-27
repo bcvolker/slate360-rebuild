@@ -1,56 +1,75 @@
-# Research Request — our Gaussian splat collapsed to a sphere. Why, and what free tools do this properly?
+# Research Request — 360 video reconstruction in OUR pipeline, and why our splat collapsed
 
-*Give this to several AI platforms. We need two things: a diagnosis, and a survey of everything
-free or open-source that already solves this. Hardware purchase is NOT an option — budget is
-effectively zero. Please do not recommend buying a scanner.*
+*Give this to several AI platforms. We need named GitHub projects we can self-host, not SaaS
+products and not hardware. Budget for purchases is effectively zero.*
 
 ---
 
-## The situation in one paragraph
+## What we need most: process 360 video INSIDE our own pipeline
 
-We capture interiors with an iPhone Pro (ARKit + LiDAR). The **geometry works**: a TSDF mesh from
-the depth stream measures within 26.8 mm median of the LiDAR cloud, 2.4% storey-height error,
-correct floor area. The **appearance does not**. We have now failed twice to produce anything a
-contractor would look at, and the second failure is the interesting one because it failed the same
-way as the first despite a fix that should have prevented it.
+This is the priority. We own an **Insta360 X4** and shoot equirectangular video of interiors. We
+need to turn that footage into a usable 3D deliverable **inside our own cloud pipeline** — not by
+uploading to someone else's service, not by buying a scanner.
 
-## Capture data we actually have
+Concretely we need **open-source GitHub projects, with permissive licences, that we can run on our
+own workers**, covering any of:
 
-Per keyframe, from one continuous ARKit session:
+1. **Structure-from-motion / camera poses from equirectangular (360) video.** COLMAP has no native
+   spherical camera model. What does? We are aware **OpenSfM** (Mapillary, BSD) supports spherical
+   cameras natively — is that still true and current? What else?
+2. **Gaussian splatting trained directly from 360/panoramic input.** There is a body of recent work
+   here and we do not know which of it is usable. Please assess at least: **ODGS**, **OmniGS**,
+   **Splatter-360**, **360-GS**, **OmniSplat**, **EgoNeRF**, **360Roam**, and anything newer. For
+   each: repository, **licence of the CODE and separately of any pretrained WEIGHTS**, whether it
+   accepts our own captures, maturity, and hardware needs.
+3. **Equirectangular -> perspective (cube-face) unwrapping** as a preprocessing step so standard
+   tools can be used. We already do this with ffmpeg's `v360` filter. Is that the right approach,
+   and what is the correct face count / overlap / FOV for reconstruction rather than viewing?
+4. **Parsing Insta360 `.insv` files** — the proprietary metadata trailer, and especially the
+   **IMU/gyro track**. We know of `telemetry-parser` (Gyroflow, MIT/Apache). Is that the best
+   option? Does the IMU give us anything usable for pose initialisation?
+5. **360 panoramic tours** as a fallback deliverable when metric reconstruction is not possible —
+   self-hostable viewers and any open pipeline for stitching a walkthrough from 360 video.
+
+We also need to know: **which of these can accept our iPhone LiDAR/ARKit data as a metric
+reference**, so a 360-derived model inherits real-world scale.
+
+## The rest of our data
+
+Interiors are captured with an iPhone Pro (ARKit + LiDAR) **in addition to** the 360 camera:
 
 - **Depth**: 256x192 `uint16` millimetre depth + 256x192 `uint8` confidence
-- **Colour**: full-resolution **1920x1440 JPEG**
-- **Pose**: `transform_4x4`, camera-to-world, column-major, ARKit convention (+Y up,
-  gravity-aligned, camera looks down its own **-Z**)
+- **Colour**: 1920x1440 JPEG per keyframe
+- **Pose**: `transform_4x4` camera-to-world, column-major, ARKit (+Y up, gravity-aligned, camera
+  looks down its own **-Z**)
 - **Intrinsics**: pinhole `{fx: 1334.17, fy: 1334.17, cx: 967.59, cy: 720.45}` at RGB resolution
-- Absolute timestamp; keyframes recorded every 8 cm of travel or 8 degrees of rotation
+- Keyframes every 8 cm of travel or 8 degrees of rotation; absolute timestamps
+- An accumulated ARKit LiDAR point cloud (PLY) and full-rate 1920x1440 video
 
-Plus: an accumulated ARKit LiDAR point cloud (PLY), and full-rate 1920x1440 video.
+Latest capture: **387 keyframes, 231 s**, two clips (a high pass and a low pass) in one continuous
+ARKit world frame — verified, clip 2 starts 4 cm from where clip 1 ended.
 
-Most recent capture: **387 keyframes, 231 s, one kitchen, two clips** (a high pass and a low pass),
-both in one continuous ARKit world frame — verified, clip 2 begins 4 cm from where clip 1 ended.
+**The 360 problem in one line:** the X4 gives us no poses, no shared clock with the phone, and
+**no fixed rig** — the mount is a retracting selfie stick, so phone-to-360 geometry differs on
+every job and cannot be pre-calibrated. A method needing factory rig calibration is unusable; a
+method solving one unknown offset per capture is fine.
 
-Also captured, still unusable: **Insta360 X4 equirectangular video**. No poses, no shared clock
-with the phone, and **no fixed rig** (a retracting selfie stick, so the phone-to-360 geometry
-differs every capture and cannot be pre-calibrated).
+## What already works, and what has failed twice
 
-## Failure 1 — unconstrained photogrammetry
+**Works — geometry from LiDAR.** A TSDF mesh from the depth stream sits within **26.8 mm median**
+of the LiDAR cloud, 2.4% storey-height error, correct floor area. This is our measurement layer and
+it is genuinely good.
 
-COLMAP structure-from-motion on the interior imagery produced a **3.23 m model of a 13.71 m room**
-(ratio 0.24) while reporting excellent internal quality scores. Diagnosed as SfM failing on
-low-texture painted drywall. We concluded: never solve poses from these images.
+**Failed once — unconstrained photogrammetry.** COLMAP SfM on interior imagery produced a **3.23 m
+model of a 13.71 m room** (ratio 0.24) while reporting excellent internal scores. Low-texture
+painted drywall. We concluded: never solve poses from these images.
 
-## Failure 2 — pose-prior Gaussian splat (this is what we need explained)
+**Failed twice — pose-prior Gaussian splat.** Everything meant to prevent failure 1 was in place:
 
-Everything we believed would prevent failure 1 was in place:
-
-- Alignment backend `colmap_pose_prior` — ARKit poses supplied as priors rather than solved
+- `colmap_pose_prior` alignment — ARKit poses supplied as priors, not solved
 - Gaussians **initialised from the LiDAR point cloud**, not random
-- Trained with **gsplat 1.4.0** via **nerfstudio 1.1.5 splatfacto** (Apache-2.0), stock, no fork
-- Both clips used, already co-registered
-- Quality profile "high", speed "quality", A10G GPU
-
-Result:
+- Stock **gsplat 1.4.0** via **nerfstudio 1.1.5 splatfacto** (Apache-2.0), no fork
+- Both clips, A10G GPU, quality profile "high"
 
 | measurement | value |
 |---|---|
@@ -60,95 +79,67 @@ Result:
 | LiDAR reference diagonal | 12.33 m |
 | Model diagonal | 6.92 m (**ratio 0.56**) |
 | Manifest | `metric_scale_applied: true`, `tilt_deg: 179.86` |
-| Readiness gates | ALL PASSED (psnr, splat count, file size, coverage, explosion check) |
+| Readiness gates | **ALL PASSED** (psnr, splat count, file size, coverage, explosion check) |
 
-A top-down orthographic render of the gaussian centres shows **a sphere**, not a floor plan. The
-bounding box is near-isotropic — rooms never are. It collapsed the same way failure 1 did.
+A top-down orthographic render of the gaussian centres is **a sphere**. The bounding box is
+near-isotropic; rooms never are. It collapsed the same way failure 1 did, and the coverage gate
+whose entire purpose is catching this has a 0.45 minimum, so 0.5613 passed.
 
-**Every automated gate passed.** The coverage gate's minimum ratio is 0.45 and the model scored
-0.5613, so a collapsed reconstruction cleared its own safety check.
+## Questions on the collapse
 
-## Questions on the diagnosis
+6. **Does `colmap_pose_prior` hold poses FIXED, or only use them as initialisation?** We suspect
+   COLMAP refined them and drifted into the same degenerate minimum. What is the correct
+   invocation to make poses truly rigid — `point_triangulator` against a pre-built model rather
+   than `mapper`? Please give exact commands and flags.
+7. **Should COLMAP be in this pipeline at all?** We have metric poses AND metric depth. Is the
+   right architecture to skip SfM entirely and feed ARKit poses straight to gsplat, as the
+   Record3D / Polycam importers do? Name the exact importer or converter.
+8. **What makes a splat collapse to an isotropic ball when seeded from a correct metric point
+   cloud?** Scale-recovery bug, coordinate-convention bug, densification/pruning bug, or wrong
+   dataparser?
+9. **Give us a concrete rejection criterion, with a number**, that would have caught BOTH failures.
+10. `tilt_deg: 179.86` means the model comes out essentially upside down. Symptom of an upstream
+    convention error that might relate to the collapse, or normal between ARKit and this stack?
 
-1. **Does `colmap_pose_prior` actually hold poses FIXED, or only use them as initialisation?**
-   We suspect COLMAP refined the poses and drifted into the same degenerate minimum. If so, what
-   is the correct COLMAP invocation to make poses truly rigid — `point_triangulator` against a
-   pre-built model rather than `mapper`? Please be specific about commands and flags.
-2. **Should COLMAP be in this pipeline at all?** We have metric poses AND metric depth. Is the
-   right architecture to skip SfM entirely and feed ARKit poses straight into gsplat, the way the
-   Record3D / Polycam / iPhone importers do? Name the exact importer or converter to use.
-3. **What causes a splat to collapse to an isotropic ball** when it was seeded from a correct
-   metric point cloud? If the LiDAR seed was metric and correct, how does training move that far?
-   Is this a scale-recovery bug, a coordinate-convention bug, a densification/pruning bug, or
-   simply the wrong dataparser?
-4. **What is the correct gate?** Our 0.45 coverage ratio let a 0.56 collapse through. Give us a
-   concrete, computable rejection criterion with a number — ideally one that would have caught
-   BOTH failures.
-5. `tilt_deg: 179.86` — the model comes out essentially upside down and needs a correction
-   quaternion. Is that a symptom of a convention error upstream that might also relate to the
-   collapse, or is a 180-degree flip normal and expected between ARKit and this stack?
+## Why we are asking about tools rather than fixes
 
-## Questions on tooling — please be exhaustive
+Every coordinate-convention boundary we cross — **ARKit -> COLMAP -> nerfstudio -> gsplat -> .spz
+-> three.js** — is a place a sign error silently produces a plausible-looking, wrong file. We wrote
+all of that glue, and that is where every failure has occurred. We would rather adopt a project
+that owns more of the chain than keep writing conversions.
 
-We would much rather adopt something proven than keep writing glue. **Every coordinate-convention
-boundary we cross (ARKit -> COLMAP -> nerfstudio -> gsplat -> .spz -> three.js) is a place a sign
-error can silently produce a plausible-looking, wrong file. We have written all of that glue and it
-is where every failure has occurred.**
-
-6. **What free and open-source tools take iPhone LiDAR + poses + images and produce a Gaussian
-   splat end-to-end**, with the fewest hand-written conversion steps? Please cover at least, and
-   verify licences for code AND any pretrained weights separately:
-   - **Nerfstudio** (Apache-2.0) and its Record3D / Polycam / ns-process-data importers
-   - **gsplat** (Apache-2.0)
-   - **Brush** (Rust/wgpu splat trainer) — licence? maturity?
-   - **OpenSplat** — licence? does it accept external poses?
-   - **PlayCanvas SuperSplat** — editor/viewer. What can it do besides view? Cleanup, cropping,
-     compression, hosting?
-   - **Teleport by Varjo** — what is it, what does it cost, does it accept our own captures, and
-     can output be self-hosted or only viewed in their platform?
-   - **Postshot (Jawset)** — licence and cost? Windows desktop, we have a Windows machine.
-   - **Luma AI**, **Polycam**, **Scaniverse (Niantic)**, **KIRI Engine** — free tiers, on-device
-     splat generation, and crucially **what can be EXPORTED and under what terms**
-   - Anything else current we have not named
-7. **Which of those can run on a Windows desktop with a consumer GPU**, and which are cloud-only?
-8. **Is there a free/consumer app that already does this well enough to deliver client work
-   today**, while a custom pipeline matures? We are a one-person services business trying to sell
-   construction documentation to contractors. Being blocked on our own pipeline is costing real
-   revenue. If the honest answer is "use Scaniverse or Polycam for the visual, keep your LiDAR
-   mesh for the measurements," say so plainly.
-9. For any tool that exports splats: **what formats** (.ply, .spz, .ksplat, .splat) and can we
-   **self-host the viewer** so the deliverable is our own branded link rather than theirs?
-
-## Questions on the 360 camera
-
-10. Given no fixed rig and no shared clock, is there a **free** path to using Insta360 X4 footage —
-    either fused onto the LiDAR mesh, or as a standalone splat/tour? What about printed
-    **AprilTags** as a shared reference both cameras can see? What tag family, printed size, how
-    many, and what accuracy would result?
-11. Does any free tool ingest **equirectangular video** for splat training directly?
+11. **What open-source projects take iPhone LiDAR + poses + images and produce a splat end-to-end**
+    with the fewest hand-written stages? Assess at least, with verified licences for code and
+    weights separately: **Nerfstudio** and its `ns-process-data` importers, **gsplat**, **Brush**
+    (Rust/wgpu), **OpenSplat**, **PlayCanvas SuperSplat** (what can it do besides view — cleanup,
+    cropping, compression, self-hosted delivery?), **Postshot/Jawset** (Windows desktop, licence
+    and cost?), and anything else current.
+12. **Which run on a Windows desktop with a consumer GPU**, and which need cloud?
+13. We must be able to **self-host the viewer** so the deliverable is our own branded link. Which
+    export formats (`.ply`, `.spz`, `.ksplat`, `.splat`) and which open viewers support them?
 
 ## Hard constraints
 
-1. **Licensing** — commercial services business. **AGPL banned** (network clause). **Non-commercial
-   licences banned, including model weights** — several methods ship permissive code with NC
-   weights, so please check both separately from the actual repository and state what you found.
-   GPL acceptable only as a standalone subprocess binary. MIT / BSD / Apache-2.0 fine.
-2. **No hardware purchase.** Recommendations to buy a scanner are not actionable.
-3. Existing stack: Python 3.10, numpy, Open3D, COLMAP, gsplat, nerfstudio, Modal (cloud GPU),
-   Cloudflare R2, Next.js viewer. Windows desktop available for local tools.
+1. **Licensing** — commercial services business. **AGPL banned** (network clause reaches a hosted
+   service). **Non-commercial licences banned, including model weights** — several methods ship
+   permissive code with NC weights, so check both separately from the actual repository and state
+   what you found. GPL acceptable only as a standalone subprocess binary, never linked.
+   MIT / BSD / Apache-2.0 fine.
+2. **No hardware purchase.** Scanner recommendations are not actionable.
+3. **Self-hostable.** We run Python 3.10 on cloud GPU workers (Modal), store on Cloudflare R2, and
+   serve from a Next.js app. A SaaS that will not export our data is not a solution.
 4. **Must fail loudly rather than look plausible.** Everything above passed its own quality gates.
 
 ## Deliverable
 
-1. **Why the pose-prior splat collapsed**, specifically enough to fix or definitively abandon.
-2. **The shortest path from the data we already have to a splat that looks like the room** —
-   naming exact tools, commands, and conversion steps, preferring fewest hand-written stages.
-3. **A verified table of free/open tools** with licence, platform, whether they accept external
-   poses, what they export, and maturity.
-4. **A plain answer on whether to keep building or use an existing free app** for client work now.
-5. **An explicit list of what you are unsure about.** A flagged uncertainty is worth far more to us
-   than a confident wrong answer — we have shipped several of those and caught them only by
-   rendering the result and looking at it.
+1. **A ranked list of GitHub projects for 360/equirectangular reconstruction** we can self-host,
+   with licence, maturity, hardware needs, and whether they accept external metric references.
+2. **Why the pose-prior splat collapsed** — specifically enough to fix or definitively abandon.
+3. **The shortest path from the data we already have to something that looks like the room**,
+   naming exact tools and commands, preferring fewest hand-written conversion stages.
+4. **An explicit list of what you are unsure about.** A flagged uncertainty is worth far more than
+   a confident wrong answer — we have shipped several of those and caught them only by rendering
+   the result and looking at it.
 
-Prose is fine. Cite repositories, papers and pricing pages with dates, and say plainly when
-something you remember may be out of date.
+Prose is fine. Cite repositories and papers with dates, and say plainly when something you
+remember may be out of date.
