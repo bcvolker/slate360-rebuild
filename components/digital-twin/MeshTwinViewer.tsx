@@ -15,7 +15,7 @@
  */
 
 import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber";
-import { useCallback, useMemo, useRef, useState, Suspense, type ReactElement } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, Suspense, type ReactElement } from "react";
 import * as THREE from "three";
 
 import { MeshBody, type CeilingState } from "@/components/digital-twin/mesh-body";
@@ -144,13 +144,21 @@ export function MeshTwinViewer({
   caption,
 }: MeshTwinViewerProps): ReactElement {
   const [ceilingState, setCeilingState] = useState<CeilingState>("open");
-  const [layerMode, setLayerMode] = useState<TwinLayerMode>(splatUrl ? "both" : "mesh");
+  // Mesh is the room. The kitchen splat on disk is a failed train (collapsed
+  // cloud); opening on Both made dollhouse look like debris. Splat still loads
+  // if the operator asks for it.
+  const [layerMode, setLayerMode] = useState<TwinLayerMode>("mesh");
+  const [splatRequested, setSplatRequested] = useState(false);
   const [measureActive, setMeasureActive] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const showMesh = layerMode !== "splat";
   const showSplat = Boolean(splatUrl) && layerMode !== "mesh";
   const raycastRef = useRef<((x: number, y: number) => [number, number, number] | null) | null>(null);
   const shellRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (showSplat) setSplatRequested(true);
+  }, [showSplat]);
 
   const nav = useWalkthroughNavigation({
     stations,
@@ -221,7 +229,9 @@ export function MeshTwinViewer({
               ceilingState={ceilingState}
               display={showMesh ? "shown" : "collision"}
             />
-            {splatUrl ? <MeshSplatLayer url={splatUrl} visible={showSplat} /> : null}
+            {splatUrl && splatRequested ? (
+              <MeshSplatLayer url={splatUrl} visible={showSplat} />
+            ) : null}
           </Suspense>
           <StationMarkers
             stations={stations}

@@ -44,7 +44,7 @@ export function MeshTwinViewerClient({
   const splatNote = splatSource
     ? splatSource === "sample"
       ? " · public sample splat (not this room)"
-      : ` · splat ${splatSource}`
+      : " · Mesh is the room · Splat is a failed reconstruction"
     : " · mesh only";
   return (
     <MeshTwinViewer
@@ -53,7 +53,7 @@ export function MeshTwinViewerClient({
       stations={stations}
       floors={floors}
       ceilingCutY={ceilingCutY}
-      caption={`${label}${splatNote} · GPU $0 this page · splat is look-only, mesh is measure`}
+      caption={`${label}${splatNote} · GPU $0 this page`}
     />
   );
 }
