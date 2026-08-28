@@ -132,6 +132,23 @@ const server = createServer(async (req, res) => {
       state.abort?.abort();
       return json(res, 200, { ok: true });
     }
+    if (req.method === "POST" && url.pathname === "/api/job/attach-run") {
+      const body = await readBody(req);
+      if (!body.runRoot || !body.spz) return json(res, 400, { error: "runRoot and spz required" });
+      state.runRoot = body.runRoot;
+      state.job = body.job || state.job;
+      emit({
+        stage: "complete",
+        label: "Attached run",
+        progress: 1,
+        outputDir: body.runRoot,
+        ply: body.ply || null,
+        spz: body.spz,
+        trajectory: body.trajectory || null,
+        trajectoryPlot: body.trajectoryPlot || null,
+      });
+      return json(res, 200, { ok: true, runRoot: body.runRoot, spz: body.spz });
+    }
     if (req.method === "POST" && url.pathname === "/api/open-folder") {
       const body = await readBody(req);
       const dir = body.dir || state.runRoot;

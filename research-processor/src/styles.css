@@ -74,6 +74,7 @@ input[type="text"] {
 .ready { color: var(--accent); }
 .missing { color: #f8fafc; }
 .viewer { height: min(70vh, 640px); border: 1px solid var(--line); background: #000; }
+.traj-plot { width: min(100%, 920px); margin-top: 1rem; border: 1px solid var(--line); }
 .radio { display: flex; gap: 1rem; margin: 0.4rem 0 1rem; }
 .muted { color: var(--muted); }
 .warn { border-left: 3px solid var(--accent); padding-left: 0.75rem; }

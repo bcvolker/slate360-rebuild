@@ -27,6 +27,7 @@ from datetime import datetime
 from pathlib import Path
 
 odgs = Path.home() / "slate360-engines" / "odgs-slam" / "source"
+sys.path.insert(0, str(Path.home() / "slate360-engines" / "odgs-slam"))
 sys.path.insert(0, str(odgs))
 
 import torch.multiprocessing as mp
@@ -36,6 +37,9 @@ from gaussian_splatting.utils.system_utils import mkdir_p
 from slam import SLAM
 from utils.config_utils import load_config
 from utils.logging_utils import Log
+from no_gt_eval import apply_no_gt_save_patch
+
+apply_no_gt_save_patch()
 import queue
 import threading
 import torch.multiprocessing as tmp

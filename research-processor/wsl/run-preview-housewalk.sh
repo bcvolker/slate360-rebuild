@@ -10,6 +10,7 @@ WORK="${HOME}/slate360-data/housewalk/preview"
 CAM="${WORK}/PanoramaCam"
 STAMP="$(date -u +%Y-%m-%dT%H-%M-%S)"
 SAVE_PARENT="${WORK}/odgs-out"
+LOGDIR="${WORK}/logs/${STAMP}"
 export PATH="/usr/local/cuda/bin:/usr/lib/wsl/lib:/usr/sbin:/usr/bin:/bin"
 export CUDA_HOME="/usr/local/cuda"
 export TORCH_CUDA_ARCH_LIST="8.6"
@@ -17,19 +18,19 @@ export WANDB_MODE=disabled
 export PYOPENGL_PLATFORM=egl
 export MPLBACKEND=Agg
 export PYTHONUNBUFFERED=1
-export PYTHONPATH="${ODGS_DIR}"
+export PYTHONPATH="${HOME}/slate360-engines/odgs-slam:${ODGS_DIR}"
 
 test -f "${WIN_SRC}"
 test "$(git -C "${ODGS_DIR}" rev-parse HEAD)" = "${ODGS_SHA}"
 
-mkdir -p "${CAM}" "${SAVE_PARENT}" "${WORK}/logs"
+mkdir -p "${CAM}" "${SAVE_PARENT}" "${LOGDIR}"
 if [[ ! -f "${WORK}/source.mp4" ]]; then
   echo "staging MP4 onto ext4 (read-only copy of Windows master)"
   cp -n "${WIN_SRC}" "${WORK}/source.mp4"
 fi
 
 echo "=== ffprobe staged copy ==="
-ffprobe -v error -show_entries stream=codec_name,width,height,r_frame_rate,bit_rate -show_entries format=duration,bit_rate,size -of json "${WORK}/source.mp4" | tee "${WORK}/logs/ffprobe.json"
+ffprobe -v error -show_entries stream=codec_name,width,height,r_frame_rate,bit_rate -show_entries format=duration,bit_rate,size -of json "${WORK}/source.mp4" | tee "${LOGDIR}/ffprobe.json"
 
 PNG_COUNT="$(find "${CAM}" -maxdepth 1 -name '*.png' | wc -l)"
 if [[ "${PNG_COUNT}" -lt 90 ]]; then
@@ -37,12 +38,12 @@ if [[ "${PNG_COUNT}" -lt 90 ]]; then
   rm -f "${CAM}"/*.png
   ffmpeg -hide_banner -y -t 52 -i "${WORK}/source.mp4" \
     -vf "fps=2,scale=960:480:flags=lanczos" \
-    -start_number 0 "${CAM}/%04d.png" 2> "${WORK}/logs/ffmpeg.log"
+    -start_number 0 "${CAM}/%04d.png" 2> "${LOGDIR}/ffmpeg.log"
 fi
 ls "${CAM}"/0000.png "${CAM}"/0001.png
 FRAME_COUNT="$(find "${CAM}" -maxdepth 1 -name '*.png' | wc -l)"
-echo "frames=${FRAME_COUNT}" | tee "${WORK}/logs/frame_count.txt"
-test "${FRAME_COUNT}" -ge 90
+echo "frames=${FRAME_COUNT}" | tee "${LOGDIR}/frame_count.txt"
+test "${FRAME_COUNT}" -eq 102
 test ! -e "${CAM}/positions/PanoramaCam_positions.json"
 
 CFG="${WORK}/config.yml"
@@ -83,14 +84,14 @@ Training:
   kf_remove_similarity_threshold: 0.1
 YAML
 
-echo "=== ODGS-SLAM start ${STAMP} ===" | tee "${WORK}/logs/odgs.stdout.log"
-nvidia-smi --query-gpu=name,memory.used,memory.total --format=csv | tee "${WORK}/logs/nvidia_before.txt"
+echo "=== ODGS-SLAM start ${STAMP} ===" | tee "${LOGDIR}/odgs.stdout.log"
+nvidia-smi --query-gpu=name,memory.used,memory.total --format=csv | tee "${LOGDIR}/nvidia_before.txt"
 
 # Peak VRAM sampler
 (
-  echo "ts,memory_used_mib" > "${WORK}/logs/vram_trace.csv"
+  echo "ts,memory_used_mib" > "${LOGDIR}/vram_trace.csv"
   while true; do
-    nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits | awk -v t="$(date -u +%Y-%m-%dT%H:%M:%SZ)" '{print t","$1}' >> "${WORK}/logs/vram_trace.csv"
+    nvidia-smi --query-gpu=memory.used --format=csv,noheader,nounits | awk -v t="$(date -u +%Y-%m-%dT%H:%M:%SZ)" '{print t","$1}' >> "${LOGDIR}/vram_trace.csv"
     sleep 2
   done
 ) &
@@ -98,13 +99,15 @@ VRAM_PID=$!
 
 set +e
 cd "${ODGS_DIR}"
+sed 's/\r$//' /mnt/c/s360/research-processor/wsl/slam-headless.py > /home/rian_/slate360-engines/odgs-slam/slam-headless.py
+sed 's/\r$//' /mnt/c/s360/research-processor/wsl/no_gt_eval.py > /home/rian_/slate360-engines/odgs-slam/no_gt_eval.py
 "${VENV}/bin/python" /home/rian_/slate360-engines/odgs-slam/slam-headless.py --config "${CFG}" \
-  >> "${WORK}/logs/odgs.stdout.log" 2> "${WORK}/logs/odgs.stderr.log"
+  >> "${LOGDIR}/odgs.stdout.log" 2> "${LOGDIR}/odgs.stderr.log"
 ODGS_RC=$?
 set -e
 kill "${VRAM_PID}" 2>/dev/null || true
-echo "odgs_exit=${ODGS_RC}" | tee "${WORK}/logs/odgs_exit.txt"
-nvidia-smi --query-gpu=name,memory.used,memory.total --format=csv | tee "${WORK}/logs/nvidia_after.txt"
+echo "odgs_exit=${ODGS_RC}" | tee "${LOGDIR}/odgs_exit.txt"
+nvidia-smi --query-gpu=name,memory.used,memory.total --format=csv | tee "${LOGDIR}/nvidia_after.txt"
 
-find "${SAVE_PARENT}" -name 'point_cloud.ply' -o -name 'final_run_stats.json' -o -name 'trj_final.json' | tee "${WORK}/logs/artifacts.txt"
+find "${SAVE_PARENT}" -name 'point_cloud.ply' -o -name 'final_run_stats.json' -o -name 'trj_final.json' -o -name 'ate_final.json' | tee "${LOGDIR}/artifacts.txt"
 exit "${ODGS_RC}"

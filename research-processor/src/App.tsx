@@ -46,8 +46,13 @@ export function App() {
 
   const splatUrl = useMemo(() => {
     if (last?.spz) return fileUrl(last.spz);
-    return "https://sparkjs.dev/assets/splats/butterfly.spz";
+    return null;
   }, [last]);
+  const trajectoryUrl = useMemo(() => (last?.trajectory ? fileUrl(last.trajectory) : null), [last]);
+  const trajectoryPlotUrl = useMemo(
+    () => (last?.trajectoryPlot ? fileUrl(last.trajectoryPlot) : null),
+    [last],
+  );
 
   const tabs: Tab[] = ["process", "view", "results", "log", "environment"];
 
@@ -94,7 +99,9 @@ export function App() {
           onCancel={() => api.cancel()}
         />
       )}
-      {tab === "view" && <ViewScreen splatUrl={splatUrl} />}
+      {tab === "view" && (
+        <ViewScreen splatUrl={splatUrl} trajectoryUrl={trajectoryUrl} trajectoryPlotUrl={trajectoryPlotUrl} />
+      )}
       {tab === "results" && <ResultsScreen last={last} runRoot={runRoot} />}
       {tab === "log" && <LogScreen lines={logs} />}
       {tab === "environment" && <EnvironmentScreen env={env} onRefresh={refreshEnv} />}

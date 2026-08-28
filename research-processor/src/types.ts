@@ -36,6 +36,8 @@ export type JobEvent = {
   outputDir?: string;
   ply?: string | null;
   spz?: string | null;
+  trajectory?: string | null;
+  trajectoryPlot?: string | null;
   error?: ClassifiedError;
   validation?: { verdict: string; flags: { id: string; level: string; message: string }[] };
 };
