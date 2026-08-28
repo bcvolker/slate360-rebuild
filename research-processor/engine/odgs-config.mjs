@@ -51,5 +51,8 @@ Results:
   color_refine: false
 Training:
   single_thread: true
+  size_threshold: 20
+  kf_remove_min_dist: 0.1
+  kf_remove_similarity_threshold: 0.1
 `;
 }

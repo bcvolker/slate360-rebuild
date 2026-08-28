@@ -6,19 +6,34 @@ import path from "node:path";
 
 const execFileAsync = promisify(execFile);
 
+function decodeMaybeUtf16(value) {
+  if (Buffer.isBuffer(value)) {
+    if (value.length >= 2 && value[1] === 0) {
+      return value.toString("utf16le").replace(/^\uFEFF/, "");
+    }
+    return value.toString("utf8");
+  }
+  const text = String(value || "");
+  if (text.includes("\u0000")) {
+    return Buffer.from(text, "binary").toString("utf16le").replace(/^\uFEFF/, "");
+  }
+  return text;
+}
+
 async function run(cmd, args, opts = {}) {
   try {
     const { stdout, stderr } = await execFileAsync(cmd, args, {
       timeout: 15000,
       windowsHide: true,
+      encoding: "buffer",
       ...opts,
     });
-    return { ok: true, stdout: String(stdout || ""), stderr: String(stderr || "") };
+    return { ok: true, stdout: decodeMaybeUtf16(stdout), stderr: decodeMaybeUtf16(stderr) };
   } catch (err) {
     return {
       ok: false,
-      stdout: String(err.stdout || ""),
-      stderr: String(err.stderr || err.message || ""),
+      stdout: decodeMaybeUtf16(err.stdout || ""),
+      stderr: decodeMaybeUtf16(err.stderr || err.message || ""),
     };
   }
 }
@@ -32,11 +47,22 @@ export async function collectEnvironment() {
     "--query-gpu=name,memory.total,driver_version",
     "--format=csv,noheader",
   ]);
-  const wsl = await run("wsl", ["--status"]);
-  const wslList = await run("wsl", ["-l", "-v"]);
-  const ffmpeg = await run("ffmpeg", ["-version"]);
-  const wslCuda = await run("wsl", ["-e", "bash", "-lc", "nvidia-smi --query-gpu=name --format=csv,noheader"]);
-  const wslOdgs = await run("wsl", [
+  const wsl = await run("wsl.exe", ["--status"]);
+  const wslList = await run("wsl.exe", ["-l", "-v"]);
+  const ffmpegWin = await run("ffmpeg", ["-version"]);
+  const ffmpegWsl = await run("wsl.exe", ["-d", "Ubuntu-22.04", "--", "ffmpeg", "-version"]);
+  const ffmpeg = ffmpegWin.ok ? ffmpegWin : ffmpegWsl;
+  const wslCuda = await run("wsl.exe", [
+    "-d",
+    "Ubuntu-22.04",
+    "-e",
+    "bash",
+    "-lc",
+    "nvidia-smi --query-gpu=name --format=csv,noheader",
+  ]);
+  const wslOdgs = await run("wsl.exe", [
+    "-d",
+    "Ubuntu-22.04",
     "-e",
     "bash",
     "-lc",
