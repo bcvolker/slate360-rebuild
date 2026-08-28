@@ -7,6 +7,7 @@
  *   node engine/ply-to-spz.mjs --self-test
  */
 import { spawn } from "node:child_process";
+import { existsSync } from "node:fs";
 import { mkdir, mkdtemp, rm, writeFile, stat } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -15,9 +16,18 @@ import { SPLAT_TRANSFORM_PKG } from "./presets.mjs";
 const OPACITY_TIERS = [0.05, 0.15, 0.30];
 const SCALE_CAP = 0.3;
 
+function npxArgv(args) {
+  const cli = path.join(path.dirname(process.execPath), "node_modules", "npm", "bin", "npx-cli.js");
+  if (!existsSync(cli)) {
+    throw new Error(`npx-cli.js not found next to ${process.execPath}`);
+  }
+  return { cmd: process.execPath, argv: [cli, "-y", ...args] };
+}
+
 function runNpx(args) {
+  const { cmd, argv } = npxArgv(args);
   return new Promise((resolve, reject) => {
-    const child = spawn("npx", ["-y", ...args], { stdio: "inherit", shell: true, windowsHide: true });
+    const child = spawn(cmd, argv, { stdio: "inherit", windowsHide: true });
     child.on("error", reject);
     child.on("close", (code) => (code === 0 ? resolve() : reject(new Error(`npx exited ${code}`))));
   });

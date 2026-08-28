@@ -7,12 +7,12 @@ const root = path.dirname(fileURLToPath(import.meta.url));
 const procRoot = path.resolve(root, "..");
 
 function spawnInherit(cmd, args) {
-  const child = spawn(cmd, args, { cwd: procRoot, stdio: "inherit", shell: true, windowsHide: true });
-  return child;
+  return spawn(cmd, args, { cwd: procRoot, stdio: "inherit", windowsHide: true });
 }
 
 const engine = spawnInherit(process.execPath, [path.join(root, "orchestrator.mjs")]);
-const vite = spawnInherit("npx", ["vite", "--port", "1420", "--strictPort"]);
+const viteBin = path.join(procRoot, "node_modules", "vite", "bin", "vite.js");
+const vite = spawnInherit(process.execPath, [viteBin, "--port", "1420", "--strictPort"]);
 
 console.log("Slate360 Research Processor");
 console.log("  UI     http://127.0.0.1:1420");
