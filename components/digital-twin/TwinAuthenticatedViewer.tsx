@@ -85,7 +85,9 @@ export function TwinAuthenticatedViewer({
   const [commentCount, setCommentCount] = useState(0);
 
   const splatReady = viewerKind === "splat";
-  const pickEnabled = measureActive && splatReady;
+  // Splat-only canvas: never treat Gaussian hits as construction measurements.
+  const metricAvailable = false;
+  const pickEnabled = measureActive && splatReady && metricAvailable;
 
   const showToast = (msg: string) => {
     setToast(msg);
@@ -184,6 +186,7 @@ export function TwinAuthenticatedViewer({
           hasFirstPoint={measureA !== null}
           busy={busy}
           splatReady={splatReady}
+          metricAvailable={metricAvailable}
           onToggle={() => {
             if (measureActive) {
               cancelMeasure();

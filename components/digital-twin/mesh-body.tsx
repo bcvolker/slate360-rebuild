@@ -24,6 +24,11 @@ export type CeilingState = "open" | "closed" | "plenum";
 
 export type MeshDisplay = "shown" | "collision";
 
+export type MeshAppearance = {
+  opacity?: number;
+  wireframe?: boolean;
+};
+
 type BodyProps = {
   url: string;
   ceilingCutY?: number | null;
@@ -33,6 +38,7 @@ type BodyProps = {
    * drawing nothing — splat-only mode still needs a floor to walk on.
    */
   display?: MeshDisplay;
+  appearance?: MeshAppearance;
 };
 
 /**
@@ -48,12 +54,14 @@ function Surface({
   ceilingCutY,
   ceilingState,
   display = "shown",
+  appearance,
 }: {
   geometry: THREE.BufferGeometry;
   material: THREE.Material;
   ceilingCutY?: number | null;
   ceilingState: CeilingState;
   display?: MeshDisplay;
+  appearance?: MeshAppearance;
 }): ReactElement {
   const clipped = useMemo(() => {
     let m = material;
@@ -66,9 +74,20 @@ function Surface({
       m = m.clone();
       m.colorWrite = false;
       m.depthWrite = false;
+    } else {
+      if (typeof appearance?.opacity === "number" && appearance.opacity < 1) {
+        m = m.clone();
+        m.transparent = true;
+        m.opacity = appearance.opacity;
+        m.depthWrite = appearance.opacity > 0.95;
+      }
+      if (appearance?.wireframe) {
+        m = m.clone();
+        m.wireframe = true;
+      }
     }
     return m;
-  }, [material, ceilingCutY, ceilingState, display]);
+  }, [material, ceilingCutY, ceilingState, display, appearance]);
 
   // Built unconditionally — a hook cannot live inside a conditional branch of
   // the JSX below. Only its USE is conditional.
@@ -98,7 +117,7 @@ function Surface({
  * dollhouse that is a colour every ~4.5 cm however good the photographs were.
  * The fallback for captures with no baked atlas.
  */
-function PlyBody({ url, ceilingCutY, ceilingState, display }: BodyProps): ReactElement {
+function PlyBody({ url, ceilingCutY, ceilingState, display, appearance }: BodyProps): ReactElement {
   const geometry = useLoader(PLYLoader, url);
   const material = useMemo(() => {
     const hasVertexColors = Boolean(geometry.getAttribute("color"));
@@ -119,6 +138,7 @@ function PlyBody({ url, ceilingCutY, ceilingState, display }: BodyProps): ReactE
       ceilingCutY={ceilingCutY}
       ceilingState={ceilingState}
       display={display}
+      appearance={appearance}
     />
   );
 }
@@ -132,7 +152,7 @@ function PlyBody({ url, ceilingCutY, ceilingState, display }: BodyProps): ReactE
  * back faces would drop out; ambient-only lighting also needs roughness pinned
  * or the surface reads as plastic.
  */
-function GlbBody({ url, ceilingCutY, ceilingState, display }: BodyProps): ReactElement {
+function GlbBody({ url, ceilingCutY, ceilingState, display, appearance }: BodyProps): ReactElement {
   const gltf = useLoader(GLTFLoader, url);
 
   const { geometry, material } = useMemo(() => {
@@ -200,6 +220,7 @@ function GlbBody({ url, ceilingCutY, ceilingState, display }: BodyProps): ReactE
       ceilingCutY={ceilingCutY}
       ceilingState={ceilingState}
       display={display}
+      appearance={appearance}
     />
   );
 }

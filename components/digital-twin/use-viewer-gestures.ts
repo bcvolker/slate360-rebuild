@@ -24,11 +24,20 @@ const PINCH_SENSITIVITY = 0.08;
 
 export { DEFAULT_FOV };
 
-export function useViewerGestures(nav: WalkthroughNavigation) {
+export function useViewerGestures(
+  nav: WalkthroughNavigation,
+  options?: {
+    /** Return true to consume the tap (measure/pin) instead of walking. */
+    consumeTap?: (localX: number, localY: number) => boolean;
+    onHover?: (localX: number, localY: number) => void;
+  },
+) {
   const fovRef = useRef<number>(DEFAULT_FOV);
   const dragRef = useRef<{ x: number; y: number; moved: boolean; onCanvas: boolean } | null>(null);
   const pinchRef = useRef<Map<number, { x: number; y: number }>>(new Map());
   const lastPinchRef = useRef<number>(0);
+  const optionsRef = useRef(options);
+  optionsRef.current = options;
 
   // Navigation must be driven ONLY by the canvas. Without this check any
   // pointer-up reaching the wrapper counts as a click on the model, so a press
@@ -77,7 +86,13 @@ export function useViewerGestures(nav: WalkthroughNavigation) {
       const dx = e.clientX - drag.x;
       const dy = e.clientY - drag.y;
       // A few pixels of slop so a tap with a shaky thumb still reads as a tap.
-      if (!drag.moved && Math.hypot(dx, dy) < 4) return;
+      if (!drag.moved && Math.hypot(dx, dy) < 4) {
+        if (optionsRef.current?.onHover) {
+          const rect = e.currentTarget.getBoundingClientRect();
+          optionsRef.current.onHover(e.clientX - rect.left, e.clientY - rect.top);
+        }
+        return;
+      }
       drag.moved = true;
       nav.handleLookDrag(dx, dy);
       drag.x = e.clientX;
@@ -95,7 +110,10 @@ export function useViewerGestures(nav: WalkthroughNavigation) {
       e.currentTarget.releasePointerCapture?.(e.pointerId);
       if (!drag || drag.moved || !drag.onCanvas) return;
       const rect = e.currentTarget.getBoundingClientRect();
-      nav.handleCanvasClick(e.clientX - rect.left, e.clientY - rect.top);
+      const localX = e.clientX - rect.left;
+      const localY = e.clientY - rect.top;
+      if (optionsRef.current?.consumeTap?.(localX, localY)) return;
+      nav.handleCanvasClick(localX, localY);
     },
     [nav],
   );

@@ -10,6 +10,8 @@ type Props = {
   hasFirstPoint: boolean;
   busy: boolean;
   splatReady: boolean;
+  /** Construction measure requires a LiDAR/TSDF mesh. Gaussian-only viewers pass false. */
+  metricAvailable?: boolean;
   onToggle: () => void;
   onCancel: () => void;
 };
@@ -19,6 +21,7 @@ export function TwinMeasureTool({
   hasFirstPoint,
   busy,
   splatReady,
+  metricAvailable = false,
   onToggle,
   onCancel,
 }: Props) {
@@ -29,7 +32,7 @@ export function TwinMeasureTool({
       <button
         type="button"
         onClick={onToggle}
-        disabled={busy}
+        disabled={busy || !metricAvailable}
         className={cn(
           "inline-flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-[11px] font-semibold transition-colors disabled:opacity-40",
           active ? twinAccent.button : "border-white/10 text-zinc-400 hover:text-zinc-200",
@@ -53,7 +56,12 @@ export function TwinMeasureTool({
 
       {busy ? <IconLoader2 className={cn("size-4 animate-spin", twinAccent.spinner)} aria-hidden /> : null}
 
-      {active ? (
+      {!metricAvailable ? (
+        <p className="w-full text-[10px] leading-relaxed text-zinc-400">
+          Metric measurement unavailable — this canvas has no LiDAR/TSDF mesh. Gaussian splats are
+          appearance only. Use the hybrid walkthrough to measure.
+        </p>
+      ) : active ? (
         <p className="w-full text-[10px] leading-relaxed text-zinc-400">
           {hasFirstPoint ? "Tap second point on the model." : "Tap two points on the model surface."}{" "}
           {APPROX_COORDINATION_LABEL}

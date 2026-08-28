@@ -5,9 +5,9 @@ import type { ReactElement } from "react";
 export type TwinLayerMode = "mesh" | "splat" | "both";
 
 const LAYERS: { id: TwinLayerMode; label: string }[] = [
-  { id: "mesh", label: "Mesh" },
-  { id: "splat", label: "Splat" },
-  { id: "both", label: "Both" },
+  { id: "splat", label: "Reality" },
+  { id: "both", label: "Hybrid" },
+  { id: "mesh", label: "Geometry" },
 ];
 
 const BUTTON =

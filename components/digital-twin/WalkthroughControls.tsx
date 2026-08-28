@@ -32,6 +32,8 @@ export type WalkthroughControlsProps = {
   onLayerModeChange?: (mode: TwinLayerMode) => void;
   measureActive: boolean;
   onToggleMeasure: () => void;
+  pinActive?: boolean;
+  onTogglePin?: () => void;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
 };
@@ -39,7 +41,7 @@ export type WalkthroughControlsProps = {
 const MODES: { id: ViewMode; label: string }[] = [
   { id: "inside", label: "Inside" },
   { id: "dollhouse", label: "Dollhouse" },
-  { id: "floorplan", label: "Floor plan" },
+  { id: "floorplan", label: "Plan" },
 ];
 
 const BUTTON =
@@ -81,6 +83,15 @@ function IconMeasure(): ReactElement {
   );
 }
 
+function IconPin(): ReactElement {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+      <path d="M12 21s7-5.4 7-11a7 7 0 10-14 0c0 5.6 7 11 7 11z" strokeLinejoin="round" />
+      <circle cx="12" cy="10" r="2.2" />
+    </svg>
+  );
+}
+
 function IconFullscreen({ active }: { active: boolean }): ReactElement {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
@@ -118,6 +129,8 @@ export function WalkthroughControls({
   onLayerModeChange,
   measureActive,
   onToggleMeasure,
+  pinActive = false,
+  onTogglePin,
   isFullscreen,
   onToggleFullscreen,
 }: WalkthroughControlsProps): ReactElement {
@@ -208,6 +221,20 @@ export function WalkthroughControls({
         >
           <IconMeasure />
         </button>
+
+        {onTogglePin ? (
+          <button
+            type="button"
+            onClick={onTogglePin}
+            aria-label="Pins"
+            aria-pressed={pinActive}
+            className={`${BUTTON} border-l border-white/10 ${
+              pinActive ? "text-[var(--twin360-blue)]" : "text-white/60 hover:text-white/90"
+            }`}
+          >
+            <IconPin />
+          </button>
+        ) : null}
 
         <button
           type="button"
