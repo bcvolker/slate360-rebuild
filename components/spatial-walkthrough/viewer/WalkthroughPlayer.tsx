@@ -1,0 +1,155 @@
+"use client";
+
+import { useEffect, useRef } from "react";
+import { Viewer } from "@photo-sphere-viewer/core";
+import { EquirectangularVideoAdapter } from "@photo-sphere-viewer/equirectangular-video-adapter";
+import { VideoPlugin } from "@photo-sphere-viewer/video-plugin";
+import { MarkersPlugin } from "@photo-sphere-viewer/markers-plugin";
+import "@photo-sphere-viewer/core/index.css";
+import "@photo-sphere-viewer/video-plugin/index.css";
+import "@photo-sphere-viewer/markers-plugin/index.css";
+import "./walkthrough-markers.css";
+import type { OperatorPatch, WaypointRecord } from "@/lib/spatial-walkthrough/types";
+import { applySkip, skipIntervals, type RedactionRule } from "@/lib/spatial-walkthrough/redaction";
+import { buildViewerMarkers, type PinMarkerInput } from "@/lib/spatial-walkthrough/markers";
+
+export type WalkthroughPlayerHandle = {
+  seekTo: (t: number, yaw?: number, pitch?: number) => void;
+  getView: () => { t: number; yaw: number; pitch: number };
+  pause: () => void;
+  play: () => void;
+};
+
+type Props = {
+  videoUrl: string;
+  posterUrl?: string | null;
+  waypoints: WaypointRecord[];
+  clipId: string;
+  pins?: PinMarkerInput[];
+  redactions?: RedactionRule[];
+  operatorPatch?: OperatorPatch | null;
+  onPinSelect?: (id: string) => void;
+  onReady?: (handle: WalkthroughPlayerHandle) => void;
+};
+
+export function WalkthroughPlayer({
+  videoUrl,
+  posterUrl,
+  waypoints,
+  clipId,
+  pins = [],
+  redactions = [],
+  operatorPatch,
+  onPinSelect,
+  onReady,
+}: Props) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const pinSelectRef = useRef(onPinSelect);
+  const readyRef = useRef(onReady);
+  pinSelectRef.current = onPinSelect;
+  readyRef.current = onReady;
+
+  const liveRef = useRef({ waypoints, clipId, pins, redactions, operatorPatch });
+  liveRef.current = { waypoints, clipId, pins, redactions, operatorPatch };
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const viewer = new Viewer({
+      container: containerRef.current,
+      adapter: EquirectangularVideoAdapter,
+      panorama: { source: videoUrl },
+      defaultYaw: "0deg",
+      defaultPitch: "0deg",
+      navbar: ["videoPlay", "videoTime", "zoom", "fullscreen"],
+      loadingImg: posterUrl ?? undefined,
+      plugins: [
+        [VideoPlugin, { muted: true, bigButton: true, progressbar: true }],
+        MarkersPlugin,
+      ],
+    });
+    const videoPlugin = viewer.getPlugin(VideoPlugin) as VideoPlugin;
+    const markers = viewer.getPlugin(MarkersPlugin) as MarkersPlugin;
+
+    const applyMarkers = (t: number) => {
+      const live = liveRef.current;
+      const defs = buildViewerMarkers({
+        waypoints: live.waypoints,
+        clipId: live.clipId,
+        t,
+        pins: live.pins,
+        redactions: live.redactions,
+        operatorPatch: live.operatorPatch,
+      });
+      markers.setMarkers(
+        defs.map((d) => ({
+          id: d.id,
+          position: { yaw: `${d.yawDeg}deg`, pitch: `${d.pitchDeg}deg` },
+          html: d.html,
+          size: { width: d.width, height: d.height },
+          anchor: "center center",
+          data: d.data,
+        })),
+      );
+    };
+
+    const handle: WalkthroughPlayerHandle = {
+      seekTo: (t, yaw, pitch) => {
+        videoPlugin.pause();
+        videoPlugin.setTime(t);
+        if (yaw != null && pitch != null) {
+          void viewer.animate({ yaw: `${yaw}deg`, pitch: `${pitch}deg`, speed: "2.5rpm" });
+        }
+        applyMarkers(t);
+      },
+      getView: () => {
+        const pos = viewer.getPosition();
+        return {
+          t: videoPlugin.getTime(),
+          yaw: (pos.yaw * 180) / Math.PI,
+          pitch: (pos.pitch * 180) / Math.PI,
+        };
+      },
+      pause: () => videoPlugin.pause(),
+      play: () => videoPlugin.play(),
+    };
+
+    readyRef.current?.(handle);
+
+    const onProgress = (evt: { time?: number }) => {
+      const live = liveRef.current;
+      const raw = evt.time ?? videoPlugin.getTime();
+      const skipped = applySkip(raw, skipIntervals(live.redactions, live.clipId));
+      if (Math.abs(skipped - raw) > 0.08) {
+        videoPlugin.setTime(skipped);
+        return;
+      }
+      applyMarkers(raw);
+    };
+
+    const onSelect = (e: { marker?: { data?: { kind?: string; id?: string; t?: number; yaw?: number; pitch?: number } } }) => {
+      const d = e.marker?.data;
+      if (!d) return;
+      if (d.kind === "waypoint" && d.t != null) handle.seekTo(d.t, d.yaw, d.pitch);
+      if (d.kind === "pin" && d.id) {
+        handle.pause();
+        pinSelectRef.current?.(d.id);
+      }
+    };
+
+    videoPlugin.addEventListener("progress", onProgress);
+    markers.addEventListener("select-marker", onSelect);
+    viewer.addEventListener("ready", () => applyMarkers(0));
+
+    return () => {
+      markers.removeEventListener("select-marker", onSelect);
+      videoPlugin.removeEventListener("progress", onProgress);
+      viewer.destroy();
+    };
+  }, [videoUrl, posterUrl]);
+
+  return (
+    <div className="relative h-full min-h-[420px] w-full overflow-hidden bg-[var(--sw-page,var(--graphite-canvas))]">
+      <div ref={containerRef} className="h-full w-full" />
+    </div>
+  );
+}
