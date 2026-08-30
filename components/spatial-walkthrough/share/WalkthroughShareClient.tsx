@@ -116,6 +116,7 @@ export function WalkthroughShareClient({ token }: { token: string }) {
       redactions={payload.redactions}
       operatorPatch={payload.operatorPatch}
       allowDownload={payload.allowDownload}
+      capturedAt={payload.walkthrough.capturedAt}
       duration={Number((payload.clip as { durationS?: number }).durationS ?? 0)}
     />
   );

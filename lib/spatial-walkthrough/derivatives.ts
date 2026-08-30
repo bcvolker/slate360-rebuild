@@ -6,6 +6,7 @@ export type ClipKeys = {
   master_key?: string | null;
   proxy_key?: string | null;
   poster_key?: string | null;
+  public_proxy_key?: string | null;
 };
 
 /** MASTER is never a share policy. Shares are CLIENT or PUBLIC only. */
@@ -31,6 +32,7 @@ export function selectDerivativeKey(
   if (!allowedMediaKind(policy, kind, allowMaster)) return null;
   if (kind === "master") return clip.master_key ?? null;
   if (kind === "poster") return clip.poster_key ?? null;
+  if (policy === "public") return clip.public_proxy_key ?? null;
   return clip.proxy_key ?? null;
 }
 
@@ -56,6 +58,8 @@ export function clipReadyPatch(body: {
   width?: number | null;
   height?: number | null;
   fps?: number | null;
+  captureMeta?: Record<string, unknown> | null;
+  publicProxyKey?: string | null;
 }): Record<string, unknown> {
   return {
     status: "ready",
@@ -68,6 +72,8 @@ export function clipReadyPatch(body: {
     height: body.height ?? null,
     fps: body.fps ?? null,
     processing_error: null,
+    ...(body.captureMeta ? { capture_meta: body.captureMeta } : {}),
+    ...(body.publicProxyKey ? { public_proxy_key: body.publicProxyKey } : {}),
   };
 }
 

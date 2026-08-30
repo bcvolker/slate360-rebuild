@@ -71,3 +71,25 @@ describe("marker language", () => {
     expect(markers.find((m) => m.id === "nadir-patch")?.html).toContain("sw-nadir-compass");
   });
 });
+
+describe("viewer chrome copy", () => {
+  it("does not repeat the same title as project and heading", async () => {
+    const { viewerChromeCopy } = await import("./viewer-title");
+    const same = viewerChromeCopy({ title: "HouseWalk X4 live smoke", projectName: "HouseWalk X4 live smoke", capturedAt: "2026-08-12T00:00:00.000Z" });
+    expect(same.title).toBe("HouseWalk X4 live smoke");
+    expect(same.meta).not.toContain("HouseWalk X4 live smoke");
+    const split = viewerChromeCopy({ title: "Lobby", projectName: "Tower A", capturedAt: null });
+    expect(split.meta).toBe("Tower A");
+  });
+});
+
+describe("capture metadata", () => {
+  it("marks stitched MP4 ingest as requiring re-export when gyro is absent", async () => {
+    const { captureMetaFromProbe, captureMetaLabel } = await import("./capture-meta");
+    const meta = captureMetaFromProbe(7680, 3840);
+    expect(meta.projection).toBe("2:1");
+    expect(meta.gyroAvailable).toBe(false);
+    expect(meta.reexportRequired).toBe(true);
+    expect(captureMetaLabel(meta)).toContain("Re-export required");
+  });
+});

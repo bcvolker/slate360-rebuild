@@ -15,6 +15,8 @@ export type WalkthroughCallbackPayload = {
   width?: number;
   height?: number;
   fps?: number;
+  captureMeta?: Record<string, unknown>;
+  publicProxyKey?: string;
   errorLog?: string;
 };
 
@@ -24,7 +26,7 @@ export async function handleWalkthroughJobCallback(
 ): Promise<{ ok: boolean; status?: number; error?: string; idempotent?: boolean }> {
   const { data: job } = await admin
     .from("spatial_processing_jobs")
-    .select("id, clip_id, walkthrough_id, status")
+    .select("id, clip_id, walkthrough_id, status, job_type")
     .eq("id", body.jobId)
     .maybeSingle();
   if (!job) return { ok: false, status: 404, error: "Job not found" };
@@ -42,20 +44,34 @@ export async function handleWalkthroughJobCallback(
       .from("spatial_processing_jobs")
       .update({ status: "failed", error_log: body.errorLog ?? "Ingest failed", progress_pct: 0 })
       .eq("id", job.id);
-    if (job.clip_id) {
+    if (job.job_type !== "privacy-bake" && job.clip_id) {
       await admin
         .from("spatial_clips")
         .update({ status: "failed", processing_error: body.errorLog ?? "Ingest failed" })
         .eq("id", job.clip_id);
     }
-    await admin
-      .from("spatial_walkthroughs")
-      .update({ status: "failed", processing_error: body.errorLog ?? "Ingest failed" })
-      .eq("id", job.walkthrough_id);
+    if (job.job_type !== "privacy-bake") {
+      await admin
+        .from("spatial_walkthroughs")
+        .update({ status: "failed", processing_error: body.errorLog ?? "Ingest failed" })
+        .eq("id", job.walkthrough_id);
+    }
     return { ok: true };
   }
 
-  if (job.status === "ready") return { ok: true, idempotent: true };
+  if (job.status === "ready" && !body.publicProxyKey) return { ok: true, idempotent: true };
+
+  if (body.publicProxyKey && !body.proxyKey) {
+    await admin
+      .from("spatial_clips")
+      .update({ public_proxy_key: body.publicProxyKey })
+      .eq("id", job.clip_id ?? body.clipId);
+    await admin
+      .from("spatial_processing_jobs")
+      .update({ status: "ready", progress_pct: 100, stage: "privacy-bake" })
+      .eq("id", job.id);
+    return { ok: true };
+  }
 
   const clipId = job.clip_id ?? body.clipId;
   const duration = body.durationSec ?? null;
@@ -70,6 +86,8 @@ export async function handleWalkthroughJobCallback(
       width: body.width,
       height: body.height,
       fps: body.fps,
+      captureMeta: body.captureMeta,
+      publicProxyKey: body.publicProxyKey,
     }))
     .eq("id", clipId);
 

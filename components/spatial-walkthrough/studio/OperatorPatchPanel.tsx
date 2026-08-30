@@ -6,6 +6,7 @@ type Props = {
   patch: OperatorPatch;
   onChange: (patch: OperatorPatch) => void;
   onPersist: () => void;
+  onUseRearFromView?: () => void;
 };
 
 function Slider({
@@ -42,7 +43,7 @@ function Slider({
   );
 }
 
-export function OperatorPatchPanel({ patch, onChange, onPersist }: Props) {
+export function OperatorPatchPanel({ patch, onChange, onPersist, onUseRearFromView }: Props) {
   const set = (partial: Partial<OperatorPatch>) => onChange({ ...patch, ...partial });
   return (
     <section className="space-y-3 border border-white/10 bg-white/[0.04] p-4">
@@ -103,6 +104,11 @@ export function OperatorPatchPanel({ patch, onChange, onPersist }: Props) {
       <button type="button" onClick={onPersist} className="h-11 border border-white/10 px-4 text-sm">
         Save preset
       </button>
+      {onUseRearFromView ? (
+        <button type="button" onClick={onUseRearFromView} className="h-11 border border-white/10 px-4 text-sm">
+          Rear from current view
+        </button>
+      ) : null}
     </section>
   );
 }

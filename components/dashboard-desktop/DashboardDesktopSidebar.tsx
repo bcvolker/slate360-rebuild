@@ -28,10 +28,11 @@ export function DashboardDesktopSidebar({
   const pathname = usePathname() ?? "";
   const nav = resolveDashboardNav(showOpsConsole, isCeo, visibleApps);
   const homeHref = isSpatialOnlyAppList(visibleApps, isCeo) ? "/projects" : "/dashboard";
+  const spatialOnly = isSpatialOnlyAppList(visibleApps, isCeo);
 
   return (
     <aside
-      className={cn(t.sidebarBase, collapsed ? "w-14" : "w-52")}
+      className={cn(t.sidebarBase, spatialOnly && "hidden lg:flex", collapsed ? "w-14" : "w-52")}
       aria-label="Main navigation"
     >
       <div className={cn("flex h-12 shrink-0 items-center border-b border-[var(--mobile-app-card-border)]", collapsed ? "justify-center px-2" : "justify-between px-4")}>

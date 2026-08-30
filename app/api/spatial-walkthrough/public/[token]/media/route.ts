@@ -24,7 +24,7 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
 
   const { data: clip } = await admin
     .from("spatial_clips")
-    .select("walkthrough_id, proxy_key, poster_key")
+    .select("walkthrough_id, proxy_key, poster_key, public_proxy_key")
     .eq("id", clipId)
     .maybeSingle();
   if (!clip || clip.walkthrough_id !== row.walkthrough_id) {
@@ -40,6 +40,7 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
   headers.set("Content-Type", obj.ContentType || contentType);
   headers.set("Accept-Ranges", "bytes");
   headers.set("Cache-Control", "private, max-age=60");
+  headers.set("Cross-Origin-Resource-Policy", "same-origin");
   if (obj.ContentLength != null) headers.set("Content-Length", String(obj.ContentLength));
   if (obj.ContentRange) headers.set("Content-Range", obj.ContentRange);
   const status = range && obj.ContentRange ? 206 : 200;

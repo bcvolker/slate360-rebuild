@@ -31,7 +31,7 @@ export function DashboardDesktopTopBar({
   const initial = (userName.trim()[0] ?? "U").toUpperCase();
 
   return (
-    <header className="flex h-12 shrink-0 items-center gap-3 border-b border-[var(--mobile-app-card-border)] px-4">
+    <header className="hidden h-12 shrink-0 items-center gap-3 border-b border-[var(--mobile-app-card-border)] px-4 lg:flex">
       {/* Brand: wordmark + accent tick (hierarchy, not clutter) */}
       <div className="flex shrink-0 items-center gap-2">
         <span className={shellTokens.brandTick} aria-hidden />

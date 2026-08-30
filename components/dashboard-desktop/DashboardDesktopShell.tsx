@@ -10,6 +10,9 @@ import { DashboardDesktopSidebar } from "./DashboardDesktopSidebar";
 import { DashboardDesktopTopBar } from "./DashboardDesktopTopBar";
 import { resolveDashboardNav } from "./dashboard-nav-config";
 import { dashboardDesktopTokens as t } from "./dashboard-tokens";
+import { isSpatialOnlyAppList } from "@/lib/spatial-walkthrough/nav-filter";
+import { MobileBottomNav } from "@/components/mobile-system/MobileBottomNav";
+import { resolveMainMobileTabKey, spatialOnlyMobileTabs } from "@/components/mobile-system/mainMobileTabs";
 
 const InviteShareModal = dynamic(
   () => import("@/components/shared/InviteShareModal").then((mod) => mod.InviteShareModal),
@@ -45,6 +48,8 @@ function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, visibleA
   );
   const [collapsed, setCollapsed] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
+  const spatialOnly = isSpatialOnlyAppList(visibleApps, Boolean(isCeo));
+  const viewerRoute = pathname.includes("/spatial-walkthrough/") && pathname.split("/").filter(Boolean).length >= 2;
 
   useEffect(() => {
     setCollapsed(localStorage.getItem("s360.sidebarCollapsed") === "1");
@@ -63,7 +68,7 @@ function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, visibleA
   };
 
   return (
-    <div data-app={shellApp} className={`flex min-h-[100dvh] ${t.canvas}`}>
+    <div data-app={shellApp} className={`flex min-h-[100dvh] overflow-x-hidden ${t.canvas}`}>
       <DashboardDesktopSidebar
         showOpsConsole={showOpsConsole}
         isCeo={isCeo}
@@ -72,6 +77,12 @@ function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, visibleA
         onToggleCollapse={toggleCollapse}
       />
       <div className={t.main}>
+        {spatialOnly ? (
+          <header className="flex h-12 shrink-0 items-center justify-between border-b border-white/10 px-4 lg:hidden" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+            <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">Spatial Walkthrough</span>
+            <span className="truncate text-sm text-[var(--graphite-text-header)]">{userName}</span>
+          </header>
+        ) : null}
         <DashboardDesktopTopBar
           userName={userName}
           shellApp={shellApp}
@@ -80,17 +91,22 @@ function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, visibleA
           spatialWalkthroughVisible={
             Boolean(visibleApps?.includes("spatial-walkthrough")) || Boolean(isCeo)
           }
-          spatialOnly={Boolean(visibleApps) && visibleApps.length === 1 && visibleApps[0] === "spatial-walkthrough" && !isCeo}
+          spatialOnly={spatialOnly}
           onOpenCommand={() => setCommandOpen(true)}
         />
-        <main className={t.content}>{children}</main>
+        <main className={`${t.content} ${spatialOnly ? "max-lg:p-0" : ""}`}>{children}</main>
+        {spatialOnly && !viewerRoute ? (
+          <div className="lg:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
+            <MobileBottomNav items={spatialOnlyMobileTabs} activeKey={resolveMainMobileTabKey(pathname)} />
+          </div>
+        ) : null}
       </div>
       <CommandPalette
         open={commandOpen}
         onOpenChange={setCommandOpen}
         hasOperationsConsoleAccess={Boolean(showOpsConsole)}
         visibleApps={visibleApps}
-        spatialOnly={Boolean(visibleApps) && visibleApps.length === 1 && visibleApps[0] === "spatial-walkthrough" && !isCeo}
+        spatialOnly={spatialOnly}
       />
       {inviteOpen ? (
         <InviteShareModal open={inviteOpen} onOpenChange={setInviteOpen} {...inviteShareData} />

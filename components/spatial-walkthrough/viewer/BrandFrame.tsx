@@ -3,6 +3,7 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import type { BrandTheme } from "@/lib/spatial-walkthrough/types";
 import { themeCssVars } from "@/lib/spatial-walkthrough/theme";
+import { viewerChromeCopy } from "@/lib/spatial-walkthrough/viewer-title";
 import "@/components/spatial-walkthrough/viewer/walkthrough-chrome.css";
 import "@/components/spatial-walkthrough/viewer/walkthrough-markers.css";
 
@@ -27,7 +28,7 @@ export function BrandFrame({
 }: Props) {
   const style = themeCssVars(theme) as CSSProperties;
   const [chrome, setChrome] = useState<"active" | "idle">("active");
-  const date = capturedAt ? new Date(capturedAt).toLocaleDateString() : null;
+  const copy = viewerChromeCopy({ title, projectName, capturedAt });
 
   useEffect(() => {
     let timer = 0;
@@ -52,7 +53,7 @@ export function BrandFrame({
     <div className="sw-frame" data-compact={compact ? "true" : "false"} data-chrome={chrome} style={style}>
       {loading ? (
         <div className="sw-buffer" role="status">
-          <StatusCopy logoUrl={theme.logoUrl} title={title} body="Loading Spatial Walkthrough" />
+          <StatusCopy logoUrl={theme.logoUrl} title={copy.title} body="Loading Spatial Walkthrough" />
         </div>
       ) : null}
       <header className="sw-frame-header">
@@ -60,15 +61,14 @@ export function BrandFrame({
           // eslint-disable-next-line @next/next/no-img-element
           <img src={theme.logoUrl} alt="" className={`sw-logo--${theme.logoTreatment}`} />
         ) : (
-          <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em]">{title}</span>
+          <span className="sw-frame-kicker">Spatial</span>
         )}
         <div className="sw-frame-meta">
-          <strong>{title}</strong>
-          {projectName ? <span>{projectName}</span> : null}
-          {date ? <span>{date}</span> : null}
+          <strong>{copy.title}</strong>
+          {copy.meta ? <span>{copy.meta}</span> : null}
         </div>
         {theme.showPoweredBy ? (
-          <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--sw-muted)]">Slate360</span>
+          <span className="sw-frame-credit">Slate360</span>
         ) : null}
       </header>
       <div className="sw-frame-stage">{children}</div>

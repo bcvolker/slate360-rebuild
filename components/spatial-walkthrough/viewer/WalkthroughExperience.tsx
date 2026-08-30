@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { BrandTheme, OperatorPatch, WaypointRecord } from "@/lib/spatial-walkthrough/types";
 import type { RedactionRule } from "@/lib/spatial-walkthrough/redaction";
 import { WalkthroughPlayer, type WalkthroughPlayerHandle } from "./WalkthroughPlayer";
@@ -8,6 +8,7 @@ import { WalkthroughChrome } from "./WalkthroughChrome";
 import { PinDrawer, type DrawerPin } from "./PinDrawer";
 import { BrandFrame } from "./BrandFrame";
 import { PreviewSphere } from "./PreviewSphere";
+import { PosterStage } from "./PosterStage";
 
 export type ExperiencePin = DrawerPin & {
   yawDeg: number;
@@ -33,8 +34,10 @@ type Props = {
   preview?: boolean;
   selectedId?: string | null;
   buffering?: boolean;
+  requireGesture?: boolean;
   onAddWaypoint?: (view: { t: number; yaw: number; pitch: number }) => void;
   onAddPin?: (view: { t: number; yaw: number; pitch: number }) => void;
+  onPlayerReady?: (handle: WalkthroughPlayerHandle) => void;
 };
 
 export function WalkthroughExperience({
@@ -55,19 +58,24 @@ export function WalkthroughExperience({
   preview = false,
   selectedId: selectedIdProp = null,
   buffering = false,
+  requireGesture = !authoring,
   onAddWaypoint,
   onAddPin,
+  onPlayerReady,
 }: Props) {
   const [player, setPlayer] = useState<WalkthroughPlayerHandle | null>(null);
   const [currentT, setCurrentT] = useState(0);
   const [selectedId, setSelectedId] = useState<string | null>(selectedIdProp);
-  const [loading, setLoading] = useState(!preview);
+  const [entered, setEntered] = useState(!requireGesture);
+  const [hasFrame, setHasFrame] = useState(false);
+  const enteredRef = useRef(entered);
+  const playerRef = useRef<WalkthroughPlayerHandle | null>(null);
+  enteredRef.current = entered;
 
   useEffect(() => { setSelectedId(selectedIdProp); }, [selectedIdProp]);
 
   useEffect(() => {
     if (!player) return;
-    setLoading(false);
     const id = window.setInterval(() => setCurrentT(player.getView().t), 400);
     return () => window.clearInterval(id);
   }, [player]);
@@ -81,13 +89,17 @@ export function WalkthroughExperience({
     pinType: p.pinType,
   }));
 
+  const showGate = requireGesture && !entered;
+  const showHold = Boolean(posterUrl) && !hasFrame && !showGate;
+  const loading = Boolean(!preview && buffering);
+
   return (
     <BrandFrame
       theme={theme}
       title={title}
       projectName={projectName}
       capturedAt={capturedAt}
-      loading={loading || buffering}
+      loading={loading}
       compact={authoring}
     >
       {preview || !videoUrl ? (
@@ -102,20 +114,41 @@ export function WalkthroughExperience({
           onSelect={setSelectedId}
         />
       ) : (
-        <WalkthroughPlayer
-          videoUrl={videoUrl}
-          posterUrl={posterUrl}
-          waypoints={waypoints}
-          clipId={clipId}
-          pins={markerPins}
-          redactions={redactions}
-          operatorPatch={operatorPatch}
-          theme={theme}
-          chrome={{ title, capturedAt, logoUrl: theme.logoUrl }}
-          selectedId={selectedId}
-          onPinSelect={setSelectedId}
-          onReady={setPlayer}
-        />
+        <>
+          <WalkthroughPlayer
+            videoUrl={videoUrl}
+            posterUrl={posterUrl}
+            waypoints={waypoints}
+            clipId={clipId}
+            pins={markerPins}
+            redactions={redactions}
+            operatorPatch={operatorPatch}
+            theme={theme}
+            chrome={{ title, capturedAt, logoUrl: theme.logoUrl }}
+            selectedId={selectedId}
+            autoplay={false}
+            onPinSelect={setSelectedId}
+            onReady={(handle) => {
+              playerRef.current = handle;
+              setPlayer(handle);
+              onPlayerReady?.(handle);
+              if (!requireGesture || enteredRef.current) handle.play();
+            }}
+            onPlaying={() => setHasFrame(true)}
+          />
+          {showGate || showHold ? (
+            <PosterStage
+              posterUrl={posterUrl}
+              title={title}
+              showButton={showGate}
+              onEnter={() => {
+                enteredRef.current = true;
+                setEntered(true);
+                playerRef.current?.play();
+              }}
+            />
+          ) : null}
+        </>
       )}
       <WalkthroughChrome
         waypoints={waypoints}

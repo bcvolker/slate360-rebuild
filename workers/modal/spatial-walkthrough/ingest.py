@@ -199,6 +199,16 @@ def ingest_clip(payload: dict[str, Any]) -> None:
             "width": proxy_w,
             "height": proxy_h,
             "fps": meta["fps"],
+            "captureMeta": {
+                "projection": "2:1" if 1.9 <= (meta["width"] / max(meta["height"], 1)) <= 2.1 else "unknown",
+                "flowState": "not-in-source",
+                "horizonLeveled": False,
+                "gyroAvailable": False,
+                "reexportRequired": True,
+                "sourceWidth": meta["width"],
+                "sourceHeight": meta["height"],
+                "note": "Insta360 gyro and FlowState are not present on the stitched MP4 ingest source. Re-export from Insta360 Studio with Horizon Lock and FlowState, then replace the master.",
+            },
         }, site)
     except subprocess.CalledProcessError as e:
         stderr = (e.stderr or b"")[-1500:] if isinstance(e.stderr, bytes) else str(e.stderr)[-1500:]
@@ -208,6 +218,86 @@ def ingest_clip(payload: dict[str, Any]) -> None:
                        "errorLog": f"{e}\n{traceback.format_exc()[-1500:]}"}, site)
 
 
+@app.function(image=cpu_image, cpu=4, memory=4096, timeout=MAX_DURATION_SECONDS, secrets=[worker_secret])
+def bake_public_proxy(payload: dict[str, Any]) -> None:
+    from r2_utils import s3_client, download_object, upload_file
+
+    job_id = str(payload["jobId"])
+    clip_id = str(payload["clipId"])
+    org_id = str(payload["orgId"])
+    src_key = str(payload["sourceKey"])
+    patch = payload.get("operatorPatch") if isinstance(payload.get("operatorPatch"), dict) else {}
+    bucket = os.environ["R2_BUCKET"]
+    s3 = s3_client()
+    work = Path(tempfile.mkdtemp(prefix="sw-bake-"))
+    site = callback_base_url(payload)
+    try:
+        post_callback({"jobId": job_id, "clipId": clip_id, "status": "progress", "progressPct": 10, "stage": "privacy-bake"}, site)
+        src = str(work / "proxy.mp4")
+        download_object(s3, bucket, src_key, src)
+        meta = _ffprobe(src)
+        w, h = int(meta["width"] or 1920), int(meta["height"] or 960)
+        mask = work / "mask.png"
+        _write_operator_mask_png(mask, w, h, patch)
+        out = str(work / "public.mp4")
+        subprocess.run(
+            [
+                "ffmpeg", "-y", "-i", src, "-i", str(mask),
+                "-filter_complex", "[0:v][1:v]overlay=0:0:format=auto",
+                "-c:v", "libx264", "-preset", "veryfast", "-crf", "22",
+                "-pix_fmt", "yuv420p", "-c:a", "copy", "-movflags", "+faststart",
+                out,
+            ],
+            capture_output=True,
+            check=True,
+        )
+        public_key = f"orgs/{org_id}/spatial-walkthrough/{clip_id}/public-proxy.mp4"
+        upload_file(s3, bucket, out, public_key, "video/mp4")
+        post_callback({
+            "jobId": job_id, "clipId": clip_id, "status": "completed", "progressPct": 100,
+            "stage": "privacy-bake", "publicProxyKey": public_key,
+        }, site)
+    except Exception as e:  # noqa: BLE001
+        post_callback({"jobId": job_id, "clipId": clip_id, "status": "failed",
+                       "errorLog": f"privacy bake: {e}\n{traceback.format_exc()[-800:]}"}, site)
+
+
+def _write_operator_mask_png(path: Path, width: int, height: int, patch: dict[str, Any]) -> None:
+    """RGBA PNG: magenta keep keyed out, black cover remains."""
+    nadir = float(patch.get("nadirVerticalExtent") or 0.22)
+    yaw_c = float(patch.get("rearYawCenter") if patch.get("rearYawCenter") is not None else 180)
+    yaw_w = float(patch.get("rearYawWidth") or 64)
+    pmin = float(patch.get("pitchMin") if patch.get("pitchMin") is not None else -88)
+    pmax = float(patch.get("pitchMax") if patch.get("pitchMax") is not None else -18)
+    ppm = path.with_suffix(".ppm")
+    y0 = int(height * (1 - nadir))
+    yaw_min = ((yaw_c - yaw_w / 2 + 180) % 360) - 180
+    yaw_max = ((yaw_c + yaw_w / 2 + 180) % 360) - 180
+
+    def in_yaw(yaw: float) -> bool:
+        if yaw_min <= yaw_max:
+            return yaw_min <= yaw <= yaw_max
+        return yaw >= yaw_min or yaw <= yaw_max
+
+    with ppm.open("wb") as f:
+        f.write(f"P6\n{width} {height}\n255\n".encode())
+        for y in range(height):
+            pitch = 90 - (y / max(height - 1, 1)) * 180
+            buf = bytearray(width * 3)
+            for x in range(width):
+                cover = y >= y0
+                if not cover and pmin <= pitch <= pmax:
+                    yaw = (x / max(width, 1)) * 360 - 180
+                    cover = in_yaw(yaw)
+                buf[x * 3:x * 3 + 3] = b"\x00\x00\x00" if cover else b"\xff\x00\xff"
+            f.write(buf)
+    subprocess.run(
+        ["ffmpeg", "-y", "-i", str(ppm), "-vf", "colorkey=0xFF00FF:0.1:0.0,format=rgba", str(path)],
+        capture_output=True,
+        check=True,
+    )
+
+
 @app.function(image=cpu_image, secrets=[worker_secret], timeout=60)
 @modal.fastapi_endpoint(method="POST", label=WEB_ENDPOINT_LABEL)
 def web(body: dict[str, Any]):
@@ -215,5 +305,8 @@ def web(body: dict[str, Any]):
         return JSONResponse(status_code=400, content={"error": "jobId and clipId required"})
     if not body.get("sourceKey"):
         return JSONResponse(status_code=400, content={"error": "sourceKey required"})
-    fc = ingest_clip.spawn(body)
+    if body.get("mode") == "privacy-bake":
+        fc = bake_public_proxy.spawn(body)
+    else:
+        fc = ingest_clip.spawn(body)
     return JSONResponse({"accepted": True}, headers={"x-modal-run-id": fc.object_id})

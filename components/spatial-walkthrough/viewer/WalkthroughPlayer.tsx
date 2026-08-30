@@ -31,8 +31,10 @@ type Props = {
   theme?: BrandTheme | null;
   chrome?: MarkerChrome;
   selectedId?: string | null;
+  autoplay?: boolean;
   onPinSelect?: (id: string) => void;
   onReady?: (handle: WalkthroughPlayerHandle) => void;
+  onPlaying?: () => void;
 };
 
 export function WalkthroughPlayer({
@@ -46,30 +48,44 @@ export function WalkthroughPlayer({
   theme = null,
   chrome,
   selectedId = null,
+  autoplay = false,
   onPinSelect,
   onReady,
+  onPlaying,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const pinSelectRef = useRef(onPinSelect);
   const readyRef = useRef(onReady);
+  const playingRef = useRef(onPlaying);
   pinSelectRef.current = onPinSelect;
   readyRef.current = onReady;
+  playingRef.current = onPlaying;
 
   const liveRef = useRef({ waypoints, clipId, pins, redactions, operatorPatch, theme, chrome, selectedId });
   liveRef.current = { waypoints, clipId, pins, redactions, operatorPatch, theme, chrome, selectedId };
 
   useEffect(() => {
     if (!containerRef.current) return;
+    const video = document.createElement("video");
+    video.playsInline = true;
+    video.setAttribute("playsinline", "true");
+    video.setAttribute("webkit-playsinline", "true");
+    video.muted = true;
+    video.preload = "auto";
+    video.crossOrigin = "anonymous";
+    if (posterUrl) video.poster = posterUrl;
+    video.src = videoUrl;
+
     const viewer = new Viewer({
       container: containerRef.current,
       adapter: EquirectangularVideoAdapter,
-      panorama: { source: videoUrl },
+      panorama: { source: video },
       defaultYaw: "0deg",
       defaultPitch: "0deg",
       navbar: false,
       loadingImg: posterUrl ?? undefined,
       plugins: [
-        [VideoPlugin, { muted: true, bigButton: false, progressbar: false }],
+        [VideoPlugin, { muted: true, autoplay, bigButton: false, progressbar: false }],
         MarkersPlugin,
       ],
     });
@@ -119,14 +135,16 @@ export function WalkthroughPlayer({
         };
       },
       pause: () => videoPlugin.pause(),
-      play: () => videoPlugin.play(),
+      play: () => {
+        void video.play().catch(() => undefined);
+        videoPlugin.play();
+      },
     };
-
-    readyRef.current?.(handle);
 
     const onProgress = (evt: { time?: number }) => {
       const live = liveRef.current;
       const raw = evt.time ?? videoPlugin.getTime();
+      if (raw > 0.04) playingRef.current?.();
       const skipped = applySkip(raw, skipIntervals(live.redactions, live.clipId));
       if (Math.abs(skipped - raw) > 0.08) {
         videoPlugin.setTime(skipped);
@@ -145,16 +163,25 @@ export function WalkthroughPlayer({
       }
     };
 
+    video.addEventListener("playing", () => playingRef.current?.());
     videoPlugin.addEventListener("progress", onProgress);
     markers.addEventListener("select-marker", onSelect);
-    viewer.addEventListener("ready", () => applyMarkers(0));
+    viewer.addEventListener("ready", () => {
+      applyMarkers(0);
+      readyRef.current?.(handle);
+    });
+    const tick = window.setInterval(() => applyMarkers(videoPlugin.getTime()), 350);
 
     return () => {
+      window.clearInterval(tick);
       markers.removeEventListener("select-marker", onSelect);
       videoPlugin.removeEventListener("progress", onProgress);
       viewer.destroy();
+      video.pause();
+      video.removeAttribute("src");
+      video.load();
     };
-  }, [videoUrl, posterUrl]);
+  }, [videoUrl, posterUrl, autoplay]);
 
   return (
     <div className="relative h-full min-h-[420px] w-full overflow-hidden bg-[var(--sw-page,var(--graphite-canvas))]">

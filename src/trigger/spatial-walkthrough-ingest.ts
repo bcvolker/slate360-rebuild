@@ -11,11 +11,11 @@ const getSupabase = () => {
 export const spatialWalkthroughIngestTask = task({
   id: "spatial-walkthrough.ingest",
   maxDuration: 120,
-  run: async (payload: { jobId: string; callbackBaseUrl?: string }) => {
+  run: async (payload: { jobId: string; callbackBaseUrl?: string; mode?: string }) => {
     const supabase = getSupabase();
     const { data: job } = await supabase
       .from("spatial_processing_jobs")
-      .select("id, org_id, walkthrough_id, clip_id, status, source_s3_key")
+      .select("id, org_id, walkthrough_id, clip_id, status, source_s3_key, metadata, job_type")
       .eq("id", payload.jobId)
       .maybeSingle();
     if (!job) throw new Error(`Job not found: ${payload.jobId}`);
@@ -38,6 +38,9 @@ export const spatialWalkthroughIngestTask = task({
       return { failed: true, reason: "missing-endpoint" };
     }
 
+    const meta = (job.metadata ?? {}) as { mode?: string; operatorPatch?: unknown };
+    const mode = payload.mode || meta.mode || (job.job_type === "privacy-bake" ? "privacy-bake" : undefined);
+
     const res = await fetch(endpoint, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -46,6 +49,8 @@ export const spatialWalkthroughIngestTask = task({
         clipId: job.clip_id,
         orgId: job.org_id,
         sourceKey: job.source_s3_key,
+        mode,
+        operatorPatch: meta.operatorPatch,
         callbackBaseUrl:
           payload.callbackBaseUrl?.trim() ||
           process.env.SITE_URL?.trim() ||
@@ -59,7 +64,7 @@ export const spatialWalkthroughIngestTask = task({
         .from("spatial_processing_jobs")
         .update({ status: "failed", error_log: `Modal dispatch ${res.status}: ${detail}` })
         .eq("id", job.id);
-      if (job.clip_id) {
+      if (job.clip_id && mode !== "privacy-bake") {
         await supabase
           .from("spatial_clips")
           .update({ status: "failed", processing_error: detail })
