@@ -26,6 +26,7 @@ type Props = {
   operatorPatch?: OperatorPatch | null;
   allowDownload?: boolean;
   authoring?: boolean;
+  duration?: number;
   onAddWaypoint?: (view: { t: number; yaw: number; pitch: number }) => void;
   onAddPin?: (view: { t: number; yaw: number; pitch: number }) => void;
 };
@@ -42,6 +43,7 @@ export function WalkthroughExperience({
   operatorPatch,
   allowDownload = true,
   authoring = false,
+  duration = 0,
   onAddWaypoint,
   onAddPin,
 }: Props) {
@@ -77,6 +79,8 @@ export function WalkthroughExperience({
         waypoints={waypoints}
         clipId={clipId}
         currentT={currentT}
+        duration={duration}
+        redactions={redactions}
         player={player}
         extra={
           authoring ? (

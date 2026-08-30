@@ -1,4 +1,4 @@
-import type { PinLocator, PinVisibility, SharePolicy } from "./types";
+import type { AccessPolicy, PinLocator, PinVisibility, SharePolicy } from "./types";
 
 export function serializePinLocator(locator: PinLocator): PinLocator {
   return {
@@ -20,15 +20,17 @@ export function isCompleteLocator(locator: PinLocator): boolean {
   );
 }
 
-export function pinVisibleOnPolicy(visibility: PinVisibility, policy: SharePolicy): boolean {
+export function pinVisibleOnPolicy(visibility: PinVisibility, policy: AccessPolicy | SharePolicy): boolean {
+  if (policy === "master") return true;
   if (policy === "public") return visibility === "public";
   return visibility === "public" || visibility === "client";
 }
 
 export function attachmentVisibleOnPolicy(
   visibleOnPublic: boolean,
-  policy: SharePolicy,
+  policy: AccessPolicy | SharePolicy,
 ): boolean {
+  if (policy === "master") return true;
   if (policy === "public") return visibleOnPublic;
   return true;
 }

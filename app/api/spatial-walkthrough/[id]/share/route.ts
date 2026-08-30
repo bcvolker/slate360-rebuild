@@ -1,4 +1,3 @@
-import { randomBytes } from "crypto";
 import { NextRequest } from "next/server";
 import { withSpatialWalkthroughAuth } from "@/lib/spatial-walkthrough/access";
 import { ok, badRequest, unauthorized, notFound, serverError } from "@/lib/server/api-response";
@@ -6,6 +5,7 @@ import { hashSharePassword } from "@/lib/slatedrop/share-password";
 import { APP_URL } from "@/lib/email";
 import { resolveOrgEntitlements } from "@/lib/server/org-feature-flags";
 import { resolveBrandTheme } from "@/lib/spatial-walkthrough/theme";
+import { mintShareToken, tokenMeetsEntropyFloor } from "@/lib/spatial-walkthrough/share-token";
 
 export const runtime = "nodejs";
 type Ctx = { params: Promise<{ id: string }> };
@@ -21,15 +21,19 @@ export const POST = (req: NextRequest, ctx: Ctx) =>
     }
     const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
     const policy = body?.policy === "public" ? "public" : "client";
+    if (body?.policy === "master") return badRequest("MASTER cannot be shared");
     const password = typeof body?.password === "string" ? body.password.trim() : "";
     const entitlements = await resolveOrgEntitlements(orgId);
     const theme = resolveBrandTheme({
       walkthrough: wt.brand_theme,
       canHidePoweredBy: entitlements.canWhiteLabel,
     });
-    const token = randomBytes(24).toString("base64url");
+    const minted = mintShareToken();
+    if (!tokenMeetsEntropyFloor(minted.token)) return serverError("Failed to mint share token");
     const { data, error } = await admin.from("spatial_share_tokens").insert({
-      token,
+      token: null,
+      token_hash: minted.hash,
+      token_prefix: minted.prefix,
       org_id: orgId,
       walkthrough_id: id,
       created_by: user.id,
@@ -41,13 +45,14 @@ export const POST = (req: NextRequest, ctx: Ctx) =>
       allow_download: body?.allowDownload === true,
       allow_reshare: body?.allowReshare === true,
       branding_snapshot: theme,
-    }).select("token, policy, expires_at, allow_download").single();
+    }).select("id, policy, expires_at, allow_download, token_prefix").single();
     if (error) return serverError(error.message);
     await admin.from("spatial_walkthroughs").update({ status: "published" }).eq("id", id);
     return ok({
-      token: data.token,
+      token: minted.token,
+      tokenPrefix: data.token_prefix,
       policy: data.policy,
-      shareUrl: `${APP_URL}/w/${data.token}`,
+      shareUrl: `${APP_URL}/w/${minted.token}`,
       expiresAt: data.expires_at,
       allowDownload: data.allow_download,
     }, 201);

@@ -1,4 +1,4 @@
-.sw-reticle {
+﻿.sw-reticle {
   display: grid;
   place-items: center;
   width: 56px;
@@ -56,4 +56,12 @@
   font-size: 11px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+.sw-patch-blur {
+  filter: blur(8px);
+  background: color-mix(in srgb, var(--sw-primary, var(--graphite-canvas)) 55%, transparent);
+}
+.sw-patch-logo {
+  background: color-mix(in srgb, var(--sw-primary, var(--graphite-canvas)) 88%, black);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--sw-accent, var(--graphite-primary)) 35%, transparent);
 }

@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { clipReadyPatch } from "./derivatives";
 
 export type WalkthroughCallbackPayload = {
   jobId: string;
@@ -60,18 +61,16 @@ export async function handleWalkthroughJobCallback(
   const duration = body.durationSec ?? null;
   await admin
     .from("spatial_clips")
-    .update({
-      status: "ready",
-      proxy_key: body.proxyKey ?? null,
-      poster_key: body.posterKey ?? null,
-      manifest_key: body.manifestKey ?? null,
-      master_sha256: body.masterSha256 ?? null,
-      duration_s: duration,
-      width: body.width ?? null,
-      height: body.height ?? null,
-      fps: body.fps ?? null,
-      processing_error: null,
-    })
+    .update(clipReadyPatch({
+      proxyKey: body.proxyKey,
+      posterKey: body.posterKey,
+      manifestKey: body.manifestKey,
+      masterSha256: body.masterSha256,
+      durationSec: duration,
+      width: body.width,
+      height: body.height,
+      fps: body.fps,
+    }))
     .eq("id", clipId);
 
   await admin

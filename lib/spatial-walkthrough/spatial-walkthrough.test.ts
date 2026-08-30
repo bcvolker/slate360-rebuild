@@ -7,6 +7,7 @@ import { resolveBrandTheme } from "./theme";
 import { applySkip, rulesForPolicy, skipIntervals } from "./redaction";
 import { buildViewerMarkers } from "./markers";
 import { isNavAppVisible } from "./nav-filter";
+import { parseOperatorPatch } from "./operator-patch";
 import type { WaypointRecord } from "./types";
 
 const spatialOnly = {
@@ -36,10 +37,11 @@ describe("entitlement filtering", () => {
 });
 
 describe("share-policy isolation", () => {
-  it("never serves master on a public share", () => {
+  it("never serves master on a public or client share", () => {
     expect(allowedMediaKind("public", "master", false)).toBe(false);
     expect(allowedMediaKind("public", "proxy", false)).toBe(true);
-    expect(allowedMediaKind("client", "master", true)).toBe(true);
+    expect(allowedMediaKind("client", "master", true)).toBe(false);
+    expect(allowedMediaKind("master", "master", true)).toBe(true);
   });
 
   it("limits public project files to allowlisted ids", () => {
@@ -160,12 +162,13 @@ describe("viewer markers", () => {
       t: 2,
       pins: [{ id: "p1", yawDeg: 20, pitchDeg: -8, label: "Spec" }],
       redactions: [],
-      operatorPatch: { enabled: true, nadirFrac: 0.2, wrapFrac: 0.1, wrapY0Frac: 0.3, logoInPatch: true, showDate: true },
+      operatorPatch: parseOperatorPatch({ enabled: true, logoInPatch: true, showDate: true }),
     });
     expect(markers.filter((m) => m.data.kind === "waypoint")).toHaveLength(1);
     expect(markers.find((m) => m.data.kind === "waypoint")?.data.id).toBe("b");
-    expect(markers.some((m) => m.data.kind === "pin")).toBe(true);
-    expect(markers.some((m) => m.id === "nadir-patch")).toBe(true);
+    expect(markers.find((m) => m.data.kind === "waypoint")?.html).toContain("sw-mark--waypoint");
+    expect(markers.find((m) => m.data.kind === "pin")?.html).toContain("sw-mark--document");
+    expect(markers.find((m) => m.id === "nadir-patch")?.html).toContain("sw-nadir");
   });
   it("does not return a previous waypoint at the start", () => {
     expect(prevWaypoint(wps, "c1", 0)).toBeNull();

@@ -1,12 +1,13 @@
 import { NextRequest } from "next/server";
 import { withSpatialWalkthroughAuth } from "@/lib/spatial-walkthrough/access";
 import { ok, unauthorized, notFound, serverError } from "@/lib/server/api-response";
+import { recordWalkthroughAudit } from "@/lib/spatial-walkthrough/audit";
 
 export const runtime = "nodejs";
 type Ctx = { params: Promise<{ id: string; tokenId: string }> };
 
 export const POST = (req: NextRequest, ctx: Ctx) =>
-  withSpatialWalkthroughAuth(req, async ({ admin, orgId }) => {
+  withSpatialWalkthroughAuth(req, async ({ admin, orgId, user }) => {
     if (!orgId) return unauthorized("Organization required");
     const { id, tokenId } = await ctx.params;
     const { data, error } = await admin
@@ -19,5 +20,12 @@ export const POST = (req: NextRequest, ctx: Ctx) =>
       .maybeSingle();
     if (error) return serverError(error.message);
     if (!data) return notFound("Share not found");
+    await recordWalkthroughAudit(admin, {
+      orgId,
+      userId: user.id,
+      event: "share_revoked",
+      walkthroughId: id,
+      resourceId: tokenId,
+    });
     return ok({ share: data });
   }, "author");
