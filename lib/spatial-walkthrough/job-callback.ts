@@ -1,0 +1,94 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
+
+export type WalkthroughCallbackPayload = {
+  jobId: string;
+  clipId: string;
+  status: "progress" | "completed" | "failed";
+  progressPct?: number;
+  stage?: string;
+  proxyKey?: string;
+  posterKey?: string;
+  manifestKey?: string;
+  masterSha256?: string;
+  durationSec?: number;
+  width?: number;
+  height?: number;
+  fps?: number;
+  errorLog?: string;
+};
+
+export async function handleWalkthroughJobCallback(
+  admin: SupabaseClient,
+  body: WalkthroughCallbackPayload,
+): Promise<{ ok: boolean; status?: number; error?: string; idempotent?: boolean }> {
+  const { data: job } = await admin
+    .from("spatial_processing_jobs")
+    .select("id, clip_id, walkthrough_id, status")
+    .eq("id", body.jobId)
+    .maybeSingle();
+  if (!job) return { ok: false, status: 404, error: "Job not found" };
+
+  if (body.status === "progress") {
+    await admin
+      .from("spatial_processing_jobs")
+      .update({ status: "processing", progress_pct: body.progressPct ?? 0, stage: body.stage ?? null })
+      .eq("id", job.id);
+    return { ok: true };
+  }
+
+  if (body.status === "failed") {
+    await admin
+      .from("spatial_processing_jobs")
+      .update({ status: "failed", error_log: body.errorLog ?? "Ingest failed", progress_pct: 0 })
+      .eq("id", job.id);
+    if (job.clip_id) {
+      await admin
+        .from("spatial_clips")
+        .update({ status: "failed", processing_error: body.errorLog ?? "Ingest failed" })
+        .eq("id", job.clip_id);
+    }
+    await admin
+      .from("spatial_walkthroughs")
+      .update({ status: "failed", processing_error: body.errorLog ?? "Ingest failed" })
+      .eq("id", job.walkthrough_id);
+    return { ok: true };
+  }
+
+  if (job.status === "ready") return { ok: true, idempotent: true };
+
+  const clipId = job.clip_id ?? body.clipId;
+  const duration = body.durationSec ?? null;
+  await admin
+    .from("spatial_clips")
+    .update({
+      status: "ready",
+      proxy_key: body.proxyKey ?? null,
+      poster_key: body.posterKey ?? null,
+      manifest_key: body.manifestKey ?? null,
+      master_sha256: body.masterSha256 ?? null,
+      duration_s: duration,
+      width: body.width ?? null,
+      height: body.height ?? null,
+      fps: body.fps ?? null,
+      processing_error: null,
+    })
+    .eq("id", clipId);
+
+  await admin
+    .from("spatial_processing_jobs")
+    .update({ status: "ready", progress_pct: 100, stage: "complete" })
+    .eq("id", job.id);
+
+  const { data: clips } = await admin
+    .from("spatial_clips")
+    .select("duration_s")
+    .eq("walkthrough_id", job.walkthrough_id);
+
+  const total = (clips ?? []).reduce((sum, c) => sum + (Number(c.duration_s) || 0), 0);
+  await admin
+    .from("spatial_walkthroughs")
+    .update({ status: "ready", duration_s: total, processing_error: null })
+    .eq("id", job.walkthrough_id);
+
+  return { ok: true };
+}
