@@ -1,0 +1,12 @@
+{
+  "base": "http://127.0.0.1:3033",
+  "paths": [
+    "C:\\s360-spatial-temporal-compare\\docs\\qa\\spatial-compare-screenshots\\desktop-split.png",
+    "C:\\s360-spatial-temporal-compare\\docs\\qa\\spatial-compare-screenshots\\desktop-swipe.png",
+    "C:\\s360-spatial-temporal-compare\\docs\\qa\\spatial-compare-screenshots\\desktop-overlay.png",
+    "C:\\s360-spatial-temporal-compare\\docs\\qa\\spatial-compare-screenshots\\desktop-flip.png",
+    "C:\\s360-spatial-temporal-compare\\docs\\qa\\spatial-compare-screenshots\\desktop-authoring.png",
+    "C:\\s360-spatial-temporal-compare\\docs\\qa\\spatial-compare-screenshots\\mobile-flip.png",
+    "C:\\s360-spatial-temporal-compare\\docs\\qa\\spatial-compare-screenshots\\mobile-swipe.png"
+  ]
+}

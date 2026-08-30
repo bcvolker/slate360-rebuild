@@ -1,0 +1,24 @@
+"use client";
+
+import { ComparePane } from "./ComparePane";
+import type { CompareLocator } from "@/lib/spatial-walkthrough/compare-locator";
+import type { CaptureDate } from "@/lib/spatial-walkthrough/compare-dates";
+import type { PinType, WaypointRecord } from "@/lib/spatial-walkthrough/types";
+
+type Pin = { id: string; label: string; pinType: PinType | string; yawDeg: number; pitchDeg: number };
+
+type Props = {
+  stack?: boolean;
+  before: { capture: CaptureDate; locator: CompareLocator; waypoints: WaypointRecord[]; pins: Pin[] };
+  after: { capture: CaptureDate; locator: CompareLocator; waypoints: WaypointRecord[]; pins: Pin[] };
+  onBeforeLook: (yawDeg: number, pitchDeg: number) => void;
+};
+
+export function CompareSplit({ stack, before, after, onBeforeLook }: Props) {
+  return (
+    <div className="sw-compare-split" data-stack={stack ? "true" : "false"}>
+      <ComparePane side="before" title={before.capture.title} capturedAt={before.capture.capturedAt} locator={before.locator} waypoints={before.waypoints} pins={before.pins} onLook={onBeforeLook} />
+      <ComparePane side="after" title={after.capture.title} capturedAt={after.capture.capturedAt} locator={after.locator} waypoints={after.waypoints} pins={after.pins} />
+    </div>
+  );
+}
