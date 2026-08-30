@@ -333,6 +333,7 @@ def _concat_pieces(pieces: list[str], dest: str, work: Path) -> None:
 def _write_operator_masks_png(path: Path, width: int, height: int, patches: list[dict[str, Any]]) -> None:
     if not patches:
         patches = [{}]
+    src_w, src_h = max(width // 4, 480), max(height // 4, 240)
     ppm = path.with_suffix(".ppm")
     specs = []
     for patch in patches:
@@ -341,7 +342,7 @@ def _write_operator_masks_png(path: Path, width: int, height: int, patches: list
         yaw_w = float(patch.get("rearYawWidth") or 64)
         pmin = float(patch.get("pitchMin") if patch.get("pitchMin") is not None else -88)
         pmax = float(patch.get("pitchMax") if patch.get("pitchMax") is not None else -18)
-        y0 = int(height * (1 - nadir))
+        y0 = int(src_h * (1 - nadir))
         yaw_min = ((yaw_c - yaw_w / 2 + 180) % 360) - 180
         yaw_max = ((yaw_c + yaw_w / 2 + 180) % 360) - 180
         specs.append((y0, yaw_min, yaw_max, pmin, pmax))
@@ -352,13 +353,13 @@ def _write_operator_masks_png(path: Path, width: int, height: int, patches: list
         return yaw >= yaw_min or yaw <= yaw_max
 
     with ppm.open("wb") as f:
-        f.write(f"P6\n{width} {height}\n255\n".encode())
-        for y in range(height):
-            pitch = 90 - (y / max(height - 1, 1)) * 180
-            buf = bytearray(width * 3)
-            for x in range(width):
+        f.write(f"P6\n{src_w} {src_h}\n255\n".encode())
+        for y in range(src_h):
+            pitch = 90 - (y / max(src_h - 1, 1)) * 180
+            buf = bytearray(src_w * 3)
+            for x in range(src_w):
                 cover = False
-                yaw = (x / max(width, 1)) * 360 - 180
+                yaw = (x / max(src_w, 1)) * 360 - 180
                 for y0, yaw_min, yaw_max, pmin, pmax in specs:
                     if y >= y0:
                         cover = True
@@ -369,7 +370,11 @@ def _write_operator_masks_png(path: Path, width: int, height: int, patches: list
                 buf[x * 3:x * 3 + 3] = b"\x00\x00\x00" if cover else b"\xff\x00\xff"
             f.write(buf)
     subprocess.run(
-        ["ffmpeg", "-y", "-i", str(ppm), "-vf", "colorkey=0xFF00FF:0.1:0.0,format=rgba", str(path)],
+        [
+            "ffmpeg", "-y", "-i", str(ppm),
+            "-vf", f"scale={width}:{height}:flags=neighbor,colorkey=0xFF00FF:0.1:0.0,format=rgba",
+            str(path),
+        ],
         capture_output=True,
         check=True,
     )
