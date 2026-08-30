@@ -32,6 +32,7 @@ cpu_image = (
     .apt_install("ffmpeg")
     .pip_install("fastapi[standard]==0.115.6", "boto3==1.35.99", "requests==2.32.3")
     .add_local_python_source("r2_utils")
+    .add_local_python_source("bake_privacy")
 )
 
 
@@ -221,67 +222,131 @@ def ingest_clip(payload: dict[str, Any]) -> None:
 @app.function(image=cpu_image, cpu=4, memory=4096, timeout=MAX_DURATION_SECONDS, secrets=[worker_secret])
 def bake_public_proxy(payload: dict[str, Any]) -> None:
     from r2_utils import s3_client, download_object, upload_file
+    from bake_privacy import keep_segments, union_patches_at, interpolate_orientation
 
     job_id = str(payload["jobId"])
     clip_id = str(payload["clipId"])
     org_id = str(payload["orgId"])
     src_key = str(payload["sourceKey"])
-    patch = payload.get("operatorPatch") if isinstance(payload.get("operatorPatch"), dict) else {}
+    fallback = payload.get("operatorPatch") if isinstance(payload.get("operatorPatch"), dict) else {}
+    regions_raw = payload.get("regions")
+    if isinstance(regions_raw, list) and regions_raw and isinstance(regions_raw[0], list):
+        regions: list[list[dict[str, Any]]] = regions_raw
+    else:
+        frames = payload.get("keyframes") if isinstance(payload.get("keyframes"), list) else []
+        regions = [frames] if frames else []
+    ori_raw = payload.get("orientation") if isinstance(payload.get("orientation"), dict) else {}
+    ori_frames = ori_raw.get("keyframes") if isinstance(ori_raw.get("keyframes"), list) and ori_raw.get("bakeable") is not False else []
+    skips = []
+    for iv in payload.get("skips") if isinstance(payload.get("skips"), list) else []:
+        if isinstance(iv, dict):
+            skips.append((float(iv.get("start") or 0), float(iv.get("end") or 0)))
+        elif isinstance(iv, (list, tuple)) and len(iv) >= 2:
+            skips.append((float(iv[0]), float(iv[1])))
+
     bucket = os.environ["R2_BUCKET"]
     s3 = s3_client()
     work = Path(tempfile.mkdtemp(prefix="sw-bake-"))
     site = callback_base_url(payload)
     try:
-        post_callback({"jobId": job_id, "clipId": clip_id, "status": "progress", "progressPct": 10, "stage": "privacy-bake"}, site)
+        post_callback({"jobId": job_id, "clipId": clip_id, "status": "progress", "progressPct": 8, "stage": "privacy-bake"}, site)
         src = str(work / "proxy.mp4")
         download_object(s3, bucket, src_key, src)
         meta = _ffprobe(src)
         w, h = int(meta["width"] or 1920), int(meta["height"] or 960)
-        mask = work / "mask.png"
-        _write_operator_mask_png(mask, w, h, patch)
+        duration = float(meta["durationSec"] or 0)
+        kf_times = [_num_t(f) for frames in regions for f in frames]
+        kf_times += [_num_t(f) for f in ori_frames]
+        segments = keep_segments(duration, kf_times, skips)
+        if not segments:
+            segments = [(0.0, max(duration, 0.04))]
+
+        pieces: list[str] = []
+        for i, (start, end) in enumerate(segments):
+            mid = (start + end) / 2
+            patches = union_patches_at(regions, mid, fallback)
+            mask = work / f"mask-{i}.png"
+            _write_operator_masks_png(mask, w, h, patches)
+            piece = str(work / f"piece-{i}.mp4")
+            ori = interpolate_orientation(ori_frames, mid)
+            _encode_privacy_piece(src, str(mask), piece, start, end - start, ori)
+            pieces.append(piece)
+            pct = 12 + int(70 * (i + 1) / max(len(segments), 1))
+            post_callback({"jobId": job_id, "clipId": clip_id, "status": "progress", "progressPct": pct, "stage": "privacy-bake"}, site)
+
         out = str(work / "public.mp4")
-        overlay = "[0:v][1:v]overlay=0:0:format=auto"
-        t0 = patch.get("tStart")
-        t1 = patch.get("tEnd")
-        if t0 is not None or t1 is not None:
-            start = float(t0 or 0)
-            end = float(t1) if t1 is not None else 1e9
-            overlay = f"[0:v][1:v]overlay=0:0:format=auto:enable='between(t,{start},{end})'"
-        subprocess.run(
-            [
-                "ffmpeg", "-y", "-i", src, "-i", str(mask),
-                "-filter_complex", overlay,
-                "-c:v", "libx264", "-preset", "veryfast", "-crf", "22",
-                "-pix_fmt", "yuv420p", "-c:a", "copy", "-movflags", "+faststart",
-                out,
-            ],
-            capture_output=True,
-            check=True,
-        )
+        _concat_pieces(pieces, out, work)
         public_key = f"orgs/{org_id}/spatial-walkthrough/{clip_id}/public-proxy.mp4"
         upload_file(s3, bucket, out, public_key, "video/mp4")
         post_callback({
             "jobId": job_id, "clipId": clip_id, "status": "completed", "progressPct": 100,
-            "stage": "privacy-bake", "publicProxyKey": public_key,
+            "stage": "privacy-bake", "publicProxyKey": public_key, "segmentCount": len(pieces),
         }, site)
     except Exception as e:  # noqa: BLE001
         post_callback({"jobId": job_id, "clipId": clip_id, "status": "failed",
                        "errorLog": f"privacy bake: {e}\n{traceback.format_exc()[-800:]}"}, site)
 
 
-def _write_operator_mask_png(path: Path, width: int, height: int, patch: dict[str, Any]) -> None:
-    """RGBA PNG: magenta keep keyed out, black cover remains."""
-    nadir = float(patch.get("nadirVerticalExtent") or 0.22)
-    yaw_c = float(patch.get("rearYawCenter") if patch.get("rearYawCenter") is not None else 180)
-    yaw_w = float(patch.get("rearYawWidth") or 64)
-    pmin = float(patch.get("pitchMin") if patch.get("pitchMin") is not None else -88)
-    pmax = float(patch.get("pitchMax") if patch.get("pitchMax") is not None else -18)
-    ppm = path.with_suffix(".ppm")
-    y0 = int(height * (1 - nadir))
-    yaw_min = ((yaw_c - yaw_w / 2 + 180) % 360) - 180
-    yaw_max = ((yaw_c + yaw_w / 2 + 180) % 360) - 180
+def _num_t(frame: Any) -> float:
+    if isinstance(frame, dict):
+        try:
+            return float(frame.get("t") or 0)
+        except (TypeError, ValueError):
+            return 0.0
+    return 0.0
 
-    def in_yaw(yaw: float) -> bool:
+
+def _encode_privacy_piece(src: str, mask: str, dest: str, start: float, dur: float, ori: dict[str, float]) -> None:
+    yaw, pitch, roll = float(ori.get("yawDeg") or 0), float(ori.get("pitchDeg") or 0), float(ori.get("rollDeg") or 0)
+    vf = "[0:v][1:v]overlay=0:0:format=auto"
+    if abs(yaw) > 0.05 or abs(pitch) > 0.05 or abs(roll) > 0.05:
+        vf = f"[0:v]v360=e:e:yaw={yaw}:pitch={pitch}:roll={roll}[rot];[rot][1:v]overlay=0:0:format=auto"
+    subprocess.run(
+        [
+            "ffmpeg", "-y", "-ss", f"{start:.3f}", "-t", f"{max(dur, 0.04):.3f}", "-i", src, "-i", mask,
+            "-filter_complex", vf,
+            "-c:v", "libx264", "-preset", "veryfast", "-crf", "22",
+            "-pix_fmt", "yuv420p", "-an", "-movflags", "+faststart",
+            dest,
+        ],
+        capture_output=True,
+        check=True,
+    )
+
+
+def _concat_pieces(pieces: list[str], dest: str, work: Path) -> None:
+    dest_path = Path(dest)
+    if len(pieces) == 1:
+        if dest_path.exists():
+            dest_path.unlink()
+        Path(pieces[0]).replace(dest)
+        return
+    listing = work / "concat.txt"
+    listing.write_text("".join(f"file '{p.replace(chr(92), '/')}'\n" for p in pieces), encoding="utf-8")
+    subprocess.run(
+        ["ffmpeg", "-y", "-f", "concat", "-safe", "0", "-i", str(listing), "-c", "copy", "-movflags", "+faststart", dest],
+        capture_output=True,
+        check=True,
+    )
+
+
+def _write_operator_masks_png(path: Path, width: int, height: int, patches: list[dict[str, Any]]) -> None:
+    if not patches:
+        patches = [{}]
+    ppm = path.with_suffix(".ppm")
+    specs = []
+    for patch in patches:
+        nadir = float(patch.get("nadirVerticalExtent") or patch.get("nadirRadius") or 0.22)
+        yaw_c = float(patch.get("rearYawCenter") if patch.get("rearYawCenter") is not None else 180)
+        yaw_w = float(patch.get("rearYawWidth") or 64)
+        pmin = float(patch.get("pitchMin") if patch.get("pitchMin") is not None else -88)
+        pmax = float(patch.get("pitchMax") if patch.get("pitchMax") is not None else -18)
+        y0 = int(height * (1 - nadir))
+        yaw_min = ((yaw_c - yaw_w / 2 + 180) % 360) - 180
+        yaw_max = ((yaw_c + yaw_w / 2 + 180) % 360) - 180
+        specs.append((y0, yaw_min, yaw_max, pmin, pmax))
+
+    def in_yaw(yaw: float, yaw_min: float, yaw_max: float) -> bool:
         if yaw_min <= yaw_max:
             return yaw_min <= yaw <= yaw_max
         return yaw >= yaw_min or yaw <= yaw_max
@@ -292,10 +357,15 @@ def _write_operator_mask_png(path: Path, width: int, height: int, patch: dict[st
             pitch = 90 - (y / max(height - 1, 1)) * 180
             buf = bytearray(width * 3)
             for x in range(width):
-                cover = y >= y0
-                if not cover and pmin <= pitch <= pmax:
-                    yaw = (x / max(width, 1)) * 360 - 180
-                    cover = in_yaw(yaw)
+                cover = False
+                yaw = (x / max(width, 1)) * 360 - 180
+                for y0, yaw_min, yaw_max, pmin, pmax in specs:
+                    if y >= y0:
+                        cover = True
+                        break
+                    if pmin <= pitch <= pmax and in_yaw(yaw, yaw_min, yaw_max):
+                        cover = True
+                        break
                 buf[x * 3:x * 3 + 3] = b"\x00\x00\x00" if cover else b"\xff\x00\xff"
             f.write(buf)
     subprocess.run(

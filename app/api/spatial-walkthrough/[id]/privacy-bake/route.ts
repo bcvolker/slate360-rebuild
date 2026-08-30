@@ -4,7 +4,9 @@ import { withSpatialWalkthroughAuth } from "@/lib/spatial-walkthrough/access";
 import { ok, unauthorized, notFound, badRequest } from "@/lib/server/api-response";
 import { parseOperatorPatch, resolveOperatorPatch } from "@/lib/spatial-walkthrough/operator-patch";
 import { parseOrientationTrack } from "@/lib/spatial-walkthrough/orientation";
-import { interpolateKeyframes, keyframesFromLegacyOrStored, keyframeToPatch } from "@/lib/spatial-walkthrough/keyframes";
+import { interpolateKeyframes, keyframeToPatch, operatorRegions } from "@/lib/spatial-walkthrough/keyframes";
+import { parseRedactionRow } from "@/lib/spatial-walkthrough/redaction-parse";
+import { rulesForPolicy, skipIntervals } from "@/lib/spatial-walkthrough/redaction";
 
 export const runtime = "nodejs";
 type Ctx = { params: Promise<{ id: string }> };
@@ -34,14 +36,17 @@ export const POST = (req: NextRequest, ctx: Ctx) =>
     const operatorPatch = resolveOperatorPatch(clip.operator_patch, parseOperatorPatch(wt?.operator_patch));
     const { data: redactions } = await admin
       .from("spatial_redactions")
-      .select("mode, keyframes, t_start, t_end")
-      .eq("clip_id", clipId)
-      .eq("mode", "operator-patch");
-    const storedFrames = (redactions ?? []).flatMap((r) => keyframesFromLegacyOrStored(r.keyframes, operatorPatch));
+      .select("*")
+      .eq("clip_id", clipId);
+    const parsed = (redactions ?? []).map((row) => parseRedactionRow(row as Record<string, unknown>));
+    const publicRules = rulesForPolicy(parsed, "public");
+    const regions = operatorRegions(parsed, operatorPatch).map((r) => r.frames);
+    const storedFrames = regions.flat();
     const bakedPatch = storedFrames.length
       ? keyframeToPatch(interpolateKeyframes(storedFrames, 0) ?? storedFrames[0], operatorPatch)
       : operatorPatch;
     const orientation = parseOrientationTrack(clip.orientation);
+    const skips = skipIntervals(publicRules, clipId);
 
     const { data: job, error } = await admin.from("spatial_processing_jobs").insert({
       org_id: orgId,
@@ -55,6 +60,8 @@ export const POST = (req: NextRequest, ctx: Ctx) =>
         operatorPatch: bakedPatch,
         orientation,
         keyframes: storedFrames,
+        regions,
+        skips,
       },
     }).select("id").single();
     if (error || !job) return badRequest(error?.message ?? "Could not queue bake");
