@@ -61,7 +61,7 @@ function SpatialPrivacyPreview() {
   const view = params.get("view") ?? "authoring";
   const [patch, setPatch] = useState<OperatorPatch>(parseOperatorPatch({ enabled: true, rearYawCenter: 180, rearYawWidth: 70 }));
   const [exportOpen, setExportOpen] = useState(view === "export");
-  const policy: AccessPolicy = view === "public" ? "public" : view === "client" ? "client" : "master";
+  const policy: AccessPolicy = view === "public" ? "public" : view === "master" ? "master" : "client";
 
   const title = useMemo(() => {
     if (view === "skip") return "Skip interval";

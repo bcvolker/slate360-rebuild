@@ -35,7 +35,7 @@ const shots = [
 
 async function shot(page, dest) {
   await page.waitForTimeout(400);
-  await page.screenshot({ path: dest, fullPage: false, animations: "disabled" });
+  await page.screenshot({ path: dest, fullPage: false });
 }
 
 async function openShare(browser, shareUrl, w, h) {
@@ -49,14 +49,27 @@ async function openShare(browser, shareUrl, w, h) {
 async function enterWalkthrough(page) {
   const play = page.locator("[data-testid='sw-poster-gate'] button");
   if (await play.count()) await play.click();
-  await page.locator("[data-testid='sw-poster-gate']").waitFor({ state: "hidden", timeout: 15000 }).catch(() => undefined);
-  await page.waitForTimeout(1800);
+  await page.waitForFunction(() => {
+    const v = document.querySelector("video");
+    return Boolean(v && !v.paused && v.readyState >= 2 && v.videoWidth > 0);
+  }, { timeout: 20000 }).catch(() => undefined);
+  const stats = await page.evaluate(() => {
+    const v = document.querySelector("video");
+    return v
+      ? { paused: v.paused, t: Number(v.currentTime.toFixed(2)), ready: v.readyState, w: v.videoWidth, h: v.videoHeight }
+      : null;
+  });
+  console.log("video", stats);
+  await page.waitForTimeout(800);
 }
 
 async function main() {
   await mkdir(outDir, { recursive: true });
   const token = await loadToken();
-  const browser = await chromium.launch();
+const browser = await chromium.launch({
+    headless: true,
+    args: ["--use-gl=angle", "--ignore-gpu-blocklist", "--autoplay-policy=no-user-gesture-required"],
+  });
   for (const item of shots) {
     const page = await browser.newPage({ viewport: { width: item.w, height: item.h } });
     await page.goto(item.url, { waitUntil: "domcontentloaded", timeout: 60000 });

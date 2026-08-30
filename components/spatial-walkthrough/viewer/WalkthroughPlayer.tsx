@@ -144,7 +144,6 @@ export function WalkthroughPlayer({
     const onProgress = (evt: { time?: number }) => {
       const live = liveRef.current;
       const raw = evt.time ?? videoPlugin.getTime();
-      if (raw > 0.04) playingRef.current?.();
       const skipped = applySkip(raw, skipIntervals(live.redactions, live.clipId));
       if (Math.abs(skipped - raw) > 0.08) {
         videoPlugin.setTime(skipped);

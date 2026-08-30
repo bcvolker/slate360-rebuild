@@ -134,7 +134,7 @@ export function WalkthroughExperience({
               onPlayerReady?.(handle);
               if (!requireGesture || enteredRef.current) handle.play();
             }}
-            onPlaying={() => setHasFrame(true)}
+            onPlaying={() => window.setTimeout(() => setHasFrame(true), 400)}
           />
           {showGate || showHold ? (
             <PosterStage
