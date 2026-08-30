@@ -47,20 +47,12 @@ async function openShare(browser, shareUrl, w, h) {
 }
 
 async function enterWalkthrough(page) {
+  await page.mouse.move(240, 180);
   const play = page.locator("[data-testid='sw-poster-gate'] button");
   if (await play.count()) await play.click();
-  await page.waitForFunction(() => {
-    const v = document.querySelector("video");
-    return Boolean(v && !v.paused && v.readyState >= 2 && v.videoWidth > 0);
-  }, { timeout: 20000 }).catch(() => undefined);
-  const stats = await page.evaluate(() => {
-    const v = document.querySelector("video");
-    return v
-      ? { paused: v.paused, t: Number(v.currentTime.toFixed(2)), ready: v.readyState, w: v.videoWidth, h: v.videoHeight }
-      : null;
-  });
-  console.log("video", stats);
-  await page.waitForTimeout(800);
+  await page.mouse.move(420, 260);
+  await page.waitForTimeout(2200);
+  await page.mouse.move(280, 200);
 }
 
 async function main() {
