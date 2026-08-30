@@ -70,7 +70,7 @@ export const POST = (req: NextRequest, ctx: Ctx) =>
       if (!body?.clipId || !body.partNumbers?.length) return badRequest("clipId and partNumbers required");
       const { data: clip } = await admin.from("spatial_clips").select("upload_session, master_key").eq("id", body.clipId).eq("org_id", orgId).maybeSingle();
       const session = (clip?.upload_session ?? {}) as { s3UploadId?: string };
-      if (!session.s3UploadId) return badRequest("No upload session");
+      if (!clip?.master_key || !session.s3UploadId) return badRequest("No upload session");
       const parts = await Promise.all(body.partNumbers.map(async (partNumber) => ({
         partNumber,
         signedUrl: await getSignedUrl(s3, new UploadPartCommand({
