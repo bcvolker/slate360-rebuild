@@ -173,9 +173,9 @@ describe("purchase vs beta widening", () => {
     expect(isSpatialOnlyPortal(flags)).toBe(true);
     expect(flags.siteWalk).toBe(false);
     expect(flags.twin360).toBe(false);
-    expect(projectTabLabel("files", flags)).toBe("Files");
+    expect(projectTabLabel("files", flags)).toBe("Project Files");
     expect(projectTabLabel("team", flags)).toBe("Sharing");
-    expect(projectTabLabel("walkthroughs", flags)).toBe("Walkthroughs");
+    expect(projectTabLabel("walkthroughs", flags)).toBe(null);
     expect(commandPaletteHrefAllowed("/site-walk", flags)).toBe(false);
     expect(commandPaletteHrefAllowed("/dashboard", flags)).toBe(false);
   });

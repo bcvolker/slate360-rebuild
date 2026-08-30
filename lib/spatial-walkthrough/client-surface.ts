@@ -97,8 +97,7 @@ export function projectTabIdsForSurface(flags: ClientSurfaceFlags): string[] {
 
 export function projectTabLabel(tabId: string, flags: ClientSurfaceFlags): string | null {
   if (!isSpatialOnlyPortal(flags)) return null;
-  if (tabId === "walkthroughs") return "Walkthroughs";
-  if (tabId === "files") return "Files";
+  if (tabId === "files") return "Project Files";
   if (tabId === "team") return "Sharing";
   return null;
 }

@@ -107,8 +107,8 @@ export default function CommandPalette({
   const surfaceFlags = flagsFromVisibleApps(visibleApps);
   const visible = ITEMS.filter((item) => {
     if (item.internalOnly && !hasOperationsConsoleAccess) return false;
-    if (spatialOnly && item.href === "/dashboard") return false;
     if (!item.href) return true;
+    if (spatialOnly && item.href === "/dashboard") return false;
     return commandPaletteHrefAllowed(item.href, surfaceFlags);
   });
   const groups = ["Navigate", "Create", "Account"] as const;
