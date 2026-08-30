@@ -10,7 +10,8 @@ type SharePayload = {
   theme: BrandTheme;
   operatorPatch: OperatorPatch | null;
   allowDownload: boolean;
-  walkthrough: { title: string; capturedAt?: string | null; building?: string | null };
+  policy?: string;
+  walkthrough: { id?: string; title: string; capturedAt?: string | null; building?: string | null };
   clip: { id: string; proxyUrl: string; posterUrl: string | null } | null;
   waypoints: WaypointRecord[];
   pins: Array<Record<string, unknown>>;
@@ -118,6 +119,11 @@ export function WalkthroughShareClient({ token }: { token: string }) {
       allowDownload={payload.allowDownload}
       capturedAt={payload.walkthrough.capturedAt}
       duration={Number((payload.clip as { durationS?: number }).durationS ?? 0)}
+      walkthroughId={payload.walkthrough.id}
+      collaboration={{
+        shareToken: token,
+        audience: payload.policy === "public" ? "public" : "client",
+      }}
     />
   );
 }

@@ -18,6 +18,7 @@ import type { NavMode } from "@/lib/spatial-walkthrough/nav-mode";
 import { absoluteViewHref, locatorFromView } from "@/lib/spatial-walkthrough/share-locator";
 import { BriefingCueOverlay } from "./BriefingCueOverlay";
 import { useWalkthroughNav } from "./useWalkthroughNav";
+import { WalkthroughCollaborationHost, type WalkthroughCollaboration } from "@/components/spatial-walkthrough/items/WalkthroughCollaborationHost";
 import "@/components/spatial-walkthrough/audio/walkthrough-audio.css";
 
 export type ExperiencePin = DrawerPin & {
@@ -60,6 +61,7 @@ type Props = {
   forceHud?: boolean;
   briefingCues?: BriefingCue[];
   transcriptOpen?: boolean;
+  collaboration?: WalkthroughCollaboration | null;
 };
 
 export function WalkthroughExperience({
@@ -95,6 +97,7 @@ export function WalkthroughExperience({
   forceHud = false,
   briefingCues = [],
   transcriptOpen: transcriptOpenProp = false,
+  collaboration = null,
 }: Props) {
   const [player, setPlayer] = useState<WalkthroughPlayerHandle | null>(null);
   const [currentT, setCurrentT] = useState(0);
@@ -257,6 +260,16 @@ export function WalkthroughExperience({
         }
       />
       <PinDrawer pin={selected} onClose={() => setSelectedId(null)} allowDownload={allowDownload} />
+      <WalkthroughCollaborationHost
+        collaboration={collaboration}
+        walkthroughId={walkthroughId}
+        clipId={clipId}
+        chapterId={chapterId}
+        player={player}
+        currentT={currentT}
+        authoring={authoring}
+        preview={preview}
+      />
       {narration.length || transcripts.length ? (
         <WalkthroughAudioLayer
           clipId={clipId}

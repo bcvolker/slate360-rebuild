@@ -106,6 +106,11 @@ export function WalkthroughClientView({ walkthroughId }: Props) {
           chapters={((payload.chapters as Array<Record<string, unknown>>) ?? []).map(toChapter)}
           edges={((payload.edges as Array<Record<string, unknown>>) ?? []).map(toClipEdge)}
           locator={typeof window !== "undefined" ? parseShareLocator(window.location.search) : undefined}
+          collaboration={{
+            canManage: true,
+            audience: "contractor",
+            projectId: typeof walkthrough.project_id === "string" ? walkthrough.project_id : null,
+          }}
         />
       </div>
     </div>

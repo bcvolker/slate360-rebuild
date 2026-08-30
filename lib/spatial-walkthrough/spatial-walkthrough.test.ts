@@ -28,7 +28,7 @@ describe("entitlement filtering", () => {
   it("shows only Spatial Walkthrough when that is the sole flag", () => {
     expect(visibleClientApps(spatialOnly)).toEqual(["spatial-walkthrough"]);
     expect(isSpatialOnlyPortal(spatialOnly)).toBe(true);
-    expect(projectTabIdsForSurface(spatialOnly)).toEqual(["overview", "walkthroughs", "files", "team"]);
+    expect(projectTabIdsForSurface(spatialOnly)).toEqual(["overview", "walkthroughs", "items", "files", "team"]);
   });
 
   it("does not show twin or site walk without flags", () => {

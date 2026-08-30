@@ -84,7 +84,7 @@ export function portalHomeHref(flags: ClientSurfaceFlags): string {
 export function projectTabIdsForSurface(flags: ClientSurfaceFlags): string[] {
   const apps = visibleClientApps(flags);
   const tabs = ["overview"];
-  if (apps.includes("spatial-walkthrough")) tabs.push("walkthroughs");
+  if (apps.includes("spatial-walkthrough")) tabs.push("walkthroughs", "items");
   if (apps.includes("site-walk")) tabs.push("walks", "plans");
   if (apps.includes("twin360")) tabs.push("twins");
   if (apps.includes("spatial-walkthrough") || apps.includes("slatedrop") || apps.includes("site-walk")) {

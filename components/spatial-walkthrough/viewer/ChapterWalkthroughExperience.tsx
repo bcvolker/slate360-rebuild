@@ -11,6 +11,7 @@ import { placeholderBriefingCues } from "@/lib/spatial-walkthrough/briefing-scri
 import type { NavMode } from "@/lib/spatial-walkthrough/nav-mode";
 import { EMPTY_LOCATOR, type ShareLocator } from "@/lib/spatial-walkthrough/share-locator";
 import { WalkthroughExperience, type ExperiencePin } from "./WalkthroughExperience";
+import type { WalkthroughCollaboration } from "@/components/spatial-walkthrough/items/WalkthroughCollaborationHost";
 import { ChapterPicker } from "./ChapterPicker";
 import { ChapterTimeline } from "./ChapterTimeline";
 import { ClipTransitionOverlay } from "./ClipTransitionOverlay";
@@ -54,6 +55,7 @@ type Props = {
   shareBasePath?: string;
   initialMode?: NavMode;
   forceHud?: boolean;
+  collaboration?: WalkthroughCollaboration | null;
 };
 
 export function ChapterWalkthroughExperience({
