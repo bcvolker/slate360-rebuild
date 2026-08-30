@@ -1,4 +1,4 @@
-﻿.sw-reticle,
+.sw-reticle,
 .sw-pin,
 .sw-mark {
   display: grid;
@@ -49,13 +49,13 @@
   width: 0;
   height: 0;
   border: 6px solid transparent;
-  border-top-color: color-mix(in srgb, var(--sw-text, white) 90%, #e85d4c);
+  border-top-color: color-mix(in srgb, var(--sw-text, white) 90%, var(--graphite-danger, #e85d4c));
   background: transparent;
   box-shadow: none;
 }
 .sw-mark--note .sw-mark-core {
   border-radius: 1px;
-  background: color-mix(in srgb, var(--sw-muted, #a3aed0) 70%, var(--sw-accent, var(--graphite-primary)));
+  background: color-mix(in srgb, var(--sw-muted, var(--graphite-muted)) 70%, var(--sw-accent, var(--graphite-primary)));
 }
 .sw-mark-label {
   margin-top: 4px;
@@ -81,7 +81,7 @@
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  background: color-mix(in srgb, var(--sw-primary, #0b0f15) 82%, black);
+  background: color-mix(in srgb, var(--sw-primary, var(--graphite-canvas)) 82%, black);
   opacity: 0.92;
 }
 .sw-nadir-plate {
@@ -101,7 +101,7 @@
   object-fit: contain;
 }
 .sw-nadir--neutral {
-  background: color-mix(in srgb, #12171f 88%, black);
+  background: color-mix(in srgb, var(--sw-surface, #12171f) 88%, black);
 }
 .sw-nadir--brand {
   background: color-mix(in srgb, var(--sw-primary, #12171f) 82%, black);

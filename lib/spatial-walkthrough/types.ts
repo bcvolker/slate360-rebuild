@@ -3,8 +3,11 @@ export const PRODUCT_NAME = "Spatial Walkthrough";
 export type WalkthroughType = "interior" | "exterior" | "aerial" | "mixed";
 export type WalkthroughStatus = "draft" | "processing" | "ready" | "failed" | "published";
 export type ClipStatus = "uploading" | "processing" | "ready" | "failed";
+/** MASTER is the immutable construction record. Shares are CLIENT or PUBLIC only. */
+export type AccessPolicy = "master" | "client" | "public";
 export type SharePolicy = "client" | "public";
-export type RedactionMode = "skip" | "solid" | "operator-patch" | "blur";
+export type RedactionMode = "skip" | "solid" | "operator-patch" | "blur" | "cover" | "hide-waypoint" | "panel";
+export type PatchStyle = "solid" | "blur" | "logo";
 export type PinType =
   | "document"
   | "rfi"
@@ -35,14 +38,23 @@ export type BrandTheme = {
 
 export type OperatorPatch = {
   enabled: boolean;
-  nadirFrac: number;
-  wrapFrac: number;
-  wrapY0Frac: number;
+  nadirRadius: number;
+  nadirVerticalExtent: number;
+  rearYawCenter: number;
+  rearYawWidth: number;
+  pitchMin: number;
+  pitchMax: number;
+  style: PatchStyle;
+  fill: OperatorPatchFill;
   logoInPatch: boolean;
   showDate: boolean;
-  fill: OperatorPatchFill;
   showCompass: boolean;
   headingDeg: number | null;
+  /** @deprecated parsed as nadirVerticalExtent */
+  nadirFrac?: number;
+  /** @deprecated parsed as rear yaw wrap */
+  wrapFrac?: number;
+  wrapY0Frac?: number;
 };
 
 export type PinLocator = {
@@ -81,12 +93,16 @@ export const PIN_TYPES: PinType[] = [
 
 export const DEFAULT_OPERATOR_PATCH: OperatorPatch = {
   enabled: true,
-  nadirFrac: 0.22,
-  wrapFrac: 0.09,
-  wrapY0Frac: 0.32,
+  nadirRadius: 0.28,
+  nadirVerticalExtent: 0.22,
+  rearYawCenter: 180,
+  rearYawWidth: 64,
+  pitchMin: -88,
+  pitchMax: -18,
+  style: "solid",
+  fill: "neutral",
   logoInPatch: true,
   showDate: true,
-  fill: "neutral",
   showCompass: false,
   headingDeg: null,
 };

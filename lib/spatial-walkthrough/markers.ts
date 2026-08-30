@@ -1,6 +1,6 @@
 import type { BrandTheme, OperatorPatch, WaypointRecord } from "./types";
 import { indexAtTime, nextWaypoint } from "./waypoints";
-import { activeSectors, type RedactionRule } from "./redaction";
+import { activeSectors, sectorYawCenter, type RedactionRule } from "./redaction";
 import { markerKindFromPinType, markerScaleFromPitch } from "./marker-scale";
 
 type PatchFields = OperatorPatch & {
@@ -146,18 +146,20 @@ export function buildViewerMarkers(args: {
     });
   }
 
-  for (const s of activeSectors(redactions, clipId, t, "solid")) {
-    const yaw = ((s.yawMin ?? 0) + (s.yawMax ?? 0)) / 2;
-    const pitch = ((s.pitchMin ?? 0) + (s.pitchMax ?? 0)) / 2;
-    list.push({
-      id: `solid-${s.tStart}-${s.tEnd}-${s.yawMin ?? 0}`,
-      yawDeg: yaw,
-      pitchDeg: pitch,
-      html: `<div class="sw-privacy" aria-hidden="true">Private</div>`,
-      width: 200,
-      height: 120,
-      data: { kind: "privacy" },
-    });
+  for (const mode of ["solid", "cover", "panel"] as const) {
+    for (const s of activeSectors(redactions, clipId, t, mode)) {
+      const yaw = s.yawMin != null && s.yawMax != null ? sectorYawCenter(s.yawMin, s.yawMax) : 0;
+      const pitch = ((s.pitchMin ?? 0) + (s.pitchMax ?? 0)) / 2;
+      list.push({
+        id: `${mode}-${s.tStart}-${s.tEnd}-${s.yawMin ?? 0}`,
+        yawDeg: yaw,
+        pitchDeg: pitch,
+        html: `<div class="sw-privacy" aria-hidden="true">Private</div>`,
+        width: mode === "panel" ? 260 : 200,
+        height: mode === "panel" ? 160 : 120,
+        data: { kind: "privacy" },
+      });
+    }
   }
 
   return list;

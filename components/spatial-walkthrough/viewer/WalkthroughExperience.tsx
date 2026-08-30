@@ -122,6 +122,7 @@ export function WalkthroughExperience({
         clipId={clipId}
         currentT={currentT}
         duration={duration}
+        redactions={redactions}
         player={player}
         extra={
           authoring ? (

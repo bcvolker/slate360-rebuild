@@ -1,11 +1,6 @@
 import type { SharePolicy } from "./types";
-
-export type MediaKind = "proxy" | "poster" | "master";
-
-export function allowedMediaKind(policy: SharePolicy, kind: MediaKind, allowMaster: boolean): boolean {
-  if (kind === "master") return allowMaster && policy === "client";
-  return kind === "proxy" || kind === "poster";
-}
+export type { MediaKind } from "./derivatives";
+export { allowedMediaKind, selectDerivativeKey, stripMasterKeys } from "./derivatives";
 
 export function filterProjectFilesForPolicy<T extends { id: string }>(
   files: T[],

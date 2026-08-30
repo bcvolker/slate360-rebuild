@@ -3,13 +3,16 @@
 import { ChevronLeft, ChevronRight, Maximize2 } from "lucide-react";
 import type { WaypointRecord } from "@/lib/spatial-walkthrough/types";
 import { indexAtTime, nextWaypoint, prevWaypoint } from "@/lib/spatial-walkthrough/waypoints";
+import { timelineMarks, type RedactionRule } from "@/lib/spatial-walkthrough/redaction";
 import type { WalkthroughPlayerHandle } from "./WalkthroughPlayer";
+import { PrivacyTimeline } from "./PrivacyTimeline";
 
 type Props = {
   waypoints: WaypointRecord[];
   clipId: string;
   currentT: number;
   duration?: number;
+  redactions?: RedactionRule[];
   player: WalkthroughPlayerHandle | null;
   extra?: React.ReactNode;
   onFullscreen?: () => void;
@@ -20,6 +23,7 @@ export function WalkthroughChrome({
   clipId,
   currentT,
   duration = 0,
+  redactions = [],
   player,
   extra,
   onFullscreen,
@@ -29,6 +33,7 @@ export function WalkthroughChrome({
   const prev = prevWaypoint(waypoints, clipId, idx);
   const next = nextWaypoint(waypoints, clipId, idx);
   const progress = duration > 0 ? Math.min(100, Math.max(0, (currentT / duration) * 100)) : 0;
+  const marks = timelineMarks(redactions, clipId, duration);
 
   const go = (wp: WaypointRecord | null) => {
     if (!wp || !player) return;
@@ -53,6 +58,7 @@ export function WalkthroughChrome({
         Prev
       </button>
       <div className="sw-timeline">
+        <PrivacyTimeline duration={duration} marks={marks} />
         <div className="sw-timeline-track" aria-hidden>
           <div className="sw-timeline-fill" style={{ width: `${progress}%` }} />
         </div>

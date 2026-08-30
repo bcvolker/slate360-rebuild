@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { withSpatialWalkthroughAuth } from "@/lib/spatial-walkthrough/access";
 import { ok, badRequest, unauthorized, notFound, serverError } from "@/lib/server/api-response";
 import { parseOperatorPatch } from "@/lib/spatial-walkthrough/operator-patch";
+import { stripMasterKeys } from "@/lib/spatial-walkthrough/derivatives";
 
 export const runtime = "nodejs";
 
@@ -28,7 +29,7 @@ export const GET = (req: NextRequest, ctx: Ctx) =>
         admin.from("spatial_redactions").select("*").eq("walkthrough_id", id),
         admin
           .from("spatial_share_tokens")
-          .select("id, token, policy, expires_at, max_views, view_count, is_revoked, allow_download, created_at")
+          .select("id, token_prefix, policy, expires_at, max_views, view_count, is_revoked, allow_download, created_at")
           .eq("walkthrough_id", id)
           .order("created_at", { ascending: false }),
       ]);
@@ -39,7 +40,7 @@ export const GET = (req: NextRequest, ctx: Ctx) =>
 
     return ok({
       walkthrough,
-      clips: clips ?? [],
+      clips: (clips ?? []).map((c) => stripMasterKeys(c as Record<string, unknown>)),
       waypoints: waypoints ?? [],
       pins: pins ?? [],
       attachments: attachments ?? [],
@@ -54,6 +55,21 @@ export const PATCH = (req: NextRequest, ctx: Ctx) =>
     const { id } = await ctx.params;
     const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
     if (!body) return badRequest("Invalid JSON");
+
+    if (typeof body.clipId === "string" && body.clipOperatorPatch && typeof body.clipOperatorPatch === "object") {
+      const { data: clip, error } = await admin
+        .from("spatial_clips")
+        .update({ operator_patch: parseOperatorPatch(body.clipOperatorPatch) })
+        .eq("id", body.clipId)
+        .eq("walkthrough_id", id)
+        .eq("org_id", orgId)
+        .select("id, operator_patch")
+        .maybeSingle();
+      if (error) return serverError(error.message);
+      if (!clip) return notFound("Clip not found");
+      return ok({ clip });
+    }
+
     const patch: Record<string, unknown> = {};
     if (typeof body.title === "string") patch.title = body.title.trim();
     if (typeof body.building === "string" || body.building === null) patch.building = body.building;
@@ -62,7 +78,7 @@ export const PATCH = (req: NextRequest, ctx: Ctx) =>
     if (typeof body.walkthroughType === "string") patch.walkthrough_type = body.walkthroughType;
     if (typeof body.capturedAt === "string") patch.captured_at = body.capturedAt;
     if (typeof body.status === "string") patch.status = body.status;
-    if (typeof body.defaultPolicy === "string") patch.default_policy = body.defaultPolicy;
+    if (typeof body.defaultPolicy === "string" && body.defaultPolicy !== "master") patch.default_policy = body.defaultPolicy;
     if (body.operatorPatch && typeof body.operatorPatch === "object") {
       patch.operator_patch = parseOperatorPatch(body.operatorPatch);
     }

@@ -1,28 +1,30 @@
 "use client";
 
 import { useState } from "react";
-import type { OperatorPatch } from "@/lib/spatial-walkthrough/types";
 
 type ShareRow = {
   id: string;
-  token: string;
+  token_prefix?: string | null;
+  token?: string;
   policy: string;
   is_revoked: boolean;
   expires_at: string | null;
+  allow_download?: boolean;
 };
 
 type Props = {
   walkthroughId: string;
   status: string;
-  operatorPatch: OperatorPatch;
   shares: ShareRow[];
   onRefresh: () => void;
+  onExport: () => void;
 };
 
-export function StudioSharePanel({ walkthroughId, status, operatorPatch, shares, onRefresh }: Props) {
+export function StudioSharePanel({ walkthroughId, status, shares, onRefresh, onExport }: Props) {
   const [policy, setPolicy] = useState<"client" | "public">("client");
   const [password, setPassword] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
+  const [allowDownload, setAllowDownload] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -39,7 +41,12 @@ export function StudioSharePanel({ walkthroughId, status, operatorPatch, shares,
     const res = await fetch(`/api/spatial-walkthrough/${walkthroughId}/share`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ policy, password: password || undefined, expiresAt: expiresAt || undefined }),
+      body: JSON.stringify({
+        policy,
+        password: password || undefined,
+        expiresAt: expiresAt || undefined,
+        allowDownload,
+      }),
     });
     const json = await res.json();
     setBusy(false);
@@ -51,41 +58,39 @@ export function StudioSharePanel({ walkthroughId, status, operatorPatch, shares,
     onRefresh();
   };
 
-  const savePatch = async () => {
-    await fetch(`/api/spatial-walkthrough/${walkthroughId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ operatorPatch }),
-    });
-  };
-
   return (
     <section className="space-y-3 border border-white/10 bg-white/[0.04] p-4">
       <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">Share and policy</p>
+      <p className="text-sm text-[var(--graphite-muted)]">
+        Members sign in. Guest shares are private links. Public shares are open links. Download and reshare are set per link.
+      </p>
       <div className="grid gap-2 sm:grid-cols-3">
-        <select value={policy} onChange={(e) => setPolicy(e.target.value as "client" | "public")} className="h-11 border border-white/10 bg-transparent px-2">
-          <option value="client">CLIENT</option>
-          <option value="public">PUBLIC</option>
+        <select value={policy} onChange={(e) => setPolicy(e.target.value as "client" | "public")} className="h-11 min-h-11 border border-white/10 bg-transparent px-2">
+          <option value="client">Guest share (private link)</option>
+          <option value="public">Public share</option>
         </select>
         <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Optional access code" className="h-11 border border-white/10 bg-transparent px-3" />
         <input type="datetime-local" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} className="h-11 border border-white/10 bg-transparent px-3" />
       </div>
+      <label className="flex h-11 items-center gap-2 text-sm">
+        <input type="checkbox" checked={allowDownload} onChange={(e) => setAllowDownload(e.target.checked)} />
+        Allow downloads (enforced on the file API)
+      </label>
       <div className="flex flex-wrap gap-2">
         <button type="button" disabled={busy} onClick={() => void publish()} className="h-11 border border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] px-4 text-[var(--graphite-primary)]">
           Publish secure share
         </button>
-        <a href={`/api/spatial-walkthrough/${walkthroughId}/export`} className="inline-flex h-11 items-center border border-white/10 px-4 text-sm">
+        <button type="button" onClick={onExport} className="h-11 border border-white/10 px-4 text-sm">
           Export package
-        </a>
-        <button type="button" onClick={() => void savePatch()} className="h-11 border border-white/10 px-4 text-sm">
-          Save operator patch
         </button>
       </div>
       {message ? <p className="break-all text-sm text-[var(--graphite-text-header)]">{message}</p> : null}
       <ul className="space-y-1 text-sm text-[var(--graphite-muted)]">
         {shares.map((s) => (
           <li key={s.id} className="flex items-center justify-between gap-2">
-            <span className="truncate">{s.policy} · {s.is_revoked ? "revoked" : "active"} · /w/{s.token.slice(0, 8)}…</span>
+            <span className="truncate">
+              {s.policy === "public" ? "Public share" : "Guest share"} · {s.is_revoked ? "revoked" : "active"} · /w/{s.token_prefix ?? "••••"}…
+            </span>
             {!s.is_revoked ? (
               <button
                 type="button"
