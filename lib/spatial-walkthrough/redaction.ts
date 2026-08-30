@@ -1,4 +1,5 @@
-import type { AccessPolicy, RedactionMode, SharePolicy } from "./types";
+import type { AccessPolicy, RedactionMode, SharePolicy, PatchStyle } from "./types";
+import type { OperatorKeyframe } from "./keyframes";
 
 export type RedactionRule = {
   id?: string;
@@ -13,9 +14,12 @@ export type RedactionRule = {
   policy: SharePolicy;
   reason?: string | null;
   waypointId?: string | null;
+  feather?: number | null;
+  style?: PatchStyle | null;
+  keyframes?: OperatorKeyframe[];
 };
 
-export const AUTHORING_MODES: RedactionMode[] = ["skip", "cover", "hide-waypoint", "panel"];
+export const AUTHORING_MODES: RedactionMode[] = ["skip", "cover", "hide-waypoint", "panel", "operator-patch"];
 
 export function isValidRedaction(rule: RedactionRule): boolean {
   if (!(rule.tEnd > rule.tStart)) return false;

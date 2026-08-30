@@ -9,13 +9,14 @@ type Draft = { t: number; yaw: number; pitch: number };
 type Props = {
   clipId: string;
   walkthroughId: string;
+  duration?: number;
   draft: Draft | null;
   waypoints: WaypointRecord[];
   rules: RedactionRule[];
   onRefresh: () => void;
 };
 
-export function PrivacyRulesPanel({ clipId, walkthroughId, draft, waypoints, rules, onRefresh }: Props) {
+export function PrivacyRulesPanel({ clipId, walkthroughId, duration = 0, draft, waypoints, rules, onRefresh }: Props) {
   const [mode, setMode] = useState<RedactionMode>("skip");
   const [policy, setPolicy] = useState<SharePolicy>("public");
   const [tEnd, setTEnd] = useState("");
@@ -42,6 +43,23 @@ export function PrivacyRulesPanel({ clipId, walkthroughId, draft, waypoints, rul
       payload.pitchMin = Number(pitchMin);
       payload.pitchMax = Number(pitchMax);
     }
+    if (mode === "operator-patch") {
+      payload.tEnd = Number.isFinite(end) && end > draft.t ? end : Math.max(draft.t + 1, duration || draft.t + 1);
+      payload.yawMin = draft.yaw - 35;
+      payload.yawMax = draft.yaw + 35;
+      payload.pitchMin = -70;
+      payload.pitchMax = -8;
+      payload.keyframes = [{
+        t: draft.t,
+        yawCenter: draft.yaw,
+        yawWidth: 70,
+        pitchTop: -8,
+        pitchBottom: -70,
+        nadirRadius: 0.22,
+        feather: 0,
+        style: "solid",
+      }];
+    }
     if (mode === "hide-waypoint") {
       payload.waypointId = waypointId;
       payload.tEnd = draft.t + 0.1;
@@ -59,8 +77,9 @@ export function PrivacyRulesPanel({ clipId, walkthroughId, draft, waypoints, rul
       <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">Sensitive area rules</p>
       <div className="grid gap-2 sm:grid-cols-2">
         <select value={mode} onChange={(e) => setMode(e.target.value as RedactionMode)} className="h-11 border border-white/10 bg-transparent px-2">
-          <option value="skip">Skip time interval</option>
-          <option value="cover">Cover spherical sector</option>
+          <option value="skip">Full time skip</option>
+          <option value="operator-patch">Operator mask</option>
+          <option value="cover">Restricted sector</option>
           <option value="panel">Privacy panel</option>
           <option value="hide-waypoint">Hide waypoint</option>
         </select>

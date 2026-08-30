@@ -3,6 +3,8 @@ import { tasks } from "@trigger.dev/sdk/v3";
 import { withSpatialWalkthroughAuth } from "@/lib/spatial-walkthrough/access";
 import { ok, unauthorized, notFound, badRequest } from "@/lib/server/api-response";
 import { parseOperatorPatch, resolveOperatorPatch } from "@/lib/spatial-walkthrough/operator-patch";
+import { parseOrientationTrack } from "@/lib/spatial-walkthrough/orientation";
+import { interpolateKeyframes, keyframesFromLegacyOrStored, keyframeToPatch } from "@/lib/spatial-walkthrough/keyframes";
 
 export const runtime = "nodejs";
 type Ctx = { params: Promise<{ id: string }> };
@@ -17,7 +19,7 @@ export const POST = (req: NextRequest, ctx: Ctx) =>
 
     const { data: clip } = await admin
       .from("spatial_clips")
-      .select("id, proxy_key, operator_patch, walkthrough_id")
+      .select("id, proxy_key, operator_patch, orientation, walkthrough_id")
       .eq("id", clipId)
       .eq("walkthrough_id", id)
       .eq("org_id", orgId)
@@ -30,6 +32,16 @@ export const POST = (req: NextRequest, ctx: Ctx) =>
       .eq("id", id)
       .maybeSingle();
     const operatorPatch = resolveOperatorPatch(clip.operator_patch, parseOperatorPatch(wt?.operator_patch));
+    const { data: redactions } = await admin
+      .from("spatial_redactions")
+      .select("mode, keyframes, t_start, t_end")
+      .eq("clip_id", clipId)
+      .eq("mode", "operator-patch");
+    const storedFrames = (redactions ?? []).flatMap((r) => keyframesFromLegacyOrStored(r.keyframes, operatorPatch));
+    const bakedPatch = storedFrames.length
+      ? keyframeToPatch(interpolateKeyframes(storedFrames, 0) ?? storedFrames[0], operatorPatch)
+      : operatorPatch;
+    const orientation = parseOrientationTrack(clip.orientation);
 
     const { data: job, error } = await admin.from("spatial_processing_jobs").insert({
       org_id: orgId,
@@ -38,7 +50,12 @@ export const POST = (req: NextRequest, ctx: Ctx) =>
       job_type: "privacy-bake",
       status: "queued",
       source_s3_key: clip.proxy_key,
-      metadata: { mode: "privacy-bake", operatorPatch },
+      metadata: {
+        mode: "privacy-bake",
+        operatorPatch: bakedPatch,
+        orientation,
+        keyframes: storedFrames,
+      },
     }).select("id").single();
     if (error || !job) return badRequest(error?.message ?? "Could not queue bake");
 

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { type ExperiencePin } from "@/components/spatial-walkthrough/viewer/WalkthroughExperience";
 import { StudioChapterAuthoring } from "./StudioChapterAuthoring";
+import { StudioAuthoringDock } from "./StudioAuthoringDock";
 import type { WalkthroughPlayerHandle } from "@/components/spatial-walkthrough/viewer/WalkthroughPlayer";
 import { StudioUpload } from "./StudioUpload";
 import { StudioSharePanel } from "./StudioSharePanel";
@@ -15,6 +16,7 @@ import { captureMetaLabel, parseCaptureMeta } from "@/lib/spatial-walkthrough/ca
 import { toWaypoint } from "@/lib/spatial-walkthrough/waypoints";
 import { filterRuntime } from "@/lib/spatial-walkthrough/runtime-filter";
 import { rulesForPolicy, type RedactionRule } from "@/lib/spatial-walkthrough/redaction";
+import { parseRedactionRow } from "@/lib/spatial-walkthrough/redaction-parse";
 import type { AccessPolicy, BrandTheme, OperatorPatch, WaypointRecord } from "@/lib/spatial-walkthrough/types";
 import { resolveBrandTheme } from "@/lib/spatial-walkthrough/theme";
 
@@ -32,20 +34,7 @@ type Payload = {
 };
 
 function ruleFrom(row: Record<string, unknown>): RedactionRule {
-  return {
-    id: row.id ? String(row.id) : undefined,
-    clipId: String(row.clip_id),
-    tStart: Number(row.t_start),
-    tEnd: Number(row.t_end),
-    yawMin: row.yaw_min == null ? null : Number(row.yaw_min),
-    yawMax: row.yaw_max == null ? null : Number(row.yaw_max),
-    pitchMin: row.pitch_min == null ? null : Number(row.pitch_min),
-    pitchMax: row.pitch_max == null ? null : Number(row.pitch_max),
-    mode: (row.mode as RedactionRule["mode"]) ?? "skip",
-    policy: (row.policy as RedactionRule["policy"]) ?? "public",
-    reason: (row.reason as string) ?? null,
-    waypointId: row.waypoint_id ? String(row.waypoint_id) : null,
-  };
+  return parseRedactionRow(row);
 }
 
 export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) {
@@ -58,6 +47,7 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
   const [patch, setPatch] = useState<OperatorPatch>(() => parseOperatorPatch(null));
   const [exportOpen, setExportOpen] = useState(false);
   const [player, setPlayer] = useState<WalkthroughPlayerHandle | null>(null);
+  const [livePatch, setLivePatch] = useState<OperatorPatch | null>(null);
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/spatial-walkthrough/${walkthroughId}`, { cache: "no-store" });
@@ -132,7 +122,9 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
     walkthrough: payload.walkthrough.brand_theme as never,
     canHidePoweredBy: true,
   });
-  const viewerPatch = previewPolicy === "master" ? { ...patch, enabled: false } : patch;
+  const viewerPatch = previewPolicy === "master"
+    ? { ...patch, enabled: false }
+    : (livePatch ?? patch);
   const captureLabel = captureMetaLabel(parseCaptureMeta(clip?.capture_meta));
   const redactions = previewPolicy === "master" ? [] : rulesForPolicy(allRules, previewPolicy);
 
@@ -175,23 +167,44 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
       </div>
       {!clip || clip.status !== "ready" ? <StudioUpload walkthroughId={walkthroughId} onQueued={() => void load()} /> : null}
       {clip && clip.status === "ready" ? (
-        <StudioChapterAuthoring
+        <StudioAuthoringDock
           walkthroughId={walkthroughId}
-          theme={theme}
-          title={String(payload.walkthrough.title)}
-          capturedAt={typeof payload.walkthrough.captured_at === "string" ? payload.walkthrough.captured_at : null}
-          clips={payload.clips}
+          clipId={clipId}
+          duration={Number(clip.duration_s ?? 0)}
+          videoLabel={String(payload.walkthrough.title)}
           chapters={payload.chapters ?? []}
-          edges={payload.edges ?? []}
+          allRules={allRules}
           waypoints={waypoints}
           pins={pins}
-          redactions={redactions}
-          operatorPatch={viewerPatch}
-          onPlayerReady={setPlayer}
-          onAddWaypoint={(view) => setDraft({ kind: "waypoint", ...view })}
-          onAddPin={(view) => setDraft({ kind: "pin", ...view })}
+          legacyPatch={patch}
+          orientationRaw={clip.orientation}
+          player={player}
+          policy={previewPolicy}
+          onPolicy={setPreviewPolicy}
+          onLivePatch={setLivePatch}
           onRefresh={() => void load()}
-        />
+        >
+          {(overlay) => (
+            <StudioChapterAuthoring
+              walkthroughId={walkthroughId}
+              theme={theme}
+              title={String(payload.walkthrough.title)}
+              capturedAt={typeof payload.walkthrough.captured_at === "string" ? payload.walkthrough.captured_at : null}
+              clips={payload.clips}
+              chapters={payload.chapters ?? []}
+              edges={payload.edges ?? []}
+              waypoints={waypoints}
+              pins={pins}
+              redactions={redactions}
+              operatorPatch={viewerPatch}
+              overlay={overlay}
+              onPlayerReady={setPlayer}
+              onAddWaypoint={(view) => setDraft({ kind: "waypoint", ...view })}
+              onAddPin={(view) => setDraft({ kind: "pin", ...view })}
+              onRefresh={() => void load()}
+            />
+          )}
+        </StudioAuthoringDock>
       ) : (
         <p className="text-sm text-[var(--graphite-muted)]">Playback starts after the web proxy is ready.</p>
       )}
@@ -225,6 +238,7 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
       <PrivacyRulesPanel
         clipId={clipId}
         walkthroughId={walkthroughId}
+        duration={Number(clip?.duration_s ?? 0)}
         draft={draft}
         waypoints={payload.waypoints.map(toWaypoint)}
         rules={allRules}

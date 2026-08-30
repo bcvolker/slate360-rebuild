@@ -18,6 +18,9 @@ export type WalkthroughPlayerHandle = {
   getView: () => { t: number; yaw: number; pitch: number };
   pause: () => void;
   play: () => void;
+  setPlaybackRate: (rate: number) => void;
+  setSphereCorrection: (c: { pan: string; tilt: string; roll: string }) => void;
+  viewerToSphere: (x: number, y: number) => { yaw: number; pitch: number } | null;
 };
 
 type Props = {
@@ -138,6 +141,20 @@ export function WalkthroughPlayer({
       play: () => {
         void video.play().catch(() => undefined);
         videoPlugin.play();
+      },
+      setPlaybackRate: (rate) => {
+        video.playbackRate = rate;
+      },
+      setSphereCorrection: (c) => {
+        viewer.setOptions({ sphereCorrection: c });
+      },
+      viewerToSphere: (x, y) => {
+        try {
+          const pos = viewer.dataHelper.viewerCoordsToSphericalCoords({ x, y });
+          return { yaw: (pos.yaw * 180) / Math.PI, pitch: (pos.pitch * 180) / Math.PI };
+        } catch {
+          return null;
+        }
       },
     };
 

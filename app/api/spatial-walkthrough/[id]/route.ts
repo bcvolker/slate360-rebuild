@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { withSpatialWalkthroughAuth } from "@/lib/spatial-walkthrough/access";
 import { ok, badRequest, unauthorized, notFound, serverError } from "@/lib/server/api-response";
 import { parseOperatorPatch } from "@/lib/spatial-walkthrough/operator-patch";
+import { parseOrientationTrack } from "@/lib/spatial-walkthrough/orientation";
 import { stripMasterKeys } from "@/lib/spatial-walkthrough/derivatives";
 
 export const runtime = "nodejs";
@@ -59,6 +60,20 @@ export const PATCH = (req: NextRequest, ctx: Ctx) =>
     const { id } = await ctx.params;
     const body = (await req.json().catch(() => null)) as Record<string, unknown> | null;
     if (!body) return badRequest("Invalid JSON");
+
+    if (typeof body.clipId === "string" && body.orientation && typeof body.orientation === "object") {
+      const { data: clip, error } = await admin
+        .from("spatial_clips")
+        .update({ orientation: parseOrientationTrack(body.orientation) })
+        .eq("id", body.clipId)
+        .eq("walkthrough_id", id)
+        .eq("org_id", orgId)
+        .select("id, orientation")
+        .maybeSingle();
+      if (error) return serverError(error.message);
+      if (!clip) return notFound("Clip not found");
+      return ok({ clip });
+    }
 
     if (typeof body.clipId === "string" && body.clipOperatorPatch && typeof body.clipOperatorPatch === "object") {
       const { data: clip, error } = await admin
