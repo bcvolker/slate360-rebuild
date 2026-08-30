@@ -29,6 +29,8 @@ export const PREVIEW_WAYPOINTS: WaypointRecord[] = [
   { id: "wp1", clipId: "clip-1", tSeconds: 4, label: "Lobby", zone: "Core", yawDeg: 12, pitchDeg: -28, sortOrder: 0, thumbnailKey: null, xyz: null, isVisible: true },
   { id: "wp2", clipId: "clip-1", tSeconds: 18, label: "Corridor", zone: "L2", yawDeg: 40, pitchDeg: -22, sortOrder: 1, thumbnailKey: null, xyz: null, isVisible: true },
   { id: "wp3", clipId: "clip-1", tSeconds: 36, label: "MEP", zone: "Mech", yawDeg: -20, pitchDeg: -32, sortOrder: 2, thumbnailKey: null, xyz: null, isVisible: true },
+  { id: "wp4", clipId: "clip-1", tSeconds: 54, label: "West face", zone: "Mech", yawDeg: -48, pitchDeg: -24, sortOrder: 3, thumbnailKey: null, xyz: null, isVisible: true },
+  { id: "wp5", clipId: "clip-1", tSeconds: 72, label: "Stair", zone: "Core", yawDeg: 62, pitchDeg: -18, sortOrder: 4, thumbnailKey: null, xyz: null, isVisible: true },
 ];
 
 export type PreviewPin = {

@@ -1,8 +1,8 @@
 import type { BrandTheme, OperatorPatch, WaypointRecord } from "./types";
-import { indexAtTime, nextWaypoint } from "./waypoints";
 import { activeSectors, sectorYawCenter, type RedactionRule } from "./redaction";
 import { markerKindFromPinType, markerScaleFromPitch } from "./marker-scale";
 import { operatorPatchActiveAt } from "./operator-patch";
+import { pathHudNodes } from "./path-hud";
 
 type PatchFields = OperatorPatch & {
   nadirRadius?: number;
@@ -52,6 +52,12 @@ function markHtml(kind: string, label: string, selected: boolean, scale: number)
   return `<button type="button" class="sw-reticle sw-pin sw-mark sw-mark--${esc(kind)}${on}" style="--sw-mark-scale:${scale}" aria-label="${esc(label)}"><span class="sw-mark-leader"></span><span class="sw-mark-core sw-reticle-ring sw-pin-core"></span><span class="sw-mark-label">${esc(label)}</span></button>`;
 }
 
+function pathHtml(label: string, rank: number, opacity: number, scale: number, selected: boolean): string {
+  const on = selected ? " is-selected" : "";
+  const nearest = rank === 0 ? " sw-reticle" : "";
+  return `<button type="button" class="sw-path sw-mark${nearest}${on}" data-rank="${rank}" style="--sw-path-opacity:${opacity};--sw-mark-scale:${scale}" aria-label="${esc(label)}"><span class="sw-path-stem"></span><span class="sw-path-chevron"></span><span class="sw-path-crumb"></span><span class="sw-mark-label">${esc(label)}</span></button>`;
+}
+
 function nadirPx(patch: PatchFields): number {
   const radius = typeof patch.nadirRadius === "number" ? patch.nadirRadius : (patch.nadirFrac ?? 0.22);
   return Math.round(180 + radius * 280);
@@ -86,23 +92,23 @@ export function buildViewerMarkers(args: {
   theme?: BrandTheme | null;
   chrome?: MarkerChrome;
   selectedId?: string | null;
+  hudOpacity?: number;
 }): ViewerMarkerDef[] {
-  const { waypoints, clipId, t, pins, redactions, operatorPatch, theme, chrome = {}, selectedId } = args;
-  const idx = indexAtTime(waypoints, clipId, t);
-  const next = nextWaypoint(waypoints, clipId, idx);
+  const { waypoints, clipId, t, pins, redactions, operatorPatch, theme, chrome = {}, selectedId, hudOpacity = 1 } = args;
   const list: ViewerMarkerDef[] = [];
 
-  if (next) {
-    const label = next.label ?? "Next station";
-    const scale = markerScaleFromPitch(next.pitchDeg);
+  for (const node of pathHudNodes(waypoints, clipId, t, hudOpacity)) {
+    const wp = node.waypoint;
+    const label = wp.label ?? (node.rank === 0 ? "Continue along path" : "Further along path");
+    const size = Math.round((node.rank === 0 ? 56 : 44) * node.scale);
     list.push({
-      id: `wp-${next.id}`,
-      yawDeg: next.yawDeg,
-      pitchDeg: next.pitchDeg,
-      html: markHtml("waypoint", label, selectedId === next.id, scale),
-      width: Math.round(52 * scale),
-      height: Math.round(64 * scale),
-      data: { kind: "waypoint", id: next.id, t: next.tSeconds, yaw: next.yawDeg, pitch: next.pitchDeg },
+      id: `wp-${wp.id}`,
+      yawDeg: wp.yawDeg,
+      pitchDeg: wp.pitchDeg,
+      html: pathHtml(label, node.rank, node.opacity, node.scale, selectedId === wp.id),
+      width: size,
+      height: Math.round(size * 1.25),
+      data: { kind: "waypoint", id: wp.id, t: wp.tSeconds, yaw: wp.yawDeg, pitch: wp.pitchDeg, rank: node.rank },
     });
   }
 
