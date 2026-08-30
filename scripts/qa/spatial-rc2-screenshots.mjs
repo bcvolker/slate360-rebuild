@@ -33,9 +33,9 @@ async function open(browser, url, w, h) {
 }
 
 async function enterWalk(page) {
-  const play = page.locator("[data-testid='sw-poster-gate'] button");
-  if (await play.count()) await play.click();
-  await page.waitForTimeout(2400);
+  const gate = page.getByRole("button", { name: /Play \/ Enter Walkthrough/i });
+  if (await gate.count()) await gate.click();
+  await page.waitForTimeout(2800);
 }
 
 async function clickText(page, re) {

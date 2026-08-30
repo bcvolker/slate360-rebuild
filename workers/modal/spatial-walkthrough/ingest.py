@@ -219,7 +219,7 @@ def ingest_clip(payload: dict[str, Any]) -> None:
                        "errorLog": f"{e}\n{traceback.format_exc()[-1500:]}"}, site)
 
 
-@app.function(image=cpu_image, cpu=4, memory=4096, timeout=MAX_DURATION_SECONDS, secrets=[worker_secret])
+@app.function(image=cpu_image, cpu=8, memory=8192, timeout=MAX_DURATION_SECONDS, secrets=[worker_secret])
 def bake_public_proxy(payload: dict[str, Any]) -> None:
     from r2_utils import s3_client, download_object, upload_file
     from bake_privacy import keep_segments, union_patches_at, interpolate_orientation
@@ -248,6 +248,7 @@ def bake_public_proxy(payload: dict[str, Any]) -> None:
     s3 = s3_client()
     work = Path(tempfile.mkdtemp(prefix="sw-bake-"))
     site = callback_base_url(payload)
+    print(f"privacy-bake start job={job_id} clip={clip_id} segs-pending src={src_key}", flush=True)
     try:
         post_callback({"jobId": job_id, "clipId": clip_id, "status": "progress", "progressPct": 8, "stage": "privacy-bake"}, site)
         src = str(work / "proxy.mp4")
