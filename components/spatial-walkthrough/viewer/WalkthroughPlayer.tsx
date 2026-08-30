@@ -14,10 +14,11 @@ import { applySkip, skipIntervals, type RedactionRule } from "@/lib/spatial-walk
 import { buildViewerMarkers, type MarkerChrome, type PinMarkerInput } from "@/lib/spatial-walkthrough/markers";
 
 export type WalkthroughPlayerHandle = {
-  seekTo: (t: number, yaw?: number, pitch?: number) => void;
+  seekTo: (t: number, yaw?: number, pitch?: number, opts?: { pause?: boolean }) => void;
   getView: () => { t: number; yaw: number; pitch: number };
   pause: () => void;
   play: () => void;
+  isPaused: () => boolean;
   setPlaybackRate: (rate: number) => void;
   setSphereCorrection: (c: { pan: string; tilt: string; roll: string }) => void;
   viewerToSphere: (x: number, y: number) => { yaw: number; pitch: number } | null;
@@ -35,9 +36,12 @@ type Props = {
   chrome?: MarkerChrome;
   selectedId?: string | null;
   autoplay?: boolean;
+  hudOpacity?: number;
   onPinSelect?: (id: string) => void;
+  onWaypointSelect?: () => void;
   onReady?: (handle: WalkthroughPlayerHandle) => void;
   onPlaying?: () => void;
+  onPause?: () => void;
 };
 
 export function WalkthroughPlayer({
@@ -52,20 +56,27 @@ export function WalkthroughPlayer({
   chrome,
   selectedId = null,
   autoplay = false,
+  hudOpacity = 1,
   onPinSelect,
+  onWaypointSelect,
   onReady,
   onPlaying,
+  onPause,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const pinSelectRef = useRef(onPinSelect);
+  const waypointRef = useRef(onWaypointSelect);
   const readyRef = useRef(onReady);
   const playingRef = useRef(onPlaying);
+  const pauseCbRef = useRef(onPause);
   pinSelectRef.current = onPinSelect;
+  waypointRef.current = onWaypointSelect;
   readyRef.current = onReady;
   playingRef.current = onPlaying;
+  pauseCbRef.current = onPause;
 
-  const liveRef = useRef({ waypoints, clipId, pins, redactions, operatorPatch, theme, chrome, selectedId });
-  liveRef.current = { waypoints, clipId, pins, redactions, operatorPatch, theme, chrome, selectedId };
+  const liveRef = useRef({ waypoints, clipId, pins, redactions, operatorPatch, theme, chrome, selectedId, hudOpacity });
+  liveRef.current = { waypoints, clipId, pins, redactions, operatorPatch, theme, chrome, selectedId, hudOpacity };
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -107,6 +118,7 @@ export function WalkthroughPlayer({
         theme: live.theme,
         chrome: live.chrome,
         selectedId: live.selectedId,
+        hudOpacity: live.hudOpacity,
       });
       markers.setMarkers(
         defs.map((d) => ({
@@ -121,8 +133,8 @@ export function WalkthroughPlayer({
     };
 
     const handle: WalkthroughPlayerHandle = {
-      seekTo: (t, yaw, pitch) => {
-        videoPlugin.pause();
+      seekTo: (t, yaw, pitch, opts) => {
+        if (opts?.pause !== false) videoPlugin.pause();
         videoPlugin.setTime(t);
         if (yaw != null && pitch != null) {
           void viewer.animate({ yaw: `${yaw}deg`, pitch: `${pitch}deg`, speed: "2.5rpm" });
@@ -142,6 +154,7 @@ export function WalkthroughPlayer({
         void video.play().catch(() => undefined);
         videoPlugin.play();
       },
+      isPaused: () => video.paused,
       setPlaybackRate: (rate) => {
         video.playbackRate = rate;
       },
@@ -172,7 +185,10 @@ export function WalkthroughPlayer({
     const onSelect = (e: { marker?: { data?: { kind?: string; id?: string; t?: number; yaw?: number; pitch?: number } } }) => {
       const d = e.marker?.data;
       if (!d) return;
-      if (d.kind === "waypoint" && d.t != null) handle.seekTo(d.t, d.yaw, d.pitch);
+      if (d.kind === "waypoint" && d.t != null) {
+        waypointRef.current?.();
+        handle.seekTo(d.t, d.yaw, d.pitch, { pause: true });
+      }
       if (d.kind === "pin" && d.id) {
         handle.pause();
         pinSelectRef.current?.(d.id);
@@ -180,6 +196,7 @@ export function WalkthroughPlayer({
     };
 
     video.addEventListener("playing", () => playingRef.current?.());
+    video.addEventListener("pause", () => pauseCbRef.current?.());
     videoPlugin.addEventListener("progress", onProgress as never);
     markers.addEventListener("select-marker", onSelect as never);
     viewer.addEventListener("ready", () => {

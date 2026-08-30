@@ -6,6 +6,7 @@ export type ShareLocator = {
   yawDeg: number | null;
   pitchDeg: number | null;
   pinId: string | null;
+  itemId?: string | null;
 };
 
 export const EMPTY_LOCATOR: ShareLocator = {
@@ -16,6 +17,7 @@ export const EMPTY_LOCATOR: ShareLocator = {
   yawDeg: null,
   pitchDeg: null,
   pinId: null,
+  itemId: null,
 };
 
 function readNum(params: URLSearchParams, key: string): number | null {
@@ -35,6 +37,7 @@ export function parseShareLocator(search: string | URLSearchParams): ShareLocato
     yawDeg: readNum(params, "yaw"),
     pitchDeg: readNum(params, "pitch"),
     pinId: params.get("pin") || null,
+    itemId: params.get("item") || null,
   };
 }
 
@@ -46,6 +49,7 @@ export function serializeShareLocator(locator: ShareLocator): string {
   if (locator.yawDeg != null) params.set("yaw", String(Number(locator.yawDeg.toFixed(2))));
   if (locator.pitchDeg != null) params.set("pitch", String(Number(locator.pitchDeg.toFixed(2))));
   if (locator.pinId) params.set("pin", locator.pinId);
+  if (locator.itemId) params.set("item", locator.itemId);
   const qs = params.toString();
   return qs ? `?${qs}` : "";
 }
@@ -53,7 +57,7 @@ export function serializeShareLocator(locator: ShareLocator): string {
 /** Bare /w/{token} with no query is Entire Walk at the first clip. */
 export function isLegacyShareUrl(search: string): boolean {
   const params = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
-  return ![...params.keys()].some((k) => ["clip", "chapter", "t", "time", "yaw", "pitch", "pin"].includes(k));
+  return ![...params.keys()].some((k) => ["clip", "chapter", "t", "time", "yaw", "pitch", "pin", "item"].includes(k));
 }
 
 export function mergeLocator(base: ShareLocator, overlay: Partial<ShareLocator>): ShareLocator {
@@ -62,4 +66,36 @@ export function mergeLocator(base: ShareLocator, overlay: Partial<ShareLocator>)
 
 export function sharePath(token: string, locator: ShareLocator = EMPTY_LOCATOR): string {
   return `/w/${token}${serializeShareLocator(locator)}`;
+}
+
+export function locatorFromView(input: {
+  clipId?: string | null;
+  chapterId?: string | null;
+  tSeconds: number;
+  yawDeg: number;
+  pitchDeg: number;
+  pinId?: string | null;
+  itemId?: string | null;
+  walkthroughId?: string | null;
+}): ShareLocator {
+  return {
+    walkthroughId: input.walkthroughId ?? null,
+    clipId: input.clipId ?? null,
+    chapterId: input.chapterId ?? null,
+    tSeconds: input.tSeconds,
+    yawDeg: input.yawDeg,
+    pitchDeg: input.pitchDeg,
+    pinId: input.pinId ?? null,
+    itemId: input.itemId ?? null,
+  };
+}
+
+/** Path + query for the current sphere state. `basePath` is `/w/{token}` or the studio pathname. */
+export function currentViewHref(basePath: string, locator: ShareLocator): string {
+  const path = (basePath.split("?")[0] || "/").replace(/\/$/, "") || "/";
+  return `${path}${serializeShareLocator(locator)}`;
+}
+
+export function absoluteViewHref(origin: string, basePath: string, locator: ShareLocator): string {
+  return `${origin.replace(/\/$/, "")}${currentViewHref(basePath, locator)}`;
 }

@@ -1,17 +1,26 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { BrandTheme, OperatorPatch, WaypointRecord } from "@/lib/spatial-walkthrough/types";
 import type { RedactionRule } from "@/lib/spatial-walkthrough/redaction";
-import { WalkthroughExperience, type ExperiencePin } from "@/components/spatial-walkthrough/viewer/WalkthroughExperience";
+import type { ChapterRecord } from "@/lib/spatial-walkthrough/chapters";
+import type { ClipEdgeRecord, ClipSummary } from "@/lib/spatial-walkthrough/clip-edges";
+import { parseShareLocator } from "@/lib/spatial-walkthrough/share-locator";
+import { ChapterWalkthroughExperience } from "@/components/spatial-walkthrough/viewer/ChapterWalkthroughExperience";
+import { type ExperiencePin } from "@/components/spatial-walkthrough/viewer/WalkthroughExperience";
 import { SharePasswordGate } from "./SharePasswordGate";
 
 type SharePayload = {
   theme: BrandTheme;
   operatorPatch: OperatorPatch | null;
   allowDownload: boolean;
-  walkthrough: { title: string; capturedAt?: string | null; building?: string | null };
-  clip: { id: string; proxyUrl: string; posterUrl: string | null } | null;
+  walkthrough: { id?: string; title: string; capturedAt?: string | null; building?: string | null };
+  clip: { id: string; proxyUrl: string; posterUrl: string | null; durationS?: number } | null;
+  clips?: ClipSummary[];
+  chapters?: ChapterRecord[];
+  edges?: ClipEdgeRecord[];
+  lockedChapterId?: string | null;
   waypoints: WaypointRecord[];
   pins: Array<Record<string, unknown>>;
   attachments: Array<Record<string, unknown>>;
@@ -23,7 +32,7 @@ function mapPins(
   attachments: Array<Record<string, unknown>>,
   token: string,
   allowDownload: boolean,
-): ExperiencePin[] {
+): Array<ExperiencePin & { clipId?: string | null }> {
   return pins.map((p) => {
     const id = String(p.id);
     const atts = attachments
@@ -49,12 +58,15 @@ function mapPins(
       yawDeg: Number(p.yaw_deg ?? 0),
       pitchDeg: Number(p.pitch_deg ?? 0),
       tSeconds: p.t_seconds == null ? null : Number(p.t_seconds),
+      clipId: p.clip_id ? String(p.clip_id) : null,
       attachments: atts,
     };
   });
 }
 
 export function WalkthroughShareClient({ token }: { token: string }) {
+  const search = useSearchParams();
+  const locator = useMemo(() => parseShareLocator(search ?? ""), [search]);
   const [needsPassword, setNeedsPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [payload, setPayload] = useState<SharePayload | null>(null);
@@ -104,8 +116,22 @@ export function WalkthroughShareClient({ token }: { token: string }) {
     return <div className="flex min-h-[100dvh] items-center justify-center text-sm text-[var(--graphite-muted)]">Preparing walkthrough…</div>;
   }
 
+  const clips = payload.clips?.length
+    ? payload.clips
+    : [{
+        id: payload.clip.id,
+        title: payload.walkthrough.title,
+        zone: null,
+        durationS: Number(payload.clip.durationS ?? 0),
+        defaultYaw: 0,
+        defaultPitch: 0,
+        sortOrder: 0,
+        videoUrl: payload.clip.proxyUrl,
+        posterUrl: payload.clip.posterUrl,
+      }];
+
   return (
-    <WalkthroughExperience
+    <ChapterWalkthroughExperience
       theme={payload.theme}
       title={payload.walkthrough.title}
       videoUrl={payload.clip.proxyUrl}
@@ -117,7 +143,15 @@ export function WalkthroughShareClient({ token }: { token: string }) {
       operatorPatch={payload.operatorPatch}
       allowDownload={payload.allowDownload}
       capturedAt={payload.walkthrough.capturedAt}
-      duration={Number((payload.clip as { durationS?: number }).durationS ?? 0)}
+      duration={Number(payload.clip.durationS ?? 0)}
+      walkthroughId={payload.walkthrough.id ?? ""}
+      clips={clips}
+      chapters={payload.chapters ?? []}
+      edges={payload.edges ?? []}
+      locator={locator}
+      lockedChapterId={payload.lockedChapterId ?? null}
+      shareBasePath={`/w/${token}`}
+      selectedId={locator.pinId}
     />
   );
 }

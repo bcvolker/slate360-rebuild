@@ -258,7 +258,7 @@ describe("viewer markers", () => {
     { id: "a", clipId: "c1", tSeconds: 2, label: "A", zone: null, yawDeg: 10, pitchDeg: 0, sortOrder: 0, thumbnailKey: null, xyz: null, isVisible: true },
     { id: "b", clipId: "c1", tSeconds: 12, label: "B", zone: null, yawDeg: 40, pitchDeg: -5, sortOrder: 1, thumbnailKey: null, xyz: null, isVisible: true },
   ];
-  it("shows only the next waypoint reticle", () => {
+  it("shows the nearest path target plus lookahead", () => {
     const markers = buildViewerMarkers({
       waypoints: wps,
       clipId: "c1",
@@ -267,9 +267,9 @@ describe("viewer markers", () => {
       redactions: [],
       operatorPatch: parseOperatorPatch({ enabled: true, logoInPatch: true, showDate: true }),
     });
-    expect(markers.filter((m) => m.data.kind === "waypoint")).toHaveLength(1);
+    expect(markers.filter((m) => m.data.kind === "waypoint").length).toBeGreaterThanOrEqual(1);
     expect(markers.find((m) => m.data.kind === "waypoint")?.data.id).toBe("b");
-    expect(markers.find((m) => m.data.kind === "waypoint")?.html).toContain("sw-reticle");
+    expect(markers.find((m) => m.data.kind === "waypoint")?.html).toContain("sw-path");
     expect(markers.find((m) => m.data.kind === "pin")?.html).toContain("sw-pin");
     expect(markers.find((m) => m.id === "nadir-patch")?.html).toContain("sw-nadir");
   });

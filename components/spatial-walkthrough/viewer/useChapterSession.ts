@@ -95,7 +95,7 @@ export function useChapterSession({
     if (!player || !pending.current) return;
     const next = pending.current;
     pending.current = null;
-    player.seekTo(next.t, next.yaw, next.pitch);
+    player.seekTo(next.t, next.yaw, next.pitch, { pause: next.pause });
     if (next.pause) player.pause();
     window.setTimeout(() => setFade(null), 480);
   }, [player, clipId]);
@@ -121,8 +121,7 @@ export function useChapterSession({
     kind: string,
   ) {
     if (crossingKind(clipId, dest.id) === "continue") {
-      player?.seekTo(t, yaw, pitch);
-      if (pause) player?.pause();
+      player?.seekTo(t, yaw, pitch, { pause });
       setCurrentT(t);
       return;
     }
@@ -170,14 +169,28 @@ export function useChapterSession({
     goClip(dest, chapter.startTime, chapter.defaultYaw, chapter.defaultPitch, true, chapter.name, "manual");
   }
 
-  function goWaypoint(wp: WaypointRecord) {
+  function goWaypoint(wp: WaypointRecord, pause = true) {
     const dest = ordered.find((c) => c.id === wp.clipId);
     if (!dest) return;
     if (dest.id === clipId) {
-      player?.seekTo(wp.tSeconds, wp.yawDeg, wp.pitchDeg);
+      player?.seekTo(wp.tSeconds, wp.yawDeg, wp.pitchDeg, { pause });
       return;
     }
-    goClip(dest, wp.tSeconds, wp.yawDeg, wp.pitchDeg, true, dest.title ?? dest.zone ?? "Next capture", "manual");
+    goClip(dest, wp.tSeconds, wp.yawDeg, wp.pitchDeg, pause, dest.title ?? dest.zone ?? "Next capture", "manual");
+  }
+
+  function followEdge(edge: ClipEdgeRecord) {
+    const dest = ordered.find((c) => c.id === edge.destClipId);
+    if (!dest) return;
+    goClip(
+      dest,
+      destTime(edge, dest.durationS),
+      edge.defaultYaw,
+      edge.defaultPitch,
+      true,
+      locationChip(dest, edge.transitionType),
+      edge.transitionType,
+    );
   }
 
   return {
@@ -190,10 +203,12 @@ export function useChapterSession({
     duration,
     scopedWaypoints,
     fade,
+    resolvedEdges: graph,
     chapters: locked ? visibleChapters.filter((c) => c.id === locked.id) : visibleChapters,
     pickerLocked: Boolean(locked),
     selectChapter,
     goWaypoint,
+    followEdge,
     setCurrentT,
   };
 }

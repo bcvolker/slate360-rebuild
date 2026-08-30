@@ -106,6 +106,7 @@ export function WalkthroughClientView({ walkthroughId }: Props) {
           chapters={((payload.chapters as Array<Record<string, unknown>>) ?? []).map(toChapter)}
           edges={((payload.edges as Array<Record<string, unknown>>) ?? []).map(toClipEdge)}
           locator={typeof window !== "undefined" ? parseShareLocator(window.location.search) : undefined}
+          shareBasePath={typeof window !== "undefined" ? window.location.pathname : undefined}
         />
       </div>
     </div>

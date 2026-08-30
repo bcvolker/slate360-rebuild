@@ -214,6 +214,20 @@ export function nextInList(list: WaypointRecord[], fromIndex: number): WaypointR
   return list[fromIndex + 1] ?? null;
 }
 
+export function nextChapter(
+  chapters: ChapterRecord[],
+  selectedId: string | null,
+  live: ChapterRecord | null,
+): ChapterRecord | null {
+  const list = orderedChapters(chapters);
+  if (list.length === 0) return null;
+  const id = selectedId ?? live?.id ?? null;
+  if (!id) return list[0] ?? null;
+  const i = list.findIndex((c) => c.id === id);
+  if (i < 0) return list[0] ?? null;
+  return list[i + 1] ?? null;
+}
+
 export function prevInList(list: WaypointRecord[], fromIndex: number): WaypointRecord | null {
   if (fromIndex <= 0) return null;
   return list[fromIndex - 1] ?? null;
