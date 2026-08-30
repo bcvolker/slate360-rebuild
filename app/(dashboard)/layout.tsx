@@ -10,6 +10,8 @@ import { StudioAppShell } from "@/components/studio-ui/StudioAppShell";
 import { buildInviteShareData } from "@/lib/server/invite-share-data";
 import { isMobileServerLayout } from "@/lib/server/device-layout";
 import { isBetaMode } from "@/lib/beta-mode";
+import { resolveClientSurfaceFlags } from "@/lib/spatial-walkthrough/access";
+import { visibleClientApps } from "@/lib/spatial-walkthrough/client-surface";
 
 type DashboardRouteLayoutProps = {
   children: React.ReactNode;
@@ -28,6 +30,8 @@ export default async function DashboardRouteLayout({ children }: DashboardRouteL
     "";
 
   const inviteShareData = await buildInviteShareData(user, orgId);
+  const flags = await resolveClientSurfaceFlags(orgId, Boolean(isSlateCeo));
+  const visibleApps = visibleClientApps(flags);
   const isBetaEligible = isBetaMode() || isBetaApproved || isSlateCeo || isSlateStaff;
   void isBetaEligible;
 
@@ -46,6 +50,7 @@ export default async function DashboardRouteLayout({ children }: DashboardRouteL
       inviteShareData={inviteShareData}
       showOpsConsole={Boolean(canAccessOperationsConsole)}
       isCeo={Boolean(isSlateCeo)}
+      visibleApps={visibleApps}
     >
       {children}
     </DashboardDesktopShell>

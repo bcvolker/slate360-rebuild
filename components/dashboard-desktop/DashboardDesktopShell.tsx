@@ -24,10 +24,11 @@ type DashboardDesktopShellProps = {
   inviteShareData: InviteShareData;
   showOpsConsole?: boolean;
   isCeo?: boolean;
+  visibleApps?: import("@/lib/spatial-walkthrough/client-surface").ClientSurfaceApp[] | null;
   children: ReactNode;
 };
 
-function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, children }: DashboardDesktopShellProps) {
+function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, visibleApps, children }: DashboardDesktopShellProps) {
   const { open: inviteOpen, setOpen: setInviteOpen } = useInviteShare();
   const pathname = usePathname() ?? "";
   // Unified-shell accent: data-app flips --app-accent (green platform/Site Walk → blue Twin).
@@ -36,8 +37,11 @@ function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, children
   const shellApp = resolveShellApp(pathname);
   // Single gating source: Twin switcher visibility falls out of resolveDashboardNav
   // (APP_STORE_MODE + CEO/staff) — no separate flag.
-  const twinVisible = resolveDashboardNav(Boolean(showOpsConsole), Boolean(isCeo)).some(
+  const twinVisible = resolveDashboardNav(Boolean(showOpsConsole), Boolean(isCeo), visibleApps).some(
     (item) => item.href === "/digital-twins",
+  );
+  const siteWalkVisible = resolveDashboardNav(Boolean(showOpsConsole), Boolean(isCeo), visibleApps).some(
+    (item) => item.href === "/site-walks",
   );
   const [collapsed, setCollapsed] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
@@ -63,6 +67,7 @@ function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, children
       <DashboardDesktopSidebar
         showOpsConsole={showOpsConsole}
         isCeo={isCeo}
+        visibleApps={visibleApps}
         collapsed={collapsed}
         onToggleCollapse={toggleCollapse}
       />
@@ -71,6 +76,10 @@ function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, children
           userName={userName}
           shellApp={shellApp}
           twinVisible={twinVisible}
+          siteWalkVisible={siteWalkVisible}
+          spatialWalkthroughVisible={
+            Boolean(visibleApps?.includes("spatial-walkthrough")) || Boolean(isCeo)
+          }
           onOpenCommand={() => setCommandOpen(true)}
         />
         <main className={t.content}>{children}</main>

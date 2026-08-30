@@ -8,6 +8,7 @@ import { loadProjectPeople } from "@/lib/server/collaborator-data";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveNamespace } from "@/lib/slatedrop/storage";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
+import { resolveClientSurfaceFlags } from "@/lib/spatial-walkthrough/access";
 
 export type ProjectOverviewActivity = {
   id: string;
@@ -32,10 +33,13 @@ export type ProjectOverviewData = {
     files: number;
     deliverables: number;
     teamMembers: number;
+    walkthroughs: number;
   };
   lastFileUploadAt: string | null;
   recentActivity: ProjectOverviewActivity[];
   showTwins: boolean;
+  showSiteWalk: boolean;
+  showWalkthroughs: boolean;
 };
 
 type ProjectMetadata = {
@@ -94,7 +98,10 @@ export async function loadProjectOverviewData(projectId: string): Promise<Projec
 
   const orgId = project.org_id ?? context.orgId;
   const admin = createAdminClient();
-  const showTwins = !APP_STORE_MODE;
+  const flags = await resolveClientSurfaceFlags(orgId, Boolean(context.isSlateCeo));
+  const showTwins = !APP_STORE_MODE && flags.twin360;
+  const showSiteWalk = flags.siteWalk;
+  const showWalkthroughs = flags.spatialWalkthrough;
   const metadata = project.metadata ?? {};
   const location = resolveProjectLocation(metadata, {
     fallbackAddress: metadata.address,
@@ -111,6 +118,7 @@ export async function loadProjectOverviewData(projectId: string): Promise<Projec
     recentWalksRes,
     recentTwinsRes,
     people,
+    walkthroughCountRes,
   ] = await Promise.all([
     admin
       .from("site_walk_sessions")
@@ -148,6 +156,12 @@ export async function loadProjectOverviewData(projectId: string): Promise<Projec
           .limit(5)
       : Promise.resolve({ data: [], error: null }),
     loadProjectPeople(projectId, orgId ?? null),
+    showWalkthroughs
+      ? admin
+          .from("spatial_walkthroughs")
+          .select("id", { count: "exact", head: true })
+          .eq("project_id", projectId)
+      : Promise.resolve({ count: 0, data: null, error: null }),
   ]);
 
   const folderIds = (foldersRes.data ?? []).map((folder) => folder.id).filter(Boolean);
@@ -189,26 +203,30 @@ export async function loadProjectOverviewData(projectId: string): Promise<Projec
     people.members.length + people.pendingInvites.length;
 
   const activity: ProjectOverviewActivity[] = [
-    ...((recentWalksRes.data ?? []) as Array<{ id: string; title: string; status: string; updated_at: string }>).map(
-      (walk) => ({
-        id: `walk:${walk.id}`,
-        kind: "walk" as const,
-        title: walk.title || "Site Walk",
-        meta: formatStatusLabel(walk.status),
-        href: `/site-walk/capture-v2?session=${encodeURIComponent(walk.id)}`,
-        occurredAt: walk.updated_at,
-      }),
-    ),
-    ...((recentTwinsRes.data ?? []) as Array<{ id: string; title: string; status: string; updated_at: string }>).map(
-      (twin) => ({
-        id: `twin:${twin.id}`,
-        kind: "twin" as const,
-        title: twin.title || "Digital Twin",
-        meta: formatStatusLabel(twin.status),
-        href: `/digital-twin/twins/${encodeURIComponent(twin.id)}`,
-        occurredAt: twin.updated_at,
-      }),
-    ),
+    ...(showSiteWalk
+      ? ((recentWalksRes.data ?? []) as Array<{ id: string; title: string; status: string; updated_at: string }>).map(
+          (walk) => ({
+            id: `walk:${walk.id}`,
+            kind: "walk" as const,
+            title: walk.title || "Site Walk",
+            meta: formatStatusLabel(walk.status),
+            href: `/site-walk/capture-v2?session=${encodeURIComponent(walk.id)}`,
+            occurredAt: walk.updated_at,
+          }),
+        )
+      : []),
+    ...(showTwins
+      ? ((recentTwinsRes.data ?? []) as Array<{ id: string; title: string; status: string; updated_at: string }>).map(
+          (twin) => ({
+            id: `twin:${twin.id}`,
+            kind: "twin" as const,
+            title: twin.title || "Digital Twin",
+            meta: formatStatusLabel(twin.status),
+            href: `/digital-twin/twins/${encodeURIComponent(twin.id)}`,
+            occurredAt: twin.updated_at,
+          }),
+        )
+      : []),
     ...recentFiles.map((file) => ({
       id: `file:${file.id}`,
       kind: "file" as const,
@@ -235,9 +253,12 @@ export async function loadProjectOverviewData(projectId: string): Promise<Projec
       files: filesCount,
       deliverables: deliverableCountRes.count ?? 0,
       teamMembers,
+      walkthroughs: walkthroughCountRes.count ?? 0,
     },
     lastFileUploadAt,
     recentActivity: activity,
     showTwins,
+    showSiteWalk,
+    showWalkthroughs,
   };
 }

@@ -14,16 +14,18 @@ import { dashboardDesktopTokens as t } from "./dashboard-tokens";
 export function DashboardDesktopSidebar({
   showOpsConsole = false,
   isCeo = false,
+  visibleApps = null,
   collapsed = false,
   onToggleCollapse,
 }: {
   showOpsConsole?: boolean;
   isCeo?: boolean;
+  visibleApps?: import("@/lib/spatial-walkthrough/client-surface").ClientSurfaceApp[] | null;
   collapsed?: boolean;
   onToggleCollapse?: () => void;
 }) {
   const pathname = usePathname() ?? "";
-  const nav = resolveDashboardNav(showOpsConsole, isCeo);
+  const nav = resolveDashboardNav(showOpsConsole, isCeo, visibleApps);
 
   return (
     <aside

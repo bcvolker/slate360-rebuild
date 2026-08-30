@@ -8,6 +8,7 @@ type SwitcherItem = { id: ShellApp; label: string; href: string };
 
 const ITEMS: SwitcherItem[] = [
   { id: "dashboard", label: "Home", href: "/dashboard" },
+  { id: "spatial-walkthrough", label: "Walkthroughs", href: "/spatial-walkthrough" },
   { id: "site-walk", label: "Site Walk", href: "/site-walks" },
   { id: "twin360", label: "Twin 360", href: "/digital-twins" },
 ];
@@ -22,11 +23,20 @@ const ITEMS: SwitcherItem[] = [
 export function AppSwitcher({
   active,
   twinVisible = true,
+  siteWalkVisible = true,
+  spatialWalkthroughVisible = false,
 }: {
   active: ShellApp;
   twinVisible?: boolean;
+  siteWalkVisible?: boolean;
+  spatialWalkthroughVisible?: boolean;
 }) {
-  const items = twinVisible ? ITEMS : ITEMS.filter((i) => i.id !== "twin360");
+  const items = ITEMS.filter((i) => {
+    if (i.id === "twin360") return twinVisible;
+    if (i.id === "site-walk") return siteWalkVisible;
+    if (i.id === "spatial-walkthrough") return spatialWalkthroughVisible;
+    return true;
+  });
 
   return (
     <div

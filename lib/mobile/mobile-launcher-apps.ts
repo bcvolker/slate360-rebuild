@@ -13,6 +13,7 @@ type LauncherContext = {
   twin: DigitalTwinEntitlement;
   homeData: MobileAppHomeData;
   isCeo: boolean;
+  spatialWalkthrough: boolean;
 };
 
 type AppDefinition = {
@@ -31,6 +32,23 @@ type AppDefinition = {
 
 const APP_DEFINITIONS: AppDefinition[] = [
   {
+    id: "spatial-walkthrough",
+    title: "Spatial Walkthrough",
+    subtext: "Immersive 360 walkthroughs of the site.",
+    href: "/spatial-walkthrough",
+    accent: "primary",
+    entitlementKey: "standalone_spatial_walkthrough",
+    upsellBullets: [
+      "Review branded 360 walkthroughs in the browser.",
+      "Open document pins and project files.",
+      "Share approved client and public links.",
+    ],
+    inScope: ({ isCeo, spatialWalkthrough }) => isCeo || spatialWalkthrough,
+    isEntitled: ({ isCeo, spatialWalkthrough }) => isCeo || spatialWalkthrough,
+    isPurchasable: () => false,
+    statusSubline: () => "Open walkthroughs",
+  },
+  {
     id: "site-walk",
     title: "Site Walk",
     subtext: "Capture photos and map pins to plans.",
@@ -42,7 +60,7 @@ const APP_DEFINITIONS: AppDefinition[] = [
       "Assign trades, priorities, and deliverables per stop.",
       "Sync walks offline and publish client-ready reports.",
     ],
-    inScope: () => true,
+    inScope: ({ isCeo, entitlements }) => isCeo || entitlements.canAccessStandalonePunchwalk,
     isEntitled: ({ entitlements }) => entitlements.canAccessStandalonePunchwalk,
     isPurchasable: () => true,
     statusSubline: (home) => {
@@ -81,8 +99,8 @@ const APP_DEFINITIONS: AppDefinition[] = [
       "Track processing jobs and spaces from the field.",
       "Share reality models with project stakeholders.",
     ],
-    inScope: ({ twin }) =>
-      !APP_STORE_MODE || twin.allowed || twin.subscriptionTier !== "none",
+    inScope: ({ isCeo, twin }) =>
+      isCeo || ((!APP_STORE_MODE || twin.allowed || twin.subscriptionTier !== "none") && twin.allowed),
     isEntitled: ({ twin }) => twin.allowed,
     isPurchasable: () => true,
     statusSubline: (home) => {
@@ -178,42 +196,28 @@ export function buildMobileLauncherApps(
   twin: DigitalTwinEntitlement,
   homeData: MobileAppHomeData,
   isCeo = false,
+  spatialWalkthrough = false,
 ): MobileLauncherAppView[] {
-  const ctx: LauncherContext = { entitlements, twin, homeData, isCeo };
+  const ctx: LauncherContext = { entitlements, twin, homeData, isCeo, spatialWalkthrough };
   const views: MobileLauncherAppView[] = [];
 
   for (const app of APP_DEFINITIONS) {
     if (!app.inScope(ctx)) continue;
 
     const entitled = app.isEntitled(ctx);
-    if (entitled) {
-      views.push({
-        id: app.id,
-        title: app.title,
-        subtext: app.subtext,
-        statusSubline: app.statusSubline(homeData),
-        href: app.href,
-        accent: app.accent,
-        access: "entitled",
-        entitlementKey: app.entitlementKey,
-        upsellBullets: app.upsellBullets,
-      });
-      continue;
-    }
+    if (!entitled) continue;
 
-    if (app.isPurchasable(ctx)) {
-      views.push({
-        id: app.id,
-        title: app.title,
-        subtext: app.subtext,
-        statusSubline: null,
-        href: app.href,
-        accent: app.accent,
-        access: "upsell",
-        entitlementKey: app.entitlementKey,
-        upsellBullets: app.upsellBullets,
-      });
-    }
+    views.push({
+      id: app.id,
+      title: app.title,
+      subtext: app.subtext,
+      statusSubline: app.statusSubline(homeData),
+      href: app.href,
+      accent: app.accent,
+      access: "entitled",
+      entitlementKey: app.entitlementKey,
+      upsellBullets: app.upsellBullets,
+    });
   }
 
   return views;

@@ -10,6 +10,9 @@ type DashboardDesktopShellGateProps = {
   userName: string;
   workspaceName: string;
   inviteShareData: InviteShareData;
+  showOpsConsole?: boolean;
+  isCeo?: boolean;
+  visibleApps?: import("@/lib/spatial-walkthrough/client-surface").ClientSurfaceApp[] | null;
   children: ReactNode;
 };
 
@@ -18,6 +21,9 @@ export function DashboardDesktopShellGate({
   userName,
   workspaceName,
   inviteShareData,
+  showOpsConsole,
+  isCeo,
+  visibleApps,
   children,
 }: DashboardDesktopShellGateProps) {
   const pathname = usePathname() ?? "";
@@ -31,6 +37,9 @@ export function DashboardDesktopShellGate({
       userName={userName}
       workspaceName={workspaceName}
       inviteShareData={inviteShareData}
+      showOpsConsole={showOpsConsole}
+      isCeo={isCeo}
+      visibleApps={visibleApps}
     >
       {children}
     </DashboardDesktopShell>

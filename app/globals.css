@@ -1010,6 +1010,7 @@
 [data-app="site-walk"] { --app-accent: var(--graphite-primary); }
 [data-app="twin360"]   { --app-accent: var(--twin360-blue); }
 [data-app="dashboard"] { --app-accent: var(--graphite-primary); }
+[data-app="spatial-walkthrough"] { --app-accent: var(--graphite-primary); }
 
 /* ── Site Walk 360 — THE FIELD SYSTEM (docs/design/SITEWALK360_LOCK_SHEET.md) ──
    Its own standalone brand, NOT an accent flip on Graphite Glass — SW360 uses

@@ -4,7 +4,7 @@
 
 export type ProjectDetailVariant = "worksite" | "project";
 
-export type ProjectDetailTabId = "overview" | "walks" | "plans" | "twins" | "files" | "deliverables" | "team";
+export type ProjectDetailTabId = "overview" | "walkthroughs" | "walks" | "plans" | "twins" | "files" | "deliverables" | "team";
 
 export type ProjectDetailTabDef = {
   id: ProjectDetailTabId;
@@ -15,6 +15,7 @@ export type ProjectDetailTabDef = {
 
 export const PROJECT_DETAIL_TABS: readonly ProjectDetailTabDef[] = [
   { id: "overview", label: "Overview", segment: "" },
+  { id: "walkthroughs", label: "Spatial Walkthroughs", segment: "walkthroughs" },
   { id: "walks", label: "Site Walks", segment: "walks" },
   { id: "plans", label: "Plans", segment: "plans" },
   { id: "twins", label: "Twins", segment: "twins" },

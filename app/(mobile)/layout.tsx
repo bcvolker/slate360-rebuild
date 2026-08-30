@@ -6,6 +6,8 @@ import { buildInviteShareData } from "@/lib/server/invite-share-data";
 import { isMobileServerLayout } from "@/lib/server/device-layout";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { requireBetaAccess } from "@/lib/server/beta-access";
+import { resolveClientSurfaceFlags } from "@/lib/spatial-walkthrough/access";
+import { visibleClientApps } from "@/lib/spatial-walkthrough/client-surface";
 
 export default async function MobileShellLayout({ children }: { children: ReactNode }) {
   const ctx = await resolveServerOrgContext();
@@ -20,6 +22,9 @@ export default async function MobileShellLayout({ children }: { children: ReactN
     ctx.user.email ??
     "Member";
 
+  const flags = await resolveClientSurfaceFlags(ctx.orgId, Boolean(ctx.isSlateCeo));
+  const visibleApps = visibleClientApps(flags);
+
   if (isMobileDevice) {
     return (
       <MobilePlatformLayout inviteShareData={inviteShareData} isMobileDevice={isMobileDevice}>
@@ -33,6 +38,9 @@ export default async function MobileShellLayout({ children }: { children: ReactN
       userName={userName}
       workspaceName={ctx.orgName ?? "Slate360"}
       inviteShareData={inviteShareData}
+      showOpsConsole={Boolean(ctx.canAccessOperationsConsole)}
+      isCeo={Boolean(ctx.isSlateCeo)}
+      visibleApps={visibleApps}
     >
       {children}
     </DashboardDesktopShellGate>

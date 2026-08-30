@@ -7,6 +7,8 @@ type DashboardDesktopTopBarProps = {
   userName: string;
   shellApp: ShellApp;
   twinVisible: boolean;
+  siteWalkVisible?: boolean;
+  spatialWalkthroughVisible?: boolean;
   onOpenCommand: () => void;
 };
 
@@ -20,6 +22,8 @@ export function DashboardDesktopTopBar({
   userName,
   shellApp,
   twinVisible,
+  siteWalkVisible = true,
+  spatialWalkthroughVisible = false,
   onOpenCommand,
 }: DashboardDesktopTopBarProps) {
   const initial = (userName.trim()[0] ?? "U").toUpperCase();
@@ -32,7 +36,12 @@ export function DashboardDesktopTopBar({
         <span className={shellTokens.brandWordmark}>Slate360</span>
       </div>
 
-      <AppSwitcher active={shellApp} twinVisible={twinVisible} />
+      <AppSwitcher
+        active={shellApp}
+        twinVisible={twinVisible}
+        siteWalkVisible={siteWalkVisible}
+        spatialWalkthroughVisible={spatialWalkthroughVisible}
+      />
 
       <div className={shellTokens.topBarSpacer} />
 

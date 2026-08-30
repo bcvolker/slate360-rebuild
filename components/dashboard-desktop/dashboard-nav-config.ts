@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   MapPin,
   Orbit,
+  Scan,
   Thermometer,
   UserCircle,
   Users,
@@ -18,6 +19,8 @@ import {
 } from "lucide-react";
 
 import { APP_STORE_MODE } from "@/lib/app-store-mode";
+import type { ClientSurfaceApp } from "@/lib/spatial-walkthrough/client-surface";
+import { isNavAppVisible } from "@/lib/spatial-walkthrough/nav-filter";
 
 export type DashboardNavItem = {
   label: string;
@@ -30,6 +33,8 @@ export type DashboardNavItem = {
   staffOnly?: boolean;
   /** Only shown to the Slate360 CEO. */
   ceoOnly?: boolean;
+  /** Hide unless this client-surface app is visible (CEO still sees authoring apps). */
+  requiresApp?: ClientSurfaceApp;
 };
 
 const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
@@ -46,10 +51,18 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     matchPrefixes: ["/projects"],
   },
   {
+    label: "Spatial Walkthroughs",
+    href: "/spatial-walkthrough",
+    icon: Scan,
+    matchPrefixes: ["/spatial-walkthrough"],
+    requiresApp: "spatial-walkthrough",
+  },
+  {
     label: "Site Walks",
     href: "/site-walks",
     icon: MapPin,
     matchPrefixes: ["/site-walks"],
+    requiresApp: "site-walk",
   },
   {
     label: "Twin 360",
@@ -57,6 +70,7 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     icon: Box,
     matchPrefixes: ["/digital-twins", "/digital-twin/twins"],
     appStoreHidden: true,
+    requiresApp: "twin360",
   },
   {
     // F1 (TWIN_SERVICE_STUDIO_PLAN.md Phase F): the operator production cockpit —
@@ -74,6 +88,7 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/slatedrop",
     icon: Cloud,
     matchPrefixes: ["/slatedrop"],
+    requiresApp: "slatedrop",
   },
   {
     label: "Thermal Studio",
@@ -143,12 +158,16 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
 
 /** Resolve the visible nav for the current viewer. App-Store mode hides in-progress
  * modules; Operations Console is staff-only. */
-export function resolveDashboardNav(showOpsConsole: boolean, isCeo = false): DashboardNavItem[] {
+export function resolveDashboardNav(
+  showOpsConsole: boolean,
+  isCeo = false,
+  visibleApps?: ClientSurfaceApp[] | null,
+): DashboardNavItem[] {
   return DASHBOARD_DESKTOP_NAV_ALL.filter((item) => {
     if (APP_STORE_MODE && item.appStoreHidden) return false;
     if (item.ceoOnly && !isCeo) return false;
     if (item.staffOnly && !showOpsConsole) return false;
-    return true;
+    return isNavAppVisible(item.requiresApp, isCeo, visibleApps);
   });
 }
 

@@ -49,6 +49,7 @@ type ProjectDetailShellProps = {
   status: string;
   locationLabel: string;
   showTwins?: boolean;
+  hiddenTabIds?: ProjectDetailTabId[];
   /** Cover image (a recent site-walk photo or twin still). Falls back to a branded band. */
   coverImageUrl?: string | null;
   children: ReactNode;
@@ -60,10 +61,11 @@ export function ProjectDetailShell({
   status,
   locationLabel,
   showTwins = true,
+  hiddenTabIds,
   coverImageUrl = null,
   children,
 }: ProjectDetailShellProps) {
-  const hiddenTabIds: ProjectDetailTabId[] = showTwins ? [] : ["twins"];
+  const hidden = hiddenTabIds ?? (showTwins ? [] : ["twins"]);
 
   return (
     <div className={t.page}>
@@ -110,7 +112,7 @@ export function ProjectDetailShell({
       </div>
 
       <header className={t.header}>
-        <ProjectDetailTabs projectId={projectId} hiddenTabIds={hiddenTabIds} />
+        <ProjectDetailTabs projectId={projectId} hiddenTabIds={hidden} />
       </header>
       <div className={t.content}>{children}</div>
     </div>
