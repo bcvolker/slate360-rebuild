@@ -273,6 +273,41 @@ describe("viewer markers", () => {
     expect(markers.find((m) => m.data.kind === "pin")?.html).toContain("sw-pin");
     expect(markers.find((m) => m.id === "nadir-patch")?.html).toContain("sw-nadir");
   });
+  it("widens the rear mask at a later doorway keyframe", () => {
+    const early = buildViewerMarkers({
+      waypoints: [],
+      clipId: "c1",
+      t: 0,
+      pins: [],
+      redactions: [{
+        clipId: "c1", tStart: 0, tEnd: 30, yawMin: null, yawMax: null, pitchMin: null, pitchMax: null,
+        mode: "operator-patch", policy: "client",
+        keyframes: [
+          { t: 0, yawCenter: 180, yawWidth: 40, pitchTop: -10, pitchBottom: -70, nadirRadius: 0.2, feather: 0, style: "solid" },
+          { t: 10, yawCenter: 180, yawWidth: 90, pitchTop: 8, pitchBottom: -28, nadirRadius: 0.38, feather: 0, style: "solid" },
+        ],
+      }],
+      operatorPatch: parseOperatorPatch({ enabled: true }),
+    });
+    const late = buildViewerMarkers({
+      waypoints: [],
+      clipId: "c1",
+      t: 10,
+      pins: [],
+      redactions: [{
+        clipId: "c1", tStart: 0, tEnd: 30, yawMin: null, yawMax: null, pitchMin: null, pitchMax: null,
+        mode: "operator-patch", policy: "client",
+        keyframes: [
+          { t: 0, yawCenter: 180, yawWidth: 40, pitchTop: -10, pitchBottom: -70, nadirRadius: 0.2, feather: 0, style: "solid" },
+          { t: 10, yawCenter: 180, yawWidth: 90, pitchTop: 8, pitchBottom: -28, nadirRadius: 0.38, feather: 0, style: "solid" },
+        ],
+      }],
+      operatorPatch: parseOperatorPatch({ enabled: true }),
+    });
+    const w0 = early.find((m) => m.id === "rear-patch")?.width ?? 0;
+    const w1 = late.find((m) => m.id === "rear-patch")?.width ?? 0;
+    expect(w1).toBeGreaterThan(w0);
+  });
   it("does not return a previous waypoint at the start", () => {
     expect(prevWaypoint(wps, "c1", 0)).toBeNull();
   });

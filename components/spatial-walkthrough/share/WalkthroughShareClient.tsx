@@ -14,6 +14,7 @@ import { SharePasswordGate } from "./SharePasswordGate";
 type SharePayload = {
   theme: BrandTheme;
   operatorPatch: OperatorPatch | null;
+  orientation?: { source: "manual" | "oem"; keyframes: Array<{ t: number; rollDeg: number; pitchDeg: number; yawDeg: number }>; bakeable: boolean };
   allowDownload: boolean;
   walkthrough: { id?: string; title: string; capturedAt?: string | null; building?: string | null };
   clip: { id: string; proxyUrl: string; posterUrl: string | null; durationS?: number } | null;
@@ -141,6 +142,7 @@ export function WalkthroughShareClient({ token }: { token: string }) {
       pins={mapPins(payload.pins, payload.attachments, token, payload.allowDownload)}
       redactions={payload.redactions}
       operatorPatch={payload.operatorPatch}
+      orientation={payload.orientation ?? null}
       allowDownload={payload.allowDownload}
       capturedAt={payload.walkthrough.capturedAt}
       duration={Number(payload.clip.durationS ?? 0)}

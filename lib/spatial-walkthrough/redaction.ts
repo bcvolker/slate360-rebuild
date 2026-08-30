@@ -139,3 +139,8 @@ export function redactionForRecipient(rule: RedactionRule, policy: AccessPolicy)
   if (policy === "public") return { ...rule, reason: null };
   return rule;
 }
+
+/** PUBLIC derivatives already cut skips and operator masks. Do not apply them again in the player. */
+export function stripBakedIntoDerivative(rules: RedactionRule[]): RedactionRule[] {
+  return rules.filter((r) => r.mode !== "skip" && r.mode !== "operator-patch");
+}

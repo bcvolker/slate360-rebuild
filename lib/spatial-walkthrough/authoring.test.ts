@@ -11,9 +11,8 @@ import {
   upsertKeyframe,
   type OperatorKeyframe,
 } from "./keyframes";
-import { AUTHORING_MODES } from "./redaction";
 import { interpolateOrientation, parseOrientationTrack, sphereCorrectionFromOrientation, upsertOrientation } from "./orientation";
-import { applySkip, skipIntervals, yawInRange, wrapYaw, sectorYawCenter, rulesForPolicy } from "./redaction";
+import { AUTHORING_MODES, applySkip, skipIntervals, yawInRange, wrapYaw, sectorYawCenter, rulesForPolicy, stripBakedIntoDerivative } from "./redaction";
 import { deliveredTime, excludeDraft, masterTimeFromDelivered, playbackHead, resizeRange, snapTime } from "./timeline-model";
 import { contactStripSamples, jumpPrivacy } from "./privacy-review";
 import { DEFAULT_OPERATOR_PATCH } from "./types";
@@ -157,5 +156,13 @@ describe("independent privacy regions", () => {
     expect(interpolateKeyframes(regions[0].frames, 5)?.yawWidth).toBeCloseTo(60, 5);
     expect(Math.abs(wrapYaw((interpolateKeyframes(regions[0].frames, 5)?.yawCenter ?? 0) - 180))).toBeCloseTo(0, 0);
     expect(interpolateKeyframes(regions[1].frames, 5)?.yawCenter).toBe(20);
+  });
+  it("strips skip and operator-patch from a PUBLIC baked player", () => {
+    const rules = [
+      { clipId: "c", tStart: 0, tEnd: 4, yawMin: null, yawMax: null, pitchMin: null, pitchMax: null, mode: "skip" as const, policy: "public" as const },
+      { clipId: "c", tStart: 0, tEnd: 20, yawMin: null, yawMax: null, pitchMin: null, pitchMax: null, mode: "operator-patch" as const, policy: "client" as const, keyframes: [a] },
+      { clipId: "c", tStart: 2, tEnd: 3, yawMin: 10, yawMax: 20, pitchMin: -10, pitchMax: 0, mode: "cover" as const, policy: "public" as const },
+    ];
+    expect(stripBakedIntoDerivative(rules).map((r) => r.mode)).toEqual(["cover"]);
   });
 });

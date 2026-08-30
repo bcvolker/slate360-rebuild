@@ -2,12 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { loadShareRow, shareDenied, passwordOk, filterRuntime } from "@/lib/spatial-walkthrough/share-resolve";
 import { resolveBrandTheme } from "@/lib/spatial-walkthrough/theme";
 import { parseOperatorPatch, resolveOperatorPatch } from "@/lib/spatial-walkthrough/operator-patch";
+import { parseOrientationTrack } from "@/lib/spatial-walkthrough/orientation";
 import { sessionUnlocksShare } from "@/lib/spatial-walkthrough/share-session";
 import { publicShareDenial } from "@/lib/spatial-walkthrough/share-token";
 import { recordWalkthroughAudit } from "@/lib/spatial-walkthrough/audit";
 import { createRateLimiter } from "@/lib/server/rate-limit";
-import type { RedactionRule } from "@/lib/spatial-walkthrough/redaction";
-import { hiddenWaypointIds } from "@/lib/spatial-walkthrough/redaction";
+import { parseRedactionRow } from "@/lib/spatial-walkthrough/redaction-parse";
+import { hiddenWaypointIds, stripBakedIntoDerivative } from "@/lib/spatial-walkthrough/redaction";
 import { toWaypoint } from "@/lib/spatial-walkthrough/waypoints";
 import { toChapter, visibleChapters } from "@/lib/spatial-walkthrough/chapters";
 import { toClipEdge } from "@/lib/spatial-walkthrough/clip-edges";
@@ -19,23 +20,6 @@ const checkRateLimit = createRateLimiter("spatial-walkthrough:public", 30, 60);
 
 function passwordFrom(req: NextRequest): string | null {
   return req.headers.get("x-walkthrough-pass") || req.nextUrl.searchParams.get("code");
-}
-
-function mapRules(rows: Array<Record<string, unknown>>): RedactionRule[] {
-  return rows.map((r) => ({
-    id: String(r.id),
-    clipId: String(r.clip_id),
-    tStart: Number(r.t_start),
-    tEnd: Number(r.t_end),
-    yawMin: r.yaw_min == null ? null : Number(r.yaw_min),
-    yawMax: r.yaw_max == null ? null : Number(r.yaw_max),
-    pitchMin: r.pitch_min == null ? null : Number(r.pitch_min),
-    pitchMax: r.pitch_max == null ? null : Number(r.pitch_max),
-    mode: r.mode as RedactionRule["mode"],
-    policy: r.policy as RedactionRule["policy"],
-    reason: (r.reason as string) ?? null,
-    waypointId: (r.waypoint_id as string) ?? null,
-  }));
 }
 
 export const GET = async (req: NextRequest, ctx: Ctx) => {
@@ -54,7 +38,7 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
   if (!wt) return NextResponse.json(publicShareDenial(), { status: 404 });
 
   const [{ data: clips }, { data: waypoints }, { data: pins }, { data: redactions }, { data: chapters }, { data: edges }] = await Promise.all([
-    admin.from("spatial_clips").select("id, title, zone, duration_s, default_yaw, default_pitch, status, sort_order, operator_patch, capture_meta, public_proxy_key").eq("walkthrough_id", wt.id).eq("status", "ready").order("sort_order"),
+    admin.from("spatial_clips").select("id, title, zone, duration_s, default_yaw, default_pitch, status, sort_order, operator_patch, orientation, capture_meta, public_proxy_key").eq("walkthrough_id", wt.id).eq("status", "ready").order("sort_order"),
     admin.from("spatial_waypoints").select("*").eq("walkthrough_id", wt.id).order("sort_order"),
     admin.from("spatial_pins").select("*").eq("walkthrough_id", wt.id),
     admin.from("spatial_redactions").select("*").eq("walkthrough_id", wt.id),
@@ -73,7 +57,7 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
         waypoints: waypoints ?? [],
         pins: pins ?? [],
         attachments: attachments ?? [],
-        redactions: mapRules(redactions ?? []),
+        redactions: (redactions ?? []).map((r) => parseRedactionRow(r as Record<string, unknown>)),
         clipId: clip.id,
       })
     : { waypoints: [], pins: [], attachments: [], redactions: [] };
@@ -99,12 +83,16 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
     theme.logoUrl = `/api/spatial-walkthrough/public/${token}/logo`;
   }
 
+  const resolvedPatch = resolveOperatorPatch(clip?.operator_patch, parseOperatorPatch(wt.operator_patch));
+  const publicShare = row.policy === "public";
+
   return NextResponse.json({
     product: "Spatial Walkthrough",
     policy: row.policy,
     allowDownload: row.allow_download,
     theme,
-    operatorPatch: resolveOperatorPatch(clip?.operator_patch, parseOperatorPatch(wt.operator_patch)),
+    operatorPatch: publicShare ? { ...resolvedPatch, enabled: false } : resolvedPatch,
+    orientation: publicShare ? { source: "manual", keyframes: [], bakeable: true } : parseOrientationTrack(clip?.orientation),
     walkthrough: {
       id: wt.id,
       title: wt.title,
@@ -149,6 +137,6 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
     })(),
     pins: runtime.pins,
     attachments: runtime.attachments,
-    redactions: runtime.redactions,
+    redactions: publicShare ? stripBakedIntoDerivative(runtime.redactions) : runtime.redactions,
   });
 };

@@ -14,7 +14,7 @@ import { activeBriefingCue } from "@/lib/spatial-walkthrough/briefing-script";
 import type { NavMode } from "@/lib/spatial-walkthrough/nav-mode";
 import { absoluteViewHref, locatorFromView } from "@/lib/spatial-walkthrough/share-locator";
 import { BriefingCueOverlay } from "./BriefingCueOverlay";
-import { useWalkthroughNav } from "./useWalkthroughNav";
+import { interpolateOrientation, sphereCorrectionFromOrientation, type OrientationTrack } from "@/lib/spatial-walkthrough/orientation";
 
 export type ExperiencePin = DrawerPin & {
   yawDeg: number;
@@ -51,6 +51,7 @@ type Props = {
   forceHud?: boolean;
   briefingCues?: BriefingCue[];
   transcriptOpen?: boolean;
+  orientation?: OrientationTrack | null;
 };
 
 export function WalkthroughExperience({
@@ -81,6 +82,7 @@ export function WalkthroughExperience({
   initialMode = "explore",
   forceHud = false,
   briefingCues = [],
+  orientation = null,
 }: Props) {
   const [player, setPlayer] = useState<WalkthroughPlayerHandle | null>(null);
   const [currentT, setCurrentT] = useState(0);
@@ -99,9 +101,15 @@ export function WalkthroughExperience({
 
   useEffect(() => {
     if (!player) return;
-    const id = window.setInterval(() => setCurrentT(player.getView().t), 400);
+    const id = window.setInterval(() => {
+      const view = player.getView();
+      setCurrentT(view.t);
+      if (orientation?.keyframes.length) {
+        player.setSphereCorrection(sphereCorrectionFromOrientation(interpolateOrientation(orientation, view.t)));
+      }
+    }, 400);
     return () => window.clearInterval(id);
-  }, [player]);
+  }, [player, orientation]);
 
   const selected = useMemo(() => pins.find((p) => p.id === selectedId) ?? null, [pins, selectedId]);
   const markerPins = pins.map((p) => ({

@@ -6,6 +6,7 @@ import type { RedactionRule } from "@/lib/spatial-walkthrough/redaction";
 import type { ChapterRecord } from "@/lib/spatial-walkthrough/chapters";
 import { chapterBands, displayChapterName, nextChapter, pinsInChapter } from "@/lib/spatial-walkthrough/chapters";
 import type { ClipEdgeRecord, ClipSummary } from "@/lib/spatial-walkthrough/clip-edges";
+import type { OrientationTrack } from "@/lib/spatial-walkthrough/orientation";
 import { clipEdgeActionsAtTime } from "@/lib/spatial-walkthrough/clip-edge-actions";
 import { placeholderBriefingCues } from "@/lib/spatial-walkthrough/briefing-script";
 import type { NavMode } from "@/lib/spatial-walkthrough/nav-mode";
@@ -28,6 +29,7 @@ type Props = {
   pins: Array<ExperiencePin & { clipId?: string | null }>;
   redactions: RedactionRule[];
   operatorPatch?: OperatorPatch | null;
+  orientation?: OrientationTrack | null;
   allowDownload?: boolean;
   authoring?: boolean;
   duration?: number;

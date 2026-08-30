@@ -2,6 +2,7 @@ import type { BrandTheme, OperatorPatch, WaypointRecord } from "./types";
 import { activeSectors, sectorYawCenter, type RedactionRule } from "./redaction";
 import { markerKindFromPinType, markerScaleFromPitch } from "./marker-scale";
 import { operatorPatchActiveAt } from "./operator-patch";
+import { interpolateKeyframes, keyframeToPatch, operatorRegions } from "./keyframes";
 import { pathHudNodes } from "./path-hud";
 
 type PatchFields = OperatorPatch & {
@@ -126,7 +127,13 @@ export function buildViewerMarkers(args: {
     });
   }
 
-  const patch = operatorPatch as PatchFields | null | undefined;
+  const livePatches = operatorRegions(redactions, operatorPatch)
+    .map((region) => {
+      const frame = interpolateKeyframes(region.frames, t);
+      return frame ? keyframeToPatch(frame, operatorPatch) : null;
+    })
+    .filter((p): p is OperatorPatch => Boolean(p && operatorPatchActiveAt(p, t)));
+  const patch = (livePatches[0] ?? operatorPatch) as PatchFields | null | undefined;
   if (patch && operatorPatchActiveAt(patch, t)) {
     const size = nadirPx(patch);
     list.push({
@@ -138,20 +145,23 @@ export function buildViewerMarkers(args: {
       height: size,
       data: { kind: "patch" },
     });
-    const rearPitch = typeof patch.pitchMin === "number"
-      ? (patch.pitchMin + (patch.pitchMax ?? patch.pitchMin)) / 2
-      : -Math.round((patch.wrapY0Frac ?? 0.32) * 40);
-    const rearYaw = typeof patch.rearYawCenter === "number" ? patch.rearYawCenter : 180;
+  }
+  livePatches.forEach((live, i) => {
+    const fields = live as PatchFields;
+    const rearPitch = typeof fields.pitchMin === "number"
+      ? (fields.pitchMin + (fields.pitchMax ?? fields.pitchMin)) / 2
+      : -Math.round((fields.wrapY0Frac ?? 0.32) * 40);
+    const rearYaw = typeof fields.rearYawCenter === "number" ? fields.rearYawCenter : 180;
     list.push({
-      id: "rear-patch",
+      id: i === 0 ? "rear-patch" : `rear-patch-${i}`,
       yawDeg: rearYaw,
       pitchDeg: rearPitch,
-      html: `<div class="sw-rear sw-patch-${patch.style ?? "solid"}" aria-hidden="true"></div>`,
-      width: Math.round(140 + (patch.rearYawWidth ?? (patch.wrapFrac ?? 0.09) * 360)),
-      height: Math.round(80 + Math.abs((patch.pitchMax ?? 0) - (patch.pitchMin ?? -40))),
+      html: `<div class="sw-rear sw-patch-${fields.style ?? "solid"}" aria-hidden="true"></div>`,
+      width: Math.round(140 + (fields.rearYawWidth ?? (fields.wrapFrac ?? 0.09) * 360)),
+      height: Math.round(80 + Math.abs((fields.pitchMax ?? 0) - (fields.pitchMin ?? -40))),
       data: { kind: "patch" },
     });
-  }
+  });
 
   for (const mode of ["solid", "cover", "panel"] as const) {
     for (const s of activeSectors(redactions, clipId, t, mode)) {
