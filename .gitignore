@@ -66,6 +66,7 @@ public/sw.js.map
 /.spatial-nav-review/
 /.spatial-rc2-review/
 /.spatial-rc1-share.json
+/.spatial-rc2-share.json
 
 # Local Trigger CLI copy (Windows username-space workaround)
 /.trigger-cli/
