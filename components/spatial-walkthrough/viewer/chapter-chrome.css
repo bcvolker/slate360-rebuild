@@ -94,6 +94,54 @@
   color: var(--sw-text, white);
   font-size: 0.85rem;
 }
+.sw-next-chapter {
+  position: absolute;
+  top: 3.05rem;
+  left: 50%;
+  z-index: 16;
+  transform: translateX(-50%);
+  flex-direction: column;
+  align-items: flex-start;
+  min-height: 2.5rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.sw-next-chapter span {
+  color: var(--sw-muted, var(--graphite-muted));
+  font-size: 0.68rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+.sw-edge-actions {
+  position: absolute;
+  left: 50%;
+  bottom: 5.6rem;
+  z-index: 16;
+  display: flex;
+  gap: 0.35rem;
+  transform: translateX(-50%);
+}
+.sw-briefing {
+  position: absolute;
+  top: 5.4rem;
+  left: 0.75rem;
+  z-index: 16;
+  max-width: 18rem;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid color-mix(in srgb, white 10%, transparent);
+  background: color-mix(in srgb, var(--sw-surface, black) 78%, transparent);
+  color: var(--sw-text, white);
+}
+.sw-briefing-kicker {
+  margin: 0 0 0.25rem;
+  color: var(--sw-muted, var(--graphite-muted));
+  font-family: var(--font-ibm-plex-mono, ui-monospace, monospace);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.sw-briefing p { margin: 0; font-size: 0.85rem; }
 @keyframes sw-fade {
   from { opacity: 0; }
   30% { opacity: 1; }

@@ -113,6 +113,7 @@ describe("share locator", () => {
     expect(loc.chapterId).toBe("ch-l1");
     expect(loc.tSeconds).toBe(46.25);
     expect(loc.pinId).toBe("pin-1");
+    expect(sharePath("tok", loc)).toContain("pin=pin-1");
   });
 });
 
