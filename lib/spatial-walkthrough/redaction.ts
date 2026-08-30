@@ -76,6 +76,15 @@ export function yawInRange(yaw: number, min: number, max: number): boolean {
   return n >= a || n <= b;
 }
 
+/** Mid-yaw of a sector. Crossing ±180 must not place the marker at 0°. */
+export function sectorYawCenter(yawMin: number, yawMax: number): number {
+  const a = wrapYaw(yawMin);
+  const b = wrapYaw(yawMax);
+  if (a <= b) return wrapYaw((a + b) / 2);
+  const span = 180 - a + (b + 180);
+  return wrapYaw(a + span / 2);
+}
+
 export function sectorCovers(rule: RedactionRule, yawDeg: number, pitchDeg: number): boolean {
   if (rule.yawMin == null && rule.yawMax == null && rule.pitchMin == null && rule.pitchMax == null) {
     return true;

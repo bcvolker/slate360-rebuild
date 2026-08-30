@@ -166,8 +166,8 @@ describe("viewer markers", () => {
     });
     expect(markers.filter((m) => m.data.kind === "waypoint")).toHaveLength(1);
     expect(markers.find((m) => m.data.kind === "waypoint")?.data.id).toBe("b");
-    expect(markers.find((m) => m.data.kind === "waypoint")?.html).toContain("sw-mark--waypoint");
-    expect(markers.find((m) => m.data.kind === "pin")?.html).toContain("sw-mark--document");
+    expect(markers.find((m) => m.data.kind === "waypoint")?.html).toContain("sw-reticle");
+    expect(markers.find((m) => m.data.kind === "pin")?.html).toContain("sw-pin");
     expect(markers.find((m) => m.id === "nadir-patch")?.html).toContain("sw-nadir");
   });
   it("does not return a previous waypoint at the start", () => {

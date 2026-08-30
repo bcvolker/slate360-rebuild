@@ -15,6 +15,7 @@ import {
   rulesForPolicy,
   skipIntervals,
   yawInRange,
+  sectorYawCenter,
   type RedactionRule,
 } from "./redaction";
 import { buildOperatorMask, parseOperatorPatch, rearSector } from "./operator-patch";
@@ -133,6 +134,7 @@ describe("yaw seam", () => {
     expect(yawInRange(-175, 160, -160)).toBe(true);
     expect(yawInRange(0, 160, -160)).toBe(false);
     expect(isValidRedaction(coverSeam)).toBe(true);
+    expect(Math.abs(sectorYawCenter(160, -160))).toBeGreaterThan(170);
   });
 
   it("operator rear patch fills both ERP edges when centered at 180", () => {
