@@ -8,7 +8,6 @@ import { applySkip, rulesForPolicy, skipIntervals } from "./redaction";
 import { parseOperatorPatch } from "./operator-patch";
 import { buildViewerMarkers } from "./markers";
 import { isNavAppVisible } from "./nav-filter";
-import { parseOperatorPatch } from "./operator-patch";
 import type { WaypointRecord } from "./types";
 
 const spatialOnly = {
