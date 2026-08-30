@@ -14,6 +14,7 @@ import { activeBriefingCue } from "@/lib/spatial-walkthrough/briefing-script";
 import type { NavMode } from "@/lib/spatial-walkthrough/nav-mode";
 import { absoluteViewHref, locatorFromView } from "@/lib/spatial-walkthrough/share-locator";
 import { BriefingCueOverlay } from "./BriefingCueOverlay";
+import { useWalkthroughNav } from "./useWalkthroughNav";
 import { interpolateOrientation, sphereCorrectionFromOrientation, type OrientationTrack } from "@/lib/spatial-walkthrough/orientation";
 
 export type ExperiencePin = DrawerPin & {

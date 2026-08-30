@@ -17,6 +17,8 @@ import { deliveredTime, excludeDraft, masterTimeFromDelivered, playbackHead, res
 import { contactStripSamples, jumpPrivacy } from "./privacy-review";
 import { DEFAULT_OPERATOR_PATCH } from "./types";
 import { clipReadyPatch } from "./derivatives";
+import { parseOperatorPatch } from "./operator-patch";
+import { buildViewerMarkers } from "./markers";
 
 const a: OperatorKeyframe = {
   t: 0, yawCenter: 170, yawWidth: 40, pitchTop: -10, pitchBottom: -70, nadirRadius: 0.2, feather: 0, style: "solid",
@@ -164,5 +166,18 @@ describe("independent privacy regions", () => {
       { clipId: "c", tStart: 2, tEnd: 3, yawMin: 10, yawMax: 20, pitchMin: -10, pitchMax: 0, mode: "cover" as const, policy: "public" as const },
     ];
     expect(stripBakedIntoDerivative(rules).map((r) => r.mode)).toEqual(["cover"]);
+  });
+  it("widens the rear mask at a later doorway keyframe", () => {
+    const rule = {
+      clipId: "c1", tStart: 0, tEnd: 30, yawMin: null, yawMax: null, pitchMin: null, pitchMax: null,
+      mode: "operator-patch" as const, policy: "client" as const,
+      keyframes: [
+        { t: 0, yawCenter: 180, yawWidth: 40, pitchTop: -10, pitchBottom: -70, nadirRadius: 0.2, feather: 0, style: "solid" as const },
+        { t: 10, yawCenter: 180, yawWidth: 90, pitchTop: 8, pitchBottom: -28, nadirRadius: 0.38, feather: 0, style: "solid" as const },
+      ],
+    };
+    const early = buildViewerMarkers({ waypoints: [], clipId: "c1", t: 0, pins: [], redactions: [rule], operatorPatch: parseOperatorPatch({ enabled: true }) });
+    const late = buildViewerMarkers({ waypoints: [], clipId: "c1", t: 10, pins: [], redactions: [rule], operatorPatch: parseOperatorPatch({ enabled: true }) });
+    expect((late.find((m) => m.id === "rear-patch")?.width ?? 0)).toBeGreaterThan(early.find((m) => m.id === "rear-patch")?.width ?? 0);
   });
 });

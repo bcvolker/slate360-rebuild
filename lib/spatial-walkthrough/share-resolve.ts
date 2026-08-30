@@ -19,6 +19,7 @@ export type ShareRow = {
   allow_download: boolean;
   is_revoked: boolean;
   branding_snapshot: unknown;
+  chapter_id?: string | null;
 };
 
 export async function loadShareRow(token: string): Promise<{ admin: ReturnType<typeof createAdminClient>; row: ShareRow | null }> {
