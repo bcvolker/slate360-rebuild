@@ -3,9 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { WalkthroughLibrary, type WalkthroughCard } from "@/components/spatial-walkthrough/WalkthroughLibrary";
+import { WalkthroughSpaceList } from "@/components/spatial-walkthrough/WalkthroughSpaceList";
+import type { SpaceCard } from "@/lib/spatial-walkthrough/space-cards";
+import { spaceHref } from "@/lib/spatial-walkthrough/space-cards";
 
 export function SpatialWalkthroughIndex({ canAuthor }: { canAuthor: boolean }) {
   const [items, setItems] = useState<WalkthroughCard[]>([]);
+  const [spaces, setSpaces] = useState<SpaceCard[]>([]);
   const [projects, setProjects] = useState<Array<{ id: string; name: string }>>([]);
   const [projectId, setProjectId] = useState("");
   const [title, setTitle] = useState("");
@@ -14,7 +18,10 @@ export function SpatialWalkthroughIndex({ canAuthor }: { canAuthor: boolean }) {
   const load = async () => {
     const res = await fetch("/api/spatial-walkthrough", { cache: "no-store" });
     const json = await res.json();
-    if (res.ok) setItems(json.walkthroughs ?? []);
+    if (res.ok) {
+      setItems(json.walkthroughs ?? []);
+      setSpaces(json.spaces ?? []);
+    }
   };
 
   useEffect(() => {
@@ -69,6 +76,7 @@ export function SpatialWalkthroughIndex({ canAuthor }: { canAuthor: boolean }) {
         </div>
       ) : null}
       <WalkthroughLibrary items={items} hrefFor={(id) => `/spatial-walkthrough/${id}`} />
+      <WalkthroughSpaceList items={spaces} hrefFor={(item) => spaceHref(item, (id) => `/spatial-walkthrough/${id}`)} />
     </div>
   );
 }

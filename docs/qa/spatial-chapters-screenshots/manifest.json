@@ -1,0 +1,12 @@
+{
+  "base": "http://127.0.0.1:3000",
+  "paths": [
+    "C:\\s360\\docs\\qa\\spatial-chapters-screenshots\\entire-walk.png",
+    "C:\\s360\\docs\\qa\\spatial-chapters-screenshots\\chapter-picker.png",
+    "C:\\s360\\docs\\qa\\spatial-chapters-screenshots\\level-1.png",
+    "C:\\s360\\docs\\qa\\spatial-chapters-screenshots\\room.png",
+    "C:\\s360\\docs\\qa\\spatial-chapters-screenshots\\multi-clip-transition.png",
+    "C:\\s360\\docs\\qa\\spatial-chapters-screenshots\\mobile-chapter-picker.png",
+    "C:\\s360\\docs\\qa\\spatial-chapters-screenshots\\space-library.png"
+  ]
+}

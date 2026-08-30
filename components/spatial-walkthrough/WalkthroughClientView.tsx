@@ -1,13 +1,31 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { WalkthroughExperience, type ExperiencePin } from "@/components/spatial-walkthrough/viewer/WalkthroughExperience";
+import { ChapterWalkthroughExperience } from "@/components/spatial-walkthrough/viewer/ChapterWalkthroughExperience";
+import { type ExperiencePin } from "@/components/spatial-walkthrough/viewer/WalkthroughExperience";
 import { parseOperatorPatch } from "@/lib/spatial-walkthrough/operator-patch";
 import { resolveBrandTheme } from "@/lib/spatial-walkthrough/theme";
 import { toWaypoint } from "@/lib/spatial-walkthrough/waypoints";
+import { toChapter } from "@/lib/spatial-walkthrough/chapters";
+import { toClipEdge, type ClipSummary } from "@/lib/spatial-walkthrough/clip-edges";
+import { parseShareLocator } from "@/lib/spatial-walkthrough/share-locator";
 import type { RedactionRule } from "@/lib/spatial-walkthrough/redaction";
 
 type Props = { walkthroughId: string };
+
+function clipSummaries(walkthroughId: string, clips: Array<Record<string, unknown>>): ClipSummary[] {
+  return clips.filter((c) => c.status === "ready").map((c, i) => ({
+    id: String(c.id),
+    title: (c.title as string) ?? null,
+    zone: (c.zone as string) ?? null,
+    durationS: Number(c.duration_s ?? 0),
+    defaultYaw: Number(c.default_yaw ?? 0),
+    defaultPitch: Number(c.default_pitch ?? 0),
+    sortOrder: Number(c.sort_order ?? i),
+    videoUrl: `/api/spatial-walkthrough/${walkthroughId}/media?clip=${c.id}&kind=proxy`,
+    posterUrl: `/api/spatial-walkthrough/${walkthroughId}/media?clip=${c.id}&kind=poster`,
+  }));
+}
 
 export function WalkthroughClientView({ walkthroughId }: Props) {
   const [payload, setPayload] = useState<Record<string, unknown> | null>(null);
@@ -37,6 +55,7 @@ export function WalkthroughClientView({ walkthroughId }: Props) {
     yawDeg: Number(p.yaw_deg ?? 0),
     pitchDeg: Number(p.pitch_deg ?? 0),
     tSeconds: p.t_seconds == null ? null : Number(p.t_seconds),
+    clipId: p.clip_id ? String(p.clip_id) : null,
     attachments: ((payload.attachments as Array<Record<string, unknown>>) ?? [])
       .filter((a) => String(a.pin_id) === String(p.id))
       .map((a) => ({
@@ -70,16 +89,23 @@ export function WalkthroughClientView({ walkthroughId }: Props) {
         </a>
       </div>
       <div className="min-h-[70vh] flex-1">
-        <WalkthroughExperience
+        <ChapterWalkthroughExperience
           theme={resolveBrandTheme({ walkthrough: walkthrough.brand_theme as never, canHidePoweredBy: true })}
           title={String(walkthrough.title)}
           videoUrl={`/api/spatial-walkthrough/${walkthroughId}/media?clip=${clipId}&kind=proxy`}
           posterUrl={`/api/spatial-walkthrough/${walkthroughId}/media?clip=${clipId}&kind=poster`}
           clipId={clipId}
+          duration={Number(clip.duration_s ?? 0)}
+          capturedAt={typeof walkthrough.captured_at === "string" ? walkthrough.captured_at : null}
           waypoints={((payload.waypoints as Array<Record<string, unknown>>) ?? []).map(toWaypoint)}
           pins={pins}
           redactions={redactions}
           operatorPatch={parseOperatorPatch(walkthrough.operator_patch)}
+          walkthroughId={walkthroughId}
+          clips={clipSummaries(walkthroughId, clips)}
+          chapters={((payload.chapters as Array<Record<string, unknown>>) ?? []).map(toChapter)}
+          edges={((payload.edges as Array<Record<string, unknown>>) ?? []).map(toClipEdge)}
+          locator={typeof window !== "undefined" ? parseShareLocator(window.location.search) : undefined}
         />
       </div>
     </div>

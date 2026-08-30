@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { WalkthroughExperience, type ExperiencePin } from "@/components/spatial-walkthrough/viewer/WalkthroughExperience";
+import { type ExperiencePin } from "@/components/spatial-walkthrough/viewer/WalkthroughExperience";
 import { StudioChapterAuthoring } from "./StudioChapterAuthoring";
 import type { WalkthroughPlayerHandle } from "@/components/spatial-walkthrough/viewer/WalkthroughPlayer";
 import { StudioUpload } from "./StudioUpload";
@@ -234,6 +234,7 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
         walkthroughId={walkthroughId}
         status={String(payload.walkthrough.status)}
         shares={payload.shares}
+        chapters={(payload.chapters ?? []).map((c) => ({ id: String(c.id), name: String(c.name ?? "Space") }))}
         onRefresh={() => void load()}
         onExport={() => setExportOpen(true)}
       />

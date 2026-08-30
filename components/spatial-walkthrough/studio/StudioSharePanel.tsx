@@ -16,15 +16,17 @@ type Props = {
   walkthroughId: string;
   status: string;
   shares: ShareRow[];
+  chapters?: Array<{ id: string; name: string }>;
   onRefresh: () => void;
   onExport: () => void;
 };
 
-export function StudioSharePanel({ walkthroughId, status, shares, onRefresh, onExport }: Props) {
+export function StudioSharePanel({ walkthroughId, status, shares, chapters = [], onRefresh, onExport }: Props) {
   const [policy, setPolicy] = useState<"client" | "public">("client");
   const [password, setPassword] = useState("");
   const [expiresAt, setExpiresAt] = useState("");
   const [allowDownload, setAllowDownload] = useState(false);
+  const [chapterId, setChapterId] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -46,6 +48,7 @@ export function StudioSharePanel({ walkthroughId, status, shares, onRefresh, onE
         password: password || undefined,
         expiresAt: expiresAt || undefined,
         allowDownload,
+        chapterId: chapterId || undefined,
       }),
     });
     const json = await res.json();
@@ -68,6 +71,12 @@ export function StudioSharePanel({ walkthroughId, status, shares, onRefresh, onE
         <select value={policy} onChange={(e) => setPolicy(e.target.value as "client" | "public")} className="h-11 min-h-11 border border-white/10 bg-transparent px-2">
           <option value="client">Guest share (private link)</option>
           <option value="public">Public share</option>
+        </select>
+        <select value={chapterId} onChange={(e) => setChapterId(e.target.value)} className="h-11 min-h-11 border border-white/10 bg-transparent px-2">
+          <option value="">Entire Walk</option>
+          {chapters.map((c) => (
+            <option key={c.id} value={c.id}>{c.name}</option>
+          ))}
         </select>
         <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Optional access code" className="h-11 border border-white/10 bg-transparent px-3" />
         <input type="datetime-local" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} className="h-11 border border-white/10 bg-transparent px-3" />
