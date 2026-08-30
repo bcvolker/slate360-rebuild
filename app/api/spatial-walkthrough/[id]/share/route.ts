@@ -30,7 +30,7 @@ export const POST = (req: NextRequest, ctx: Ctx) =>
     });
     const minted = mintShareToken();
     if (!tokenMeetsEntropyFloor(minted.token)) return serverError("Failed to mint share token");
-    const { data, error } = await admin.from("spatial_share_tokens").insert({
+    const insert: Record<string, unknown> = {
       token: null,
       token_hash: minted.hash,
       token_prefix: minted.prefix,
@@ -45,14 +45,17 @@ export const POST = (req: NextRequest, ctx: Ctx) =>
       allow_download: body?.allowDownload === true,
       allow_reshare: body?.allowReshare === true,
       branding_snapshot: theme,
-    }).select("id, policy, expires_at, allow_download, token_prefix").single();
+    };
+    if (typeof body?.chapterId === "string" && body.chapterId) insert.chapter_id = body.chapterId;
+    const { data, error } = await admin.from("spatial_share_tokens").insert(insert).select("id, policy, expires_at, allow_download, token_prefix").single();
     if (error) return serverError(error.message);
     await admin.from("spatial_walkthroughs").update({ status: "published" }).eq("id", id);
+    const locator = typeof body?.chapterId === "string" ? `?chapter=${body.chapterId}` : "";
     return ok({
       token: minted.token,
       tokenPrefix: data.token_prefix,
       policy: data.policy,
-      shareUrl: `${APP_URL}/w/${minted.token}`,
+      shareUrl: `${APP_URL}/w/${minted.token}${locator}`,
       expiresAt: data.expires_at,
       allowDownload: data.allow_download,
     }, 201);

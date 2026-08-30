@@ -21,7 +21,7 @@ export const GET = (req: NextRequest, ctx: Ctx) =>
     if (error) return serverError(error.message);
     if (!walkthrough) return notFound("Walkthrough not found");
 
-    const [{ data: clips }, { data: waypoints }, { data: pins }, { data: redactions }, { data: shares }] =
+    const [{ data: clips }, { data: waypoints }, { data: pins }, { data: redactions }, { data: shares }, { data: chapters }, { data: edges }] =
       await Promise.all([
         admin.from("spatial_clips").select("*").eq("walkthrough_id", id).order("sort_order"),
         admin.from("spatial_waypoints").select("*").eq("walkthrough_id", id).order("sort_order"),
@@ -32,6 +32,8 @@ export const GET = (req: NextRequest, ctx: Ctx) =>
           .select("id, token_prefix, policy, expires_at, max_views, view_count, is_revoked, allow_download, created_at")
           .eq("walkthrough_id", id)
           .order("created_at", { ascending: false }),
+        admin.from("spatial_chapters").select("*").eq("walkthrough_id", id).order("sort_order"),
+        admin.from("spatial_clip_edges").select("*").eq("walkthrough_id", id),
       ]);
     const pinIds = (pins ?? []).map((p) => p.id);
     const { data: attachments } = pinIds.length
@@ -46,6 +48,8 @@ export const GET = (req: NextRequest, ctx: Ctx) =>
       attachments: attachments ?? [],
       redactions: redactions ?? [],
       shares: shares ?? [],
+      chapters: chapters ?? [],
+      edges: edges ?? [],
     });
   }, "view");
 

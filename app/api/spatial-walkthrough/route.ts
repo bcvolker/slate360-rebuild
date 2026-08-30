@@ -3,6 +3,8 @@ import { withSpatialWalkthroughAuth } from "@/lib/spatial-walkthrough/access";
 import { ok, badRequest, unauthorized, serverError } from "@/lib/server/api-response";
 import { DEFAULT_OPERATOR_PATCH } from "@/lib/spatial-walkthrough/types";
 import { shareStatusFromRows } from "@/lib/spatial-walkthrough/share-status";
+import { toChapter } from "@/lib/spatial-walkthrough/chapters";
+import { spaceLibraryCards } from "@/lib/spatial-walkthrough/space-cards";
 
 export const runtime = "nodejs";
 
@@ -20,7 +22,7 @@ export const GET = (req: NextRequest) =>
     if (error) return serverError(error.message);
 
     const ids = (data ?? []).map((w) => w.id);
-    const [{ data: wps }, { data: pins }, { data: shares }] = await Promise.all([
+    const [{ data: wps }, { data: pins }, { data: shares }, { data: chapterRows }] = await Promise.all([
       ids.length
         ? admin.from("spatial_waypoints").select("walkthrough_id").in("walkthrough_id", ids)
         : Promise.resolve({ data: [] as { walkthrough_id: string }[] }),
@@ -30,6 +32,9 @@ export const GET = (req: NextRequest) =>
       ids.length
         ? admin.from("spatial_share_tokens").select("walkthrough_id, is_revoked, expires_at").in("walkthrough_id", ids)
         : Promise.resolve({ data: [] as { walkthrough_id: string; is_revoked: boolean; expires_at: string | null }[] }),
+      ids.length
+        ? admin.from("spatial_chapters").select("*").in("walkthrough_id", ids).order("sort_order")
+        : Promise.resolve({ data: [] as Record<string, unknown>[] }),
     ]);
     const wpCount = new Map<string, number>();
     const pinCount = new Map<string, number>();
@@ -44,13 +49,15 @@ export const GET = (req: NextRequest) =>
       shareRows.set(row.walkthrough_id, list);
     }
 
+    const walkthroughs = (data ?? []).map((w) => ({
+      ...w,
+      waypointCount: wpCount.get(w.id) ?? 0,
+      pinCount: pinCount.get(w.id) ?? 0,
+      shareStatus: shareStatusFromRows(shareRows.get(w.id) ?? []),
+    }));
     return ok({
-      walkthroughs: (data ?? []).map((w) => ({
-        ...w,
-        waypointCount: wpCount.get(w.id) ?? 0,
-        pinCount: pinCount.get(w.id) ?? 0,
-        shareStatus: shareStatusFromRows(shareRows.get(w.id) ?? []),
-      })),
+      walkthroughs,
+      spaces: spaceLibraryCards(walkthroughs, (chapterRows ?? []).map(toChapter)),
     });
   }, "view");
 
