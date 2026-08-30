@@ -17,7 +17,8 @@ export type PinType =
   | "issue"
   | "note"
   | "url"
-  | "other";
+  | "other"
+  | "voice";
 export type PinVisibility = "internal" | "client" | "public";
 export type LogoTreatment = "light" | "dark" | "auto";
 export type OperatorPatchFill = "neutral" | "brand";
@@ -93,6 +94,7 @@ export const PIN_TYPES: PinType[] = [
   "note",
   "url",
   "other",
+  "voice",
 ];
 
 export const DEFAULT_OPERATOR_PATCH: OperatorPatch = {

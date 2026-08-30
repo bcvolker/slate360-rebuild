@@ -28,10 +28,12 @@ type Props = {
   onAddWaypoint: (view: { t: number; yaw: number; pitch: number }) => void;
   onAddPin: (view: { t: number; yaw: number; pitch: number }) => void;
   onRefresh: () => void;
+  narration?: import("@/lib/spatial-walkthrough/audio").NarrationSegment[];
+  transcripts?: import("@/lib/spatial-walkthrough/audio").TranscriptRecord[];
 };
 
 export function StudioChapterAuthoring({
-  walkthroughId, theme, title, capturedAt, clips, chapters, edges, waypoints, pins, redactions, operatorPatch, onPlayerReady, onAddWaypoint, onAddPin, onRefresh,
+  walkthroughId, theme, title, capturedAt, clips, chapters, edges, waypoints, pins, redactions, operatorPatch, onPlayerReady, onAddWaypoint, onAddPin, onRefresh, narration = [], transcripts = [],
 }: Props) {
   const [mark, setMark] = useState<{ start: number | null; end: number | null; yaw: number; pitch: number }>({ start: null, end: null, yaw: 0, pitch: 0 });
   const ready = clips.filter((c) => c.status === "ready");
@@ -53,7 +55,7 @@ export function StudioChapterAuthoring({
 
   return (
     <>
-      <div className="h-[70vh] overflow-hidden border border-white/10">
+      <div className="relative h-[52vh] overflow-hidden border border-white/10 lg:h-[58vh]">
         <ChapterWalkthroughExperience
           theme={theme}
           title={title}
@@ -77,6 +79,8 @@ export function StudioChapterAuthoring({
           onAddPin={onAddPin}
           onStartSpace={(view) => setMark((m) => ({ ...m, start: view.t, yaw: view.yaw, pitch: view.pitch }))}
           onEndSpace={(view) => setMark((m) => ({ ...m, end: view.t, yaw: view.yaw, pitch: view.pitch }))}
+          narration={narration}
+          transcripts={transcripts}
         />
       </div>
       <StudioChapterPanel

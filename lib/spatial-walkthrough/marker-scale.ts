@@ -7,6 +7,6 @@ export function markerScaleFromPitch(pitchDeg: number): number {
 export function markerKindFromPinType(pinType: string | undefined): "document" | "issue" | "note" {
   const t = (pinType ?? "document").toLowerCase();
   if (t === "issue") return "issue";
-  if (t === "note" || t === "other") return "note";
+  if (t === "voice" || t === "note" || t === "other") return "note";
   return "document";
 }

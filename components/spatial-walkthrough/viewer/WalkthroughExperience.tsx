@@ -9,6 +9,16 @@ import { PinDrawer, type DrawerPin } from "./PinDrawer";
 import { BrandFrame } from "./BrandFrame";
 import { PreviewSphere } from "./PreviewSphere";
 import { PosterStage } from "./PosterStage";
+import { WalkthroughAudioLayer } from "@/components/spatial-walkthrough/audio/WalkthroughAudioLayer";
+import type { ChapterRecord } from "@/lib/spatial-walkthrough/chapters";
+import type { NarrationSegment, TranscriptRecord, VoiceNoteRecord } from "@/lib/spatial-walkthrough/audio";
+import type { BriefingCue } from "@/lib/spatial-walkthrough/briefing-script";
+import { activeBriefingCue } from "@/lib/spatial-walkthrough/briefing-script";
+import type { NavMode } from "@/lib/spatial-walkthrough/nav-mode";
+import { absoluteViewHref, locatorFromView } from "@/lib/spatial-walkthrough/share-locator";
+import { BriefingCueOverlay } from "./BriefingCueOverlay";
+import { useWalkthroughNav } from "./useWalkthroughNav";
+import "@/components/spatial-walkthrough/audio/walkthrough-audio.css";
 
 export type ExperiencePin = DrawerPin & {
   yawDeg: number;
@@ -38,6 +48,18 @@ type Props = {
   onAddWaypoint?: (view: { t: number; yaw: number; pitch: number }) => void;
   onAddPin?: (view: { t: number; yaw: number; pitch: number }) => void;
   onPlayerReady?: (handle: WalkthroughPlayerHandle) => void;
+  narration?: NarrationSegment[];
+  transcripts?: TranscriptRecord[];
+  voiceNotes?: VoiceNoteRecord[];
+  chapters?: ChapterRecord[];
+  authoringAudio?: boolean;
+  shareBasePath?: string;
+  walkthroughId?: string;
+  chapterId?: string | null;
+  initialMode?: NavMode;
+  forceHud?: boolean;
+  briefingCues?: BriefingCue[];
+  transcriptOpen?: boolean;
 };
 
 export function WalkthroughExperience({
@@ -62,15 +84,30 @@ export function WalkthroughExperience({
   onAddWaypoint,
   onAddPin,
   onPlayerReady,
+  narration = [],
+  transcripts = [],
+  chapters = [],
+  authoringAudio = false,
+  shareBasePath,
+  walkthroughId,
+  chapterId = null,
+  initialMode = "explore",
+  forceHud = false,
+  briefingCues = [],
+  transcriptOpen: transcriptOpenProp = false,
 }: Props) {
   const [player, setPlayer] = useState<WalkthroughPlayerHandle | null>(null);
   const [currentT, setCurrentT] = useState(0);
+  const [playing, setPlaying] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(selectedIdProp);
   const [entered, setEntered] = useState(!requireGesture);
   const [hasFrame, setHasFrame] = useState(false);
   const enteredRef = useRef(entered);
   const playerRef = useRef<WalkthroughPlayerHandle | null>(null);
   enteredRef.current = entered;
+  const nav = useWalkthroughNav({ player, initialMode, forceHud });
+  const modeRef = useRef(nav.mode);
+  modeRef.current = nav.mode;
 
   useEffect(() => { setSelectedId(selectedIdProp); }, [selectedIdProp]);
 
@@ -92,6 +129,28 @@ export function WalkthroughExperience({
   const showGate = requireGesture && !entered;
   const showHold = Boolean(posterUrl) && !hasFrame && !showGate;
   const loading = Boolean(!preview && buffering);
+  const briefingCue = nav.mode === "briefing" ? activeBriefingCue(briefingCues, currentT, clipId) : null;
+
+  const shareHrefFor = () => {
+    const view = player?.getView() ?? { t: currentT, yaw: 0, pitch: 0 };
+    const locator = locatorFromView({
+      walkthroughId,
+      clipId,
+      chapterId,
+      tSeconds: view.t,
+      yawDeg: view.yaw,
+      pitchDeg: view.pitch,
+      pinId: selectedId,
+    });
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const base = shareBasePath || (typeof window !== "undefined" ? window.location.pathname : "/");
+    return absoluteViewHref(origin, base, locator);
+  };
+
+  const startExplore = () => {
+    nav.setMode("explore");
+    nav.bump();
+  };
 
   return (
     <BrandFrame
@@ -111,7 +170,11 @@ export function WalkthroughExperience({
           pins={markerPins}
           operatorPatch={operatorPatch}
           selectedId={selectedId}
+          clipId={clipId}
+          currentT={currentT}
+          hudOpacity={nav.hudOpacity}
           onSelect={setSelectedId}
+          onWaypoint={() => startExplore()}
         />
       ) : (
         <>
@@ -127,14 +190,29 @@ export function WalkthroughExperience({
             chrome={{ title, capturedAt, logoUrl: theme.logoUrl }}
             selectedId={selectedId}
             autoplay={false}
-            onPinSelect={setSelectedId}
+            hudOpacity={nav.hudOpacity}
+            onWaypointSelect={startExplore}
+            onPinSelect={(id) => {
+              const pin = pins.find((p) => p.id === id);
+              if (pin && playerRef.current && pin.tSeconds != null) {
+                playerRef.current.seekTo(pin.tSeconds, pin.yawDeg, pin.pitchDeg, { pause: true });
+              }
+              setSelectedId(id);
+              startExplore();
+            }}
             onReady={(handle) => {
               playerRef.current = handle;
               setPlayer(handle);
               onPlayerReady?.(handle);
-              if (!requireGesture || enteredRef.current) handle.play();
+              const ready = !requireGesture || enteredRef.current;
+              if (ready && modeRef.current === "play") handle.play();
+              else if (ready) handle.pause();
             }}
-            onPlaying={() => window.setTimeout(() => setHasFrame(true), 400)}
+            onPlaying={() => {
+              setPlaying(true);
+              window.setTimeout(() => setHasFrame(true), 400);
+            }}
+            onPause={() => setPlaying(false)}
           />
           {showGate || showHold ? (
             <PosterStage
@@ -144,12 +222,16 @@ export function WalkthroughExperience({
               onEnter={() => {
                 enteredRef.current = true;
                 setEntered(true);
-                playerRef.current?.play();
+                if (modeRef.current === "play") playerRef.current?.play();
+                else playerRef.current?.pause();
               }}
             />
           ) : null}
         </>
       )}
+      {nav.mode === "briefing" && !narration.length && !transcripts.length ? (
+        <BriefingCueOverlay cue={briefingCue} />
+      ) : null}
       <WalkthroughChrome
         waypoints={waypoints}
         clipId={clipId}
@@ -157,6 +239,10 @@ export function WalkthroughExperience({
         duration={duration}
         redactions={redactions}
         player={player}
+        mode={nav.mode}
+        onModeChange={nav.setMode}
+        shareHrefFor={shareHrefFor}
+        onStation={nav.bump}
         extra={
           authoring ? (
             <div className="flex gap-2">
@@ -171,6 +257,23 @@ export function WalkthroughExperience({
         }
       />
       <PinDrawer pin={selected} onClose={() => setSelectedId(null)} allowDownload={allowDownload} />
+      {narration.length || transcripts.length ? (
+        <WalkthroughAudioLayer
+          clipId={clipId}
+          duration={duration}
+          t={currentT}
+          playing={playing}
+          player={player}
+          segments={narration}
+          transcripts={transcripts}
+          chapters={chapters}
+          pins={pins}
+          authoring={authoring || authoringAudio}
+          briefing={nav.mode === "briefing"}
+          transcriptOpenDefault={transcriptOpenProp}
+          onSelectPin={setSelectedId}
+        />
+      ) : null}
     </BrandFrame>
   );
 }

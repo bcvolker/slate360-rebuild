@@ -63,3 +63,33 @@ export function mergeLocator(base: ShareLocator, overlay: Partial<ShareLocator>)
 export function sharePath(token: string, locator: ShareLocator = EMPTY_LOCATOR): string {
   return `/w/${token}${serializeShareLocator(locator)}`;
 }
+
+export function locatorFromView(input: {
+  clipId?: string | null;
+  chapterId?: string | null;
+  tSeconds: number;
+  yawDeg: number;
+  pitchDeg: number;
+  pinId?: string | null;
+  walkthroughId?: string | null;
+}): ShareLocator {
+  return {
+    walkthroughId: input.walkthroughId ?? null,
+    clipId: input.clipId ?? null,
+    chapterId: input.chapterId ?? null,
+    tSeconds: input.tSeconds,
+    yawDeg: input.yawDeg,
+    pitchDeg: input.pitchDeg,
+    pinId: input.pinId ?? null,
+  };
+}
+
+/** Path + query for the current sphere state. `basePath` is `/w/{token}` or the studio pathname. */
+export function currentViewHref(basePath: string, locator: ShareLocator): string {
+  const path = (basePath.split("?")[0] || "/").replace(/\/$/, "") || "/";
+  return `${path}${serializeShareLocator(locator)}`;
+}
+
+export function absoluteViewHref(origin: string, basePath: string, locator: ShareLocator): string {
+  return `${origin.replace(/\/$/, "")}${currentViewHref(basePath, locator)}`;
+}

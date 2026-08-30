@@ -1,0 +1,171 @@
+import type { ChapterRecord } from "./chapters";
+import type { NarrationSegment, TranscriptPhrase, TranscriptRecord, VoiceNoteRecord } from "./audio";
+
+export const HOUSEWALK_CLIP_ID = "clip-housewalk";
+export const HOUSEWALK_TITLE = "HouseWalk X4";
+
+export const HOUSEWALK_CHAPTERS: ChapterRecord[] = [
+  {
+    id: "ch-lobby",
+    walkthroughId: "wt-housewalk",
+    clipId: HOUSEWALK_CLIP_ID,
+    name: "Lobby",
+    building: "HouseWalk",
+    floor: "L1",
+    zone: "Entry",
+    chapterType: "lobby",
+    startTime: 0,
+    endTime: 14,
+    defaultYaw: 8,
+    defaultPitch: -6,
+    sortOrder: 0,
+    thumbnailKey: null,
+    visibility: "client",
+    description: "Entry and reception",
+  },
+  {
+    id: "ch-corridor",
+    walkthroughId: "wt-housewalk",
+    clipId: HOUSEWALK_CLIP_ID,
+    name: "Corridor",
+    building: "HouseWalk",
+    floor: "L1",
+    zone: "Hold",
+    chapterType: "corridor",
+    startTime: 14,
+    endTime: 28,
+    defaultYaw: 22,
+    defaultPitch: -8,
+    sortOrder: 1,
+    thumbnailKey: null,
+    visibility: "client",
+    description: null,
+  },
+  {
+    id: "ch-mep",
+    walkthroughId: "wt-housewalk",
+    clipId: HOUSEWALK_CLIP_ID,
+    name: "MEP",
+    building: "HouseWalk",
+    floor: "L1",
+    zone: "Mechanical",
+    chapterType: "mechanical",
+    startTime: 28,
+    endTime: 42,
+    defaultYaw: -16,
+    defaultPitch: -12,
+    sortOrder: 2,
+    thumbnailKey: null,
+    visibility: "client",
+    description: "AHU bay",
+  },
+];
+
+const SAMPLE_URL = "/preview/spatial-audio/housewalk-briefing.wav";
+
+export const HOUSEWALK_NARRATION: NarrationSegment[] = [
+  {
+    id: "nar-1",
+    walkthroughId: "wt-housewalk",
+    clipId: HOUSEWALK_CLIP_ID,
+    chapterId: "ch-lobby",
+    pinId: null,
+    assetId: "asset-nar-1",
+    startTime: 0,
+    endTime: 12,
+    title: "Welcome",
+    speaker: "Brian",
+    volume: 1,
+    source: "record",
+    transcriptStatus: "ready",
+    asset: {
+      id: "asset-nar-1",
+      kind: "narration",
+      storageKey: "orgs/preview/spatial-walkthrough/wt-housewalk/audio/nar-1.wav",
+      mime: "audio/wav",
+      durationS: 12,
+      trimStartS: 0,
+      trimEndS: 12,
+      url: SAMPLE_URL,
+    },
+  },
+  {
+    id: "nar-2",
+    walkthroughId: "wt-housewalk",
+    clipId: HOUSEWALK_CLIP_ID,
+    chapterId: "ch-corridor",
+    pinId: "pin-voice",
+    assetId: "asset-nar-2",
+    startTime: 14,
+    endTime: 26,
+    title: "Corridor hold",
+    speaker: "Brian",
+    volume: 1,
+    source: "upload",
+    transcriptStatus: "ready",
+    asset: {
+      id: "asset-nar-2",
+      kind: "narration",
+      storageKey: "orgs/preview/spatial-walkthrough/wt-housewalk/audio/nar-2.wav",
+      mime: "audio/wav",
+      durationS: 12,
+      trimStartS: 0,
+      trimEndS: 12,
+      url: SAMPLE_URL,
+    },
+  },
+];
+
+export const HOUSEWALK_PHRASES: TranscriptPhrase[] = [
+  { start: 0, end: 4.2, text: "Welcome to HouseWalk. This is the client briefing for the entry.", speaker: "Brian" },
+  { start: 4.2, end: 8.4, text: "Pause anywhere if you need to look around or open a drawing.", speaker: "Brian" },
+  { start: 8.4, end: 12, text: "We start at the lobby door, then move into the corridor hold.", speaker: "Brian" },
+  { start: 14, end: 20, text: "Corridor hold: keep the 36 inch service clearance on the west face.", speaker: "Brian" },
+  { start: 20, end: 26, text: "Open the voice pin for the field note recorded on site.", speaker: "Brian" },
+];
+
+export const HOUSEWALK_TRANSCRIPTS: TranscriptRecord[] = [
+  {
+    id: "tr-1",
+    walkthroughId: "wt-housewalk",
+    narrationSegmentId: "nar-1",
+    voiceNoteId: null,
+    provider: "mock",
+    language: "en",
+    fullText: HOUSEWALK_PHRASES.slice(0, 3).map((p) => p.text).join(" "),
+    phrases: HOUSEWALK_PHRASES.slice(0, 3),
+    words: [
+      { start: 0, end: 0.6, word: "Welcome", speaker: "Brian" },
+      { start: 0.6, end: 0.9, word: "to", speaker: "Brian" },
+      { start: 0.9, end: 1.6, word: "HouseWalk.", speaker: "Brian" },
+    ],
+  },
+  {
+    id: "tr-2",
+    walkthroughId: "wt-housewalk",
+    narrationSegmentId: "nar-2",
+    voiceNoteId: null,
+    provider: "mock",
+    language: "en",
+    fullText: HOUSEWALK_PHRASES.slice(3).map((p) => p.text).join(" "),
+    phrases: HOUSEWALK_PHRASES.slice(3),
+    words: null,
+  },
+];
+
+export const HOUSEWALK_VOICE: VoiceNoteRecord = {
+  id: "vn-1",
+  pinId: "pin-voice",
+  assetId: "asset-vn-1",
+  transcriptStatus: "ready",
+  asset: {
+    id: "asset-vn-1",
+    kind: "voice_note",
+    storageKey: "orgs/preview/spatial-walkthrough/wt-housewalk/audio/voice-1.wav",
+    mime: "audio/wav",
+    durationS: 6,
+    trimStartS: 0,
+    trimEndS: 6,
+    url: SAMPLE_URL,
+  },
+};

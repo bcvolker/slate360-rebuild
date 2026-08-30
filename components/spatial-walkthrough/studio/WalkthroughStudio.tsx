@@ -9,6 +9,8 @@ import { StudioSharePanel } from "./StudioSharePanel";
 import { OperatorPatchPanel } from "./OperatorPatchPanel";
 import { PrivacyRulesPanel } from "./PrivacyRulesPanel";
 import { ExportModal } from "./ExportModal";
+import { NarrationAuthorPanel } from "./NarrationAuthorPanel";
+import { VoiceNoteAuthor } from "./VoiceNoteAuthor";
 import { parseOperatorPatch, resolveOperatorPatch } from "@/lib/spatial-walkthrough/operator-patch";
 import { wrapYaw } from "@/lib/spatial-walkthrough/redaction";
 import { captureMetaLabel, parseCaptureMeta } from "@/lib/spatial-walkthrough/capture-meta";
@@ -17,6 +19,8 @@ import { filterRuntime } from "@/lib/spatial-walkthrough/runtime-filter";
 import { rulesForPolicy, type RedactionRule } from "@/lib/spatial-walkthrough/redaction";
 import type { AccessPolicy, BrandTheme, OperatorPatch, WaypointRecord } from "@/lib/spatial-walkthrough/types";
 import { resolveBrandTheme } from "@/lib/spatial-walkthrough/theme";
+import { hydrateNarration } from "@/lib/spatial-walkthrough/audio";
+import { toTranscript } from "@/lib/spatial-walkthrough/transcript";
 
 type FileRow = { id: string; file_name: string };
 type Payload = {
@@ -29,6 +33,9 @@ type Payload = {
   chapters?: Array<Record<string, unknown>>;
   edges?: Array<Record<string, unknown>>;
   shares: Array<{ id: string; token_prefix?: string; policy: string; is_revoked: boolean; expires_at: string | null }>;
+  narration?: Array<Record<string, unknown>>;
+  transcripts?: Array<Record<string, unknown>>;
+  audioAssets?: Array<Record<string, unknown>>;
 };
 
 function ruleFrom(row: Record<string, unknown>): RedactionRule {
@@ -135,6 +142,8 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
   const viewerPatch = previewPolicy === "master" ? { ...patch, enabled: false } : patch;
   const captureLabel = captureMetaLabel(parseCaptureMeta(clip?.capture_meta));
   const redactions = previewPolicy === "master" ? [] : rulesForPolicy(allRules, previewPolicy);
+  const narration = hydrateNarration(payload.narration ?? [], payload.audioAssets ?? [], walkthroughId);
+  const transcripts = (payload.transcripts ?? []).map(toTranscript);
 
   const saveDraft = async () => {
     if (!draft || !clipId) return;
@@ -191,6 +200,8 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
           onAddWaypoint={(view) => setDraft({ kind: "waypoint", ...view })}
           onAddPin={(view) => setDraft({ kind: "pin", ...view })}
           onRefresh={() => void load()}
+          narration={narration}
+          transcripts={transcripts}
         />
       ) : (
         <p className="text-sm text-[var(--graphite-muted)]">Playback starts after the web proxy is ready.</p>
@@ -230,6 +241,35 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
         rules={allRules}
         onRefresh={() => void load()}
       />
+      {clipId ? (
+        <>
+          <NarrationAuthorPanel
+            walkthroughId={walkthroughId}
+            clipId={clipId}
+            duration={Number(clip?.duration_s ?? 0)}
+            currentT={player?.getView().t ?? 0}
+            segments={narration}
+            onRefresh={() => void load()}
+            onDrag={(id, delta) => {
+              const s = narration.find((x) => x.id === id);
+              if (!s) return;
+              void fetch(`/api/spatial-walkthrough/${walkthroughId}/narration/${id}`, {
+                method: "PATCH",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ startTime: s.startTime + delta, endTime: s.endTime + delta }),
+              }).then(() => void load());
+            }}
+          />
+          <VoiceNoteAuthor
+            walkthroughId={walkthroughId}
+            clipId={clipId}
+            t={player?.getView().t ?? 0}
+            yaw={player?.getView().yaw ?? 0}
+            pitch={player?.getView().pitch ?? 0}
+            onRefresh={() => void load()}
+          />
+        </>
+      ) : null}
       <StudioSharePanel
         walkthroughId={walkthroughId}
         status={String(payload.walkthrough.status)}

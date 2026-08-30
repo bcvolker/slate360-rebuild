@@ -4,13 +4,18 @@ import { useState } from "react";
 import type { BrandTheme, OperatorPatch, WaypointRecord } from "@/lib/spatial-walkthrough/types";
 import type { RedactionRule } from "@/lib/spatial-walkthrough/redaction";
 import type { ChapterRecord } from "@/lib/spatial-walkthrough/chapters";
-import { chapterBands, displayChapterName, pinsInChapter } from "@/lib/spatial-walkthrough/chapters";
+import { chapterBands, displayChapterName, nextChapter, pinsInChapter } from "@/lib/spatial-walkthrough/chapters";
 import type { ClipEdgeRecord, ClipSummary } from "@/lib/spatial-walkthrough/clip-edges";
+import { clipEdgeActionsAtTime } from "@/lib/spatial-walkthrough/clip-edge-actions";
+import { placeholderBriefingCues } from "@/lib/spatial-walkthrough/briefing-script";
+import type { NavMode } from "@/lib/spatial-walkthrough/nav-mode";
 import { EMPTY_LOCATOR, type ShareLocator } from "@/lib/spatial-walkthrough/share-locator";
 import { WalkthroughExperience, type ExperiencePin } from "./WalkthroughExperience";
 import { ChapterPicker } from "./ChapterPicker";
 import { ChapterTimeline } from "./ChapterTimeline";
 import { ClipTransitionOverlay } from "./ClipTransitionOverlay";
+import { ClipEdgeActions } from "./ClipEdgeActions";
+import { NextChapterControl } from "./NextChapterControl";
 import { useChapterSession } from "./useChapterSession";
 import type { WalkthroughPlayerHandle } from "./WalkthroughPlayer";
 import "./chapter-chrome.css";
@@ -44,6 +49,11 @@ type Props = {
   onPlayerReady?: (handle: WalkthroughPlayerHandle) => void;
   onStartSpace?: (view: { t: number; yaw: number; pitch: number }) => void;
   onEndSpace?: (view: { t: number; yaw: number; pitch: number }) => void;
+  narration?: import("@/lib/spatial-walkthrough/audio").NarrationSegment[];
+  transcripts?: import("@/lib/spatial-walkthrough/audio").TranscriptRecord[];
+  shareBasePath?: string;
+  initialMode?: NavMode;
+  forceHud?: boolean;
 };
 
 export function ChapterWalkthroughExperience({
@@ -54,6 +64,9 @@ export function ChapterWalkthroughExperience({
   lockedChapterId = null,
   pickerOpen = false,
   walkthroughId = "",
+  shareBasePath,
+  initialMode,
+  forceHud,
   onStartSpace,
   onEndSpace,
   ...rest
@@ -90,6 +103,15 @@ export function ChapterWalkthroughExperience({
   const scopedPins = session.selectedChapter ? pinsInChapter(rest.pins, session.selectedChapter) : rest.pins;
   const bands = chapterBands(session.chapters, session.clipId, session.duration || rest.duration || 0, session.selectedChapter?.id ?? null);
   const name = displayChapterName(session.selectedChapter, session.liveChapter, session.entireWalk);
+  const upcoming = nextChapter(session.chapters, session.selectedChapter?.id ?? null, session.liveChapter);
+  const edgeActions = clipEdgeActionsAtTime({
+    edges: session.resolvedEdges,
+    clips: clipList,
+    clipId: session.clipId,
+    t: session.currentT,
+    duration: session.duration || rest.duration || 0,
+  });
+  const briefingCues = placeholderBriefingCues(session.chapters);
 
   return (
     <div className="relative h-full min-h-0">
@@ -101,7 +123,9 @@ export function ChapterWalkthroughExperience({
         open={pickerOpen}
         onSelect={session.selectChapter}
       />
+      <NextChapterControl chapter={upcoming} onSelect={session.selectChapter} />
       <ClipTransitionOverlay fade={session.fade} />
+      <ClipEdgeActions actions={edgeActions} onSelect={(action) => session.followEdge(action.edge)} />
       <div className="sw-chapter-band-layer">
         <ChapterTimeline bands={bands} onSelect={session.selectChapter} />
       </div>
@@ -113,6 +137,16 @@ export function ChapterWalkthroughExperience({
         duration={session.duration || rest.duration}
         waypoints={session.scopedWaypoints}
         pins={scopedPins}
+        chapters={session.chapters}
+        narration={rest.narration}
+        transcripts={rest.transcripts}
+        walkthroughId={walkthroughId}
+        chapterId={session.selectedChapter?.id ?? null}
+        shareBasePath={shareBasePath}
+        initialMode={initialMode}
+        forceHud={forceHud}
+        briefingCues={briefingCues}
+        selectedId={rest.selectedId ?? locator.pinId}
         onPlayerReady={(handle) => {
           setPlayer(handle);
           rest.onPlayerReady?.(handle);
