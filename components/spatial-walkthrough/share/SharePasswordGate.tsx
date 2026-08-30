@@ -21,7 +21,8 @@ export function SharePasswordGate({ onSubmit, error }: Props) {
         <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--graphite-muted)]">
           Spatial Walkthrough
         </p>
-        <h1 className="text-lg font-semibold">Access code required</h1>
+        <h1 className="text-lg font-semibold">Enter access code</h1>
+        <p className="text-sm text-[var(--graphite-muted)]">This share is protected. Enter the code provided by the project team.</p>
         <input
           type="password"
           value={code}
@@ -30,7 +31,7 @@ export function SharePasswordGate({ onSubmit, error }: Props) {
           autoComplete="off"
           aria-label="Access code"
         />
-        {error ? <p className="text-sm text-[var(--graphite-text-header)]">{error}</p> : null}
+        {error ? <p className="text-sm">{error}</p> : null}
         <button type="submit" className="h-12 w-full border border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] text-[var(--graphite-primary)]">
           Continue
         </button>

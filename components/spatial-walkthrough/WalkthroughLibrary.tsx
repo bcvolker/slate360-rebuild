@@ -2,85 +2,94 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import {
+  emptyLibraryFilter,
+  filterWalkthroughCards,
+  uniqueField,
+  type LibraryCard,
+  type LibraryFilter,
+} from "@/lib/spatial-walkthrough/library-filter";
+import { shareStatusLabel } from "@/lib/spatial-walkthrough/share-status";
+import { StatusPanel } from "@/components/spatial-walkthrough/StatusPanel";
+import "@/components/spatial-walkthrough/viewer/walkthrough-chrome.css";
 
-export type WalkthroughCard = {
-  id: string;
-  title: string;
-  captured_at: string | null;
-  building: string | null;
-  floor: string | null;
-  zone: string | null;
-  walkthrough_type: string | null;
-  status: string;
-  duration_s: number | null;
-  waypointCount: number;
-  pinCount: number;
-};
+export type WalkthroughCard = LibraryCard;
 
 type Props = {
   items: WalkthroughCard[];
   hrefFor: (id: string) => string;
   emptyAction?: { href: string; label: string } | null;
+  loading?: boolean;
 };
 
-function matches(item: WalkthroughCard, key: keyof WalkthroughCard, value: string): boolean {
-  if (!value) return true;
-  return String(item[key] ?? "").toLowerCase() === value.toLowerCase();
-}
-
-export function WalkthroughLibrary({ items, hrefFor, emptyAction }: Props) {
-  const [q, setQ] = useState("");
-  const [building, setBuilding] = useState("");
-  const [floor, setFloor] = useState("");
-  const [zone, setZone] = useState("");
-  const [type, setType] = useState("");
+export function WalkthroughLibrary({ items, hrefFor, emptyAction, loading = false }: Props) {
+  const [filter, setFilter] = useState<LibraryFilter>(emptyLibraryFilter);
 
   const options = useMemo(() => ({
-    buildings: unique(items.map((i) => i.building)),
-    floors: unique(items.map((i) => i.floor)),
-    zones: unique(items.map((i) => i.zone)),
-    types: unique(items.map((i) => i.walkthrough_type)),
+    buildings: uniqueField(items, "building"),
+    floors: uniqueField(items, "floor"),
+    zones: uniqueField(items, "zone"),
+    types: uniqueField(items, "walkthrough_type"),
   }), [items]);
 
-  const filtered = items.filter((item) => {
-    if (q && !item.title.toLowerCase().includes(q.toLowerCase())) return false;
-    return matches(item, "building", building) && matches(item, "floor", floor) && matches(item, "zone", zone) && matches(item, "walkthrough_type", type);
-  });
+  const filtered = filterWalkthroughCards(items, filter);
+  const set = (key: keyof LibraryFilter, value: string) => setFilter((f) => ({ ...f, [key]: value }));
+
+  if (loading) {
+    return <StatusPanel title="Loading library" body="Fetching walkthroughs for this project." />;
+  }
 
   return (
-    <div className="space-y-4">
-      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search title" className="h-11 border border-white/10 bg-transparent px-3 text-sm" />
-        <FilterSelect label="Building" value={building} onChange={setBuilding} options={options.buildings} />
-        <FilterSelect label="Floor" value={floor} onChange={setFloor} options={options.floors} />
-        <FilterSelect label="Room / zone" value={zone} onChange={setZone} options={options.zones} />
-        <FilterSelect label="Type" value={type} onChange={setType} options={options.types} />
+    <div className="space-y-3">
+      <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-7 lg:overflow-visible">
+        <input
+          value={filter.q}
+          onChange={(e) => set("q", e.target.value)}
+          placeholder="Search"
+          className="h-11 min-w-[10rem] shrink-0 border border-white/10 bg-transparent px-3 text-sm lg:min-w-0"
+        />
+        <input
+          type="date"
+          value={filter.dateFrom}
+          onChange={(e) => set("dateFrom", e.target.value)}
+          aria-label="From date"
+          className="h-11 min-w-[9.5rem] shrink-0 border border-white/10 bg-transparent px-2 text-sm lg:min-w-0"
+        />
+        <FilterSelect label="Building" value={filter.building} onChange={(v) => set("building", v)} options={options.buildings} />
+        <FilterSelect label="Floor" value={filter.floor} onChange={(v) => set("floor", v)} options={options.floors} />
+        <FilterSelect label="Zone" value={filter.zone} onChange={(v) => set("zone", v)} options={options.zones} />
+        <FilterSelect label="Type" value={filter.type} onChange={(v) => set("type", v)} options={options.types} />
+        <FilterSelect
+          label="Elevation"
+          value={filter.elevation}
+          onChange={(v) => set("elevation", v)}
+          options={["ground", "aerial"]}
+        />
       </div>
-      {filtered.length === 0 ? (
-        <p className="text-sm text-[var(--graphite-muted)]">
-          No walkthroughs match these filters.
-          {emptyAction ? (
-            <>
-              {" "}
-              <Link href={emptyAction.href} className="text-[var(--graphite-primary)]">{emptyAction.label}</Link>
-            </>
-          ) : null}
-        </p>
+      {items.length === 0 ? (
+        <StatusPanel
+          title="No walkthroughs yet"
+          body="When a capture is published, it will appear here with building, floor, and pin counts."
+          action={emptyAction}
+        />
+      ) : filtered.length === 0 ? (
+        <StatusPanel title="No matching walkthroughs" body="Adjust date, building, floor, zone, type, or elevation." />
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        <ul className="space-y-2">
           {filtered.map((item) => (
             <li key={item.id}>
-              <Link href={hrefFor(item.id)} className="block border border-white/10 bg-white/[0.04] p-4 hover:border-[color-mix(in_srgb,var(--graphite-primary)_35%,transparent)]">
-                <p className="font-semibold text-[var(--graphite-text-header)]">{item.title}</p>
-                <p className="mt-1 text-sm text-[var(--graphite-muted)]">
-                  {item.captured_at ? new Date(item.captured_at).toLocaleDateString() : "Date unset"}
-                  {item.building ? ` · ${item.building}` : ""}
-                  {item.floor ? ` · ${item.floor}` : ""}
-                  {item.zone ? ` · ${item.zone}` : ""}
-                </p>
-                <p className="mt-2 font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--graphite-muted)]">
-                  {formatDuration(item.duration_s)} · {item.waypointCount} waypoints · {item.pinCount} pins · {item.status}
-                </p>
+              <Link href={hrefFor(item.id)} className="sw-lib-row">
+                <span>
+                  <span className="block font-medium text-[var(--graphite-text-header)]">{item.title}</span>
+                  <small className="lg:hidden">{metaLine(item)}</small>
+                </span>
+                <small>{item.captured_at ? new Date(item.captured_at).toLocaleDateString() : "Date unset"}</small>
+                <small>{item.building ?? "—"}</small>
+                <small>{item.floor ?? "—"}</small>
+                <small>{item.zone ?? "—"}</small>
+                <small>{item.walkthrough_type ?? "—"}</small>
+                <small>{formatDuration(item.duration_s)} · {item.waypointCount} wp · {item.pinCount} pins</small>
+                <small>{shareStatusLabel(item.shareStatus)} · {item.status}</small>
               </Link>
             </li>
           ))}
@@ -90,9 +99,23 @@ export function WalkthroughLibrary({ items, hrefFor, emptyAction }: Props) {
   );
 }
 
-function FilterSelect({ label, value, onChange, options }: { label: string; value: string; onChange: (v: string) => void; options: string[] }) {
+function metaLine(item: WalkthroughCard): string {
+  return [item.building, item.floor, item.zone, item.walkthrough_type].filter(Boolean).join(" · ");
+}
+
+function FilterSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (v: string) => void;
+  options: string[];
+}) {
   return (
-    <label className="flex h-11 items-center border border-white/10 px-2 text-sm text-[var(--graphite-muted)]">
+    <label className="flex h-11 min-w-[8.5rem] shrink-0 items-center border border-white/10 px-2 text-sm text-[var(--graphite-muted)] lg:min-w-0">
       <span className="sr-only">{label}</span>
       <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full bg-transparent">
         <option value="">{label}</option>
@@ -104,12 +127,8 @@ function FilterSelect({ label, value, onChange, options }: { label: string; valu
   );
 }
 
-function unique(values: Array<string | null>): string[] {
-  return [...new Set(values.filter((v): v is string => Boolean(v)))];
-}
-
 function formatDuration(seconds: number | null): string {
-  if (seconds == null) return "Duration pending";
+  if (seconds == null) return "—";
   const m = Math.floor(seconds / 60);
   const s = Math.round(seconds % 60);
   return `${m}:${String(s).padStart(2, "0")}`;

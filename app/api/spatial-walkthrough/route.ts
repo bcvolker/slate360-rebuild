@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { withSpatialWalkthroughAuth } from "@/lib/spatial-walkthrough/access";
 import { ok, badRequest, unauthorized, serverError } from "@/lib/server/api-response";
 import { DEFAULT_OPERATOR_PATCH } from "@/lib/spatial-walkthrough/types";
+import { shareStatusFromRows } from "@/lib/spatial-walkthrough/share-status";
 
 export const runtime = "nodejs";
 
@@ -19,19 +20,28 @@ export const GET = (req: NextRequest) =>
     if (error) return serverError(error.message);
 
     const ids = (data ?? []).map((w) => w.id);
-    const [{ data: wps }, { data: pins }] = await Promise.all([
+    const [{ data: wps }, { data: pins }, { data: shares }] = await Promise.all([
       ids.length
         ? admin.from("spatial_waypoints").select("walkthrough_id").in("walkthrough_id", ids)
         : Promise.resolve({ data: [] as { walkthrough_id: string }[] }),
       ids.length
         ? admin.from("spatial_pins").select("walkthrough_id").in("walkthrough_id", ids)
         : Promise.resolve({ data: [] as { walkthrough_id: string }[] }),
+      ids.length
+        ? admin.from("spatial_share_tokens").select("walkthrough_id, is_revoked, expires_at").in("walkthrough_id", ids)
+        : Promise.resolve({ data: [] as { walkthrough_id: string; is_revoked: boolean; expires_at: string | null }[] }),
     ]);
     const wpCount = new Map<string, number>();
     const pinCount = new Map<string, number>();
+    const shareRows = new Map<string, Array<{ is_revoked: boolean; expires_at: string | null }>>();
     for (const row of wps ?? []) wpCount.set(row.walkthrough_id, (wpCount.get(row.walkthrough_id) ?? 0) + 1);
     for (const row of pins ?? []) {
       if (row.walkthrough_id) pinCount.set(row.walkthrough_id, (pinCount.get(row.walkthrough_id) ?? 0) + 1);
+    }
+    for (const row of shares ?? []) {
+      const list = shareRows.get(row.walkthrough_id) ?? [];
+      list.push({ is_revoked: row.is_revoked, expires_at: row.expires_at });
+      shareRows.set(row.walkthrough_id, list);
     }
 
     return ok({
@@ -39,6 +49,7 @@ export const GET = (req: NextRequest) =>
         ...w,
         waypointCount: wpCount.get(w.id) ?? 0,
         pinCount: pinCount.get(w.id) ?? 0,
+        shareStatus: shareStatusFromRows(shareRows.get(w.id) ?? []),
       })),
     });
   }, "view");

@@ -68,6 +68,9 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
     walkthrough: wt.brand_theme,
     canHidePoweredBy: true,
   });
+  if (theme.logoUrl) {
+    theme.logoUrl = `/api/spatial-walkthrough/public/${token}/logo`;
+  }
 
   return NextResponse.json({
     product: "Spatial Walkthrough",

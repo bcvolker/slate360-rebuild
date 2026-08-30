@@ -17,6 +17,8 @@ export type PinType =
   | "other";
 export type PinVisibility = "internal" | "client" | "public";
 export type LogoTreatment = "light" | "dark" | "auto";
+export type OperatorPatchFill = "neutral" | "brand";
+export type ShareStatus = "unshared" | "live" | "expired" | "revoked";
 
 export type BrandTheme = {
   logoUrl: string | null;
@@ -38,6 +40,9 @@ export type OperatorPatch = {
   wrapY0Frac: number;
   logoInPatch: boolean;
   showDate: boolean;
+  fill: OperatorPatchFill;
+  showCompass: boolean;
+  headingDeg: number | null;
 };
 
 export type PinLocator = {
@@ -81,4 +86,7 @@ export const DEFAULT_OPERATOR_PATCH: OperatorPatch = {
   wrapY0Frac: 0.32,
   logoInPatch: true,
   showDate: true,
+  fill: "neutral",
+  showCompass: false,
+  headingDeg: null,
 };

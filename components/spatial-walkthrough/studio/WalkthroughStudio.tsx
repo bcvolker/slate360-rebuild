@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { WalkthroughExperience, type ExperiencePin } from "@/components/spatial-walkthrough/viewer/WalkthroughExperience";
 import { StudioUpload } from "./StudioUpload";
 import { StudioSharePanel } from "./StudioSharePanel";
+import { OperatorPatchPanel } from "./OperatorPatchPanel";
 import { parseOperatorPatch } from "@/lib/spatial-walkthrough/operator-patch";
 import { toWaypoint } from "@/lib/spatial-walkthrough/waypoints";
 import type { BrandTheme, OperatorPatch, WaypointRecord } from "@/lib/spatial-walkthrough/types";
@@ -44,6 +45,7 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
   const [label, setLabel] = useState("");
   const [fileId, setFileId] = useState("");
   const [skipEnd, setSkipEnd] = useState("");
+  const [patch, setPatch] = useState<OperatorPatch>(() => parseOperatorPatch(null));
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/spatial-walkthrough/${walkthroughId}`, { cache: "no-store" });
@@ -62,6 +64,11 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
       .then((r) => r.json())
       .then((j) => setFiles(j.files ?? []));
   }, [payload?.walkthrough.project_id]);
+
+  useEffect(() => {
+    if (!payload) return;
+    setPatch(parseOperatorPatch(payload.walkthrough.operator_patch));
+  }, [payload]);
 
   if (!payload) return <p className="p-6 text-sm text-[var(--graphite-muted)]">Loading studio…</p>;
 
@@ -89,7 +96,6 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
       })),
   }));
   const redactions = payload.redactions.map(ruleFrom);
-  const patch: OperatorPatch = parseOperatorPatch(payload.walkthrough.operator_patch);
   const theme: BrandTheme = resolveBrandTheme({
     walkthrough: payload.walkthrough.brand_theme as never,
     canHidePoweredBy: true,
@@ -156,6 +162,7 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
             redactions={redactions}
             operatorPatch={patch}
             authoring
+            capturedAt={typeof payload.walkthrough.captured_at === "string" ? payload.walkthrough.captured_at : null}
             onAddWaypoint={(view) => setDraft({ kind: "waypoint", ...view })}
             onAddPin={(view) => setDraft({ kind: "pin", ...view })}
           />
@@ -187,6 +194,17 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
           </div>
         </div>
       ) : null}
+      <OperatorPatchPanel
+        patch={patch}
+        onChange={setPatch}
+        onPersist={() => {
+          void fetch(`/api/spatial-walkthrough/${walkthroughId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ operatorPatch: patch }),
+          }).then(() => load());
+        }}
+      />
       <StudioSharePanel
         walkthroughId={walkthroughId}
         status={String(payload.walkthrough.status)}

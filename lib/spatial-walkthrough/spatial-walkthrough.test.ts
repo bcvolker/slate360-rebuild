@@ -5,6 +5,7 @@ import { orderedWaypoints, indexAtTime, assignSortOrder, prevWaypoint } from "./
 import { serializePinLocator, isCompleteLocator, pinVisibleOnPolicy } from "./pins";
 import { resolveBrandTheme } from "./theme";
 import { applySkip, rulesForPolicy, skipIntervals } from "./redaction";
+import { parseOperatorPatch } from "./operator-patch";
 import { buildViewerMarkers } from "./markers";
 import { isNavAppVisible } from "./nav-filter";
 import type { WaypointRecord } from "./types";
@@ -160,7 +161,7 @@ describe("viewer markers", () => {
       t: 2,
       pins: [{ id: "p1", yawDeg: 20, pitchDeg: -8, label: "Spec" }],
       redactions: [],
-      operatorPatch: { enabled: true, nadirFrac: 0.2, wrapFrac: 0.1, wrapY0Frac: 0.3, logoInPatch: true, showDate: true },
+      operatorPatch: parseOperatorPatch({ enabled: true, logoInPatch: true, showDate: true }),
     });
     expect(markers.filter((m) => m.data.kind === "waypoint")).toHaveLength(1);
     expect(markers.find((m) => m.data.kind === "waypoint")?.data.id).toBe("b");

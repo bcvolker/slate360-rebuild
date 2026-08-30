@@ -11,6 +11,9 @@ export function parseOperatorPatch(raw: unknown): OperatorPatch {
     wrapY0Frac: clamp01(num(o.wrapY0Frac, DEFAULT_OPERATOR_PATCH.wrapY0Frac), 0, 0.8),
     logoInPatch: o.logoInPatch !== false,
     showDate: o.showDate !== false,
+    fill: o.fill === "brand" ? "brand" : "neutral",
+    showCompass: o.showCompass === true,
+    headingDeg: typeof o.headingDeg === "number" && Number.isFinite(o.headingDeg) ? o.headingDeg : null,
   };
 }
 
