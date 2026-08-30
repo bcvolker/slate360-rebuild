@@ -9,9 +9,9 @@ import "@photo-sphere-viewer/core/index.css";
 import "@photo-sphere-viewer/video-plugin/index.css";
 import "@photo-sphere-viewer/markers-plugin/index.css";
 import "./walkthrough-markers.css";
-import type { OperatorPatch, WaypointRecord } from "@/lib/spatial-walkthrough/types";
+import type { BrandTheme, OperatorPatch, WaypointRecord } from "@/lib/spatial-walkthrough/types";
 import { applySkip, skipIntervals, type RedactionRule } from "@/lib/spatial-walkthrough/redaction";
-import { buildViewerMarkers, type PinMarkerInput } from "@/lib/spatial-walkthrough/markers";
+import { buildViewerMarkers, type MarkerChrome, type PinMarkerInput } from "@/lib/spatial-walkthrough/markers";
 
 export type WalkthroughPlayerHandle = {
   seekTo: (t: number, yaw?: number, pitch?: number) => void;
@@ -28,6 +28,9 @@ type Props = {
   pins?: PinMarkerInput[];
   redactions?: RedactionRule[];
   operatorPatch?: OperatorPatch | null;
+  theme?: BrandTheme | null;
+  chrome?: MarkerChrome;
+  selectedId?: string | null;
   onPinSelect?: (id: string) => void;
   onReady?: (handle: WalkthroughPlayerHandle) => void;
 };
@@ -40,6 +43,9 @@ export function WalkthroughPlayer({
   pins = [],
   redactions = [],
   operatorPatch,
+  theme = null,
+  chrome,
+  selectedId = null,
   onPinSelect,
   onReady,
 }: Props) {
@@ -49,8 +55,8 @@ export function WalkthroughPlayer({
   pinSelectRef.current = onPinSelect;
   readyRef.current = onReady;
 
-  const liveRef = useRef({ waypoints, clipId, pins, redactions, operatorPatch });
-  liveRef.current = { waypoints, clipId, pins, redactions, operatorPatch };
+  const liveRef = useRef({ waypoints, clipId, pins, redactions, operatorPatch, theme, chrome, selectedId });
+  liveRef.current = { waypoints, clipId, pins, redactions, operatorPatch, theme, chrome, selectedId };
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -60,10 +66,10 @@ export function WalkthroughPlayer({
       panorama: { source: videoUrl },
       defaultYaw: "0deg",
       defaultPitch: "0deg",
-      navbar: ["videoPlay", "videoTime", "zoom", "fullscreen"],
+      navbar: false,
       loadingImg: posterUrl ?? undefined,
       plugins: [
-        [VideoPlugin, { muted: true, bigButton: true, progressbar: true }],
+        [VideoPlugin, { muted: true, bigButton: false, progressbar: false }],
         MarkersPlugin,
       ],
     });
@@ -79,6 +85,9 @@ export function WalkthroughPlayer({
         pins: live.pins,
         redactions: live.redactions,
         operatorPatch: live.operatorPatch,
+        theme: live.theme,
+        chrome: live.chrome,
+        selectedId: live.selectedId,
       });
       markers.setMarkers(
         defs.map((d) => ({

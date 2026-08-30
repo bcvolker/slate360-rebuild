@@ -7,6 +7,7 @@ import { WalkthroughPlayer, type WalkthroughPlayerHandle } from "./WalkthroughPl
 import { WalkthroughChrome } from "./WalkthroughChrome";
 import { PinDrawer, type DrawerPin } from "./PinDrawer";
 import { BrandFrame } from "./BrandFrame";
+import { PreviewSphere } from "./PreviewSphere";
 
 export type ExperiencePin = DrawerPin & {
   yawDeg: number;
@@ -17,7 +18,7 @@ export type ExperiencePin = DrawerPin & {
 type Props = {
   theme: BrandTheme;
   title: string;
-  videoUrl: string;
+  videoUrl?: string;
   posterUrl?: string | null;
   clipId: string;
   waypoints: WaypointRecord[];
@@ -26,6 +27,12 @@ type Props = {
   operatorPatch?: OperatorPatch | null;
   allowDownload?: boolean;
   authoring?: boolean;
+  duration?: number;
+  projectName?: string | null;
+  capturedAt?: string | null;
+  preview?: boolean;
+  selectedId?: string | null;
+  buffering?: boolean;
   onAddWaypoint?: (view: { t: number; yaw: number; pitch: number }) => void;
   onAddPin?: (view: { t: number; yaw: number; pitch: number }) => void;
 };
@@ -42,13 +49,21 @@ export function WalkthroughExperience({
   operatorPatch,
   allowDownload = true,
   authoring = false,
+  duration = 0,
+  projectName,
+  capturedAt,
+  preview = false,
+  selectedId: selectedIdProp = null,
+  buffering = false,
   onAddWaypoint,
   onAddPin,
 }: Props) {
   const [player, setPlayer] = useState<WalkthroughPlayerHandle | null>(null);
   const [currentT, setCurrentT] = useState(0);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [selectedId, setSelectedId] = useState<string | null>(selectedIdProp);
+  const [loading, setLoading] = useState(!preview);
+
+  useEffect(() => { setSelectedId(selectedIdProp); }, [selectedIdProp]);
 
   useEffect(() => {
     if (!player) return;
@@ -58,50 +73,64 @@ export function WalkthroughExperience({
   }, [player]);
 
   const selected = useMemo(() => pins.find((p) => p.id === selectedId) ?? null, [pins, selectedId]);
-  const markerPins = pins.map((p) => ({ id: p.id, yawDeg: p.yawDeg, pitchDeg: p.pitchDeg, label: p.label }));
+  const markerPins = pins.map((p) => ({
+    id: p.id,
+    yawDeg: p.yawDeg,
+    pitchDeg: p.pitchDeg,
+    label: p.label,
+    pinType: p.pinType,
+  }));
 
   return (
-    <BrandFrame theme={theme} title={title} loading={loading} compact={authoring}>
-      <WalkthroughPlayer
-        videoUrl={videoUrl}
-        posterUrl={posterUrl}
-        waypoints={waypoints}
-        clipId={clipId}
-        pins={markerPins}
-        redactions={redactions}
-        operatorPatch={operatorPatch}
-        onPinSelect={setSelectedId}
-        onReady={setPlayer}
-      />
+    <BrandFrame
+      theme={theme}
+      title={title}
+      projectName={projectName}
+      capturedAt={capturedAt}
+      loading={loading || buffering}
+      compact={authoring}
+    >
+      {preview || !videoUrl ? (
+        <PreviewSphere
+          theme={theme}
+          title={title}
+          capturedAt={capturedAt}
+          waypoints={waypoints}
+          pins={markerPins}
+          operatorPatch={operatorPatch}
+          selectedId={selectedId}
+          onSelect={setSelectedId}
+        />
+      ) : (
+        <WalkthroughPlayer
+          videoUrl={videoUrl}
+          posterUrl={posterUrl}
+          waypoints={waypoints}
+          clipId={clipId}
+          pins={markerPins}
+          redactions={redactions}
+          operatorPatch={operatorPatch}
+          theme={theme}
+          chrome={{ title, capturedAt, logoUrl: theme.logoUrl }}
+          selectedId={selectedId}
+          onPinSelect={setSelectedId}
+          onReady={setPlayer}
+        />
+      )}
       <WalkthroughChrome
         waypoints={waypoints}
         clipId={clipId}
         currentT={currentT}
+        duration={duration}
         player={player}
         extra={
           authoring ? (
             <div className="flex gap-2">
-              <button
-                type="button"
-                className="min-h-11 rounded-lg border border-white/10 bg-black/40 px-3 text-sm text-[var(--sw-text)]"
-                onClick={() => {
-                  if (!player) return;
-                  player.pause();
-                  onAddWaypoint?.(player.getView());
-                }}
-              >
-                Add waypoint
+              <button type="button" className="sw-chrome-btn" onClick={() => player && onAddWaypoint?.(player.getView())}>
+                Waypoint
               </button>
-              <button
-                type="button"
-                className="min-h-11 rounded-lg border border-white/10 bg-black/40 px-3 text-sm text-[var(--sw-text)]"
-                onClick={() => {
-                  if (!player) return;
-                  player.pause();
-                  onAddPin?.(player.getView());
-                }}
-              >
-                Add pin
+              <button type="button" className="sw-chrome-btn" onClick={() => player && onAddPin?.(player.getView())}>
+                Pin
               </button>
             </div>
           ) : null

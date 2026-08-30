@@ -1,54 +1,91 @@
 "use client";
 
-import type { CSSProperties, ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
 import type { BrandTheme } from "@/lib/spatial-walkthrough/types";
 import { themeCssVars } from "@/lib/spatial-walkthrough/theme";
+import "@/components/spatial-walkthrough/viewer/walkthrough-chrome.css";
+import "@/components/spatial-walkthrough/viewer/walkthrough-markers.css";
 
 type Props = {
   theme: BrandTheme;
   title: string;
+  projectName?: string | null;
+  capturedAt?: string | null;
   loading?: boolean;
   compact?: boolean;
   children: ReactNode;
 };
 
-export function BrandFrame({ theme, title, loading = false, compact = false, children }: Props) {
+export function BrandFrame({
+  theme,
+  title,
+  projectName,
+  capturedAt,
+  loading = false,
+  compact = false,
+  children,
+}: Props) {
   const style = themeCssVars(theme) as CSSProperties;
+  const [chrome, setChrome] = useState<"active" | "idle">("active");
+  const date = capturedAt ? new Date(capturedAt).toLocaleDateString() : null;
+
+  useEffect(() => {
+    let timer = 0;
+    const wake = () => {
+      setChrome("active");
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => setChrome("idle"), 2800);
+    };
+    wake();
+    window.addEventListener("pointermove", wake);
+    window.addEventListener("keydown", wake);
+    window.addEventListener("touchstart", wake);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("pointermove", wake);
+      window.removeEventListener("keydown", wake);
+      window.removeEventListener("touchstart", wake);
+    };
+  }, []);
 
   return (
-    <div
-      className={`relative flex flex-col bg-[var(--sw-page,var(--graphite-canvas))] text-[var(--sw-text,var(--graphite-text-header))] ${compact ? "h-full min-h-0" : "min-h-[100dvh]"}`}
-      style={style}
-    >
+    <div className="sw-frame" data-compact={compact ? "true" : "false"} data-chrome={chrome} style={style}>
       {loading ? (
-        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center gap-4 bg-[var(--sw-page)]">
-          {theme.logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={theme.logoUrl} alt="" className="h-10 w-auto max-w-[220px] object-contain" />
-          ) : null}
-          <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[var(--sw-muted)]">
-            Spatial Walkthrough
-          </p>
-          <p className="text-sm text-[var(--sw-text)]">{title}</p>
+        <div className="sw-buffer" role="status">
+          <StatusCopy logoUrl={theme.logoUrl} title={title} body="Loading Spatial Walkthrough" />
         </div>
       ) : null}
-      <header className="flex h-12 shrink-0 items-center gap-3 border-b border-white/10 px-4">
+      <header className="sw-frame-header">
         {theme.logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={theme.logoUrl} alt="" className="h-7 w-auto max-w-[160px] object-contain" />
+          <img src={theme.logoUrl} alt="" className={`sw-logo--${theme.logoTreatment}`} />
         ) : (
-          <span className="font-mono text-[12px] font-semibold uppercase tracking-[0.14em]">{title}</span>
+          <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em]">{title}</span>
         )}
-        <span className="min-w-0 truncate text-sm text-[var(--sw-muted)]">{title}</span>
+        <div className="sw-frame-meta">
+          <strong>{title}</strong>
+          {projectName ? <span>{projectName}</span> : null}
+          {date ? <span>{date}</span> : null}
+        </div>
         {theme.showPoweredBy ? (
-          <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--sw-muted)]">
-            Powered by Slate360
-          </span>
-        ) : (
-          <span className="ml-auto" />
-        )}
+          <span className="font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--sw-muted)]">Slate360</span>
+        ) : null}
       </header>
-      <div className="relative min-h-0 flex-1">{children}</div>
+      <div className="sw-frame-stage">{children}</div>
+    </div>
+  );
+}
+
+function StatusCopy({ logoUrl, title, body }: { logoUrl: string | null; title: string; body: string }) {
+  return (
+    <div className="sw-status">
+      {logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={logoUrl} alt="" className="mx-auto mb-3 h-8 w-auto max-w-[180px] object-contain" />
+      ) : null}
+      <p className="sw-status-kicker">Spatial Walkthrough</p>
+      <h2>{title}</h2>
+      <p className="sw-status-body">{body}</p>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { withSpatialWalkthroughAuth } from "@/lib/spatial-walkthrough/access";
 import { ok, unauthorized, serverError } from "@/lib/server/api-response";
 import { resolveOrgEntitlements } from "@/lib/server/org-feature-flags";
 import { resolveBrandTheme, normalizeHex } from "@/lib/spatial-walkthrough/theme";
+import { displayLogoPath } from "@/lib/spatial-walkthrough/logo-url";
 
 export const runtime = "nodejs";
 
@@ -15,7 +16,7 @@ export const GET = (req: NextRequest) =>
       theme: resolveBrandTheme({
         org: data
           ? {
-              logoUrl: data.logo_display_key || data.logo_key,
+              logoUrl: displayLogoPath(Boolean(data.logo_display_key || data.logo_key)),
               primaryColor: data.primary_color,
               secondaryColor: data.secondary_color,
               accentColor: data.accent_color,

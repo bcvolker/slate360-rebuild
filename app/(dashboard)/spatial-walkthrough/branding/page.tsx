@@ -4,6 +4,7 @@ import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { resolveSpatialAccess } from "@/lib/spatial-walkthrough/access";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveBrandTheme } from "@/lib/spatial-walkthrough/theme";
+import { displayLogoPath } from "@/lib/spatial-walkthrough/logo-url";
 import { resolveOrgEntitlements } from "@/lib/server/org-feature-flags";
 
 export const metadata = { title: "Spatial Walkthrough branding" };
@@ -20,7 +21,7 @@ export default async function SpatialWalkthroughBrandingPage() {
   const theme = resolveBrandTheme({
     org: data
       ? {
-          logoUrl: data.logo_display_key || data.logo_key,
+          logoUrl: displayLogoPath(Boolean(data.logo_display_key || data.logo_key)),
           primaryColor: data.primary_color,
           secondaryColor: data.secondary_color,
           accentColor: data.accent_color,
