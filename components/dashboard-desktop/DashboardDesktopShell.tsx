@@ -80,6 +80,7 @@ function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, visibleA
           spatialWalkthroughVisible={
             Boolean(visibleApps?.includes("spatial-walkthrough")) || Boolean(isCeo)
           }
+          spatialOnly={Boolean(visibleApps) && visibleApps.length === 1 && visibleApps[0] === "spatial-walkthrough" && !isCeo}
           onOpenCommand={() => setCommandOpen(true)}
         />
         <main className={t.content}>{children}</main>
@@ -88,6 +89,8 @@ function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, visibleA
         open={commandOpen}
         onOpenChange={setCommandOpen}
         hasOperationsConsoleAccess={Boolean(showOpsConsole)}
+        visibleApps={visibleApps}
+        spatialOnly={Boolean(visibleApps) && visibleApps.length === 1 && visibleApps[0] === "spatial-walkthrough" && !isCeo}
       />
       {inviteOpen ? (
         <InviteShareModal open={inviteOpen} onOpenChange={setInviteOpen} {...inviteShareData} />

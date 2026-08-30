@@ -19,12 +19,14 @@ import {
   LogOut,
   MapPin,
   MessageSquare,
+  Scan,
   Search,
   Settings,
   Shield,
   User,
   type LucideIcon,
 } from "lucide-react";
+import { commandPaletteHrefAllowed, type ClientSurfaceApp, type ClientSurfaceFlags } from "@/lib/spatial-walkthrough/client-surface";
 import { createClient } from "@/lib/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -42,6 +44,7 @@ interface PaletteItem {
 const ITEMS: PaletteItem[] = [
   { id: "nav-cc", group: "Navigate", label: "Command Center", icon: LayoutDashboard, action: "navigate", href: "/dashboard", shortcut: "G C" },
   { id: "nav-projects", group: "Navigate", label: "Projects", icon: FolderKanban, action: "navigate", href: "/projects", shortcut: "G P" },
+  { id: "nav-walkthroughs", group: "Navigate", label: "Spatial Walkthroughs", icon: Scan, action: "navigate", href: "/spatial-walkthrough" },
   { id: "nav-slatedrop", group: "Navigate", label: "SlateDrop", icon: Inbox, action: "navigate", href: "/slatedrop", shortcut: "G D" },
   { id: "nav-sitewalk", group: "Navigate", label: "Site Walk", icon: MapPin, action: "navigate", href: "/site-walk" },
   { id: "nav-coordination", group: "Navigate", label: "Coordination Inbox", icon: MessageSquare, action: "navigate", href: "/coordination/inbox" },
@@ -56,12 +59,16 @@ interface CommandPaletteProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   hasOperationsConsoleAccess?: boolean;
+  visibleApps?: ClientSurfaceApp[] | null;
+  spatialOnly?: boolean;
 }
 
 export default function CommandPalette({
   open,
   onOpenChange,
   hasOperationsConsoleAccess = false,
+  visibleApps = null,
+  spatialOnly = false,
 }: CommandPaletteProps) {
   const router = useRouter();
   const isMobile = useIsMobile();
@@ -86,7 +93,7 @@ export default function CommandPalette({
     onOpenChange(false);
     if (item.action === "navigate" && item.href) {
       if (item.id === "nav-cc") {
-        router.push(isMobile ? "/app" : "/dashboard");
+        router.push(isMobile ? "/app" : spatialOnly ? "/projects" : "/dashboard");
         return;
       }
       router.push(item.href);
@@ -97,7 +104,13 @@ export default function CommandPalette({
     }
   }
 
-  const visible = ITEMS.filter((item) => !item.internalOnly || hasOperationsConsoleAccess);
+  const surfaceFlags = flagsFromVisibleApps(visibleApps);
+  const visible = ITEMS.filter((item) => {
+    if (item.internalOnly && !hasOperationsConsoleAccess) return false;
+    if (spatialOnly && item.href === "/dashboard") return false;
+    if (!item.href) return true;
+    return commandPaletteHrefAllowed(item.href, surfaceFlags);
+  });
   const groups = ["Navigate", "Create", "Account"] as const;
 
   if (!open) return null;
@@ -174,4 +187,18 @@ export default function CommandPalette({
       </div>
     </div>
   );
+}
+
+function flagsFromVisibleApps(apps: ClientSurfaceApp[] | null | undefined): ClientSurfaceFlags {
+  const list = apps ?? [];
+  return {
+    spatialWalkthrough: list.includes("spatial-walkthrough"),
+    siteWalk: list.includes("site-walk"),
+    twin360: list.includes("twin360"),
+    slatedrop: list.includes("slatedrop"),
+    designStudio: list.includes("design-studio"),
+    contentStudio: list.includes("content-studio"),
+    thermal: list.includes("thermal"),
+    isCeo: false,
+  };
 }

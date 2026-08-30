@@ -12,6 +12,7 @@ import { isMobileServerLayout } from "@/lib/server/device-layout";
 import { isBetaMode } from "@/lib/beta-mode";
 import { resolveClientSurfaceFlags } from "@/lib/spatial-walkthrough/access";
 import { visibleClientApps } from "@/lib/spatial-walkthrough/client-surface";
+import { ClientSurfaceProvider } from "@/components/spatial-walkthrough/ClientSurfaceProvider";
 
 type DashboardRouteLayoutProps = {
   children: React.ReactNode;
@@ -57,16 +58,18 @@ export default async function DashboardRouteLayout({ children }: DashboardRouteL
   );
 
   return (
-    <NuqsAdapter>
-      <TooltipProvider>
-        {chrome}
-        <Suspense fallback={null}>
-          <BuildRuntimeBadge />
-        </Suspense>
-        <Suspense fallback={null}>
-          <OverflowProbe />
-        </Suspense>
-      </TooltipProvider>
-    </NuqsAdapter>
+    <ClientSurfaceProvider flags={flags}>
+      <NuqsAdapter>
+        <TooltipProvider>
+          {chrome}
+          <Suspense fallback={null}>
+            <BuildRuntimeBadge />
+          </Suspense>
+          <Suspense fallback={null}>
+            <OverflowProbe />
+          </Suspense>
+        </TooltipProvider>
+      </NuqsAdapter>
+    </ClientSurfaceProvider>
   );
 }

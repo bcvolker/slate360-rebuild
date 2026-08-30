@@ -25,12 +25,15 @@ import { appHomeTokens } from "@/components/studio-ui/app-home-tokens";
 import { buildAppHomeDockContent, MobileAppHomeFill } from "@/components/studio-ui/MobileAppHomeFill";
 import { MobileAppHomeQuickActions } from "@/components/studio-ui/MobileAppHomeQuickActions";
 import { MobileAppLauncherGrid } from "@/components/studio-ui/MobileAppLauncherGrid";
+import { SpatialPortalHome } from "@/components/studio-ui/SpatialPortalHome";
 import { MobileAppSectionLabel } from "@/components/studio-ui/MobileAppSectionLabel";
 import type { MobileQuickActionItem } from "@/components/mobile-system";
 
 type MobileAppRootContentProps = {
   homeData: MobileAppHomeData;
   launcherApps: MobileLauncherAppView[];
+  spatialOnly?: boolean;
+  projectCount?: number;
 };
 
 function DockRowList({
@@ -59,7 +62,12 @@ function DockRowList({
   );
 }
 
-export function MobileAppRootContent({ homeData, launcherApps }: MobileAppRootContentProps) {
+export function MobileAppRootContent({
+  homeData,
+  launcherApps,
+  spatialOnly: spatialOnlyProp,
+  projectCount = 0,
+}: MobileAppRootContentProps) {
   const { setOpen: setInviteOpen } = useInviteShare();
 
   const handleSearch = useCallback(() => {
@@ -68,6 +76,10 @@ export function MobileAppRootContent({ homeData, launcherApps }: MobileAppRootCo
       new KeyboardEvent("keydown", { key: "k", metaKey: true, bubbles: true }),
     );
   }, []);
+
+  const spatialOnly =
+    spatialOnlyProp ??
+    (launcherApps.length === 1 && launcherApps[0]?.id === "spatial-walkthrough");
 
   const dockPayload = useMemo(() => buildAppHomeDockContent(homeData), [homeData]);
 
@@ -158,17 +170,27 @@ export function MobileAppRootContent({ homeData, launcherApps }: MobileAppRootCo
     [activityTabs, dockPayload.activityCount],
   );
 
-  useMobileShellDock(dockContent);
+  useMobileShellDock(spatialOnly ? null : dockContent);
 
-  const quickActions: MobileQuickActionItem[] = useMemo(
-    () => [
+  const quickActions: MobileQuickActionItem[] = useMemo(() => {
+    const items: MobileQuickActionItem[] = [
       { label: "Invite & share", icon: QrCode, onClick: () => setInviteOpen(true) },
       { label: "New project", icon: FolderPlus, href: "/projects" },
-      { label: "SlateDrop", icon: Cloud, href: "/slatedrop" },
-      { label: "Search", icon: Search, onClick: handleSearch },
-    ],
-    [handleSearch, setInviteOpen],
-  );
+    ];
+    if (!spatialOnly) items.push({ label: "SlateDrop", icon: Cloud, href: "/slatedrop" });
+    items.push({ label: "Search", icon: Search, onClick: handleSearch });
+    return items;
+  }, [handleSearch, setInviteOpen, spatialOnly]);
+
+  if (spatialOnly) {
+    return (
+      <SpatialPortalHome
+        projectCount={projectCount}
+        onSearch={handleSearch}
+        onInvite={() => setInviteOpen(true)}
+      />
+    );
+  }
 
   return (
     <div data-mobile-route="app" className={appHomeTokens.scrollInner}>

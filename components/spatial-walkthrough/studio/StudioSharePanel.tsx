@@ -62,10 +62,13 @@ export function StudioSharePanel({ walkthroughId, status, operatorPatch, shares,
   return (
     <section className="space-y-3 border border-white/10 bg-white/[0.04] p-4">
       <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">Share and policy</p>
+      <p className="text-sm text-[var(--graphite-muted)]">
+        Members sign in. Guest shares are private links. Public shares are open links.
+      </p>
       <div className="grid gap-2 sm:grid-cols-3">
         <select value={policy} onChange={(e) => setPolicy(e.target.value as "client" | "public")} className="h-11 border border-white/10 bg-transparent px-2">
-          <option value="client">CLIENT</option>
-          <option value="public">PUBLIC</option>
+          <option value="client">Guest share (private link)</option>
+          <option value="public">Public share</option>
         </select>
         <input value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Optional access code" className="h-11 border border-white/10 bg-transparent px-3" />
         <input type="datetime-local" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} className="h-11 border border-white/10 bg-transparent px-3" />
@@ -85,7 +88,7 @@ export function StudioSharePanel({ walkthroughId, status, operatorPatch, shares,
       <ul className="space-y-1 text-sm text-[var(--graphite-muted)]">
         {shares.map((s) => (
           <li key={s.id} className="flex items-center justify-between gap-2">
-            <span className="truncate">{s.policy} · {s.is_revoked ? "revoked" : "active"} · /w/{s.token.slice(0, 8)}…</span>
+            <span className="truncate">{s.policy === "public" ? "Public share" : "Guest share"} · {s.is_revoked ? "revoked" : "active"} · /w/{s.token.slice(0, 8)}…</span>
             {!s.is_revoked ? (
               <button
                 type="button"

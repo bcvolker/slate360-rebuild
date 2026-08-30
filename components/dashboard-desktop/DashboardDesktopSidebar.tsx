@@ -10,6 +10,7 @@ import {
   resolveDashboardNavActive,
 } from "./dashboard-nav-config";
 import { dashboardDesktopTokens as t } from "./dashboard-tokens";
+import { isSpatialOnlyAppList } from "@/lib/spatial-walkthrough/nav-filter";
 
 export function DashboardDesktopSidebar({
   showOpsConsole = false,
@@ -26,6 +27,7 @@ export function DashboardDesktopSidebar({
 }) {
   const pathname = usePathname() ?? "";
   const nav = resolveDashboardNav(showOpsConsole, isCeo, visibleApps);
+  const homeHref = isSpatialOnlyAppList(visibleApps, isCeo) ? "/projects" : "/dashboard";
 
   return (
     <aside
@@ -34,7 +36,7 @@ export function DashboardDesktopSidebar({
     >
       <div className={cn("flex h-12 shrink-0 items-center border-b border-[var(--mobile-app-card-border)]", collapsed ? "justify-center px-2" : "justify-between px-4")}>
         {!collapsed ? (
-          <Link href="/dashboard" aria-label="Slate360 dashboard home">
+          <Link href={homeHref} aria-label="Slate360 home">
             <SlateLogo size="sm" className="text-[var(--graphite-primary)]" />
           </Link>
         ) : null}

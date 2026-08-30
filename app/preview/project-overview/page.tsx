@@ -15,6 +15,11 @@ const MOCK: ProjectOverviewData = {
   showTwins: true,
   showSiteWalk: true,
   showWalkthroughs: true,
+  spatialOnly: false,
+  latestWalkthrough: null,
+  recentWalkthroughs: [],
+  recentFiles: [],
+  recentPins: [],
   recentActivity: Array.from({ length: 8 }, (_, i) => ({
     id: String(i),
     kind: "walk" as const,
