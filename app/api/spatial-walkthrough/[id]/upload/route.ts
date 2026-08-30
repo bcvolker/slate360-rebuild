@@ -11,6 +11,13 @@ export const runtime = "nodejs";
 type Ctx = { params: Promise<{ id: string }> };
 const PART_BYTES = 8 * 1024 * 1024;
 
+function requestBaseUrl(req: NextRequest): string {
+  const proto = req.headers.get("x-forwarded-proto") || "https";
+  const host = req.headers.get("x-forwarded-host") || req.headers.get("host") || "";
+  if (host) return `${proto}://${host}`;
+  return (process.env.NEXT_PUBLIC_SITE_URL || process.env.SITE_URL || "https://www.slate360.ai").replace(/\/$/, "");
+}
+
 export const POST = (req: NextRequest, ctx: Ctx) =>
   withSpatialWalkthroughAuth(req, async ({ admin, orgId }) => {
     if (!orgId) return unauthorized("Organization required");
@@ -96,12 +103,46 @@ export const POST = (req: NextRequest, ctx: Ctx) =>
       }).select("id").single();
       if (jobErr) return serverError(jobErr.message);
       await admin.from("spatial_clips").update({ status: "processing", upload_session: {} }).eq("id", clip.id);
+      const callbackBaseUrl = requestBaseUrl(req);
+      const modalBody = {
+        jobId: job.id,
+        clipId: clip.id,
+        orgId,
+        sourceKey: clip.master_key,
+        callbackBaseUrl,
+      };
+      let dispatched: "trigger" | "modal" = "trigger";
       try {
-        await tasks.trigger("spatial-walkthrough.ingest", { jobId: job.id });
-      } catch (err) {
-        return serverError(err instanceof Error ? err.message : "Failed to enqueue ingest");
+        await tasks.trigger("spatial-walkthrough.ingest", { jobId: job.id, callbackBaseUrl });
+      } catch {
+        const endpoint = process.env.MODAL_SPATIAL_WALKTHROUGH_ENDPOINT?.trim();
+        if (!endpoint) {
+          return serverError("Ingest dispatch failed and MODAL_SPATIAL_WALKTHROUGH_ENDPOINT is not configured");
+        }
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(modalBody),
+        });
+        if (!res.ok) {
+          const detail = (await res.text().catch(() => "")).slice(0, 400);
+          await admin.from("spatial_processing_jobs").update({
+            status: "failed",
+            error_log: `Modal dispatch ${res.status}: ${detail}`,
+          }).eq("id", job.id);
+          return serverError(`Modal dispatch ${res.status}`);
+        }
+        dispatched = "modal";
+        const runId = res.headers.get("x-modal-run-id");
+        if (runId) {
+          await admin.from("spatial_processing_jobs").update({
+            status: "processing",
+            stage: "dispatch",
+            worker_run_id: runId,
+          }).eq("id", job.id);
+        }
       }
-      return ok({ clipId: clip.id, jobId: job.id, ingestQueued: true });
+      return ok({ clipId: clip.id, jobId: job.id, ingestQueued: true, dispatched });
     }
 
     return badRequest("Unknown action");

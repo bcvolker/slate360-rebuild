@@ -11,7 +11,7 @@ const getSupabase = () => {
 export const spatialWalkthroughIngestTask = task({
   id: "spatial-walkthrough.ingest",
   maxDuration: 120,
-  run: async (payload: { jobId: string }) => {
+  run: async (payload: { jobId: string; callbackBaseUrl?: string }) => {
     const supabase = getSupabase();
     const { data: job } = await supabase
       .from("spatial_processing_jobs")
@@ -46,6 +46,11 @@ export const spatialWalkthroughIngestTask = task({
         clipId: job.clip_id,
         orgId: job.org_id,
         sourceKey: job.source_s3_key,
+        callbackBaseUrl:
+          payload.callbackBaseUrl?.trim() ||
+          process.env.SITE_URL?.trim() ||
+          process.env.NEXT_PUBLIC_SITE_URL?.trim() ||
+          "",
       }),
     });
     if (!res.ok) {

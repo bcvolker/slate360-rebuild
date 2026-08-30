@@ -14,6 +14,7 @@ import tempfile
 import traceback
 from pathlib import Path
 from typing import Any
+from urllib.parse import urlparse
 
 import modal
 from fastapi.responses import JSONResponse
@@ -38,10 +39,34 @@ def _sign(raw: bytes, secret: str) -> str:
     return "sha256=" + hmac.new(secret.encode(), raw, hashlib.sha256).hexdigest()
 
 
-def post_callback(payload: dict[str, Any]) -> None:
+def callback_base_url(payload: dict[str, Any]) -> str:
+    """Allow the originating deployment (preview or prod) to receive HMAC callbacks.
+
+    Falls back to SITE_URL from the Modal secret. Hosts are allowlisted to prevent SSRF.
+    """
+    fallback = os.environ["SITE_URL"].rstrip("/")
+    raw = str(payload.get("callbackBaseUrl") or fallback).strip().rstrip("/")
+    parsed = urlparse(raw if "://" in raw else f"https://{raw}")
+    if parsed.scheme not in ("https", "http"):
+        return fallback
+    host = (parsed.hostname or "").lower()
+    allowed = (
+        host.endswith("slate360.ai")
+        or host.endswith(".vercel.app")
+        or host in {"localhost", "127.0.0.1"}
+    )
+    if not allowed:
+        return fallback
+    if host in {"localhost", "127.0.0.1"} and parsed.scheme != "http":
+        return fallback
+    if host not in {"localhost", "127.0.0.1"} and parsed.scheme != "https":
+        return fallback
+    return f"{parsed.scheme}://{parsed.netloc}"
+
+
+def post_callback(payload: dict[str, Any], site: str) -> None:
     import requests
 
-    site = os.environ["SITE_URL"].rstrip("/")
     secret = os.environ["GPU_WORKER_SECRET_KEY"]
     raw = json.dumps(payload, separators=(",", ":")).encode()
     requests.post(
@@ -49,6 +74,28 @@ def post_callback(payload: dict[str, Any]) -> None:
         data=raw,
         headers={"Content-Type": "application/json", "x-worker-signature": _sign(raw, secret)},
         timeout=60,
+    )
+
+
+def gop_for_fps(fps: float) -> int:
+    return max(1, int(round(fps if fps > 0 else 30.0)))
+
+
+def encode_proxy(src: str, dest: str, width: int, height: int, gop: int) -> None:
+    subprocess.run(
+        [
+            "ffmpeg", "-y", "-i", src,
+            "-vf", f"scale={width}:{height}:force_original_aspect_ratio=decrease,pad={width}:{height}:(ow-iw)/2:(oh-ih)/2",
+            "-c:v", "libx264", "-preset", "medium", "-crf", "20",
+            "-pix_fmt", "yuv420p",
+            "-g", str(gop), "-keyint_min", str(gop), "-sc_threshold", "0",
+            "-force_key_frames", "expr:gte(t,n_forced*1)",
+            "-c:a", "aac", "-b:a", "128k",
+            "-movflags", "+faststart",
+            dest,
+        ],
+        capture_output=True,
+        check=True,
     )
 
 
@@ -90,9 +137,10 @@ def ingest_clip(payload: dict[str, Any]) -> None:
     bucket = os.environ["R2_BUCKET"]
     s3 = s3_client()
     work = Path(tempfile.mkdtemp(prefix="sw-"))
+    site = callback_base_url(payload)
 
     try:
-        post_callback({"jobId": job_id, "clipId": clip_id, "status": "progress", "progressPct": 8, "stage": "download"})
+        post_callback({"jobId": job_id, "clipId": clip_id, "status": "progress", "progressPct": 8, "stage": "download"}, site)
         src = str(work / "master.mp4")
         download_object(s3, bucket, src_key, src)
         sha = _sha256_file(src)
@@ -101,30 +149,23 @@ def ingest_clip(payload: dict[str, Any]) -> None:
         if h <= 0 or not (1.7 <= (w / h) <= 2.3):
             raise RuntimeError(f"Source is not ~2:1 equirectangular ({w}x{h})")
 
+        gop = gop_for_fps(float(meta["fps"]))
         base = f"orgs/{org_id}/spatial-walkthrough/{clip_id}"
-        proxy_key = f"{base}/proxy-3840x1920.mp4"
         poster_key = f"{base}/poster.jpg"
         manifest_key = f"{base}/manifest.json"
 
-        post_callback({"jobId": job_id, "clipId": clip_id, "status": "progress", "progressPct": 35, "stage": "proxy"})
+        post_callback({"jobId": job_id, "clipId": clip_id, "status": "progress", "progressPct": 35, "stage": "proxy"}, site)
         proxy = str(work / "proxy.mp4")
-        subprocess.run(
-            [
-                "ffmpeg", "-y", "-i", src,
-                "-vf", "scale=3840:1920:force_original_aspect_ratio=decrease,pad=3840:1920:(ow-iw)/2:(oh-ih)/2",
-                "-c:v", "libx264", "-preset", "medium", "-crf", "20",
-                "-pix_fmt", "yuv420p",
-                "-g", "30", "-keyint_min", "30", "-sc_threshold", "0",
-                "-force_key_frames", "expr:gte(t,n_forced*1)",
-                "-c:a", "aac", "-b:a", "128k",
-                "-movflags", "+faststart",
-                proxy,
-            ],
-            capture_output=True, check=True,
-        )
+        proxy_w, proxy_h = 3840, 1920
+        try:
+            encode_proxy(src, proxy, proxy_w, proxy_h, gop)
+        except subprocess.CalledProcessError:
+            proxy_w, proxy_h = 2880, 1440
+            encode_proxy(src, proxy, proxy_w, proxy_h, gop)
+        proxy_key = f"{base}/proxy-{proxy_w}x{proxy_h}.mp4"
         upload_file(s3, bucket, proxy, proxy_key, "video/mp4")
 
-        post_callback({"jobId": job_id, "clipId": clip_id, "status": "progress", "progressPct": 80, "stage": "poster"})
+        post_callback({"jobId": job_id, "clipId": clip_id, "status": "progress", "progressPct": 80, "stage": "poster"}, site)
         poster = str(work / "poster.jpg")
         seek = min(1.0, max(0.0, meta["durationSec"] / 8))
         subprocess.run(
@@ -133,6 +174,7 @@ def ingest_clip(payload: dict[str, Any]) -> None:
         )
         upload_file(s3, bucket, poster, poster_key, "image/jpeg")
 
+        proxy_meta = _ffprobe(proxy)
         manifest = {
             "jobId": job_id,
             "clipId": clip_id,
@@ -140,8 +182,10 @@ def ingest_clip(payload: dict[str, Any]) -> None:
             "masterSha256": sha,
             "proxyKey": proxy_key,
             "posterKey": poster_key,
-            "ffmpeg": "libx264 3840x1920 gop~1s faststart",
+            "ffmpeg": f"libx264 {proxy_w}x{proxy_h} yuv420p gop={gop} (~1s) faststart",
             "source": meta,
+            "proxy": proxy_meta,
+            "immutableMaster": True,
         }
         man_path = work / "manifest.json"
         man_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
@@ -150,14 +194,18 @@ def ingest_clip(payload: dict[str, Any]) -> None:
         post_callback({
             "jobId": job_id, "clipId": clip_id, "status": "completed", "progressPct": 100, "stage": "complete",
             "proxyKey": proxy_key, "posterKey": poster_key, "manifestKey": manifest_key,
-            "masterSha256": sha, **meta,
-        })
+            "masterSha256": sha,
+            "durationSec": meta["durationSec"],
+            "width": proxy_w,
+            "height": proxy_h,
+            "fps": meta["fps"],
+        }, site)
     except subprocess.CalledProcessError as e:
         stderr = (e.stderr or b"")[-1500:] if isinstance(e.stderr, bytes) else str(e.stderr)[-1500:]
-        post_callback({"jobId": job_id, "clipId": clip_id, "status": "failed", "errorLog": f"ffmpeg failed: {stderr}"})
+        post_callback({"jobId": job_id, "clipId": clip_id, "status": "failed", "errorLog": f"ffmpeg failed: {stderr}"}, site)
     except Exception as e:  # noqa: BLE001
         post_callback({"jobId": job_id, "clipId": clip_id, "status": "failed",
-                       "errorLog": f"{e}\n{traceback.format_exc()[-1500:]}"})
+                       "errorLog": f"{e}\n{traceback.format_exc()[-1500:]}"}, site)
 
 
 @app.function(image=cpu_image, secrets=[worker_secret], timeout=60)
