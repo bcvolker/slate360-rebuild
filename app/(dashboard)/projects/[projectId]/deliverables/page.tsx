@@ -3,12 +3,14 @@ import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { getScopedProjectForUser } from "@/lib/projects/access";
 import { loadProjectDeliverablesTabData } from "@/lib/projects/load-project-deliverables-data";
 import { ProjectDeliverablesTab } from "@/components/projects/ProjectDeliverablesTab";
+import { requireClientAppPage } from "@/lib/spatial-walkthrough/require-client-app";
 
 export default async function ProjectDeliverablesPage({
   params,
 }: {
   params: Promise<{ projectId: string }>;
 }) {
+  await requireClientAppPage("site-walk");
   const { projectId } = await params;
   const { user, isViewer } = await resolveServerOrgContext();
   if (!user) redirect(`/login?redirectTo=${encodeURIComponent(`/projects/${projectId}/deliverables`)}`);

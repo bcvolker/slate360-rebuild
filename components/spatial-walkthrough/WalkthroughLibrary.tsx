@@ -17,14 +17,17 @@ export type WalkthroughCard = LibraryCard;
 
 type Props = {
   items: WalkthroughCard[];
-  hrefFor: (id: string) => string;
+  hrefFor?: (id: string) => string;
   emptyAction?: { href: string; label: string } | null;
   loading?: boolean;
 };
 
-export function WalkthroughLibrary({ items, hrefFor, emptyAction, loading = false }: Props) {
-  const [filter, setFilter] = useState<LibraryFilter>(emptyLibraryFilter);
+function defaultHref(id: string): string {
+  return `/spatial-walkthrough/${id}`;
+}
 
+export function WalkthroughLibrary({ items, hrefFor = defaultHref, emptyAction, loading = false }: Props) {
+  const [filter, setFilter] = useState<LibraryFilter>(emptyLibraryFilter);
   const options = useMemo(() => ({
     buildings: uniqueField(items, "building"),
     floors: uniqueField(items, "floor"),
@@ -41,7 +44,7 @@ export function WalkthroughLibrary({ items, hrefFor, emptyAction, loading = fals
 
   return (
     <div className="space-y-3">
-      <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-7 lg:overflow-visible">
+      <div className="flex gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden lg:grid lg:grid-cols-8 lg:overflow-visible">
         <input
           value={filter.q}
           onChange={(e) => set("q", e.target.value)}
@@ -53,6 +56,13 @@ export function WalkthroughLibrary({ items, hrefFor, emptyAction, loading = fals
           value={filter.dateFrom}
           onChange={(e) => set("dateFrom", e.target.value)}
           aria-label="From date"
+          className="h-11 min-w-[9.5rem] shrink-0 border border-white/10 bg-transparent px-2 text-sm lg:min-w-0"
+        />
+        <input
+          type="date"
+          value={filter.dateTo}
+          onChange={(e) => set("dateTo", e.target.value)}
+          aria-label="To date"
           className="h-11 min-w-[9.5rem] shrink-0 border border-white/10 bg-transparent px-2 text-sm lg:min-w-0"
         />
         <FilterSelect label="Building" value={filter.building} onChange={(v) => set("building", v)} options={options.buildings} />
@@ -115,7 +125,7 @@ function FilterSelect({
   options: string[];
 }) {
   return (
-    <label className="flex h-11 min-w-[8.5rem] shrink-0 items-center border border-white/10 px-2 text-sm text-[var(--graphite-muted)] lg:min-w-0">
+    <label className="flex h-11 min-h-11 min-w-[8.5rem] shrink-0 items-center border border-white/10 px-2 text-sm text-[var(--graphite-muted)] lg:min-w-0">
       <span className="sr-only">{label}</span>
       <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full bg-transparent">
         <option value="">{label}</option>

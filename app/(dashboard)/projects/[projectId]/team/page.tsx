@@ -3,6 +3,7 @@ import { canInviteProjectCollaborators } from "@/lib/projects/project-collaborat
 import { loadProjectTeamTabData } from "@/lib/projects/team-tab-data";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { ProjectTeamTab } from "@/components/projects/ProjectTeamTab";
+import { resolveClientSurfaceFlags } from "@/lib/spatial-walkthrough/access";
 
 export default async function ProjectTeamPage({
   params,
@@ -16,12 +17,14 @@ export default async function ProjectTeamPage({
   ]);
 
   const ent = getEntitlements(context.tier, { isSlateCeo: context.isSlateCeo });
+  const flags = await resolveClientSurfaceFlags(context.orgId, Boolean(context.isSlateCeo));
 
   return (
     <ProjectTeamTab
       data={data}
       canManage={!context.isViewer}
       canInviteCollaborators={canInviteProjectCollaborators(ent)}
+      showWalkthroughSharing={flags.spatialWalkthrough}
     />
   );
 }

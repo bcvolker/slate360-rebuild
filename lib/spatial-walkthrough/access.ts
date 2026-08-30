@@ -4,8 +4,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { withAuth, type AuthedContext } from "@/lib/server/api-auth";
-import { resolveOrgEntitlements } from "@/lib/server/org-feature-flags";
 import type { ClientSurfaceFlags } from "./client-surface";
+import { loadClientSurfaceFlags } from "./purchased-flags";
 
 export type SpatialAccess = {
   enabled: boolean;
@@ -43,20 +43,7 @@ export async function resolveClientSurfaceFlags(
   orgId: string | null,
   isCeo: boolean,
 ): Promise<ClientSurfaceFlags> {
-  const [spatial, entitlements] = await Promise.all([
-    loadSpatialWalkthroughEnabled(orgId),
-    resolveOrgEntitlements(orgId),
-  ]);
-  return {
-    spatialWalkthrough: isCeo || spatial,
-    siteWalk: isCeo || entitlements.canAccessStandalonePunchwalk,
-    twin360: isCeo || entitlements.canAccessStandaloneDigitalTwin,
-    slatedrop: isCeo || entitlements.canAccessStandalonePunchwalk,
-    designStudio: isCeo || entitlements.canAccessStandaloneDesignStudio,
-    contentStudio: isCeo || entitlements.canAccessStandaloneContentStudio,
-    thermal: isCeo,
-    isCeo,
-  };
+  return loadClientSurfaceFlags(orgId, isCeo);
 }
 
 export async function withSpatialWalkthroughAuth(

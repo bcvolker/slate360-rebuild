@@ -20,7 +20,7 @@ import {
 
 import { APP_STORE_MODE } from "@/lib/app-store-mode";
 import type { ClientSurfaceApp } from "@/lib/spatial-walkthrough/client-surface";
-import { isNavAppVisible } from "@/lib/spatial-walkthrough/nav-filter";
+import { isNavAppVisible, isSpatialOnlyAppList } from "@/lib/spatial-walkthrough/nav-filter";
 
 export type DashboardNavItem = {
   label: string;
@@ -35,6 +35,7 @@ export type DashboardNavItem = {
   ceoOnly?: boolean;
   /** Hide unless this client-surface app is visible (CEO still sees authoring apps). */
   requiresApp?: ClientSurfaceApp;
+  hideWhenSpatialOnly?: boolean;
 };
 
 const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
@@ -43,6 +44,7 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/dashboard",
     icon: LayoutDashboard,
     matchPrefixes: ["/dashboard"],
+    hideWhenSpatialOnly: true,
   },
   {
     label: "Projects",
@@ -163,10 +165,12 @@ export function resolveDashboardNav(
   isCeo = false,
   visibleApps?: ClientSurfaceApp[] | null,
 ): DashboardNavItem[] {
+  const spatialOnly = isSpatialOnlyAppList(visibleApps, isCeo);
   return DASHBOARD_DESKTOP_NAV_ALL.filter((item) => {
     if (APP_STORE_MODE && item.appStoreHidden) return false;
     if (item.ceoOnly && !isCeo) return false;
     if (item.staffOnly && !showOpsConsole) return false;
+    if (item.hideWhenSpatialOnly && spatialOnly) return false;
     return isNavAppVisible(item.requiresApp, isCeo, visibleApps);
   });
 }

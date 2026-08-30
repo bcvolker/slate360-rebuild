@@ -25,16 +25,19 @@ export function AppSwitcher({
   twinVisible = true,
   siteWalkVisible = true,
   spatialWalkthroughVisible = false,
+  spatialOnly = false,
 }: {
   active: ShellApp;
   twinVisible?: boolean;
   siteWalkVisible?: boolean;
   spatialWalkthroughVisible?: boolean;
+  spatialOnly?: boolean;
 }) {
   const items = ITEMS.filter((i) => {
     if (i.id === "twin360") return twinVisible;
     if (i.id === "site-walk") return siteWalkVisible;
     if (i.id === "spatial-walkthrough") return spatialWalkthroughVisible;
+    if (i.id === "dashboard" && spatialOnly) return false;
     return true;
   });
 

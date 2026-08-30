@@ -8,6 +8,7 @@ import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { requireBetaAccess } from "@/lib/server/beta-access";
 import { resolveClientSurfaceFlags } from "@/lib/spatial-walkthrough/access";
 import { visibleClientApps } from "@/lib/spatial-walkthrough/client-surface";
+import { ClientSurfaceProvider } from "@/components/spatial-walkthrough/ClientSurfaceProvider";
 
 export default async function MobileShellLayout({ children }: { children: ReactNode }) {
   const ctx = await resolveServerOrgContext();
@@ -27,22 +28,26 @@ export default async function MobileShellLayout({ children }: { children: ReactN
 
   if (isMobileDevice) {
     return (
-      <MobilePlatformLayout inviteShareData={inviteShareData} isMobileDevice={isMobileDevice}>
-        {children}
-      </MobilePlatformLayout>
+      <ClientSurfaceProvider flags={flags}>
+        <MobilePlatformLayout inviteShareData={inviteShareData} isMobileDevice={isMobileDevice}>
+          {children}
+        </MobilePlatformLayout>
+      </ClientSurfaceProvider>
     );
   }
 
   return (
-    <DashboardDesktopShellGate
-      userName={userName}
-      workspaceName={ctx.orgName ?? "Slate360"}
-      inviteShareData={inviteShareData}
-      showOpsConsole={Boolean(ctx.canAccessOperationsConsole)}
-      isCeo={Boolean(ctx.isSlateCeo)}
-      visibleApps={visibleApps}
-    >
-      {children}
-    </DashboardDesktopShellGate>
+    <ClientSurfaceProvider flags={flags}>
+      <DashboardDesktopShellGate
+        userName={userName}
+        workspaceName={ctx.orgName ?? "Slate360"}
+        inviteShareData={inviteShareData}
+        showOpsConsole={Boolean(ctx.canAccessOperationsConsole)}
+        isCeo={Boolean(ctx.isSlateCeo)}
+        visibleApps={visibleApps}
+      >
+        {children}
+      </DashboardDesktopShellGate>
+    </ClientSurfaceProvider>
   );
 }

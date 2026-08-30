@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { visibleClientApps, isSpatialOnlyPortal, projectTabIdsForSurface } from "./client-surface";
+import { visibleClientApps, isSpatialOnlyPortal, projectTabIdsForSurface, mergeClientSurfaceFlags, projectTabLabel, commandPaletteHrefAllowed } from "./client-surface";
 import { allowedMediaKind, filterProjectFilesForPolicy, validateWalkthroughUpload } from "./policy";
 import { orderedWaypoints, indexAtTime, assignSortOrder, prevWaypoint } from "./waypoints";
 import { serializePinLocator, isCompleteLocator, pinVisibleOnPolicy } from "./pins";
@@ -7,7 +7,10 @@ import { resolveBrandTheme } from "./theme";
 import { applySkip, rulesForPolicy, skipIntervals } from "./redaction";
 import { parseOperatorPatch } from "./operator-patch";
 import { buildViewerMarkers } from "./markers";
-import { isNavAppVisible } from "./nav-filter";
+import { isNavAppVisible, isSpatialOnlyAppList } from "./nav-filter";
+import { productApiFromPath } from "./api-product-paths";
+import { EMPTY_LIBRARY_FILTERS, matchesLibraryFilters } from "./library-filter";
+import { guestPermissions, memberPermissions, publicPermissions } from "./share-roles";
 import type { WaypointRecord } from "./types";
 
 const spatialOnly = {
@@ -147,6 +150,106 @@ describe("nav entitlement filtering", () => {
     expect(isNavAppVisible("site-walk", false, ["spatial-walkthrough"])).toBe(false);
     expect(isNavAppVisible("twin360", false, ["spatial-walkthrough"])).toBe(false);
     expect(isNavAppVisible("thermal", true, ["spatial-walkthrough"])).toBe(true);
+  });
+
+  it("fails closed when visible apps are unknown", () => {
+    expect(isNavAppVisible("site-walk", false, null)).toBe(false);
+    expect(isNavAppVisible("spatial-walkthrough", false, null)).toBe(false);
+  });
+});
+
+describe("purchase vs beta widening", () => {
+  it("does not grant Site Walk or Twin to a spatial-only purchase in beta", () => {
+    const flags = mergeClientSurfaceFlags({
+      isCeo: false,
+      betaMode: true,
+      purchased: {
+        spatialWalkthrough: true,
+        siteWalk: false,
+        twin360: false,
+        slatedrop: false,
+        designStudio: false,
+        contentStudio: false,
+      },
+    });
+    expect(isSpatialOnlyPortal(flags)).toBe(true);
+    expect(flags.siteWalk).toBe(false);
+    expect(flags.twin360).toBe(false);
+    expect(projectTabLabel("files", flags)).toBe("Project Files");
+    expect(projectTabLabel("team", flags)).toBe("Sharing");
+    expect(projectTabLabel("walkthroughs", flags)).toBe(null);
+    expect(commandPaletteHrefAllowed("/site-walk", flags)).toBe(false);
+    expect(commandPaletteHrefAllowed("/dashboard", flags)).toBe(false);
+  });
+
+  it("still grants Twin in beta to Site Walk purchasers", () => {
+    const flags = mergeClientSurfaceFlags({
+      isCeo: false,
+      betaMode: true,
+      purchased: {
+        spatialWalkthrough: false,
+        siteWalk: true,
+        twin360: false,
+        slatedrop: false,
+        designStudio: false,
+        contentStudio: false,
+      },
+    });
+    expect(flags.siteWalk).toBe(true);
+    expect(flags.twin360).toBe(true);
+    expect(isSpatialOnlyPortal(flags)).toBe(false);
+  });
+});
+
+describe("command palette", () => {
+  it("hides unpurchased products for a spatial-only surface", () => {
+    expect(commandPaletteHrefAllowed("/site-walk", spatialOnly)).toBe(false);
+    expect(commandPaletteHrefAllowed("/slatedrop", spatialOnly)).toBe(false);
+    expect(commandPaletteHrefAllowed("/coordination/inbox", spatialOnly)).toBe(false);
+    expect(commandPaletteHrefAllowed("/dashboard", spatialOnly)).toBe(false);
+    expect(commandPaletteHrefAllowed("/spatial-walkthrough", spatialOnly)).toBe(true);
+    expect(commandPaletteHrefAllowed("/projects", spatialOnly)).toBe(true);
+  });
+});
+
+describe("product API guard paths", () => {
+  it("maps disabled product prefixes", () => {
+    expect(productApiFromPath("/api/site-walk/sessions")).toBe("site-walk");
+    expect(productApiFromPath("/api/digital-twin/jobs")).toBe("twin360");
+    expect(productApiFromPath("/api/ops/thermal/sessions")).toBe("thermal");
+    expect(productApiFromPath("/api/spatial-walkthrough/shares")).toBeNull();
+  });
+});
+
+describe("library filters", () => {
+  it("matches date, zone, and aerial elevation", () => {
+    const item = {
+      title: "Roof A",
+      captured_at: "2026-08-01T12:00:00.000Z",
+      building: "B1",
+      floor: "3",
+      zone: "Mech",
+      walkthrough_type: "aerial",
+    };
+    expect(matchesLibraryFilters(item, { ...EMPTY_LIBRARY_FILTERS, elevation: "aerial", dateFrom: "2026-08-01", dateTo: "2026-08-01" })).toBe(true);
+    expect(matchesLibraryFilters(item, { ...EMPTY_LIBRARY_FILTERS, elevation: "ground" })).toBe(false);
+  });
+});
+
+describe("share roles", () => {
+  it("gives public view-only and admin manage", () => {
+    expect(publicPermissions(false)).toEqual({ view: true, download: false, share: false, manage: false });
+    expect(memberPermissions("admin").manage).toBe(true);
+    expect(memberPermissions("viewer").download).toBe(false);
+    expect(guestPermissions(true).download).toBe(true);
+  });
+});
+
+describe("spatial-only desktop nav", () => {
+  it("treats a single spatial-walkthrough app list as spatial-only", () => {
+    expect(isSpatialOnlyAppList(["spatial-walkthrough"], false)).toBe(true);
+    expect(isSpatialOnlyAppList(["spatial-walkthrough"], true)).toBe(false);
+    expect(isSpatialOnlyAppList(["spatial-walkthrough", "site-walk"], false)).toBe(false);
   });
 });
 

@@ -9,14 +9,31 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveNamespace } from "@/lib/slatedrop/storage";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { resolveClientSurfaceFlags } from "@/lib/spatial-walkthrough/access";
+import { isSpatialOnlyPortal } from "@/lib/spatial-walkthrough/client-surface";
 
 export type ProjectOverviewActivity = {
   id: string;
-  kind: "walk" | "twin" | "file";
+  kind: "walk" | "twin" | "file" | "walkthrough" | "pin";
   title: string;
   meta: string;
   href: string;
   occurredAt: string;
+};
+
+export type ProjectOverviewWalkthrough = {
+  id: string;
+  title: string;
+  capturedAt: string | null;
+  building: string | null;
+  floor: string | null;
+  href: string;
+};
+
+export type ProjectOverviewPin = {
+  id: string;
+  title: string;
+  meta: string;
+  href: string;
 };
 
 export type ProjectOverviewData = {
@@ -37,9 +54,14 @@ export type ProjectOverviewData = {
   };
   lastFileUploadAt: string | null;
   recentActivity: ProjectOverviewActivity[];
+  latestWalkthrough: ProjectOverviewWalkthrough | null;
+  recentWalkthroughs: ProjectOverviewWalkthrough[];
+  recentFiles: ProjectOverviewActivity[];
+  recentPins: ProjectOverviewPin[];
   showTwins: boolean;
   showSiteWalk: boolean;
   showWalkthroughs: boolean;
+  spatialOnly: boolean;
 };
 
 type ProjectMetadata = {
@@ -239,6 +261,59 @@ export async function loadProjectOverviewData(projectId: string): Promise<Projec
     .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt))
     .slice(0, 5);
 
+  const fileActivities: ProjectOverviewActivity[] = recentFiles.map((file) => ({
+    id: `file:${file.id}`,
+    kind: "file",
+    title: file.file_name,
+    meta: "File uploaded",
+    href: `/projects/${projectId}/slatedrop`,
+    occurredAt: file.created_at,
+  }));
+
+  let recentWalkthroughs: ProjectOverviewWalkthrough[] = [];
+  let recentPins: ProjectOverviewPin[] = [];
+  if (showWalkthroughs) {
+    const [{ data: wtRows }, { data: pinRows }] = await Promise.all([
+      admin
+        .from("spatial_walkthroughs")
+        .select("id, title, captured_at, building, floor")
+        .eq("project_id", projectId)
+        .order("captured_at", { ascending: false })
+        .limit(5),
+      admin
+        .from("spatial_pins")
+        .select("id, label, pin_type, walkthrough_id")
+        .eq("project_id", projectId)
+        .order("created_at", { ascending: false })
+        .limit(5),
+    ]);
+    recentWalkthroughs = ((wtRows ?? []) as Array<{
+      id: string;
+      title: string;
+      captured_at: string | null;
+      building: string | null;
+      floor: string | null;
+    }>).map((row) => ({
+      id: row.id,
+      title: row.title || "Spatial Walkthrough",
+      capturedAt: row.captured_at,
+      building: row.building,
+      floor: row.floor,
+      href: `/projects/${projectId}/walkthroughs/${row.id}`,
+    }));
+    recentPins = ((pinRows ?? []) as Array<{
+      id: string;
+      label: string;
+      pin_type: string;
+      walkthrough_id: string;
+    }>).map((pin) => ({
+      id: pin.id,
+      title: pin.label || "Pin",
+      meta: pin.pin_type,
+      href: `/projects/${projectId}/walkthroughs/${pin.walkthrough_id}`,
+    }));
+  }
+
   return {
     projectId: project.id,
     name: project.name,
@@ -248,17 +323,22 @@ export async function loadProjectOverviewData(projectId: string): Promise<Projec
     startDate: readMetaDate(metadata, "start_date", "startDate"),
     endDate: readMetaDate(metadata, "end_date", "endDate"),
     counts: {
-      walks: walkCountRes.count ?? 0,
-      twins: twinCountRes.count ?? 0,
+      walks: showSiteWalk ? (walkCountRes.count ?? 0) : 0,
+      twins: showTwins ? (twinCountRes.count ?? 0) : 0,
       files: filesCount,
-      deliverables: deliverableCountRes.count ?? 0,
+      deliverables: showSiteWalk ? (deliverableCountRes.count ?? 0) : 0,
       teamMembers,
       walkthroughs: walkthroughCountRes.count ?? 0,
     },
     lastFileUploadAt,
     recentActivity: activity,
+    latestWalkthrough: recentWalkthroughs[0] ?? null,
+    recentWalkthroughs,
+    recentFiles: fileActivities,
+    recentPins,
     showTwins,
     showSiteWalk,
     showWalkthroughs,
+    spatialOnly: isSpatialOnlyPortal(flags),
   };
 }

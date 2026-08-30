@@ -89,7 +89,7 @@ export function StudioSharePanel({ walkthroughId, status, shares, onRefresh, onE
         {shares.map((s) => (
           <li key={s.id} className="flex items-center justify-between gap-2">
             <span className="truncate">
-              {s.policy === "public" ? "Public share" : "Guest share"} · {s.is_revoked ? "revoked" : "active"} · /w/{s.token_prefix ?? "••••"}…
+              {s.policy === "public" ? "Public share" : "Guest share"} · {s.is_revoked ? "revoked" : "active"} · /w/{s.token_prefix ?? s.token?.slice(0, 8) ?? "••••"}…
             </span>
             {!s.is_revoked ? (
               <button

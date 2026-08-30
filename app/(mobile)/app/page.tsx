@@ -8,7 +8,8 @@ import { buildMobileLauncherApps } from "@/lib/mobile/mobile-launcher-apps";
 import { resolveOrgEntitlements } from "@/lib/server/org-feature-flags";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveDigitalTwinEntitlement } from "@/lib/twin/processing-entitlement";
-import { loadSpatialWalkthroughEnabled } from "@/lib/spatial-walkthrough/access";
+import { loadSpatialWalkthroughEnabled, resolveClientSurfaceFlags } from "@/lib/spatial-walkthrough/access";
+import { isSpatialOnlyPortal, launcherTileAllowed, portalHomeHref } from "@/lib/spatial-walkthrough/client-surface";
 import { MobileAppRootContent } from "@/components/studio-ui/MobileAppRootContent";
 
 export const metadata = {
@@ -23,8 +24,9 @@ export default async function MobileAppRootPage() {
     redirect("/login");
   }
 
+  const flags = await resolveClientSurfaceFlags(orgId, Boolean(isSlateCeo));
   if (!isMobile) {
-    redirect("/dashboard");
+    redirect(portalHomeHref(flags));
   }
 
   if (!orgId) {
@@ -51,11 +53,25 @@ export default async function MobileAppRootPage() {
     homeData,
     Boolean(isSlateCeo),
     Boolean(isSlateCeo) || spatialWalkthrough,
-  );
+  ).filter((app) => launcherTileAllowed(app.id, flags));
+
+  let projectCount = 0;
+  if (activeOrgId) {
+    const { count } = await admin
+      .from("projects")
+      .select("id", { count: "exact", head: true })
+      .eq("org_id", activeOrgId);
+    projectCount = count ?? 0;
+  }
 
   return (
     <Suspense fallback={null}>
-      <MobileAppRootContent homeData={homeData} launcherApps={launcherApps} />
+      <MobileAppRootContent
+        homeData={homeData}
+        launcherApps={launcherApps}
+        spatialOnly={isSpatialOnlyPortal(flags)}
+        projectCount={projectCount}
+      />
     </Suspense>
   );
 }

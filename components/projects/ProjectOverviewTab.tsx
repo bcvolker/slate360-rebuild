@@ -8,6 +8,7 @@ import { ProjectDetailEmptyState } from "@/components/projects/ProjectDetailEmpt
 import { projectDetailTokens as t } from "@/components/projects/project-detail-tokens";
 import { startProjectWalk, StartWalkError } from "@/lib/site-walk/start-walk";
 import type { ProjectOverviewData } from "@/lib/projects/load-project-overview-data";
+import { SpatialProjectOverview } from "@/components/spatial-walkthrough/portal/SpatialProjectOverview";
 
 function formatDate(value: string | null): string {
   if (!value) return "Not set";
@@ -23,6 +24,10 @@ type ProjectOverviewTabProps = {
 };
 
 export function ProjectOverviewTab({ data }: ProjectOverviewTabProps) {
+  if (data.spatialOnly) {
+    return <SpatialProjectOverview data={data} />;
+  }
+
   const hasActivity = data.recentActivity.length > 0;
   const base = `/projects/${data.projectId}`;
   const lastUploadLabel = data.lastFileUploadAt

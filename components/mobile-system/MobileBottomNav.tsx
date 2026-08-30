@@ -30,6 +30,9 @@ import {
 
 import { SAFE_AREA_INSET_BOTTOM } from "@/lib/capacitor/safe-area-inset";
 import { mobileTokens } from "./mobileTokens";
+import { spatialOnlyMobileTabs } from "./mainMobileTabs";
+import { useClientSurface } from "@/components/spatial-walkthrough/ClientSurfaceProvider";
+import { isSpatialOnlyPortal } from "@/lib/spatial-walkthrough/client-surface";
 
 
 
@@ -177,28 +180,27 @@ export function MobileBottomNav<Key extends string = string>({
 
 
 /** Canonical bottom nav for clean (mobile) platform shells. */
-
 export function MobilePlatformBottomNav({ className }: { className?: string }) {
-
   const pathname = usePathname() ?? "";
-
   const activeKey = resolveMainMobileTabKey(pathname);
+  const flags = useClientSurface();
+  const items =
+    flags && isSpatialOnlyPortal(flags)
+      ? spatialOnlyMobileTabs
+      : mainMobileTabs.filter((tab) => {
+          if (tab.key === "walkthroughs") return Boolean(flags?.spatialWalkthrough);
+          if (tab.key === "slatedrop") return Boolean(flags?.slatedrop || flags?.siteWalk);
+          if (tab.key === "coordination") return Boolean(flags?.siteWalk);
+          return true;
+        });
 
   return (
-
     <MobileBottomNav
-
-      items={mainMobileTabs}
-
+      items={items}
       activeKey={activeKey}
-
       ariaLabel="Platform"
-
       className={className}
-
     />
-
   );
-
 }
 

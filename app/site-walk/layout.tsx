@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { buildInviteShareData } from "@/lib/server/invite-share-data";
 import { StudioAppShell } from "@/components/studio-ui/StudioAppShell";
+import { requireClientAppPage } from "@/lib/spatial-walkthrough/require-client-app";
 
 export const metadata: Metadata = {
   title: "Site Walk — Slate360",
@@ -13,6 +14,7 @@ export const metadata: Metadata = {
 export default async function SiteWalkLayout({ children }: { children: ReactNode }) {
   const ctx = await resolveServerOrgContext();
   if (!ctx.user) redirect("/login");
+  await requireClientAppPage("site-walk");
 
   const userName =
     (ctx.user.user_metadata?.name as string | undefined) ??

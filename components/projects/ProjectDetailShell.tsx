@@ -16,9 +16,10 @@ import { projectDetailTokens as t, resolveStatusPillClass } from "@/components/p
 type ProjectDetailTabsProps = {
   projectId: string;
   hiddenTabIds?: ProjectDetailTabId[];
+  tabLabels?: Partial<Record<ProjectDetailTabId, string>>;
 };
 
-export function ProjectDetailTabs({ projectId, hiddenTabIds = [] }: ProjectDetailTabsProps) {
+export function ProjectDetailTabs({ projectId, hiddenTabIds = [], tabLabels }: ProjectDetailTabsProps) {
   const pathname = usePathname() ?? "";
   const activeTab = resolveActiveProjectDetailTab(pathname, projectId);
   const visibleTabs = PROJECT_DETAIL_TABS.filter((tab) => !hiddenTabIds.includes(tab.id));
@@ -35,7 +36,7 @@ export function ProjectDetailTabs({ projectId, hiddenTabIds = [] }: ProjectDetai
             className={cn(t.tabLink, active && t.tabLinkActive)}
             aria-current={active ? "page" : undefined}
           >
-            {tab.label}
+            {tabLabels?.[tab.id] ?? tab.label}
           </Link>
         );
       })}
@@ -50,6 +51,7 @@ type ProjectDetailShellProps = {
   locationLabel: string;
   showTwins?: boolean;
   hiddenTabIds?: ProjectDetailTabId[];
+  tabLabels?: Partial<Record<ProjectDetailTabId, string>>;
   /** Cover image (a recent site-walk photo or twin still). Falls back to a branded band. */
   coverImageUrl?: string | null;
   children: ReactNode;
@@ -62,6 +64,7 @@ export function ProjectDetailShell({
   locationLabel,
   showTwins = true,
   hiddenTabIds,
+  tabLabels,
   coverImageUrl = null,
   children,
 }: ProjectDetailShellProps) {
@@ -70,7 +73,7 @@ export function ProjectDetailShell({
   return (
     <div className={t.page}>
       {/* Cover band — compact (no wasted vertical space); image or branded gradient */}
-      <div className="relative -mx-4 h-24 shrink-0 overflow-hidden lg:mx-0 lg:rounded-2xl lg:border lg:border-[var(--mobile-app-card-border)]">
+      <div className="relative -mx-4 h-20 shrink-0 overflow-hidden lg:mx-0 lg:h-24 lg:rounded-2xl lg:border lg:border-[var(--mobile-app-card-border)]">
         {coverImageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={coverImageUrl} alt={projectName} decoding="async" className="absolute inset-0 h-full w-full object-cover" />
@@ -112,7 +115,7 @@ export function ProjectDetailShell({
       </div>
 
       <header className={t.header}>
-        <ProjectDetailTabs projectId={projectId} hiddenTabIds={hidden} />
+        <ProjectDetailTabs projectId={projectId} hiddenTabIds={hidden} tabLabels={tabLabels} />
       </header>
       <div className={t.content}>{children}</div>
     </div>

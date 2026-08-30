@@ -7,6 +7,8 @@ import { AppWindow, Camera, Check, LayoutGrid, LucideIcon, SquareStack } from "l
 import { cn } from "@/lib/utils";
 import { mobileTokens } from "./mobileTokens";
 import { resolveMobileRoute, type MobileShellRoute } from "./mainMobileTabs";
+import { useClientSurface } from "@/components/spatial-walkthrough/ClientSurfaceProvider";
+import { isSpatialOnlyPortal } from "@/lib/spatial-walkthrough/client-surface";
 
 type ShellEntry = {
   route: MobileShellRoute;
@@ -31,6 +33,14 @@ export function MobileShellSwitcher() {
   const pathname = usePathname() ?? "";
   const current = resolveMobileRoute(pathname);
   const [open, setOpen] = useState(false);
+  const flags = useClientSurface();
+  const spatialOnly = flags ? isSpatialOnlyPortal(flags) : false;
+  const shells = SHELLS.filter((shell) => {
+    if (shell.route === "site-walk") return Boolean(flags?.siteWalk);
+    if (shell.route === "digital-twin") return Boolean(flags?.twin360);
+    return true;
+  });
+  if (spatialOnly || shells.length <= 1) return null;
 
   return (
     <div className="relative">
@@ -57,7 +67,7 @@ export function MobileShellSwitcher() {
           <div className={cn(mobileTokens.mobileHeaderPopover, "p-2")}>
             <p className={cn(mobileTokens.mobileHeaderPopoverLabel, "px-2 pb-1")}>Switch app</p>
             <ul className="space-y-0.5">
-              {SHELLS.map((shell) => {
+              {shells.map((shell) => {
                 const Icon = shell.icon;
                 const active = shell.route === current;
                 return (
