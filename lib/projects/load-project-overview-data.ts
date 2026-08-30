@@ -10,92 +10,25 @@ import { resolveNamespace } from "@/lib/slatedrop/storage";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { resolveClientSurfaceFlags } from "@/lib/spatial-walkthrough/access";
 import { isSpatialOnlyPortal } from "@/lib/spatial-walkthrough/client-surface";
+import {
+  escapeLike,
+  formatStatusLabel,
+  mapOverviewPins,
+  mapOverviewWalkthroughs,
+  readMetaDate,
+  type ProjectMetadata,
+  type ProjectOverviewActivity,
+  type ProjectOverviewData,
+  type ProjectOverviewPin,
+  type ProjectOverviewWalkthrough,
+} from "@/lib/projects/spatial-overview-slices";
 
-export type ProjectOverviewActivity = {
-  id: string;
-  kind: "walk" | "twin" | "file" | "walkthrough" | "pin";
-  title: string;
-  meta: string;
-  href: string;
-  occurredAt: string;
+export type {
+  ProjectOverviewActivity,
+  ProjectOverviewData,
+  ProjectOverviewPin,
+  ProjectOverviewWalkthrough,
 };
-
-export type ProjectOverviewWalkthrough = {
-  id: string;
-  title: string;
-  capturedAt: string | null;
-  building: string | null;
-  floor: string | null;
-  href: string;
-};
-
-export type ProjectOverviewPin = {
-  id: string;
-  title: string;
-  meta: string;
-  href: string;
-};
-
-export type ProjectOverviewData = {
-  projectId: string;
-  name: string;
-  status: string;
-  locationLabel: string;
-  description: string | null;
-  startDate: string | null;
-  endDate: string | null;
-  counts: {
-    walks: number;
-    twins: number;
-    files: number;
-    deliverables: number;
-    teamMembers: number;
-    walkthroughs: number;
-  };
-  lastFileUploadAt: string | null;
-  recentActivity: ProjectOverviewActivity[];
-  latestWalkthrough: ProjectOverviewWalkthrough | null;
-  recentWalkthroughs: ProjectOverviewWalkthrough[];
-  recentFiles: ProjectOverviewActivity[];
-  recentPins: ProjectOverviewPin[];
-  showTwins: boolean;
-  showSiteWalk: boolean;
-  showWalkthroughs: boolean;
-  spatialOnly: boolean;
-};
-
-type ProjectMetadata = {
-  address?: string;
-  city?: string;
-  state?: string;
-  region?: string;
-  start_date?: string;
-  end_date?: string;
-  startDate?: string;
-  endDate?: string;
-};
-
-function escapeLike(value: string): string {
-  return value.replace(/[\\%_]/g, "\\$&");
-}
-
-function formatStatusLabel(status: string | null | undefined): string {
-  const raw = (status ?? "active").trim();
-  if (!raw) return "Active";
-  return raw
-    .split(/[-_\s]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
-function readMetaDate(metadata: ProjectMetadata, ...keys: Array<keyof ProjectMetadata>): string | null {
-  for (const key of keys) {
-    const value = metadata[key];
-    if (typeof value === "string" && value.trim()) return value.trim();
-  }
-  return null;
-}
 
 export async function loadProjectOverviewData(projectId: string): Promise<ProjectOverviewData> {
   const context = await resolveServerOrgContext();
@@ -287,31 +220,19 @@ export async function loadProjectOverviewData(projectId: string): Promise<Projec
         .order("created_at", { ascending: false })
         .limit(5),
     ]);
-    recentWalkthroughs = ((wtRows ?? []) as Array<{
+    recentWalkthroughs = mapOverviewWalkthroughs(projectId, (wtRows ?? []) as Array<{
       id: string;
       title: string;
       captured_at: string | null;
       building: string | null;
       floor: string | null;
-    }>).map((row) => ({
-      id: row.id,
-      title: row.title || "Spatial Walkthrough",
-      capturedAt: row.captured_at,
-      building: row.building,
-      floor: row.floor,
-      href: `/projects/${projectId}/walkthroughs/${row.id}`,
-    }));
-    recentPins = ((pinRows ?? []) as Array<{
+    }>);
+    recentPins = mapOverviewPins(projectId, (pinRows ?? []) as Array<{
       id: string;
       label: string;
       pin_type: string;
       walkthrough_id: string;
-    }>).map((pin) => ({
-      id: pin.id,
-      title: pin.label || "Pin",
-      meta: pin.pin_type,
-      href: `/projects/${projectId}/walkthroughs/${pin.walkthrough_id}`,
-    }));
+    }>);
   }
 
   return {

@@ -164,8 +164,8 @@ export function WalkthroughPlayer({
     };
 
     video.addEventListener("playing", () => playingRef.current?.());
-    videoPlugin.addEventListener("progress", onProgress);
-    markers.addEventListener("select-marker", onSelect);
+    videoPlugin.addEventListener("progress", onProgress as never);
+    markers.addEventListener("select-marker", onSelect as never);
     viewer.addEventListener("ready", () => {
       applyMarkers(0);
       readyRef.current?.(handle);
@@ -174,8 +174,8 @@ export function WalkthroughPlayer({
 
     return () => {
       window.clearInterval(tick);
-      markers.removeEventListener("select-marker", onSelect);
-      videoPlugin.removeEventListener("progress", onProgress);
+      markers.removeEventListener("select-marker", onSelect as never);
+      videoPlugin.removeEventListener("progress", onProgress as never);
       viewer.destroy();
       video.pause();
       video.removeAttribute("src");

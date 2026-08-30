@@ -63,6 +63,7 @@ public/sw.js.map
 
 # Spatial Walkthrough live-smoke evidence (screenshots, probes, local masters)
 /.spatial-live-smoke-review/
+/.spatial-rc1-share.json
 
 # Local Trigger CLI copy (Windows username-space workaround)
 /.trigger-cli/

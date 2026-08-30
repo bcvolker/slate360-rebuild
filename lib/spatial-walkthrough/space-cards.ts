@@ -48,6 +48,10 @@ export function spaceLibraryCards(
   });
 }
 
-export function spaceHref(item: SpaceCard, walkthroughHref: (id: string) => string): string {
-  return `${walkthroughHref(item.walkthroughId)}?chapter=${item.chapterId}`;
+export function spaceHref(item: LibraryCard, walkthroughHref: (id: string) => string): string {
+  const space = item as Partial<SpaceCard>;
+  if (space.walkthroughId && space.chapterId) {
+    return `${walkthroughHref(space.walkthroughId)}?chapter=${space.chapterId}`;
+  }
+  return walkthroughHref(item.id);
 }

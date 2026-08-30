@@ -2,6 +2,7 @@ import type { BrandTheme, OperatorPatch, WaypointRecord } from "./types";
 import { indexAtTime, nextWaypoint } from "./waypoints";
 import { activeSectors, sectorYawCenter, type RedactionRule } from "./redaction";
 import { markerKindFromPinType, markerScaleFromPitch } from "./marker-scale";
+import { operatorPatchActiveAt } from "./operator-patch";
 
 type PatchFields = OperatorPatch & {
   nadirRadius?: number;
@@ -120,7 +121,7 @@ export function buildViewerMarkers(args: {
   }
 
   const patch = operatorPatch as PatchFields | null | undefined;
-  if (patch?.enabled) {
+  if (patch && operatorPatchActiveAt(patch, t)) {
     const size = nadirPx(patch);
     list.push({
       id: "nadir-patch",

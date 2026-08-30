@@ -65,7 +65,10 @@ function PreviewChrome({
           </ul>
         </aside>
         <div className="min-w-0 flex-1">
-          <header className="flex h-12 items-center border-b border-white/10 px-4">
+          <header className="flex h-12 shrink-0 items-center border-b border-white/10 px-4 lg:hidden" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+            <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">Spatial Walkthrough</p>
+          </header>
+          <header className="hidden h-12 items-center border-b border-white/10 px-4 lg:flex">
             <p className="text-sm font-semibold">{title}</p>
           </header>
           <div className="p-4 lg:p-6">{children}</div>

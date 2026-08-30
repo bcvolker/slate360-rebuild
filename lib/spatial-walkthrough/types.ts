@@ -50,6 +50,10 @@ export type OperatorPatch = {
   showDate: boolean;
   showCompass: boolean;
   headingDeg: number | null;
+  /** Inclusive start of the operator mask; null = entire clip. */
+  tStart: number | null;
+  /** Exclusive end of the operator mask; null = entire clip. */
+  tEnd: number | null;
   /** @deprecated parsed as nadirVerticalExtent */
   nadirFrac?: number;
   /** @deprecated parsed as rear yaw wrap */
@@ -105,4 +109,6 @@ export const DEFAULT_OPERATOR_PATCH: OperatorPatch = {
   showDate: true,
   showCompass: false,
   headingDeg: null,
+  tStart: null,
+  tEnd: null,
 };

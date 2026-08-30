@@ -240,10 +240,17 @@ def bake_public_proxy(payload: dict[str, Any]) -> None:
         mask = work / "mask.png"
         _write_operator_mask_png(mask, w, h, patch)
         out = str(work / "public.mp4")
+        overlay = "[0:v][1:v]overlay=0:0:format=auto"
+        t0 = patch.get("tStart")
+        t1 = patch.get("tEnd")
+        if t0 is not None or t1 is not None:
+            start = float(t0 or 0)
+            end = float(t1) if t1 is not None else 1e9
+            overlay = f"[0:v][1:v]overlay=0:0:format=auto:enable='between(t,{start},{end})'"
         subprocess.run(
             [
                 "ffmpeg", "-y", "-i", src, "-i", str(mask),
-                "-filter_complex", "[0:v][1:v]overlay=0:0:format=auto",
+                "-filter_complex", overlay,
                 "-c:v", "libx264", "-preset", "veryfast", "-crf", "22",
                 "-pix_fmt", "yuv420p", "-c:a", "copy", "-movflags", "+faststart",
                 out,

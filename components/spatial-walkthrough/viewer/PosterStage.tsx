@@ -12,7 +12,7 @@ export function PosterStage({ posterUrl, title, showButton = false, onEnter }: P
     <div className="sw-poster-gate" data-testid="sw-poster-gate">
       {posterUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={posterUrl} alt="" />
+        <img src={posterUrl} alt={title} />
       ) : (
         <div className="sw-poster-fallback" aria-hidden />
       )}
@@ -21,7 +21,6 @@ export function PosterStage({ posterUrl, title, showButton = false, onEnter }: P
           Play / Enter Walkthrough
         </button>
       ) : null}
-      <p className="sw-poster-caption">{title}</p>
     </div>
   );
 }

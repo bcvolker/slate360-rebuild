@@ -29,7 +29,16 @@ export function parseOperatorPatch(raw: unknown): OperatorPatch {
     showDate: o.showDate !== false,
     showCompass: o.showCompass === true,
     headingDeg: typeof o.headingDeg === "number" && Number.isFinite(o.headingDeg) ? o.headingDeg : null,
+    tStart: typeof o.tStart === "number" && Number.isFinite(o.tStart) && o.tStart > 0 ? o.tStart : null,
+    tEnd: typeof o.tEnd === "number" && Number.isFinite(o.tEnd) && o.tEnd > 0 ? o.tEnd : null,
   };
+}
+
+export function operatorPatchActiveAt(patch: OperatorPatch, t: number): boolean {
+  if (!patch.enabled) return false;
+  if (patch.tStart != null && t < patch.tStart) return false;
+  if (patch.tEnd != null && t >= patch.tEnd) return false;
+  return true;
 }
 
 export function resolveOperatorPatch(clipRaw: unknown, walkthroughRaw: unknown): OperatorPatch {

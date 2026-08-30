@@ -18,7 +18,7 @@ import {
   sectorYawCenter,
   type RedactionRule,
 } from "./redaction";
-import { buildOperatorMask, parseOperatorPatch, rearSector } from "./operator-patch";
+import { buildOperatorMask, operatorPatchActiveAt, parseOperatorPatch, rearSector } from "./operator-patch";
 import { buildExportPackage } from "./export-package";
 import { pinVisibleOnPolicy, attachmentVisibleOnPolicy } from "./pins";
 import { DEFAULT_OPERATOR_PATCH } from "./types";
@@ -150,6 +150,14 @@ describe("yaw seam", () => {
     expect(mask[31 * 64]).toBe(0);
     expect(mask[31 * 64 + 63]).toBe(0);
     expect(mask[0 * 64 + 32]).toBe(255);
+  });
+
+  it("limits the operator overlay to the authored time range", () => {
+    const patch = parseOperatorPatch({ tStart: 8, tEnd: 20, enabled: true });
+    expect(operatorPatchActiveAt(patch, 0)).toBe(false);
+    expect(operatorPatchActiveAt(patch, 8)).toBe(true);
+    expect(operatorPatchActiveAt(patch, 19.9)).toBe(true);
+    expect(operatorPatchActiveAt(patch, 20)).toBe(false);
   });
 });
 

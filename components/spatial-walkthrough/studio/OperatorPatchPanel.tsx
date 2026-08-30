@@ -59,6 +59,8 @@ export function OperatorPatchPanel({ patch, onChange, onPersist, onUseRearFromVi
         <Slider label="Rear yaw width" value={patch.rearYawWidth} min={8} max={180} step={1} onChange={(rearYawWidth) => set({ rearYawWidth })} />
         <Slider label="Pitch min" value={patch.pitchMin} min={-90} max={0} step={1} onChange={(pitchMin) => set({ pitchMin })} />
         <Slider label="Pitch max" value={patch.pitchMax} min={-90} max={40} step={1} onChange={(pitchMax) => set({ pitchMax })} />
+        <Slider label="Mask from (s)" value={patch.tStart ?? 0} min={0} max={600} step={1} onChange={(tStart) => set({ tStart: tStart > 0 ? tStart : null })} />
+        <Slider label="Mask to (s)" value={patch.tEnd ?? 0} min={0} max={600} step={1} onChange={(tEnd) => set({ tEnd: tEnd > 0 ? tEnd : null })} />
       </div>
       <div className="grid gap-2 sm:grid-cols-2">
         <select
