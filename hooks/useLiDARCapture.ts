@@ -58,7 +58,7 @@ export function useLiDARCapture() {
         fetch(exported.posesUri).then((r) => r.blob()),
       ]);
 
-      const plyFile = new File([plyBlob], "lidar_capture.ply", { type: "application/octet-stream" });
+      const plyFile = new File([plyBlob], "preview_point_cloud.ply", { type: "application/octet-stream" });
       const posesFile = new File([posesBlob], "lidar_poses.json", { type: "application/json" });
 
       await LiDARCapture.cleanup();

@@ -35,12 +35,19 @@ export interface TwinCaptureManifest {
   videoUri?: string | null;
   plyUri?: string | null;
   posesUri?: string | null;
+  trajUri?: string | null;
+  sourceManifestUri?: string | null;
   pointCount?: number;
   keyframeCount?: number;
   durationSec?: number;
   sessionStartUnix?: number;
   width?: number;
   height?: number;
+  reconstructionQuality?: "normal" | "high";
+  plyRole?: "preview" | string;
+  qaSummary?: string;
+  telemetry?: Record<string, number>;
+  sourceRoles?: Record<string, unknown>;
 }
 
 export interface TwinCapturePresentOptions {
@@ -52,6 +59,8 @@ export interface TwinCapturePresentOptions {
   projectId?: string;
   /** Optional capture title. */
   title?: string;
+  /** Packed-depth keyframe density. Default `normal` (8 cm / 8°). `high` is ~4 cm / 4°. */
+  reconstructionQuality?: "normal" | "high";
   /** Origin the native uploader posts to (defaults to https://www.slate360.ai). Pass
    *  `window.location.origin` so preview/staging builds hit the same host as the webview. */
   apiBase?: string;

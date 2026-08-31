@@ -89,8 +89,9 @@ final class TwinUploader {
     private func stepLabel(for entry: FileEntry) -> String {
         switch entry.assetKind {
         case "video": return "Uploading video…"
-        case "ply_lidar": return "Uploading LiDAR mesh…"
+        case "ply_lidar": return "Uploading preview cloud…"
         case "lidar_poses": return "Uploading scan data…"
+        case "lidar_traj": return "Uploading trajectory…"
         default: return "Uploading \(entry.filename)…"
         }
     }

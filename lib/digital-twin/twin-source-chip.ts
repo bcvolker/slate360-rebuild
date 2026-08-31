@@ -29,6 +29,7 @@ const VIDEO_RE = /\.(webm|mp4|mov|m4v|insv)$/i;
 // native LiDAR files as "Phone". Tolerate an optional trailing ".gz".
 const LIDAR_RE = /\.(ply|las|laz|e57|pcd|xyz|pts|s360depth)(\.gz)?$/i;
 const LIDAR_POSES_RE = /(?:^|[_-])poses\.json(\.gz)?$/i;
+const LIDAR_TRAJ_RE = /(?:^|[_-])traj\.jsonl(\.gz)?$/i;
 const INSTA360_RAW_RE = /\.(insv|insp)$/i;
 
 export function isVideoDescriptor(file: TwinFileDescriptor): boolean {
@@ -36,7 +37,7 @@ export function isVideoDescriptor(file: TwinFileDescriptor): boolean {
 }
 
 export function isLidarDescriptor(file: TwinFileDescriptor): boolean {
-  return LIDAR_RE.test(file.name) || LIDAR_POSES_RE.test(file.name) || file.type.includes("ply");
+  return LIDAR_RE.test(file.name) || LIDAR_POSES_RE.test(file.name) || LIDAR_TRAJ_RE.test(file.name) || file.type.includes("ply");
 }
 
 export function chipLabel(chip: TwinSourceChip): string {
@@ -86,6 +87,7 @@ export function defaultChipForFile(
 export function assetKindForChip(chip: TwinSourceChip, file: TwinFileDescriptor): string {
   if (chip === "lidar") {
     if (/\.s360depth$/i.test(file.name)) return "lidar_depth";
+    if (LIDAR_TRAJ_RE.test(file.name)) return "lidar_traj";
     if (LIDAR_POSES_RE.test(file.name)) return "lidar_poses";
     return "ply_lidar";
   }
@@ -106,6 +108,7 @@ export function chipForAssetKind(assetKind: string): TwinSourceChip {
     case "lidar_depth":
     case "lidar_mesh":
     case "lidar_poses":
+    case "lidar_traj":
       return "lidar";
     default:
       return "phone";
