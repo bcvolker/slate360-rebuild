@@ -12,9 +12,17 @@ import simd
 struct TwinCaptureOptions {
     var confidence: ARConfidenceLevel = .medium
     var maxDurationSec: Double = 240      // 4 min field default (web may raise toward an 8 min ceiling)
-    var maxPoints: Int = 500_000
+    var maxPoints: Int = CapturePreviewCloud.defaultMaxPoints
+    /// Packed-depth keyframe density. Default stays `normal` (8 cm / 8°).
+    /// `high` (~4 cm / 4°) is opt-in reconstruction quality, not an every-frame dump.
+    var reconstructionQuality: CaptureReconstructionQuality = .normal
 
-    static func from(confidence: String?, maxDurationSec: Double?, maxPoints: Int?) -> TwinCaptureOptions {
+    static func from(
+        confidence: String?,
+        maxDurationSec: Double?,
+        maxPoints: Int?,
+        reconstructionQuality: String? = nil
+    ) -> TwinCaptureOptions {
         var o = TwinCaptureOptions()
         switch confidence ?? "medium" {
         case "low": o.confidence = .low
@@ -23,6 +31,7 @@ struct TwinCaptureOptions {
         }
         if let d = maxDurationSec, d > 0 { o.maxDurationSec = d }
         if let p = maxPoints, p > 0 { o.maxPoints = p }
+        o.reconstructionQuality = .parse(reconstructionQuality)
         return o
     }
 }
@@ -83,7 +92,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     // Depth accumulation (ported from LiDARCapturePlugin)
     private var voxelGrid: [SIMD3<Int32>: PointData] = [:]
     private var keyframes: [[String: Any]] = []
-    private let voxelSize: Float = 0.02
+    private let voxelSize: Float = CapturePreviewCloud.voxelSizeMeters
     // Keyframing is DISTANCE-based, not time-based. A flat 0.5 s interval
     // recorded one depth frame every ~31 cm on a genuinely slow 0.48 m/s walk
     // and discarded the other 29 of every 30 frames ARKit delivered — measured
@@ -93,16 +102,19 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     // Distance-based also scales the way a commercial job needs: data grows with
     // ground covered, not with time spent, so pausing to talk to a super costs
     // nothing and a large warehouse costs what it should.
-    private let keyframeMinTranslation: Float = 0.08   // metres moved
-    private let keyframeMinRotation: Float = 0.14      // radians (~8 degrees)
+    private var keyframeMinTranslation: Float { options.reconstructionQuality.translationMeters }
+    private var keyframeMinRotation: Float { options.reconstructionQuality.rotationRadians }
     /// Ceiling so a fast pan cannot flood storage or the upload.
-    private let keyframeMinInterval: TimeInterval = 0.1
+    private let keyframeMinInterval: TimeInterval = CaptureSourceManifestBuilder.keyframeMinInterval
     /// Floor so a stationary operator still refreshes a view occasionally.
-    private let keyframeMaxInterval: TimeInterval = 2.0
+    private let keyframeMaxInterval: TimeInterval = CaptureSourceManifestBuilder.keyframeMaxInterval
     private var lastKeyframeTransform: simd_float4x4?
     private var depthEvidenceURL: URL?
     private var depthEvidenceHandle: FileHandle?
     private var depthEvidenceFrameCount = 0
+    private let trajectoryWriter = CaptureTrajectoryWriter()
+    private let telemetry = CaptureTelemetry()
+    private var sourceManifestURL: URL?
 
     // Published copies of the collection sizes. These are written ONLY on `depthQueue`
     // (right after the collections mutate) and read by the HUD/progress on other threads.
@@ -607,6 +619,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         if clipVideos.isEmpty && photoURLs.isEmpty {
             pointCount = 0
             keyframeCount = 0
+            telemetry.reset()
+            trajectoryWriter.close()
             // Reset the point cloud ON depthQueue — the only queue allowed to touch these
             // collections. Enqueued before isRecording flips true, so (FIFO) it runs before
             // any frame's insert block. Clearing them on the main thread previously raced
@@ -796,8 +810,28 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             self.writePosesJSON(to: posesURL, clips: clips)
             NSLog("[TwinCap] writePoses DONE")
             self.closeDepthEvidence()
+            self.trajectoryWriter.close()
+            self.telemetry.trajectoryPosesWritten = self.trajectoryWriter.posesWritten
+            self.telemetry.trajectoryWriteFailures = self.trajectoryWriter.writeFailures
+            self.telemetry.previewPoints = self.voxelGrid.count
+            self.telemetry.depthKeyframesWritten = self.depthEvidenceFrameCount
 
             let totalDuration = clips.reduce(0.0) { $0 + $1.duration }
+            let sourceManifest = CaptureSourceManifestBuilder.build(
+                quality: self.options.reconstructionQuality,
+                durationSec: totalDuration,
+                videoFilenames: clips.map(\.filename),
+                telemetry: self.telemetry
+            )
+            let sourceManifestURL = tmp.appendingPathComponent("\(sid)_capture_manifest.json")
+            if let data = try? JSONSerialization.data(withJSONObject: sourceManifest, options: [.prettyPrinted]) {
+                try? data.write(to: sourceManifestURL)
+            }
+            self.sourceManifestURL = sourceManifestURL
+            let qa = self.telemetry.qaSummary(durationSec: totalDuration)
+            NSLog("[TwinCap] \(qa)")
+            DispatchQueue.main.async { self.setSaveStage(qa) }
+
             let manifest: [String: Any] = [
                 "cancelled": false,
                 // One video per clip; all clips share the session's world origin.
@@ -811,6 +845,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                 ] },
                 "plyUri": plyURL.absoluteString,
                 "posesUri": posesURL.absoluteString,
+                "trajUri": self.trajectoryWriter.url?.absoluteString ?? NSNull(),
+                "sourceManifestUri": sourceManifestURL.absoluteString,
                 "depthEvidenceUri": self.depthEvidenceURL?.absoluteString ?? NSNull(),
                 "depthEvidenceFrameCount": self.depthEvidenceFrameCount,
                 "pointCount": self.voxelGrid.count,
@@ -820,6 +856,11 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                 "sessionStartUnix": self.sessionStartUnix,
                 "width": self.encWidth,
                 "height": self.encHeight,
+                "reconstructionQuality": self.options.reconstructionQuality.rawValue,
+                "plyRole": CapturePreviewCloud.role,
+                "sourceRoles": sourceManifest["roles"] ?? [:],
+                "telemetry": self.telemetry.snapshot(),
+                "qaSummary": qa,
             ]
             // Free the point cloud on THIS queue (the only queue allowed to touch the
             // collections). The data is already on disk. Doing this on the main thread
@@ -853,6 +894,11 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         }
         // Per-CLIP timeline: video PTS and the duration cap restart with each clip.
         let rel = arkitTs - clipStartArkit
+        let trackingLimited = isTrackingLimited(frame.camera.trackingState)
+        telemetry.addArFrame(trackingLimited: trackingLimited)
+        // Trajectory master is independent of depth, the preview budget, and video
+        // backpressure — write it before any of those paths can return.
+        appendTrajectory(frame)
 
         // Enforce max duration per clip — close the clip, stay in capture for the next one.
         if rel >= options.maxDurationSec {
@@ -871,13 +917,17 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             }
         }
 
-        // ── Depth voxel accumulation (ported) ──
+        // ── Packed depth + preview voxels (depth may be absent; trajectory already written) ──
         let depthAnchor = frame.smoothedSceneDepth ?? frame.sceneDepth
         guard let depthMap = depthAnchor?.depthMap, let confMap = depthAnchor?.confidenceMap else { return }
         let transform = frame.camera.transform
         let intrinsics = frame.camera.intrinsics
         let width = CVPixelBufferGetWidth(depthMap)
         let height = CVPixelBufferGetHeight(depthMap)
+        if telemetry.depthWidth == 0 {
+            telemetry.depthWidth = width
+            telemetry.depthHeight = height
+        }
         // ARKit intrinsics are expressed in the full RGB image resolution
         // (frame.camera.imageResolution, ~1920x1440). The LiDAR depthMap is only
         // ~256x192, so the intrinsics MUST be scaled to the depth resolution before
@@ -945,31 +995,36 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             evidencePixelBuffer = frame.capturedImage
         }
 
+        let previewFull = pointCount >= options.maxPoints
         var newVoxels = [(key: SIMD3<Int32>, data: PointData)]()
         let step = 3
         let minConf = options.confidence.rawValue
-        for row in stride(from: 0, to: height, by: step) {
-            for col in stride(from: 0, to: width, by: step) {
-                let conf = Int(confBuf[row * confidenceStride + col])
-                guard conf >= minConf else { continue }
-                let depth = depthBuf[row * depthStride + col]
-                guard depth > 0.1, depth < 8.0 else { continue }
-                // Unproject to camera space in ARKit's own convention (X right, Y up,
-                // Z backward) so this is consistent with `transform` below, which is
-                // ARKit's Y-up camera-to-world matrix. Row increases downward in image
-                // space, so ARKit-Y is the negated image-Y term.
-                let xc = (Float(col) - cx) * depth / fx
-                let yc = (cy - Float(row)) * depth / fy
-                let zc = -depth
-                let world = transform * SIMD4<Float>(xc, yc, zc, 1.0)
-                let pos = SIMD3<Float>(world.x, world.y, world.z)
-                let vk = SIMD3<Int32>(
-                    Int32(floor(pos.x / voxelSize)),
-                    Int32(floor(pos.y / voxelSize)),
-                    Int32(floor(pos.z / voxelSize))
-                )
-                // Grey placeholder for V1; real RGB is a Week-2 hardening item.
-                newVoxels.append((key: vk, data: PointData(position: pos, color: SIMD3<UInt8>(180, 180, 180))))
+        if previewFull {
+            telemetry.addVoxelSkips(1)
+        } else {
+            for row in stride(from: 0, to: height, by: step) {
+                for col in stride(from: 0, to: width, by: step) {
+                    let conf = Int(confBuf[row * confidenceStride + col])
+                    guard conf >= minConf else { continue }
+                    let depth = depthBuf[row * depthStride + col]
+                    guard depth > 0.1, depth < 8.0 else { continue }
+                    // Unproject to camera space in ARKit's own convention (X right, Y up,
+                    // Z backward) so this is consistent with `transform` below, which is
+                    // ARKit's Y-up camera-to-world matrix. Row increases downward in image
+                    // space, so ARKit-Y is the negated image-Y term.
+                    let xc = (Float(col) - cx) * depth / fx
+                    let yc = (cy - Float(row)) * depth / fy
+                    let zc = -depth
+                    let world = transform * SIMD4<Float>(xc, yc, zc, 1.0)
+                    let pos = SIMD3<Float>(world.x, world.y, world.z)
+                    let vk = SIMD3<Int32>(
+                        Int32(floor(pos.x / voxelSize)),
+                        Int32(floor(pos.y / voxelSize)),
+                        Int32(floor(pos.z / voxelSize))
+                    )
+                    // Grey placeholder for V1; real RGB is a Week-2 hardening item.
+                    newVoxels.append((key: vk, data: PointData(position: pos, color: SIMD3<UInt8>(180, 180, 180))))
+                }
             }
         }
 
@@ -997,15 +1052,15 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         let clipRel = rel
 
         // Backpressure: if depthQueue is falling behind, drop this frame's voxel insert so
-        // the backlog can't grow into a multi-minute drain at Done. Keyframes are cheap and
-        // still recorded below regardless.
+        // the backlog can't grow into a multi-minute drain at Done. Packed depth keyframes
+        // and trajectory still record regardless of the preview budget.
         depthBacklogLock.lock()
         let behind = depthBacklog >= maxDepthBacklog
         if !behind { depthBacklog += 1 }
         depthBacklogLock.unlock()
 
         if behind {
-            // Still record the keyframe (poses matter more than a few dropped voxels).
+            telemetry.addDepthBacklogDrop()
             if let kf = keyframeData {
                 depthQueue.async { [weak self] in
                     guard let self = self else { return }
@@ -1013,6 +1068,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                     if let evidence = evidenceFrame {
                         self.appendDepthEvidence(evidence)
                     }
+                    self.keyframeCount = self.keyframes.count
                 }
             }
             pushHudState()
@@ -1025,10 +1081,19 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                 self.depthBacklogLock.lock(); self.depthBacklog -= 1; self.depthBacklogLock.unlock()
             }
             var inserted = 0
+            var skipped = 0
             for (key, data) in newVoxels where self.voxelGrid[key] == nil {
+                if !CapturePreviewCloud.canInsertNewVoxel(
+                    currentCount: self.voxelGrid.count,
+                    maxPoints: self.options.maxPoints
+                ) {
+                    skipped += 1
+                    continue
+                }
                 self.voxelGrid[key] = data
                 inserted += 1
             }
+            self.telemetry.addVoxelSkips(skipped)
             // Overlap coaching (clips 2+, first 6 s): the share of scanned voxels that
             // already exist in the grid IS the overlap with previous clips. Below ~15%
             // the new clip risks poor alignment context in the reconstruction.
@@ -1037,10 +1102,6 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                 self.lowOverlapDetected = dupRatio < 0.15
             } else {
                 self.lowOverlapDetected = false
-            }
-            if self.voxelGrid.count > self.options.maxPoints {
-                let excess = self.voxelGrid.count - self.options.maxPoints
-                for k in self.voxelGrid.keys.prefix(excess) { self.voxelGrid.removeValue(forKey: k) }
             }
             if let kf = keyframeData {
                 self.keyframes.append(kf)
@@ -1055,6 +1116,34 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         }
         // Per-frame drive; TwinHudStateModel coalesces to avoid main-thread jank.
         pushHudState()
+    }
+
+    private func appendTrajectory(_ frame: ARFrame) {
+        let K = frame.camera.intrinsics
+        let res = frame.camera.imageResolution
+        trajectoryWriter.append(
+            arTimestamp: frame.timestamp - sessionStartArkit,
+            unixTimestamp: sessionStartUnix + (frame.timestamp - sessionStartArkit),
+            transform4x4: CaptureSourceManifestBuilder.flatten(frame.camera.transform),
+            trackingState: trackingLabel(frame.camera.trackingState).rawValue,
+            fx: K[0][0], fy: K[1][1], cx: K[2][0], cy: K[2][1],
+            width: Int(res.width), height: Int(res.height)
+        )
+    }
+
+    private func trackingLabel(_ state: ARCamera.TrackingState) -> ARCameraTrackingLabel {
+        switch state {
+        case .normal: return .normal
+        case .limited: return .limited
+        case .notAvailable: return .notAvailable
+        }
+    }
+
+    private func isTrackingLimited(_ state: ARCamera.TrackingState) -> Bool {
+        switch state {
+        case .normal: return false
+        default: return true
+        }
     }
 
     func session(_ session: ARSession, didFailWithError error: Error) {
@@ -1147,6 +1236,9 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             sessionStartUnix = Date().timeIntervalSince1970
             hasSessionStart = true
         }
+        if trajectoryWriter.url == nil {
+            trajectoryWriter.open(sessionId: sessionId, sessionStartUnix: sessionStartUnix)
+        }
         clipStartArkit = frame.timestamp
         clipStartUnix = sessionStartUnix + (clipStartArkit - sessionStartArkit)
         let res = frame.camera.imageResolution
@@ -1227,12 +1319,17 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
 
     private func appendVideo(_ buffer: CVPixelBuffer, pts: CMTime) {
         guard let input = writerInput, let adaptor = pixelAdaptor else { return }
-        guard input.isReadyForMoreMediaData else { droppedVideoFrames += 1; return }
+        guard input.isReadyForMoreMediaData else {
+            droppedVideoFrames += 1
+            telemetry.addVideoDropped()
+            return
+        }
         if adaptor.append(buffer, withPresentationTime: pts) {
             // Queue-confined: the PTS of the LAST sample actually written. endSession must
             // never precede this or finishWriting hangs (the ~10-platform root cause).
             lastEnqueuedPTS = pts
             appendedFrameCount += 1
+            telemetry.addVideoWritten()
         }
     }
 
@@ -1312,7 +1409,20 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         var data = Data()
         data.reserveCapacity(pts.count * 15 + 256)   // 12 B xyz + 3 B rgb/pt — avoids reallocs
         let header = """
-        ply\nformat binary_little_endian 1.0\nelement vertex \(pts.count)\nproperty float x\nproperty float y\nproperty float z\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nend_header\n
+        ply
+        format binary_little_endian 1.0
+        comment role preview
+        comment is_sensor_master 0
+        comment max_points \(options.maxPoints)
+        comment voxel_size_m \(voxelSize)
+        element vertex \(pts.count)
+        property float x
+        property float y
+        property float z
+        property uchar red
+        property uchar green
+        property uchar blue
+        end_header
         """
         data.append(contentsOf: header.utf8)
         for pt in pts {
@@ -1471,11 +1581,16 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     }
 
     private func cleanupTempFiles() {
+        trajectoryWriter.close()
+        closeDepthEvidence()
         if let v = videoURL { try? FileManager.default.removeItem(at: v) }
         for clip in clipVideos { try? FileManager.default.removeItem(at: clip.url) }
         clipVideos.removeAll()
         for photo in photoURLs { try? FileManager.default.removeItem(at: photo.url) }
         photoURLs.removeAll()
+        if let url = trajectoryWriter.url { try? FileManager.default.removeItem(at: url) }
+        if let url = depthEvidenceURL { try? FileManager.default.removeItem(at: url) }
+        if let url = sourceManifestURL { try? FileManager.default.removeItem(at: url) }
     }
 
     private func fail(_ message: String) {

@@ -34,14 +34,21 @@ describe("twin-source-chip", () => {
     expect(availableChipsForFile(video("capture.insv"))).toEqual(["360"]);
   });
 
-  it("keeps LiDAR files on the LiDAR chip", () => {
+    it("keeps LiDAR files on the LiDAR chip", () => {
     expect(isLidarDescriptor({ name: "scan.e57", type: "" })).toBe(true);
     expect(isLidarDescriptor({ name: "lidar_poses.json", type: "application/json" })).toBe(true);
+    expect(isLidarDescriptor({ name: "lidar_traj.jsonl", type: "application/x-ndjson" })).toBe(true);
     expect(availableChipsForFile({ name: "scan.ply", type: "" })).toEqual(["lidar"]);
     expect(assetKindForChip("lidar", { name: "depth.s360depth", type: "" })).toBe("lidar_depth");
     expect(assetKindForChip("lidar", { name: "lidar_poses.json", type: "application/json" })).toBe(
       "lidar_poses",
     );
+    expect(assetKindForChip("lidar", { name: "lidar_traj.jsonl", type: "application/x-ndjson" })).toBe(
+      "lidar_traj",
+    );
+    expect(
+      assetKindForChip("lidar", { name: "preview_point_cloud.ply", type: "application/octet-stream" }),
+    ).toBe("ply_lidar");
   });
 
   it("A4: native uploader's gzip suffix doesn't defeat LiDAR classification", () => {
@@ -62,6 +69,13 @@ describe("twin-source-chip", () => {
     expect(
       assetKindForChip("lidar", { name: "lidar_capture.ply.gz", type: "application/gzip" }),
     ).toBe("ply_lidar");
+    expect(isLidarDescriptor({ name: "lidar_traj.jsonl.gz", type: "application/gzip" })).toBe(true);
+    expect(
+      assetKindForChip("lidar", { name: "lidar_traj.jsonl.gz", type: "application/gzip" }),
+    ).toBe("lidar_traj");
+    expect(
+      assetKindForChip("lidar", { name: "preview_point_cloud.ply.gz", type: "application/gzip" }),
+    ).toBe("ply_lidar");
   });
 
   it("uses measured projection before filename hints", () => {
@@ -76,6 +90,7 @@ describe("twin-source-chip", () => {
     expect(assetKindForChip("drone", photo("DJI_001.JPG"))).toBe("drone_photo");
     expect(chipForAssetKind("drone_video")).toBe("drone");
     expect(chipForAssetKind("ply_lidar")).toBe("lidar");
+    expect(chipForAssetKind("lidar_traj")).toBe("lidar");
     expect(deriveJobType(["phone", "drone"])).toEqual({
       jobType: "photogrammetry_mesh",
       outputFormat: "glb",

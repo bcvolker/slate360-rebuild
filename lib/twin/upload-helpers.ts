@@ -58,8 +58,11 @@ export function inferTwinAssetKind(
   if (mime.includes("panorama")) return "panorama_360";
   if (mime.startsWith("image/")) return "photo";
   if (ext === "s360depth") return "lidar_depth";
+  const lower = filename.toLowerCase();
+  // High-rate ARKit trajectory master (filename: lidar_traj.jsonl[.gz])
+  if (lower.includes("traj") && (lower.includes(".jsonl") || ext === "jsonl")) return "lidar_traj";
   // ARKit pose JSON exported by the LiDAR plugin (filename: lidar_poses.json)
-  if (ext === "json" && filename.toLowerCase().includes("poses")) return "lidar_poses";
+  if (ext === "json" && lower.includes("poses")) return "lidar_poses";
   return "other";
 }
 

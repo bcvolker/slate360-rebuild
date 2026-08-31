@@ -30,6 +30,8 @@
 		A1B2C3D4E5F6071829304A5B /* TwinUploadSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071829304A5C /* TwinUploadSupport.swift */; };
 		B2C3D4E5F6071829304A5B6C /* TwinUploadSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F6071829304A5B6D /* TwinUploadSession.swift */; };
 		708192A3B4C5D6E7F8091A2B3 /* SlateBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 708192A3B4C5D6E7F8091A2B4 /* SlateBridgeViewController.swift */; };
+		C4D5A0010000000000000001 /* CaptureTrajectoryWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4D5A0010000000000000002 /* CaptureTrajectoryWriter.swift */; };
+		C4D5A0020000000000000001 /* CaptureDataPreservation.swift in Sources */ = {isa = PBXBuildFile; fileRef = C4D5A0020000000000000002 /* CaptureDataPreservation.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -58,6 +60,8 @@
 		A1B2C3D4E5F6071829304A5C /* TwinUploadSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TwinUploadSupport.swift; sourceTree = "<group>"; };
 		B2C3D4E5F6071829304A5B6D /* TwinUploadSession.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TwinUploadSession.swift; sourceTree = "<group>"; };
 		708192A3B4C5D6E7F8091A2B4 /* SlateBridgeViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SlateBridgeViewController.swift; sourceTree = "<group>"; };
+		C4D5A0010000000000000002 /* CaptureTrajectoryWriter.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CaptureTrajectoryWriter.swift; sourceTree = "<group>"; };
+		C4D5A0020000000000000002 /* CaptureDataPreservation.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CaptureDataPreservation.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,6 +94,8 @@
 				6F708192A3B4C5D6E7F8091A3 /* TwinUploader.swift */,
 				A1B2C3D4E5F6071829304A5C /* TwinUploadSupport.swift */,
 				B2C3D4E5F6071829304A5B6D /* TwinUploadSession.swift */,
+				C4D5A0010000000000000002 /* CaptureTrajectoryWriter.swift */,
+				C4D5A0020000000000000002 /* CaptureDataPreservation.swift */,
 			);
 			name = LiDARCapture;
 			path = Plugins/LiDARCapture;
@@ -241,6 +247,8 @@
 				6F708192A3B4C5D6E7F8091A2 /* TwinUploader.swift in Sources */,
 				A1B2C3D4E5F6071829304A5B /* TwinUploadSupport.swift in Sources */,
 				B2C3D4E5F6071829304A5B6C /* TwinUploadSession.swift in Sources */,
+				C4D5A0010000000000000001 /* CaptureTrajectoryWriter.swift in Sources */,
+				C4D5A0020000000000000001 /* CaptureDataPreservation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

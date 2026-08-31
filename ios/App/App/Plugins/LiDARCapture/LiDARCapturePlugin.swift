@@ -114,7 +114,8 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
             let opts = TwinCaptureOptions.from(
                 confidence: call.getString("confidence"),
                 maxDurationSec: call.getDouble("maxDurationSec"),
-                maxPoints: call.getInt("maxPoints")
+                maxPoints: call.getInt("maxPoints"),
+                reconstructionQuality: call.getString("reconstructionQuality")
             )
             // Upload target — the native uploader pushes the capture files straight to
             // storage so they never cross into the JS heap (the "Load failed" crash).
@@ -199,9 +200,11 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
         }
         let plyUrl = (manifest["plyUri"] as? String).flatMap(URL.init(string:))
         let posesUrl = (manifest["posesUri"] as? String).flatMap(URL.init(string:))
+        let trajUrl = (manifest["trajUri"] as? String).flatMap(URL.init(string:))
+        let sourceManifestUrl = (manifest["sourceManifestUri"] as? String).flatMap(URL.init(string:))
         let depthEvidenceUrl = (manifest["depthEvidenceUri"] as? String).flatMap(URL.init(string:))
 
-        guard !videoFiles.isEmpty || !photoFiles.isEmpty || plyUrl != nil || posesUrl != nil || depthEvidenceUrl != nil else {
+        guard !videoFiles.isEmpty || !photoFiles.isEmpty || plyUrl != nil || posesUrl != nil || trajUrl != nil || depthEvidenceUrl != nil else {
             resolveCapture(["cancelled": false, "uploadError": "No capture files were produced."])
             return
         }
@@ -228,7 +231,7 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                 }
                 if let url = plyUrl {
                     entries.append(self.gzippedEntry(
-                        url: url, filename: "lidar_capture.ply",
+                        url: url, filename: CapturePreviewCloud.filename,
                         rawContentType: "application/octet-stream", assetKind: "ply_lidar"))
                 }
                 if let url = posesUrl {
@@ -236,12 +239,25 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                         url: url, filename: "lidar_poses.json",
                         rawContentType: "application/json", assetKind: "lidar_poses"))
                 }
+                if let url = trajUrl {
+                    entries.append(self.gzippedEntry(
+                        url: url, filename: CaptureTrajectoryWriter.filename,
+                        rawContentType: "application/x-ndjson", assetKind: "lidar_traj"))
+                }
                 if let url = depthEvidenceUrl {
                     entries.append(.init(
                         url: url,
                         filename: "lidar_depth.s360depth",
                         contentType: "application/octet-stream",
                         assetKind: "lidar_depth"
+                    ))
+                }
+                if let url = sourceManifestUrl {
+                    entries.append(.init(
+                        url: url,
+                        filename: CaptureSourceRoles.manifestFilename,
+                        contentType: "application/json",
+                        assetKind: "other"
                     ))
                 }
                 for photo in photoFiles {
@@ -294,6 +310,8 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                     result["photoUris"] = NSNull()
                     result["plyUri"] = NSNull()
                     result["posesUri"] = NSNull()
+                    result["trajUri"] = NSNull()
+                    result["sourceManifestUri"] = NSNull()
                     result["depthEvidenceUri"] = NSNull()
                     // Drive the WebView to the per-capture submit funnel (loads by captureId,
                     // so it survives a fresh WebView load with no in-memory web state). This is
@@ -613,14 +631,10 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
             guard let self = self else { return }
 
             for (key, data) in newVoxels where self.voxelGrid[key] == nil {
+                if self.voxelGrid.count >= self.maxPoints { break }
                 self.voxelGrid[key] = data
             }
-            // Trim to max if we've grown too large.
-            if self.voxelGrid.count > self.maxPoints {
-                let excess = self.voxelGrid.count - self.maxPoints
-                let toRemove = self.voxelGrid.keys.prefix(excess)
-                for k in toRemove { self.voxelGrid.removeValue(forKey: k) }
-            }
+            // Preview budget is a display cap: stop inserting, never hash-order evict.
 
             if let kf = keyframeData {
                 self.keyframes.append(kf)
