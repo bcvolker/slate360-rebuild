@@ -1,0 +1,426 @@
+{
+  "capturedAt": "2026-09-01T19:59:24.612Z",
+  "live": {
+    "forensics": {
+      "css": [
+        1440,
+        900
+      ],
+      "drawingBuffer": [
+        1440,
+        900
+      ],
+      "dpr": 1,
+      "visualScale": 1,
+      "zoomApprox": 1,
+      "fov": 72,
+      "aspect": 1.6,
+      "cameraPosition": [
+        0.72,
+        0.004836011632122217,
+        -1.7
+      ],
+      "cameraQuat": [
+        0,
+        -0.41232078174342474,
+        0,
+        0.9110387329540337
+      ],
+      "toneMapping": 0,
+      "outputColorSpace": "srgb",
+      "antialias": true,
+      "numSplats": 672348,
+      "packedShDegree": 3,
+      "meshMaxSh": 3,
+      "blurAmount": 0.3,
+      "preBlurAmount": 0,
+      "minPixelRadius": 0,
+      "maxPixelRadius": 512,
+      "encodeLinear": false,
+      "enableLod": false,
+      "minAlpha": 0.00196078431372549,
+      "maxStdDev": 2.8284271247461903,
+      "label": "live-reality"
+    },
+    "pose": {
+      "x": 0.72,
+      "y": 0.004836011632122217,
+      "z": -1.7,
+      "yaw": -0.85,
+      "pitch": 0
+    },
+    "appearanceReady": true,
+    "fps": 9.615384615384615
+  },
+  "variants": {
+    "C_spz_current": {
+      "forensics": {
+        "css": [
+          1440,
+          900
+        ],
+        "drawingBuffer": [
+          1440,
+          900
+        ],
+        "dpr": 1,
+        "visualScale": 1,
+        "zoomApprox": 1,
+        "fov": 72,
+        "aspect": 1.6,
+        "cameraPosition": [
+          0.72,
+          0.004836011632122217,
+          -1.7
+        ],
+        "cameraQuat": [
+          0,
+          -0.41232078174342474,
+          0,
+          0.9110387329540337
+        ],
+        "toneMapping": 0,
+        "outputColorSpace": "srgb",
+        "antialias": false,
+        "numSplats": 672348,
+        "packedShDegree": 3,
+        "meshMaxSh": 3,
+        "blurAmount": 0.3,
+        "preBlurAmount": 0,
+        "minPixelRadius": 0,
+        "maxPixelRadius": 512,
+        "encodeLinear": false,
+        "enableLod": false,
+        "minAlpha": 0.00196078431372549,
+        "maxStdDev": 2.8284271247461903,
+        "label": "isolated"
+      },
+      "pose": null,
+      "appearanceReady": null,
+      "fps": null
+    },
+    "A_dpr2": {
+      "forensics": {
+        "css": [
+          1440,
+          900
+        ],
+        "drawingBuffer": [
+          null,
+          null
+        ],
+        "dpr": 2,
+        "visualScale": 1,
+        "zoomApprox": 1,
+        "fov": 72,
+        "aspect": 1.6,
+        "cameraPosition": [
+          0.72,
+          0.004836011632122217,
+          -1.7
+        ],
+        "cameraQuat": [
+          0,
+          -0.41232078174342474,
+          0,
+          0.9110387329540337
+        ],
+        "toneMapping": 0,
+        "outputColorSpace": "srgb",
+        "antialias": false,
+        "numSplats": 672348,
+        "packedShDegree": 3,
+        "meshMaxSh": 3,
+        "blurAmount": 0.3,
+        "preBlurAmount": 0,
+        "minPixelRadius": 0,
+        "maxPixelRadius": 512,
+        "encodeLinear": false,
+        "enableLod": false,
+        "minAlpha": 0.00196078431372549,
+        "maxStdDev": 2.8284271247461903,
+        "label": "isolated"
+      },
+      "pose": null,
+      "appearanceReady": null,
+      "fps": null
+    },
+    "B_small_scale": {
+      "forensics": {
+        "css": [
+          1440,
+          900
+        ],
+        "drawingBuffer": [
+          null,
+          null
+        ],
+        "dpr": 1,
+        "visualScale": 1,
+        "zoomApprox": 1,
+        "fov": 72,
+        "aspect": 1.6,
+        "cameraPosition": [
+          0.72,
+          0.004836011632122217,
+          -1.7
+        ],
+        "cameraQuat": [
+          0,
+          -0.41232078174342474,
+          0,
+          0.9110387329540337
+        ],
+        "toneMapping": 0,
+        "outputColorSpace": "srgb",
+        "antialias": false,
+        "numSplats": 672348,
+        "packedShDegree": 3,
+        "meshMaxSh": 3,
+        "blurAmount": 0.3,
+        "preBlurAmount": 0,
+        "minPixelRadius": 0,
+        "maxPixelRadius": 512,
+        "encodeLinear": false,
+        "enableLod": false,
+        "minAlpha": 0.00196078431372549,
+        "maxStdDev": 2.8284271247461903,
+        "label": "isolated"
+      },
+      "pose": null,
+      "appearanceReady": null,
+      "fps": null
+    },
+    "D_sh3": {
+      "forensics": {
+        "css": [
+          1440,
+          900
+        ],
+        "drawingBuffer": [
+          null,
+          null
+        ],
+        "dpr": 1,
+        "visualScale": 1,
+        "zoomApprox": 1,
+        "fov": 72,
+        "aspect": 1.6,
+        "cameraPosition": [
+          0.72,
+          0.004836011632122217,
+          -1.7
+        ],
+        "cameraQuat": [
+          0,
+          -0.41232078174342474,
+          0,
+          0.9110387329540337
+        ],
+        "toneMapping": 0,
+        "outputColorSpace": "srgb",
+        "antialias": false,
+        "numSplats": 672348,
+        "packedShDegree": 3,
+        "meshMaxSh": 3,
+        "blurAmount": 0,
+        "preBlurAmount": 0,
+        "minPixelRadius": 0,
+        "maxPixelRadius": 512,
+        "encodeLinear": false,
+        "enableLod": false,
+        "minAlpha": 0.00196078431372549,
+        "maxStdDev": 2.8284271247461903,
+        "label": "isolated"
+      },
+      "pose": null,
+      "appearanceReady": null,
+      "fps": null
+    },
+    "E_aces": {
+      "forensics": {
+        "css": [
+          1440,
+          900
+        ],
+        "drawingBuffer": [
+          null,
+          null
+        ],
+        "dpr": 1,
+        "visualScale": 1,
+        "zoomApprox": 1,
+        "fov": 72,
+        "aspect": 1.6,
+        "cameraPosition": [
+          0.72,
+          0.004836011632122217,
+          -1.7
+        ],
+        "cameraQuat": [
+          0,
+          -0.41232078174342474,
+          0,
+          0.9110387329540337
+        ],
+        "toneMapping": 4,
+        "outputColorSpace": "srgb",
+        "antialias": false,
+        "numSplats": 672348,
+        "packedShDegree": 3,
+        "meshMaxSh": 3,
+        "blurAmount": 0.3,
+        "preBlurAmount": 0,
+        "minPixelRadius": 0,
+        "maxPixelRadius": 512,
+        "encodeLinear": false,
+        "enableLod": false,
+        "minAlpha": 0.00196078431372549,
+        "maxStdDev": 2.8284271247461903,
+        "label": "isolated"
+      },
+      "pose": null,
+      "appearanceReady": null,
+      "fps": null
+    },
+    "F_ply": {
+      "forensics": {
+        "css": [
+          1440,
+          900
+        ],
+        "drawingBuffer": [
+          null,
+          null
+        ],
+        "dpr": 1,
+        "visualScale": 1,
+        "zoomApprox": 1,
+        "fov": 72,
+        "aspect": 1.6,
+        "cameraPosition": [
+          0.72,
+          0.004836011632122217,
+          -1.7
+        ],
+        "cameraQuat": [
+          0,
+          -0.41232078174342474,
+          0,
+          0.9110387329540337
+        ],
+        "toneMapping": 0,
+        "outputColorSpace": "srgb",
+        "antialias": false,
+        "numSplats": 672348,
+        "packedShDegree": 3,
+        "meshMaxSh": 3,
+        "blurAmount": 0.3,
+        "preBlurAmount": 0,
+        "minPixelRadius": 0,
+        "maxPixelRadius": 512,
+        "encodeLinear": false,
+        "enableLod": false,
+        "minAlpha": 0.00196078431372549,
+        "maxStdDev": 2.8284271247461903,
+        "label": "isolated"
+      },
+      "pose": null,
+      "appearanceReady": null,
+      "fps": null
+    },
+    "G_sh0": {
+      "forensics": {
+        "css": [
+          1440,
+          900
+        ],
+        "drawingBuffer": [
+          null,
+          null
+        ],
+        "dpr": 1,
+        "visualScale": 1,
+        "zoomApprox": 1,
+        "fov": 72,
+        "aspect": 1.6,
+        "cameraPosition": [
+          0.72,
+          0.004836011632122217,
+          -1.7
+        ],
+        "cameraQuat": [
+          0,
+          -0.41232078174342474,
+          0,
+          0.9110387329540337
+        ],
+        "toneMapping": 0,
+        "outputColorSpace": "srgb",
+        "antialias": false,
+        "numSplats": 672348,
+        "packedShDegree": 3,
+        "meshMaxSh": 0,
+        "blurAmount": 0.3,
+        "preBlurAmount": 0,
+        "minPixelRadius": 0,
+        "maxPixelRadius": 512,
+        "encodeLinear": false,
+        "enableLod": false,
+        "minAlpha": 0.00196078431372549,
+        "maxStdDev": 2.8284271247461903,
+        "label": "isolated"
+      },
+      "pose": null,
+      "appearanceReady": null,
+      "fps": null
+    },
+    "H_native_sim3": {
+      "forensics": {
+        "css": [
+          1440,
+          900
+        ],
+        "drawingBuffer": [
+          null,
+          null
+        ],
+        "dpr": 1,
+        "visualScale": 1,
+        "zoomApprox": 1,
+        "fov": 72,
+        "aspect": 1.6,
+        "cameraPosition": [
+          0.72,
+          0.004836011632122217,
+          -1.7
+        ],
+        "cameraQuat": [
+          0,
+          -0.41232078174342474,
+          0,
+          0.9110387329540337
+        ],
+        "toneMapping": 0,
+        "outputColorSpace": "srgb",
+        "antialias": false,
+        "numSplats": 672348,
+        "packedShDegree": 3,
+        "meshMaxSh": 3,
+        "blurAmount": 0.3,
+        "preBlurAmount": 0,
+        "minPixelRadius": 0,
+        "maxPixelRadius": 512,
+        "encodeLinear": false,
+        "enableLod": false,
+        "minAlpha": 0.00196078431372549,
+        "maxStdDev": 2.8284271247461903,
+        "label": "isolated"
+      },
+      "pose": null,
+      "appearanceReady": null,
+      "fps": null
+    }
+  },
+  "recapturedAt": "2026-09-01T20:02:14.429Z"
+}

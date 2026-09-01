@@ -4,6 +4,7 @@ import { Canvas } from "@react-three/fiber";
 import type { MutableRefObject, ReactElement } from "react";
 import * as THREE from "three";
 
+import { ForensicsProbe } from "@/components/digital-twin/kitchen-proof/ForensicsProbe";
 import { KitchenAppearanceLayer } from "@/components/digital-twin/kitchen-proof/KitchenAppearanceLayer";
 import { KitchenLocomotionRig } from "@/components/digital-twin/kitchen-proof/KitchenLocomotionRig";
 import { KitchenMeshLayer } from "@/components/digital-twin/kitchen-proof/KitchenMeshLayer";
@@ -116,6 +117,7 @@ export function KitchenProofScene({
         enabled={nav.mode === "inside"}
       />
       <FpsProbe fpsRef={fpsRef} />
+      <ForensicsProbe label="live-reality" />
     </Canvas>
   );
 }
