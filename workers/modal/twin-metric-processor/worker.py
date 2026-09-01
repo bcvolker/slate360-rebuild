@@ -94,7 +94,7 @@ def run_cloud_job(payload: dict[str, Any], root: Path) -> dict[str, Any]:
     if payload.get("lidarPlyKey"):
         print("[metric] ignoring lidarPlyKey — preview PLY is not reconstruction truth", flush=True)
 
-    set_progress(job_id, "download", 8)
+    set_progress(job_id, "upload", 8)
     depth_path = maybe_decompress(
         download_key(s3, bucket, str(depth_key), _suffix_path(root / "in", str(depth_key), "depth"))
     )
@@ -112,7 +112,7 @@ def run_cloud_job(payload: dict[str, Any], root: Path) -> dict[str, Any]:
     voxel_mm = int(payload.get("voxelMm") or 15)
     engineering = bool(payload.get("engineeringRange"))
     out = root / "out"
-    set_progress(job_id, "process", 20)
+    set_progress(job_id, "train", 20)
     result = run_metric_processor(
         depth_path,
         poses_path,
@@ -124,7 +124,7 @@ def run_cloud_job(payload: dict[str, Any], root: Path) -> dict[str, Any]:
         engineering_range=engineering,
     )
     prefix = f"orgs/{payload['orgId']}/digital-twin/{payload['spaceId']}/models/{job_id}"
-    set_progress(job_id, "upload", 88)
+    set_progress(job_id, "export", 88)
     products = result["products"]
     glb = Path(products["geometry.glb"]) if products.get("geometry.glb") else None
     if not glb or not glb.is_file():

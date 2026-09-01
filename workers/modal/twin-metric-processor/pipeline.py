@@ -96,19 +96,25 @@ def run_metric_processor(
     gaussian["skipped"] = True
     if not skip_gaussian:
         t = time.time()
-        dataset = build_dataset(
-            depth_path, poses_path, cloud["xyz"], cloud["rgb"], out / "gsplat_dataset"
-        )
-        from gaussian_train import train_gsplat
+        try:
+            dataset = build_dataset(
+                depth_path, poses_path, cloud["xyz"], cloud["rgb"], out / "gsplat_dataset"
+            )
+            from gaussian_train import train_gsplat
 
-        trained = train_gsplat(
-            dataset["datasetDir"], out, steps=gaussian_steps, depth_loss=depth_loss
-        )
-        spz = maybe_spz(out / "appearance_raw.ply", out / "appearance.spz")
-        trained["spz"] = spz
-        trained["dataset"] = dataset
-        gaussian = trained
-        gaussian["skipped"] = False
+            trained = train_gsplat(
+                dataset["datasetDir"], out, steps=gaussian_steps, depth_loss=depth_loss
+            )
+            spz = maybe_spz(out / "appearance_raw.ply", out / "appearance.spz")
+            trained["spz"] = spz
+            trained["dataset"] = dataset
+            gaussian = trained
+            gaussian["skipped"] = False
+        except Exception as exc:  # noqa: BLE001 — appearance must not fail measurement geometry
+            gaussian = train_config(steps=gaussian_steps, depth_loss=depth_loss)
+            gaussian["skipped"] = False
+            gaussian["failed"] = f"{type(exc).__name__}: {exc}"[:800]
+            print(f"[metric] gaussian appearance failed; geometry still valid: {exc}", flush=True)
         timings["gaussian"] = time.time() - t
 
     observed = {
