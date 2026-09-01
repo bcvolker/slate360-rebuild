@@ -12,6 +12,8 @@ const JOB_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9
 
 const KINDS: Record<string, { suffix: string; type: string }> = {
   "geometry.glb": { suffix: "geometry.glb", type: "model/gltf-binary" },
+  "geometry-web.glb": { suffix: "geometry-web.glb", type: "model/gltf-binary" },
+  "appearance-x4-v1.spz": { suffix: "appearance-x4-v1.spz", type: "application/octet-stream" },
   "floor_slice.png": { suffix: "floor_slice.png", type: "image/png" },
   "thumbnail.png": { suffix: "thumbnail.png", type: "image/png" },
   "qa.json": { suffix: "qa.json", type: "application/json" },

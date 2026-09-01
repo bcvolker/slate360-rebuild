@@ -8,6 +8,7 @@ import {
   isFiniteVec3,
   measurementRaycastTarget,
   metricMeasurementAllowed,
+  sim3FromRowMajor4,
   sourceToWorld,
   sparkPiXFlipSim3,
   translationSim3,
@@ -40,6 +41,21 @@ describe("uniformScaleSim3", () => {
   it("scales about the origin before rotation/translation", () => {
     const sim = composeSim3(uniformScaleSim3(2), translationSim3(1, 0, 0));
     expect(applySim3(sim, vec3(3, 0, 0))).toEqual(vec3(7, 0, 0));
+  });
+});
+
+describe("rowMajor4ToColumnMajor", () => {
+  it("round-trips a translation in the last column", () => {
+    const sim = sim3FromRowMajor4(
+      [
+        [1, 0, 0, 4],
+        [0, 1, 0, 5],
+        [0, 0, 1, 6],
+        [0, 0, 0, 1],
+      ],
+      1,
+    );
+    expect(applySim3(sim, vec3(0, 0, 0))).toEqual(vec3(4, 5, 6));
   });
 });
 

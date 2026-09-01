@@ -59,6 +59,7 @@ export type WalkthroughNavigation = {
   isTransitioning: boolean;
   /** Drag to look around while standing at a station. */
   handleLookDrag: (deltaX: number, deltaY: number) => void;
+  goToStationId: (id: string) => void;
 };
 
 export function useWalkthroughNavigation(options: {
@@ -224,6 +225,14 @@ export function useWalkthroughNavigation(options: {
     camera.rotation.set(pose.pitch, pose.yaw, 0, "YXZ");
   }, []);
 
+  const goToStationId = useCallback(
+    (id: string) => {
+      const station = stations.find((s) => s.id === id);
+      if (station) goToStation(station);
+    },
+    [goToStation, stations],
+  );
+
   return {
     mode,
     setMode,
@@ -234,5 +243,6 @@ export function useWalkthroughNavigation(options: {
     updateCamera,
     isTransitioning,
     handleLookDrag,
+    goToStationId,
   };
 }

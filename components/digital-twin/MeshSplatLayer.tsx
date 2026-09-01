@@ -49,9 +49,14 @@ function orientGroup(group: THREE.Group, mesh: SplatMesh, manifest: SplatManifes
 export function MeshSplatLayer({
   url,
   visible,
+  worldMatrix = null,
+  sparkPiFlip = true,
 }: {
   url: string;
   visible: boolean;
+  /** Column-major 4×4 into S360_WORLD. Skips Spark Rx(π)/PCA when set. */
+  worldMatrix?: readonly number[] | null;
+  sparkPiFlip?: boolean;
 }): ReactElement {
   const gl = useThree((state) => state.gl);
   const groupRef = useRef<THREE.Group>(null);
@@ -62,10 +67,17 @@ export function MeshSplatLayer({
   const manifestPromiseRef = useRef<Promise<SplatManifest | null> | null>(null);
   const maxSplats = useMobileSplatBudget();
   const sparkArgs = useMemo(() => ({ renderer: gl, enableLod: false }), [gl]);
+  const pose = useMemo(() => {
+    if (!worldMatrix) return null;
+    const m = new THREE.Matrix4().fromArray(worldMatrix as number[]);
+    const position = new THREE.Vector3();
+    const quaternion = new THREE.Quaternion();
+    const scale = new THREE.Vector3();
+    m.decompose(position, quaternion, scale);
+    return { position, quaternion, scale };
+  }, [worldMatrix]);
 
   useEffect(() => {
-    groupRef.current?.quaternion.identity();
-    groupRef.current?.updateMatrixWorld(true);
     meshRef.current = null;
     manifestRef.current = null;
     let cancelled = false;
@@ -106,17 +118,23 @@ export function MeshSplatLayer({
           manifest = await manifestPromiseRef.current;
         }
         const group = groupRef.current;
-        if (group) orientGroup(group, mesh, manifest);
+        if (group && !worldMatrix) orientGroup(group, mesh, manifest);
         meshRef.current = mesh;
       },
     }),
-    [url, maxSplats],
+    [url, maxSplats, worldMatrix],
   );
 
   return (
-    <group ref={groupRef} visible={visible}>
+    <group
+      ref={groupRef}
+      visible={visible}
+      position={pose ? [pose.position.x, pose.position.y, pose.position.z] : undefined}
+      quaternion={pose ? pose.quaternion : undefined}
+      scale={pose ? [pose.scale.x, pose.scale.y, pose.scale.z] : undefined}
+    >
       <sparkRenderer args={[sparkArgs]}>
-        <splatMesh args={[splatArgs]} rotation={[Math.PI, 0, 0]} />
+        <splatMesh args={[splatArgs]} rotation={sparkPiFlip ? [Math.PI, 0, 0] : [0, 0, 0]} />
       </sparkRenderer>
     </group>
   );
