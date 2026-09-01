@@ -5,6 +5,7 @@ import {
   EXACT_FRAME_SIM3_SCALE,
   exactFrameSim3,
   kitchenEyeY,
+  KITCHEN_APPEARANCE_AVAILABLE,
   KITCHEN_FLOOR_Y,
   KITCHEN_HUMAN_FOV,
   KITCHEN_STATIONS,
@@ -21,6 +22,10 @@ describe("kitchen proof world", () => {
   it("starts FOV in the 65–80° band", () => {
     expect(KITCHEN_HUMAN_FOV).toBeGreaterThanOrEqual(65);
     expect(KITCHEN_HUMAN_FOV).toBeLessThanOrEqual(80);
+  });
+
+  it("does not claim a trained V1 Gaussian is available", () => {
+    expect(KITCHEN_APPEARANCE_AVAILABLE).toBe(false);
   });
 
   it("names the three walk targets plus the human opening view", () => {

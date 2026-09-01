@@ -10,18 +10,29 @@ const KitchenProofViewer = nextDynamic(
     ssr: false,
     loading: () => (
       <div className="flex h-full w-full items-center justify-center">
-        <p className="font-mono text-[11px] uppercase tracking-wide text-white/40">Loading kitchen…</p>
+        <p className="font-mono text-[11px] uppercase tracking-wide text-white/40">Loading geometry</p>
       </div>
     ),
   },
 );
 
 export function KitchenProofClient({
-  meshUrl,
-  splatUrl,
+  displayUrl,
+  navUrl,
+  measureUrl,
+  debug,
 }: {
-  meshUrl: string;
-  splatUrl: string;
+  displayUrl: string;
+  navUrl: string;
+  measureUrl: string;
+  debug: boolean;
 }): ReactElement {
-  return <KitchenProofViewer meshUrl={meshUrl} splatUrl={splatUrl} />;
+  return (
+    <KitchenProofViewer
+      displayUrl={displayUrl}
+      navUrl={navUrl}
+      measureUrl={measureUrl}
+      debug={debug}
+    />
+  );
 }

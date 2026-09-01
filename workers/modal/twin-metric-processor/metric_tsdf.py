@@ -103,8 +103,15 @@ def integrate_tsdf(
     o3d.io.write_triangle_mesh(str(raw_ply), mesh)
     engineering = out / f"engineering_mesh_{voxel_mm:02d}mm.ply"
     o3d.io.write_triangle_mesh(str(engineering), mesh)
+    from glb_binary import inspect_glb, write_open3d_mesh_glb
+    from mesh_products import build_mesh_products
+
     web_glb = out / "geometry.glb"
-    glb_ok = bool(o3d.io.write_triangle_mesh(str(web_glb), mesh))
+    glb_info = write_open3d_mesh_glb(web_glb, mesh)
+    glb_ok = bool(glb_info.get("ok"))
+    if not glb_ok:
+        raise RuntimeError(f"geometry.glb is not a binary GLB: {glb_info}")
+    products = build_mesh_products(mesh, out)
     labels, counts, _ = mesh.cluster_connected_triangles()
     counts_arr = np.asarray(counts)
     largest_frac = float(counts_arr.max() / counts_arr.sum()) if counts_arr.size else 0.0
@@ -123,6 +130,8 @@ def integrate_tsdf(
         "rawMasterPly": str(raw_ply),
         "engineeringPly": str(engineering),
         "geometryGlb": str(web_glb) if glb_ok else None,
+        "geometryGlbInspect": inspect_glb(web_glb) if glb_ok else None,
+        "meshProducts": products,
         "selectionReason": (
             "Operator/default 15 mm from Route C. Not auto-picked by fewest components "
             "(that wrongly preferred 20 mm on KitchenAprilTags)."

@@ -75,21 +75,32 @@ export function NavigationRig({
   const raycaster = useMemo(() => new THREE.Raycaster(), []);
 
   const pick = useCallback(
-    (screenX: number, screenY: number) => {
+    (screenX: number, screenY: number, kind: "walk" | "metric") => {
       const ndc = new THREE.Vector2(
         (screenX / size.width) * 2 - 1,
         -(screenY / size.height) * 2 + 1,
       );
       raycaster.setFromCamera(ndc, camera);
       const hits = raycaster.intersectObjects(scene.children, true);
-      return hits.find((h) => Boolean(h.object.userData?.twinWalkSurface)) ?? null;
+      if (kind === "metric") {
+        return (
+          hits.find((h) => Boolean(h.object.userData?.twinMeasureMesh)) ??
+          hits.find((h) => Boolean(h.object.userData?.twinWalkSurface)) ??
+          null
+        );
+      }
+      return (
+        hits.find((h) => Boolean(h.object.userData?.twinNavMesh)) ??
+        hits.find((h) => Boolean(h.object.userData?.twinWalkSurface)) ??
+        null
+      );
     },
     [camera, raycaster, scene, size.height, size.width],
   );
 
   const raycastFloor = useCallback(
     (screenX: number, screenY: number): [number, number, number] | null => {
-      const hit = pick(screenX, screenY);
+      const hit = pick(screenX, screenY, "walk");
       if (!hit) return null;
       return [hit.point.x, hit.point.y, hit.point.z];
     },
@@ -98,7 +109,7 @@ export function NavigationRig({
 
   const raycastMetric = useCallback(
     (screenX: number, screenY: number): MetricHit | null => {
-      const hit = pick(screenX, screenY);
+      const hit = pick(screenX, screenY, "metric");
       if (!hit) return null;
       const n = hit.face?.normal
         ? hit.face.normal.clone().transformDirection(hit.object.matrixWorld).normalize()

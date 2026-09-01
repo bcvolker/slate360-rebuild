@@ -45,8 +45,10 @@ const s3 = new S3Client({
 });
 
 const files = [
-  { local: "tmp/kitchen-proof/geometry-web.glb", key: `${PREFIX}/geometry-web.glb`, type: "model/gltf-binary" },
-  { local: "tmp/kitchen-proof/appearance-x4-v1.spz", key: `${PREFIX}/appearance-x4-v1.spz`, type: "application/octet-stream" },
+  { local: "tmp/kitchen-proof/products/geometry.glb", key: `${PREFIX}/geometry.glb`, type: "model/gltf-binary" },
+  { local: "tmp/kitchen-proof/products/geometry-measurement.glb", key: `${PREFIX}/geometry-measurement.glb`, type: "model/gltf-binary" },
+  { local: "tmp/kitchen-proof/products/geometry-display.glb", key: `${PREFIX}/geometry-display.glb`, type: "model/gltf-binary" },
+  { local: "tmp/kitchen-proof/products/geometry-nav.glb", key: `${PREFIX}/geometry-nav.glb`, type: "model/gltf-binary" },
 ];
 
 for (const file of files) {

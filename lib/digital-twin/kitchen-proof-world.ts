@@ -23,6 +23,9 @@ export function exactFrameSim3(): Sim3 {
 
 export const KITCHEN_PROOF_JOB = "79a4f0ac-32e9-4358-bda0-e1a7461510e1";
 
+/** Route B V1 trained Gaussian was never serialized. Do not load fake ellipsoids. */
+export const KITCHEN_APPEARANCE_AVAILABLE = false;
+
 /** Floor plane from the metric job QA (Y-up, metres). */
 export const KITCHEN_FLOOR_Y = -1.5951639883678779;
 export const KITCHEN_CEILING_CUT_Y = 1.1;

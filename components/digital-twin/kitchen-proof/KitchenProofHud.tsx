@@ -5,25 +5,25 @@ import type { ReactElement } from "react";
 export function KitchenProofHud({
   layer,
   onLayer,
-  meshOpacity,
-  onMeshOpacity,
+  appearanceAvailable,
   viewMode,
   onViewMode,
   measureActive,
   onToggleMeasure,
+  onReset,
 }: {
   layer: "reality" | "hybrid" | "geometry";
   onLayer: (layer: "reality" | "hybrid" | "geometry") => void;
-  meshOpacity: number;
-  onMeshOpacity: (value: number) => void;
+  appearanceAvailable: boolean;
   viewMode: "inside" | "dollhouse" | "floorplan";
   onViewMode: (mode: "inside" | "dollhouse" | "floorplan") => void;
   measureActive: boolean;
   onToggleMeasure: () => void;
+  onReset: () => void;
 }): ReactElement {
   const layers = [
     { id: "reality" as const, label: "Reality" },
-    { id: "hybrid" as const, label: "Hybrid" },
+    { id: "hybrid" as const, label: "Hybrid", locked: !appearanceAvailable },
     { id: "geometry" as const, label: "Geometry" },
   ];
   const views = [
@@ -49,34 +49,18 @@ export function KitchenProofHud({
             type="button"
             aria-label={item.label}
             aria-pressed={layer === item.id}
+            disabled={Boolean(item.locked)}
             onClick={() => onLayer(item.id)}
             className={`${btn} ${
               layer === item.id
                 ? "bg-white/[0.06] text-[var(--twin360-blue)]"
                 : "text-white/60 hover:text-white/90"
-            }`}
+            } disabled:text-white/25`}
           >
             {item.label}
           </button>
         ))}
       </div>
-      {layer === "hybrid" ? (
-        <label
-          className="pointer-events-auto flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-2 text-[10px] uppercase tracking-wide text-white/70 backdrop-blur-xl"
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          Geometry
-          <input
-            type="range"
-            min={0.08}
-            max={0.85}
-            step={0.02}
-            value={meshOpacity}
-            aria-label="Geometry overlay opacity"
-            onChange={(e) => onMeshOpacity(Number(e.target.value))}
-          />
-        </label>
-      ) : null}
       <div
         className="pointer-events-auto flex items-stretch overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur-xl"
         onPointerDown={(e) => e.stopPropagation()}
@@ -108,6 +92,14 @@ export function KitchenProofHud({
           }`}
         >
           Measure
+        </button>
+        <button
+          type="button"
+          aria-label="Reset view"
+          onClick={onReset}
+          className={`${btn} border-l border-white/10 text-white/60 hover:text-white/90`}
+        >
+          Reset
         </button>
       </div>
     </div>

@@ -56,6 +56,8 @@ worker_image = (
         "regression",
         "pipeline",
         "worker_net",
+        "glb_binary",
+        "mesh_products",
     )
 )
 web_image = modal.Image.debian_slim(python_version="3.11").pip_install("fastapi[standard]")
@@ -135,6 +137,9 @@ def run_cloud_job(payload: dict[str, Any], root: Path) -> dict[str, Any]:
     mapping = [
         ("processing_master.ply", "processingMasterPly", "application/octet-stream"),
         ("reconstruction_master", "reconstructionMasterPly", "application/octet-stream"),
+        ("geometry-measurement.glb", "geometryMeasurementGlb", "model/gltf-binary"),
+        ("geometry-display.glb", "geometryDisplayGlb", "model/gltf-binary"),
+        ("geometry-nav.glb", "geometryNavGlb", "model/gltf-binary"),
         ("appearance.ply", "appearancePly", "application/octet-stream"),
         ("appearance.spz", "appearanceSpz", "application/octet-stream"),
         ("floor_slice.png", "floorSlicePng", "image/png"),

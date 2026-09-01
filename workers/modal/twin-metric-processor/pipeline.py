@@ -145,6 +145,9 @@ def run_metric_processor(
         "gaussian": _jsonable(gaussian),
         "products": {
             "geometry.glb": tsdf.get("geometryGlb"),
+            "geometry-measurement.glb": (tsdf.get("meshProducts") or {}).get("paths", {}).get("geometry-measurement.glb"),
+            "geometry-display.glb": (tsdf.get("meshProducts") or {}).get("paths", {}).get("geometry-display.glb"),
+            "geometry-nav.glb": (tsdf.get("meshProducts") or {}).get("paths", {}).get("geometry-nav.glb"),
             "engineering_mesh": tsdf.get("engineeringPly"),
             "reconstruction_master": tsdf.get("rawMasterPly"),
             "processing_master.ply": cloud["outPly"],
