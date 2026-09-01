@@ -17,6 +17,9 @@ export type ProofApi = {
   pose: () => { x: number; y: number; z: number; yaw: number; pitch: number };
   poseJump: (other: { x: number; y: number; z: number; yaw: number; pitch: number }) => number;
   walkToStation: (id: string) => void;
+  openViewMenu: () => void;
+  closeMenus: () => void;
+  setChromeIdle: (value: boolean) => void;
   timings: () => {
     displayMs: number | null;
     navMs: number | null;

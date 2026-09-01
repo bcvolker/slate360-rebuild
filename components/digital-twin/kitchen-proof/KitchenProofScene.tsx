@@ -22,6 +22,7 @@ export function KitchenProofScene({
   navGeometry,
   measureGeometry,
   appearanceUrl,
+  appearanceKey = 0,
   layer,
   splatReady,
   onAppearanceReady,
@@ -38,6 +39,7 @@ export function KitchenProofScene({
   navGeometry: THREE.BufferGeometry | null;
   measureGeometry: THREE.BufferGeometry | null;
   appearanceUrl: string | null;
+  appearanceKey?: number;
   layer: TwinLayerRepresentation;
   splatReady: boolean;
   onAppearanceReady: () => void;
@@ -54,7 +56,7 @@ export function KitchenProofScene({
   const showSplat =
     Boolean(appearanceUrl) && (layer === "reality" || layer === "hybrid");
   const showGeometry =
-    overview || layer === "geometry" || layer === "hybrid" || (layer === "reality" && !splatReady);
+    overview || layer === "geometry" || layer === "hybrid" || !splatReady;
 
   return (
     <Canvas
@@ -88,7 +90,12 @@ export function KitchenProofScene({
         <KitchenMeshLayer geometry={measureGeometry} role="measure" collisionOnly />
       ) : null}
       {appearanceUrl ? (
-        <KitchenAppearanceLayer url={appearanceUrl} visible={showSplat} onReady={onAppearanceReady} />
+        <KitchenAppearanceLayer
+          key={appearanceKey}
+          url={appearanceUrl}
+          visible={showSplat}
+          onReady={onAppearanceReady}
+        />
       ) : null}
       <HybridSceneOverlays
         measurements={measure.rows}

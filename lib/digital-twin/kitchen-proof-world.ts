@@ -30,12 +30,14 @@ export const KITCHEN_SPLAT_MAX = 800_000;
 export const KITCHEN_SPLAT_IDENTITY_MATRIX = [
   1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
 ] as const;
-export const KITCHEN_DEFAULT_STATION = "island";
+export const KITCHEN_DEFAULT_STATION = "hero";
+export const KITCHEN_APPEARANCE_TIMEOUT_MS = 15_000;
+export const KITCHEN_IDLE_MS = 2500;
 
 /** Floor plane from the metric job QA (Y-up, metres). */
 export const KITCHEN_FLOOR_Y = -1.5951639883678779;
 export const KITCHEN_CEILING_CUT_Y = 1.1;
-export const KITCHEN_HUMAN_FOV = 72;
+export const KITCHEN_HUMAN_FOV = 70;
 export const KITCHEN_EYE_HEIGHT_M = 1.6;
 
 export const KITCHEN_FLOORS: FloorInfo[] = [
@@ -44,9 +46,10 @@ export const KITCHEN_FLOORS: FloorInfo[] = [
 
 /**
  * Human-eye stations in S360_WORLD. Y is floor; the nav hook adds eye height.
- * Island is the default start (near island/arch, looking into the kitchen).
+ * Hero is the first frame: fridge + cabinetry + counter + doorway, off the walls.
  */
 export const KITCHEN_STATIONS: WalkStation[] = [
+  { id: "hero", position: [1.96, KITCHEN_FLOOR_Y, -2.18], floorIndex: 0, headingY: 0.26 },
   { id: "human", position: [2.05, KITCHEN_FLOOR_Y, -1.82], floorIndex: 0, headingY: 0.28 },
   { id: "fridge", position: [0.72, KITCHEN_FLOOR_Y, -1.7], floorIndex: 0, headingY: -0.85 },
   { id: "island", position: [2.22, KITCHEN_FLOOR_Y, -2.45], floorIndex: 0, headingY: 0.15 },

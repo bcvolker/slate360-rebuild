@@ -38,15 +38,15 @@ describe("kitchen proof world", () => {
     expect(KITCHEN_SPLAT_IDENTITY_MATRIX[15]).toBe(1);
   });
 
-  it("starts at a human-eye island station", () => {
-    expect(KITCHEN_DEFAULT_STATION).toBe("island");
+  it("starts at a human-eye hero station", () => {
+    expect(KITCHEN_DEFAULT_STATION).toBe("hero");
     const home = kitchenDefaultStation();
-    expect(home.id).toBe("island");
+    expect(home.id).toBe("hero");
     expect(home.position[1]).toBe(KITCHEN_FLOOR_Y);
   });
 
-  it("names the three walk targets plus the human opening view", () => {
-    expect(KITCHEN_STATIONS.map((s) => s.id)).toEqual(["human", "fridge", "island", "opening"]);
+  it("names the hero start plus the walk targets", () => {
+    expect(KITCHEN_STATIONS.map((s) => s.id)).toEqual(["hero", "human", "fridge", "island", "opening"]);
   });
 
   it("applies locked EXACT_FRAME_SIM3 without Spark Rx(π)", () => {

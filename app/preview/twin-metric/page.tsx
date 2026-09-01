@@ -32,7 +32,7 @@ export default async function TwinMetricPreviewPage({
       <img
         src={asset("thumbnail.png")}
         alt=""
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-50"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-70"
       />
       <div className="relative h-full w-full">
         <KitchenProofClient

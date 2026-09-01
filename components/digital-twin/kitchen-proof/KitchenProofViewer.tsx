@@ -1,27 +1,28 @@
 "use client";
 
 /**
- * Kitchen visual + nav: metric geometry, Brush appearance, capsule walk.
+ * Kitchen spatial viewer shell: Geometry first, silent Reality, quiet chrome.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactElement } from "react";
 
 import { KitchenAppearanceStatus } from "@/components/digital-twin/kitchen-proof/KitchenAppearanceStatus";
 import { KitchenProofDebug } from "@/components/digital-twin/kitchen-proof/KitchenProofDebug";
-import { KitchenProofHud } from "@/components/digital-twin/kitchen-proof/KitchenProofHud";
 import { KitchenProofLoader } from "@/components/digital-twin/kitchen-proof/KitchenProofLoader";
 import { KitchenProofScene } from "@/components/digital-twin/kitchen-proof/KitchenProofScene";
+import { KitchenViewerChrome, type KitchenChromeApi } from "@/components/digital-twin/kitchen-proof/KitchenViewerChrome";
+import "@/components/digital-twin/kitchen-proof/kitchen-viewer-chrome.css";
 import { type ProofApi } from "@/components/digital-twin/kitchen-proof/kitchen-proof-api";
 import { type MetricHit } from "@/components/digital-twin/walkthrough-rig";
 import { HybridMeasureHud } from "@/components/digital-twin/hybrid/HybridMeasureHud";
 import { useViewerGestures } from "@/components/digital-twin/use-viewer-gestures";
 import { useHybridMeasureTool } from "@/hooks/useHybridMeasureTool";
+import { useKitchenAppearanceGate } from "@/hooks/useKitchenAppearanceGate";
 import { useKitchenGlb } from "@/hooks/useKitchenGlb";
 import { useKitchenLocomotion } from "@/hooks/useKitchenLocomotion";
 import { useWalkthroughNavigation } from "@/hooks/useWalkthroughNavigation";
 import { poseDelta } from "@/lib/digital-twin/kitchen-capsule";
 import {
-  KITCHEN_APPEARANCE_AVAILABLE,
   KITCHEN_CEILING_CUT_Y,
   KITCHEN_DEFAULT_STATION,
   KITCHEN_FLOORS,
@@ -30,7 +31,6 @@ import {
   kitchenDefaultStation,
   kitchenEyeY,
 } from "@/lib/digital-twin/kitchen-proof-world";
-import type { TwinLayerRepresentation } from "@/lib/digital-twin/twin-epoch";
 
 function heapMb(): number | null {
   const mem = (performance as Performance & { memory?: { usedJSHeapSize: number } }).memory;
@@ -56,10 +56,13 @@ export function KitchenProofViewer({
   const navMesh = useKitchenGlb(navUrl);
   const [wantMeasure, setWantMeasure] = useState(false);
   const measureGlb = useKitchenGlb(wantMeasure ? measureUrl : null);
-  const [layer, setLayer] = useState<TwinLayerRepresentation>("reality");
   const [splatReady, setSplatReady] = useState(false);
+  const [walkEnabled, setWalkEnabled] = useState(true);
+  const [hoverWalk, setHoverWalk] = useState(false);
+  const appearance = useKitchenAppearanceGate(splatReady, appearanceUrl);
   const fpsRef = useRef(0);
   const infoRef = useRef<number | null>(null);
+  const chromeRef = useRef<KitchenChromeApi | null>(null);
   const firstUsefulMs = useRef(performance.now());
   const geometryReadyMs = useRef<number | null>(null);
   const appearanceReadyMs = useRef<number | null>(null);
@@ -117,12 +120,12 @@ export function KitchenProofViewer({
         if (hit) measure.addPoint(hit.point);
         return true;
       }
-      if (nav.mode !== "inside") return false;
+      if (nav.mode !== "inside" || !walkEnabled) return false;
       const hit = raycastRef.current?.(x, y);
       if (hit) loco.walkTo(hit[0], hit[2]);
       return true;
     },
-    [loco, measure, nav.mode],
+    [loco, measure, nav.mode, walkEnabled],
   );
 
   const patchedNav = useMemo(
@@ -137,7 +140,13 @@ export function KitchenProofViewer({
   );
 
   const { fovRef, handlePointerDown, handlePointerMove, handlePointerUp, handlePointerCancel, handleWheel } =
-    useViewerGestures(patchedNav, { consumeTap, onHover: (x, y) => measure.setHover(metricRef.current?.(x, y)?.point ?? null) });
+    useViewerGestures(patchedNav, {
+      consumeTap,
+      onHover: (x, y) => {
+        measure.setHover(metricRef.current?.(x, y)?.point ?? null);
+        setHoverWalk(Boolean(walkEnabled && !measure.active && raycastRef.current?.(x, y)));
+      },
+    });
 
   useEffect(() => {
     fovRef.current = KITCHEN_HUMAN_FOV;
@@ -153,14 +162,6 @@ export function KitchenProofViewer({
     }
   }, [display.status]);
 
-  const setLayerSafe = useCallback((next: TwinLayerRepresentation) => {
-    if ((next === "hybrid" || next === "reality") && !KITCHEN_APPEARANCE_AVAILABLE) {
-      setLayer("geometry");
-      return;
-    }
-    setLayer(next);
-  }, []);
-
   const onAppearanceReady = useCallback(() => {
     if (appearanceReadyMs.current == null) appearanceReadyMs.current = performance.now();
     setSplatReady(true);
@@ -168,7 +169,7 @@ export function KitchenProofViewer({
 
   useEffect(() => {
     const api: ProofApi = {
-      setLayer: setLayerSafe,
+      setLayer: appearance.requestLayer,
       setView: nav.setMode,
       goStation,
       walkToStation: (id) => {
@@ -180,11 +181,14 @@ export function KitchenProofViewer({
         loco.reset();
         goStation(KITCHEN_DEFAULT_STATION);
       },
-      layer: () => layer,
+      layer: () => appearance.layer,
       fps: () => fpsRef.current,
       appearanceReady: () => splatReady,
       pose: () => ({ ...loco.poseRef.current }),
       poseJump: (other) => poseDelta(loco.poseRef.current, other),
+      openViewMenu: () => chromeRef.current?.setViewOpen(true),
+      closeMenus: () => chromeRef.current?.closeMenus(),
+      setChromeIdle: (value) => chromeRef.current?.setIdle(value),
       timings: () => ({
         displayMs: display.loadMs,
         navMs: navMesh.loadMs,
@@ -200,24 +204,17 @@ export function KitchenProofViewer({
     return () => {
       delete (window as unknown as { __kitchenProof?: ProofApi }).__kitchenProof;
     };
-  }, [display.loadMs, goStation, layer, loco, measure.toggle, nav.setMode, navMesh.loadMs, setLayerSafe, splatReady]);
+  }, [appearance.layer, appearance.requestLayer, display.loadMs, goStation, loco, measure.toggle, nav.setMode, navMesh.loadMs, splatReady]);
 
   const ready = display.status === "ready" && Boolean(display.geometry);
-  const appearanceLoading = Boolean(appearanceUrl) && !splatReady;
+  const cursor = measure.active ? "crosshair" : hoverWalk ? "pointer" : "grab";
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-[var(--background)]" data-app="twin360">
-      {!ready ? (
-        <KitchenProofLoader
-          thumbnailUrl={thumbnailUrl}
-          geometryLabel={display.error ?? "geometry-display"}
-          geometryProgress={display.progress}
-          navLabel={navMesh.error ?? (navMesh.status === "ready" ? "ready" : "geometry-nav")}
-          error={display.error}
-        />
-      ) : null}
+    <div className="kv-shell relative h-full w-full overflow-hidden" data-app="twin360">
+      <KitchenProofLoader thumbnailUrl={thumbnailUrl} geometryReady={ready} error={display.error} />
       <div
         className="h-full w-full touch-none"
+        style={{ cursor }}
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -229,7 +226,8 @@ export function KitchenProofViewer({
           navGeometry={navMesh.geometry}
           measureGeometry={measureGlb.geometry}
           appearanceUrl={appearanceUrl}
-          layer={layer}
+          appearanceKey={appearance.retryKey}
+          layer={appearance.layer}
           splatReady={splatReady}
           onAppearanceReady={onAppearanceReady}
           nav={nav}
@@ -242,17 +240,28 @@ export function KitchenProofViewer({
           measure={measure}
         />
       </div>
-      <KitchenAppearanceStatus loading={ready && appearanceLoading} />
+      <KitchenAppearanceStatus
+        preparing={appearance.preparing}
+        timedOut={appearance.timedOut}
+        onRetry={() => {
+          setSplatReady(false);
+          appearance.retryAppearance();
+        }}
+      />
       <HybridMeasureHud tool={measure} metricAvailable />
-      <KitchenProofHud
-        layer={layer}
-        onLayer={setLayerSafe}
-        appearanceAvailable={KITCHEN_APPEARANCE_AVAILABLE}
+      <KitchenViewerChrome
+        layer={appearance.layer}
         viewMode={nav.mode}
-        onViewMode={nav.setMode}
         measureActive={measure.active}
+        onLayer={appearance.requestLayer}
+        onViewMode={nav.setMode}
         onToggleMeasure={measure.toggle}
         onReset={() => goStation(KITCHEN_DEFAULT_STATION)}
+        walkEnabled={walkEnabled}
+        onToggleMove={() => setWalkEnabled((v) => !v)}
+        onApi={(api) => {
+          chromeRef.current = api;
+        }}
       />
       {debug ? (
         <KitchenProofDebug

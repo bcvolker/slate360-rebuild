@@ -8,11 +8,7 @@ const KitchenProofViewer = nextDynamic(
     import("@/components/digital-twin/kitchen-proof/KitchenProofViewer").then((m) => m.KitchenProofViewer),
   {
     ssr: false,
-    loading: () => (
-      <div className="flex h-full w-full items-center justify-center">
-        <p className="font-mono text-[11px] uppercase tracking-wide text-white/40">Loading geometry</p>
-      </div>
-    ),
+    loading: () => <div className="h-full w-full bg-[var(--graphite-canvas)]" />,
   },
 );
 
