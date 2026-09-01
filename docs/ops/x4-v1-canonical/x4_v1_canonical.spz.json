@@ -1,0 +1,11 @@
+{
+  "raw": "/mnt/c/Users/Brian PC/Desktop/Slate360Research/Projects/KitchenAprilTags/Runs/2026-08-31T22-x4-v1-canonical/x4_v1_canonical_arkit.ply",
+  "spz": "/mnt/c/Users/Brian PC/Desktop/Slate360Research/Projects/KitchenAprilTags/Runs/2026-08-31T22-x4-v1-canonical/x4_v1_canonical.spz",
+  "n_in": 53944,
+  "n_out": 53944,
+  "aggressive_strip": false,
+  "filter": "--filter-nan only",
+  "ok": true,
+  "spz_bytes": 779864,
+  "retained_frac": 1.0
+}

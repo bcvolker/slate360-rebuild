@@ -1,0 +1,122 @@
+{
+  "experiment": "x4_v1_canonical",
+  "commercial_quality": false,
+  "note": "Reproduces V1 settings with a true holdout and persisted Gaussian attributes. Not a quality promotion.",
+  "gaussian_count": 53944,
+  "steps": 25000,
+  "runtime_sec": 105.22933292388916,
+  "peak_vram_mib": 67,
+  "train": {
+    "n": 580,
+    "psnr_mean": 26.937345114145707,
+    "psnr_min": 16.619506100788023,
+    "ssim_mean": 0.8526661776263138,
+    "per_direction": {
+      "front": {
+        "n": 145,
+        "psnr": 29.346551096131716,
+        "ssim": 0.8824057435167247
+      },
+      "right": {
+        "n": 145,
+        "psnr": 27.489641518792418,
+        "ssim": 0.8696180010664052
+      },
+      "back": {
+        "n": 145,
+        "psnr": 24.551034742170007,
+        "ssim": 0.8040011011320969
+      },
+      "left": {
+        "n": 145,
+        "psnr": 26.362153099488687,
+        "ssim": 0.8546398647900285
+      }
+    }
+  },
+  "holdout": {
+    "n": 84,
+    "psnr_mean": 26.168260728572104,
+    "psnr_min": 17.364438288544623,
+    "ssim_mean": 0.8384964302891776,
+    "per_direction": {
+      "front": {
+        "n": 21,
+        "psnr": 28.54504137894161,
+        "ssim": 0.8726429797354198
+      },
+      "right": {
+        "n": 21,
+        "psnr": 26.708641572041536,
+        "ssim": 0.860750831308819
+      },
+      "back": {
+        "n": 21,
+        "psnr": 23.63485994403057,
+        "ssim": 0.7840779508863177
+      },
+      "left": {
+        "n": 21,
+        "psnr": 25.784500019274684,
+        "ssim": 0.8365139592261541
+      }
+    }
+  },
+  "named_views": [
+    {
+      "label": "fridge",
+      "t": 55.0,
+      "face": "front",
+      "role": "train",
+      "name": "front/0055000.jpg"
+    },
+    {
+      "label": "island",
+      "t": 40.0,
+      "face": "front",
+      "role": "holdout",
+      "name": "front/0040000.jpg"
+    },
+    {
+      "label": "archway",
+      "t": 90.0,
+      "face": "front",
+      "role": "train",
+      "name": "front/0090000.jpg"
+    },
+    {
+      "label": "dark_cabinetry",
+      "t": 70.0,
+      "face": "left",
+      "role": "train",
+      "name": "left/0070000.jpg"
+    },
+    {
+      "label": "living_opening",
+      "t": 120.0,
+      "face": "front",
+      "role": "holdout",
+      "name": "front/0120000.jpg"
+    }
+  ],
+  "ply_header": "ply\nformat binary_little_endian 1.0\nelement vertex 53944\nproperty float x\nproperty float y\nproperty float z\nproperty float f_dc_0\nproperty float f_dc_1\nproperty float f_dc_2\nproperty float opacity\nproperty float scale_0\nproperty float scale_1\nproperty float scale_2\nproperty float rot_0\nproperty float rot_1\nproperty float rot_2\nproperty float rot_3\nend_header",
+  "ply_properties": [
+    "x",
+    "y",
+    "z",
+    "f_dc_0",
+    "f_dc_1",
+    "f_dc_2",
+    "opacity",
+    "scale_0",
+    "scale_1",
+    "scale_2",
+    "rot_0",
+    "rot_1",
+    "rot_2",
+    "rot_3"
+  ],
+  "original_v1_train20_psnr": 27.94,
+  "original_v1_holdout": null,
+  "v2_used": false
+}

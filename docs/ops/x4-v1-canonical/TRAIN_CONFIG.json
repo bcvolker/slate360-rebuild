@@ -1,0 +1,31 @@
+{
+  "experiment": "x4_v1_canonical",
+  "engine": "gsplat",
+  "version": "1.5.3",
+  "faces": [
+    "front",
+    "right",
+    "back",
+    "left"
+  ],
+  "face_px": 800,
+  "steps": 25000,
+  "densify": false,
+  "pose_opt": false,
+  "zenith_nadir": false,
+  "sh_degree": 0,
+  "loss": "l1",
+  "init_points": 53944,
+  "n_train": 580,
+  "n_holdout": 84,
+  "holdout": "every 8th panorama station, all equatorial faces",
+  "v2_used": false,
+  "seed": 0,
+  "lrs": {
+    "means": 0.00016,
+    "scales": 0.005,
+    "quats": 0.001,
+    "opac": 0.05,
+    "rgbs": 0.0025
+  }
+}

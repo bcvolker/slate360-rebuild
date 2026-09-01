@@ -1,0 +1,26 @@
+{
+  "optimizer": "Adam",
+  "param_groups": {
+    "means": 0.00016,
+    "scales": 0.005,
+    "quats": 0.001,
+    "opac": 0.05,
+    "rgbs": 0.0025
+  },
+  "steps": 25000,
+  "seed": 0,
+  "final_loss": 0.029728630557656288,
+  "runtime_sec": 105.22933292388916,
+  "peak_vram_mib": 67,
+  "gaussian_count": 53944,
+  "checkpoint": "/mnt/c/Users/Brian PC/Desktop/Slate360Research/Projects/KitchenAprilTags/Runs/2026-08-31T22-x4-v1-canonical/checkpoint.pt",
+  "raw_ply": "/mnt/c/Users/Brian PC/Desktop/Slate360Research/Projects/KitchenAprilTags/Runs/2026-08-31T22-x4-v1-canonical/x4_v1_canonical_raw.ply",
+  "persisted": [
+    "means",
+    "log_scales",
+    "quats_wxyz",
+    "logit_opacity",
+    "rgb",
+    "optimizer"
+  ]
+}
