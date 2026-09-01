@@ -51,21 +51,28 @@ export function MeshSplatLayer({
   visible,
   worldMatrix = null,
   sparkPiFlip = true,
+  maxSplats: maxSplatsProp,
+  onReady,
 }: {
   url: string;
   visible: boolean;
   /** Column-major 4×4 into S360_WORLD. Skips Spark Rx(π)/PCA when set. */
   worldMatrix?: readonly number[] | null;
   sparkPiFlip?: boolean;
+  maxSplats?: number;
+  onReady?: () => void;
 }): ReactElement {
   const gl = useThree((state) => state.gl);
   const groupRef = useRef<THREE.Group>(null);
   const meshRef = useRef<SplatMesh | null>(null);
   const visibleRef = useRef(visible);
   visibleRef.current = visible;
+  const readyRef = useRef(onReady);
+  readyRef.current = onReady;
   const manifestRef = useRef<SplatManifest | null>(null);
   const manifestPromiseRef = useRef<Promise<SplatManifest | null> | null>(null);
-  const maxSplats = useMobileSplatBudget();
+  const budget = useMobileSplatBudget();
+  const maxSplats = maxSplatsProp ?? budget;
   const sparkArgs = useMemo(() => ({ renderer: gl, enableLod: false }), [gl]);
   const pose = useMemo(() => {
     if (!worldMatrix) return null;
@@ -120,6 +127,7 @@ export function MeshSplatLayer({
         const group = groupRef.current;
         if (group && !worldMatrix) orientGroup(group, mesh, manifest);
         meshRef.current = mesh;
+        readyRef.current?.();
       },
     }),
     [url, maxSplats, worldMatrix],

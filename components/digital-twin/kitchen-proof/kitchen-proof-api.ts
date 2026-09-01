@@ -13,9 +13,19 @@ export type ProofApi = {
   resetView: () => void;
   layer: () => TwinLayerRepresentation;
   fps: () => number;
+  appearanceReady: () => boolean;
   pose: () => { x: number; y: number; z: number; yaw: number; pitch: number };
   poseJump: (other: { x: number; y: number; z: number; yaw: number; pitch: number }) => number;
-  timings: () => { displayMs: number | null; navMs: number | null };
+  walkToStation: (id: string) => void;
+  timings: () => {
+    displayMs: number | null;
+    navMs: number | null;
+    appearanceMs: number | null;
+    firstUsefulMs: number | null;
+    geometryReadyMs: number | null;
+    appearanceReadyMs: number | null;
+    memoryMb: number | null;
+  };
 };
 
 export function FpsProbe({ fpsRef }: { fpsRef: React.MutableRefObject<number> }): null {

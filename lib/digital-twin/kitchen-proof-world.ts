@@ -1,7 +1,7 @@
 /**
  * Kitchen visual-proof world: metric TSDF is S360_WORLD.
- * Route B V1 Gaussian is X4/COLMAP; EXACT_FRAME_SIM3 maps it in at view time.
- * Spark Rx(π) is NOT applied — SIM3 already lands on ARKit Y-up.
+ * Brush B (equatorial+zenith) is baked into ARKit via locked EXACT_FRAME_SIM3.
+ * Spark Rx(π) is NOT applied — the SPZ already lives on ARKit Y-up.
  */
 import { sim3FromRowMajor4, type Sim3 } from "./s360-world";
 import type { FloorInfo, WalkStation } from "./walkthrough-navigation";
@@ -23,8 +23,14 @@ export function exactFrameSim3(): Sim3 {
 
 export const KITCHEN_PROOF_JOB = "79a4f0ac-32e9-4358-bda0-e1a7461510e1";
 
-/** Route B V1 trained Gaussian was never serialized. Do not load fake ellipsoids. */
-export const KITCHEN_APPEARANCE_AVAILABLE = false;
+/** Brush B baked to ARKit. Identity world matrix — SIM3 is already in the SPZ. */
+export const KITCHEN_APPEARANCE_AVAILABLE = true;
+export const KITCHEN_APPEARANCE_KIND = "brush_x4_arkit.spz";
+export const KITCHEN_SPLAT_MAX = 800_000;
+export const KITCHEN_SPLAT_IDENTITY_MATRIX = [
+  1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
+] as const;
+export const KITCHEN_DEFAULT_STATION = "island";
 
 /** Floor plane from the metric job QA (Y-up, metres). */
 export const KITCHEN_FLOOR_Y = -1.5951639883678779;
@@ -38,7 +44,7 @@ export const KITCHEN_FLOORS: FloorInfo[] = [
 
 /**
  * Human-eye stations in S360_WORLD. Y is floor; the nav hook adds eye height.
- * Island / opening look −Z into the kitchen with a little +X toward the living opening.
+ * Island is the default start (near island/arch, looking into the kitchen).
  */
 export const KITCHEN_STATIONS: WalkStation[] = [
   { id: "human", position: [2.05, KITCHEN_FLOOR_Y, -1.82], floorIndex: 0, headingY: 0.28 },
@@ -46,6 +52,10 @@ export const KITCHEN_STATIONS: WalkStation[] = [
   { id: "island", position: [2.22, KITCHEN_FLOOR_Y, -2.45], floorIndex: 0, headingY: 0.15 },
   { id: "opening", position: [3.72, KITCHEN_FLOOR_Y, -1.42], floorIndex: 0, headingY: -1.05 },
 ];
+
+export function kitchenDefaultStation(): WalkStation {
+  return KITCHEN_STATIONS.find((s) => s.id === KITCHEN_DEFAULT_STATION) ?? KITCHEN_STATIONS[0];
+}
 
 export function kitchenEyeY(): number {
   return KITCHEN_FLOOR_Y + KITCHEN_EYE_HEIGHT_M;

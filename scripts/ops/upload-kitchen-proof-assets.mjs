@@ -26,6 +26,7 @@ function loadDotEnvFile(filePath) {
 
 loadDotEnvFile(".env");
 loadDotEnvFile(".env.local");
+loadDotEnvFile("C:/s360/.env.local");
 
 const PREFIX =
   "orgs/c5538bfd-a67a-4930-8481-0e5e331ec7cc/digital-twin/e4eaf78b-b064-4cce-b640-8bc8efb820e1/models/79a4f0ac-32e9-4358-bda0-e1a7461510e1";
@@ -49,6 +50,7 @@ const files = [
   { local: "tmp/kitchen-proof/products/geometry-measurement.glb", key: `${PREFIX}/geometry-measurement.glb`, type: "model/gltf-binary" },
   { local: "tmp/kitchen-proof/products/geometry-display.glb", key: `${PREFIX}/geometry-display.glb`, type: "model/gltf-binary" },
   { local: "tmp/kitchen-proof/products/geometry-nav.glb", key: `${PREFIX}/geometry-nav.glb`, type: "model/gltf-binary" },
+  { local: "tmp/kitchen-proof/brush_x4_arkit.spz", key: `${PREFIX}/brush_x4_arkit.spz`, type: "application/octet-stream" },
 ];
 
 for (const file of files) {

@@ -4,10 +4,15 @@ import { applySim3, vec3 } from "./s360-world";
 import {
   EXACT_FRAME_SIM3_SCALE,
   exactFrameSim3,
+  kitchenDefaultStation,
   kitchenEyeY,
   KITCHEN_APPEARANCE_AVAILABLE,
+  KITCHEN_APPEARANCE_KIND,
+  KITCHEN_DEFAULT_STATION,
   KITCHEN_FLOOR_Y,
   KITCHEN_HUMAN_FOV,
+  KITCHEN_SPLAT_IDENTITY_MATRIX,
+  KITCHEN_SPLAT_MAX,
   KITCHEN_STATIONS,
 } from "./kitchen-proof-world";
 
@@ -24,8 +29,20 @@ describe("kitchen proof world", () => {
     expect(KITCHEN_HUMAN_FOV).toBeLessThanOrEqual(80);
   });
 
-  it("does not claim a trained V1 Gaussian is available", () => {
-    expect(KITCHEN_APPEARANCE_AVAILABLE).toBe(false);
+  it("loads Brush appearance baked into ARKit, not a view-time SIM3", () => {
+    expect(KITCHEN_APPEARANCE_AVAILABLE).toBe(true);
+    expect(KITCHEN_APPEARANCE_KIND).toBe("brush_x4_arkit.spz");
+    expect(KITCHEN_SPLAT_MAX).toBeGreaterThanOrEqual(672_348);
+    expect(KITCHEN_SPLAT_IDENTITY_MATRIX).toHaveLength(16);
+    expect(KITCHEN_SPLAT_IDENTITY_MATRIX[0]).toBe(1);
+    expect(KITCHEN_SPLAT_IDENTITY_MATRIX[15]).toBe(1);
+  });
+
+  it("starts at a human-eye island station", () => {
+    expect(KITCHEN_DEFAULT_STATION).toBe("island");
+    const home = kitchenDefaultStation();
+    expect(home.id).toBe("island");
+    expect(home.position[1]).toBe(KITCHEN_FLOOR_Y);
   });
 
   it("names the three walk targets plus the human opening view", () => {
