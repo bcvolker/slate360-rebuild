@@ -1,0 +1,304 @@
+{
+  "engine": "nerfstudio splatfacto 1.1.5",
+  "license": "Apache-2.0",
+  "sfm_rerun": false,
+  "camera_optimizer": "off",
+  "faces": [
+    "front",
+    "right",
+    "back",
+    "left"
+  ],
+  "nadir": false,
+  "holdout_unit": "entire panorama timestamps every 8th",
+  "rasterize_mode": "classic",
+  "antialiased_ply_as_winner": false,
+  "A": {
+    "gaussian_count": 976091,
+    "runtime_sec": 2405.3977625370026,
+    "peak_vram_mib": 7276,
+    "bilateral_grid": false,
+    "camera_optimizer": "off",
+    "holdout": {
+      "n": 84,
+      "psnr_mean": 25.09367487524317,
+      "psnr_min": 13.720440717160852,
+      "ssim_mean": 0.826848484930538,
+      "lpips_mean": 0.26134492368215606,
+      "psnr_masked_mean": 21.913543614206596,
+      "psnr_per_face": {
+        "front": 27.40122483673037,
+        "right": 26.56338008265243,
+        "back": 21.242809405881623,
+        "left": 25.16728517570827
+      },
+      "ssim_per_face": {
+        "front": 0.8590550451051622,
+        "right": 0.8601578843025934,
+        "back": 0.7612404908452716,
+        "left": 0.826940519469125
+      },
+      "per_direction": {
+        "front": {
+          "psnr": 27.40122483673037,
+          "ssim": 0.8590550451051622,
+          "n": 21
+        },
+        "right": {
+          "psnr": 26.56338008265243,
+          "ssim": 0.8601578843025934,
+          "n": 21
+        },
+        "back": {
+          "psnr": 21.242809405881623,
+          "ssim": 0.7612404908452716,
+          "n": 21
+        },
+        "left": {
+          "psnr": 25.16728517570827,
+          "ssim": 0.826940519469125,
+          "n": 21
+        }
+      }
+    },
+    "train_subsample": {
+      "n": 25,
+      "psnr_mean": 28.039636678117258,
+      "psnr_min": 23.77758248440284,
+      "ssim_mean": 0.8694685626029969,
+      "lpips_mean": null,
+      "psnr_masked_mean": null,
+      "psnr_per_face": {
+        "front": 28.039636678117258
+      },
+      "ssim_per_face": {
+        "front": 0.8694685626029969
+      },
+      "per_direction": {
+        "front": {
+          "psnr": 28.039636678117258,
+          "ssim": 0.8694685626029969,
+          "n": 25
+        }
+      }
+    },
+    "export": {
+      "experiment": "A",
+      "ply": "/mnt/c/Users/Brian PC/Desktop/Slate360Research/Projects/KitchenAprilTags/Runs/2026-08-31T22-x4-splatfacto-challenger/A/export/splatfacto_A.ply",
+      "gaussian_count": 976091,
+      "properties": [
+        "x",
+        "y",
+        "z",
+        "nx",
+        "ny",
+        "nz",
+        "f_dc_0",
+        "f_dc_1",
+        "f_dc_2",
+        "f_rest_0",
+        "f_rest_1",
+        "f_rest_2",
+        "f_rest_3",
+        "f_rest_4",
+        "f_rest_5",
+        "f_rest_6",
+        "f_rest_7",
+        "f_rest_8",
+        "f_rest_9",
+        "f_rest_10",
+        "f_rest_11",
+        "f_rest_12",
+        "f_rest_13",
+        "f_rest_14",
+        "f_rest_15",
+        "f_rest_16",
+        "f_rest_17",
+        "f_rest_18",
+        "f_rest_19",
+        "f_rest_20",
+        "f_rest_21",
+        "f_rest_22",
+        "f_rest_23",
+        "f_rest_24",
+        "f_rest_25",
+        "f_rest_26",
+        "f_rest_27",
+        "f_rest_28",
+        "f_rest_29",
+        "f_rest_30",
+        "f_rest_31",
+        "f_rest_32",
+        "f_rest_33",
+        "f_rest_34",
+        "f_rest_35",
+        "f_rest_36",
+        "f_rest_37",
+        "f_rest_38",
+        "f_rest_39",
+        "f_rest_40",
+        "f_rest_41",
+        "f_rest_42",
+        "f_rest_43",
+        "f_rest_44",
+        "opacity",
+        "scale_0",
+        "scale_1",
+        "scale_2",
+        "rot_0",
+        "rot_1",
+        "rot_2",
+        "rot_3"
+      ],
+      "sh_rest_count": 45,
+      "rasterize_mode": "classic",
+      "ply_color_mode": "sh_coeffs",
+      "antialiased": false,
+      "config": "/mnt/c/Users/Brian PC/Desktop/Slate360Research/Projects/KitchenAprilTags/Runs/2026-08-31T22-x4-splatfacto-challenger/A/A/splatfacto/2026-08-31_230602/config.yml"
+    }
+  },
+  "B": {
+    "gaussian_count": 790443,
+    "runtime_sec": 1852.6376543045044,
+    "peak_vram_mib": 5462,
+    "bilateral_grid": true,
+    "camera_optimizer": "off",
+    "holdout": {
+      "n": 84,
+      "psnr_mean": 24.82632757007826,
+      "psnr_min": 13.748479567697814,
+      "ssim_mean": 0.8125275877260026,
+      "lpips_mean": 0.2570957145875409,
+      "psnr_masked_mean": 21.54884591616718,
+      "psnr_per_face": {
+        "front": 27.12911530720696,
+        "right": 26.22896441116938,
+        "back": 21.114606414447014,
+        "left": 24.832624147489685
+      },
+      "ssim_per_face": {
+        "front": 0.847510386080969,
+        "right": 0.847933950878325,
+        "back": 0.7476664554505121,
+        "left": 0.8069995584942046
+      },
+      "per_direction": {
+        "front": {
+          "psnr": 27.12911530720696,
+          "ssim": 0.847510386080969,
+          "n": 21
+        },
+        "right": {
+          "psnr": 26.22896441116938,
+          "ssim": 0.847933950878325,
+          "n": 21
+        },
+        "back": {
+          "psnr": 21.114606414447014,
+          "ssim": 0.7476664554505121,
+          "n": 21
+        },
+        "left": {
+          "psnr": 24.832624147489685,
+          "ssim": 0.8069995584942046,
+          "n": 21
+        }
+      }
+    },
+    "train_subsample": {
+      "n": 25,
+      "psnr_mean": 27.862419051132907,
+      "psnr_min": 23.7574476505352,
+      "ssim_mean": 0.8585050821304321,
+      "lpips_mean": null,
+      "psnr_masked_mean": null,
+      "psnr_per_face": {
+        "front": 27.862419051132907
+      },
+      "ssim_per_face": {
+        "front": 0.8585050821304321
+      },
+      "per_direction": {
+        "front": {
+          "psnr": 27.862419051132907,
+          "ssim": 0.8585050821304321,
+          "n": 25
+        }
+      }
+    },
+    "export": {
+      "experiment": "B",
+      "ply": "/mnt/c/Users/Brian PC/Desktop/Slate360Research/Projects/KitchenAprilTags/Runs/2026-08-31T22-x4-splatfacto-challenger/B/export/splatfacto_B.ply",
+      "gaussian_count": 790443,
+      "properties": [
+        "x",
+        "y",
+        "z",
+        "nx",
+        "ny",
+        "nz",
+        "f_dc_0",
+        "f_dc_1",
+        "f_dc_2",
+        "f_rest_0",
+        "f_rest_1",
+        "f_rest_2",
+        "f_rest_3",
+        "f_rest_4",
+        "f_rest_5",
+        "f_rest_6",
+        "f_rest_7",
+        "f_rest_8",
+        "f_rest_9",
+        "f_rest_10",
+        "f_rest_11",
+        "f_rest_12",
+        "f_rest_13",
+        "f_rest_14",
+        "f_rest_15",
+        "f_rest_16",
+        "f_rest_17",
+        "f_rest_18",
+        "f_rest_19",
+        "f_rest_20",
+        "f_rest_21",
+        "f_rest_22",
+        "f_rest_23",
+        "f_rest_24",
+        "f_rest_25",
+        "f_rest_26",
+        "f_rest_27",
+        "f_rest_28",
+        "f_rest_29",
+        "f_rest_30",
+        "f_rest_31",
+        "f_rest_32",
+        "f_rest_33",
+        "f_rest_34",
+        "f_rest_35",
+        "f_rest_36",
+        "f_rest_37",
+        "f_rest_38",
+        "f_rest_39",
+        "f_rest_40",
+        "f_rest_41",
+        "f_rest_42",
+        "f_rest_43",
+        "f_rest_44",
+        "opacity",
+        "scale_0",
+        "scale_1",
+        "scale_2",
+        "rot_0",
+        "rot_1",
+        "rot_2",
+        "rot_3"
+      ],
+      "sh_rest_count": 45,
+      "rasterize_mode": "classic",
+      "ply_color_mode": "sh_coeffs",
+      "antialiased": false,
+      "config": "/mnt/c/Users/Brian PC/Desktop/Slate360Research/Projects/KitchenAprilTags/Runs/2026-08-31T22-x4-splatfacto-challenger/B/B/splatfacto/2026-08-31_234645/config.yml"
+    }
+  }
+}

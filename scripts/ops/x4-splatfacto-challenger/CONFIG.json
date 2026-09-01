@@ -1,0 +1,38 @@
+{
+  "engine": "nerfstudio splatfacto",
+  "nerfstudio_version": "1.1.5",
+  "license": "Apache-2.0",
+  "camera_optimizer": "off",
+  "sfm_rerun": false,
+  "arkit_used": false,
+  "faces": ["front", "right", "back", "left"],
+  "nadir": false,
+  "zenith": false,
+  "face_px": 1200,
+  "holdout_every": 8,
+  "holdout_unit": "entire panorama timestamps",
+  "operator_masks": true,
+  "rasterize_mode": "classic",
+  "ply_color_mode": "sh_coeffs",
+  "antialiased_ply_as_winner": false,
+  "experiments": {
+    "A": {
+      "name": "splatfacto_baseline",
+      "use_bilateral_grid": false
+    },
+    "B": {
+      "name": "splatfacto_bilateral_grid",
+      "use_bilateral_grid": true,
+      "reason": "X4 video may contain exposure / ISP variation between observations"
+    }
+  },
+  "named_views": [
+    {"id": "fridge", "t": 55.0, "face": "left"},
+    {"id": "dark_cabinetry", "t": 70.0, "face": "left"},
+    {"id": "island", "t": 55.0, "face": "front"},
+    {"id": "arch", "t": 90.0, "face": "front"},
+    {"id": "living_opening", "t": 120.0, "face": "front"}
+  ],
+  "max_num_iterations": 30000,
+  "seed_ply": true
+}
