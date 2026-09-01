@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
       headers: {
         "Content-Type": spec.type,
         ...(res.ContentLength != null ? { "Content-Length": String(res.ContentLength) } : {}),
-        "Cache-Control": "no-store",
+        "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
       },
     });
   } catch {

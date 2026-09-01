@@ -8,6 +8,7 @@ import type { KitchenLocomotion } from "@/hooks/useKitchenLocomotion";
 import {
   CAPSULE_RADIUS_M,
   KITCHEN_EYE_HEIGHT_WALK_M,
+  clampWalkHeight,
   projectSlide,
   STEP_HEIGHT_M,
   walkDelta,
@@ -27,12 +28,14 @@ export function KitchenLocomotionRig({
   nav,
   fovRef,
   floorY,
+  ceilingY,
   enabled,
 }: {
   loco: KitchenLocomotion;
   nav: WalkthroughNavigation;
   fovRef: React.MutableRefObject<number>;
   floorY: number;
+  ceilingY: number;
   enabled: boolean;
 }): ReactElement | null {
   const { camera, scene } = useThree();
@@ -103,6 +106,7 @@ export function KitchenLocomotionRig({
       } else {
         pose.y = floorY + KITCHEN_EYE_HEIGHT_WALK_M;
       }
+      pose.y = clampWalkHeight(pose.y, floorY, ceilingY);
     }
 
     const live = enabled ? pose : {

@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Kitchen visual + nav unblock: staged GLB load, capsule walk, no fake Gaussians.
+ * Kitchen delivery viewer: staged GLB, nav-only collision, no fake Gaussians.
  */
 
 import { Canvas } from "@react-three/fiber";
@@ -18,9 +18,11 @@ import { NavigationRig, type MetricHit } from "@/components/digital-twin/walkthr
 import { HybridMeasureHud } from "@/components/digital-twin/hybrid/HybridMeasureHud";
 import { HybridSceneOverlays } from "@/components/digital-twin/hybrid/HybridSceneOverlays";
 import { useViewerGestures } from "@/components/digital-twin/use-viewer-gestures";
+import { useAppearanceProbe } from "@/hooks/useAppearanceProbe";
 import { useHybridMeasureTool } from "@/hooks/useHybridMeasureTool";
 import { useKitchenGlb } from "@/hooks/useKitchenGlb";
 import { useKitchenLocomotion } from "@/hooks/useKitchenLocomotion";
+import { useTwinDeliveryProfile } from "@/hooks/useTwinDeliveryProfile";
 import { useWalkthroughNavigation } from "@/hooks/useWalkthroughNavigation";
 import { cssColor, MESH_GROUND_FALLBACK, MESH_SURFACE_FALLBACK } from "@/lib/digital-twin/css-color";
 import { poseDelta } from "@/lib/digital-twin/kitchen-capsule";
@@ -39,17 +41,23 @@ export function KitchenProofViewer({
   displayUrl,
   navUrl,
   measureUrl,
+  thumbnailUrl,
+  appearanceUrl,
   debug = false,
 }: {
   displayUrl: string;
   navUrl: string;
   measureUrl: string;
+  thumbnailUrl: string | null;
+  appearanceUrl: string | null;
   debug?: boolean;
 }): ReactElement {
+  const profile = useTwinDeliveryProfile();
   const display = useKitchenGlb(displayUrl);
   const navMesh = useKitchenGlb(navUrl);
+  const appearance = useAppearanceProbe(KITCHEN_APPEARANCE_AVAILABLE ? appearanceUrl : null);
   const [wantMeasure, setWantMeasure] = useState(false);
-  const measureGlb = useKitchenGlb(wantMeasure ? measureUrl : null);
+  const measureGlb = useKitchenGlb(wantMeasure && profile.allowMeasure ? measureUrl : null);
   const [layer, setLayer] = useState<TwinLayerRepresentation>("geometry");
   const fpsRef = useRef(0);
   const infoRef = useRef<number | null>(null);
@@ -99,6 +107,11 @@ export function KitchenProofViewer({
     [loco, nav],
   );
 
+  const resetView = useCallback(() => {
+    loco.reset();
+    goStation("island");
+  }, [goStation, loco]);
+
   const consumeTap = useCallback(
     (x: number, y: number) => {
       if (measure.active) {
@@ -121,8 +134,11 @@ export function KitchenProofViewer({
         nav.handleLookDrag(dx, dy);
         if (nav.mode === "inside") loco.handleLook(dx, dy);
       },
+      setMode: (mode: typeof nav.mode) => {
+        if (profile.allowDollhouse || mode === "inside") nav.setMode(mode);
+      },
     }),
-    [nav, loco],
+    [nav, loco, profile.allowDollhouse],
   );
 
   const { fovRef, handlePointerDown, handlePointerMove, handlePointerUp, handlePointerCancel, handleWheel } =
@@ -133,48 +149,60 @@ export function KitchenProofViewer({
   }, [fovRef]);
 
   useEffect(() => {
-    if (measure.active) setWantMeasure(true);
-  }, [measure.active]);
+    if (measure.active && profile.allowMeasure) setWantMeasure(true);
+  }, [measure.active, profile.allowMeasure]);
 
+  useEffect(() => {
+    if (display.status === "ready") performance.mark("twin-geometry-ready");
+  }, [display.status]);
+
+  const appearanceOk = KITCHEN_APPEARANCE_AVAILABLE && appearance.status === "ready";
   const setLayerSafe = useCallback((next: TwinLayerRepresentation) => {
-    if (next === "hybrid" && !KITCHEN_APPEARANCE_AVAILABLE) {
-      setLayer("geometry");
+    if ((next === "hybrid" || next === "reality") && !appearanceOk) {
+      setLayer(next === "reality" ? "reality" : "geometry");
       return;
     }
     setLayer(next);
-  }, []);
+  }, [appearanceOk]);
 
   useEffect(() => {
     const api: ProofApi = {
       setLayer: setLayerSafe,
-      setView: nav.setMode,
+      setView: patchedNav.setMode,
       goStation,
       toggleMeasure: measure.toggle,
-      resetView: () => {
-        goStation("island");
-        loco.reset();
-        goStation("island");
-      },
+      resetView,
       layer: () => layer,
       fps: () => fpsRef.current,
       pose: () => ({ ...loco.poseRef.current }),
       poseJump: (other) => poseDelta(loco.poseRef.current, other),
-      timings: () => ({ displayMs: display.loadMs, navMs: navMesh.loadMs }),
+      timings: () => ({
+        displayMs: display.loadMs,
+        navMs: navMesh.loadMs,
+        appearanceMs: appearance.ms,
+        appearanceStatus: appearance.status,
+      }),
+      delivery: () => ({
+        displayRole: "display",
+        navCollisionOnly: true,
+        measureDeferred: !wantMeasure,
+      }),
     };
     (window as unknown as { __kitchenProof?: ProofApi }).__kitchenProof = api;
     return () => {
       delete (window as unknown as { __kitchenProof?: ProofApi }).__kitchenProof;
     };
-  }, [display.loadMs, goStation, layer, loco, measure.toggle, nav.setMode, navMesh.loadMs, setLayerSafe]);
+  }, [appearance.ms, appearance.status, display.loadMs, goStation, layer, loco, measure.toggle, navMesh.loadMs, patchedNav.setMode, resetView, setLayerSafe, wantMeasure]);
 
   const ready = display.status === "ready" && display.geometry;
-  const showGeometry = layer === "geometry" || layer === "hybrid";
-  const appearanceMissing = !KITCHEN_APPEARANCE_AVAILABLE && (layer === "reality" || layer === "hybrid");
+  const appearanceMissing = !appearanceOk;
+  const showGeometry = layer === "geometry" || layer === "hybrid" || (layer === "reality" && appearanceMissing);
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-[var(--background)]" data-app="twin360">
       {!ready ? (
         <KitchenProofLoader
+          thumbnailUrl={thumbnailUrl}
           geometryLabel={display.error ?? "geometry-display"}
           geometryProgress={display.progress}
           navLabel={navMesh.error ?? (navMesh.status === "ready" ? "ready" : "geometry-nav")}
@@ -191,8 +219,8 @@ export function KitchenProofViewer({
       >
         <Canvas
           camera={{ fov: KITCHEN_HUMAN_FOV, near: 0.06, far: 60 }}
-          dpr={[1, 1.5]}
-          gl={{ antialias: true, powerPreference: "high-performance" }}
+          dpr={profile.dpr}
+          gl={{ antialias: profile.antialias, powerPreference: "high-performance" }}
           onCreated={({ gl }) => {
             gl.setClearColor(cssColor("--graphite-canvas", MESH_GROUND_FALLBACK), 1);
             gl.toneMapping = THREE.NoToneMapping;
@@ -200,73 +228,36 @@ export function KitchenProofViewer({
             infoRef.current = gl.info.render.calls;
           }}
         >
-          <hemisphereLight
-            intensity={0.9}
-            color={cssColor("--muted-foreground", MESH_SURFACE_FALLBACK)}
-            groundColor={cssColor("--graphite-canvas", MESH_GROUND_FALLBACK)}
-          />
-          <directionalLight intensity={0.28} position={[3.5, 6.5, 2]} />
-          <ambientLight intensity={0.32} />
+          <hemisphereLight intensity={0.9} color={cssColor("--muted-foreground", MESH_SURFACE_FALLBACK)} groundColor={cssColor("--graphite-canvas", MESH_GROUND_FALLBACK)} />
+          {profile.mobile ? null : <directionalLight intensity={0.28} position={[3.5, 6.5, 2]} />}
+          <ambientLight intensity={profile.mobile ? 0.5 : 0.32} />
           {display.geometry ? (
-            <KitchenMeshLayer
-              geometry={display.geometry}
-              role="display"
-              visible={showGeometry}
-              opacity={layer === "hybrid" ? 0.16 : 1}
-            />
+            <KitchenMeshLayer geometry={display.geometry} role="display" visible={showGeometry} opacity={layer === "hybrid" ? 0.16 : 1} />
           ) : null}
-          {navMesh.geometry ? (
-            <KitchenMeshLayer geometry={navMesh.geometry} role="nav" collisionOnly />
-          ) : null}
-          {measureGlb.geometry ? (
-            <KitchenMeshLayer geometry={measureGlb.geometry} role="measure" collisionOnly />
-          ) : null}
-          <HybridSceneOverlays
-            measurements={measure.rows}
-            pins={[]}
-            draftPoints={measure.draft}
-            hover={measure.hover}
-            showMeasurements={measure.active || measure.rows.length > 0}
-            showPins={false}
-          />
-          <NavigationRig
-            nav={nav}
-            fovRef={fovRef}
-            onFloorHit={(fn) => {
-              raycastRef.current = fn;
-            }}
-            onMetricHit={(fn) => {
-              metricRef.current = fn;
-            }}
-          />
-          <KitchenLocomotionRig
-            loco={loco}
-            nav={nav}
-            fovRef={fovRef}
-            floorY={KITCHEN_FLOOR_Y}
-            enabled={nav.mode === "inside"}
-          />
+          {navMesh.geometry ? <KitchenMeshLayer geometry={navMesh.geometry} role="nav" collisionOnly /> : null}
+          {measureGlb.geometry ? <KitchenMeshLayer geometry={measureGlb.geometry} role="measure" collisionOnly /> : null}
+          <HybridSceneOverlays measurements={measure.rows} pins={[]} draftPoints={measure.draft} hover={measure.hover} showMeasurements={measure.active || measure.rows.length > 0} showPins={false} />
+          <NavigationRig nav={nav} fovRef={fovRef} driveCamera={nav.mode !== "inside"} onFloorHit={(fn) => { raycastRef.current = fn; }} onMetricHit={(fn) => { metricRef.current = fn; }} />
+          <KitchenLocomotionRig loco={loco} nav={nav} fovRef={fovRef} floorY={KITCHEN_FLOOR_Y} ceilingY={KITCHEN_CEILING_CUT_Y} enabled={nav.mode === "inside"} />
           <FpsProbe fpsRef={fpsRef} />
         </Canvas>
       </div>
-      {appearanceMissing ? (
-        <p
-          data-testid="appearance-unavailable"
-          className="pointer-events-none absolute left-1/2 top-6 z-30 -translate-x-1/2 rounded-xl border border-white/10 bg-black/55 px-4 py-2 font-mono text-[11px] uppercase tracking-wide text-white/80"
-        >
+      {layer === "reality" && appearanceMissing ? (
+        <p data-testid="appearance-unavailable" className="pointer-events-none absolute left-1/2 top-6 z-30 -translate-x-1/2 rounded-xl border border-white/10 bg-black/55 px-4 py-2 font-mono text-[11px] uppercase tracking-wide text-white/80">
           Appearance asset unavailable
         </p>
       ) : null}
-      <HybridMeasureHud tool={measure} metricAvailable />
+      {profile.allowMeasure ? <HybridMeasureHud tool={measure} metricAvailable /> : null}
       <KitchenProofHud
         layer={layer}
         onLayer={setLayerSafe}
-        appearanceAvailable={KITCHEN_APPEARANCE_AVAILABLE}
+        appearanceAvailable={appearanceOk}
         viewMode={nav.mode}
-        onViewMode={nav.setMode}
+        onViewMode={patchedNav.setMode}
         measureActive={measure.active}
         onToggleMeasure={measure.toggle}
-        onReset={() => goStation("island")}
+        onReset={resetView}
+        compact={profile.mobile}
       />
       {debug ? (
         <KitchenProofDebug

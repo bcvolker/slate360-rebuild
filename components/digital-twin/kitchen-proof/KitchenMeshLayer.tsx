@@ -4,6 +4,7 @@ import { useMemo, type ReactElement } from "react";
 import * as THREE from "three";
 
 import { cssColor, MESH_SURFACE_FALLBACK } from "@/lib/digital-twin/css-color";
+import { meshRoleFlags, type TwinMeshRole } from "@/lib/digital-twin/kitchen-capsule";
 
 export function KitchenMeshLayer({
   geometry,
@@ -16,7 +17,7 @@ export function KitchenMeshLayer({
   opacity?: number;
   visible?: boolean;
   collisionOnly?: boolean;
-  role: "display" | "nav" | "measure";
+  role: TwinMeshRole;
 }): ReactElement {
   const material = useMemo(() => {
     const hasColor = Boolean(geometry.getAttribute("color"));
@@ -41,11 +42,7 @@ export function KitchenMeshLayer({
       material={material}
       visible={visible}
       frustumCulled={false}
-      userData={{
-        twinWalkSurface: role === "nav" || role === "display",
-        twinNavMesh: role === "nav",
-        twinMeasureMesh: role === "measure",
-      }}
+      userData={meshRoleFlags(role)}
     />
   );
 }

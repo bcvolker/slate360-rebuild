@@ -65,11 +65,13 @@ export function NavigationRig({
   fovRef,
   onFloorHit,
   onMetricHit,
+  driveCamera = true,
 }: {
   nav: ReturnType<typeof useWalkthroughNavigation>;
   fovRef: React.MutableRefObject<number>;
   onFloorHit: (fn: (x: number, y: number) => [number, number, number] | null) => void;
   onMetricHit: (fn: (x: number, y: number) => MetricHit | null) => void;
+  driveCamera?: boolean;
 }): null {
   const { camera, scene, size } = useThree();
   const raycaster = useMemo(() => new THREE.Raycaster(), []);
@@ -85,6 +87,7 @@ export function NavigationRig({
       if (kind === "metric") {
         return (
           hits.find((h) => Boolean(h.object.userData?.twinMeasureMesh)) ??
+          hits.find((h) => Boolean(h.object.userData?.twinDisplayMesh)) ??
           hits.find((h) => Boolean(h.object.userData?.twinWalkSurface)) ??
           null
         );
@@ -128,6 +131,7 @@ export function NavigationRig({
   onFloorHit(raycastFloor);
   onMetricHit(raycastMetric);
   useFrame((_, delta) => {
+    if (!driveCamera) return;
     nav.updateCamera(camera, delta);
     const perspective = camera as THREE.PerspectiveCamera;
     if (perspective.isPerspectiveCamera && perspective.fov !== fovRef.current) {

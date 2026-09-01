@@ -20,11 +20,15 @@ export function KitchenProofClient({
   displayUrl,
   navUrl,
   measureUrl,
+  thumbnailUrl,
+  appearanceUrl,
   debug,
 }: {
   displayUrl: string;
   navUrl: string;
   measureUrl: string;
+  thumbnailUrl: string;
+  appearanceUrl: string;
   debug: boolean;
 }): ReactElement {
   return (
@@ -32,6 +36,8 @@ export function KitchenProofClient({
       displayUrl={displayUrl}
       navUrl={navUrl}
       measureUrl={measureUrl}
+      thumbnailUrl={thumbnailUrl}
+      appearanceUrl={appearanceUrl}
       debug={debug}
     />
   );

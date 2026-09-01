@@ -40,7 +40,7 @@ export function useKitchenGlb(url: string | null, timeoutMs = 90_000): GlbLoadSt
 
     (async () => {
       try {
-        const res = await fetch(url, { signal: controller.signal, cache: "no-store" });
+        const res = await fetch(url, { signal: controller.signal });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const total = Number(res.headers.get("content-length") || 0);
         const reader = res.body?.getReader();
@@ -107,11 +107,12 @@ function parseGlb(buffer: ArrayBuffer): Promise<THREE.BufferGeometry> {
       buffer,
       "",
       (gltf) => {
-        let found: THREE.Mesh | null = null;
+        const meshes: THREE.Mesh[] = [];
         gltf.scene.traverse((child) => {
           const mesh = child as THREE.Mesh;
-          if (!found && mesh.isMesh) found = mesh;
+          if (mesh.isMesh) meshes.push(mesh);
         });
+        const found = meshes[0];
         if (!found) {
           reject(new Error("GLB has no mesh"));
           return;

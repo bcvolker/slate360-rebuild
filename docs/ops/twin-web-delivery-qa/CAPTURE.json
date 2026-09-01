@@ -1,0 +1,1174 @@
+{
+  "capturedAt": "2026-09-01T19:32:55.406Z",
+  "url": "http://127.0.0.1:3000/preview/twin-metric?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1",
+  "passes": {
+    "desktopCold": {
+      "label": "desktop-cold",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "cacheDisabled": true,
+      "ttfbMs": 387,
+      "firstUsefulMs": 5859,
+      "geometryReadyMs": 7795,
+      "appearanceMs": 0,
+      "appearanceStatus": "missing",
+      "fps": {
+        "geometry": 59.98800239844765,
+        "reality": 60.030983732847,
+        "hybrid": 59.9760095958042
+      },
+      "modeSwitchJump": {
+        "reality": 0,
+        "hybrid": 0
+      },
+      "realityBanner": true,
+      "hybridLayer": "geometry",
+      "startPose": {
+        "x": 2.05,
+        "y": 0.004836011632122217,
+        "z": -1.82,
+        "yaw": 0.28,
+        "pitch": 0
+      },
+      "afterReset": {
+        "x": 2.22,
+        "y": 0.004836011632122217,
+        "z": -2.45,
+        "yaw": 0.15,
+        "pitch": 0
+      },
+      "delivery": {
+        "displayRole": "display",
+        "navCollisionOnly": true,
+        "measureDeferred": true
+      },
+      "memory": {
+        "usedMb": 278.583498,
+        "totalMb": 300.89435
+      },
+      "marks": [
+        {
+          "name": "twin-appearance-ready",
+          "start": 2466
+        },
+        {
+          "name": "twin-appearance-ready",
+          "start": 2467
+        },
+        {
+          "name": "twin-first-useful",
+          "start": 2660
+        },
+        {
+          "name": "twin-geometry-ready",
+          "start": 3813
+        }
+      ],
+      "waterfall": [
+        {
+          "name": "/_next/static/css/app/layout.css?v=1788291006318",
+          "initiator": "link",
+          "start": 1164,
+          "duration": 17,
+          "transfer": 55918,
+          "encoded": 55618,
+          "decoded": 523006
+        },
+        {
+          "name": "/_next/static/chunks/webpack.js?v=1788291006318",
+          "initiator": "link",
+          "start": 1173,
+          "duration": 5,
+          "transfer": 28498,
+          "encoded": 28198,
+          "decoded": 141135
+        },
+        {
+          "name": "/_next/static/chunks/main-app.js?v=1788291006318",
+          "initiator": "script",
+          "start": 1173,
+          "duration": 243,
+          "transfer": 4403042,
+          "encoded": 4402742,
+          "decoded": 17677228
+        },
+        {
+          "name": "/_next/static/chunks/app-pages-internals.js",
+          "initiator": "script",
+          "start": 1173,
+          "duration": 13,
+          "transfer": 59002,
+          "encoded": 58702,
+          "decoded": 234616
+        },
+        {
+          "name": "/_next/static/chunks/app/global-error.js",
+          "initiator": "script",
+          "start": 1173,
+          "duration": 19,
+          "transfer": 14067,
+          "encoded": 13767,
+          "decoded": 45806
+        },
+        {
+          "name": "/_next/static/chunks/app/preview/twin-metric/page.js",
+          "initiator": "script",
+          "start": 1173,
+          "duration": 20,
+          "transfer": 27255,
+          "encoded": 26955,
+          "decoded": 101352
+        },
+        {
+          "name": "/_next/static/chunks/app/not-found.js",
+          "initiator": "script",
+          "start": 1173,
+          "duration": 21,
+          "transfer": 29272,
+          "encoded": 28972,
+          "decoded": 92071
+        },
+        {
+          "name": "/_next/static/chunks/app/layout.js",
+          "initiator": "script",
+          "start": 1173,
+          "duration": 21,
+          "transfer": 41359,
+          "encoded": 41059,
+          "decoded": 154079
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_node_modules_next_dist_client_dev_noop-turbopack-hmr_js.js",
+          "initiator": "script",
+          "start": 1626,
+          "duration": 19,
+          "transfer": 2928,
+          "encoded": 2628,
+          "decoded": 6389
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_providers_NativeChromeInit_tsx.js",
+          "initiator": "script",
+          "start": 1627,
+          "duration": 19,
+          "transfer": 7083,
+          "encoded": 6783,
+          "decoded": 16906
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_providers_SW360HostThemeInit_tsx.js",
+          "initiator": "script",
+          "start": 1627,
+          "duration": 20,
+          "transfer": 4659,
+          "encoded": 4359,
+          "decoded": 9467
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_providers_PostHogProvider_tsx.js",
+          "initiator": "script",
+          "start": 1628,
+          "duration": 21,
+          "transfer": 6059,
+          "encoded": 5759,
+          "decoded": 13567
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_providers_SWRegistrar_tsx.js",
+          "initiator": "script",
+          "start": 1628,
+          "duration": 21,
+          "transfer": 6659,
+          "encoded": 6359,
+          "decoded": 19883
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_shared_OfflineBanner_tsx.js",
+          "initiator": "script",
+          "start": 1628,
+          "duration": 22,
+          "transfer": 24385,
+          "encoded": 24085,
+          "decoded": 98537
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_shared_InstallBanner_tsx.js",
+          "initiator": "script",
+          "start": 1628,
+          "duration": 22,
+          "transfer": 14711,
+          "encoded": 14411,
+          "decoded": 56619
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_digital-twin_kitchen-proof_KitchenProofViewer_tsx.js",
+          "initiator": "script",
+          "start": 1628,
+          "duration": 808,
+          "transfer": 2371122,
+          "encoded": 2370822,
+          "decoded": 10597370
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_node_modules_capacitor_core_dist_index_js.js",
+          "initiator": "script",
+          "start": 1939,
+          "duration": 192,
+          "transfer": 18528,
+          "encoded": 18228,
+          "decoded": 65658
+        },
+        {
+          "name": "/preview/twin-metric/asset?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&kind=thumbnail.png",
+          "initiator": "img",
+          "start": 2465,
+          "duration": 195,
+          "transfer": 5088,
+          "encoded": 4788,
+          "decoded": 4788
+        },
+        {
+          "name": "/preview/twin-metric/asset?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&kind=geometry-display.glb",
+          "initiator": "fetch",
+          "start": 2466,
+          "duration": 2,
+          "transfer": 0,
+          "encoded": 0,
+          "decoded": 0
+        },
+        {
+          "name": "/preview/twin-metric/asset?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&kind=geometry-nav.glb",
+          "initiator": "fetch",
+          "start": 2466,
+          "duration": 1,
+          "transfer": 0,
+          "encoded": 0,
+          "decoded": 0
+        },
+        {
+          "name": "/preview/twin-metric/asset?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&kind=geometry-display.glb",
+          "initiator": "fetch",
+          "start": 2467,
+          "duration": 1279,
+          "transfer": 22891096,
+          "encoded": 22890796,
+          "decoded": 22890796
+        },
+        {
+          "name": "/preview/twin-metric/asset?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&kind=geometry-nav.glb",
+          "initiator": "fetch",
+          "start": 2467,
+          "duration": 406,
+          "transfer": 5754264,
+          "encoded": 5753964,
+          "decoded": 5753964
+        },
+        {
+          "name": "/preview/twin-metric?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&_rsc=djpo9",
+          "initiator": "fetch",
+          "start": 6307,
+          "duration": 394,
+          "transfer": 6964,
+          "encoded": 6664,
+          "decoded": 20001
+        },
+        {
+          "name": "/_next/static/webpack/b53ce45fecdaa075.webpack.hot-update.json",
+          "initiator": "fetch",
+          "start": 6308,
+          "duration": 11,
+          "transfer": 344,
+          "encoded": 44,
+          "decoded": 44
+        },
+        {
+          "name": "/_next/static/webpack/app/layout.b53ce45fecdaa075.hot-update.js",
+          "initiator": "script",
+          "start": 6323,
+          "duration": 9,
+          "transfer": 1306,
+          "encoded": 1006,
+          "decoded": 1763
+        },
+        {
+          "name": "/_next/static/webpack/webpack.b53ce45fecdaa075.hot-update.js",
+          "initiator": "script",
+          "start": 6323,
+          "duration": 9,
+          "transfer": 1067,
+          "encoded": 767,
+          "decoded": 1157
+        },
+        {
+          "name": "/_next/static/css/app/layout.css?v=1788291012788",
+          "initiator": "link",
+          "start": 6707,
+          "duration": 186,
+          "transfer": 55918,
+          "encoded": 55618,
+          "decoded": 523006
+        },
+        {
+          "name": "/preview/twin-metric?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&_rsc=djpo9",
+          "initiator": "fetch",
+          "start": 6878,
+          "duration": 79,
+          "transfer": 6970,
+          "encoded": 6670,
+          "decoded": 20002
+        },
+        {
+          "name": "/_next/static/webpack/2e5ff85d655ed0da.webpack.hot-update.json",
+          "initiator": "fetch",
+          "start": 6879,
+          "duration": 15,
+          "transfer": 344,
+          "encoded": 44,
+          "decoded": 44
+        },
+        {
+          "name": "/_next/static/webpack/webpack.2e5ff85d655ed0da.hot-update.js",
+          "initiator": "script",
+          "start": 6895,
+          "duration": 7,
+          "transfer": 1068,
+          "encoded": 768,
+          "decoded": 1157
+        },
+        {
+          "name": "/_next/static/webpack/app/layout.2e5ff85d655ed0da.hot-update.js",
+          "initiator": "script",
+          "start": 6895,
+          "duration": 7,
+          "transfer": 1306,
+          "encoded": 1006,
+          "decoded": 1763
+        },
+        {
+          "name": "/_next/static/css/app/layout.css?v=1788291013062",
+          "initiator": "link",
+          "start": 6960,
+          "duration": 7,
+          "transfer": 55918,
+          "encoded": 55618,
+          "decoded": 523006
+        }
+      ],
+      "jsErrors": [],
+      "webglErrors": [],
+      "displayLoadMs": 1294.300000011921,
+      "navLoadMs": 422.6000000089407
+    },
+    "desktopWarm": {
+      "label": "desktop-warm",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "cacheDisabled": false,
+      "ttfbMs": 339,
+      "firstUsefulMs": null,
+      "geometryReadyMs": 145597,
+      "appearanceMs": 0,
+      "appearanceStatus": "missing",
+      "fps": {
+        "geometry": 60.030983734579245,
+        "reality": 59.99612928163576,
+        "hybrid": 60
+      },
+      "modeSwitchJump": {
+        "reality": 0,
+        "hybrid": 0
+      },
+      "realityBanner": true,
+      "hybridLayer": "geometry",
+      "startPose": {
+        "x": 2.05,
+        "y": 0.004836011632122217,
+        "z": -1.82,
+        "yaw": 0.28,
+        "pitch": 0
+      },
+      "afterReset": {
+        "x": 2.22,
+        "y": 0.004836011632122217,
+        "z": -2.45,
+        "yaw": 0.15,
+        "pitch": 0
+      },
+      "delivery": {
+        "displayRole": "display",
+        "navCollisionOnly": true,
+        "measureDeferred": true
+      },
+      "memory": {
+        "usedMb": 301.610498,
+        "totalMb": 320.50111
+      },
+      "marks": [
+        {
+          "name": "twin-appearance-ready",
+          "start": 899
+        },
+        {
+          "name": "twin-appearance-ready",
+          "start": 900
+        },
+        {
+          "name": "twin-first-useful",
+          "start": 1015
+        },
+        {
+          "name": "twin-geometry-ready",
+          "start": 2081
+        }
+      ],
+      "waterfall": [
+        {
+          "name": "/_next/static/css/app/layout.css?v=1788291156616",
+          "initiator": "link",
+          "start": 136,
+          "duration": 8,
+          "transfer": 55918,
+          "encoded": 55618,
+          "decoded": 523006
+        },
+        {
+          "name": "/_next/static/chunks/webpack.js?v=1788291156616",
+          "initiator": "link",
+          "start": 136,
+          "duration": 5,
+          "transfer": 28503,
+          "encoded": 28203,
+          "decoded": 141135
+        },
+        {
+          "name": "/_next/static/chunks/main-app.js?v=1788291156616",
+          "initiator": "script",
+          "start": 136,
+          "duration": 237,
+          "transfer": 4403042,
+          "encoded": 4402742,
+          "decoded": 17677228
+        },
+        {
+          "name": "/_next/static/chunks/app-pages-internals.js",
+          "initiator": "script",
+          "start": 136,
+          "duration": 11,
+          "transfer": 59002,
+          "encoded": 58702,
+          "decoded": 234616
+        },
+        {
+          "name": "/_next/static/chunks/app/global-error.js",
+          "initiator": "script",
+          "start": 136,
+          "duration": 14,
+          "transfer": 14067,
+          "encoded": 13767,
+          "decoded": 45806
+        },
+        {
+          "name": "/_next/static/chunks/app/preview/twin-metric/page.js",
+          "initiator": "script",
+          "start": 136,
+          "duration": 16,
+          "transfer": 27255,
+          "encoded": 26955,
+          "decoded": 101352
+        },
+        {
+          "name": "/_next/static/chunks/app/not-found.js",
+          "initiator": "script",
+          "start": 136,
+          "duration": 16,
+          "transfer": 29272,
+          "encoded": 28972,
+          "decoded": 92071
+        },
+        {
+          "name": "/_next/static/chunks/app/layout.js",
+          "initiator": "script",
+          "start": 136,
+          "duration": 19,
+          "transfer": 41358,
+          "encoded": 41058,
+          "decoded": 154079
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_node_modules_next_dist_client_dev_noop-turbopack-hmr_js.js",
+          "initiator": "script",
+          "start": 583,
+          "duration": 3,
+          "transfer": 2928,
+          "encoded": 2628,
+          "decoded": 6389
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_providers_NativeChromeInit_tsx.js",
+          "initiator": "script",
+          "start": 585,
+          "duration": 3,
+          "transfer": 7083,
+          "encoded": 6783,
+          "decoded": 16906
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_providers_SW360HostThemeInit_tsx.js",
+          "initiator": "script",
+          "start": 585,
+          "duration": 3,
+          "transfer": 4659,
+          "encoded": 4359,
+          "decoded": 9467
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_providers_PostHogProvider_tsx.js",
+          "initiator": "script",
+          "start": 586,
+          "duration": 3,
+          "transfer": 6059,
+          "encoded": 5759,
+          "decoded": 13567
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_providers_SWRegistrar_tsx.js",
+          "initiator": "script",
+          "start": 586,
+          "duration": 3,
+          "transfer": 6659,
+          "encoded": 6359,
+          "decoded": 19883
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_shared_OfflineBanner_tsx.js",
+          "initiator": "script",
+          "start": 586,
+          "duration": 4,
+          "transfer": 24385,
+          "encoded": 24085,
+          "decoded": 98537
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_shared_InstallBanner_tsx.js",
+          "initiator": "script",
+          "start": 586,
+          "duration": 3,
+          "transfer": 14711,
+          "encoded": 14411,
+          "decoded": 56619
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_digital-twin_kitchen-proof_KitchenProofViewer_tsx.js",
+          "initiator": "script",
+          "start": 586,
+          "duration": 186,
+          "transfer": 2371122,
+          "encoded": 2370822,
+          "decoded": 10597370
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_node_modules_capacitor_core_dist_index_js.js",
+          "initiator": "script",
+          "start": 597,
+          "duration": 3,
+          "transfer": 18528,
+          "encoded": 18228,
+          "decoded": 65658
+        },
+        {
+          "name": "/preview/twin-metric/asset?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&kind=thumbnail.png",
+          "initiator": "img",
+          "start": 802,
+          "duration": 212,
+          "transfer": 5088,
+          "encoded": 4788,
+          "decoded": 4788
+        },
+        {
+          "name": "/preview/twin-metric/asset?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&kind=geometry-display.glb",
+          "initiator": "fetch",
+          "start": 899,
+          "duration": 3,
+          "transfer": 0,
+          "encoded": 0,
+          "decoded": 0
+        },
+        {
+          "name": "/preview/twin-metric/asset?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&kind=geometry-nav.glb",
+          "initiator": "fetch",
+          "start": 899,
+          "duration": 3,
+          "transfer": 0,
+          "encoded": 0,
+          "decoded": 0
+        },
+        {
+          "name": "/preview/twin-metric/asset?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&kind=geometry-display.glb",
+          "initiator": "fetch",
+          "start": 900,
+          "duration": 1143,
+          "transfer": 22891096,
+          "encoded": 22890796,
+          "decoded": 22890796
+        },
+        {
+          "name": "/preview/twin-metric/asset?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&kind=geometry-nav.glb",
+          "initiator": "fetch",
+          "start": 900,
+          "duration": 277,
+          "transfer": 5754264,
+          "encoded": 5753964,
+          "decoded": 5753964
+        }
+      ],
+      "jsErrors": [
+        "ChunkLoadError: Loading chunk app/layout failed.\n(timeout: http://127.0.0.1:3000/_next/static/chunks/app/layout.js)"
+      ],
+      "webglErrors": [],
+      "displayLoadMs": 1167.7999999970198,
+      "navLoadMs": 293.79999999701977
+    },
+    "mobileCold": {
+      "label": "mobile-cold",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "cacheDisabled": true,
+      "ttfbMs": 293,
+      "firstUsefulMs": 1989,
+      "geometryReadyMs": 3682,
+      "appearanceMs": 0,
+      "appearanceStatus": "missing",
+      "fps": {
+        "geometry": 60,
+        "reality": 60,
+        "hybrid": 59.98452012245537
+      },
+      "modeSwitchJump": {
+        "reality": 0,
+        "hybrid": 0
+      },
+      "realityBanner": true,
+      "hybridLayer": "geometry",
+      "startPose": {
+        "x": 2.05,
+        "y": 0.004836011632122217,
+        "z": -1.82,
+        "yaw": 0.28,
+        "pitch": 0
+      },
+      "afterReset": {
+        "x": 2.22,
+        "y": 0.004836011632122217,
+        "z": -2.45,
+        "yaw": 0.15,
+        "pitch": 0
+      },
+      "delivery": {
+        "displayRole": "display",
+        "navCollisionOnly": true,
+        "measureDeferred": true
+      },
+      "memory": {
+        "usedMb": 247.51495,
+        "totalMb": 273.35533
+      },
+      "marks": [
+        {
+          "name": "twin-appearance-ready",
+          "start": 842
+        },
+        {
+          "name": "twin-appearance-ready",
+          "start": 843
+        },
+        {
+          "name": "twin-first-useful",
+          "start": 939
+        },
+        {
+          "name": "twin-geometry-ready",
+          "start": 1893
+        }
+      ],
+      "waterfall": [
+        {
+          "name": "/_next/static/css/app/layout.css?v=1788291163505",
+          "initiator": "link",
+          "start": 92,
+          "duration": 8,
+          "transfer": 55918,
+          "encoded": 55618,
+          "decoded": 523006
+        },
+        {
+          "name": "/_next/static/chunks/webpack.js?v=1788291163505",
+          "initiator": "link",
+          "start": 92,
+          "duration": 5,
+          "transfer": 28500,
+          "encoded": 28200,
+          "decoded": 141135
+        },
+        {
+          "name": "/_next/static/chunks/app-pages-internals.js",
+          "initiator": "script",
+          "start": 92,
+          "duration": 11,
+          "transfer": 59002,
+          "encoded": 58702,
+          "decoded": 234616
+        },
+        {
+          "name": "/_next/static/chunks/app/global-error.js",
+          "initiator": "script",
+          "start": 92,
+          "duration": 14,
+          "transfer": 14067,
+          "encoded": 13767,
+          "decoded": 45806
+        },
+        {
+          "name": "/_next/static/chunks/app/preview/twin-metric/page.js",
+          "initiator": "script",
+          "start": 92,
+          "duration": 17,
+          "transfer": 27255,
+          "encoded": 26955,
+          "decoded": 101352
+        },
+        {
+          "name": "/_next/static/chunks/main-app.js?v=1788291163505",
+          "initiator": "script",
+          "start": 92,
+          "duration": 223,
+          "transfer": 4403042,
+          "encoded": 4402742,
+          "decoded": 17677228
+        },
+        {
+          "name": "/_next/static/chunks/app/not-found.js",
+          "initiator": "script",
+          "start": 93,
+          "duration": 17,
+          "transfer": 29272,
+          "encoded": 28972,
+          "decoded": 92071
+        },
+        {
+          "name": "/_next/static/chunks/app/layout.js",
+          "initiator": "script",
+          "start": 93,
+          "duration": 17,
+          "transfer": 41358,
+          "encoded": 41058,
+          "decoded": 154079
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_node_modules_next_dist_client_dev_noop-turbopack-hmr_js.js",
+          "initiator": "script",
+          "start": 522,
+          "duration": 3,
+          "transfer": 2928,
+          "encoded": 2628,
+          "decoded": 6389
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_providers_NativeChromeInit_tsx.js",
+          "initiator": "script",
+          "start": 524,
+          "duration": 3,
+          "transfer": 7083,
+          "encoded": 6783,
+          "decoded": 16906
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_providers_SW360HostThemeInit_tsx.js",
+          "initiator": "script",
+          "start": 524,
+          "duration": 3,
+          "transfer": 4659,
+          "encoded": 4359,
+          "decoded": 9467
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_providers_PostHogProvider_tsx.js",
+          "initiator": "script",
+          "start": 524,
+          "duration": 3,
+          "transfer": 6059,
+          "encoded": 5759,
+          "decoded": 13567
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_providers_SWRegistrar_tsx.js",
+          "initiator": "script",
+          "start": 524,
+          "duration": 3,
+          "transfer": 6659,
+          "encoded": 6359,
+          "decoded": 19883
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_shared_OfflineBanner_tsx.js",
+          "initiator": "script",
+          "start": 525,
+          "duration": 4,
+          "transfer": 24385,
+          "encoded": 24085,
+          "decoded": 98537
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_shared_InstallBanner_tsx.js",
+          "initiator": "script",
+          "start": 525,
+          "duration": 4,
+          "transfer": 14711,
+          "encoded": 14411,
+          "decoded": 56619
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_digital-twin_kitchen-proof_KitchenProofViewer_tsx.js",
+          "initiator": "script",
+          "start": 525,
+          "duration": 190,
+          "transfer": 2371122,
+          "encoded": 2370822,
+          "decoded": 10597370
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_node_modules_capacitor_core_dist_index_js.js",
+          "initiator": "script",
+          "start": 534,
+          "duration": 3,
+          "transfer": 18528,
+          "encoded": 18228,
+          "decoded": 65658
+        },
+        {
+          "name": "/preview/twin-metric/asset?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&kind=thumbnail.png",
+          "initiator": "img",
+          "start": 795,
+          "duration": 143,
+          "transfer": 5088,
+          "encoded": 4788,
+          "decoded": 4788
+        },
+        {
+          "name": "/preview/twin-metric/asset?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&kind=geometry-display.glb",
+          "initiator": "fetch",
+          "start": 841,
+          "duration": 7,
+          "transfer": 0,
+          "encoded": 0,
+          "decoded": 0
+        },
+        {
+          "name": "/preview/twin-metric/asset?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&kind=geometry-nav.glb",
+          "initiator": "fetch",
+          "start": 842,
+          "duration": 6,
+          "transfer": 0,
+          "encoded": 0,
+          "decoded": 0
+        },
+        {
+          "name": "/preview/twin-metric/asset?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&kind=geometry-display.glb",
+          "initiator": "fetch",
+          "start": 842,
+          "duration": 1015,
+          "transfer": 22891096,
+          "encoded": 22890796,
+          "decoded": 22890796
+        },
+        {
+          "name": "/preview/twin-metric/asset?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&kind=geometry-nav.glb",
+          "initiator": "fetch",
+          "start": 843,
+          "duration": 322,
+          "transfer": 5754264,
+          "encoded": 5753964,
+          "decoded": 5753964
+        }
+      ],
+      "jsErrors": [],
+      "webglErrors": [],
+      "displayLoadMs": 1040.2000000029802,
+      "navLoadMs": 338
+    },
+    "mobileWarm": {
+      "label": "mobile-warm",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "cacheDisabled": false,
+      "ttfbMs": 352,
+      "firstUsefulMs": 1727,
+      "geometryReadyMs": 3174,
+      "appearanceMs": 0,
+      "appearanceStatus": "missing",
+      "fps": {
+        "geometry": 60,
+        "reality": 59.984520124184925,
+        "hybrid": 60.01936108422072
+      },
+      "modeSwitchJump": {
+        "reality": 0,
+        "hybrid": 0
+      },
+      "realityBanner": true,
+      "hybridLayer": "geometry",
+      "startPose": {
+        "x": 2.05,
+        "y": 0.004836011632122217,
+        "z": -1.82,
+        "yaw": 0.28,
+        "pitch": 0
+      },
+      "afterReset": {
+        "x": 2.22,
+        "y": 0.004836011632122217,
+        "z": -2.45,
+        "yaw": 0.15,
+        "pitch": 0
+      },
+      "delivery": {
+        "displayRole": "display",
+        "navCollisionOnly": true,
+        "measureDeferred": true
+      },
+      "memory": {
+        "usedMb": 242.457855,
+        "totalMb": 280.756099
+      },
+      "marks": [
+        {
+          "name": "twin-appearance-ready",
+          "start": 1300
+        },
+        {
+          "name": "twin-appearance-ready",
+          "start": 1301
+        },
+        {
+          "name": "twin-first-useful",
+          "start": 1367
+        },
+        {
+          "name": "twin-geometry-ready",
+          "start": 2333
+        }
+      ],
+      "waterfall": [
+        {
+          "name": "/_next/static/css/app/layout.css?v=1788291169456",
+          "initiator": "link",
+          "start": 361,
+          "duration": 25,
+          "transfer": 55918,
+          "encoded": 55618,
+          "decoded": 523006
+        },
+        {
+          "name": "/_next/static/chunks/webpack.js?v=1788291169456",
+          "initiator": "link",
+          "start": 361,
+          "duration": 11,
+          "transfer": 28500,
+          "encoded": 28200,
+          "decoded": 141135
+        },
+        {
+          "name": "/_next/static/chunks/app-pages-internals.js",
+          "initiator": "script",
+          "start": 361,
+          "duration": 186,
+          "transfer": 59002,
+          "encoded": 58702,
+          "decoded": 234616
+        },
+        {
+          "name": "/_next/static/chunks/main-app.js?v=1788291169456",
+          "initiator": "script",
+          "start": 361,
+          "duration": 413,
+          "transfer": 4403042,
+          "encoded": 4402742,
+          "decoded": 17677228
+        },
+        {
+          "name": "/_next/static/chunks/app/global-error.js",
+          "initiator": "script",
+          "start": 361,
+          "duration": 36,
+          "transfer": 14067,
+          "encoded": 13767,
+          "decoded": 45806
+        },
+        {
+          "name": "/_next/static/chunks/app/preview/twin-metric/page.js",
+          "initiator": "script",
+          "start": 361,
+          "duration": 182,
+          "transfer": 27255,
+          "encoded": 26955,
+          "decoded": 101352
+        },
+        {
+          "name": "/_next/static/chunks/app/layout.js",
+          "initiator": "script",
+          "start": 361,
+          "duration": 184,
+          "transfer": 41358,
+          "encoded": 41058,
+          "decoded": 154079
+        },
+        {
+          "name": "/_next/static/chunks/app/not-found.js",
+          "initiator": "script",
+          "start": 361,
+          "duration": 184,
+          "transfer": 29272,
+          "encoded": 28972,
+          "decoded": 92071
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_node_modules_next_dist_client_dev_noop-turbopack-hmr_js.js",
+          "initiator": "script",
+          "start": 977,
+          "duration": 2,
+          "transfer": 2928,
+          "encoded": 2628,
+          "decoded": 6389
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_providers_NativeChromeInit_tsx.js",
+          "initiator": "script",
+          "start": 978,
+          "duration": 3,
+          "transfer": 7083,
+          "encoded": 6783,
+          "decoded": 16906
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_providers_SW360HostThemeInit_tsx.js",
+          "initiator": "script",
+          "start": 978,
+          "duration": 3,
+          "transfer": 4659,
+          "encoded": 4359,
+          "decoded": 9467
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_providers_PostHogProvider_tsx.js",
+          "initiator": "script",
+          "start": 979,
+          "duration": 3,
+          "transfer": 6059,
+          "encoded": 5759,
+          "decoded": 13567
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_providers_SWRegistrar_tsx.js",
+          "initiator": "script",
+          "start": 979,
+          "duration": 3,
+          "transfer": 6659,
+          "encoded": 6359,
+          "decoded": 19883
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_shared_OfflineBanner_tsx.js",
+          "initiator": "script",
+          "start": 979,
+          "duration": 5,
+          "transfer": 24385,
+          "encoded": 24085,
+          "decoded": 98537
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_shared_InstallBanner_tsx.js",
+          "initiator": "script",
+          "start": 980,
+          "duration": 3,
+          "transfer": 14711,
+          "encoded": 14411,
+          "decoded": 56619
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_components_digital-twin_kitchen-proof_KitchenProofViewer_tsx.js",
+          "initiator": "script",
+          "start": 980,
+          "duration": 188,
+          "transfer": 2371122,
+          "encoded": 2370822,
+          "decoded": 10597370
+        },
+        {
+          "name": "/_next/static/chunks/_app-pages-browser_node_modules_capacitor_core_dist_index_js.js",
+          "initiator": "script",
+          "start": 990,
+          "duration": 4,
+          "transfer": 18528,
+          "encoded": 18228,
+          "decoded": 65658
+        },
+        {
+          "name": "/preview/twin-metric/asset?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&kind=thumbnail.png",
+          "initiator": "img",
+          "start": 1195,
+          "duration": 166,
+          "transfer": 5088,
+          "encoded": 4788,
+          "decoded": 4788
+        },
+        {
+          "name": "/preview/twin-metric/asset?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&kind=geometry-display.glb",
+          "initiator": "fetch",
+          "start": 1300,
+          "duration": 5,
+          "transfer": 0,
+          "encoded": 0,
+          "decoded": 0
+        },
+        {
+          "name": "/preview/twin-metric/asset?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&kind=geometry-nav.glb",
+          "initiator": "fetch",
+          "start": 1300,
+          "duration": 5,
+          "transfer": 0,
+          "encoded": 0,
+          "decoded": 0
+        },
+        {
+          "name": "/preview/twin-metric/asset?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&kind=geometry-display.glb",
+          "initiator": "fetch",
+          "start": 1301,
+          "duration": 992,
+          "transfer": 22891096,
+          "encoded": 22890796,
+          "decoded": 22890796
+        },
+        {
+          "name": "/preview/twin-metric/asset?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1&kind=geometry-nav.glb",
+          "initiator": "fetch",
+          "start": 1301,
+          "duration": 997,
+          "transfer": 5754264,
+          "encoded": 5753964,
+          "decoded": 5753964
+        }
+      ],
+      "jsErrors": [],
+      "webglErrors": [],
+      "displayLoadMs": 1010.6999999880791,
+      "navLoadMs": 1028.8999999910593
+    }
+  }
+}

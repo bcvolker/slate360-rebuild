@@ -11,6 +11,7 @@ export function KitchenProofHud({
   measureActive,
   onToggleMeasure,
   onReset,
+  compact = false,
 }: {
   layer: "reality" | "hybrid" | "geometry";
   onLayer: (layer: "reality" | "hybrid" | "geometry") => void;
@@ -20,17 +21,20 @@ export function KitchenProofHud({
   measureActive: boolean;
   onToggleMeasure: () => void;
   onReset: () => void;
+  compact?: boolean;
 }): ReactElement {
   const layers = [
     { id: "reality" as const, label: "Reality" },
     { id: "hybrid" as const, label: "Hybrid", locked: !appearanceAvailable },
     { id: "geometry" as const, label: "Geometry" },
   ];
-  const views = [
-    { id: "inside" as const, label: "Inside" },
-    { id: "dollhouse" as const, label: "Dollhouse" },
-    { id: "floorplan" as const, label: "Plan" },
-  ];
+  const views = compact
+    ? [{ id: "inside" as const, label: "Inside" }]
+    : [
+        { id: "inside" as const, label: "Inside" },
+        { id: "dollhouse" as const, label: "Dollhouse" },
+        { id: "floorplan" as const, label: "Plan" },
+      ];
   const btn =
     "flex min-h-[44px] min-w-[44px] items-center justify-center px-3 text-xs font-medium uppercase tracking-wide";
   return (
@@ -82,17 +86,19 @@ export function KitchenProofHud({
             {item.label}
           </button>
         ))}
-        <button
-          type="button"
-          aria-label="Measure"
-          aria-pressed={measureActive}
-          onClick={onToggleMeasure}
-          className={`${btn} border-l border-white/10 ${
-            measureActive ? "text-[var(--twin360-blue)]" : "text-white/60 hover:text-white/90"
-          }`}
-        >
-          Measure
-        </button>
+        {compact ? null : (
+          <button
+            type="button"
+            aria-label="Measure"
+            aria-pressed={measureActive}
+            onClick={onToggleMeasure}
+            className={`${btn} border-l border-white/10 ${
+              measureActive ? "text-[var(--twin360-blue)]" : "text-white/60 hover:text-white/90"
+            }`}
+          >
+            Measure
+          </button>
+        )}
         <button
           type="button"
           aria-label="Reset view"

@@ -35,6 +35,28 @@ export function walkDelta(
   return [dx, dz];
 }
 
+export function clampWalkHeight(
+  y: number,
+  floorY: number,
+  ceilingY: number,
+  eye = KITCHEN_EYE_HEIGHT_WALK_M,
+): number {
+  const minY = floorY + eye - 0.05;
+  const maxY = Math.min(ceilingY - 0.12, floorY + eye + 0.55);
+  return Math.min(maxY, Math.max(minY, y));
+}
+
+export type TwinMeshRole = "display" | "nav" | "measure";
+
+export function meshRoleFlags(role: TwinMeshRole) {
+  return {
+    twinDisplayMesh: role === "display",
+    twinNavMesh: role === "nav",
+    twinWalkSurface: role === "nav",
+    twinMeasureMesh: role === "measure",
+  };
+}
+
 export function poseDelta(
   a: { x: number; y: number; z: number; yaw: number; pitch: number },
   b: { x: number; y: number; z: number; yaw: number; pitch: number },

@@ -32,6 +32,8 @@ export default async function TwinMetricPreviewPage({
         displayUrl={asset("geometry-display.glb")}
         navUrl={asset("geometry-nav.glb")}
         measureUrl={asset("geometry-measurement.glb")}
+        thumbnailUrl={asset("thumbnail.png")}
+        appearanceUrl={asset("appearance-x4-v1.spz")}
         debug={debug}
       />
     </main>

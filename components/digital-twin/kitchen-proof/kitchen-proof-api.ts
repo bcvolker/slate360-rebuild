@@ -15,7 +15,17 @@ export type ProofApi = {
   fps: () => number;
   pose: () => { x: number; y: number; z: number; yaw: number; pitch: number };
   poseJump: (other: { x: number; y: number; z: number; yaw: number; pitch: number }) => number;
-  timings: () => { displayMs: number | null; navMs: number | null };
+  timings: () => {
+    displayMs: number | null;
+    navMs: number | null;
+    appearanceMs: number | null;
+    appearanceStatus: string;
+  };
+  delivery: () => {
+    displayRole: "display";
+    navCollisionOnly: true;
+    measureDeferred: boolean;
+  };
 };
 
 export function FpsProbe({ fpsRef }: { fpsRef: React.MutableRefObject<number> }): null {
