@@ -4,9 +4,10 @@ import type { ReactElement } from "react";
 
 import { MeshSplatLayer } from "@/components/digital-twin/MeshSplatLayer";
 import {
-  KITCHEN_SPLAT_IDENTITY_MATRIX,
   KITCHEN_SPLAT_MAX,
+  KITCHEN_SPLAT_WORLD_MATRIX,
 } from "@/lib/digital-twin/kitchen-proof-world";
+import type { SplatLoadStats } from "@/lib/digital-twin/spark-appearance-load";
 
 export function KitchenAppearanceLayer({
   url,
@@ -15,15 +16,15 @@ export function KitchenAppearanceLayer({
 }: {
   url: string;
   visible: boolean;
-  onReady?: () => void;
+  onReady?: (stats?: SplatLoadStats) => void;
 }): ReactElement {
   return (
     <MeshSplatLayer
       url={url}
       visible={visible}
-      worldMatrix={KITCHEN_SPLAT_IDENTITY_MATRIX}
+      worldMatrix={KITCHEN_SPLAT_WORLD_MATRIX}
       sparkPiFlip={false}
-      maxSplats={KITCHEN_SPLAT_MAX}
+      lodSplatCount={KITCHEN_SPLAT_MAX}
       onReady={onReady}
     />
   );

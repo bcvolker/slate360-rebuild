@@ -15,6 +15,7 @@ import type { WalkthroughNavigation } from "@/hooks/useWalkthroughNavigation";
 import type { HybridMeasureTool } from "@/hooks/useHybridMeasureTool";
 import { cssColor, MESH_GROUND_FALLBACK, MESH_SURFACE_FALLBACK } from "@/lib/digital-twin/css-color";
 import { KITCHEN_FLOOR_Y, KITCHEN_HUMAN_FOV } from "@/lib/digital-twin/kitchen-proof-world";
+import type { SplatLoadStats } from "@/lib/digital-twin/spark-appearance-load";
 import type { TwinLayerRepresentation } from "@/lib/digital-twin/twin-epoch";
 
 export function KitchenProofScene({
@@ -42,7 +43,7 @@ export function KitchenProofScene({
   appearanceKey?: number;
   layer: TwinLayerRepresentation;
   splatReady: boolean;
-  onAppearanceReady: () => void;
+  onAppearanceReady: (stats?: SplatLoadStats) => void;
   nav: WalkthroughNavigation;
   loco: KitchenLocomotion;
   fovRef: MutableRefObject<number>;
@@ -62,7 +63,7 @@ export function KitchenProofScene({
     <Canvas
       camera={{ fov: KITCHEN_HUMAN_FOV, near: 0.06, far: 60 }}
       dpr={[1, 1]}
-      gl={{ antialias: true, powerPreference: "high-performance" }}
+      gl={{ antialias: false, powerPreference: "high-performance" }}
       onCreated={({ gl }) => {
         gl.setClearColor(cssColor("--graphite-canvas", MESH_GROUND_FALLBACK), 1);
         gl.toneMapping = THREE.NoToneMapping;
@@ -108,6 +109,7 @@ export function KitchenProofScene({
       <NavigationRig
         nav={nav}
         fovRef={fovRef}
+        driveCamera={nav.mode !== "inside"}
         onFloorHit={(fn) => {
           raycastRef.current = fn;
         }}

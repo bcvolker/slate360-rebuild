@@ -66,6 +66,7 @@ export function KitchenProofViewer({
   const firstUsefulMs = useRef(performance.now());
   const geometryReadyMs = useRef<number | null>(null);
   const appearanceReadyMs = useRef<number | null>(null);
+  const splatStatsRef = useRef<{ loaded: number; numSh: number } | null>(null);
   const appearanceStarted = useRef(performance.now());
   const home = kitchenDefaultStation();
   const loco = useKitchenLocomotion({
@@ -162,8 +163,9 @@ export function KitchenProofViewer({
     }
   }, [display.status]);
 
-  const onAppearanceReady = useCallback(() => {
+  const onAppearanceReady = useCallback((stats?: { loaded: number; numSh: number }) => {
     if (appearanceReadyMs.current == null) appearanceReadyMs.current = performance.now();
+    if (stats) splatStatsRef.current = stats;
     setSplatReady(true);
   }, []);
 
@@ -184,6 +186,7 @@ export function KitchenProofViewer({
       layer: () => appearance.layer,
       fps: () => fpsRef.current,
       appearanceReady: () => splatReady,
+      splatStats: () => splatStatsRef.current,
       pose: () => ({ ...loco.poseRef.current }),
       poseJump: (other) => poseDelta(loco.poseRef.current, other),
       openViewMenu: () => chromeRef.current?.setViewOpen(true),

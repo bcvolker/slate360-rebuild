@@ -1,0 +1,42 @@
+{
+  "src": "/mnt/c/Users/Brian PC/Desktop/Slate360Research/Projects/KitchenAprilTags/Runs/2026-08-31T22-x4-brush-challenger/brush_b_train/brush_b.ply",
+  "out": "C:\\s360\\tmp\\kitchen-proof\\appearance-web.spz",
+  "research_out": "C:\\Users\\Brian PC\\Desktop\\Slate360Research\\Projects\\KitchenAprilTags\\Runs\\2026-08-31T22-x4-brush-challenger\\appearance-web.spz",
+  "n_in": 672348,
+  "n_out": 672348,
+  "n_baked": 672348,
+  "sh_degree": 3,
+  "sh1Bits": 8,
+  "shRestBits": 8,
+  "spz_version": 3,
+  "bytes": 29888348,
+  "native_mean": [
+    -1.1401630640029907,
+    0.23648402094841003,
+    0.7975068092346191
+  ],
+  "scene_mean": [
+    2.6209128691531385,
+    -0.21459475466944233,
+    -2.3178062717916035
+  ],
+  "baked_mean": [
+    2.6209096908569336,
+    -0.214594766497612,
+    -2.3177902698516846
+  ],
+  "mean_delta": [
+    3.1782962048865215e-06,
+    1.182816966593947e-08,
+    1.6001939918908192e-05
+  ],
+  "sim3_is_scene_transform": true,
+  "tag0_arkit": [
+    0.6077676545055801,
+    0.05263148427980266,
+    -1.6845858826355267
+  ],
+  "mean_match": true,
+  "retained_all": true,
+  "baked_kept_as_research": true
+}

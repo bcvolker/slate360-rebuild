@@ -63,11 +63,13 @@ export function StationMarkers({
 export function NavigationRig({
   nav,
   fovRef,
+  driveCamera = true,
   onFloorHit,
   onMetricHit,
 }: {
   nav: ReturnType<typeof useWalkthroughNavigation>;
   fovRef: React.MutableRefObject<number>;
+  driveCamera?: boolean;
   onFloorHit: (fn: (x: number, y: number) => [number, number, number] | null) => void;
   onMetricHit: (fn: (x: number, y: number) => MetricHit | null) => void;
 }): null {
@@ -128,7 +130,7 @@ export function NavigationRig({
   onFloorHit(raycastFloor);
   onMetricHit(raycastMetric);
   useFrame((_, delta) => {
-    nav.updateCamera(camera, delta);
+    if (driveCamera) nav.updateCamera(camera, delta);
     const perspective = camera as THREE.PerspectiveCamera;
     if (perspective.isPerspectiveCamera && perspective.fov !== fovRef.current) {
       perspective.fov = fovRef.current;

@@ -22,7 +22,6 @@ import {
   INTERIOR_MAX_ZOOM,
   INTERIOR_MIN_ZOOM,
   ZOOM_WHEEL_FACTOR,
-  buildDownsampleIndices,
 } from "@/components/digital-twin/splat-viewer-constants";
 import { fetchSplatManifest, type SplatManifest } from "@/lib/digital-twin/twin-manifest";
 import { estimateOrientationFromMesh } from "@/lib/digital-twin/splat-pca-orientation";
@@ -166,37 +165,20 @@ export function SplatViewerScene({
     };
   }, [url, onManifestChange]);
 
-  // LOD is disabled deliberately: Spark's paged/LOD mode keeps the real splat count out
-  // of `packedSplats.numSplats` (verified empirically — it reads 0 even after a full,
-  // successful decode), so a hard, deterministic cap is unreachable through the public
-  // API while LOD is active. Trading Spark's adaptive LOD for our own fixed downsample
-  // is exactly the point of a HARD cap — the alternative (`maxSplats` alone) is only an
-  // allocation hint that grows to fit the file, which is the bug this fixes.
-  const sparkArgs = useMemo(() => ({ renderer: gl, enableLod: false }), [gl]);
+  const sparkArgs = useMemo(
+    () => ({ renderer: gl, enableLod: true, lodSplatCount: maxSplats }),
+    [gl, maxSplats],
+  );
   const splatArgs = useMemo(
     () => ({
       url,
-      lod: false,
-      maxSplats,
+      lod: true,
+      enableLod: true,
+      extSplats: true,
       onProgress: (event: ProgressEvent) => {
         onProgress?.(event.loaded, event.lengthComputable ? event.total : null);
       },
       onLoad: async (mesh: SplatMesh) => {
-        // Enforce the hard splat cap: downsample deterministically once `onLoad` proves
-        // the real splat count is populated, and BEFORE the mesh's first GPU texture
-        // upload (which happens lazily on the first render frame, after this returns).
-        const packedSplats = mesh.packedSplats;
-        if (packedSplats && packedSplats.numSplats > maxSplats) {
-          const originalCount = packedSplats.numSplats;
-          const indices = buildDownsampleIndices(originalCount, maxSplats);
-          const downsampled = packedSplats.extractSplats(indices, false);
-          packedSplats.initialize({
-            packedArray: downsampled.packedArray ?? undefined,
-            numSplats: downsampled.numSplats,
-          });
-          onDownsampled?.(originalCount, maxSplats);
-        }
-
         // Orient the model BEFORE framing runs. Precedence:
         //   1. worker-baked manifest quaternion (authoritative)
         //   2. client PCA fallback — only on clearly-misoriented, confidently-planar models

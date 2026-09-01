@@ -14,6 +14,7 @@ export type ProofApi = {
   layer: () => TwinLayerRepresentation;
   fps: () => number;
   appearanceReady: () => boolean;
+  splatStats: () => { loaded: number; numSh: number } | null;
   pose: () => { x: number; y: number; z: number; yaw: number; pitch: number };
   poseJump: (other: { x: number; y: number; z: number; yaw: number; pitch: number }) => number;
   walkToStation: (id: string) => void;

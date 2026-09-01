@@ -1,0 +1,45 @@
+{
+  "firstUsefulMs": 9999,
+  "fpsGeometry": 61.89555125725338,
+  "gpu": "ANGLE (Intel, Intel(R) Graphics (0x00007D67) Direct3D11 vs_5_0 ps_5_0, D3D11)",
+  "appearanceReadyMs": 15175,
+  "api": {
+    "displayMs": 1634.5,
+    "navMs": 1051.5,
+    "appearanceMs": 4326.600000008941,
+    "firstUsefulMs": 2120.199999988079,
+    "geometryReadyMs": 3775.0999999940395,
+    "appearanceReadyMs": 6446.79999999702,
+    "memoryMb": 314.178328
+  },
+  "splatStats": {
+    "loaded": 0,
+    "numSh": 0
+  },
+  "dpr": 1,
+  "fpsReality": 40.44087377104968,
+  "poseFridge": {
+    "x": 0.72,
+    "y": 0.004836011632122217,
+    "z": -1.7,
+    "yaw": -0.85,
+    "pitch": 0
+  },
+  "modeJumpRealityM": 0,
+  "modeJumpHybridM": 0,
+  "fpsHybrid": 43.204386715584384,
+  "walk": {
+    "techJump": 0,
+    "realityJump": 0,
+    "stats": {
+      "loaded": 0,
+      "numSh": 0
+    }
+  },
+  "mobileSplatStats": {
+    "loaded": 0,
+    "numSh": 0
+  },
+  "fpsMobileReality": 60.00039877071382,
+  "recording": "C:\\s360\\docs\\ops\\twin-appearance-fidelity\\screenshots\\kitchen-appearance-walk.webm"
+}

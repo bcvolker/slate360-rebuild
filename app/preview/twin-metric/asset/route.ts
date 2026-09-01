@@ -17,6 +17,7 @@ const KINDS: Record<string, { suffix: string; type: string }> = {
   "geometry-nav.glb": { suffix: "geometry-nav.glb", type: "model/gltf-binary" },
   "geometry-measurement.glb": { suffix: "geometry-measurement.glb", type: "model/gltf-binary" },
   "appearance-x4-v1.spz": { suffix: "appearance-x4-v1.spz", type: "application/octet-stream" },
+  "appearance-web.spz": { suffix: "appearance-web.spz", type: "application/octet-stream" },
   "brush_x4_arkit.spz": { suffix: "brush_x4_arkit.spz", type: "application/octet-stream" },
   "floor_slice.png": { suffix: "floor_slice.png", type: "image/png" },
   "thumbnail.png": { suffix: "thumbnail.png", type: "image/png" },

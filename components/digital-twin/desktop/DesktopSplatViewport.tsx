@@ -19,7 +19,7 @@ import { fetchSplatManifest, type SplatManifest } from "@/lib/digital-twin/twin-
 import { estimateOrientationFromMesh } from "@/lib/digital-twin/splat-pca-orientation";
 import { applyOverviewHomeFrame } from "@/lib/digital-twin/splat-overview-home";
 import { raycastSplatMesh } from "@/lib/digital-twin/splat-raycast";
-import { DESKTOP_MAX_SPLATS, buildDownsampleIndices } from "@/components/digital-twin/splat-viewer-constants";
+import { DESKTOP_MAX_SPLATS } from "@/components/digital-twin/splat-viewer-constants";
 
 extend({ SparkRenderer: SparkRendererImpl, SplatMesh: SplatMeshImpl });
 
@@ -122,27 +122,11 @@ function EditableSparkScene({
   const splatArgs = useMemo(
     () => ({
       url,
-      // F2: was lod:true + a local 250k cap — the shared viewer runs
-      // lod:false + a hard deterministic downsample to DESKTOP_MAX_SPLATS
-      // (500k). What gets cleaned here must be the same splat set clients
-      // see, not a different (smaller, LOD-adaptive) one.
-      lod: false,
-      maxSplats: DESKTOP_MAX_SPLATS,
+      lod: true,
+      enableLod: true,
+      extSplats: true,
       editable: true,
       onLoad: async (mesh: SplatMesh) => {
-        // Enforce the hard cap the same way splat-viewer-scene.tsx does —
-        // deterministically, before the mesh's first GPU upload.
-        const packedSplats = mesh.packedSplats;
-        if (packedSplats && packedSplats.numSplats > DESKTOP_MAX_SPLATS) {
-          const originalCount = packedSplats.numSplats;
-          const indices = buildDownsampleIndices(originalCount, DESKTOP_MAX_SPLATS);
-          const downsampled = packedSplats.extractSplats(indices, false);
-          packedSplats.initialize({
-            packedArray: downsampled.packedArray ?? undefined,
-            numSplats: downsampled.numSplats,
-          });
-          onDownsampled?.(originalCount, DESKTOP_MAX_SPLATS);
-        }
         mesh.raycastable = true;
 
         applyEditListToMesh(mesh, editListRef.current);
@@ -187,7 +171,7 @@ function EditableSparkScene({
   return (
     <>
       <group ref={groupRef}>
-        <sparkRenderer args={[{ renderer: gl, enableLod: false }]}>
+        <sparkRenderer args={[{ renderer: gl, enableLod: true, lodSplatCount: DESKTOP_MAX_SPLATS }]}>
           <splatMesh ref={meshRef} args={[splatArgs]} rotation={[Math.PI, 0, 0]} />
         </sparkRenderer>
       </group>

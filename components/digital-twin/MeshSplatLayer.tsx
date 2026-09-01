@@ -8,9 +8,8 @@
  * This does not own the camera. Walk, dollhouse, and floor plan stay on the
  * mesh path. The splat is never raycastable — click-to-walk stays on LiDAR.
  *
- * Orientation matches the production splat viewer: Spark X-flip, then baked
- * manifest quaternion, then PCA only if no bake exists. Spark may still draw
- * a hidden SplatMesh, so visibility is set on the mesh itself.
+ * When worldMatrix is set, it is the object transform (EXACT_FRAME_SIM3 for
+ * native Brush). Spark Rx(π)/PCA are skipped. LOD is Spark-native; SH is kept.
  */
 
 import { useEffect, useMemo, useRef, type ReactElement } from "react";
@@ -22,12 +21,14 @@ import {
   type SplatMesh,
 } from "@sparkjsdev/spark";
 
-import {
-  DESKTOP_MAX_SPLATS,
-  buildDownsampleIndices,
-  useMobileSplatBudget,
-} from "@/components/digital-twin/splat-viewer-constants";
+import { useSparkLodSplatCount } from "@/components/digital-twin/splat-viewer-constants";
 import { estimateOrientationFromMesh } from "@/lib/digital-twin/splat-pca-orientation";
+import {
+  readSplatLoadStats,
+  sparkRendererAppearanceArgs,
+  sparkSplatAppearanceArgs,
+  type SplatLoadStats,
+} from "@/lib/digital-twin/spark-appearance-load";
 import { fetchSplatManifest, type SplatManifest } from "@/lib/digital-twin/twin-manifest";
 
 extend({ SparkRenderer: SparkRendererImpl, SplatMesh: SplatMeshImpl });
@@ -51,7 +52,7 @@ export function MeshSplatLayer({
   visible,
   worldMatrix = null,
   sparkPiFlip = true,
-  maxSplats: maxSplatsProp,
+  lodSplatCount: lodSplatCountProp,
   onReady,
 }: {
   url: string;
@@ -59,8 +60,8 @@ export function MeshSplatLayer({
   /** Column-major 4×4 into S360_WORLD. Skips Spark Rx(π)/PCA when set. */
   worldMatrix?: readonly number[] | null;
   sparkPiFlip?: boolean;
-  maxSplats?: number;
-  onReady?: () => void;
+  lodSplatCount?: number;
+  onReady?: (stats?: SplatLoadStats) => void;
 }): ReactElement {
   const gl = useThree((state) => state.gl);
   const groupRef = useRef<THREE.Group>(null);
@@ -71,9 +72,12 @@ export function MeshSplatLayer({
   readyRef.current = onReady;
   const manifestRef = useRef<SplatManifest | null>(null);
   const manifestPromiseRef = useRef<Promise<SplatManifest | null> | null>(null);
-  const budget = useMobileSplatBudget();
-  const maxSplats = maxSplatsProp ?? budget;
-  const sparkArgs = useMemo(() => ({ renderer: gl, enableLod: false }), [gl]);
+  const budget = useSparkLodSplatCount();
+  const lodSplatCount = lodSplatCountProp ?? budget;
+  const sparkArgs = useMemo(
+    () => sparkRendererAppearanceArgs(gl, lodSplatCount),
+    [gl, lodSplatCount],
+  );
   const pose = useMemo(() => {
     if (!worldMatrix) return null;
     const m = new THREE.Matrix4().fromArray(worldMatrix as number[]);
@@ -103,23 +107,10 @@ export function MeshSplatLayer({
   }, [visible]);
 
   const splatArgs = useMemo(
-    () => ({
-      url,
-      lod: false,
-      maxSplats: maxSplats || DESKTOP_MAX_SPLATS,
-      onLoad: async (mesh: SplatMesh) => {
+    () =>
+      sparkSplatAppearanceArgs(url, async (mesh: SplatMesh) => {
         mesh.raycastable = false;
         mesh.visible = visibleRef.current;
-        const packed = mesh.packedSplats;
-        const cap = maxSplats || DESKTOP_MAX_SPLATS;
-        if (packed && packed.numSplats > cap) {
-          const indices = buildDownsampleIndices(packed.numSplats, cap);
-          const downsampled = packed.extractSplats(indices, false);
-          packed.initialize({
-            packedArray: downsampled.packedArray ?? undefined,
-            numSplats: downsampled.numSplats,
-          });
-        }
         let manifest = manifestRef.current;
         if (!manifest && manifestPromiseRef.current) {
           manifest = await manifestPromiseRef.current;
@@ -127,10 +118,9 @@ export function MeshSplatLayer({
         const group = groupRef.current;
         if (group && !worldMatrix) orientGroup(group, mesh, manifest);
         meshRef.current = mesh;
-        readyRef.current?.();
-      },
-    }),
-    [url, maxSplats, worldMatrix],
+        readyRef.current?.(await readSplatLoadStats(mesh));
+      }),
+    [url, worldMatrix],
   );
 
   return (

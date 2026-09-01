@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { DESKTOP_LOD_SPLAT_COUNT, MOBILE_LOD_SPLAT_COUNT } from "@/lib/digital-twin/spark-appearance-load";
+
 export type TwinPickPoint = { x: number; y: number; z: number };
 export type CameraMode = "interior" | "orbit";
 /** D2: orbit camera + target, used for cross-viewer sync (progression compare). */
@@ -21,37 +23,25 @@ export type SplatViewerHandle = {
   setCameraPose: (pose: SplatCameraPose) => void;
 };
 
-// Hard splat caps — enforced by a deterministic post-load downsample (see
-// buildDownsampleIndices below), since Spark's own `maxSplats` option is only an
-// initial allocation hint and grows to fit the actual file, not a real ceiling.
-export const MOBILE_MAX_SPLATS = 150_000;
-export const DESKTOP_MAX_SPLATS = 500_000;
+/** Spark-native LOD targets. Not a destructive PackedSplats rebuild. */
+export const MOBILE_MAX_SPLATS = MOBILE_LOD_SPLAT_COUNT;
+export const DESKTOP_MAX_SPLATS = DESKTOP_LOD_SPLAT_COUNT;
 
-export function useMobileSplatBudget(): number {
-  const [maxSplats, setMaxSplats] = useState(DESKTOP_MAX_SPLATS);
+export function useSparkLodSplatCount(): number {
+  const [count, setCount] = useState(DESKTOP_LOD_SPLAT_COUNT);
 
   useEffect(() => {
     const coarse = window.matchMedia("(max-width: 768px)").matches;
     const fine = window.matchMedia("(pointer: coarse)").matches;
-    setMaxSplats(coarse || fine ? MOBILE_MAX_SPLATS : DESKTOP_MAX_SPLATS);
+    setCount(coarse || fine ? MOBILE_LOD_SPLAT_COUNT : DESKTOP_LOD_SPLAT_COUNT);
   }, []);
 
-  return maxSplats;
+  return count;
 }
 
-/**
- * Deterministic, evenly-strided index set for downsampling a splat cloud from
- * `totalSplats` down to `cap`. Same inputs always produce the same indices (no
- * RNG), and sampling is spread across the whole cloud rather than truncating to
- * the first `cap` splats, which would bias toward whatever the exporter wrote first.
- */
-export function buildDownsampleIndices(totalSplats: number, cap: number): Uint32Array {
-  const indices = new Uint32Array(cap);
-  const step = totalSplats / cap;
-  for (let i = 0; i < cap; i++) {
-    indices[i] = Math.min(totalSplats - 1, Math.floor(i * step));
-  }
-  return indices;
+/** @deprecated Use useSparkLodSplatCount — this is an LOD budget, not a hard cap. */
+export function useMobileSplatBudget(): number {
+  return useSparkLodSplatCount();
 }
 
 // D1 load-progress watchdog: error only on STALL (no bytes for this long), never on

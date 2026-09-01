@@ -51,6 +51,7 @@ const files = [
   { local: "tmp/kitchen-proof/products/geometry-display.glb", key: `${PREFIX}/geometry-display.glb`, type: "model/gltf-binary" },
   { local: "tmp/kitchen-proof/products/geometry-nav.glb", key: `${PREFIX}/geometry-nav.glb`, type: "model/gltf-binary" },
   { local: "tmp/kitchen-proof/brush_x4_arkit.spz", key: `${PREFIX}/brush_x4_arkit.spz`, type: "application/octet-stream" },
+  { local: "tmp/kitchen-proof/appearance-web.spz", key: `${PREFIX}/appearance-web.spz`, type: "application/octet-stream" },
 ];
 
 for (const file of files) {

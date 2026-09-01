@@ -8,13 +8,16 @@ import {
   kitchenEyeY,
   KITCHEN_APPEARANCE_AVAILABLE,
   KITCHEN_APPEARANCE_KIND,
+  KITCHEN_APPEARANCE_RESEARCH_KIND,
   KITCHEN_DEFAULT_STATION,
+  KITCHEN_FIDELITY_CAMERA,
   KITCHEN_FLOOR_Y,
   KITCHEN_HUMAN_FOV,
-  KITCHEN_SPLAT_IDENTITY_MATRIX,
   KITCHEN_SPLAT_MAX,
+  KITCHEN_SPLAT_WORLD_MATRIX,
   KITCHEN_STATIONS,
 } from "./kitchen-proof-world";
+import { BRUSH_B_PRIMITIVE_COUNT } from "./spark-appearance-load";
 
 describe("kitchen proof world", () => {
   it("keeps human-eye height in the 1.5–1.65 m band above the detected floor", () => {
@@ -29,13 +32,14 @@ describe("kitchen proof world", () => {
     expect(KITCHEN_HUMAN_FOV).toBeLessThanOrEqual(80);
   });
 
-  it("loads Brush appearance baked into ARKit, not a view-time SIM3", () => {
+  it("loads native Brush B and applies EXACT_FRAME_SIM3 as the Spark scene transform", () => {
     expect(KITCHEN_APPEARANCE_AVAILABLE).toBe(true);
-    expect(KITCHEN_APPEARANCE_KIND).toBe("brush_x4_arkit.spz");
-    expect(KITCHEN_SPLAT_MAX).toBeGreaterThanOrEqual(672_348);
-    expect(KITCHEN_SPLAT_IDENTITY_MATRIX).toHaveLength(16);
-    expect(KITCHEN_SPLAT_IDENTITY_MATRIX[0]).toBe(1);
-    expect(KITCHEN_SPLAT_IDENTITY_MATRIX[15]).toBe(1);
+    expect(KITCHEN_APPEARANCE_KIND).toBe("appearance-web.spz");
+    expect(KITCHEN_APPEARANCE_RESEARCH_KIND).toBe("brush_x4_arkit.spz");
+    expect(KITCHEN_SPLAT_MAX).toBe(BRUSH_B_PRIMITIVE_COUNT);
+    const sim = exactFrameSim3();
+    expect(KITCHEN_SPLAT_WORLD_MATRIX).toEqual(sim.matrix);
+    expect(KITCHEN_SPLAT_WORLD_MATRIX[0]).toBeCloseTo(-0.5514738399579077, 9);
   });
 
   it("starts at a human-eye hero station", () => {
@@ -58,5 +62,13 @@ describe("kitchen proof world", () => {
     expect(out.x).toBeCloseTo(0.6077676545055801, 3);
     expect(out.y).toBeCloseTo(0.05263148427980266, 3);
     expect(out.z).toBeCloseTo(-1.6845858826355267, 3);
+  });
+
+  it("pins the fridge fidelity camera to the registered kitchen station", () => {
+    expect(KITCHEN_FIDELITY_CAMERA.position[0]).toBeCloseTo(0.72, 6);
+    expect(KITCHEN_FIDELITY_CAMERA.position[1]).toBeCloseTo(kitchenEyeY(), 9);
+    expect(KITCHEN_FIDELITY_CAMERA.position[2]).toBeCloseTo(-1.7, 6);
+    expect(KITCHEN_FIDELITY_CAMERA.quaternionXyzw[1]).toBeCloseTo(-0.412321, 3);
+    expect(KITCHEN_FIDELITY_CAMERA.quaternionXyzw[3]).toBeCloseTo(0.911039, 3);
   });
 });

@@ -1,9 +1,11 @@
 /**
- * Kitchen visual-proof world: metric TSDF is S360_WORLD.
- * Brush B (equatorial+zenith) is baked into ARKit via locked EXACT_FRAME_SIM3.
- * Spark Rx(π) is NOT applied — the SPZ already lives on ARKit Y-up.
+ * Kitchen visual-proof world: metric TSDF is S360_WORLD identity.
+ * Brush B stays in native X4 coordinates. EXACT_FRAME_SIM3 is the Spark
+ * splat object/world transform — it is not baked into Gaussian means.
+ * Spark Rx(π) is NOT applied; SIM3 already lands on ARKit Y-up.
  */
 import { sim3FromRowMajor4, type Sim3 } from "./s360-world";
+import { BRUSH_B_PRIMITIVE_COUNT } from "./spark-appearance-load";
 import type { FloorInfo, WalkStation } from "./walkthrough-navigation";
 
 /** Locked exact-frame SIM3. P_arkit = scale * R @ P_x4 + t. Never recomputed. */
@@ -23,13 +25,13 @@ export function exactFrameSim3(): Sim3 {
 
 export const KITCHEN_PROOF_JOB = "79a4f0ac-32e9-4358-bda0-e1a7461510e1";
 
-/** Brush B baked to ARKit. Identity world matrix — SIM3 is already in the SPZ. */
+/** Native-coordinate Brush B web asset. Baked ARKit SPZ is research-only. */
 export const KITCHEN_APPEARANCE_AVAILABLE = true;
-export const KITCHEN_APPEARANCE_KIND = "brush_x4_arkit.spz";
-export const KITCHEN_SPLAT_MAX = 800_000;
-export const KITCHEN_SPLAT_IDENTITY_MATRIX = [
-  1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1,
-] as const;
+export const KITCHEN_APPEARANCE_KIND = "appearance-web.spz";
+export const KITCHEN_APPEARANCE_RESEARCH_KIND = "brush_x4_arkit.spz";
+export const KITCHEN_SPLAT_MAX = BRUSH_B_PRIMITIVE_COUNT;
+/** Column-major EXACT_FRAME_SIM3. Applied as the Spark splat object transform. */
+export const KITCHEN_SPLAT_WORLD_MATRIX = exactFrameSim3().matrix;
 export const KITCHEN_DEFAULT_STATION = "hero";
 export const KITCHEN_APPEARANCE_TIMEOUT_MS = 15_000;
 export const KITCHEN_IDLE_MS = 2500;
@@ -63,3 +65,13 @@ export function kitchenDefaultStation(): WalkStation {
 export function kitchenEyeY(): number {
   return KITCHEN_FLOOR_Y + KITCHEN_EYE_HEIGHT_M;
 }
+
+/** Fixed-camera appearance regression. Fridge station, 1440×900, vfov 72°. */
+export const KITCHEN_FIDELITY_CAMERA = {
+  width: 1440,
+  height: 900,
+  vfov: 72,
+  position: [0.72, KITCHEN_FLOOR_Y + KITCHEN_EYE_HEIGHT_M, -1.7] as const,
+  yaw: -0.85,
+  quaternionXyzw: [0, Math.sin(-0.85 / 2), 0, Math.cos(-0.85 / 2)] as const,
+} as const;
