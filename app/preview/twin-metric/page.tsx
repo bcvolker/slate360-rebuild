@@ -27,17 +27,32 @@ export default async function TwinMetricPreviewPage({
   const jobId = Array.isArray(raw) ? raw[0] : raw;
   if (!jobId || !JOB_RE.test(jobId)) notFound();
 
-  const meshUrl = `/preview/twin-metric/asset?job=${encodeURIComponent(jobId)}&kind=geometry.glb`;
+  const asset = (kind: string) =>
+    `/preview/twin-metric/asset?job=${encodeURIComponent(jobId)}&kind=${kind}`;
   return (
-    <main className="h-dvh w-full bg-[var(--graphite-canvas)] p-3">
+    <main className="relative h-dvh w-full bg-[var(--graphite-canvas)] p-3">
       <MeshTwinViewerClient
-        meshUrl={meshUrl}
+        meshUrl={asset("geometry.glb")}
         splatUrl={null}
         stations={DUMMY_STATIONS}
         floors={DUMMY_FLOORS}
         ceilingCutY={null}
         label={`metric-${jobId.slice(0, 8)}`}
       />
+      <aside className="pointer-events-none absolute bottom-4 right-4 z-20 flex max-w-[40vw] gap-2">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={asset("floor_slice.png")}
+          alt="Worker floor slice"
+          className="h-28 w-auto border border-white/10 bg-black/60"
+        />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={asset("thumbnail.png")}
+          alt="Worker thumbnail"
+          className="h-28 w-auto border border-white/10 bg-black/60"
+        />
+      </aside>
       <p className="sr-only">
         Pinned KitchenAprilTags metric GLB org={PINNED_ORG} space={PINNED_SPACE}
       </p>

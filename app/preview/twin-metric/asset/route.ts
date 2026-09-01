@@ -1,9 +1,10 @@
-import { GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
+import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { s3, BUCKET } from "@/lib/s3";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 const PINNED_ORG = "c5538bfd-a67a-4930-8481-0e5e331ec7cc";
 const PINNED_SPACE = "e4eaf78b-b064-4cce-b640-8bc8efb820e1";
@@ -26,14 +27,12 @@ export async function GET(request: NextRequest) {
   }
   const key = `orgs/${PINNED_ORG}/digital-twin/${PINNED_SPACE}/models/${job}/${spec.suffix}`;
   try {
-    await s3.send(new HeadObjectCommand({ Bucket: BUCKET, Key: key }));
     const res = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
-    const bytes = await res.Body?.transformToByteArray();
-    if (!bytes) return NextResponse.json({ error: "empty" }, { status: 404 });
-    return new NextResponse(Buffer.from(bytes), {
+    if (!res.Body) return NextResponse.json({ error: "empty" }, { status: 404 });
+    return new NextResponse(res.Body.transformToWebStream(), {
       headers: {
         "Content-Type": spec.type,
-        "Content-Length": String(bytes.byteLength),
+        ...(res.ContentLength != null ? { "Content-Length": String(res.ContentLength) } : {}),
         "Cache-Control": "no-store",
       },
     });
