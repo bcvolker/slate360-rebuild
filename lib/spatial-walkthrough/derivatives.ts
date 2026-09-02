@@ -9,7 +9,17 @@ export type ClipKeys = {
   public_proxy_key?: string | null;
   client_poster_key?: string | null;
   public_poster_key?: string | null;
+  capture_meta?: Record<string, unknown> | null;
 };
+
+export type MediaBootState = "READY" | "DERIVATIVE_REQUIRED" | "PROCESSING";
+
+function metaKey(clip: ClipKeys, name: string): string | null {
+  const meta = clip.capture_meta;
+  if (!meta || typeof meta !== "object") return null;
+  const value = meta[name];
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
 
 /** MASTER is never a share policy. Shares are CLIENT or PUBLIC only. */
 export function isSharePolicy(policy: AccessPolicy): policy is SharePolicy {
@@ -35,8 +45,16 @@ export function selectDerivativeKey(
   if (kind === "master") return clip.master_key ?? null;
   if (kind === "poster" || kind === "hero") {
     if (policy === "master" && allowMaster) return clip.poster_key ?? null;
-    if (policy === "public") return clip.public_poster_key ?? null;
-    return clip.client_poster_key ?? clip.public_poster_key ?? null;
+    if (policy === "public") {
+      return clip.public_poster_key ?? metaKey(clip, "public_poster_key") ?? null;
+    }
+    return (
+      clip.client_poster_key ??
+      clip.public_poster_key ??
+      metaKey(clip, "client_poster_key") ??
+      metaKey(clip, "public_poster_key") ??
+      null
+    );
   }
   if (policy === "public") return clip.public_proxy_key ?? null;
   return clip.proxy_key ?? null;
@@ -85,4 +103,45 @@ export function clipReadyPatch(body: {
 
 export function rejectsMasterFallthrough(clip: ClipKeys, policy: SharePolicy): boolean {
   return selectDerivativeKey(clip, "proxy", policy) == null && clip.master_key != null;
+}
+
+export function publicMediaContract(
+  token: string,
+  clipId: string,
+  clip: ClipKeys,
+  policy: AccessPolicy,
+): {
+  proxyUrl: string;
+  posterUrl: string | null;
+  gatePosterUrl: string | null;
+  publicMediaReady: boolean;
+  mediaState: MediaBootState;
+} {
+  const proxyKey = selectDerivativeKey(clip, "proxy", policy);
+  const posterKey = selectDerivativeKey(clip, "poster", policy);
+  const path = `/api/spatial-walkthrough/public/${token}/media?clip=${clipId}`;
+  return {
+    proxyUrl: proxyKey ? `${path}&kind=proxy` : "",
+    posterUrl: posterKey ? `${path}&kind=poster` : null,
+    gatePosterUrl: posterKey ? `${path}&kind=hero` : null,
+    publicMediaReady: Boolean(proxyKey),
+    mediaState: proxyKey ? "READY" : "DERIVATIVE_REQUIRED",
+  };
+}
+
+export function studioMediaContract(
+  walkthroughId: string,
+  clipId: string,
+  clip: ClipKeys,
+  policy: AccessPolicy,
+  allowMaster = false,
+): { videoUrl: string; posterUrl: string | null; mediaState: MediaBootState } {
+  const proxyKey = selectDerivativeKey(clip, "proxy", policy, allowMaster);
+  const posterKey = selectDerivativeKey(clip, "poster", policy, allowMaster);
+  const path = `/api/spatial-walkthrough/${walkthroughId}/media?clip=${clipId}&policy=${policy}`;
+  return {
+    videoUrl: proxyKey ? `${path}&kind=proxy` : "",
+    posterUrl: posterKey ? `${path}&kind=poster` : null,
+    mediaState: proxyKey ? "READY" : "DERIVATIVE_REQUIRED",
+  };
 }

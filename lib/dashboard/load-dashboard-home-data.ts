@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { mapProjectCards } from "./resolve-project-thumbs";
 
 export type DashboardHomeCounts = {
   projects: number;
@@ -27,6 +28,7 @@ export type DashboardRecentProject = {
   createdAt: string;
   /** Optional preview image (site-walk photo or twin) for image-backed cards. */
   imageUrl?: string | null;
+  isFixture?: boolean;
 };
 
 export type DashboardRecentWalk = {
@@ -101,10 +103,10 @@ export async function loadDashboardHomeData(orgId: string | null, userId: string
       .eq("status", "draft"),
     admin
       .from("projects")
-      .select("id, name, status, created_at")
+      .select("id, name, status, created_at, thumbnail_url, metadata")
       .eq("org_id", orgId)
       .order("created_at", { ascending: false })
-      .limit(6),
+      .limit(20),
     admin
       .from("site_walk_sessions")
       .select("id, title, status, updated_at")
@@ -133,12 +135,12 @@ export async function loadDashboardHomeData(orgId: string | null, userId: string
         }),
   ]);
 
-  const recentProjects: DashboardRecentProject[] = (recentProjectsRes.data ?? []).map((row) => ({
-    id: row.id,
-    name: row.name,
-    status: row.status ?? "active",
-    createdAt: row.created_at,
-  }));
+  const recentProjects: DashboardRecentProject[] = await mapProjectCards(
+    admin,
+    orgId,
+    recentProjectsRes.data ?? [],
+  );
+  const thumbTarget = recentProjects.find((row) => !row.isFixture && !row.imageUrl) ?? null;
   const recentTwins: DashboardRecentTwin[] = (recentTwinsRes.data ?? []).map((row) => ({
     id: row.id,
     title: row.title,
@@ -150,12 +152,12 @@ export async function loadDashboardHomeData(orgId: string | null, userId: string
   // Project tile (docs/design/DASHBOARD_VISION.md flagged imageUrl as typed but
   // never populated) — only for the single newest project/twin, not the whole list.
   const [firstPhotoRes, primaryModelRes] = await Promise.all([
-    recentProjects[0]
+    thumbTarget
       ? admin
           .from("site_walk_items")
           .select("id")
           .eq("org_id", orgId)
-          .eq("project_id", recentProjects[0].id)
+          .eq("project_id", thumbTarget.id)
           .eq("item_type", "photo")
           .is("deleted_at", null)
           .order("captured_at", { ascending: true })
@@ -176,8 +178,8 @@ export async function loadDashboardHomeData(orgId: string | null, userId: string
       : Promise.resolve({ data: null }),
   ]);
 
-  if (recentProjects[0] && firstPhotoRes.data?.id) {
-    recentProjects[0].imageUrl = `/api/site-walk/items/${firstPhotoRes.data.id}/image`;
+  if (thumbTarget && firstPhotoRes.data?.id) {
+    thumbTarget.imageUrl = `/api/site-walk/items/${firstPhotoRes.data.id}/image`;
   }
   if (recentTwins[0] && primaryModelRes.data?.id) {
     recentTwins[0].imageUrl = `/api/digital-twin/models/${primaryModelRes.data.id}/preview-image`;

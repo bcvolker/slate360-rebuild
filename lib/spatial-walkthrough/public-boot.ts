@@ -3,6 +3,7 @@ import "server-only";
 import { loadShareRow, shareDenied } from "@/lib/spatial-walkthrough/share-resolve";
 import { cookieUnlocksShare, shareUnlockCookieName } from "@/lib/spatial-walkthrough/share-session";
 import { resolveBrandTheme } from "@/lib/spatial-walkthrough/theme";
+import { publicMediaContract } from "@/lib/spatial-walkthrough/derivatives";
 import type { WalkBoot } from "@/lib/spatial-walkthrough/share-payload";
 
 type CookieReader = { get(name: string): { value: string } | undefined };
@@ -33,7 +34,7 @@ export async function loadPublicWalkBoot(token: string, cookies: CookieReader): 
     if (!wt) return DENIED;
     const { data: clip } = await admin
       .from("spatial_clips")
-      .select("id")
+      .select("id, proxy_key, public_proxy_key, capture_meta")
       .eq("walkthrough_id", wt.id)
       .eq("status", "ready")
       .order("sort_order")
@@ -45,12 +46,11 @@ export async function loadPublicWalkBoot(token: string, cookies: CookieReader): 
       canHidePoweredBy: true,
     });
     if (brand.logoUrl) brand.logoUrl = `/api/spatial-walkthrough/public/${token}/logo`;
+    const media = clip ? publicMediaContract(token, String(clip.id), clip, row.policy) : null;
     return {
       walkId: String(wt.id),
       title: String(wt.title ?? "Spatial Walkthrough"),
-      posterUrl: clip?.id
-        ? `/api/spatial-walkthrough/public/${token}/media?clip=${clip.id}&kind=hero`
-        : null,
+      posterUrl: media?.gatePosterUrl ?? null,
       brand,
       accessState: "open",
     };

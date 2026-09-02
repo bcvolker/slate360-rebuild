@@ -38,7 +38,11 @@ export const spatialWalkthroughIngestTask = task({
       return { failed: true, reason: "missing-endpoint" };
     }
 
-    const meta = (job.metadata ?? {}) as { mode?: string; operatorPatch?: unknown };
+    const meta = (job.metadata ?? {}) as {
+      mode?: string;
+      operatorPatch?: unknown;
+      skipIntervals?: unknown;
+    };
     const mode = payload.mode || meta.mode || (job.job_type === "privacy-bake" ? "privacy-bake" : undefined);
 
     const res = await fetch(endpoint, {
@@ -51,6 +55,7 @@ export const spatialWalkthroughIngestTask = task({
         sourceKey: job.source_s3_key,
         mode,
         operatorPatch: meta.operatorPatch,
+        skipIntervals: meta.skipIntervals ?? [],
         callbackBaseUrl:
           payload.callbackBaseUrl?.trim() ||
           process.env.SITE_URL?.trim() ||

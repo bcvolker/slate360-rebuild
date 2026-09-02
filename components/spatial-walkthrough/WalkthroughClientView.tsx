@@ -22,8 +22,8 @@ function clipSummaries(walkthroughId: string, clips: Array<Record<string, unknow
     defaultYaw: Number(c.default_yaw ?? 0),
     defaultPitch: Number(c.default_pitch ?? 0),
     sortOrder: Number(c.sort_order ?? i),
-    videoUrl: `/api/spatial-walkthrough/${walkthroughId}/media?clip=${c.id}&kind=proxy`,
-    posterUrl: `/api/spatial-walkthrough/${walkthroughId}/media?clip=${c.id}&kind=poster`,
+    videoUrl: `/api/spatial-walkthrough/${walkthroughId}/media?clip=${c.id}&kind=proxy&policy=client`,
+    posterUrl: null,
   }));
 }
 

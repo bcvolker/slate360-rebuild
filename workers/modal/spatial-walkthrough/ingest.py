@@ -32,6 +32,7 @@ cpu_image = (
     .apt_install("ffmpeg")
     .pip_install("fastapi[standard]==0.115.6", "boto3==1.35.99", "requests==2.32.3")
     .add_local_python_source("r2_utils")
+    .add_local_python_source("privacy_mask")
 )
 
 
@@ -233,23 +234,46 @@ def bake_public_proxy(payload: dict[str, Any]) -> None:
     site = callback_base_url(payload)
     try:
         post_callback({"jobId": job_id, "clipId": clip_id, "status": "progress", "progressPct": 10, "stage": "privacy-bake"}, site)
+        from privacy_mask import oversized, parse_keyframes, skip_expr, write_mask_video
+
         src = str(work / "proxy.mp4")
         download_object(s3, bucket, src_key, src)
         meta = _ffprobe(src)
         w, h = int(meta["width"] or 1920), int(meta["height"] or 960)
-        mask = work / "mask.png"
-        _write_operator_mask_png(mask, w, h, patch)
+        duration = float(meta.get("duration") or 0)
+        keyframes = parse_keyframes(patch)
+        skips: list[tuple[float, float]] = []
+        for item in payload.get("skipIntervals") or []:
+            if isinstance(item, dict) and item.get("start") is not None and item.get("end") is not None:
+                skips.append((float(item["start"]), float(item["end"])))
+        for i, frame in enumerate(keyframes):
+            if oversized(frame):
+                end = keyframes[i + 1]["t"] if i + 1 < len(keyframes) else duration
+                skips.append((frame["t"], end))
+        cut = str(work / "cut.mp4")
+        expr = skip_expr(skips)
+        if expr:
+            subprocess.run(
+                [
+                    "ffmpeg", "-y", "-i", src,
+                    "-vf", f"select='{expr}',setpts=N/FRAME_RATE/TB",
+                    "-af", f"aselect='{expr}',asetpts=N/SR/TB",
+                    "-c:v", "libx264", "-preset", "veryfast", "-crf", "22",
+                    "-pix_fmt", "yuv420p", "-movflags", "+faststart", cut,
+                ],
+                capture_output=True,
+                check=True,
+            )
+            src = cut
+            meta = _ffprobe(src)
+            duration = float(meta.get("duration") or duration)
+        mw, mh = max(320, w // 4), max(160, h // 4)
+        mask_vid = write_mask_video(work / "mask.mov", mw, mh, duration or 1, keyframes)
         out = str(work / "public.mp4")
-        overlay = "[0:v][1:v]overlay=0:0:format=auto"
-        t0 = patch.get("tStart")
-        t1 = patch.get("tEnd")
-        if t0 is not None or t1 is not None:
-            start = float(t0 or 0)
-            end = float(t1) if t1 is not None else 1e9
-            overlay = f"[0:v][1:v]overlay=0:0:format=auto:enable='between(t,{start},{end})'"
+        overlay = f"[1:v]scale={w}:{h}[m];[0:v][m]overlay=0:0:format=auto"
         subprocess.run(
             [
-                "ffmpeg", "-y", "-i", src, "-i", str(mask),
+                "ffmpeg", "-y", "-i", src, "-i", str(mask_vid),
                 "-filter_complex", overlay,
                 "-c:v", "libx264", "-preset", "veryfast", "-crf", "22",
                 "-pix_fmt", "yuv420p", "-c:a", "copy", "-movflags", "+faststart",

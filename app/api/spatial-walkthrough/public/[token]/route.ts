@@ -12,6 +12,7 @@ import { toWaypoint } from "@/lib/spatial-walkthrough/waypoints";
 import { toChapter, visibleChapters } from "@/lib/spatial-walkthrough/chapters";
 import { toClipEdge } from "@/lib/spatial-walkthrough/clip-edges";
 import { HOUSEWALK_PRESENTATION } from "@/lib/spatial-walkthrough/presentation";
+import { publicMediaContract } from "@/lib/spatial-walkthrough/derivatives";
 
 export const runtime = "nodejs";
 type Ctx = { params: Promise<{ token: string }> };
@@ -55,7 +56,7 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
   if (!wt) return NextResponse.json(publicShareDenial(), { status: 404 });
 
   const [{ data: clips }, { data: waypoints }, { data: pins }, { data: redactions }, { data: chapters }, { data: edges }] = await Promise.all([
-    admin.from("spatial_clips").select("id, title, zone, duration_s, default_yaw, default_pitch, status, sort_order, operator_patch, capture_meta, public_proxy_key").eq("walkthrough_id", wt.id).eq("status", "ready").order("sort_order"),
+    admin.from("spatial_clips").select("id, title, zone, duration_s, default_yaw, default_pitch, status, sort_order, operator_patch, capture_meta, public_proxy_key, proxy_key").eq("walkthrough_id", wt.id).eq("status", "ready").order("sort_order"),
     admin.from("spatial_waypoints").select("*").eq("walkthrough_id", wt.id).order("sort_order"),
     admin.from("spatial_pins").select("*").eq("walkthrough_id", wt.id),
     admin.from("spatial_redactions").select("*").eq("walkthrough_id", wt.id),
@@ -123,24 +124,24 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
           durationS: clip.duration_s,
           defaultYaw: clip.default_yaw,
           defaultPitch: clip.default_pitch,
-          proxyUrl: `/api/spatial-walkthrough/public/${token}/media?clip=${clip.id}&kind=proxy`,
-          posterUrl: `/api/spatial-walkthrough/public/${token}/media?clip=${clip.id}&kind=hero`,
-          gatePosterUrl: `/api/spatial-walkthrough/public/${token}/media?clip=${clip.id}&kind=hero`,
-          publicMediaReady: row.policy !== "public" || Boolean(clip.public_proxy_key),
+          ...publicMediaContract(token, clip.id, clip, row.policy),
           captureMeta: clip.capture_meta ?? {},
         }
       : null,
-    clips: (clips ?? []).map((c) => ({
-      id: c.id,
-      title: c.title,
-      zone: c.zone,
-      durationS: c.duration_s,
-      defaultYaw: c.default_yaw,
-      defaultPitch: c.default_pitch,
-      sortOrder: c.sort_order,
-      videoUrl: `/api/spatial-walkthrough/public/${token}/media?clip=${c.id}&kind=proxy`,
-      posterUrl: `/api/spatial-walkthrough/public/${token}/media?clip=${c.id}&kind=poster`,
-    })),
+    clips: (clips ?? []).map((c) => {
+      const media = publicMediaContract(token, c.id, c, row.policy);
+      return {
+        id: c.id,
+        title: c.title,
+        zone: c.zone,
+        durationS: c.duration_s,
+        defaultYaw: c.default_yaw,
+        defaultPitch: c.default_pitch,
+        sortOrder: c.sort_order,
+        videoUrl: media.proxyUrl,
+        posterUrl: media.posterUrl,
+      };
+    }),
     chapters: visibleChapters((chapters ?? []).map(toChapter), row.policy),
     edges: (edges ?? []).map(toClipEdge),
     lockedChapterId: (row.chapter_id as string | null) ?? null,

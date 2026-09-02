@@ -45,7 +45,10 @@ export function StudioChapterAuthoring({
     defaultPitch: Number(c.default_pitch ?? 0),
     sortOrder: Number(c.sort_order ?? i),
     videoUrl: `/api/spatial-walkthrough/${walkthroughId}/media?clip=${c.id}&kind=proxy&policy=${policy}`,
-    posterUrl: `/api/spatial-walkthrough/${walkthroughId}/media?clip=${c.id}&kind=poster&policy=${policy}`,
+    // Client/public posters are derivative-only. Do not hand MASTER poster_key to PSV.
+    posterUrl: policy === "master"
+      ? `/api/spatial-walkthrough/${walkthroughId}/media?clip=${c.id}&kind=poster&policy=${policy}`
+      : null,
   }));
 
   return (

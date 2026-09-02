@@ -30,6 +30,15 @@ export const POST = (req: NextRequest, ctx: Ctx) =>
       .eq("id", id)
       .maybeSingle();
     const operatorPatch = resolveOperatorPatch(clip.operator_patch, parseOperatorPatch(wt?.operator_patch));
+    const { data: redactions } = await admin
+      .from("spatial_redactions")
+      .select("t_start, t_end, mode, clip_id")
+      .eq("walkthrough_id", id)
+      .eq("clip_id", clipId);
+    const skipIntervals = (redactions ?? [])
+      .filter((row) => row.mode === "skip")
+      .map((row) => ({ start: Number(row.t_start), end: Number(row.t_end) }))
+      .filter((row) => Number.isFinite(row.start) && Number.isFinite(row.end) && row.end > row.start);
 
     const { data: job, error } = await admin.from("spatial_processing_jobs").insert({
       org_id: orgId,
@@ -38,7 +47,7 @@ export const POST = (req: NextRequest, ctx: Ctx) =>
       job_type: "privacy-bake",
       status: "queued",
       source_s3_key: clip.proxy_key,
-      metadata: { mode: "privacy-bake", operatorPatch },
+      metadata: { mode: "privacy-bake", operatorPatch, skipIntervals },
     }).select("id").single();
     if (error || !job) return badRequest(error?.message ?? "Could not queue bake");
 

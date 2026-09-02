@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   allowedMediaKind,
   clipReadyPatch,
+  publicMediaContract,
   selectDerivativeKey,
   stripMasterKeys,
 } from "./derivatives";
@@ -61,6 +62,21 @@ describe("MASTER / derivative isolation", () => {
     expect(selectDerivativeKey(clip, "poster", "public")).toBeNull();
     expect(selectDerivativeKey({ ...clip, public_poster_key: "pub.jpg" }, "poster", "public")).toBe("pub.jpg");
     expect(selectDerivativeKey(clip, "poster", "master", true)).toBe(clip.poster_key);
+    expect(selectDerivativeKey({
+      ...clip,
+      capture_meta: { public_poster_key: "meta-pub.jpg" },
+    }, "poster", "public")).toBe("meta-pub.jpg");
+  });
+
+  it("does not emit share media URLs when the derivative key is missing", () => {
+    const empty = publicMediaContract("tok", "c1", clip, "public");
+    expect(empty.proxyUrl).toBe("");
+    expect(empty.posterUrl).toBeNull();
+    expect(empty.mediaState).toBe("DERIVATIVE_REQUIRED");
+    const ready = publicMediaContract("tok", "c1", { ...clip, public_proxy_key: "pub.mp4", public_poster_key: "pub.jpg" }, "public");
+    expect(ready.proxyUrl).toContain("kind=proxy");
+    expect(ready.posterUrl).toContain("kind=poster");
+    expect(ready.mediaState).toBe("READY");
   });
 
   it("strips master fields from public payloads", () => {

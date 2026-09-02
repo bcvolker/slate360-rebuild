@@ -18,27 +18,40 @@ type Props = {
 
 export function CreatorHome({ recentProjects, recentWalks, needsAttention }: Props) {
   const [create, setCreate] = useState(false);
+  const [showTest, setShowTest] = useState(false);
+  const visibleProjects = recentProjects.filter((project) => showTest || !project.isFixture).slice(0, 6);
+  const hasFixtures = recentProjects.some((project) => project.isFixture);
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 px-4 py-8 lg:px-8">
       <header className="flex items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold text-white">Projects</h1>
-        <button type="button" onClick={() => setCreate(true)} className="inline-flex h-12 items-center border border-white/20 px-4 text-sm text-white" data-testid="global-create">
-          + Create
-        </button>
+        <div className="flex items-center gap-3">
+          {hasFixtures ? (
+            <label className="flex items-center gap-2 text-xs text-[var(--graphite-muted)]">
+              <input type="checkbox" checked={showTest} onChange={(e) => setShowTest(e.target.checked)} />
+              Show test projects
+            </label>
+          ) : null}
+          <button type="button" onClick={() => setCreate(true)} className="inline-flex h-12 items-center border border-white/20 px-4 text-sm text-white" data-testid="global-create">
+            + Create
+          </button>
+        </div>
       </header>
 
       <section>
         <p className="mb-4 text-sm text-[var(--graphite-muted)]">Recent / active</p>
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {recentProjects.length === 0 ? (
+          {visibleProjects.length === 0 ? (
             <p className="text-sm text-[var(--graphite-text-body)]">No projects yet. Create one to start a walkthrough.</p>
-          ) : recentProjects.map((project) => (
+          ) : visibleProjects.map((project) => (
             <Link key={project.id} href={`/projects/${project.id}`} className="group block overflow-hidden border border-white/10">
-              <div className="aspect-video bg-white/[0.03]">
+              <div className="flex aspect-video items-center justify-center bg-[var(--graphite-canvas)]">
                 {project.imageUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={project.imageUrl} alt="" className="h-full w-full object-cover" />
-                ) : null}
+                ) : (
+                  <p className="text-xs uppercase tracking-[0.14em] text-[var(--graphite-muted)]">Slate360</p>
+                )}
               </div>
               <div className="px-3 py-3">
                 <p className="truncate text-base text-white">{project.name}</p>

@@ -19,6 +19,7 @@ import { BriefingCueOverlay } from "./BriefingCueOverlay";
 import { useWalkthroughNav } from "./useWalkthroughNav";
 import { WalkthroughCollaborationHost, type WalkthroughCollaboration } from "@/components/spatial-walkthrough/items/WalkthroughCollaborationHost";
 import { LookHint } from "./LookHint";
+import { PreparingWalkStage } from "./PreparingWalkStage";
 import "@/components/spatial-walkthrough/audio/walkthrough-audio.css";
 
 export type ExperiencePin = DrawerPin & {
@@ -170,7 +171,7 @@ export function WalkthroughExperience({
       sceneVisible={hasFrame || Boolean(posterUrl)}
       visibleLayer={hasFrame ? "reality" : "hero"}
     >
-      {preview || !videoUrl ? (
+      {preview ? (
         <PreviewSphere
           theme={theme}
           title={title}
@@ -185,6 +186,8 @@ export function WalkthroughExperience({
           onSelect={setSelectedId}
           onWaypoint={() => startExplore()}
         />
+      ) : !videoUrl ? (
+        <PreparingWalkStage title={title} logoUrl={theme.logoUrl} />
       ) : (
         <>
           <WalkthroughPlayer

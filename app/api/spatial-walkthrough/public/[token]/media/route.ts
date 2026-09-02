@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { loadShareRow, shareDenied, passwordOk } from "@/lib/spatial-walkthrough/share-resolve";
 import { selectDerivativeKey, type MediaKind } from "@/lib/spatial-walkthrough/derivatives";
+import { loadClipMediaKeys } from "@/lib/spatial-walkthrough/clip-media";
 import { sessionUnlocksShare } from "@/lib/spatial-walkthrough/share-session";
 import { publicShareDenial } from "@/lib/spatial-walkthrough/share-token";
 import { s3, BUCKET } from "@/lib/s3";
@@ -25,11 +26,7 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
   if (!unlocked && !passwordOk(row, pass)) return NextResponse.json(publicShareDenial(), { status: 401 });
   if (kind === "master") return NextResponse.json(publicShareDenial(), { status: 404 });
 
-  const { data: clip } = await admin
-    .from("spatial_clips")
-    .select("walkthrough_id, proxy_key, poster_key, public_proxy_key, client_poster_key, public_poster_key")
-    .eq("id", clipId)
-    .maybeSingle();
+  const clip = await loadClipMediaKeys(admin, { id: clipId });
   if (!clip || clip.walkthrough_id !== row.walkthrough_id) {
     return NextResponse.json(publicShareDenial(), { status: 404 });
   }
