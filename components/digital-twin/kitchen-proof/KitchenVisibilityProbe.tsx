@@ -13,30 +13,18 @@ import {
   type VisibleLayer,
 } from "@/lib/digital-twin/scene-visibility";
 
-const PATCH = 12;
-
 function readCanvasProbe(gl: THREE.WebGLRenderer): PixelProbe {
   const canvas = gl.domElement;
-  const width = canvas.width;
-  const height = canvas.height;
-  const regions: Array<[number, number]> = [
-    [Math.floor(width / 2), Math.floor(height / 2)],
-    [Math.floor(width * 0.22), Math.floor(height * 0.22)],
-    [Math.floor(width * 0.78), Math.floor(height * 0.22)],
-    [Math.floor(width * 0.22), Math.floor(height * 0.78)],
-    [Math.floor(width * 0.78), Math.floor(height * 0.78)],
-  ];
-  const pixels = new Uint8Array(PATCH * PATCH * 4 * regions.length);
-  let offset = 0;
   const ctx = gl.getContext();
-  for (const [cx, cy] of regions) {
-    const x = Math.max(0, Math.min(width - PATCH, cx - Math.floor(PATCH / 2)));
-    const y = Math.max(0, Math.min(height - PATCH, cy - Math.floor(PATCH / 2)));
-    const slice = pixels.subarray(offset, offset + PATCH * PATCH * 4);
-    ctx.readPixels(x, y, PATCH, PATCH, ctx.RGBA, ctx.UNSIGNED_BYTE, slice);
-    offset += PATCH * PATCH * 4;
-  }
-  return probeRgbaBuffer(pixels, PATCH * regions.length, PATCH);
+  const srcW = canvas.width;
+  const srcH = canvas.height;
+  const w = Math.max(48, Math.floor(srcW / 6));
+  const h = Math.max(48, Math.floor(srcH / 6));
+  const x = Math.max(0, Math.floor((srcW - w) / 2));
+  const y = Math.max(0, Math.floor((srcH - h) / 2));
+  const pixels = new Uint8Array(w * h * 4);
+  ctx.readPixels(x, y, w, h, ctx.RGBA, ctx.UNSIGNED_BYTE, pixels);
+  return probeRgbaBuffer(pixels, w, h);
 }
 
 export function KitchenVisibilityProbe({

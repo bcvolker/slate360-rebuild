@@ -62,7 +62,7 @@ export function KitchenProofViewer({
 
   useEffect(() => {
     if (display.status !== "ready" || !display.geometry || geometryPixels || geoAttempts.current >= 2) return;
-    const t = window.setTimeout(() => setProbeLayer("geometry"), 120);
+    const t = window.setTimeout(() => setProbeLayer("geometry"), 400);
     return () => window.clearTimeout(t);
   }, [display.status, display.geometry, geometryPixels]);
 
@@ -100,6 +100,8 @@ export function KitchenProofViewer({
       if (probe.visible) {
         if (geometryReadyMs.current == null) geometryReadyMs.current = now;
         setGeometryPixels(true);
+      } else if (geoAttempts.current < 5) {
+        window.setTimeout(() => setProbeLayer("geometry"), 450);
       }
       return;
     }
