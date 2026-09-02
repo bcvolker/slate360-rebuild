@@ -2,14 +2,9 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { ProjectDetailEmptyState } from "@/components/projects/ProjectDetailEmptyState";
 import { projectDetailTokens as t } from "@/components/projects/project-detail-tokens";
+import { MondayProjectHero } from "@/components/projects/MondayProjectHero";
 import type { ProjectOverviewData } from "@/lib/projects/load-project-overview-data";
-
-function formatDate(value: string | null): string {
-  if (!value) return "Not set";
-  return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
 
 function formatRelativeDate(value: string): string {
   return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric" });
@@ -17,60 +12,13 @@ function formatRelativeDate(value: string): string {
 
 export function SpatialProjectOverview({ data }: { data: ProjectOverviewData }) {
   const base = `/projects/${data.projectId}`;
-  const latest = data.latestWalkthrough;
   const lastUploadLabel = data.lastFileUploadAt
     ? `Last upload ${formatRelativeDate(data.lastFileUploadAt)}`
     : "No uploads yet";
 
   return (
     <div className="space-y-5">
-      <section className={t.sectionCard}>
-        <p className={t.eyebrow}>Project</p>
-        <div className="mt-3 grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-          <div>
-            <h2 className="text-lg font-semibold text-[var(--graphite-text-header)]">{data.name}</h2>
-            <p className="mt-2 text-sm leading-relaxed text-[var(--graphite-muted)]">
-              {data.description || "No project description yet."}
-            </p>
-          </div>
-          <div className={t.metaGrid}>
-            <div className={t.metaCell}>
-              <p className={t.eyebrow}>Start</p>
-              <p className="mt-1 text-sm font-semibold text-[var(--graphite-text-header)]">{formatDate(data.startDate)}</p>
-            </div>
-            <div className={t.metaCell}>
-              <p className={t.eyebrow}>End</p>
-              <p className="mt-1 text-sm font-semibold text-[var(--graphite-text-header)]">{formatDate(data.endDate)}</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {latest ? (
-        <Link href={latest.href} className={`${t.sectionCard} block transition-colors hover:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)]`}>
-          <p className={t.eyebrow}>Latest walkthrough</p>
-          <div className="mt-3 flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="truncate text-lg font-semibold text-[var(--graphite-text-header)]">{latest.title}</p>
-              <p className="mt-1 text-sm text-[var(--graphite-muted)]">
-                {latest.capturedAt ? formatDate(latest.capturedAt) : "Capture date unset"}
-                {latest.building ? ` · ${latest.building}` : ""}
-                {latest.floor ? ` · ${latest.floor}` : ""}
-              </p>
-            </div>
-            <span className="inline-flex min-h-11 shrink-0 items-center gap-1.5 text-sm font-semibold text-[var(--graphite-primary)]">
-              Open <ArrowRight className="h-4 w-4" />
-            </span>
-          </div>
-        </Link>
-      ) : (
-        <ProjectDetailEmptyState
-          title="No walkthroughs yet"
-          description="Published Spatial Walkthroughs for this project will appear here."
-          actionLabel="Open library"
-          actionHref={`${base}/walkthroughs`}
-        />
-      )}
+      <MondayProjectHero projectId={data.projectId} />
 
       <div className="grid gap-5 lg:grid-cols-3">
         <OverviewList
@@ -98,7 +46,7 @@ export function SpatialProjectOverview({ data }: { data: ProjectOverviewData }) 
         <OverviewList
           title="Recent pins"
           empty="No spatial pins yet."
-          href={latest?.href ?? `${base}/walkthroughs`}
+          href={data.recentWalkthroughs[0]?.href ?? `${base}/walkthroughs`}
           items={data.recentPins.map((item) => ({
             id: item.id,
             title: item.title,

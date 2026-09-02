@@ -18,6 +18,7 @@
     "app/api/digital-twin/splat-manifest/route.ts",
     "app/api/tours/public/**/route.ts",
     "app/api/spatial-walkthrough/jobs/callback/route.ts",
-    "app/api/spatial-walkthrough/public/**/route.ts"
+    "app/api/spatial-walkthrough/public/**/route.ts",
+    "app/api/portal/**/route.ts"
   ]
 }
