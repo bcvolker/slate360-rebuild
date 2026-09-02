@@ -110,8 +110,11 @@ export function KitchenProofViewer({
   }, [display.status, display.triangles, shell.loco.poseRef, splatAssetReady]);
 
   const committed: VisibleLayer = realityPixels ? "reality" : geometryPixels ? "geometry" : "hero";
-  const showGeometry = committed !== "reality" && probeLayer !== "reality";
-  const showSplat = Boolean(appearanceSrc) && splatAssetReady && (committed === "reality" || probeLayer === "reality");
+  const showGeometry = (appearance.layer !== "reality" || !realityPixels) && probeLayer !== "reality";
+  const showSplat =
+    Boolean(appearanceSrc) &&
+    splatAssetReady &&
+    (appearance.layer !== "geometry" || probeLayer === "reality");
   const meshReady = display.status === "ready" && Boolean(display.geometry);
   const phase = spatialPhase({
     panoramaReady: panoReady,
