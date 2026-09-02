@@ -31,7 +31,7 @@ export function PortalHistoryRail({ data }: { data: PortalLandingData }) {
       <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">History</p>
       <div className="flex gap-3 overflow-x-auto pb-2">
         {data.history.map((row) => (
-          <a key={row.id} href={row.href} className="w-44 shrink-0 sm:w-56">
+                <a key={row.id} href={row.href} className="w-44 shrink-0 sm:w-56" data-surface="static">
             <div className="aspect-video overflow-hidden bg-white/[0.04]">
               {row.posterUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -85,8 +85,14 @@ export function PortalDocsRail({ data }: { data: PortalLandingData }) {
                 <img src={doc.thumbUrl} alt="" className="h-full w-full object-cover" />
               ) : null}
             </div>
-            <p className="mt-2 truncate text-sm">{doc.title}</p>
-            <p className="font-mono text-[10px] uppercase tracking-wide text-[var(--graphite-muted)]">{doc.kind}</p>
+                    <p className="mt-2 truncate text-sm">{doc.title}</p>
+                    <p className="font-mono text-[10px] uppercase tracking-wide text-[var(--graphite-muted)]">
+                      {doc.kind}
+                      {doc.locatorHref ? " · 1 spatial reference" : ""}
+                    </p>
+                    {doc.locatorHref ? (
+                      <span className="mt-1 block font-mono text-[10px] uppercase text-[var(--graphite-primary)]">View locations</span>
+                    ) : null}
           </a>
         ))}
       </div>

@@ -143,21 +143,22 @@
   cursor: pointer;
 }
 .sw-path-crumb {
-  width: 100%;
-  height: 100%;
-  border: 1px solid color-mix(in srgb, white 28%, transparent);
-  background: color-mix(in srgb, white 10%, transparent);
-  transform: rotate(45deg);
+  min-width: 48px;
+  min-height: 32px;
+  padding: 0 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--sw-accent, var(--graphite-primary)) 45%, transparent);
+  background: color-mix(in srgb, var(--sw-surface, black) 70%, transparent);
+  color: var(--sw-text, white);
+  font-size: 10px;
+  letter-spacing: 0.04em;
   pointer-events: auto;
 }
-.sw-frame[data-chrome="idle"] .sw-frame-header,
-.sw-frame[data-chrome="idle"] .sw-chrome {
+.sw-frame[data-chrome="idle"] .sw-frame-header {
   opacity: 0;
   pointer-events: none;
   transition: opacity 220ms ease;
 }
-.sw-frame[data-chrome="active"] .sw-frame-header,
-.sw-frame[data-chrome="active"] .sw-chrome {
+.sw-frame[data-chrome="active"] .sw-frame-header {
   opacity: 1;
   transition: opacity 160ms ease;
 }
@@ -200,9 +201,31 @@
   padding: 0 0.4rem;
 }
 .sw-chrome > * { pointer-events: auto; }
+.sw-look-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 5.75rem;
+  z-index: 18;
+  transform: translateX(-50%);
+  padding: 0.45rem 0.8rem;
+  border: 1px solid color-mix(in srgb, white 14%, transparent);
+  background: color-mix(in srgb, var(--sw-surface, black) 78%, transparent);
+  color: var(--sw-text, white);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+.sw-timeline-readout {
+  margin: 0 0 0.2rem;
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--sw-muted, var(--graphite-muted));
+}
 .sw-chrome-btn {
   display: inline-flex;
-  min-height: 2.5rem;
+  min-height: 3rem;
   align-items: center;
   gap: 0.2rem;
   padding: 0 0.7rem;

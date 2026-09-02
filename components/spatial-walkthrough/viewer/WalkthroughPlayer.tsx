@@ -105,7 +105,17 @@ export function WalkthroughPlayer({
       defaultYaw: "0deg",
       defaultPitch: "0deg",
       navbar: false,
-      loadingImg: posterUrl ?? undefined,
+      mousewheel: true,
+      mousemove: true,
+      mousewheelCtrlKey: false,
+      moveSpeed: 1.5,
+      zoomSpeed: 1.4,
+      defaultZoomLvl: 50,
+      minFov: 40,
+      maxFov: 90,
+      touchmoveTwoFingers: false,
+      keyboard: "fullscreen",
+      loadingImg: undefined,
       plugins: [
         [VideoPlugin, { progressbar: false, bigbutton: false }],
         MarkersPlugin,
@@ -258,8 +268,11 @@ export function WalkthroughPlayer({
   }, [videoUrl, posterUrl]);
 
   return (
-    <div className="absolute inset-0 min-h-0 w-full overflow-hidden bg-[var(--sw-page,var(--graphite-canvas))]">
-      <div ref={containerRef} className="absolute inset-0 h-full w-full" data-testid="sw-pano" />
+    <div
+      className="absolute inset-0 min-h-0 w-full overflow-hidden overscroll-none bg-[var(--sw-page,var(--graphite-canvas))]"
+      onWheel={(e) => e.preventDefault()}
+    >
+      <div ref={containerRef} className="absolute inset-0 h-full w-full touch-none" data-testid="sw-pano" />
     </div>
   );
 }

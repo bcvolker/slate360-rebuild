@@ -49,7 +49,7 @@ export async function loadPublicWalkBoot(token: string, cookies: CookieReader): 
       walkId: String(wt.id),
       title: String(wt.title ?? "Spatial Walkthrough"),
       posterUrl: clip?.id
-        ? `/api/spatial-walkthrough/public/${token}/media?clip=${clip.id}&kind=poster`
+        ? `/api/spatial-walkthrough/public/${token}/media?clip=${clip.id}&kind=hero`
         : null,
       brand,
       accessState: "open",

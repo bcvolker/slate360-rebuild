@@ -90,7 +90,8 @@ export function WalkthroughShareClient({ token, boot }: { token: string; boot?: 
           theme={payload.theme}
           title={payload.walkthrough.title}
           videoUrl={payload.clip.proxyUrl}
-          posterUrl={payload.clip.posterUrl}
+          posterUrl={null}
+          gatePosterUrl={payload.clip.gatePosterUrl ?? payload.clip.posterUrl}
           clipId={payload.clip.id}
           waypoints={payload.waypoints}
           pins={mapSharePins(payload.pins, payload.attachments, token, payload.allowDownload)}
@@ -101,6 +102,7 @@ export function WalkthroughShareClient({ token, boot }: { token: string; boot?: 
           projectName={payload.walkthrough.building}
           duration={Number(payload.clip.durationS ?? 0)}
           initialMode="explore"
+          forceHud
           walkthroughId={payload.walkthrough.id ?? ""}
           clips={clips}
           chapters={payload.chapters}

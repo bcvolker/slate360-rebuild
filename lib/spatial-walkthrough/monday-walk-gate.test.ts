@@ -7,6 +7,15 @@ describe("monday walkthrough visual gates", () => {
     expect(src).toMatch(/nav\.setMode\("play"\)/);
     expect(src).toMatch(/playerRef\.current\?\.play\(\)/);
     expect(src).not.toMatch(/else playerRef\.current\?\.pause\(\)/);
+    expect(src).not.toMatch(/showHold/);
+    expect(src).toMatch(/LookHint/);
+  });
+
+  it("enables Photo Sphere look and wheel zoom on the live sphere", () => {
+    const player = readFileSync("components/spatial-walkthrough/viewer/WalkthroughPlayer.tsx", "utf8");
+    expect(player).toMatch(/mousewheel: true/);
+    expect(player).toMatch(/mousemove: true/);
+    expect(player).toMatch(/touchmoveTwoFingers: false/);
   });
 
   it("exposes a real timeline scrubber and path HUD toggle", () => {

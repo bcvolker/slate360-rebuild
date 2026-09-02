@@ -50,7 +50,7 @@ export default async function PortalDocumentsPage({
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {docs.map((doc) => (
-          <a key={doc.id} href={doc.href} className="border border-white/10">
+          <article key={doc.id} className="border border-white/10" data-surface="static">
             <div className="aspect-[4/3] bg-white/[0.04]">
               {doc.thumbUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
@@ -59,9 +59,19 @@ export default async function PortalDocumentsPage({
             </div>
             <div className="p-3">
               <p className="text-sm">{doc.title}</p>
-              <p className="font-mono text-[10px] uppercase text-[var(--graphite-muted)]">{doc.kind}</p>
+              <p className="font-mono text-[10px] uppercase text-[var(--graphite-muted)]">
+                {doc.kind} · {doc.locatorHref ? "1 spatial reference" : "0 spatial references"}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <a href={doc.href} className="inline-flex min-h-12 items-center border border-white/20 px-3 text-sm">Open</a>
+                {doc.locatorHref ? (
+                  <a href={doc.locatorHref} className="inline-flex min-h-12 items-center border border-white/10 px-3 text-sm">
+                    View locations
+                  </a>
+                ) : null}
+              </div>
             </div>
-          </a>
+          </article>
         ))}
       </div>
     </main>

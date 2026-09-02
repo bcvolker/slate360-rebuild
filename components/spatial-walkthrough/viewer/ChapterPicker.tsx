@@ -19,8 +19,8 @@ export function ChapterPicker({ chapters, selectedId, locked = false, open = fal
   }
 
   return (
-    <details className="sw-chapter-picker" open={open || undefined}>
-      <summary className="sw-chrome-btn">{label}</summary>
+    <details className="sw-chapter-picker" data-testid="sw-spaces" open={open || undefined}>
+      <summary className="sw-chrome-btn">Spaces · {label}</summary>
       <ul>
         <li>
           <button type="button" data-active={!selectedId} onClick={() => onSelect(null)}>

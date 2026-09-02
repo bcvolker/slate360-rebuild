@@ -19,6 +19,7 @@ import { absoluteViewHref, locatorFromView } from "@/lib/spatial-walkthrough/sha
 import { BriefingCueOverlay } from "./BriefingCueOverlay";
 import { useWalkthroughNav } from "./useWalkthroughNav";
 import { WalkthroughCollaborationHost, type WalkthroughCollaboration } from "@/components/spatial-walkthrough/items/WalkthroughCollaborationHost";
+import { LookHint } from "./LookHint";
 import "@/components/spatial-walkthrough/audio/walkthrough-audio.css";
 
 export type ExperiencePin = DrawerPin & {
@@ -32,6 +33,8 @@ type Props = {
   title: string;
   videoUrl?: string;
   posterUrl?: string | null;
+  /** Cropped operator-free still for the gate only. Never used as an ERP sphere. */
+  gatePosterUrl?: string | null;
   clipId: string;
   waypoints: WaypointRecord[];
   pins: ExperiencePin[];
@@ -69,6 +72,7 @@ export function WalkthroughExperience({
   title,
   videoUrl,
   posterUrl,
+  gatePosterUrl = null,
   clipId,
   waypoints,
   pins,
@@ -130,7 +134,7 @@ export function WalkthroughExperience({
   }));
 
   const showGate = requireGesture && !entered;
-  const showHold = Boolean(posterUrl) && !hasFrame && !showGate;
+  const gateStill = gatePosterUrl || posterUrl;
   const loading = Boolean(!preview && buffering);
   const briefingCue = nav.mode === "briefing" ? activeBriefingCue(briefingCues, currentT, clipId) : null;
 
@@ -185,7 +189,7 @@ export function WalkthroughExperience({
         <>
           <WalkthroughPlayer
             videoUrl={videoUrl}
-            posterUrl={posterUrl}
+            posterUrl={null}
             waypoints={waypoints}
             clipId={clipId}
             pins={markerPins}
@@ -217,11 +221,11 @@ export function WalkthroughExperience({
             onFirstFrame={() => setHasFrame(true)}
             onPause={() => setPlaying(false)}
           />
-          {showGate || showHold ? (
+          {showGate ? (
             <PosterStage
-              posterUrl={posterUrl}
+              posterUrl={gateStill}
               title={title}
-              showButton={showGate}
+              showButton
               onEnter={() => {
                 enteredRef.current = true;
                 setEntered(true);
@@ -230,6 +234,7 @@ export function WalkthroughExperience({
               }}
             />
           ) : null}
+          <LookHint active={entered && Boolean(videoUrl) && !preview} />
         </>
       )}
       {nav.mode === "briefing" && !narration.length && !transcripts.length ? (

@@ -69,17 +69,22 @@ export function PinDrawer({ pin, onClose, allowDownload = true }: Props) {
           <img src={image.previewUrl} alt="" className="mb-4 w-full border border-white/10" />
         ) : null}
         <ul className="space-y-2">
-          { (pin.attachments ?? []).map((att) => (
+          {(pin.attachments ?? []).map((att) => {
+            const openHref = att.previewUrl || att.url || att.downloadUrl;
+            return (
             <li key={att.id} className="flex items-center justify-between gap-2 text-sm">
               <span className="truncate">{att.title || att.fileName || att.url || "Attachment"}</span>
-              {att.kind === "url" && att.url ? (
-                <a href={att.url} target="_blank" rel="noreferrer" className="text-[var(--sw-accent)]">Open</a>
+              {openHref ? (
+                <a href={openHref} target="_blank" rel="noreferrer" className="inline-flex min-h-12 items-center text-[var(--sw-accent)]">
+                  Open
+                </a>
               ) : null}
-              {allowDownload && att.downloadUrl ? (
+              {allowDownload && att.downloadUrl && att.downloadUrl !== openHref ? (
                 <a href={att.downloadUrl} className="text-[var(--sw-accent)]">Download</a>
               ) : null}
             </li>
-          ))}
+            );
+          })}
         </ul>
       </div>
     </aside>

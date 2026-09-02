@@ -25,7 +25,7 @@ export type PortalLandingData = {
   hero: PortalCapture | null;
   history: PortalCapture[];
   attention: { open: number; urgent: number; questions: number };
-  documents: Array<{ id: string; title: string; kind: string; href: string; thumbUrl: string | null }>;
+  documents: Array<{ id: string; title: string; kind: string; href: string; thumbUrl: string | null; locatorHref?: string | null }>;
   projects: Array<{ id: string; name: string; location: string | null; thumbUrl: string | null; href: string }>;
   compareAvailable: boolean;
   shareHref: string | null;

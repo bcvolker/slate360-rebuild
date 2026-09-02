@@ -26,7 +26,7 @@ export type SharePayload = {
   } | null;
   allowDownload: boolean;
   walkthrough: { id?: string; title: string; capturedAt?: string | null; building?: string | null };
-  clip: { id: string; proxyUrl: string; posterUrl: string | null; durationS?: number } | null;
+  clip: { id: string; proxyUrl: string; posterUrl: string | null; gatePosterUrl?: string | null; durationS?: number } | null;
   clips: ClipSummary[];
   chapters: ChapterRecord[];
   edges: ClipEdgeRecord[];
@@ -69,7 +69,7 @@ export function normalizeSharePayload(raw: unknown): SharePayload {
     allowDownload: o.allowDownload === true,
     walkthrough: {
       id: str(walk.id) || undefined,
-      title: str(walk.title, "Spatial Walkthrough"),
+      title: str(walk.title, "Walkthrough"),
       capturedAt: (walk.capturedAt as string | null) ?? null,
       building: (walk.building as string | null) ?? null,
     },
@@ -78,6 +78,7 @@ export function normalizeSharePayload(raw: unknown): SharePayload {
           id: str(clip.id),
           proxyUrl: str(clip.proxyUrl),
           posterUrl: typeof clip.posterUrl === "string" ? clip.posterUrl : null,
+          gatePosterUrl: typeof clip.gatePosterUrl === "string" ? clip.gatePosterUrl : typeof clip.posterUrl === "string" ? clip.posterUrl : null,
           durationS: Number(clip.durationS ?? 0) || 0,
         }
       : null,

@@ -45,6 +45,7 @@ type Props = {
   walkthroughId?: string;
   videoUrl?: string;
   posterUrl?: string | null;
+  gatePosterUrl?: string | null;
   onAddWaypoint?: (view: { t: number; yaw: number; pitch: number }) => void;
   onAddPin?: (view: { t: number; yaw: number; pitch: number }) => void;
   onPlayerReady?: (handle: WalkthroughPlayerHandle) => void;

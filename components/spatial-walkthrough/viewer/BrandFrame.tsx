@@ -58,7 +58,7 @@ export function BrandFrame({
     <div className="sw-frame" data-compact={compact ? "true" : "false"} data-chrome={chrome} data-scene-visible={sceneVisible ? "true" : "false"} data-visible-layer={visibleLayer} style={style}>
       {loading ? (
         <div className="sw-buffer" role="status">
-          <StatusCopy logoUrl={theme.logoUrl} title={copy.title} body="Loading Spatial Walkthrough" />
+          <StatusCopy logoUrl={theme.logoUrl} title={copy.title} body="Loading walkthrough" />
         </div>
       ) : null}
       <header className="sw-frame-header">
@@ -83,7 +83,7 @@ function StatusCopy({ logoUrl, title, body }: { logoUrl: string | null; title: s
         // eslint-disable-next-line @next/next/no-img-element
         <img src={logoUrl} alt="" className="mx-auto mb-3 h-8 w-auto max-w-[180px] object-contain" />
       ) : null}
-      <p className="sw-status-kicker">Spatial Walkthrough</p>
+      <p className="sw-status-kicker">Walkthrough</p>
       <h2>{title}</h2>
       <p className="sw-status-body">{body}</p>
     </div>

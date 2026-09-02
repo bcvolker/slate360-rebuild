@@ -50,6 +50,8 @@ export function WalkthroughChrome({
   const next = nextWaypoint(waypoints, clipId, idx);
   const progress = duration > 0 ? Math.min(100, Math.max(0, (currentT / duration) * 100)) : 0;
   const marks = timelineMarks(redactions, clipId, duration);
+  const nearest = inClip[idx] ?? null;
+  const clock = `${Math.floor(currentT / 60)}:${String(Math.floor(currentT % 60)).padStart(2, "0")}`;
 
   const go = (wp: WaypointRecord | null) => {
     if (!wp || !player) return;
@@ -91,6 +93,10 @@ export function WalkthroughChrome({
         <div className="sw-timeline-track" aria-hidden>
           <div className="sw-timeline-fill" style={{ width: `${progress}%` }} />
         </div>
+        <p className="sw-timeline-readout" data-testid="sw-timeline-time">
+          {clock}
+          {nearest?.label ? ` · ${nearest.label}` : ""}
+        </p>
         <input
           type="range"
           className="sw-timeline-scrub"
@@ -100,6 +106,7 @@ export function WalkthroughChrome({
           step={0.05}
           value={currentT}
           aria-label="Scrub walkthrough"
+          onPointerDown={() => player?.pause()}
           onChange={(e) => player?.seekTo(Number(e.target.value), undefined, undefined, { pause: false })}
         />
         <div className="sw-timeline-ticks">

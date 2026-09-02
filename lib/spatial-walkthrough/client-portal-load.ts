@@ -98,13 +98,19 @@ export async function loadClientPortalLanding(args: {
     hero,
     history: clips,
     attention: { open, urgent: clientPins.filter((p) => p.pin_type === "rfi").length, questions },
-    documents: docs.map((d) => ({
-      id: d.id,
-      title: d.title || "Document",
-      kind: d.kind || "file",
-      href: `/w/${args.token}?pin=${d.pin_id}`,
-      thumbUrl: hero?.posterUrl ?? null,
-    })),
+    documents: docs.map((d) => {
+      const pin = clientPins.find((p) => p.id === d.pin_id);
+      return {
+        id: d.id,
+        title: d.title || "Document",
+        kind: d.kind || "file",
+        href: `/portal/${args.token}/item/${d.pin_id}`,
+        thumbUrl: hero?.posterUrl ?? null,
+        locatorHref: pin
+          ? `/w/${args.token}?pin=${d.pin_id}&t=${pin.t_seconds ?? 0}&yaw=${pin.yaw_deg ?? 0}&pitch=${pin.pitch_deg ?? 0}`
+          : `/w/${args.token}?pin=${d.pin_id}`,
+      };
+    }),
     projects: [
       {
         id: project?.id || walk.id,

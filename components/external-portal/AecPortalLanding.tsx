@@ -60,14 +60,21 @@ export function AecPortalLanding({
       </header>
 
       {hero ? (
-        <section className="relative min-h-[42dvh] w-full lg:min-h-[52dvh]" data-testid="portal-hero">
+        <section
+          className="relative min-h-[42dvh] w-full lg:min-h-[52dvh]"
+          data-testid="portal-hero"
+          data-surface="static"
+        >
           {hero.posterUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={hero.posterUrl} alt="" className="absolute inset-0 h-full w-full object-cover" />
+            <img src={hero.posterUrl} alt="" className="pointer-events-none absolute inset-0 h-full w-full object-cover" />
           ) : (
             <div className="absolute inset-0 bg-[var(--graphite-canvas)]" />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-[var(--graphite-canvas)] via-transparent to-transparent" />
+          <p className="absolute left-4 top-4 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">
+            Static navigation surface
+          </p>
           <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 px-4 py-5 sm:flex-row sm:items-end sm:justify-between sm:px-6">
             <div>
               <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">Latest capture</p>
@@ -75,8 +82,7 @@ export function AecPortalLanding({
               <p className="text-sm text-[var(--graphite-text-body)]">{when(hero.capturedAt)} · {hero.kind}</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <a href={hero.href} className={btn}>Open Latest</a>
-              {data.compareAvailable ? <a href={hero.href} className={`${btn} text-[var(--graphite-muted)]`}>Compare</a> : null}
+              <a href={hero.href} className={btn} data-testid="open-walkthrough">Open Walkthrough</a>
               {data.shareHref ? <a href={data.shareHref} className={`${btn} text-[var(--graphite-muted)]`}>Share</a> : null}
             </div>
           </div>

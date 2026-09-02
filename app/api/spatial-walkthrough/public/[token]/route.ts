@@ -11,6 +11,7 @@ import { hiddenWaypointIds } from "@/lib/spatial-walkthrough/redaction";
 import { toWaypoint } from "@/lib/spatial-walkthrough/waypoints";
 import { toChapter, visibleChapters } from "@/lib/spatial-walkthrough/chapters";
 import { toClipEdge } from "@/lib/spatial-walkthrough/clip-edges";
+import { HOUSEWALK_PRESENTATION } from "@/lib/spatial-walkthrough/presentation";
 
 export const runtime = "nodejs";
 type Ctx = { params: Promise<{ token: string }> };
@@ -123,7 +124,8 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
           defaultYaw: clip.default_yaw,
           defaultPitch: clip.default_pitch,
           proxyUrl: `/api/spatial-walkthrough/public/${token}/media?clip=${clip.id}&kind=proxy`,
-          posterUrl: `/api/spatial-walkthrough/public/${token}/media?clip=${clip.id}&kind=poster`,
+          posterUrl: `/api/spatial-walkthrough/public/${token}/media?clip=${clip.id}&kind=hero`,
+          gatePosterUrl: `/api/spatial-walkthrough/public/${token}/media?clip=${clip.id}&kind=hero`,
           publicMediaReady: row.policy !== "public" || Boolean(clip.public_proxy_key),
           captureMeta: clip.capture_meta ?? {},
         }
@@ -151,5 +153,6 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
     attachments: runtime.attachments,
     redactions: runtime.redactions,
     profile: "marketing",
+    presentation: HOUSEWALK_PRESENTATION,
   });
 };

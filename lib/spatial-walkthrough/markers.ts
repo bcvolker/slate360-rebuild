@@ -102,9 +102,9 @@ export function buildViewerMarkers(args: {
         id: `path-${node.waypoint.id}`,
         yawDeg: node.waypoint.yawDeg,
         pitchDeg: node.waypoint.pitchDeg,
-        html: `<button type="button" class="sw-path-crumb" style="opacity:${node.opacity}" aria-label="Path"></button>`,
-        width: Math.round(22 * node.scale),
-        height: Math.round(22 * node.scale),
+        html: `<button type="button" class="sw-path-crumb" style="opacity:${node.opacity}" aria-label="${esc(node.waypoint.label ?? "Next")}">${esc(node.waypoint.label ?? "›")}</button>`,
+        width: Math.round(56 * node.scale),
+        height: Math.round(40 * node.scale),
         data: { kind: "waypoint", id: node.waypoint.id, t: node.waypoint.tSeconds, yaw: node.waypoint.yawDeg, pitch: node.waypoint.pitchDeg },
       });
     }
