@@ -24,11 +24,17 @@ import { isNavAppVisible, isSpatialOnlyAppList } from "@/lib/spatial-walkthrough
 
 export type DashboardNavSection = "primary" | "tools" | "labs" | "account";
 
+export type DashboardNavChild = {
+  label: string;
+  href: string;
+};
+
 export type DashboardNavItem = {
   label: string;
   href: string;
   icon: LucideIcon;
   matchPrefixes: string[];
+  children?: DashboardNavChild[];
   section?: DashboardNavSection;
   /** Hidden from authenticated nav during the Site-Walk-only release (AGENTS.md). */
   appStoreHidden?: boolean;
@@ -59,11 +65,19 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
   },
   {
     label: "Library",
-    href: "/spatial-walkthrough",
+    href: "/library",
     icon: Scan,
-    matchPrefixes: ["/spatial-walkthrough"],
+    matchPrefixes: ["/library", "/spatial-walkthrough"],
     section: "primary",
     requiresApp: "spatial-walkthrough",
+    children: [
+      { label: "All", href: "/library" },
+      { label: "Walkthroughs", href: "/library?kind=walkthrough" },
+      { label: "Digital Twins", href: "/library?kind=twin" },
+      { label: "Site Walks", href: "/library?kind=site-walk" },
+      { label: "Thermal", href: "/library?kind=thermal" },
+      { label: "360 Tours", href: "/library?kind=tour" },
+    ],
   },
   {
     label: "Site Walk",

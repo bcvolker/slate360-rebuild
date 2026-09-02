@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { classifySource, ingestHint } from "@/lib/spatial-walkthrough/source-class";
 
 const PART = 8 * 1024 * 1024;
 
@@ -15,6 +16,15 @@ export function StudioUpload({ walkthroughId, onQueued }: Props) {
 
   const onFile = async (file: File | null) => {
     if (!file) return;
+    const kind = classifySource({ fileName: file.name, mime: file.type });
+    if (kind === "RAW_INSTA360") {
+      setError(ingestHint(kind) ?? "Export required in Insta360 Studio.");
+      return;
+    }
+    if (kind === "DOCUMENT" || kind === "LIDAR" || kind === "IPHONE_RGBD" || kind === "RGBD_IPHONE") {
+      setError(ingestHint(kind) ?? "This source is not a walkthrough sphere.");
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -63,7 +73,7 @@ export function StudioUpload({ walkthroughId, onQueued }: Props) {
       <p className="mt-1 text-sm text-[var(--graphite-muted)]">Upload a stitched 2:1 equirectangular MP4. The original is kept immutable.</p>
       <input
         type="file"
-        accept="video/mp4,video/quicktime"
+        accept="video/mp4,video/quicktime,.insv"
         disabled={busy}
         className="mt-3 block w-full text-sm"
         onChange={(e) => void onFile(e.target.files?.[0] ?? null)}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { BrandTheme, OperatorPatch, WaypointRecord } from "@/lib/spatial-walkthrough/types";
 import type { RedactionRule } from "@/lib/spatial-walkthrough/redaction";
 import type { ChapterRecord } from "@/lib/spatial-walkthrough/chapters";
@@ -65,7 +65,7 @@ export function ChapterWalkthroughExperience({
   edges = [],
   locator = EMPTY_LOCATOR,
   lockedChapterId = null,
-  pickerOpen = false,
+  pickerOpen: pickerOpenProp = false,
   walkthroughId = "",
   shareBasePath,
   initialMode,
@@ -75,6 +75,12 @@ export function ChapterWalkthroughExperience({
   ...rest
 }: Props) {
   const [player, setPlayer] = useState<WalkthroughPlayerHandle | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(pickerOpenProp);
+  useEffect(() => {
+    const open = () => setPickerOpen(true);
+    window.addEventListener("sw-open-spaces", open);
+    return () => window.removeEventListener("sw-open-spaces", open);
+  }, []);
   const clipList = clips?.length
     ? clips
     : [{
@@ -121,26 +127,27 @@ export function ChapterWalkthroughExperience({
       className={rest.authoring ? "relative flex h-full min-h-0 flex-col" : "relative flex h-[100dvh] min-h-[100dvh] flex-col"}
       data-studio={rest.authoring ? "true" : "false"}
     >
-      {rest.authoring ? null : <p className="sw-chapter-chip">{name}</p>}
-      {rest.authoring ? null : (
-        <ChapterPicker
-          chapters={session.chapters}
-          selectedId={session.selectedChapter?.id ?? null}
-          locked={session.pickerLocked}
-          open={pickerOpen}
-          onSelect={session.selectChapter}
-        />
-      )}
+      {rest.authoring ? <p className="sw-chapter-chip">{name}</p> : null}
+      <ChapterPicker
+        chapters={session.chapters}
+        selectedId={session.selectedChapter?.id ?? null}
+        locked={session.pickerLocked}
+        open={pickerOpen}
+        onSelect={(id) => {
+          setPickerOpen(false);
+          session.selectChapter(id);
+        }}
+      />
       <ClipTransitionOverlay fade={session.fade} />
-      {rest.authoring ? null : upcoming ? <NextChapterControl chapter={upcoming} onSelect={session.selectChapter} /> : null}
-      {rest.authoring ? null : (
+      {rest.authoring && upcoming ? <NextChapterControl chapter={upcoming} onSelect={session.selectChapter} /> : null}
+      {rest.authoring ? (
         <ClipEdgeActions actions={edgeActions} onSelect={(action) => session.followEdge(action.edge)} />
-      )}
-      {rest.authoring ? null : (
+      ) : null}
+      {rest.authoring ? (
         <div className="sw-chapter-band-layer">
           <ChapterTimeline bands={bands} onSelect={session.selectChapter} />
         </div>
-      )}
+      ) : null}
       <WalkthroughExperience
         {...rest}
         clipId={session.clipId}
@@ -165,12 +172,12 @@ export function ChapterWalkthroughExperience({
           rest.onPlayerReady?.(handle);
         }}
       />
-      {rest.authoring ? null : (
+      {rest.authoring ? (
         <div className="sw-space-mark">
           <button type="button" className="sw-chrome-btn" onClick={() => player && onStartSpace?.(player.getView())}>Start space here</button>
           <button type="button" className="sw-chrome-btn" onClick={() => player && onEndSpace?.(player.getView())}>End space here</button>
         </div>
-      )}
+      ) : null}
     </div>
   );
 }

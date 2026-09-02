@@ -1,11 +1,11 @@
 import { markerScaleFromPitch } from "./marker-scale";
+import { reducePathStations, stationsAround } from "./path-stations";
 import type { WaypointRecord } from "./types";
-import { orderedWaypoints } from "./waypoints";
 
-/** Nearest upcoming station plus 2–4 weaker lookahead marks. */
-export const PATH_HUD_MAX = 4;
-/** Residual route visibility while the viewer is stopped (not hidden). */
-export const PATH_HUD_IDLE_OPACITY = 0.18;
+/** 3–5 navigable stations, never a full tick strip. */
+export const PATH_HUD_MAX = 5;
+/** Path OFF is opacity 0. Path ON stays readable. */
+export const PATH_HUD_IDLE_OPACITY = 0.72;
 
 export type PathHudNode = {
   waypoint: WaypointRecord;
@@ -20,9 +20,7 @@ export function upcomingWaypoints(
   t: number,
   limit = PATH_HUD_MAX,
 ): WaypointRecord[] {
-  return orderedWaypoints(waypoints, clipId)
-    .filter((w) => w.isVisible && w.tSeconds > t + 0.35)
-    .slice(0, Math.max(1, Math.min(limit, PATH_HUD_MAX)));
+  return stationsAround(reducePathStations(waypoints, clipId), t, Math.min(limit, PATH_HUD_MAX));
 }
 
 /**

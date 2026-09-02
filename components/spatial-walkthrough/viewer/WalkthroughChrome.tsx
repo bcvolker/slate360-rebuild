@@ -96,6 +96,9 @@ export function WalkthroughChrome({
         pathVisible={pathVisible}
         onTogglePath={onTogglePath}
         onStation={onStation}
+        onSpaces={() => window.dispatchEvent(new Event("sw-open-spaces"))}
+        onPins={() => window.dispatchEvent(new Event("sw-open-pins"))}
+        onAsk={() => window.dispatchEvent(new Event("sw-open-ask"))}
       />
     );
   }

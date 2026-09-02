@@ -52,6 +52,11 @@ export function CollaborationLayer({
   const [draft, setDraft] = useState("");
   const [status, setStatus] = useState<ProjectItemStatus | "all">("all");
   const [assignee, setAssignee] = useState("");
+  useEffect(() => {
+    const openAsk = () => setOpen("ask");
+    window.addEventListener("sw-open-ask", openAsk);
+    return () => window.removeEventListener("sw-open-ask", openAsk);
+  }, []);
   const selected = items.find((i) => i.id === selectedId) ?? null;
   const shareBase = shareToken ? `/w/${shareToken}` : "/w/preview";
   const locator = locatorFromPlayer(player, { t: currentT, yaw: 18, pitch: -6 }, { walkthroughId, clipId, chapterId });

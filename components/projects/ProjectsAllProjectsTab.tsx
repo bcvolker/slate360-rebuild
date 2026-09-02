@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronRight, FolderKanban, Loader2, MapPin, MoreVertical, Trash2 } from "lucide-react";
 import { resolveProjectLocation } from "@/lib/projects/location";
 import type { ProjectListItem } from "@/lib/types/projects";
+import { ProjectCardDeliverables } from "./ProjectCardDeliverables";
 
 type Props = {
   loading: boolean;
@@ -115,6 +116,7 @@ export default function ProjectsAllProjectsTab({ loading, projects, onOpenDelete
 
             <Link href={`/projects/${project.id}`} className="flex min-h-32 flex-col justify-between p-4">
               <p className="line-clamp-2 text-sm leading-6 text-slate-400">{project.description || "No description yet."}</p>
+              <ProjectCardDeliverables projectId={project.id} />
               <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-4 text-xs font-semibold text-slate-500">
                 <span>Created: {new Date(project.created_at).toLocaleDateString()}</span>
                 <span className="inline-flex items-center gap-1 text-[var(--graphite-primary)]">Open <ChevronRight className="h-3.5 w-3.5" /></span>

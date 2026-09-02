@@ -13,6 +13,8 @@ import type { BrandTheme, OperatorPatch, WaypointRecord } from "@/lib/spatial-wa
 import { applySkip, skipIntervals, type RedactionRule } from "@/lib/spatial-walkthrough/redaction";
 import { buildViewerMarkers, type MarkerChrome, type PinMarkerInput } from "@/lib/spatial-walkthrough/markers";
 import { operatorKeyframesFromRaw, resolvePatchAtTime } from "@/lib/spatial-walkthrough/housewalk-operator";
+import { attachRegardGuard } from "@/lib/spatial-walkthrough/viewer-regard";
+import { attachPlayerRuntime } from "./player-runtime";
 
 export type WalkthroughPlayerHandle = {
   seekTo: (t: number, yaw?: number, pitch?: number, opts?: { pause?: boolean }) => void;
@@ -48,6 +50,8 @@ type Props = {
   onPlaying?: () => void;
   onPause?: () => void;
   onFirstFrame?: () => void;
+  restrictView?: boolean;
+  showOperatorOverlay?: boolean;
 };
 
 export function WalkthroughPlayer({
@@ -70,6 +74,8 @@ export function WalkthroughPlayer({
   onPlaying,
   onPause,
   onFirstFrame,
+  restrictView = false,
+  showOperatorOverlay = true,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const pinSelectRef = useRef(onPinSelect);
@@ -85,8 +91,8 @@ export function WalkthroughPlayer({
   pauseCbRef.current = onPause;
   firstFrameRef.current = onFirstFrame;
 
-  const liveRef = useRef({ waypoints, clipId, pins, redactions, operatorPatch, theme, chrome, selectedId, hudOpacity });
-  liveRef.current = { waypoints, clipId, pins, redactions, operatorPatch, theme, chrome, selectedId, hudOpacity };
+  const liveRef = useRef({ waypoints, clipId, pins, redactions, operatorPatch, theme, chrome, selectedId, hudOpacity, restrictView, showOperatorOverlay });
+  liveRef.current = { waypoints, clipId, pins, redactions, operatorPatch, theme, chrome, selectedId, hudOpacity, restrictView, showOperatorOverlay };
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -150,6 +156,7 @@ export function WalkthroughPlayer({
         chrome: live.chrome,
         selectedId: live.selectedId,
         hudOpacity: live.hudOpacity,
+        showOperatorOverlay: live.showOperatorOverlay,
       });
       markers.setMarkers(
         defs.map((d) => ({
@@ -226,8 +233,10 @@ export function WalkthroughPlayer({
       const d = e.marker?.data;
       if (!d) return;
       if (d.kind === "waypoint" && d.t != null) {
+        const resume = !video.paused;
         waypointRef.current?.();
-        handle.seekTo(d.t, d.yaw, d.pitch, { pause: true });
+        handle.seekTo(d.t, d.yaw, d.pitch, { pause: !resume });
+        if (resume) handle.play();
       }
       if (d.kind === "pin" && d.id) {
         handle.pause();
@@ -245,38 +254,21 @@ export function WalkthroughPlayer({
     }
     videoPlugin.addEventListener("progress", onProgress as never);
     markers.addEventListener("select-marker", onSelect as never);
-    const resizeViewer = () => {
-      const el = containerRef.current;
-      if (!el) return;
-      (viewer as { resize: (size?: unknown) => void }).resize({
-        width: el.clientWidth,
-        height: el.clientHeight,
-      });
-    };
+    const detachRegard = attachRegardGuard(viewer, () => videoPlugin.getTime(), () => liveRef.current);
+    const detachRuntime = attachPlayerRuntime({
+      container: containerRef.current,
+      viewer,
+      autoRotate,
+      onTick: () => applyMarkers(videoPlugin.getTime()),
+    });
     viewer.addEventListener("ready", () => {
-      resizeViewer();
       applyMarkers(0);
       readyRef.current?.(handle);
     });
-    window.addEventListener("resize", resizeViewer);
-    const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => resizeViewer());
-    if (containerRef.current) ro?.observe(containerRef.current);
-    let spinning = autoRotate;
-    const spin = window.setInterval(() => {
-      if (!spinning) return;
-      const pos = viewer.getPosition();
-      viewer.rotate({ yaw: pos.yaw + (0.25 * Math.PI) / 180, pitch: pos.pitch });
-    }, 80);
-    const stopSpin = () => { spinning = false; };
-    containerRef.current?.addEventListener("pointerdown", stopSpin);
-    const tick = window.setInterval(() => applyMarkers(videoPlugin.getTime()), 350);
 
     return () => {
-      window.clearInterval(tick);
-      window.clearInterval(spin);
-      containerRef.current?.removeEventListener("pointerdown", stopSpin);
-      window.removeEventListener("resize", resizeViewer);
-      ro?.disconnect();
+      detachRuntime();
+      detachRegard();
       markers.removeEventListener("select-marker", onSelect as never);
       videoPlugin.removeEventListener("progress", onProgress as never);
       viewer.destroy();

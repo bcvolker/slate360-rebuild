@@ -17,6 +17,8 @@ type Props = {
   compact?: boolean;
   sceneVisible?: boolean;
   visibleLayer?: "hero" | "geometry" | "reality";
+  spaceName?: string | null;
+  shareHref?: string | null;
   children: ReactNode;
 };
 
@@ -29,11 +31,13 @@ export function BrandFrame({
   compact = false,
   sceneVisible = false,
   visibleLayer = "hero",
+  spaceName = null,
+  shareHref = null,
   children,
 }: Props) {
   const style = themeCssVars(theme) as CSSProperties;
   const [chrome, setChrome] = useState<"active" | "idle">("active");
-  const copy = viewerChromeCopy({ title, projectName, capturedAt });
+  const copy = viewerChromeCopy({ title, projectName, capturedAt, spaceName });
 
   useEffect(() => {
     let timer = 0;
@@ -67,10 +71,18 @@ export function BrandFrame({
           <strong>{copy.title}</strong>
           {copy.meta ? <span>{copy.meta}</span> : null}
         </div>
-        {theme.logoUrl && theme.showPoweredBy ? (
-          <span className="sw-frame-credit">Powered by Slate360</span>
-        ) : null}
       </header>
+      {compact ? null : (
+        <div className="sw-frame-actions">
+          {shareHref ? (
+            <a className="sw-chrome-btn" href={shareHref} data-testid="sw-share">Share</a>
+          ) : null}
+          <details className="sw-more">
+            <summary className="sw-chrome-btn">More</summary>
+            <p className="sw-more-copy">Look around. Use Path to jump stations.</p>
+          </details>
+        </div>
+      )}
       <div className="sw-frame-stage">{children}</div>
     </div>
   );

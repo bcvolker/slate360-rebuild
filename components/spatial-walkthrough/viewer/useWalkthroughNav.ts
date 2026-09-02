@@ -17,7 +17,7 @@ export function useWalkthroughNav({ player, initialMode = "explore", forceHud = 
   const start: NavMode = isNavMode(String(initialMode)) ? (initialMode as NavMode) : "explore";
   const [mode, setMode] = useState<NavMode>(start);
   const [navigating, setNavigating] = useState(forceHud || start === "play");
-  const [pathVisible, setPathVisible] = useState(true);
+  const [pathVisible, setPathVisible] = useState(false);
   const idle = useRef(0);
 
   const bump = () => {

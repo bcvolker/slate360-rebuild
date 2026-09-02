@@ -15,6 +15,9 @@ type Props = {
   pathVisible: boolean;
   onTogglePath?: () => void;
   onStation?: () => void;
+  onSpaces?: () => void;
+  onPins?: () => void;
+  onAsk?: () => void;
   spaces?: React.ReactNode;
 };
 
@@ -32,6 +35,9 @@ export function PublicWalkToolbar({
   pathVisible,
   onTogglePath,
   onStation,
+  onSpaces,
+  onPins,
+  onAsk,
   spaces,
 }: Props) {
   const idx = indexAtTime(waypoints, clipId, currentT);
@@ -74,6 +80,9 @@ export function PublicWalkToolbar({
           Path
         </button>
       ) : null}
+      {onSpaces ? <button type="button" className="sw-chrome-btn" data-testid="sw-spaces" onClick={onSpaces}>Spaces</button> : null}
+      {onPins ? <button type="button" className="sw-chrome-btn" data-testid="sw-pins" onClick={onPins}>Pins</button> : null}
+      {onAsk ? <button type="button" className="sw-chrome-btn" data-testid="sw-ask" onClick={onAsk}>Ask</button> : null}
       {spaces}
       <button type="button" className="sw-chrome-btn" aria-label="Zoom out" onClick={() => player?.zoomBy?.(-8)}>
         <Minus className="h-4 w-4" />

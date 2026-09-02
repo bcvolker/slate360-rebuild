@@ -84,6 +84,22 @@
   text-transform: uppercase;
   color: var(--sw-muted, var(--graphite-muted));
 }
+.sw-frame-actions {
+  position: absolute;
+  top: 0.85rem;
+  right: 1rem;
+  z-index: 16;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  pointer-events: auto;
+}
+.sw-more-copy {
+  margin: 0.4rem 0 0;
+  max-width: 14rem;
+  font-size: 0.75rem;
+  color: var(--sw-muted, var(--graphite-muted));
+}
 .sw-frame-credit {
   flex: 0 0 auto;
   font-family: var(--font-ibm-plex-mono, ui-monospace, monospace);

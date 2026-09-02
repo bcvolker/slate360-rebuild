@@ -22,7 +22,12 @@ export function mediaBootState(
   if (clip.status === "failed") return "FAILED";
   if (clip.status === "processing") return "PROCESSING";
   const poster = selectDerivativeKey(clip, "poster", policy, allowMaster);
-  if (poster) return "READY";
+  const proxy = selectDerivativeKey(clip, "proxy", policy, allowMaster);
+  if (isSharePolicy(policy) && !(poster && proxy)) {
+    return clip.status === "ready" ? "PROCESSING" : "UNPUBLISHED";
+  }
+  if (poster && proxy) return "READY";
+  if (allowMaster && proxy) return "READY";
   if (clip.status === "ready") return "PROCESSING";
   return "UNPUBLISHED";
 }
@@ -69,7 +74,7 @@ export function selectDerivativeKey(
       null
     );
   }
-  if (policy === "public") return clip.public_proxy_key ?? null;
+  if (policy === "public" || policy === "client") return clip.public_proxy_key ?? null;
   return clip.proxy_key ?? null;
 }
 
@@ -136,8 +141,8 @@ export function publicMediaContract(
   const mediaState = mediaBootState(clip, policy);
   return {
     proxyUrl: proxyKey && mediaState === "READY" ? `${path}&kind=proxy` : "",
-    posterUrl: posterKey ? `${path}&kind=poster` : null,
-    gatePosterUrl: posterKey ? `${path}&kind=hero` : null,
+    posterUrl: posterKey && mediaState === "READY" ? `${path}&kind=poster` : null,
+    gatePosterUrl: posterKey && mediaState === "READY" ? `${path}&kind=hero` : null,
     publicMediaReady: mediaState === "READY",
     mediaState,
   };

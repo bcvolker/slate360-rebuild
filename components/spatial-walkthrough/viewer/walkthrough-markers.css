@@ -136,6 +136,45 @@
   background: color-mix(in srgb, var(--sw-primary, var(--graphite-canvas)) 88%, black);
   box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--sw-accent, var(--graphite-primary)) 35%, transparent);
 }
+.sw-path-station {
+  display: grid;
+  place-items: end center;
+  width: 72px;
+  min-height: 56px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.sw-path-stem {
+  width: 1px;
+  height: 16px;
+  background: color-mix(in srgb, white 45%, transparent);
+}
+.sw-path-disc {
+  width: 14px;
+  height: 14px;
+  border: 2px solid color-mix(in srgb, var(--sw-accent, var(--graphite-primary)) 85%, white);
+  background: color-mix(in srgb, var(--sw-text, white) 80%, transparent);
+}
+.sw-path-station[data-rank="0"] .sw-path-disc {
+  width: 18px;
+  height: 18px;
+}
+.sw-path-label {
+  display: none;
+  margin-top: 4px;
+  max-width: 88px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--sw-text, white);
+  white-space: nowrap;
+}
+.sw-path-station:hover .sw-path-label,
+.sw-path-station:focus-visible .sw-path-label {
+  display: block;
+}
 .sw-logo--light { filter: brightness(0) invert(1); }
 .sw-logo--dark { filter: none; }
 .sw-logo--auto { mix-blend-mode: luminosity; }

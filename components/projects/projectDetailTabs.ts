@@ -4,7 +4,7 @@
 
 export type ProjectDetailVariant = "worksite" | "project";
 
-export type ProjectDetailTabId = "overview" | "walkthroughs" | "items" | "walks" | "plans" | "twins" | "files" | "deliverables" | "team";
+export type ProjectDetailTabId = "overview" | "walkthroughs" | "items" | "walks" | "plans" | "twins" | "files" | "documents" | "deliverables" | "team";
 
 export type ProjectDetailTabDef = {
   id: ProjectDetailTabId;
@@ -21,6 +21,7 @@ export const PROJECT_DETAIL_TABS: readonly ProjectDetailTabDef[] = [
   { id: "plans", label: "Plans", segment: "plans" },
   { id: "twins", label: "Twins", segment: "twins" },
   { id: "files", label: "Files", segment: "slatedrop" },
+  { id: "documents", label: "Documents", segment: "documents" },
   { id: "deliverables", label: "Deliverables", segment: "deliverables" },
   { id: "team", label: "Team", segment: "team" },
 ] as const;

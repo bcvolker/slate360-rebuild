@@ -53,14 +53,26 @@ export const PATCH = (req: NextRequest, ctx: Ctx) =>
   withSpatialWalkthroughAuth(req, async ({ admin, orgId }) => {
     if (!orgId) return unauthorized("Organization required");
     await ctx.params;
-    const body = (await req.json().catch(() => null)) as { id?: string; isVisible?: boolean; label?: string; zone?: string } | null;
+    const body = (await req.json().catch(() => null)) as { id?: string; isVisible?: boolean; label?: string; zone?: string; tSeconds?: number } | null;
     if (!body?.id) return badRequest("id required");
     const patch: Record<string, unknown> = {};
     if (typeof body.isVisible === "boolean") patch.is_visible = body.isVisible;
     if (typeof body.label === "string") patch.label = body.label;
     if (typeof body.zone === "string") patch.zone = body.zone;
+    if (typeof body.tSeconds === "number" && Number.isFinite(body.tSeconds)) patch.t_seconds = body.tSeconds;
     const { data, error } = await admin.from("spatial_waypoints").update(patch).eq("id", body.id).eq("org_id", orgId).select("*").maybeSingle();
     if (error) return serverError(error.message);
     if (!data) return notFound("Waypoint not found");
     return ok({ waypoint: data });
+  }, "author");
+
+export const DELETE = (req: NextRequest, ctx: Ctx) =>
+  withSpatialWalkthroughAuth(req, async ({ admin, orgId }) => {
+    if (!orgId) return unauthorized("Organization required");
+    await ctx.params;
+    const body = (await req.json().catch(() => null)) as { id?: string } | null;
+    if (!body?.id) return badRequest("id required");
+    const { error } = await admin.from("spatial_waypoints").delete().eq("id", body.id).eq("org_id", orgId);
+    if (error) return serverError(error.message);
+    return ok({ deleted: body.id });
   }, "author");

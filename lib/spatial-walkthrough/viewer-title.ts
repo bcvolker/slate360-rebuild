@@ -16,11 +16,12 @@ export function viewerChromeCopy(input: {
   title: string;
   projectName?: string | null;
   capturedAt?: string | null;
+  spaceName?: string | null;
 }): { title: string; meta: string | null } {
   const raw = input.title.trim();
   const project = stripDevTitle(input.projectName);
   const title = isDevTitle(raw) ? (project || "Walkthrough") : raw;
   const same = Boolean(project) && project.toLowerCase() === title.toLowerCase();
-  const parts = [same ? null : project || null, formatCaptureDay(input.capturedAt)].filter(Boolean);
+  const parts = [same ? null : project || null, formatCaptureDay(input.capturedAt), input.spaceName || null].filter(Boolean);
   return { title, meta: parts.length ? parts.join(" · ") : null };
 }

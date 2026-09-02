@@ -1,9 +1,9 @@
 import type { BrandTheme, OperatorPatch, WaypointRecord } from "./types";
-import { indexAtTime, nextWaypoint } from "./waypoints";
 import { activeSectors, sectorYawCenter, type RedactionRule } from "./redaction";
 import { markerKindFromPinType, markerScaleFromPitch } from "./marker-scale";
 import { operatorPatchActiveAt } from "./operator-patch";
 import { pathHudNodes } from "./path-hud";
+import { stationLabel } from "./path-stations";
 
 type PatchFields = OperatorPatch & {
   nadirRadius?: number;
@@ -88,40 +88,25 @@ export function buildViewerMarkers(args: {
   chrome?: MarkerChrome;
   selectedId?: string | null;
   hudOpacity?: number;
+  showOperatorOverlay?: boolean;
 }): ViewerMarkerDef[] {
   const { waypoints, clipId, t, pins, redactions, operatorPatch, theme, chrome = {}, selectedId } = args;
-  const idx = indexAtTime(waypoints, clipId, t);
-  const next = nextWaypoint(waypoints, clipId, idx);
   const list: ViewerMarkerDef[] = [];
   const hud = args.hudOpacity ?? 1;
 
   if (hud > 0) {
     for (const node of pathHudNodes(waypoints, clipId, t, hud)) {
-      if (next && node.waypoint.id === next.id) continue;
+      const label = stationLabel(node.waypoint);
       list.push({
         id: `path-${node.waypoint.id}`,
         yawDeg: node.waypoint.yawDeg,
         pitchDeg: node.waypoint.pitchDeg,
-        html: `<button type="button" class="sw-path-crumb" style="opacity:${node.opacity}" aria-label="${esc(node.waypoint.label ?? "Next")}">${esc(node.waypoint.label ?? "›")}</button>`,
-        width: Math.round(56 * node.scale),
-        height: Math.round(40 * node.scale),
+        html: `<button type="button" class="sw-path-station" data-rank="${node.rank}" style="opacity:${node.opacity}" aria-label="${esc(label)}"><span class="sw-path-stem"></span><span class="sw-path-disc"></span><span class="sw-path-label">${esc(label)}</span></button>`,
+        width: Math.round(88 * node.scale),
+        height: Math.round(72 * node.scale),
         data: { kind: "waypoint", id: node.waypoint.id, t: node.waypoint.tSeconds, yaw: node.waypoint.yawDeg, pitch: node.waypoint.pitchDeg },
       });
     }
-  }
-
-  if (next) {
-    const label = next.label ?? "Next station";
-    const scale = markerScaleFromPitch(next.pitchDeg);
-    list.push({
-      id: `wp-${next.id}`,
-      yawDeg: next.yawDeg,
-      pitchDeg: next.pitchDeg,
-      html: markHtml("waypoint", label, selectedId === next.id, scale),
-      width: Math.round(52 * scale),
-      height: Math.round(64 * scale),
-      data: { kind: "waypoint", id: next.id, t: next.tSeconds, yaw: next.yawDeg, pitch: next.pitchDeg },
-    });
   }
 
   for (const pin of pins) {
@@ -139,7 +124,7 @@ export function buildViewerMarkers(args: {
   }
 
   const patch = operatorPatch as PatchFields | null | undefined;
-  if (patch && operatorPatchActiveAt(patch, t)) {
+  if (args.showOperatorOverlay !== false && patch && operatorPatchActiveAt(patch, t)) {
     const size = nadirPx(patch);
     list.push({
       id: "nadir-patch",

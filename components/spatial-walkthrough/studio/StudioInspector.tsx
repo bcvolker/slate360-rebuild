@@ -1,5 +1,6 @@
 "use client";
 
+import { PathStationsPanel } from "./PathStationsPanel";
 import { PrivacyInspector } from "./PrivacyInspector";
 import { PrivacyRulesPanel } from "./PrivacyRulesPanel";
 import { StudioAudioStack } from "./StudioAudioStack";
@@ -42,6 +43,7 @@ type Props = {
   shares: Array<{ id: string; token_prefix?: string; policy: string; is_revoked: boolean; expires_at: string | null }>;
   chapters: Array<{ id: string; name: string }>;
   onExport: () => void;
+  onAddStation?: () => void;
   captureMeta?: unknown;
   currentT?: number;
   onPrevKey?: () => void;
@@ -118,7 +120,7 @@ export function StudioInspector(props: Props) {
         <input value={props.label} onChange={(e) => props.onLabel(e.target.value)} placeholder="Label" className="h-11 w-full border border-white/10 bg-transparent px-3" />
         {props.draft.kind === "pin" ? (
           <select value={props.fileId} onChange={(e) => props.onFileId(e.target.value)} className="h-11 w-full border border-white/10 bg-transparent px-2">
-            <option value="">Attach project file</option>
+            <option value="">Attach Existing Project Document</option>
             {props.files.map((f) => <option key={f.id} value={f.id}>{f.file_name}</option>)}
           </select>
         ) : null}
@@ -129,13 +131,14 @@ export function StudioInspector(props: Props) {
   }
   if (props.tool === "Path") {
     return (
-      <div className="space-y-2">
-        <p className="text-sm text-white">Path stations</p>
-        {props.waypoints.length === 0 ? <p className="text-sm text-[var(--graphite-muted)]">No stations yet. Press M or place a pin, then convert from Path later.</p> : null}
-        {props.waypoints.map((wp) => (
-          <p key={wp.id} className="text-sm">{wp.label || "Station"} · {wp.tSeconds.toFixed(1)}s</p>
-        ))}
-      </div>
+      <PathStationsPanel
+        walkthroughId={props.walkthroughId}
+        clipId={props.clipId}
+        waypoints={props.waypoints}
+        patch={props.patch}
+        onRefresh={props.onRefresh}
+        onAdd={() => props.onAddStation?.()}
+      />
     );
   }
   if (props.tool === "Spaces") {

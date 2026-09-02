@@ -83,7 +83,16 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
   useEffect(() => {
     const projectId = payload?.walkthrough.project_id;
     if (!projectId) return;
-    void fetch(`/api/spatial-walkthrough/files?projectId=${projectId}`).then((r) => r.json()).then((j) => setFiles(j.files ?? []));
+    void fetch(`/api/spatial-walkthrough/project-documents?projectId=${projectId}`)
+      .then((r) => r.json())
+      .then((j) => {
+        const docs = (j.documents ?? []) as Array<{ id: string; title: string }>;
+        if (docs.length) {
+          setFiles(docs.map((d) => ({ id: d.id, file_name: d.title })));
+          return;
+        }
+        return fetch(`/api/spatial-walkthrough/files?projectId=${projectId}`).then((r) => r.json()).then((f) => setFiles(f.files ?? []));
+      });
   }, [payload?.walkthrough.project_id]);
 
   useEffect(() => {
@@ -153,7 +162,7 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           clipId, tSeconds: draft.t, yawDeg: draft.yaw, pitchDeg: draft.pitch, label, pinType: "document",
-          attachments: fileId ? [{ kind: "slatedrop", fileId }] : [],
+          attachments: fileId ? [{ kind: "document", documentId: fileId, visibleOnPublic: true }] : [],
         }),
       });
     }
@@ -271,6 +280,11 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
           shares={payload.shares}
           chapters={(payload.chapters ?? []).map((c) => ({ id: String(c.id), name: String(c.name ?? "Space") }))}
           onExport={() => setExportOpen(true)}
+          onAddStation={() => {
+            const view = player?.getView() ?? clock;
+            setDraft({ kind: "waypoint", t: view.t, yaw: view.yaw, pitch: view.pitch });
+            setTool("Path");
+          }}
         />
       </aside>
       <StudioTransport

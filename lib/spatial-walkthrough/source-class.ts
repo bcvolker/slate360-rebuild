@@ -4,6 +4,7 @@ export type IngestClass =
   | "STITCHED_ERP_STILL"
   | "PERSPECTIVE_VIDEO"
   | "PERSPECTIVE_STILLS"
+  | "IPHONE_RGBD"
   | "RGBD_IPHONE"
   | "LIDAR"
   | "DRONE"
@@ -27,7 +28,7 @@ export function classifySource(input: {
   const name = input.fileName.trim();
   const mime = (input.mime ?? "").toLowerCase();
   if (INSV.test(name)) return "RAW_INSTA360";
-  if (DEPTH.test(name) || /s360depth/i.test(mime)) return "RGBD_IPHONE";
+  if (DEPTH.test(name) || /s360depth/i.test(mime)) return "IPHONE_RGBD";
   if (LIDAR.test(name)) return "LIDAR";
   if (MESH.test(name)) return "LIDAR";
   if (DOC.test(name) || mime === "application/pdf") return "DOCUMENT";
@@ -50,4 +51,14 @@ export function isErp(width?: number | null, height?: number | null): boolean {
 
 export function isBrowserPanorama(kind: IngestClass): boolean {
   return kind === "STITCHED_ERP_VIDEO" || kind === "STITCHED_ERP_STILL";
+}
+
+export function ingestHint(kind: IngestClass): string | null {
+  if (kind === "RAW_INSTA360") return "Export required in Insta360 Studio.";
+  if (kind === "STITCHED_ERP_VIDEO" || kind === "STITCHED_ERP_STILL") return "Stitched equirectangular candidate.";
+  if (kind === "IPHONE_RGBD" || kind === "RGBD_IPHONE") return "iPhone RGB-D capture. Geometry, not a panorama.";
+  if (kind === "LIDAR") return "LiDAR / mesh source. Not a walkthrough sphere.";
+  if (kind === "DRONE") return "Aerial source. Keep as its own clip.";
+  if (kind === "DOCUMENT") return "Project document. Pin it; do not ingest as media.";
+  return null;
 }

@@ -68,18 +68,28 @@ export function DashboardDesktopSidebar({
                 const isActive = resolveDashboardNavActive(pathname, item);
                 const Icon = item.icon;
                 return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    title={collapsed ? item.label : undefined}
-                    className={cn(t.navLink, collapsed && "justify-center px-0", isActive && t.navLinkActive)}
-                    aria-current={isActive ? "page" : undefined}
-                  >
-                    <span className={cn(t.navIcon, isActive && t.navIconActive)}>
-                      <Icon className="h-4 w-4" strokeWidth={1.75} />
-                    </span>
-                    {!collapsed ? <span className="truncate">{item.label}</span> : null}
-                  </Link>
+                  <div key={item.href}>
+                    <Link
+                      href={item.href}
+                      title={collapsed ? item.label : undefined}
+                      className={cn(t.navLink, collapsed && "justify-center px-0", isActive && t.navLinkActive)}
+                      aria-current={isActive ? "page" : undefined}
+                    >
+                      <span className={cn(t.navIcon, isActive && t.navIconActive)}>
+                        <Icon className="h-4 w-4" strokeWidth={1.75} />
+                      </span>
+                      {!collapsed ? <span className="truncate">{item.label}</span> : null}
+                    </Link>
+                    {!collapsed && item.children?.length ? (
+                      <div className="mb-1 ml-6 flex flex-col gap-0.5">
+                        {item.children.map((child) => (
+                          <Link key={child.href} href={child.href} className={cn(t.navLink, "min-h-9 py-1 text-[12px]")}>
+                            {child.label}
+                          </Link>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
                 );
               })}
             </div>

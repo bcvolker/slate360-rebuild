@@ -43,6 +43,15 @@ export const POST = (req: NextRequest, ctx: Ctx) =>
           visible_on_public: a.visibleOnPublic === true,
         });
       }
+      if (a.kind === "document" && typeof a.documentId === "string") {
+        const { data: doc } = await admin.from("spatial_project_documents").select("id, title, slatedrop_id, source_url").eq("id", a.documentId).eq("org_id", orgId).maybeSingle();
+        if (!doc) continue;
+        await admin.from("spatial_pin_attachments").insert({
+          org_id: orgId, pin_id: pin.id, kind: "slatedrop", slatedrop_id: doc.slatedrop_id,
+          title: doc.title, external_url: doc.source_url,
+          visible_on_public: a.visibleOnPublic !== false,
+        });
+      }
       if (a.kind === "slatedrop" && typeof a.fileId === "string") {
         const { data: file } = await admin.from("slatedrop_uploads").select("id").eq("id", a.fileId).eq("org_id", orgId).maybeSingle();
         if (!file) continue;

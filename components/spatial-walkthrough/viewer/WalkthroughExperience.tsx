@@ -120,6 +120,15 @@ export function WalkthroughExperience({
   modeRef.current = nav.mode;
 
   useEffect(() => { setSelectedId(selectedIdProp); }, [selectedIdProp]);
+  useEffect(() => {
+    const openPin = () => {
+      if (!pins.length) return;
+      const next = pins.find((p) => p.id !== selectedId) ?? pins[0];
+      setSelectedId(next.id);
+    };
+    window.addEventListener("sw-open-pins", openPin);
+    return () => window.removeEventListener("sw-open-pins", openPin);
+  }, [pins, selectedId]);
 
   useEffect(() => {
     if (!player) return;
@@ -173,6 +182,8 @@ export function WalkthroughExperience({
       compact={authoring}
       sceneVisible={hasFrame || Boolean(posterUrl)}
       visibleLayer={hasFrame ? "reality" : "hero"}
+      spaceName={chapters.find((c) => currentT >= c.startTime && currentT <= c.endTime)?.name ?? null}
+      shareHref={authoring ? null : shareHrefFor()}
     >
       {preview ? (
         <PreviewSphere
@@ -207,6 +218,8 @@ export function WalkthroughExperience({
             autoplay={false}
             autoRotate={!authoring}
             hudOpacity={nav.hudOpacity}
+            restrictView={!authoring}
+            showOperatorOverlay={authoring}
             onWaypointSelect={startExplore}
             onPinSelect={(id) => {
               const pin = pins.find((p) => p.id === id);
