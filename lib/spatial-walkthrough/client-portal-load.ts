@@ -68,7 +68,7 @@ export async function loadClientPortalLanding(args: {
     : { data: [] as Array<{ id: string; pin_id: string; title: string; kind: string; visible_on_public: boolean }> };
 
   const clientPins = (pins ?? []).filter((p) => p.visibility === "client" || p.visibility === "public");
-  const docs = (attachments ?? []).filter((a) => a.visible_on_public !== false);
+  const docs = attachments ?? [];
   const open = clientPins.filter((p) => p.status !== "closed").length;
   const questions = clientPins.filter((p) => p.pin_type === "rfi" || p.pin_type === "note").length;
 

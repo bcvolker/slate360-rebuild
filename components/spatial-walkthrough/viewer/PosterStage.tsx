@@ -18,7 +18,7 @@ export function PosterStage({ posterUrl, title, showButton = false, onEnter, onP
         <div className="sw-poster-fallback" aria-hidden />
       )}
       {showButton ? (
-        <button type="button" className="sw-enter-btn" onClick={onEnter}>
+        <button type="button" className="sw-enter-btn" data-testid="sw-enter" onClick={onEnter}>
           Play / Enter Walkthrough
         </button>
       ) : null}

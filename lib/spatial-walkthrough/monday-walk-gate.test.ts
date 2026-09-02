@@ -13,6 +13,8 @@ describe("monday walkthrough visual gates", () => {
     const chrome = readFileSync("components/spatial-walkthrough/viewer/WalkthroughChrome.tsx", "utf8");
     expect(chrome).toMatch(/data-testid="sw-timeline-scrub"/);
     expect(chrome).toMatch(/data-testid="sw-path-toggle"/);
+    const poster = readFileSync("components/spatial-walkthrough/viewer/PosterStage.tsx", "utf8");
+    expect(poster).toMatch(/data-testid="sw-enter"/);
   });
 
   it("uses the Slate360 logo asset instead of generic Spatial text", () => {
