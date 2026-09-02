@@ -104,13 +104,29 @@ export function PortalActivityFeed({ data }: { data: PortalLandingData }) {
   return (
     <section id="activity" data-testid="portal-activity">
       <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">Activity</p>
-      <div className="flex flex-col gap-2">
-        {data.activity.map((row) => (
-          <a key={row.id} href={row.href} className="flex min-h-12 items-center justify-between gap-3 border-b border-white/10 py-2">
-            <span className="truncate text-sm">{row.title}</span>
-            <span className="shrink-0 font-mono text-[10px] uppercase text-[var(--graphite-muted)]">{row.kind}</span>
-          </a>
-        ))}
+      <div className="flex flex-col gap-3">
+        {data.activity.map((row) => {
+          const item = data.items.find((i) => i.id === row.id);
+          return (
+            <article key={row.id} className="flex min-h-12 items-center gap-3 border border-white/10 px-3 py-3" data-surface="static">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center border border-white/20 font-mono text-[10px] uppercase">
+                {row.kind.slice(0, 3)}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm">{row.title}</p>
+                <p className="font-mono text-[10px] uppercase text-[var(--graphite-muted)]">
+                  {data.projectName} · {row.kind} · {item?.status ?? "open"}
+                </p>
+              </div>
+              <div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row">
+                <a href={row.href} className={`${btn} min-h-12`}>Open</a>
+                {item?.locatorHref ? (
+                  <a href={item.locatorHref} className={`${btn} min-h-12`}>Open at location</a>
+                ) : null}
+              </div>
+            </article>
+          );
+        })}
       </div>
     </section>
   );

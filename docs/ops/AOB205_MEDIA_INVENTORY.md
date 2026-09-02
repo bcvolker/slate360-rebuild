@@ -14,13 +14,13 @@ Searched by name only, depth ≤ 4:
 
 **Result: no folder or file named AOB205 / AOB-205 / AOB 205.**
 
-AOB205 exists in product docs as an ASU classroom (~41×30 ft, drawings, failed stills-vs-video twin run). That is design history, not capture media on this machine.
+The live public portal for token `S0Ho5PRcBjg6pW2uVrFFvm1EMSQjX269` is titled **AOB205 — ASU**, but the capture itself is **HouseWalk X4** (kitchen interior, 2026-08-30). That is a project-name overlay on HouseWalk media, not ASU classroom source files on this laptop.
 
 ## Recommendation
 
-**HouseWalk remains the only live commercial walk** until AOB205 media is located.
+**HouseWalk remains the only live commercial walk.** Do not treat the portal title as proof that AOB205 classroom media exists.
 
-AOB205 would be the stronger *construction* demo **if** Brian’s desktop has horizon-locked 360, drawings, and no operator-in-frame kitchen clutter. Do not switch the public proof until that media is inventoried and a CLIENT proxy exists.
+AOB205 classroom capture would be a stronger *construction* demo **if** Brian’s desktop has horizon-locked 360, drawings, and no operator-in-frame kitchen clutter. Do not switch the public proof until that media is inventoried and a CLIENT proxy exists.
 
 ## Command for Brian’s desktop (`C:\Users\Brian PC`)
 

@@ -7,6 +7,13 @@ describe("monday commercial proof gates", () => {
     expect(existsSync("app/portal/[token]/page.tsx")).toBe(false);
   });
 
+  it("marks the portal hero as a static surface with a clickable Open Walkthrough", () => {
+    const src = readFileSync("components/external-portal/AecPortalLanding.tsx", "utf8");
+    expect(src).toMatch(/data-surface="static"/);
+    expect(src).toMatch(/data-testid="open-walkthrough"/);
+    expect(src).toMatch(/pointer-events-none absolute inset-0 bg-gradient-to-t/);
+  });
+
   it("crops public hero media instead of serving a raw ERP poster", () => {
     const src = readFileSync("app/api/spatial-walkthrough/public/[token]/media/route.ts", "utf8");
     expect(src).toMatch(/kind === "hero"/);

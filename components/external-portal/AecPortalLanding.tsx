@@ -71,11 +71,11 @@ export function AecPortalLanding({
           ) : (
             <div className="absolute inset-0 bg-[var(--graphite-canvas)]" />
           )}
-          <div className="absolute inset-0 bg-gradient-to-t from-[var(--graphite-canvas)] via-transparent to-transparent" />
-          <p className="absolute left-4 top-4 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[var(--graphite-canvas)] via-transparent to-transparent" />
+          <p className="pointer-events-none absolute left-4 top-4 z-10 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">
             Static navigation surface
           </p>
-          <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 px-4 py-5 sm:flex-row sm:items-end sm:justify-between sm:px-6">
+          <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col gap-3 px-4 py-5 sm:flex-row sm:items-end sm:justify-between sm:px-6">
             <div>
               <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">Latest capture</p>
               <h1 className="text-xl font-semibold sm:text-2xl">{hero.title}</h1>

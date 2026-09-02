@@ -150,6 +150,7 @@ export function ChapterWalkthroughExperience({
         forceHud={forceHud}
         briefingCues={briefingCues}
         selectedId={rest.selectedId ?? locator.pinId}
+        requireGesture={!locator.pinId && locator.tSeconds == null && locator.yawDeg == null}
         onPlayerReady={(handle) => {
           setPlayer(handle);
           rest.onPlayerReady?.(handle);
