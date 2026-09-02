@@ -44,6 +44,7 @@ type Props = {
   onReady?: (handle: WalkthroughPlayerHandle) => void;
   onPlaying?: () => void;
   onPause?: () => void;
+  onFirstFrame?: () => void;
 };
 
 export function WalkthroughPlayer({
@@ -64,6 +65,7 @@ export function WalkthroughPlayer({
   onReady,
   onPlaying,
   onPause,
+  onFirstFrame,
 }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const pinSelectRef = useRef(onPinSelect);
@@ -71,11 +73,13 @@ export function WalkthroughPlayer({
   const readyRef = useRef(onReady);
   const playingRef = useRef(onPlaying);
   const pauseCbRef = useRef(onPause);
+  const firstFrameRef = useRef(onFirstFrame);
   pinSelectRef.current = onPinSelect;
   waypointRef.current = onWaypointSelect;
   readyRef.current = onReady;
   playingRef.current = onPlaying;
   pauseCbRef.current = onPause;
+  firstFrameRef.current = onFirstFrame;
 
   const liveRef = useRef({ waypoints, clipId, pins, redactions, operatorPatch, theme, chrome, selectedId, hudOpacity });
   liveRef.current = { waypoints, clipId, pins, redactions, operatorPatch, theme, chrome, selectedId, hudOpacity };
@@ -120,7 +124,6 @@ export function WalkthroughPlayer({
         theme: live.theme,
         chrome: live.chrome,
         selectedId: live.selectedId,
-        hudOpacity: live.hudOpacity,
       });
       markers.setMarkers(
         defs.map((d) => ({
@@ -205,16 +208,33 @@ export function WalkthroughPlayer({
 
     video.addEventListener("playing", () => playingRef.current?.());
     video.addEventListener("pause", () => pauseCbRef.current?.());
+    const media = video as HTMLVideoElement & { requestVideoFrameCallback?: (cb: () => void) => number };
+    if (typeof media.requestVideoFrameCallback === "function") {
+      media.requestVideoFrameCallback(() => firstFrameRef.current?.());
+    } else {
+      video.addEventListener("playing", () => firstFrameRef.current?.(), { once: true });
+    }
     videoPlugin.addEventListener("progress", onProgress as never);
     markers.addEventListener("select-marker", onSelect as never);
+    const resizeViewer = () => {
+      const el = containerRef.current;
+      if (!el) return;
+      (viewer as { resize: (size?: unknown) => void }).resize({
+        width: el.clientWidth,
+        height: el.clientHeight,
+      });
+    };
     viewer.addEventListener("ready", () => {
+      resizeViewer();
       applyMarkers(0);
       readyRef.current?.(handle);
     });
+    window.addEventListener("resize", resizeViewer);
     const tick = window.setInterval(() => applyMarkers(videoPlugin.getTime()), 350);
 
     return () => {
       window.clearInterval(tick);
+      window.removeEventListener("resize", resizeViewer);
       markers.removeEventListener("select-marker", onSelect as never);
       videoPlugin.removeEventListener("progress", onProgress as never);
       viewer.destroy();
@@ -225,8 +245,8 @@ export function WalkthroughPlayer({
   }, [videoUrl, posterUrl, autoplay]);
 
   return (
-    <div className="relative h-full min-h-[420px] w-full overflow-hidden bg-[var(--sw-page,var(--graphite-canvas))]">
-      <div ref={containerRef} className="h-full w-full" />
+    <div className="absolute inset-0 min-h-0 w-full overflow-hidden bg-[var(--sw-page,var(--graphite-canvas))]">
+      <div ref={containerRef} className="absolute inset-0 h-full w-full" data-testid="sw-pano" />
     </div>
   );
 }

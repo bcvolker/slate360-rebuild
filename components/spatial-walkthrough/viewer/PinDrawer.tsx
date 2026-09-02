@@ -20,6 +20,11 @@ export type DrawerPin = {
   pinType: string;
   body: string | null;
   attachments: DrawerAttachment[];
+  walkthroughId?: string | null;
+  clipId?: string | null;
+  tSeconds?: number | null;
+  yawDeg?: number | null;
+  pitchDeg?: number | null;
 };
 
 type Props = {
@@ -40,6 +45,11 @@ export function PinDrawer({ pin, onClose, allowDownload = true }: Props) {
         <div className="min-w-0">
           <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--sw-muted)]">{pin.pinType}</p>
           <h2 className="truncate text-base font-semibold">{pin.label}</h2>
+          {pin.clipId ? (
+            <p className="mt-1 font-mono text-[10px] uppercase tracking-wide text-[var(--sw-muted)]">
+              {pin.clipId.slice(0, 8)} · t {pin.tSeconds ?? "—"} · yaw {pin.yawDeg ?? "—"} · pitch {pin.pitchDeg ?? "—"}
+            </p>
+          ) : null}
         </div>
         <button type="button" onClick={onClose} className="inline-flex h-11 w-11 items-center justify-center" aria-label="Close">
           <X className="h-4 w-4" />

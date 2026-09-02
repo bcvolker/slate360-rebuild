@@ -180,6 +180,20 @@ export function useChapterSession({
     goClip(dest, wp.tSeconds, wp.yawDeg, wp.pitchDeg, true, dest.title ?? dest.zone ?? "Next capture", "manual");
   }
 
+  function followEdge(edge: ClipEdgeRecord) {
+    const dest = ordered.find((c) => c.id === edge.destClipId);
+    if (!dest) return;
+    goClip(
+      dest,
+      destTime(edge, dest.durationS),
+      edge.defaultYaw,
+      edge.defaultPitch,
+      true,
+      locationChip(dest, edge.transitionType),
+      edge.transitionType,
+    );
+  }
+
   return {
     clipId,
     activeClip,
@@ -190,10 +204,12 @@ export function useChapterSession({
     duration,
     scopedWaypoints,
     fade,
+    resolvedEdges: graph,
     chapters: locked ? visibleChapters.filter((c) => c.id === locked.id) : visibleChapters,
     pickerLocked: Boolean(locked),
     selectChapter,
     goWaypoint,
+    followEdge,
     setCurrentT,
   };
 }

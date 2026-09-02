@@ -116,7 +116,7 @@ export function ChapterWalkthroughExperience({
   const briefingCues = placeholderBriefingCues(session.chapters);
 
   return (
-    <div className="relative h-full min-h-0">
+    <div className="relative flex h-[100dvh] min-h-[100dvh] flex-col">
       <p className="sw-chapter-chip">{name}</p>
       <ChapterPicker
         chapters={session.chapters}

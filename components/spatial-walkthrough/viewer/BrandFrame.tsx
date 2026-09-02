@@ -59,9 +59,14 @@ export function BrandFrame({
       <header className="sw-frame-header">
         {theme.logoUrl ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={theme.logoUrl} alt="" className={`sw-logo--${theme.logoTreatment}`} />
+          <img
+            src={theme.logoUrl}
+            alt=""
+            className={`sw-logo--${theme.logoTreatment}`}
+            style={{ opacity: theme.logoOpacity ?? 0.85 }}
+          />
         ) : (
-          <span className="sw-frame-kicker">Spatial</span>
+          <span className="sw-frame-kicker">{theme.companyName || "Spatial"}</span>
         )}
         <div className="sw-frame-meta">
           <strong>{copy.title}</strong>

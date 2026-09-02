@@ -6,6 +6,7 @@ import {
   chapterVisibleOnPolicy,
   clampToChapter,
   displayChapterName,
+  nextChapter,
   normalizeTimeRange,
   toChapter,
   waypointsInChapter,
@@ -138,6 +139,7 @@ describe("select chapter", () => {
     expect(clampToChapter(200, level1)).toBe(140);
     expect(displayChapterName(level1, lobby, false)).toBe("Level 1");
     expect(displayChapterName(null, lobby, true)).toBe("Lobby");
+    expect(nextChapter([lobby, level1, mech], "ch-lobby", lobby)?.id).toBe("ch-l1");
   });
   it("draws timeline bands for the active clip", () => {
     const bands = chapterBands([lobby, level1], "c1", 420, "ch-l1");

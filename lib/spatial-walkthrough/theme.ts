@@ -11,6 +11,8 @@ const FALLBACK: BrandTheme = {
   mutedTextColor: "var(--graphite-muted)",
   logoTreatment: "auto",
   showPoweredBy: true,
+  logoOpacity: 0.85,
+  companyName: null,
 };
 
 const HEX = /^#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})$/;
@@ -66,6 +68,8 @@ function asPartial(raw: unknown): Partial<BrandTheme> {
     mutedTextColor: typeof o.mutedTextColor === "string" ? o.mutedTextColor : undefined,
     logoTreatment: parseLogoTreatment(o.logoTreatment),
     showPoweredBy: typeof o.showPoweredBy === "boolean" ? o.showPoweredBy : undefined,
+    logoOpacity: typeof o.logoOpacity === "number" ? o.logoOpacity : undefined,
+    companyName: typeof o.companyName === "string" ? o.companyName : undefined,
   };
 }
 
@@ -85,6 +89,8 @@ export function resolveBrandTheme(layers: BrandThemeLayers): BrandTheme {
     mutedTextColor: pickColor(snap.mutedTextColor, wt.mutedTextColor, org.mutedTextColor) ?? FALLBACK.mutedTextColor,
     logoTreatment: snap.logoTreatment ?? wt.logoTreatment ?? org.logoTreatment ?? FALLBACK.logoTreatment,
     showPoweredBy: layers.canHidePoweredBy ? !wantsHide : true,
+    logoOpacity: snap.logoOpacity ?? wt.logoOpacity ?? org.logoOpacity ?? FALLBACK.logoOpacity,
+    companyName: snap.companyName || wt.companyName || org.companyName || FALLBACK.companyName,
   };
 }
 
@@ -97,5 +103,6 @@ export function themeCssVars(theme: BrandTheme): Record<string, string> {
     "--sw-surface": theme.surfaceColor,
     "--sw-text": theme.textColor,
     "--sw-muted": theme.mutedTextColor,
+    "--sw-logo-opacity": String(theme.logoOpacity ?? 0.85),
   };
 }

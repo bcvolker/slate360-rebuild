@@ -213,8 +213,8 @@ export function WalkthroughExperience({
             }}
             onPlaying={() => {
               setPlaying(true);
-              window.setTimeout(() => setHasFrame(true), 400);
             }}
+            onFirstFrame={() => setHasFrame(true)}
             onPause={() => setPlaying(false)}
           />
           {showGate || showHold ? (

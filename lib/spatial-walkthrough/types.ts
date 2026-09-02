@@ -35,6 +35,8 @@ export type BrandTheme = {
   mutedTextColor: string;
   logoTreatment: LogoTreatment;
   showPoweredBy: boolean;
+  logoOpacity?: number;
+  companyName?: string | null;
 };
 
 export type OperatorPatch = {
