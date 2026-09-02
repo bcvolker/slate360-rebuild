@@ -24,7 +24,7 @@ export default async function TwinMetricPreviewPage({
   const sha = process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? "";
 
   const asset = (kind: string) =>
-    `/preview/twin-metric/asset?job=${encodeURIComponent(job)}&kind=${kind}`;
+    `/preview/twin-metric/asset?job=${encodeURIComponent(job)}&kind=${kind}&proxy=1`;
 
   return (
     <main

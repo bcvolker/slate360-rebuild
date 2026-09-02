@@ -58,10 +58,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const url = await signedGetUrl(key, {
-      contentType: spec.type,
-      cacheControl: "public, max-age=86400",
-    });
+    const url = await signedGetUrl(key);
     return NextResponse.redirect(url, 302);
   } catch {
     return NextResponse.json({ error: "not found", key }, { status: 404 });

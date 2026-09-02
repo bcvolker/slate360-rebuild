@@ -49,6 +49,8 @@ export const s3 = new S3Client({
   region: hasFullR2Config ? r2Config.region : awsConfig.region,
   endpoint: hasFullR2Config ? r2Config.endpoint : undefined,
   forcePathStyle: readEnv("S3_FORCE_PATH_STYLE") === "true",
+  requestChecksumCalculation: "WHEN_REQUIRED",
+  responseChecksumValidation: "WHEN_REQUIRED",
   credentials: {
     accessKeyId: hasFullR2Config ? r2Config.accessKeyId : awsConfig.accessKeyId,
     secretAccessKey: hasFullR2Config ? r2Config.secretAccessKey : awsConfig.secretAccessKey,

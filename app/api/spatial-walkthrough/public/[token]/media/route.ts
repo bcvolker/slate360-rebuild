@@ -1,12 +1,15 @@
+import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { NextRequest, NextResponse } from "next/server";
 
 import { loadShareRow, shareDenied, passwordOk } from "@/lib/spatial-walkthrough/share-resolve";
 import { selectDerivativeKey, type MediaKind } from "@/lib/spatial-walkthrough/derivatives";
 import { sessionUnlocksShare } from "@/lib/spatial-walkthrough/share-session";
 import { publicShareDenial } from "@/lib/spatial-walkthrough/share-token";
+import { s3, BUCKET } from "@/lib/s3";
 import { signedGetUrl } from "@/lib/storage/signed-get";
 
 export const runtime = "nodejs";
+export const maxDuration = 60;
 type Ctx = { params: Promise<{ token: string }> };
 
 export const GET = async (req: NextRequest, ctx: Ctx) => {
@@ -33,7 +36,23 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
   const key = selectDerivativeKey(clip, kind, row.policy, false);
   if (!key) return NextResponse.json(publicShareDenial(), { status: 404 });
 
-  const contentType = kind === "poster" ? "image/jpeg" : "video/mp4";
-  const url = await signedGetUrl(key, { contentType, cacheControl: "private, max-age=300" });
-  return NextResponse.redirect(url, 302);
+  // Posters can 302 to R2 (img tags do not need CORS). 360 video must stay
+  // same-origin until the R2 API token can write a GET CORS policy.
+  if (kind === "poster") {
+    const url = await signedGetUrl(key);
+    return NextResponse.redirect(url, 302);
+  }
+
+  const range = req.headers.get("range") ?? undefined;
+  const obj = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: key, Range: range }));
+  const headers = new Headers();
+  headers.set("Content-Type", obj.ContentType || "video/mp4");
+  headers.set("Accept-Ranges", "bytes");
+  headers.set("Cache-Control", "private, max-age=60");
+  if (obj.ContentLength != null) headers.set("Content-Length", String(obj.ContentLength));
+  if (obj.ContentRange) headers.set("Content-Range", obj.ContentRange);
+  return new NextResponse(obj.Body as never, {
+    status: range && obj.ContentRange ? 206 : 200,
+    headers,
+  });
 };
