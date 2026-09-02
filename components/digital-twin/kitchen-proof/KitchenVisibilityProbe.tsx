@@ -18,13 +18,25 @@ function readCanvasProbe(gl: THREE.WebGLRenderer): PixelProbe {
   const ctx = gl.getContext();
   const srcW = canvas.width;
   const srcH = canvas.height;
-  const w = Math.max(48, Math.floor(srcW / 6));
-  const h = Math.max(48, Math.floor(srcH / 6));
-  const x = Math.max(0, Math.floor((srcW - w) / 2));
-  const y = Math.max(0, Math.floor((srcH - h) / 2));
-  const pixels = new Uint8Array(w * h * 4);
-  ctx.readPixels(x, y, w, h, ctx.RGBA, ctx.UNSIGNED_BYTE, pixels);
-  return probeRgbaBuffer(pixels, w, h);
+  const w = Math.max(48, Math.floor(srcW / 5));
+  const h = Math.max(48, Math.floor(srcH / 5));
+  const merge = (x: number, y: number) => {
+    const pixels = new Uint8Array(w * h * 4);
+    ctx.readPixels(x, y, w, h, ctx.RGBA, ctx.UNSIGNED_BYTE, pixels);
+    return probeRgbaBuffer(pixels, w, h);
+  };
+  const cx = Math.max(0, Math.floor((srcW - w) / 2));
+  const cy = Math.max(0, Math.floor((srcH - h) / 2));
+  const lower = merge(cx, Math.max(0, Math.floor(srcH * 0.12)));
+  const mid = merge(cx, cy);
+  const ratio = Math.max(lower.nonBackgroundPixelRatio, mid.nonBackgroundPixelRatio);
+  const variance = Math.max(lower.frameVariance, mid.frameVariance);
+  return {
+    nonBackgroundPixelRatio: ratio,
+    frameVariance: variance,
+    visible: ratio >= 0.04 && variance >= 8,
+    samples: lower.samples + mid.samples,
+  };
 }
 
 export function KitchenVisibilityProbe({
@@ -92,6 +104,8 @@ export function KitchenCameraGuard({
       far: cam.far,
       box: bbox,
     });
+    const next = fallbackEyeInBox(bbox);
+    loco.setPose({ x: next.position[0], y: next.position[1], z: next.position[2], yaw: Math.PI, pitch: -0.08 });
     console.info("[twin-vis] camera/bbox", {
       bbox,
       camera: [cam.position.x, cam.position.y, cam.position.z],
@@ -99,12 +113,8 @@ export function KitchenCameraGuard({
       far: cam.far,
       cameraInsideBbox: see.cameraInsideBbox,
       lookHitsBbox: see.lookHitsBbox,
+      snapped: next,
     });
-    if (!see.cameraInsideBbox && !see.lookHitsBbox) {
-      const next = fallbackEyeInBox(bbox);
-      loco.setPose({ x: next.position[0], y: next.position[1], z: next.position[2], yaw: next.yaw, pitch: 0 });
-      console.info("[twin-vis] snapped camera into display bbox", next);
-    }
     done.current = true;
   });
   return null;
