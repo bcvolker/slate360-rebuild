@@ -72,7 +72,7 @@ describe("MASTER / derivative isolation", () => {
     const empty = publicMediaContract("tok", "c1", clip, "public");
     expect(empty.proxyUrl).toBe("");
     expect(empty.posterUrl).toBeNull();
-    expect(empty.mediaState).toBe("DERIVATIVE_REQUIRED");
+    expect(empty.mediaState).toBe("UNPUBLISHED");
     const ready = publicMediaContract("tok", "c1", { ...clip, public_proxy_key: "pub.mp4", public_poster_key: "pub.jpg" }, "public");
     expect(ready.proxyUrl).toContain("kind=proxy");
     expect(ready.posterUrl).toContain("kind=poster");

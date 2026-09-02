@@ -28,8 +28,9 @@ Project: `slate360-prod` / `hadnfcenpcfaeclczsmm`
 | Tool | Result | Missing piece |
 |---|---|---|
 | Service-role REST | SELECT works | Cannot `ALTER TABLE` |
-| Management API `/database/query` | **401** | `SUPABASE_ACCESS_TOKEN` (`sbp_…`) is unauthorized |
-| `npx supabase db query --linked` | **401** `LegacyDbConfigLoginRole` | Same stale personal access token; no `~/.supabase/access-token` |
+| Management API `/database/query` | **401** `{ message: Unauthorized }` | `SUPABASE_ACCESS_TOKEN` (`sbp_…`, 44 chars) is stale; no `~/.supabase/access-token` |
+| `npx supabase db query --linked` | **401** `LegacyDbConfigLoginRole` | CLI is linked to `hadnfcenpcfaeclczsmm` via `C:\s360\supabase\.temp` but login role is unauthorized |
+| Service-role `rpc exec_sql` | **PGRST202** | Function does not exist — service role cannot ALTER |
 | Vercel production env | `POSTGRES_URL` **empty**, `POSTGRES_PASSWORD` **empty** | Host/user exist (`POSTGRES_HOST` / `POSTGRES_USER`) but password was never stored |
 
 ## Minimum repair (one-time, Brian or operator)

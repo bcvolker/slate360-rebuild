@@ -20,6 +20,7 @@ import { useWalkthroughNav } from "./useWalkthroughNav";
 import { WalkthroughCollaborationHost, type WalkthroughCollaboration } from "@/components/spatial-walkthrough/items/WalkthroughCollaborationHost";
 import { LookHint } from "./LookHint";
 import { PreparingWalkStage } from "./PreparingWalkStage";
+import { usePosterBytes } from "./usePosterBytes";
 import "@/components/spatial-walkthrough/audio/walkthrough-audio.css";
 
 export type ExperiencePin = DrawerPin & {
@@ -113,6 +114,8 @@ export function WalkthroughExperience({
   const playerRef = useRef<WalkthroughPlayerHandle | null>(null);
   enteredRef.current = entered;
   const nav = useWalkthroughNav({ player, initialMode, forceHud });
+  const posterBytes = usePosterBytes(authoring ? null : gatePosterUrl || posterUrl || null);
+  const psvReady = authoring ? Boolean(videoUrl) : Boolean(videoUrl) && posterBytes === "ok";
   const modeRef = useRef(nav.mode);
   modeRef.current = nav.mode;
 
@@ -186,7 +189,7 @@ export function WalkthroughExperience({
           onSelect={setSelectedId}
           onWaypoint={() => startExplore()}
         />
-      ) : !videoUrl ? (
+      ) : !psvReady ? (
         <PreparingWalkStage title={title} logoUrl={theme.logoUrl} />
       ) : (
         <>

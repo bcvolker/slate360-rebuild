@@ -22,6 +22,22 @@ Insta360 Studio (or an equivalent licensed SDK/process) must produce a full **2:
 
 Slate360 may automate stitching if it is commercially and technically viable (SDK/licensing). Do not claim automated raw `.insv` stitching unless that pipeline exists in this repo.
 
+## Classifier (`lib/spatial-walkthrough/source-class.ts`)
+
+| Class | Browser panorama? |
+|---|---|
+| `RAW_INSTA360` | no |
+| `STITCHED_ERP_VIDEO` | yes (≈2:1) |
+| `STITCHED_ERP_STILL` | yes (≈2:1) |
+| `PERSPECTIVE_VIDEO` | no |
+| `PERSPECTIVE_STILLS` | no |
+| `RGBD_IPHONE` | no |
+| `LIDAR` | no |
+| `DRONE` | classified via filename/telemetry; not a sphere unless 2:1 |
+| `DOCUMENT` | no |
+
+Raw `.insv` is **never** handed to Photo Sphere Viewer.
+
 ## What the browser may load
 
 - Stitched 2:1 ERP MP4/MOV (walkthrough proxy / baked derivative)

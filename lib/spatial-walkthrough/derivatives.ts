@@ -12,7 +12,20 @@ export type ClipKeys = {
   capture_meta?: Record<string, unknown> | null;
 };
 
-export type MediaBootState = "READY" | "DERIVATIVE_REQUIRED" | "PROCESSING";
+export type MediaBootState = "UNPUBLISHED" | "PROCESSING" | "READY" | "FAILED";
+
+export function mediaBootState(
+  clip: ClipKeys & { status?: string | null },
+  policy: AccessPolicy,
+  allowMaster = false,
+): MediaBootState {
+  if (clip.status === "failed") return "FAILED";
+  if (clip.status === "processing") return "PROCESSING";
+  const poster = selectDerivativeKey(clip, "poster", policy, allowMaster);
+  if (poster) return "READY";
+  if (clip.status === "ready") return "PROCESSING";
+  return "UNPUBLISHED";
+}
 
 function metaKey(clip: ClipKeys, name: string): string | null {
   const meta = clip.capture_meta;
@@ -120,12 +133,13 @@ export function publicMediaContract(
   const proxyKey = selectDerivativeKey(clip, "proxy", policy);
   const posterKey = selectDerivativeKey(clip, "poster", policy);
   const path = `/api/spatial-walkthrough/public/${token}/media?clip=${clipId}`;
+  const mediaState = mediaBootState(clip, policy);
   return {
-    proxyUrl: proxyKey ? `${path}&kind=proxy` : "",
+    proxyUrl: proxyKey && mediaState === "READY" ? `${path}&kind=proxy` : "",
     posterUrl: posterKey ? `${path}&kind=poster` : null,
     gatePosterUrl: posterKey ? `${path}&kind=hero` : null,
-    publicMediaReady: Boolean(proxyKey),
-    mediaState: proxyKey ? "READY" : "DERIVATIVE_REQUIRED",
+    publicMediaReady: mediaState === "READY",
+    mediaState,
   };
 }
 
@@ -139,9 +153,11 @@ export function studioMediaContract(
   const proxyKey = selectDerivativeKey(clip, "proxy", policy, allowMaster);
   const posterKey = selectDerivativeKey(clip, "poster", policy, allowMaster);
   const path = `/api/spatial-walkthrough/${walkthroughId}/media?clip=${clipId}&policy=${policy}`;
+  const mediaState = mediaBootState(clip, policy, allowMaster);
+  const ready = mediaState === "READY" || (allowMaster && Boolean(proxyKey));
   return {
-    videoUrl: proxyKey ? `${path}&kind=proxy` : "",
+    videoUrl: ready && proxyKey ? `${path}&kind=proxy` : "",
     posterUrl: posterKey ? `${path}&kind=poster` : null,
-    mediaState: proxyKey ? "READY" : "DERIVATIVE_REQUIRED",
+    mediaState: ready ? "READY" : mediaState,
   };
 }
