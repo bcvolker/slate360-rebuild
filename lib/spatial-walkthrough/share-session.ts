@@ -31,15 +31,26 @@ export function readUnlockCookie(req: NextRequest, tokenHash: string): string | 
   return req.cookies.get(shareUnlockCookieName(tokenHash))?.value ?? null;
 }
 
+export function cookieUnlocksShare(
+  tokenHash: string,
+  passwordHash: string | null,
+  proof: string | null,
+): boolean {
+  if (!passwordHash) return true;
+  if (!proof) return false;
+  return verifyShareUnlockProof(tokenHash, passwordHash, proof);
+}
+
 export function sessionUnlocksShare(args: {
   req: NextRequest;
   tokenHash: string;
   passwordHash: string | null;
 }): boolean {
-  if (!args.passwordHash) return true;
-  const proof = readUnlockCookie(args.req, args.tokenHash);
-  if (!proof) return false;
-  return verifyShareUnlockProof(args.tokenHash, args.passwordHash, proof);
+  return cookieUnlocksShare(
+    args.tokenHash,
+    args.passwordHash,
+    readUnlockCookie(args.req, args.tokenHash),
+  );
 }
 
 export const SHARE_UNLOCK_COOKIE = {

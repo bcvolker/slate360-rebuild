@@ -30,6 +30,7 @@ import {
   type SplatLoadStats,
 } from "@/lib/digital-twin/spark-appearance-load";
 import { fetchSplatManifest, type SplatManifest } from "@/lib/digital-twin/twin-manifest";
+import { absoluteSameOriginUrl } from "@/lib/digital-twin/asset-progress";
 
 extend({ SparkRenderer: SparkRendererImpl, SplatMesh: SplatMeshImpl });
 
@@ -74,6 +75,7 @@ export function MeshSplatLayer({
   const manifestPromiseRef = useRef<Promise<SplatManifest | null> | null>(null);
   const budget = useSparkLodSplatCount();
   const lodSplatCount = lodSplatCountProp ?? budget;
+  const absoluteUrl = useMemo(() => absoluteSameOriginUrl(url), [url]);
   const sparkArgs = useMemo(
     () => sparkRendererAppearanceArgs(gl, lodSplatCount),
     [gl, lodSplatCount],
@@ -92,7 +94,7 @@ export function MeshSplatLayer({
     meshRef.current = null;
     manifestRef.current = null;
     let cancelled = false;
-    const promise = fetchSplatManifest(url);
+    const promise = fetchSplatManifest(absoluteUrl);
     manifestPromiseRef.current = promise;
     void promise.then((manifest) => {
       if (!cancelled) manifestRef.current = manifest;
@@ -100,7 +102,7 @@ export function MeshSplatLayer({
     return () => {
       cancelled = true;
     };
-  }, [url]);
+  }, [absoluteUrl]);
 
   useEffect(() => {
     if (meshRef.current) meshRef.current.visible = visible;
@@ -108,7 +110,7 @@ export function MeshSplatLayer({
 
   const splatArgs = useMemo(
     () =>
-      sparkSplatAppearanceArgs(url, async (mesh: SplatMesh) => {
+      sparkSplatAppearanceArgs(absoluteUrl, async (mesh: SplatMesh) => {
         mesh.raycastable = false;
         mesh.visible = visibleRef.current;
         let manifest = manifestRef.current;
@@ -120,7 +122,7 @@ export function MeshSplatLayer({
         meshRef.current = mesh;
         readyRef.current?.(await readSplatLoadStats(mesh));
       }),
-    [url, worldMatrix],
+    [absoluteUrl, worldMatrix],
   );
 
   return (

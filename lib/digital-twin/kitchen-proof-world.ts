@@ -24,6 +24,7 @@ export function exactFrameSim3(): Sim3 {
 }
 
 export const KITCHEN_PROOF_JOB = "79a4f0ac-32e9-4358-bda0-e1a7461510e1";
+export const KITCHEN_STATION_THUMB = `/preview/twin-metric/asset?job=${KITCHEN_PROOF_JOB}&kind=thumbnail.png`;
 
 /** Native-coordinate Brush B web asset. Baked ARKit SPZ is research-only. */
 export const KITCHEN_APPEARANCE_AVAILABLE = true;
@@ -54,11 +55,11 @@ export const KITCHEN_FLOORS: FloorInfo[] = [
  * Hero is the first frame: fridge + cabinetry + counter + doorway, off the walls.
  */
 export const KITCHEN_STATIONS: WalkStation[] = [
-  { id: "hero", position: [1.96, KITCHEN_FLOOR_Y, -2.18], floorIndex: 0, headingY: 0.26 },
-  { id: "human", position: [2.05, KITCHEN_FLOOR_Y, -1.82], floorIndex: 0, headingY: 0.28 },
-  { id: "fridge", position: [0.72, KITCHEN_FLOOR_Y, -1.7], floorIndex: 0, headingY: -0.85 },
-  { id: "island", position: [2.22, KITCHEN_FLOOR_Y, -2.45], floorIndex: 0, headingY: 0.15 },
-  { id: "opening", position: [3.72, KITCHEN_FLOOR_Y, -1.42], floorIndex: 0, headingY: -1.05 },
+  { id: "hero", position: [1.96, KITCHEN_FLOOR_Y, -2.18], floorIndex: 0, headingY: 0.26, thumbUrl: KITCHEN_STATION_THUMB },
+  { id: "human", position: [2.05, KITCHEN_FLOOR_Y, -1.82], floorIndex: 0, headingY: 0.28, thumbUrl: KITCHEN_STATION_THUMB },
+  { id: "fridge", position: [0.72, KITCHEN_FLOOR_Y, -1.7], floorIndex: 0, headingY: -0.85, thumbUrl: KITCHEN_STATION_THUMB },
+  { id: "island", position: [2.22, KITCHEN_FLOOR_Y, -2.45], floorIndex: 0, headingY: 0.15, thumbUrl: KITCHEN_STATION_THUMB },
+  { id: "opening", position: [3.72, KITCHEN_FLOOR_Y, -1.42], floorIndex: 0, headingY: -1.05, thumbUrl: KITCHEN_STATION_THUMB },
 ];
 
 export function kitchenDefaultStation(): WalkStation {

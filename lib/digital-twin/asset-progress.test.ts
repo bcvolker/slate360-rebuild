@@ -6,6 +6,7 @@ import {
   isByteStall,
   spatialPhase,
   withProxyFallback,
+  absoluteSameOriginUrl,
 } from "./asset-progress";
 
 describe("asset progress", () => {
@@ -48,6 +49,8 @@ describe("asset progress", () => {
     expect(withProxyFallback("/preview/twin-metric/asset?job=a&kind=x&proxy=1")).toBe(
       "/preview/twin-metric/asset?job=a&kind=x&proxy=1",
     );
+    expect(absoluteSameOriginUrl("blob:https://example/x")).toBe("blob:https://example/x");
+    expect(absoluteSameOriginUrl("https://cdn.example/a.spz")).toBe("https://cdn.example/a.spz");
   });
 
   it("keeps Geometry in the failure copy", () => {

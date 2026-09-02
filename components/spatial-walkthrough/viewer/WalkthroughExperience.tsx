@@ -163,6 +163,8 @@ export function WalkthroughExperience({
       capturedAt={capturedAt}
       loading={loading}
       compact={authoring}
+      sceneVisible={hasFrame || Boolean(posterUrl)}
+      visibleLayer={hasFrame ? "reality" : "hero"}
     >
       {preview || !videoUrl ? (
         <PreviewSphere

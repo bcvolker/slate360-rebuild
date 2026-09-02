@@ -53,7 +53,7 @@ Not wholesale merges. Files taken from RC2 `44934788` then adapted on this branc
 | `WalkthroughShareClient` + `/w/[token]` Suspense | RC2 | Chapter player; dropped orientation until public JSON has it |
 | `redaction-parse.ts` | RC2 | Extra keyframe fields kept out of `RedactionRule` |
 | `nextChapter` + `followEdge` | RC2 helpers | Already imported on fidelity; wired for real |
-| Signed media 302 | new | Replaces 187 MB Vercel proxy |
+| Signed media 302 | new | Replaced: posters now Range-stream same-origin (R2 CORS denied) |
 | Twin signed asset 302 | new | Replaces 22–30 MB proxy; `proxy=1` CORS fallback |
 | Hero PNG | Brush forensics `C_spz_spark.png` | Same-origin first spatial pixels |
 

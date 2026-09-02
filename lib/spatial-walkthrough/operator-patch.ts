@@ -2,6 +2,22 @@ import type { OperatorPatch, OperatorPatchFill, PatchStyle } from "./types";
 import { DEFAULT_OPERATOR_PATCH } from "./types";
 import { wrapYaw, yawInRange } from "./redaction";
 
+/** Shared later by Walkthrough publisher and Twin face extraction. Do not invent pixels. */
+export type OperatorMaskKeyframe = {
+  t: number;
+  yawCenter: number;
+  yawWidth: number;
+  pitch: number;
+  extent: number;
+  feather: number;
+  style: PatchStyle;
+};
+
+export type OperatorMaskTrack = {
+  clipId: string;
+  keyframes: OperatorMaskKeyframe[];
+};
+
 export function parseOperatorPatch(raw: unknown): OperatorPatch {
   if (!raw || typeof raw !== "object") return { ...DEFAULT_OPERATOR_PATCH };
   const o = raw as Record<string, unknown>;

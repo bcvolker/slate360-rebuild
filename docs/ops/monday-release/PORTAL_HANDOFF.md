@@ -12,7 +12,9 @@ The client/project portal is owned by a parallel agent. This branch only exposes
 
 - Public player: `/w/[token]`
 - JSON: `GET /api/spatial-walkthrough/public/[token]`
-- Media: `GET /api/spatial-walkthrough/public/[token]/media?clip=&kind=proxy|poster` → **302 signed R2**
+- Media: `GET /api/spatial-walkthrough/public/[token]/media?clip=&kind=proxy|poster` → **same-origin Range stream** (R2 302 has no CORS)
+- Boot: `GET /api/spatial-walkthrough/public/[token]/boot` → `{ walkId, title, posterUrl, brand, accessState }`
+- Experience profile (wiring only): `profile: "marketing" | "construction" | "facilities" | "wayfinding"` on the share JSON
 - Password: `POST /api/spatial-walkthrough/public/[token]/unlock`
 - Branding: `BrandTheme` on the JSON payload (`logoUrl`, `accentColor`, `logoOpacity`, `companyName`, `showPoweredBy`)
 - Pins stay on `spatial_pins` + `spatial_pin_attachments` until the items migration is applied
@@ -34,7 +36,7 @@ type ViewerBrand = {
 
 - Preview (not productized): `/preview/twin-metric?job=<uuid>`
 - Kitchen job: `79a4f0ac-32e9-4358-bda0-e1a7461510e1`
-- Assets: `/preview/twin-metric/asset?job=&kind=` → **302 signed R2** (`proxy=1` same-origin fallback)
+- Assets: `/preview/twin-metric/asset?job=&kind=&proxy=1` → same-origin Range stream (R2 302 has no CORS)
 - Modes: Reality | Geometry persistent switch. Hybrid is **Reality + Geometry** under View.
 
 ## Share / privacy

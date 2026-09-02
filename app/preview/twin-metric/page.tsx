@@ -38,7 +38,7 @@ export default async function TwinMetricPreviewPage({
           navUrl={asset("geometry-nav.glb")}
           measureUrl={asset("geometry-measurement.glb")}
           appearanceUrl={fail === "spz" ? null : asset(KITCHEN_APPEARANCE_KIND)}
-          heroUrl="/monday-release/kitchen-hero.png"
+          heroUrl={asset("thumbnail.png")}
           failAppearance={fail === "spz"}
           debug={debug}
         />

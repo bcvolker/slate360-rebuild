@@ -14,6 +14,8 @@ type Props = {
   capturedAt?: string | null;
   loading?: boolean;
   compact?: boolean;
+  sceneVisible?: boolean;
+  visibleLayer?: "hero" | "geometry" | "reality";
   children: ReactNode;
 };
 
@@ -24,6 +26,8 @@ export function BrandFrame({
   capturedAt,
   loading = false,
   compact = false,
+  sceneVisible = false,
+  visibleLayer = "hero",
   children,
 }: Props) {
   const style = themeCssVars(theme) as CSSProperties;
@@ -50,7 +54,7 @@ export function BrandFrame({
   }, []);
 
   return (
-    <div className="sw-frame" data-compact={compact ? "true" : "false"} data-chrome={chrome} style={style}>
+    <div className="sw-frame" data-compact={compact ? "true" : "false"} data-chrome={chrome} data-scene-visible={sceneVisible ? "true" : "false"} data-visible-layer={visibleLayer} style={style}>
       {loading ? (
         <div className="sw-buffer" role="status">
           <StatusCopy logoUrl={theme.logoUrl} title={copy.title} body="Loading Spatial Walkthrough" />

@@ -58,7 +58,7 @@ export function WalkthroughPlayer({
   theme = null,
   chrome,
   selectedId = null,
-  autoplay = false,
+  autoplay: _autoplay = false,
   hudOpacity = 1,
   onPinSelect,
   onWaypointSelect,
@@ -92,11 +92,12 @@ export function WalkthroughPlayer({
     video.setAttribute("webkit-playsinline", "true");
     video.muted = true;
     video.preload = "auto";
-    video.crossOrigin = "anonymous";
     if (posterUrl) video.poster = posterUrl;
     video.src = videoUrl;
 
-    const viewer = new Viewer({
+    let viewer: Viewer;
+    try {
+      viewer = new Viewer({
       container: containerRef.current,
       adapter: EquirectangularVideoAdapter,
       panorama: { source: video },
@@ -105,10 +106,16 @@ export function WalkthroughPlayer({
       navbar: false,
       loadingImg: posterUrl ?? undefined,
       plugins: [
-        [VideoPlugin, { muted: true, autoplay, bigButton: false, progressbar: false }],
+        [VideoPlugin, { progressbar: false, bigbutton: false }],
         MarkersPlugin,
       ],
     });
+    } catch (err) {
+      console.error("[WalkthroughPlayer] Viewer init failed", err);
+      video.removeAttribute("src");
+      video.load();
+      return;
+    }
     const videoPlugin = viewer.getPlugin(VideoPlugin) as VideoPlugin;
     const markers = viewer.getPlugin(MarkersPlugin) as MarkersPlugin;
 
@@ -242,7 +249,7 @@ export function WalkthroughPlayer({
       video.removeAttribute("src");
       video.load();
     };
-  }, [videoUrl, posterUrl, autoplay]);
+  }, [videoUrl, posterUrl]);
 
   return (
     <div className="absolute inset-0 min-h-0 w-full overflow-hidden bg-[var(--sw-page,var(--graphite-canvas))]">

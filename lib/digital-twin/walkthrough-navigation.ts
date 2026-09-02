@@ -16,6 +16,8 @@ export type WalkStation = {
   floorIndex: number;
   /** Optional yaw in radians the camera should face on arrival. */
   headingY?: number;
+  /** Optional station chip image. HUD-only; not used by the spatial engine. */
+  thumbUrl?: string | null;
 };
 
 export type FloorInfo = {

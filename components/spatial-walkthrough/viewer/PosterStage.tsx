@@ -5,14 +5,15 @@ type Props = {
   title: string;
   showButton?: boolean;
   onEnter?: () => void;
+  onPosterLoad?: () => void;
 };
 
-export function PosterStage({ posterUrl, title, showButton = false, onEnter }: Props) {
+export function PosterStage({ posterUrl, title, showButton = false, onEnter, onPosterLoad }: Props) {
   return (
     <div className="sw-poster-gate" data-testid="sw-poster-gate">
       {posterUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={posterUrl} alt={title} />
+        <img src={posterUrl} alt={title} onLoad={() => onPosterLoad?.()} />
       ) : (
         <div className="sw-poster-fallback" aria-hidden />
       )}

@@ -98,12 +98,16 @@ export function KitchenStationBar({
         <button
           key={station.id}
           type="button"
-          className="kv-btn"
+          className="kv-btn flex min-h-11 min-w-11 flex-col items-center gap-1 px-1 py-1"
           data-active={station.id === currentId}
           aria-pressed={station.id === currentId}
           onClick={() => onStation(station.id)}
         >
-          {station.id}
+          {station.thumbUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={station.thumbUrl} alt="" className="h-8 w-12 object-cover" />
+          ) : null}
+          <span className="font-mono text-[10px] uppercase tracking-wide">{station.id}</span>
         </button>
       ))}
     </div>

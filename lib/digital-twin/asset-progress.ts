@@ -43,6 +43,13 @@ export function withProxyFallback(url: string): string {
   return url.includes("?") ? `${url}&proxy=1` : `${url}?proxy=1`;
 }
 
+/** Spark workers cannot fetch blob: URLs. Pass an absolute same-origin http(s) URL. */
+export function absoluteSameOriginUrl(url: string): string {
+  if (!url || url.startsWith("blob:") || url.startsWith("http://") || url.startsWith("https://")) return url;
+  if (typeof window === "undefined") return url;
+  return new URL(url, window.location.origin).href;
+}
+
 export function appearanceStatusCopy(progress: Pick<ByteProgress, "loadedBytes" | "totalBytes" | "stalled" | "failed">): {
   message: string;
   retry: boolean;

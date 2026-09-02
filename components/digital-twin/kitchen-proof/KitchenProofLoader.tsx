@@ -4,16 +4,16 @@ import type { ReactElement } from "react";
 
 export function KitchenProofLoader({
   heroUrl,
-  geometryReady,
+  cover,
   error,
   onHeroReady,
 }: {
   heroUrl?: string | null;
-  geometryReady: boolean;
+  cover: boolean;
   error: string | null;
   onHeroReady?: () => void;
 }): ReactElement | null {
-  if (geometryReady && !error) return null;
+  if (!cover && !error) return null;
   return (
     <div className="absolute inset-0 z-10 bg-[var(--graphite-canvas)]" data-testid="kitchen-poster">
       {heroUrl ? (

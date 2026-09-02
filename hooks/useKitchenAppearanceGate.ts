@@ -6,16 +6,16 @@ import type { TwinLayerRepresentation } from "@/lib/digital-twin/twin-epoch";
 
 export type AppearanceWanted = "auto" | TwinLayerRepresentation;
 
-export function useKitchenAppearanceGate(splatReady: boolean, appearanceUrl: string | null) {
+export function useKitchenAppearanceGate(realityPainted: boolean, appearanceUrl: string | null) {
   const [layer, setLayer] = useState<TwinLayerRepresentation>("geometry");
   const [wanted, setWanted] = useState<AppearanceWanted>("auto");
   const [retryKey, setRetryKey] = useState(0);
 
   useEffect(() => {
-    if (!splatReady) return;
+    if (!realityPainted) return;
     if (wanted === "auto" || wanted === "reality") setLayer("reality");
     else if (wanted === "hybrid") setLayer("hybrid");
-  }, [splatReady, wanted]);
+  }, [realityPainted, wanted]);
 
   const requestLayer = useCallback(
     (next: TwinLayerRepresentation) => {
@@ -24,16 +24,16 @@ export function useKitchenAppearanceGate(splatReady: boolean, appearanceUrl: str
         setLayer("geometry");
         return;
       }
-      if (splatReady) setLayer(next);
+      if (realityPainted) setLayer(next);
     },
-    [splatReady],
+    [realityPainted],
   );
 
   const retryAppearance = useCallback(() => {
     setRetryKey((n) => n + 1);
   }, []);
 
-  const preparing = (wanted === "reality" || wanted === "hybrid" || wanted === "auto") && !splatReady;
+  const preparing = (wanted === "reality" || wanted === "hybrid" || wanted === "auto") && !realityPainted;
 
   return { layer, wanted, requestLayer, retryKey, retryAppearance, preparing, appearanceUrl };
 }

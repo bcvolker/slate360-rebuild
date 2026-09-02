@@ -7,6 +7,7 @@ import * as THREE from "three";
 import { KitchenAppearanceLayer } from "@/components/digital-twin/kitchen-proof/KitchenAppearanceLayer";
 import { KitchenLocomotionRig } from "@/components/digital-twin/kitchen-proof/KitchenLocomotionRig";
 import { KitchenMeshLayer } from "@/components/digital-twin/kitchen-proof/KitchenMeshLayer";
+import { KitchenCameraGuard, KitchenVisibilityProbe } from "@/components/digital-twin/kitchen-proof/KitchenVisibilityProbe";
 import { FpsProbe } from "@/components/digital-twin/kitchen-proof/kitchen-proof-api";
 import { NavigationRig, type MetricHit } from "@/components/digital-twin/walkthrough-rig";
 import { HybridSceneOverlays } from "@/components/digital-twin/hybrid/HybridSceneOverlays";
@@ -17,6 +18,7 @@ import { cssColor, MESH_GROUND_FALLBACK, MESH_SURFACE_FALLBACK } from "@/lib/dig
 import { KITCHEN_FLOOR_Y, KITCHEN_HUMAN_FOV } from "@/lib/digital-twin/kitchen-proof-world";
 import type { SplatLoadStats } from "@/lib/digital-twin/spark-appearance-load";
 import type { TwinLayerRepresentation } from "@/lib/digital-twin/twin-epoch";
+import type { PixelProbe, VisibleLayer } from "@/lib/digital-twin/scene-visibility";
 
 export function KitchenProofScene({
   displayGeometry,
@@ -26,6 +28,10 @@ export function KitchenProofScene({
   appearanceKey = 0,
   layer,
   splatReady,
+  showGeometry,
+  showSplat,
+  probeLayer,
+  onProbe,
   onAppearanceReady,
   onContextLost,
   nav,
@@ -44,6 +50,10 @@ export function KitchenProofScene({
   appearanceKey?: number;
   layer: TwinLayerRepresentation;
   splatReady: boolean;
+  showGeometry: boolean;
+  showSplat: boolean;
+  probeLayer: VisibleLayer | null;
+  onProbe: (layer: VisibleLayer, probe: PixelProbe) => void;
   onAppearanceReady: (stats?: SplatLoadStats) => void;
   onContextLost?: () => void;
   nav: WalkthroughNavigation;
@@ -57,10 +67,8 @@ export function KitchenProofScene({
 }): ReactElement {
   const overview = nav.mode !== "inside";
   const hybridEdges = layer === "hybrid" && splatReady;
-  const showSplat =
-    Boolean(appearanceUrl) && (layer === "reality" || layer === "hybrid");
-  const showGeometry =
-    overview || layer === "geometry" || layer === "hybrid" || !splatReady;
+  const geometryOn = overview || showGeometry;
+  const splatOn = Boolean(appearanceUrl) && showSplat;
 
   return (
     <Canvas
@@ -91,7 +99,7 @@ export function KitchenProofScene({
         <KitchenMeshLayer
           geometry={displayGeometry}
           role="display"
-          visible={showGeometry}
+          visible={geometryOn}
           opacity={hybridEdges ? 0.12 : 1}
           wireframe={hybridEdges}
         />
@@ -104,7 +112,7 @@ export function KitchenProofScene({
         <KitchenAppearanceLayer
           key={appearanceKey}
           url={appearanceUrl}
-          visible={showSplat}
+          visible={splatOn}
           onReady={onAppearanceReady}
         />
       ) : null}
@@ -134,6 +142,10 @@ export function KitchenProofScene({
         floorY={KITCHEN_FLOOR_Y}
         enabled={nav.mode === "inside"}
       />
+      <KitchenCameraGuard geometry={displayGeometry} loco={loco} enabled={Boolean(displayGeometry)} />
+      {probeLayer ? (
+        <KitchenVisibilityProbe armed layer={probeLayer} onResult={onProbe} />
+      ) : null}
       <FpsProbe fpsRef={fpsRef} />
     </Canvas>
   );

@@ -35,9 +35,10 @@ type Props = {
 
 export function PinDrawer({ pin, onClose, allowDownload = true }: Props) {
   if (!pin) return null;
-  const pdf = pin.attachments.find((a) => (a.fileName ?? a.title ?? "").toLowerCase().endsWith(".pdf") && a.previewUrl);
-  const image = pin.attachments.find((a) => /\.(png|jpe?g|webp|gif)$/i.test(a.fileName ?? a.title ?? "") && a.previewUrl);
-  const audio = pin.attachments.find((a) => a.kind === "audio" && a.audioUrl);
+  const atts = pin.attachments ?? [];
+  const pdf = atts.find((a) => (a.fileName ?? a.title ?? "").toLowerCase().endsWith(".pdf") && a.previewUrl);
+  const image = atts.find((a) => /\.(png|jpe?g|webp|gif)$/i.test(a.fileName ?? a.title ?? "") && a.previewUrl);
+  const audio = atts.find((a) => a.kind === "audio" && a.audioUrl);
 
   return (
     <aside className="sw-drawer" role="dialog" aria-label={pin.label}>
@@ -68,7 +69,7 @@ export function PinDrawer({ pin, onClose, allowDownload = true }: Props) {
           <img src={image.previewUrl} alt="" className="mb-4 w-full border border-white/10" />
         ) : null}
         <ul className="space-y-2">
-          {pin.attachments.map((att) => (
+          { (pin.attachments ?? []).map((att) => (
             <li key={att.id} className="flex items-center justify-between gap-2 text-sm">
               <span className="truncate">{att.title || att.fileName || att.url || "Attachment"}</span>
               {att.kind === "url" && att.url ? (

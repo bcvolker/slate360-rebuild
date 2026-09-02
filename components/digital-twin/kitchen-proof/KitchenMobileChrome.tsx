@@ -56,8 +56,10 @@ export function KitchenMobileChrome({
   onToggleMeasure: () => void;
   measureActive: boolean;
 }): ReactElement {
+  void onToggleMove;
+  void onToggleMore;
   return (
-    <div className="kv-chrome pointer-events-none absolute inset-0 z-20" data-idle={idle} data-testid="kitchen-chrome">
+    <div className="kv-chrome pointer-events-none absolute inset-0 z-20" data-idle={idle} data-testid="kitchen-chrome" data-walk={walkEnabled ? "on" : "off"}>
       <div className="pointer-events-auto absolute right-3 top-3">
         <KitchenLayerSwitch layer={layer} onLayer={onLayer} />
       </div>
@@ -95,31 +97,18 @@ export function KitchenMobileChrome({
           </div>
         ) : null}
         <div className="flex justify-center gap-2 px-4">
-          <button
-            type="button"
-            className="kv-btn"
-            data-testid="kitchen-move"
-            aria-pressed={walkEnabled}
-            data-active={walkEnabled}
-            onClick={onToggleMove}
-          >
-            Move
+          <button type="button" className="kv-btn min-h-11 min-w-11" data-testid="kitchen-view" aria-expanded={viewOpen} onClick={onToggleView}>
+            View
           </button>
           <button
             type="button"
-            className="kv-btn"
+            className="kv-btn min-h-11 min-w-11"
             data-testid="kitchen-tools"
             aria-pressed={measureActive}
             data-active={measureActive}
             onClick={onToggleMeasure}
           >
             Measure
-          </button>
-          <button type="button" className="kv-btn" data-testid="kitchen-view" aria-expanded={viewOpen} onClick={onToggleView}>
-            View
-          </button>
-          <button type="button" className="kv-btn" data-testid="kitchen-more" aria-expanded={moreOpen} onClick={onToggleMore}>
-            More
           </button>
         </div>
       </div>

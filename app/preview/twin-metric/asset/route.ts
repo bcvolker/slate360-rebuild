@@ -40,12 +40,14 @@ export async function GET(request: NextRequest) {
   if (spec.inline || proxy) {
     try {
       const range = request.headers.get("range") ?? undefined;
-      const res = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: key, Range: range }));
+      const res = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: key, Range: range }), {
+        abortSignal: request.signal,
+      });
       if (!res.Body) return NextResponse.json({ error: "empty" }, { status: 404 });
       const headers = new Headers();
       headers.set("Content-Type", spec.type);
       headers.set("Accept-Ranges", "bytes");
-      headers.set("Cache-Control", spec.inline ? "public, max-age=300" : "public, max-age=86400");
+      headers.set("Cache-Control", spec.inline ? "public, max-age=300" : "public, max-age=86400, immutable");
       if (res.ContentLength != null) headers.set("Content-Length", String(res.ContentLength));
       if (res.ContentRange) headers.set("Content-Range", res.ContentRange);
       return new NextResponse(res.Body.transformToWebStream(), {

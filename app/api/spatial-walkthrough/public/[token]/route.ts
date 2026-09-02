@@ -150,5 +150,6 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
     pins: runtime.pins,
     attachments: runtime.attachments,
     redactions: runtime.redactions,
+    profile: "marketing",
   });
 };
