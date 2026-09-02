@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
+import { withProxyFallback } from "@/lib/digital-twin/asset-progress";
+
 export type GlbLoadState = {
   status: "idle" | "loading" | "ready" | "error";
   progress: number;
@@ -40,7 +42,7 @@ export function useKitchenGlb(url: string | null, timeoutMs = 90_000): GlbLoadSt
 
     (async () => {
       try {
-        const res = await fetch(url, { signal: controller.signal, cache: "no-store" });
+        const res = await fetchBinary(url, controller.signal);
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const total = Number(res.headers.get("content-length") || 0);
         const reader = res.body?.getReader();
@@ -98,6 +100,15 @@ export function useKitchenGlb(url: string | null, timeoutMs = 90_000): GlbLoadSt
   }, [url, timeoutMs]);
 
   return state;
+}
+
+async function fetchBinary(url: string, signal: AbortSignal): Promise<Response> {
+  try {
+    return await fetch(url, { signal, cache: "force-cache", redirect: "follow" });
+  } catch (err) {
+    if (url.includes("proxy=1")) throw err;
+    return fetch(withProxyFallback(url), { signal, cache: "force-cache", redirect: "follow" });
+  }
 }
 
 function parseGlb(buffer: ArrayBuffer): Promise<THREE.BufferGeometry> {

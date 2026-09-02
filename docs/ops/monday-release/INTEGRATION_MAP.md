@@ -44,7 +44,20 @@ Geometry display / nav / measurement GLBs, native Brush `appearance-web.spz`, SI
 1. Walkthrough: fill-stage PSV, first-click play, signed R2 media URLs, chapter share client.
 2. Twin: signed R2 binaries (no Vercel 22–30 MB proxy), hero spatial fallback (not floor_slice), progressive load machine, Reality|Geometry switch, hybrid 12% overlay.
 
-## Do not merge
+## Targeted integration (executed)
+
+Not wholesale merges. Files taken from RC2 `44934788` then adapted on this branch:
+
+| Piece | Source | Notes |
+|---|---|---|
+| `WalkthroughShareClient` + `/w/[token]` Suspense | RC2 | Chapter player; dropped orientation until public JSON has it |
+| `redaction-parse.ts` | RC2 | Extra keyframe fields kept out of `RedactionRule` |
+| `nextChapter` + `followEdge` | RC2 helpers | Already imported on fidelity; wired for real |
+| Signed media 302 | new | Replaces 187 MB Vercel proxy |
+| Twin signed asset 302 | new | Replaces 22–30 MB proxy; `proxy=1` CORS fallback |
+| Hero PNG | Brush forensics `C_spz_spark.png` | Same-origin first spatial pixels |
+
+Conflicts: RC2 public route would drop audio/items — **not applied**. `stripBakedIntoDerivative` does not exist on this base.
 
 - `main`
 - Whole RC2 (deletes audio/items from fidelity)

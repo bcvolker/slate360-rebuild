@@ -27,6 +27,7 @@ export function KitchenProofScene({
   layer,
   splatReady,
   onAppearanceReady,
+  onContextLost,
   nav,
   loco,
   fovRef,
@@ -44,6 +45,7 @@ export function KitchenProofScene({
   layer: TwinLayerRepresentation;
   splatReady: boolean;
   onAppearanceReady: (stats?: SplatLoadStats) => void;
+  onContextLost?: () => void;
   nav: WalkthroughNavigation;
   loco: KitchenLocomotion;
   fovRef: MutableRefObject<number>;
@@ -54,6 +56,7 @@ export function KitchenProofScene({
   measure: HybridMeasureTool;
 }): ReactElement {
   const overview = nav.mode !== "inside";
+  const hybridEdges = layer === "hybrid" && splatReady;
   const showSplat =
     Boolean(appearanceUrl) && (layer === "reality" || layer === "hybrid");
   const showGeometry =
@@ -69,6 +72,12 @@ export function KitchenProofScene({
         gl.toneMapping = THREE.NoToneMapping;
         gl.outputColorSpace = THREE.SRGBColorSpace;
         infoRef.current = gl.info.render.calls;
+        const canvas = gl.domElement;
+        const onLost = (event: Event) => {
+          event.preventDefault();
+          onContextLost?.();
+        };
+        canvas.addEventListener("webglcontextlost", onLost, false);
       }}
     >
       <hemisphereLight
@@ -83,7 +92,8 @@ export function KitchenProofScene({
           geometry={displayGeometry}
           role="display"
           visible={showGeometry}
-          opacity={layer === "hybrid" ? 0.16 : 1}
+          opacity={hybridEdges ? 0.12 : 1}
+          wireframe={hybridEdges}
         />
       ) : null}
       {navGeometry ? <KitchenMeshLayer geometry={navGeometry} role="nav" collisionOnly /> : null}

@@ -2,9 +2,14 @@
 
 import type { ReactElement } from "react";
 
-import { KitchenHelpCopy, KitchenViewChoices } from "@/components/digital-twin/kitchen-proof/KitchenViewChoices";
+import {
+  KitchenHelpCopy,
+  KitchenLayerSwitch,
+  KitchenStationBar,
+  KitchenViewChoices,
+} from "@/components/digital-twin/kitchen-proof/KitchenViewChoices";
 import type { TwinLayerRepresentation } from "@/lib/digital-twin/twin-epoch";
-import type { ViewMode } from "@/lib/digital-twin/walkthrough-navigation";
+import type { ViewMode, WalkStation } from "@/lib/digital-twin/walkthrough-navigation";
 
 export function KitchenMobileChrome({
   idle,
@@ -14,15 +19,20 @@ export function KitchenMobileChrome({
   viewOpen,
   moreOpen,
   helpOpen,
+  stations,
+  currentStationId,
   onToggleMove,
   onToggleView,
   onToggleMore,
   onLayer,
   onViewMode,
   onReset,
+  onStation,
   onShare,
   onFullscreen,
   onToggleHelp,
+  onToggleMeasure,
+  measureActive,
 }: {
   idle: boolean;
   layer: TwinLayerRepresentation;
@@ -31,22 +41,33 @@ export function KitchenMobileChrome({
   viewOpen: boolean;
   moreOpen: boolean;
   helpOpen: boolean;
+  stations: WalkStation[];
+  currentStationId: string | null;
   onToggleMove: () => void;
   onToggleView: () => void;
   onToggleMore: () => void;
   onLayer: (layer: TwinLayerRepresentation) => void;
   onViewMode: (mode: ViewMode) => void;
   onReset: () => void;
+  onStation: (id: string) => void;
   onShare: () => void;
   onFullscreen: () => void;
   onToggleHelp: () => void;
+  onToggleMeasure: () => void;
+  measureActive: boolean;
 }): ReactElement {
   return (
     <div className="kv-chrome pointer-events-none absolute inset-0 z-20" data-idle={idle} data-testid="kitchen-chrome">
+      <div className="pointer-events-auto absolute right-3 top-3">
+        <KitchenLayerSwitch layer={layer} onLayer={onLayer} />
+      </div>
       <div
         className="pointer-events-auto absolute inset-x-0 bottom-0"
         style={{ paddingBottom: "calc(env(safe-area-inset-bottom, 0px) + 0.75rem)" }}
       >
+        <div className="px-3 pb-2">
+          <KitchenStationBar stations={stations} currentId={currentStationId} onStation={onStation} />
+        </div>
         {viewOpen ? (
           <div className="kv-sheet px-3 pb-2 pt-3" data-testid="kitchen-view-sheet">
             <KitchenViewChoices
@@ -83,6 +104,16 @@ export function KitchenMobileChrome({
             onClick={onToggleMove}
           >
             Move
+          </button>
+          <button
+            type="button"
+            className="kv-btn"
+            data-testid="kitchen-tools"
+            aria-pressed={measureActive}
+            data-active={measureActive}
+            onClick={onToggleMeasure}
+          >
+            Measure
           </button>
           <button type="button" className="kv-btn" data-testid="kitchen-view" aria-expanded={viewOpen} onClick={onToggleView}>
             View

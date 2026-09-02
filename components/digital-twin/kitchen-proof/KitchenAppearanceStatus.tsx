@@ -3,33 +3,28 @@
 import type { ReactElement } from "react";
 
 export function KitchenAppearanceStatus({
-  preparing,
-  timedOut,
+  message,
+  retry,
   onRetry,
 }: {
-  preparing: boolean;
-  timedOut: boolean;
+  message: string | null;
+  retry: boolean;
   onRetry: () => void;
 }): ReactElement | null {
-  if (!preparing && !timedOut) return null;
+  if (!message) return null;
   return (
-    <div className="pointer-events-none absolute bottom-20 right-4 z-30 sm:bottom-4 sm:right-auto sm:left-4">
-      {preparing ? (
-        <p
-          data-testid="preparing-reality"
-          className="kv-hint pointer-events-none px-2 py-1"
-        >
-          Preparing Reality
-        </p>
-      ) : null}
-      {timedOut ? (
+    <div className="pointer-events-none absolute bottom-20 left-4 z-30 sm:bottom-16">
+      <p data-testid="preparing-reality" className="kv-hint pointer-events-none px-2 py-1">
+        {message}
+      </p>
+      {retry ? (
         <button
           type="button"
           data-testid="appearance-retry"
-          className="kv-btn pointer-events-auto"
+          className="kv-btn pointer-events-auto mt-2"
           onClick={onRetry}
         >
-          Retry Reality
+          Retry
         </button>
       ) : null}
     </div>

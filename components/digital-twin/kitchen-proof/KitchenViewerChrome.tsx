@@ -7,7 +7,7 @@ import { KitchenMobileChrome } from "@/components/digital-twin/kitchen-proof/Kit
 import "@/components/digital-twin/kitchen-proof/kitchen-viewer-chrome.css";
 import { useCompactViewport, useKitchenIdleChrome } from "@/hooks/useKitchenIdleChrome";
 import type { TwinLayerRepresentation } from "@/lib/digital-twin/twin-epoch";
-import type { ViewMode } from "@/lib/digital-twin/walkthrough-navigation";
+import type { ViewMode, WalkStation } from "@/lib/digital-twin/walkthrough-navigation";
 
 export type KitchenChromeApi = {
   idle: boolean;
@@ -32,6 +32,11 @@ export function KitchenViewerChrome({
   onReset,
   walkEnabled,
   onToggleMove,
+  stations,
+  currentStationId,
+  onStation,
+  title,
+  capturedAt,
   onApi,
 }: {
   layer: TwinLayerRepresentation;
@@ -43,6 +48,11 @@ export function KitchenViewerChrome({
   onReset: () => void;
   walkEnabled: boolean;
   onToggleMove: () => void;
+  stations: WalkStation[];
+  currentStationId: string | null;
+  onStation: (id: string) => void;
+  title: string;
+  capturedAt?: string | null;
   onApi?: (api: KitchenChromeApi) => void;
 }): ReactElement {
   const compact = useCompactViewport();
@@ -94,7 +104,11 @@ export function KitchenViewerChrome({
         viewOpen={viewOpen}
         moreOpen={moreOpen}
         helpOpen={helpOpen}
+        stations={stations}
+        currentStationId={currentStationId}
+        measureActive={measureActive}
         onToggleMove={onToggleMove}
+        onToggleMeasure={onToggleMeasure}
         onToggleView={() => {
           setMoreOpen(false);
           setHelpOpen(false);
@@ -111,6 +125,7 @@ export function KitchenViewerChrome({
           onReset();
           closeAll();
         }}
+        onStation={onStation}
         onShare={share}
         onFullscreen={fullscreen}
         onToggleHelp={() => {
@@ -129,6 +144,10 @@ export function KitchenViewerChrome({
       measureActive={measureActive}
       viewOpen={viewOpen}
       helpOpen={helpOpen}
+      stations={stations}
+      currentStationId={currentStationId}
+      title={title}
+      capturedAt={capturedAt}
       onToggleView={() => {
         setHelpOpen(false);
         setViewOpen((v) => !v);
@@ -141,6 +160,8 @@ export function KitchenViewerChrome({
       onLayer={onLayer}
       onViewMode={onViewMode}
       onReset={onReset}
+      onStation={onStation}
+      onShare={share}
     />
   );
 }

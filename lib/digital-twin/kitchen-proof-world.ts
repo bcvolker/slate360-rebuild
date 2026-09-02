@@ -33,7 +33,10 @@ export const KITCHEN_SPLAT_MAX = BRUSH_B_PRIMITIVE_COUNT;
 /** Column-major EXACT_FRAME_SIM3. Applied as the Spark splat object transform. */
 export const KITCHEN_SPLAT_WORLD_MATRIX = exactFrameSim3().matrix;
 export const KITCHEN_DEFAULT_STATION = "hero";
-export const KITCHEN_APPEARANCE_TIMEOUT_MS = 15_000;
+/** Stall without bytes before we surface a loading warning. Not a hard fail. */
+export const KITCHEN_APPEARANCE_STALL_MS = 8_000;
+/** @deprecated wall-clock fail is no longer the primary Reality rule */
+export const KITCHEN_APPEARANCE_TIMEOUT_MS = KITCHEN_APPEARANCE_STALL_MS;
 export const KITCHEN_IDLE_MS = 2500;
 
 /** Floor plane from the metric job QA (Y-up, metres). */

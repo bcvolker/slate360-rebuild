@@ -17,14 +17,16 @@ export function KitchenProofClient({
   navUrl,
   measureUrl,
   appearanceUrl = null,
-  thumbnailUrl = null,
+  heroUrl = "/monday-release/kitchen-hero.png",
+  failAppearance = false,
   debug,
 }: {
   displayUrl: string;
   navUrl: string;
   measureUrl: string;
   appearanceUrl?: string | null;
-  thumbnailUrl?: string | null;
+  heroUrl?: string | null;
+  failAppearance?: boolean;
   debug: boolean;
 }): ReactElement {
   return (
@@ -33,7 +35,8 @@ export function KitchenProofClient({
       navUrl={navUrl}
       measureUrl={measureUrl}
       appearanceUrl={appearanceUrl}
-      thumbnailUrl={thumbnailUrl}
+      heroUrl={heroUrl}
+      failAppearance={failAppearance}
       debug={debug}
     />
   );

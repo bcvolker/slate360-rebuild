@@ -8,8 +8,8 @@ describe("kitchen viewer shell constants", () => {
     expect(KITCHEN_HUMAN_FOV).toBeLessThanOrEqual(75);
   });
 
-  it("idles chrome after a short pause and times out Reality at 15s", () => {
+  it("idles chrome after a short pause and stalls Reality after 8s without bytes", () => {
     expect(KITCHEN_IDLE_MS).toBe(2500);
-    expect(KITCHEN_APPEARANCE_TIMEOUT_MS).toBe(15_000);
+    expect(KITCHEN_APPEARANCE_TIMEOUT_MS).toBe(8_000);
   });
 });
