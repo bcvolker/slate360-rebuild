@@ -43,6 +43,17 @@ describe("scene visibility probe", () => {
     expect(probe.visible).toBe(true);
   });
 
+  it("treats a large non-graphite field as visible even when variance is low", () => {
+    const pixels = fillGraphite(64, 64);
+    for (let i = 0; i < pixels.length; i += 4) {
+      pixels[i] = 40;
+      pixels[i + 1] = 180;
+      pixels[i + 2] = 70;
+    }
+    const probe = probeRgbaBuffer(pixels, 64, 64);
+    expect(probe.visible).toBe(true);
+  });
+
   it("detects a camera that does not look at the mesh bbox", () => {
     const box = { min: [0, 0, 0] as [number, number, number], max: [2, 2, 2] as [number, number, number] };
     const miss = cameraSeesBox({

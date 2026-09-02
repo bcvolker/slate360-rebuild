@@ -90,7 +90,7 @@ export function probeRgbaBuffer(
   return {
     nonBackgroundPixelRatio: ratio,
     frameVariance: variance,
-    visible: ratio >= VISIBLE_RATIO_MIN && variance >= 8,
+    visible: ratio >= VISIBLE_RATIO_MIN && (variance >= 8 || ratio >= 0.2),
     samples,
   };
 }

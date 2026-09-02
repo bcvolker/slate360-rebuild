@@ -34,7 +34,7 @@ function readCanvasProbe(gl: THREE.WebGLRenderer): PixelProbe {
   return {
     nonBackgroundPixelRatio: ratio,
     frameVariance: variance,
-    visible: ratio >= 0.04 && variance >= 8,
+    visible: ratio >= 0.04 && (variance >= 8 || ratio >= 0.2),
     samples: lower.samples + mid.samples,
   };
 }
