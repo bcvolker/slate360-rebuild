@@ -1,6 +1,6 @@
 import type { AccessPolicy, SharePolicy } from "./types";
 
-export type MediaKind = "proxy" | "poster" | "master";
+export type MediaKind = "proxy" | "poster" | "hero" | "master";
 
 export type ClipKeys = {
   master_key?: string | null;
@@ -20,7 +20,7 @@ export function isSharePolicy(policy: AccessPolicy): policy is SharePolicy {
  */
 export function allowedMediaKind(policy: AccessPolicy, kind: MediaKind, allowMaster = false): boolean {
   if (kind === "master") return policy === "master" && allowMaster;
-  return kind === "proxy" || kind === "poster";
+  return kind === "proxy" || kind === "poster" || kind === "hero";
 }
 
 export function selectDerivativeKey(
@@ -31,7 +31,7 @@ export function selectDerivativeKey(
 ): string | null {
   if (!allowedMediaKind(policy, kind, allowMaster)) return null;
   if (kind === "master") return clip.master_key ?? null;
-  if (kind === "poster") return clip.poster_key ?? null;
+  if (kind === "poster" || kind === "hero") return clip.poster_key ?? null;
   if (policy === "public") return clip.public_proxy_key ?? null;
   return clip.proxy_key ?? null;
 }

@@ -3,6 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { s3, BUCKET } from "@/lib/s3";
 import { signedGetUrl } from "@/lib/storage/signed-get";
+import { authorizeTwinPreviewAsset } from "@/lib/digital-twin/preview-asset-auth";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -33,7 +34,11 @@ export async function GET(request: NextRequest) {
   const proxy = request.nextUrl.searchParams.get("proxy") === "1";
   const spec = KINDS[kind];
   if (!JOB_RE.test(job) || !spec) {
-    return NextResponse.json({ error: "invalid job or kind" }, { status: 400 });
+    return NextResponse.json({ error: "not found" }, { status: 404 });
+  }
+  const allowed = await authorizeTwinPreviewAsset(request, job);
+  if (!allowed) {
+    return NextResponse.json({ error: "not found" }, { status: 404 });
   }
   const key = `orgs/${PINNED_ORG}/digital-twin/${PINNED_SPACE}/models/${job}/${spec.suffix}`;
 
@@ -55,7 +60,7 @@ export async function GET(request: NextRequest) {
         headers,
       });
     } catch {
-      return NextResponse.json({ error: "not found", key }, { status: 404 });
+      return NextResponse.json({ error: "not found" }, { status: 404 });
     }
   }
 
@@ -63,6 +68,6 @@ export async function GET(request: NextRequest) {
     const url = await signedGetUrl(key);
     return NextResponse.redirect(url, 302);
   } catch {
-    return NextResponse.json({ error: "not found", key }, { status: 404 });
+    return NextResponse.json({ error: "not found" }, { status: 404 });
   }
 }

@@ -6,6 +6,7 @@ import { selectDerivativeKey, type MediaKind } from "@/lib/spatial-walkthrough/d
 import { sessionUnlocksShare } from "@/lib/spatial-walkthrough/share-session";
 import { publicShareDenial } from "@/lib/spatial-walkthrough/share-token";
 import { s3, BUCKET } from "@/lib/s3";
+import sharp from "sharp";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -38,13 +39,31 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
   // Same-origin Range stream for poster AND video. Direct R2 302 has no CORS
   // (`PutBucketCors` is AccessDenied on the current token). Video.crossOrigin
   // + a 302 poster taints the PSV canvas and can crash the public player.
-  const range = req.headers.get("range") ?? undefined;
+  const range = kind === "hero" ? undefined : (req.headers.get("range") ?? undefined);
   const obj = await s3.send(
     new GetObjectCommand({ Bucket: BUCKET, Key: key, Range: range }),
     { abortSignal: req.signal },
   );
   if (!obj.Body) return NextResponse.json(publicShareDenial(), { status: 404 });
   const headers = new Headers();
+  if (kind === "hero") {
+    const bytes = Buffer.from(await obj.Body.transformToByteArray());
+    const meta = await sharp(bytes).metadata();
+    const w = meta.width ?? 2;
+    const h = meta.height ?? 2;
+    const left = Math.floor(w * 0.28);
+    const top = Math.floor(h * 0.18);
+    const width = Math.max(32, Math.floor(w * 0.44));
+    const height = Math.max(32, Math.floor(h * 0.46));
+    const hero = await sharp(bytes).extract({ left, top, width, height }).jpeg({ quality: 82 }).toBuffer();
+    return new NextResponse(hero, {
+      headers: {
+        "Content-Type": "image/jpeg",
+        "Cache-Control": "public, max-age=86400, immutable",
+      },
+    });
+  }
+
   headers.set("Content-Type", obj.ContentType || (kind === "poster" ? "image/jpeg" : "video/mp4"));
   headers.set("Accept-Ranges", "bytes");
   headers.set("Cache-Control", "public, max-age=86400, immutable");

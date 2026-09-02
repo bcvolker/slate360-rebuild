@@ -22,9 +22,12 @@ export default async function TwinMetricPreviewPage({
   const failRaw = params.fail;
   const fail = Array.isArray(failRaw) ? failRaw[0] : failRaw;
   const sha = process.env.VERCEL_GIT_COMMIT_SHA ?? process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ?? "";
+  const shareRaw = params.share;
+  const share = Array.isArray(shareRaw) ? shareRaw[0] : shareRaw;
+  const shareQs = share ? `&share=${encodeURIComponent(share)}` : "";
 
   const asset = (kind: string) =>
-    `/preview/twin-metric/asset?job=${encodeURIComponent(job)}&kind=${kind}&proxy=1`;
+    `/preview/twin-metric/asset?job=${encodeURIComponent(job)}&kind=${kind}&proxy=1${shareQs}`;
 
   return (
     <main

@@ -62,6 +62,16 @@ export type OperatorPatch = {
   /** @deprecated parsed as rear yaw wrap */
   wrapFrac?: number;
   wrapY0Frac?: number;
+  keyframes?: Array<{
+    t: number;
+    yawCenter: number;
+    yawWidth: number;
+    pitchTop: number;
+    pitchBottom: number;
+    nadirRadius: number;
+    feather: number;
+    style: PatchStyle;
+  }>;
 };
 
 export type PinLocator = {
@@ -115,4 +125,5 @@ export const DEFAULT_OPERATOR_PATCH: OperatorPatch = {
   headingDeg: null,
   tStart: null,
   tEnd: null,
+  keyframes: [],
 };

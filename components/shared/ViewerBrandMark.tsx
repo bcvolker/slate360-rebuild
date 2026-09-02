@@ -1,5 +1,7 @@
 "use client";
 
+import { SlateLogo } from "@/components/shared/SlateLogo";
+
 export const SLATE360_MARK_SRC = "/uploads/slate360-logo-reversed-v2.svg";
 
 export function ViewerBrandMark({
@@ -11,14 +13,15 @@ export function ViewerBrandMark({
   opacity?: number;
   className?: string;
 }) {
+  if (logoUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={logoUrl} alt="" className={className} data-testid="client-logo" style={{ opacity }} />
+    );
+  }
   return (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img
-      src={logoUrl || SLATE360_MARK_SRC}
-      alt={logoUrl ? "" : "Slate360"}
-      className={className}
-      data-testid={logoUrl ? "client-logo" : "slate360-logo"}
-      style={{ opacity }}
-    />
+    <span className={className} data-testid="slate360-logo" style={{ opacity }}>
+      <SlateLogo size="sm" />
+    </span>
   );
 }

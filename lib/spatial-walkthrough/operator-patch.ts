@@ -1,6 +1,7 @@
 import type { OperatorPatch, OperatorPatchFill, PatchStyle } from "./types";
 import { DEFAULT_OPERATOR_PATCH } from "./types";
 import { wrapYaw, yawInRange } from "./redaction";
+import { parseKeyframes } from "./keyframes";
 
 /** Shared later by Walkthrough publisher and Twin face extraction. Do not invent pixels. */
 export type OperatorMaskKeyframe = {
@@ -47,6 +48,7 @@ export function parseOperatorPatch(raw: unknown): OperatorPatch {
     headingDeg: typeof o.headingDeg === "number" && Number.isFinite(o.headingDeg) ? o.headingDeg : null,
     tStart: typeof o.tStart === "number" && Number.isFinite(o.tStart) && o.tStart > 0 ? o.tStart : null,
     tEnd: typeof o.tEnd === "number" && Number.isFinite(o.tEnd) && o.tEnd > 0 ? o.tEnd : null,
+    keyframes: parseKeyframes(o.keyframes),
   };
 }
 

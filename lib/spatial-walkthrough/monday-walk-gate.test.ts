@@ -20,6 +20,7 @@ describe("monday walkthrough visual gates", () => {
     expect(frame).toMatch(/ViewerBrandMark/);
     expect(frame).not.toMatch(/"Spatial"/);
     const mark = readFileSync("components/shared/ViewerBrandMark.tsx", "utf8");
-    expect(mark).toMatch(/slate360-logo-reversed-v2\.svg/);
+    expect(mark).toMatch(/SlateLogo/);
+    expect(mark).not.toMatch(/Spatial/);
   });
 });

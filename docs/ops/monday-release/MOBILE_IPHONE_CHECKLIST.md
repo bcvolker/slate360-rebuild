@@ -2,9 +2,15 @@
 
 Desktop emulated mobile is **not** enough. If a remote device farm is not attached to this session, run this on the physical iPhone.
 
-Public Walkthrough: `https://slate360-rebuild-git-feature-monday-spatial-release-v1-slate360.vercel.app/w/S0Ho5PRcBjg6pW2uVrFFvm1EMSQjX269`
+Use the `feature/monday-commercial-proof-v1` preview once it is live (replace host after deploy):
 
-Public Twin: `https://slate360-rebuild-git-feature-monday-spatial-release-v1-slate360.vercel.app/preview/twin-metric?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1`
+- Portal: `/portal/S0Ho5PRcBjg6pW2uVrFFvm1EMSQjX269`
+- Walkthrough: `/w/S0Ho5PRcBjg6pW2uVrFFvm1EMSQjX269`
+- Documents: `/portal/S0Ho5PRcBjg6pW2uVrFFvm1EMSQjX269/documents`
+- One issue: `/portal/S0Ho5PRcBjg6pW2uVrFFvm1EMSQjX269/item/520c6060-0a60-4b91-9cc1-033784baa77f`
+- Twin (auth required): `/preview/twin-metric?job=79a4f0ac-32e9-4358-bda0-e1a7461510e1`
+
+Physical iPhone Safari only. Emulated 390×844 is not a device PASS.
 
 Hard refresh once after a new preview deploy. Public `/w` and `/preview` no longer register the app service worker.
 
