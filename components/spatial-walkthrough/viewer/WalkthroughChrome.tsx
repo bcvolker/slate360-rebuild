@@ -8,7 +8,7 @@ import { timelineMarks, type RedactionRule } from "@/lib/spatial-walkthrough/red
 import type { NavMode } from "@/lib/spatial-walkthrough/nav-mode";
 import type { WalkthroughPlayerHandle } from "./WalkthroughPlayer";
 import { PrivacyTimeline } from "./PrivacyTimeline";
-import { NavModeBar } from "./NavModeBar";
+import { PublicWalkToolbar } from "./PublicWalkToolbar";
 import { ShareCurrentView } from "./ShareCurrentView";
 
 type Props = {
@@ -26,6 +26,8 @@ type Props = {
   onStation?: () => void;
   pathVisible?: boolean;
   onTogglePath?: () => void;
+  playing?: boolean;
+  publicChrome?: boolean;
 };
 
 export function WalkthroughChrome({
@@ -43,6 +45,8 @@ export function WalkthroughChrome({
   onStation,
   pathVisible = true,
   onTogglePath,
+  playing = false,
+  publicChrome = false,
 }: Props) {
   const inClip = waypoints.filter((w) => w.clipId === clipId);
   const idx = indexAtTime(waypoints, clipId, currentT);
@@ -80,10 +84,25 @@ export function WalkthroughChrome({
     return () => window.removeEventListener("keydown", onKey);
   }, [prev?.id, next?.id, player]);
 
+  if (publicChrome) {
+    return (
+      <PublicWalkToolbar
+        waypoints={waypoints}
+        clipId={clipId}
+        currentT={currentT}
+        duration={duration}
+        playing={playing}
+        player={player}
+        pathVisible={pathVisible}
+        onTogglePath={onTogglePath}
+        onStation={onStation}
+      />
+    );
+  }
+
   return (
     <div className="sw-chrome" data-nav-mode={mode}>
       <div className="sw-chrome-lead">
-        <NavModeBar mode={mode} onChange={onModeChange} />
         <button type="button" className="sw-chrome-btn sw-station-btn" disabled={!prev} onClick={() => go(prev)} aria-label="Previous station">
           <ChevronLeft className="h-4 w-4" aria-hidden />
         </button>

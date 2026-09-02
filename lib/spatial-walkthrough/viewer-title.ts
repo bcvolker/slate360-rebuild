@@ -9,7 +9,8 @@ export function viewerChromeCopy(input: {
   projectName?: string | null;
   capturedAt?: string | null;
 }): { title: string; meta: string | null } {
-  const title = input.title.trim();
+  const raw = input.title.trim();
+  const title = /live smoke|\bx4\b/i.test(raw) ? (input.projectName?.trim() || "Walkthrough") : raw;
   const project = (input.projectName ?? "").trim();
   const same = Boolean(project) && project.toLowerCase() === title.toLowerCase();
   const parts = [same ? null : project || null, formatCaptureDay(input.capturedAt)].filter(Boolean);

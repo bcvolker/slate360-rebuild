@@ -1,7 +1,10 @@
+"use client";
+
 import { Search } from "lucide-react";
-import { AppSwitcher } from "@/components/shell/AppSwitcher";
+import { useState } from "react";
 import { shellTokens } from "@/components/shell/shell-tokens";
 import type { ShellApp } from "@/components/shell/shell-tokens";
+import { CreateSheet } from "@/components/product-shell/CreateSheet";
 
 type DashboardDesktopTopBarProps = {
   userName: string;
@@ -29,26 +32,22 @@ export function DashboardDesktopTopBar({
   onOpenCommand,
 }: DashboardDesktopTopBarProps) {
   const initial = (userName.trim()[0] ?? "U").toUpperCase();
+  const [create, setCreate] = useState(false);
+  void shellApp;
+  void twinVisible;
+  void siteWalkVisible;
+  void spatialWalkthroughVisible;
+  void spatialOnly;
 
   return (
     <header className="hidden h-12 shrink-0 items-center gap-3 border-b border-[var(--mobile-app-card-border)] px-4 lg:flex">
-      {/* Brand: wordmark + accent tick (hierarchy, not clutter) */}
-      <div className="flex shrink-0 items-center gap-2">
-        <span className={shellTokens.brandTick} aria-hidden />
-        <span className={shellTokens.brandWordmark}>Slate360</span>
-      </div>
-
-      {spatialOnly ? null : (
-        <AppSwitcher
-          active={shellApp}
-          twinVisible={twinVisible}
-          siteWalkVisible={siteWalkVisible}
-          spatialWalkthroughVisible={spatialWalkthroughVisible}
-          spatialOnly={spatialOnly}
-        />
-      )}
+      <p className="truncate text-sm text-[var(--graphite-text-body)]">Workspace</p>
 
       <div className={shellTokens.topBarSpacer} />
+
+      <button type="button" onClick={() => setCreate(true)} className="inline-flex h-10 items-center border border-white/15 px-3 text-sm text-white">
+        + Create
+      </button>
 
       <button
         type="button"
@@ -72,6 +71,7 @@ export function DashboardDesktopTopBar({
           {initial}
         </span>
       </div>
+      <CreateSheet open={create} onClose={() => setCreate(false)} />
     </header>
   );
 }

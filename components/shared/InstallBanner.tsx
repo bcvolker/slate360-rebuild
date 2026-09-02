@@ -1,13 +1,17 @@
 "use client";
 
 import { Download, X } from "lucide-react";
+import { usePathname } from "next/navigation";
 import { useInstallPrompt } from "@/lib/hooks/useInstallPrompt";
+import { isProductSurface } from "@/lib/product-shell/product-routes";
 import { useState } from "react";
 
 export function InstallBanner() {
+  const pathname = usePathname() ?? "";
   const { canInstall, promptInstall } = useInstallPrompt();
   const [dismissed, setDismissed] = useState(false);
 
+  if (isProductSurface(pathname)) return null;
   if (!canInstall || dismissed) return null;
 
   return (

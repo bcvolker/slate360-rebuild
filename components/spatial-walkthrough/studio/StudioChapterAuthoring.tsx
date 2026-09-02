@@ -55,7 +55,7 @@ export function StudioChapterAuthoring({
 
   return (
     <>
-      <div className="relative h-[52vh] overflow-hidden border border-white/10 lg:h-[58vh]">
+      <div className="relative h-full min-h-[58vh] overflow-hidden lg:min-h-0">
         <ChapterWalkthroughExperience
           theme={theme}
           title={title}

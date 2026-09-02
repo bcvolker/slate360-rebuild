@@ -126,12 +126,14 @@ export function ChapterWalkthroughExperience({
         open={pickerOpen}
         onSelect={session.selectChapter}
       />
-      <NextChapterControl chapter={upcoming} onSelect={session.selectChapter} />
+      {rest.authoring ? <NextChapterControl chapter={upcoming} onSelect={session.selectChapter} /> : null}
       <ClipTransitionOverlay fade={session.fade} />
-      <ClipEdgeActions actions={edgeActions} onSelect={(action) => session.followEdge(action.edge)} />
-      <div className="sw-chapter-band-layer">
-        <ChapterTimeline bands={bands} onSelect={session.selectChapter} />
-      </div>
+      {rest.authoring ? <ClipEdgeActions actions={edgeActions} onSelect={(action) => session.followEdge(action.edge)} /> : null}
+      {rest.authoring ? (
+        <div className="sw-chapter-band-layer">
+          <ChapterTimeline bands={bands} onSelect={session.selectChapter} />
+        </div>
+      ) : null}
       <WalkthroughExperience
         {...rest}
         clipId={session.clipId}
@@ -150,7 +152,7 @@ export function ChapterWalkthroughExperience({
         forceHud={forceHud}
         briefingCues={briefingCues}
         selectedId={rest.selectedId ?? locator.pinId}
-        requireGesture={!locator.pinId && locator.tSeconds == null && locator.yawDeg == null}
+        requireGesture={false}
         onPlayerReady={(handle) => {
           setPlayer(handle);
           rest.onPlayerReady?.(handle);

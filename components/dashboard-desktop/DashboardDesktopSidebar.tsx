@@ -53,27 +53,36 @@ export function DashboardDesktopSidebar({
         ) : null}
       </div>
 
-      <nav className={cn("flex flex-1 flex-col gap-1 overflow-y-auto py-3", collapsed ? "px-2" : "px-3")} aria-label="Workspace">
-        {nav.map((item) => {
-          const isActive = resolveDashboardNavActive(pathname, item);
-          const Icon = item.icon;
+      <nav className={cn("flex flex-1 flex-col gap-4 overflow-y-auto py-3", collapsed ? "px-2" : "px-3")} aria-label="Workspace">
+        {(["primary", "tools", "labs", "account"] as const).map((section) => {
+          const items = nav.filter((item) => (item.section ?? "primary") === section);
+          if (!items.length) return null;
           return (
-            <Link
-              key={item.href}
-              href={item.href}
-              title={collapsed ? item.label : undefined}
-              className={cn(
-                t.navLink,
-                collapsed && "justify-center px-0",
-                isActive && t.navLinkActive,
-              )}
-              aria-current={isActive ? "page" : undefined}
-            >
-              <span className={cn(t.navIcon, isActive && t.navIconActive)}>
-                <Icon className="h-4 w-4" strokeWidth={1.75} />
-              </span>
-              {!collapsed ? <span className="truncate">{item.label}</span> : null}
-            </Link>
+            <div key={section}>
+              {!collapsed && section !== "primary" ? (
+                <p className="mb-1 px-2 text-[11px] text-[var(--graphite-muted)]">
+                  {section === "tools" ? "Tools" : section === "labs" ? "Labs" : "Account"}
+                </p>
+              ) : null}
+              {items.map((item) => {
+                const isActive = resolveDashboardNavActive(pathname, item);
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    title={collapsed ? item.label : undefined}
+                    className={cn(t.navLink, collapsed && "justify-center px-0", isActive && t.navLinkActive)}
+                    aria-current={isActive ? "page" : undefined}
+                  >
+                    <span className={cn(t.navIcon, isActive && t.navIconActive)}>
+                      <Icon className="h-4 w-4" strokeWidth={1.75} />
+                    </span>
+                    {!collapsed ? <span className="truncate">{item.label}</span> : null}
+                  </Link>
+                );
+              })}
+            </div>
           );
         })}
       </nav>

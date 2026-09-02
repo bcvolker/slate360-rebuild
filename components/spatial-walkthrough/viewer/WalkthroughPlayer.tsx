@@ -25,6 +25,7 @@ export type WalkthroughPlayerHandle = {
   setPlaybackRate: (rate: number) => void;
   setSphereCorrection: (c: { pan: string; tilt: string; roll: string }) => void;
   viewerToSphere: (x: number, y: number) => { yaw: number; pitch: number } | null;
+  zoomBy?: (delta: number) => void;
 };
 
 type Props = {
@@ -112,7 +113,7 @@ export function WalkthroughPlayer({
       zoomSpeed: 1.4,
       defaultZoomLvl: 50,
       minFov: 40,
-      maxFov: 90,
+      maxFov: 100,
       touchmoveTwoFingers: false,
       keyboard: "fullscreen",
       loadingImg: undefined,
@@ -203,6 +204,9 @@ export function WalkthroughPlayer({
           return null;
         }
       },
+      zoomBy: (delta) => {
+        viewer.zoom(Math.min(100, Math.max(0, viewer.getZoomLevel() + delta)));
+      },
     };
 
     const onProgress = (evt: { time?: number }) => {
@@ -253,10 +257,20 @@ export function WalkthroughPlayer({
       readyRef.current?.(handle);
     });
     window.addEventListener("resize", resizeViewer);
+    let spinning = true;
+    const spin = window.setInterval(() => {
+      if (!spinning) return;
+      const pos = viewer.getPosition();
+      viewer.rotate({ yaw: pos.yaw + (0.25 * Math.PI) / 180, pitch: pos.pitch });
+    }, 80);
+    const stopSpin = () => { spinning = false; };
+    containerRef.current?.addEventListener("pointerdown", stopSpin);
     const tick = window.setInterval(() => applyMarkers(videoPlugin.getTime()), 350);
 
     return () => {
       window.clearInterval(tick);
+      window.clearInterval(spin);
+      containerRef.current?.removeEventListener("pointerdown", stopSpin);
       window.removeEventListener("resize", resizeViewer);
       markers.removeEventListener("select-marker", onSelect as never);
       videoPlugin.removeEventListener("progress", onProgress as never);
@@ -269,10 +283,10 @@ export function WalkthroughPlayer({
 
   return (
     <div
-      className="absolute inset-0 min-h-0 w-full overflow-hidden overscroll-none bg-[var(--sw-page,var(--graphite-canvas))]"
+      className="absolute inset-0 min-h-0 w-full cursor-grab overflow-hidden overscroll-none bg-[var(--sw-page,var(--graphite-canvas))] active:cursor-grabbing"
       onWheel={(e) => e.preventDefault()}
     >
-      <div ref={containerRef} className="absolute inset-0 h-full w-full touch-none" data-testid="sw-pano" />
+      <div ref={containerRef} className="absolute inset-0 h-full w-full cursor-grab touch-none active:cursor-grabbing" data-testid="sw-pano" />
     </div>
   );
 }

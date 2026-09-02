@@ -23,11 +23,12 @@
 .sw-mark-core,
 .sw-reticle-ring,
 .sw-pin-core {
-  width: 9px;
-  height: 9px;
-  border: 1px solid color-mix(in srgb, white 70%, transparent);
-  background: color-mix(in srgb, var(--sw-accent, var(--graphite-primary)) 78%, black);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--sw-accent, var(--graphite-primary)) 14%, transparent);
+  width: 22px;
+  height: 22px;
+  border: 2px solid color-mix(in srgb, white 70%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sw-text, white) 88%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, black 35%, transparent);
 }
 .sw-mark--waypoint .sw-mark-core,
 .sw-mark--waypoint .sw-reticle-ring {
@@ -59,16 +60,15 @@
 }
 .sw-mark-label {
   margin-top: 4px;
-  padding: 1px 5px;
+  padding: 2px 6px;
   max-width: 9rem;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 10px;
-  letter-spacing: 0.04em;
+  font-size: 11px;
   color: var(--sw-text, white);
   background: color-mix(in srgb, var(--sw-surface, black) 72%, transparent);
-  opacity: 0;
+  opacity: 1;
   pointer-events: none;
 }
 .sw-mark:hover .sw-mark-label,

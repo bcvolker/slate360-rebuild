@@ -7,10 +7,11 @@ import type { WalkthroughPlayerHandle } from "@/components/spatial-walkthrough/v
 import { StudioUpload } from "./StudioUpload";
 import { StudioSharePanel } from "./StudioSharePanel";
 import { OperatorPatchPanel } from "./OperatorPatchPanel";
+import { PrivacyInspector } from "./PrivacyInspector";
+import "./studio-frame.css";
 import { PrivacyRulesPanel } from "./PrivacyRulesPanel";
 import { ExportModal } from "./ExportModal";
-import { NarrationAuthorPanel } from "./NarrationAuthorPanel";
-import { VoiceNoteAuthor } from "./VoiceNoteAuthor";
+import { StudioAudioStack } from "./StudioAudioStack";
 import { parseOperatorPatch, resolveOperatorPatch } from "@/lib/spatial-walkthrough/operator-patch";
 import { wrapYaw } from "@/lib/spatial-walkthrough/redaction";
 import { captureMetaLabel, parseCaptureMeta } from "@/lib/spatial-walkthrough/capture-meta";
@@ -169,20 +170,27 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
   };
 
   return (
-    <div className="space-y-4 p-4 lg:p-6">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-xl font-semibold text-[var(--graphite-text-header)]">{String(payload.walkthrough.title)}</h1>
-        <p className="w-full text-xs text-[var(--graphite-muted)]">{captureLabel}</p>
-        <label className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em] text-[var(--graphite-muted)]">
+    <div className="sw-studio" data-testid="sw-studio">
+      <div className="sw-studio-top">
+        <a href="/projects" className="text-sm text-[var(--graphite-muted)]">Back</a>
+        <h1 className="truncate text-base font-semibold">{String(payload.walkthrough.title)}</h1>
+        <label className="flex items-center gap-2 text-xs text-[var(--graphite-muted)]">
           Preview
-          <select value={previewPolicy} onChange={(e) => setPreviewPolicy(e.target.value as AccessPolicy)} className="h-11 border border-white/10 bg-transparent px-2 text-[var(--graphite-text-header)]">
+          <select value={previewPolicy} onChange={(e) => setPreviewPolicy(e.target.value as AccessPolicy)} className="h-11 border border-white/10 bg-transparent px-2">
             <option value="master">MASTER</option>
             <option value="client">CLIENT</option>
             <option value="public">PUBLIC</option>
           </select>
         </label>
       </div>
+      <aside className="sw-studio-rail hidden lg:block">
+        <p className="mb-2 text-xs text-[var(--graphite-muted)]">Tools</p>
+        {["Capture", "Spaces", "Path", "Pins", "Privacy", "Narration", "Publish"].map((tool) => (
+          <p key={tool} className="sw-studio-tool">{tool}</p>
+        ))}
+      </aside>
       {!clip || clip.status !== "ready" ? <StudioUpload walkthroughId={walkthroughId} onQueued={() => void load()} /> : null}
+      <div className="sw-studio-stage">
       {clip && clip.status === "ready" ? (
         <StudioChapterAuthoring
           walkthroughId={walkthroughId}
@@ -206,6 +214,17 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
       ) : (
         <p className="text-sm text-[var(--graphite-muted)]">Playback starts after the web proxy is ready.</p>
       )}
+      </div>
+      <aside className="sw-studio-inspector">
+      <PrivacyInspector
+        patch={patch}
+        onChange={setPatch}
+        onPersist={() => void persistPatch()}
+        onMaskHere={() => {
+          if (!player) return;
+          setPatch((p) => ({ ...p, enabled: true, rearYawCenter: wrapYaw(player.getView().yaw + 180) }));
+        }}
+      />
       {draft ? (
         <div className="space-y-2 border border-white/10 p-4">
           <p className="text-sm">Paused at {draft.t.toFixed(1)}s · yaw {draft.yaw.toFixed(0)} · pitch {draft.pitch.toFixed(0)}</p>
@@ -230,7 +249,7 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
         onPersist={() => void persistPatch()}
         onUseRearFromView={() => {
           if (!player) return;
-          setPatch((p) => ({ ...p, rearYawCenter: wrapYaw(player.getView().yaw) }));
+          setPatch((p) => ({ ...p, rearYawCenter: wrapYaw(player.getView().yaw + 180) }));
         }}
       />
       <PrivacyRulesPanel
@@ -242,33 +261,25 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
         onRefresh={() => void load()}
       />
       {clipId ? (
-        <>
-          <NarrationAuthorPanel
-            walkthroughId={walkthroughId}
-            clipId={clipId}
-            duration={Number(clip?.duration_s ?? 0)}
-            currentT={player?.getView().t ?? 0}
-            segments={narration}
-            onRefresh={() => void load()}
-            onDrag={(id, delta) => {
-              const s = narration.find((x) => x.id === id);
-              if (!s) return;
-              void fetch(`/api/spatial-walkthrough/${walkthroughId}/narration/${id}`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ startTime: s.startTime + delta, endTime: s.endTime + delta }),
-              }).then(() => void load());
-            }}
-          />
-          <VoiceNoteAuthor
-            walkthroughId={walkthroughId}
-            clipId={clipId}
-            t={player?.getView().t ?? 0}
-            yaw={player?.getView().yaw ?? 0}
-            pitch={player?.getView().pitch ?? 0}
-            onRefresh={() => void load()}
-          />
-        </>
+        <StudioAudioStack
+          walkthroughId={walkthroughId}
+          clipId={clipId}
+          duration={Number(clip?.duration_s ?? 0)}
+          currentT={player?.getView().t ?? 0}
+          yaw={player?.getView().yaw ?? 0}
+          pitch={player?.getView().pitch ?? 0}
+          segments={narration}
+          onRefresh={() => void load()}
+          onDrag={(id, delta) => {
+            const s = narration.find((x) => x.id === id);
+            if (!s) return;
+            void fetch(`/api/spatial-walkthrough/${walkthroughId}/narration/${id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ startTime: s.startTime + delta, endTime: s.endTime + delta }),
+            }).then(() => void load());
+          }}
+        />
       ) : null}
       <StudioSharePanel
         walkthroughId={walkthroughId}
@@ -278,6 +289,7 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
         onRefresh={() => void load()}
         onExport={() => setExportOpen(true)}
       />
+      </aside>
       <ExportModal walkthroughId={walkthroughId} clipId={clipId} open={exportOpen} onClose={() => setExportOpen(false)} />
     </div>
   );

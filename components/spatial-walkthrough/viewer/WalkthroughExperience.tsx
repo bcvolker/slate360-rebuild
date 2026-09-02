@@ -8,7 +8,6 @@ import { WalkthroughChrome } from "./WalkthroughChrome";
 import { PinDrawer, type DrawerPin } from "./PinDrawer";
 import { BrandFrame } from "./BrandFrame";
 import { PreviewSphere } from "./PreviewSphere";
-import { PosterStage } from "./PosterStage";
 import { WalkthroughAudioLayer } from "@/components/spatial-walkthrough/audio/WalkthroughAudioLayer";
 import type { ChapterRecord } from "@/lib/spatial-walkthrough/chapters";
 import type { NarrationSegment, TranscriptRecord, VoiceNoteRecord } from "@/lib/spatial-walkthrough/audio";
@@ -133,9 +132,10 @@ export function WalkthroughExperience({
     pinType: p.pinType,
   }));
 
-  const showGate = requireGesture && !entered;
-  const gateStill = gatePosterUrl || posterUrl;
-  const loading = Boolean(!preview && buffering);
+  const loading = false;
+  void requireGesture;
+  void entered;
+  void buffering;
   const briefingCue = nav.mode === "briefing" ? activeBriefingCue(briefingCues, currentT, clipId) : null;
 
   const shareHrefFor = () => {
@@ -189,7 +189,7 @@ export function WalkthroughExperience({
         <>
           <WalkthroughPlayer
             videoUrl={videoUrl}
-            posterUrl={null}
+            posterUrl={gatePosterUrl || posterUrl || null}
             waypoints={waypoints}
             clipId={clipId}
             pins={markerPins}
@@ -213,7 +213,6 @@ export function WalkthroughExperience({
               playerRef.current = handle;
               setPlayer(handle);
               onPlayerReady?.(handle);
-              if (!requireGesture || enteredRef.current) handle.play();
             }}
             onPlaying={() => {
               setPlaying(true);
@@ -221,20 +220,7 @@ export function WalkthroughExperience({
             onFirstFrame={() => setHasFrame(true)}
             onPause={() => setPlaying(false)}
           />
-          {showGate ? (
-            <PosterStage
-              posterUrl={gateStill}
-              title={title}
-              showButton
-              onEnter={() => {
-                enteredRef.current = true;
-                setEntered(true);
-                nav.setMode("play");
-                playerRef.current?.play();
-              }}
-            />
-          ) : null}
-          <LookHint active={entered && Boolean(videoUrl) && !preview} />
+          <LookHint active={Boolean(videoUrl) && !preview && !authoring} />
         </>
       )}
       {nav.mode === "briefing" && !narration.length && !transcripts.length ? (
@@ -253,6 +239,8 @@ export function WalkthroughExperience({
         onStation={nav.bump}
         pathVisible={nav.pathVisible}
         onTogglePath={nav.togglePath}
+        playing={playing}
+        publicChrome={!authoring}
         extra={
           authoring ? (
             <div className="flex gap-2">

@@ -22,11 +22,14 @@ import { APP_STORE_MODE } from "@/lib/app-store-mode";
 import type { ClientSurfaceApp } from "@/lib/spatial-walkthrough/client-surface";
 import { isNavAppVisible, isSpatialOnlyAppList } from "@/lib/spatial-walkthrough/nav-filter";
 
+export type DashboardNavSection = "primary" | "tools" | "labs" | "account";
+
 export type DashboardNavItem = {
   label: string;
   href: string;
   icon: LucideIcon;
   matchPrefixes: string[];
+  section?: DashboardNavSection;
   /** Hidden from authenticated nav during the Site-Walk-only release (AGENTS.md). */
   appStoreHidden?: boolean;
   /** Only shown to Slate360 staff/CEO with Operations Console access. */
@@ -40,10 +43,11 @@ export type DashboardNavItem = {
 
 const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
   {
-    label: "Dashboard",
+    label: "Home",
     href: "/dashboard",
     icon: LayoutDashboard,
     matchPrefixes: ["/dashboard"],
+    section: "primary",
     hideWhenSpatialOnly: true,
   },
   {
@@ -51,26 +55,30 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/projects",
     icon: FolderOpen,
     matchPrefixes: ["/projects"],
+    section: "primary",
   },
   {
-    label: "Spatial Walkthroughs",
+    label: "Library",
     href: "/spatial-walkthrough",
     icon: Scan,
     matchPrefixes: ["/spatial-walkthrough"],
+    section: "primary",
     requiresApp: "spatial-walkthrough",
   },
   {
-    label: "Site Walks",
+    label: "Site Walk",
     href: "/site-walks",
     icon: MapPin,
     matchPrefixes: ["/site-walks"],
+    section: "tools",
     requiresApp: "site-walk",
   },
   {
-    label: "Twin 360",
+    label: "Twin",
     href: "/digital-twins",
     icon: Box,
     matchPrefixes: ["/digital-twins", "/digital-twin/twins"],
+    section: "tools",
     appStoreHidden: true,
     requiresApp: "twin360",
   },
@@ -83,6 +91,7 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/twin-studio",
     icon: Boxes,
     matchPrefixes: ["/twin-studio"],
+    section: "labs",
     ceoOnly: true,
   },
   {
@@ -90,13 +99,15 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/slatedrop",
     icon: Cloud,
     matchPrefixes: ["/slatedrop"],
+    section: "tools",
     requiresApp: "slatedrop",
   },
   {
-    label: "Thermal Studio",
+    label: "Thermal",
     href: "/thermal-studio",
     icon: Thermometer,
     matchPrefixes: ["/thermal-studio"],
+    section: "tools",
     ceoOnly: true,
   },
   {
@@ -108,6 +119,7 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/thermal-studio-v2",
     icon: FlaskConical,
     matchPrefixes: ["/thermal-studio-v2"],
+    section: "labs",
     ceoOnly: true,
   },
   {
@@ -115,6 +127,7 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/tours",
     icon: Orbit,
     matchPrefixes: ["/tours"],
+    section: "labs",
     ceoOnly: true,
   },
   {
@@ -122,6 +135,7 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/unreal-studio",
     icon: Wand2,
     matchPrefixes: ["/unreal-studio"],
+    section: "labs",
     ceoOnly: true,
   },
   {
@@ -129,6 +143,7 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/content-studio-workspace",
     icon: Clapperboard,
     matchPrefixes: ["/content-studio-workspace"],
+    section: "labs",
     ceoOnly: true,
   },
   {
@@ -136,6 +151,7 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/operations-console",
     icon: Wrench,
     matchPrefixes: ["/operations-console"],
+    section: "labs",
     staffOnly: true,
   },
   {
@@ -143,18 +159,21 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/more/organization",
     icon: Users,
     matchPrefixes: ["/more/organization"],
+    section: "account",
   },
   {
     label: "Billing",
     href: "/more/billing",
     icon: CreditCard,
     matchPrefixes: ["/more/billing"],
+    section: "account",
   },
   {
-    label: "My Account",
+    label: "Account",
     href: "/my-account",
     icon: UserCircle,
     matchPrefixes: ["/my-account"],
+    section: "account",
   },
 ];
 

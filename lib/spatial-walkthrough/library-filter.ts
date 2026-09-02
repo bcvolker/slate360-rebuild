@@ -77,6 +77,7 @@ export type LibraryCard = LibraryFilterable & {
   waypointCount: number;
   pinCount: number;
   shareStatus?: string;
+  posterUrl?: string | null;
 };
 
 export function uniqueField<T extends LibraryFilterable>(

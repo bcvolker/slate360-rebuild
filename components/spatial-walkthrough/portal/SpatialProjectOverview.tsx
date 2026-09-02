@@ -47,22 +47,23 @@ export function SpatialProjectOverview({ data }: { data: ProjectOverviewData }) 
       </section>
 
       {latest ? (
-        <Link href={latest.href} className={`${t.sectionCard} block transition-colors hover:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)]`}>
-          <p className={t.eyebrow}>Latest walkthrough</p>
-          <div className="mt-3 flex items-center justify-between gap-3">
-            <div className="min-w-0">
-              <p className="truncate text-lg font-semibold text-[var(--graphite-text-header)]">{latest.title}</p>
-              <p className="mt-1 text-sm text-[var(--graphite-muted)]">
-                {latest.capturedAt ? formatDate(latest.capturedAt) : "Capture date unset"}
+        <section className="overflow-hidden border border-white/10">
+          <div className="aspect-[16/7] bg-white/[0.03]" />
+          <div className="flex flex-wrap items-end justify-between gap-3 px-4 py-4">
+            <div>
+              <p className="text-xs text-[var(--graphite-muted)]">Latest capture</p>
+              <p className="text-lg text-white">{latest.title}</p>
+              <p className="text-sm text-[var(--graphite-muted)]">
+                {latest.capturedAt ? formatDate(latest.capturedAt) : ""}
                 {latest.building ? ` · ${latest.building}` : ""}
-                {latest.floor ? ` · ${latest.floor}` : ""}
               </p>
             </div>
-            <span className="inline-flex min-h-11 shrink-0 items-center gap-1.5 text-sm font-semibold text-[var(--graphite-primary)]">
-              Open <ArrowRight className="h-4 w-4" />
-            </span>
+            <div className="flex flex-wrap gap-2">
+              <Link href={latest.href} className="inline-flex h-12 items-center border border-white/20 px-4 text-sm">Open Walk</Link>
+              <span className="inline-flex h-12 items-center border border-white/10 px-4 text-sm text-[var(--graphite-muted)]">Twin unavailable</span>
+            </div>
           </div>
-        </Link>
+        </section>
       ) : (
         <ProjectDetailEmptyState
           title="No walkthroughs yet"
