@@ -10,6 +10,7 @@ import { parseShareLocator } from "@/lib/spatial-walkthrough/share-locator";
 import { ChapterWalkthroughExperience } from "@/components/spatial-walkthrough/viewer/ChapterWalkthroughExperience";
 import { type ExperiencePin } from "@/components/spatial-walkthrough/viewer/WalkthroughExperience";
 import { SharePasswordGate } from "./SharePasswordGate";
+import "@/components/spatial-walkthrough/viewer/walkthrough-chrome.css";
 
 type SharePayload = {
   theme: BrandTheme;
@@ -112,10 +113,21 @@ export function WalkthroughShareClient({ token }: { token: string }) {
     return <SharePasswordGate error={error} onSubmit={(value) => void unlock(value)} />;
   }
   if (error && !payload) {
-    return <div className="flex min-h-[100dvh] items-center justify-center text-sm text-[var(--graphite-text-header)]">{error}</div>;
+    return (
+      <div className="relative flex min-h-[100dvh] items-center justify-center bg-[var(--graphite-canvas)] text-sm text-[var(--graphite-text-header)]">
+        {error}
+      </div>
+    );
   }
   if (!payload?.clip) {
-    return <div className="flex min-h-[100dvh] items-center justify-center text-sm text-[var(--graphite-muted)]">Preparing walkthrough…</div>;
+    return (
+      <div className="relative min-h-[100dvh] bg-[var(--graphite-canvas)]">
+        <div className="sw-poster-fallback" />
+        <p className="absolute inset-x-0 bottom-16 text-center text-sm text-[var(--graphite-muted)]">
+          Preparing walkthrough…
+        </p>
+      </div>
+    );
   }
 
   const clips = payload.clips?.length
