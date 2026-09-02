@@ -12,6 +12,7 @@ import "./walkthrough-markers.css";
 import type { BrandTheme, OperatorPatch, WaypointRecord } from "@/lib/spatial-walkthrough/types";
 import { applySkip, skipIntervals, type RedactionRule } from "@/lib/spatial-walkthrough/redaction";
 import { buildViewerMarkers, type MarkerChrome, type PinMarkerInput } from "@/lib/spatial-walkthrough/markers";
+import { operatorKeyframesFromRaw, resolvePatchAtTime } from "@/lib/spatial-walkthrough/housewalk-operator";
 
 export type WalkthroughPlayerHandle = {
   seekTo: (t: number, yaw?: number, pitch?: number, opts?: { pause?: boolean }) => void;
@@ -127,10 +128,15 @@ export function WalkthroughPlayer({
         t,
         pins: live.pins,
         redactions: live.redactions,
-        operatorPatch: live.operatorPatch,
+        operatorPatch: resolvePatchAtTime(
+          live.operatorPatch,
+          operatorKeyframesFromRaw(live.operatorPatch),
+          t,
+        ),
         theme: live.theme,
         chrome: live.chrome,
         selectedId: live.selectedId,
+        hudOpacity: live.hudOpacity,
       });
       markers.setMarkers(
         defs.map((d) => ({

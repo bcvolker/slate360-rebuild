@@ -3,6 +3,7 @@ import { indexAtTime, nextWaypoint } from "./waypoints";
 import { activeSectors, sectorYawCenter, type RedactionRule } from "./redaction";
 import { markerKindFromPinType, markerScaleFromPitch } from "./marker-scale";
 import { operatorPatchActiveAt } from "./operator-patch";
+import { pathHudNodes } from "./path-hud";
 
 type PatchFields = OperatorPatch & {
   nadirRadius?: number;
@@ -86,11 +87,28 @@ export function buildViewerMarkers(args: {
   theme?: BrandTheme | null;
   chrome?: MarkerChrome;
   selectedId?: string | null;
+  hudOpacity?: number;
 }): ViewerMarkerDef[] {
   const { waypoints, clipId, t, pins, redactions, operatorPatch, theme, chrome = {}, selectedId } = args;
   const idx = indexAtTime(waypoints, clipId, t);
   const next = nextWaypoint(waypoints, clipId, idx);
   const list: ViewerMarkerDef[] = [];
+  const hud = args.hudOpacity ?? 1;
+
+  if (hud > 0) {
+    for (const node of pathHudNodes(waypoints, clipId, t, hud)) {
+      if (next && node.waypoint.id === next.id) continue;
+      list.push({
+        id: `path-${node.waypoint.id}`,
+        yawDeg: node.waypoint.yawDeg,
+        pitchDeg: node.waypoint.pitchDeg,
+        html: `<button type="button" class="sw-path-crumb" style="opacity:${node.opacity}" aria-label="Path"></button>`,
+        width: Math.round(22 * node.scale),
+        height: Math.round(22 * node.scale),
+        data: { kind: "waypoint", id: node.waypoint.id, t: node.waypoint.tSeconds, yaw: node.waypoint.yawDeg, pitch: node.waypoint.pitchDeg },
+      });
+    }
+  }
 
   if (next) {
     const label = next.label ?? "Next station";

@@ -48,9 +48,18 @@ const MARKETING: ExperienceProfileConfig = {
   stations: true,
 };
 
+const PROFILE_ALIASES: Record<string, ExperienceProfile> = {
+  aec: "construction",
+  experience: "marketing",
+  construction: "construction",
+  marketing: "marketing",
+  facilities: "facilities",
+  wayfinding: "wayfinding",
+};
+
 export function parseExperienceProfile(raw: unknown): ExperienceProfile {
   const v = typeof raw === "string" ? raw.trim().toLowerCase() : "";
-  return (EXPERIENCE_PROFILES as readonly string[]).includes(v) ? (v as ExperienceProfile) : "marketing";
+  return PROFILE_ALIASES[v] ?? "marketing";
 }
 
 export function configForProfile(profile: ExperienceProfile): ExperienceProfileConfig {

@@ -31,6 +31,8 @@ describe("monday binary delivery", () => {
   it("keeps the current Twin layer until a visibility probe commits Reality", () => {
     const src = readFileSync("components/digital-twin/kitchen-proof/KitchenProofViewer.tsx", "utf8");
     expect(src).toMatch(/appearance.layer !== "reality"/);
+    expect(src).toMatch(/isolateReality/);
+    expect(src).toMatch(/still_loading/);
     expect(src).toMatch(/data-scene-visible/);
     expect(src).toMatch(/data-visible-layer/);
   });

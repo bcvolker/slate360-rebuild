@@ -120,7 +120,14 @@ export function MeshSplatLayer({
         const group = groupRef.current;
         if (group && !worldMatrix) orientGroup(group, mesh, manifest);
         meshRef.current = mesh;
-        readyRef.current?.(await readSplatLoadStats(mesh));
+        const stats = await readSplatLoadStats(mesh);
+        if (stats.status === "ready" && stats.loaded > 0) {
+          readyRef.current?.(stats);
+          return;
+        }
+        readyRef.current?.({ ...stats, status: "still_loading", loaded: 0 });
+        const later = await readSplatLoadStats(mesh, { timeoutMs: 40_000 });
+        if (later.loaded > 0) readyRef.current?.(later);
       }),
     [absoluteUrl, worldMatrix],
   );

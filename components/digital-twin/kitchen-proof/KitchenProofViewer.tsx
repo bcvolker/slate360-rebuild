@@ -72,24 +72,26 @@ export function KitchenProofViewer({
     return () => window.clearTimeout(hold);
   }, [splatAssetReady, realityPixels, realityFailed]);
 
-  const onAppearanceReady = useCallback((stats?: { loaded: number; numSh: number }) => {
-    if (appearanceReadyMs.current == null) appearanceReadyMs.current = performance.now();
+  const onAppearanceReady = useCallback((stats?: { loaded: number; numSh: number; status?: string }) => {
     if (stats) splatStatsRef.current = stats;
-    if (!stats?.loaded) {
-      setRealityFailed(true);
+    if (!stats?.loaded || stats.status === "still_loading") {
       return;
     }
+    if (appearanceReadyMs.current == null) appearanceReadyMs.current = performance.now();
     setSplatAssetReady(true);
   }, []);
 
   const onProbe = useCallback((layer: VisibleLayer, probe: PixelProbe) => {
     const now = performance.now();
+    const splatCount = splatStatsRef.current?.loaded ?? 0;
     console.info("[twin-vis]", {
       layerRequested: layer,
       assetLoaded: layer === "reality" ? splatAssetReady : display.status === "ready",
-      objectCount: layer === "reality" ? splatStatsRef.current?.loaded ?? 0 : display.triangles,
-      cameraPosition: [shell.loco.poseRef.current.x, shell.loco.poseRef.current.y, shell.loco.poseRef.current.z],
-      visibleObjectCount: probe.visible ? 1 : 0,
+      initialized: layer === "reality" ? splatAssetReady : display.status === "ready",
+      objectCount: layer === "reality" ? splatCount : display.triangles,
+      splatCount,
+      camera: [shell.loco.poseRef.current.x, shell.loco.poseRef.current.y, shell.loco.poseRef.current.z],
+      sceneBBox: null,
       nonBackgroundPixelRatio: probe.nonBackgroundPixelRatio,
       frameVariance: probe.frameVariance,
       firstVisibleFrameMs: probe.visible ? now - boot.current : null,
@@ -105,16 +107,17 @@ export function KitchenProofViewer({
       }
       return;
     }
-    if (probe.visible) setRealityPixels(true);
-    else setRealityFailed(true);
+    if (probe.visible && splatCount > 0) setRealityPixels(true);
+    else if (splatCount > 0) window.setTimeout(() => setProbeLayer("reality"), 500);
   }, [display.status, display.triangles, shell.loco.poseRef, splatAssetReady]);
 
   const committed: VisibleLayer = realityPixels ? "reality" : geometryPixels ? "geometry" : "hero";
-  const showGeometry = (appearance.layer !== "reality" || !realityPixels) && probeLayer !== "reality";
+  const isolateReality = probeLayer === "reality" && splatAssetReady && (splatStatsRef.current?.loaded ?? 0) > 0;
+  const showGeometry = (appearance.layer !== "reality" || !realityPixels) && !isolateReality;
   const showSplat =
     Boolean(appearanceSrc) &&
     splatAssetReady &&
-    (appearance.layer !== "geometry" || probeLayer === "reality");
+    (appearance.layer !== "geometry" || isolateReality);
   const meshReady = display.status === "ready" && Boolean(display.geometry);
   const phase = spatialPhase({
     panoramaReady: panoReady,
@@ -172,7 +175,7 @@ export function KitchenProofViewer({
       className="kv-shell relative h-full w-full overflow-hidden"
       data-app="twin360"
       data-spatial-phase={phase}
-      data-scene-visible={geometryPixels || panoReady ? "true" : "false"}
+      data-scene-visible={geometryPixels || panoReady || realityPixels ? "true" : "false"}
       data-visible-layer={committed}
     >
       <KitchenProofLoader

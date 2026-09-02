@@ -98,7 +98,9 @@ export function WalkthroughShareClient({ token, boot }: { token: string; boot?: 
           operatorPatch={payload.operatorPatch}
           allowDownload={payload.allowDownload}
           capturedAt={payload.walkthrough.capturedAt}
+          projectName={payload.walkthrough.building}
           duration={Number(payload.clip.durationS ?? 0)}
+          initialMode="explore"
           walkthroughId={payload.walkthrough.id ?? ""}
           clips={clips}
           chapters={payload.chapters}

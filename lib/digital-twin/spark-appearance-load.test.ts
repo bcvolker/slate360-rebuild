@@ -38,4 +38,12 @@ describe("spark appearance load", () => {
       /sparkRendererAppearanceArgs/,
     );
   });
+
+  it("never treats maxSplats or a short timeout as a loaded splat count", () => {
+    const src = readFileSync("lib/digital-twin/spark-appearance-load.ts", "utf8");
+    expect(src).not.toMatch(/packed\?\.maxSplats/);
+    expect(src).not.toMatch(/setTimeout\(resolve, 400\)/);
+    expect(src).toMatch(/still_loading/);
+    expect(src).toMatch(/splatCountFromMesh/);
+  });
 });

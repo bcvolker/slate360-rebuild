@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { ViewerBrandMark } from "@/components/shared/ViewerBrandMark";
 import type { BrandTheme } from "@/lib/spatial-walkthrough/types";
 import { themeCssVars } from "@/lib/spatial-walkthrough/theme";
 import { viewerChromeCopy } from "@/lib/spatial-walkthrough/viewer-title";
@@ -61,23 +62,13 @@ export function BrandFrame({
         </div>
       ) : null}
       <header className="sw-frame-header">
-        {theme.logoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={theme.logoUrl}
-            alt=""
-            className={`sw-logo--${theme.logoTreatment}`}
-            style={{ opacity: theme.logoOpacity ?? 0.85 }}
-          />
-        ) : (
-          <span className="sw-frame-kicker">{theme.companyName || "Spatial"}</span>
-        )}
+        <ViewerBrandMark logoUrl={theme.logoUrl} opacity={theme.logoOpacity ?? 0.88} />
         <div className="sw-frame-meta">
           <strong>{copy.title}</strong>
           {copy.meta ? <span>{copy.meta}</span> : null}
         </div>
-        {theme.showPoweredBy ? (
-          <span className="sw-frame-credit">Slate360</span>
+        {theme.logoUrl && theme.showPoweredBy ? (
+          <span className="sw-frame-credit">Powered by Slate360</span>
         ) : null}
       </header>
       <div className="sw-frame-stage">{children}</div>

@@ -8,6 +8,7 @@ import {
   KitchenStationBar,
   KitchenViewChoices,
 } from "@/components/digital-twin/kitchen-proof/KitchenViewChoices";
+import { ViewerBrandMark } from "@/components/shared/ViewerBrandMark";
 import type { TwinLayerRepresentation } from "@/lib/digital-twin/twin-epoch";
 import type { ViewMode, WalkStation } from "@/lib/digital-twin/walkthrough-navigation";
 
@@ -53,9 +54,7 @@ export function KitchenDesktopChrome({
   return (
     <div className="kv-chrome pointer-events-none absolute inset-0 z-20" data-idle={idle} data-testid="kitchen-chrome">
       <div className="pointer-events-none absolute left-4 top-4 flex items-center gap-3">
-        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--graphite-muted)] opacity-80">
-          Slate360
-        </p>
+        <ViewerBrandMark opacity={0.88} />
         <div className="min-w-0">
           <p className="truncate text-xs text-[var(--graphite-text-header)]">{title}</p>
           {capturedAt ? (

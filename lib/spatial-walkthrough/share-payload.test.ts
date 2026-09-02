@@ -12,6 +12,8 @@ describe("HouseWalk public payload", () => {
     expect(payload.waypoints.length).toBeGreaterThan(0);
     expect(payload.pins.length).toBeGreaterThan(0);
     expect(payload.theme.pageBgColor).toContain("graphite");
+    expect(payload.operatorKeyframes.length).toBeGreaterThan(0);
+    expect(payload.operatorPatch?.rearYawWidth).toBeGreaterThan(80);
     const pins = mapSharePins(payload.pins, payload.attachments, "tok", false);
     expect(pins[0]?.attachments).toBeDefined();
   });

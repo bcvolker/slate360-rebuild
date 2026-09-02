@@ -24,6 +24,8 @@ type Props = {
   onModeChange: (mode: NavMode) => void;
   shareHrefFor: () => string;
   onStation?: () => void;
+  pathVisible?: boolean;
+  onTogglePath?: () => void;
 };
 
 export function WalkthroughChrome({
@@ -39,6 +41,8 @@ export function WalkthroughChrome({
   onModeChange,
   shareHrefFor,
   onStation,
+  pathVisible = true,
+  onTogglePath,
 }: Props) {
   const inClip = waypoints.filter((w) => w.clipId === clipId);
   const idx = indexAtTime(waypoints, clipId, currentT);
@@ -87,6 +91,17 @@ export function WalkthroughChrome({
         <div className="sw-timeline-track" aria-hidden>
           <div className="sw-timeline-fill" style={{ width: `${progress}%` }} />
         </div>
+        <input
+          type="range"
+          className="sw-timeline-scrub"
+          data-testid="sw-timeline-scrub"
+          min={0}
+          max={Math.max(duration, 0.1)}
+          step={0.05}
+          value={currentT}
+          aria-label="Scrub walkthrough"
+          onChange={(e) => player?.seekTo(Number(e.target.value), undefined, undefined, { pause: false })}
+        />
         <div className="sw-timeline-ticks">
           {inClip.map((wp, i) => (
             <button
@@ -103,6 +118,17 @@ export function WalkthroughChrome({
         {extra}
       </div>
       <div className="sw-chrome-trail">
+        {onTogglePath ? (
+          <button
+            type="button"
+            className="sw-chrome-btn"
+            data-testid="sw-path-toggle"
+            aria-pressed={pathVisible}
+            onClick={onTogglePath}
+          >
+            Path
+          </button>
+        ) : null}
         <ShareCurrentView hrefFor={shareHrefFor} />
         <button type="button" className="sw-chrome-btn" onClick={fullscreen} aria-label="Full screen">
           <Maximize2 className="h-4 w-4" />

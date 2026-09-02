@@ -3,6 +3,8 @@ import type { ClipEdgeRecord, ClipSummary } from "./clip-edges";
 import { parseExperienceProfile, type ExperienceProfile } from "./experience-profile";
 import type { RedactionRule } from "./redaction";
 import { resolveBrandTheme } from "./theme";
+import type { OperatorKeyframe } from "./keyframes";
+import { operatorKeyframesFromRaw } from "./housewalk-operator";
 import type { BrandTheme, OperatorPatch, WaypointRecord } from "./types";
 
 export type WalkBoot = {
@@ -16,6 +18,7 @@ export type WalkBoot = {
 export type SharePayload = {
   theme: BrandTheme;
   operatorPatch: OperatorPatch | null;
+  operatorKeyframes: OperatorKeyframe[];
   orientation?: {
     source: "manual" | "oem";
     keyframes: Array<{ t: number; rollDeg: number; pitchDeg: number; yawDeg: number }>;
@@ -58,6 +61,10 @@ export function normalizeSharePayload(raw: unknown): SharePayload {
   return {
     theme,
     operatorPatch: (o.operatorPatch as OperatorPatch | null) ?? null,
+    operatorKeyframes: (() => {
+      const fromPatch = operatorKeyframesFromRaw(o.operatorPatch);
+      return fromPatch.length ? fromPatch : operatorKeyframesFromRaw(o);
+    })(),
     orientation: o.orientation && typeof o.orientation === "object" ? (o.orientation as SharePayload["orientation"]) : null,
     allowDownload: o.allowDownload === true,
     walkthrough: {

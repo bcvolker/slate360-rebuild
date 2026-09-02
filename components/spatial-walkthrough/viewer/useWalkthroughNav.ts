@@ -17,6 +17,7 @@ export function useWalkthroughNav({ player, initialMode = "explore", forceHud = 
   const start: NavMode = isNavMode(String(initialMode)) ? (initialMode as NavMode) : "explore";
   const [mode, setMode] = useState<NavMode>(start);
   const [navigating, setNavigating] = useState(forceHud || start === "play");
+  const [pathVisible, setPathVisible] = useState(true);
   const idle = useRef(0);
 
   const bump = () => {
@@ -46,7 +47,9 @@ export function useWalkthroughNav({ player, initialMode = "explore", forceHud = 
     mode,
     setMode,
     navigating: forceHud || mode === "play" || navigating,
-    hudOpacity: pathHudOpacity(forceHud || mode === "play" || mode === "briefing" || navigating),
+    hudOpacity: pathVisible ? pathHudOpacity(forceHud || mode === "play" || mode === "briefing" || navigating) : 0,
+    pathVisible,
+    togglePath: () => setPathVisible((v) => !v),
     bump,
   };
 }

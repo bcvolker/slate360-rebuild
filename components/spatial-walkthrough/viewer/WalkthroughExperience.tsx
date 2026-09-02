@@ -209,9 +209,7 @@ export function WalkthroughExperience({
               playerRef.current = handle;
               setPlayer(handle);
               onPlayerReady?.(handle);
-              const ready = !requireGesture || enteredRef.current;
-              if (ready && modeRef.current === "play") handle.play();
-              else if (ready) handle.pause();
+              if (!requireGesture || enteredRef.current) handle.play();
             }}
             onPlaying={() => {
               setPlaying(true);
@@ -227,8 +225,8 @@ export function WalkthroughExperience({
               onEnter={() => {
                 enteredRef.current = true;
                 setEntered(true);
-                if (modeRef.current === "play") playerRef.current?.play();
-                else playerRef.current?.pause();
+                nav.setMode("play");
+                playerRef.current?.play();
               }}
             />
           ) : null}
@@ -248,6 +246,8 @@ export function WalkthroughExperience({
         onModeChange={nav.setMode}
         shareHrefFor={shareHrefFor}
         onStation={nav.bump}
+        pathVisible={nav.pathVisible}
+        onTogglePath={nav.togglePath}
         extra={
           authoring ? (
             <div className="flex gap-2">

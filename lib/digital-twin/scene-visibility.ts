@@ -22,8 +22,12 @@ export type PixelProbe = {
 export type VisibilityLog = {
   layerRequested: VisibleLayer | string;
   assetLoaded: boolean;
+  initialized: boolean;
   objectCount: number;
+  splatCount: number;
+  camera: [number, number, number];
   cameraPosition: [number, number, number];
+  sceneBBox: Box3n | null;
   sceneBbox: Box3n | null;
   visibleObjectCount: number;
   nonBackgroundPixelRatio: number;
@@ -169,8 +173,12 @@ export function emptyVisibilityLog(layer: string): VisibilityLog {
   return {
     layerRequested: layer,
     assetLoaded: false,
+    initialized: false,
     objectCount: 0,
+    splatCount: 0,
+    camera: [0, 0, 0],
     cameraPosition: [0, 0, 0],
+    sceneBBox: null,
     sceneBbox: null,
     visibleObjectCount: 0,
     nonBackgroundPixelRatio: 0,
