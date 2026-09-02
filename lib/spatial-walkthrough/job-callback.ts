@@ -17,6 +17,8 @@ export type WalkthroughCallbackPayload = {
   fps?: number;
   captureMeta?: Record<string, unknown>;
   publicProxyKey?: string;
+  publicPosterKey?: string;
+  posterMeta?: Record<string, unknown>;
   errorLog?: string;
 };
 
@@ -64,7 +66,11 @@ export async function handleWalkthroughJobCallback(
   if (body.publicProxyKey && !body.proxyKey) {
     await admin
       .from("spatial_clips")
-      .update({ public_proxy_key: body.publicProxyKey })
+      .update({
+        public_proxy_key: body.publicProxyKey,
+        ...(body.publicPosterKey ? { public_poster_key: body.publicPosterKey, client_poster_key: body.publicPosterKey } : {}),
+        ...(body.posterMeta ? { poster_meta: body.posterMeta } : {}),
+      })
       .eq("id", job.clip_id ?? body.clipId);
     await admin
       .from("spatial_processing_jobs")

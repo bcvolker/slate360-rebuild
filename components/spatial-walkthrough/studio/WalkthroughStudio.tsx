@@ -1,15 +1,18 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { type ExperiencePin } from "@/components/spatial-walkthrough/viewer/WalkthroughExperience";
 import { StudioChapterAuthoring } from "./StudioChapterAuthoring";
 import type { WalkthroughPlayerHandle } from "@/components/spatial-walkthrough/viewer/WalkthroughPlayer";
 import { StudioUpload } from "./StudioUpload";
 import "./studio-frame.css";
 import { ExportModal } from "./ExportModal";
 import { STUDIO_TOOLS, StudioInspector, type StudioTool } from "./StudioInspector";
+import { StudioTransport } from "./StudioTransport";
 import { parseOperatorPatch, resolveOperatorPatch } from "@/lib/spatial-walkthrough/operator-patch";
-import { wrapYaw } from "@/lib/spatial-walkthrough/redaction";
+import { nextKeyframe, prevKeyframe, removeKeyframeAt, type OperatorKeyframe } from "@/lib/spatial-walkthrough/keyframes";
+import { applyKeyframe, keyframeAtView, rearYawFromView } from "@/lib/spatial-walkthrough/studio-keys";
+import { studioPinsFromPayload } from "@/lib/spatial-walkthrough/studio-pins";
+import { useStudioClock, useStudioHotkeys } from "./useStudioClock";
 import { toWaypoint } from "@/lib/spatial-walkthrough/waypoints";
 import { filterRuntime } from "@/lib/spatial-walkthrough/runtime-filter";
 import { rulesForPolicy, type RedactionRule } from "@/lib/spatial-walkthrough/redaction";
@@ -62,6 +65,13 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
   const [exportOpen, setExportOpen] = useState(false);
   const [player, setPlayer] = useState<WalkthroughPlayerHandle | null>(null);
   const [tool, setTool] = useState<StudioTool>("Privacy");
+  const [selectedKeyT, setSelectedKeyT] = useState<number | null>(null);
+  const clock = useStudioClock(player);
+  useStudioHotkeys(player, () => {
+    const view = player?.getView() ?? clock;
+    setDraft({ kind: "pin", t: view.t, yaw: view.yaw, pitch: view.pitch });
+    setTool("Pins");
+  });
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/spatial-walkthrough/${walkthroughId}`, { cache: "no-store" });
@@ -83,17 +93,17 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
   }, [payload]);
 
   const persistPatch = async () => {
-    const clip = payload?.clips[0];
+    const row = payload?.clips[0];
     await fetch(`/api/spatial-walkthrough/${walkthroughId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ operatorPatch: patch, clipId: clip?.id, clipOperatorPatch: patch }),
+      body: JSON.stringify({ operatorPatch: patch, clipId: row?.id, clipOperatorPatch: patch }),
     });
-    if (clip?.id) {
+    if (row?.id) {
       void fetch(`/api/spatial-walkthrough/${walkthroughId}/privacy-bake`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ clipId: clip.id }),
+        body: JSON.stringify({ clipId: row.id }),
       });
     }
   };
@@ -112,31 +122,19 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
     clipId,
   });
   const waypoints: WaypointRecord[] = runtime.waypoints;
-  const pins: ExperiencePin[] = runtime.pins.map((p) => ({
-    id: String(p.id),
-    label: String(p.label),
-    pinType: String(p.pin_type),
-    body: (p.body as string) ?? null,
-    yawDeg: Number(p.yaw_deg ?? 0),
-    pitchDeg: Number(p.pitch_deg ?? 0),
-    tSeconds: p.t_seconds == null ? null : Number(p.t_seconds),
-    attachments: (payload.attachments ?? [])
-      .filter((a) => String(a.pin_id) === String(p.id))
-      .map((a) => ({
-        id: String(a.id),
-        kind: a.kind === "url" ? "url" as const : "slatedrop" as const,
-        title: (a.title as string) ?? null,
-        url: (a.external_url as string) ?? null,
-        previewUrl: a.slatedrop_id ? `/api/slatedrop/download?fileId=${a.slatedrop_id}&mode=preview` : null,
-        downloadUrl: a.slatedrop_id ? `/api/slatedrop/download?fileId=${a.slatedrop_id}` : null,
-        fileName: (a.title as string) ?? null,
-      })),
-  }));
+  const pins = studioPinsFromPayload(runtime.pins as Array<Record<string, unknown>>, payload.attachments ?? []);
   const theme: BrandTheme = resolveBrandTheme({
     walkthrough: payload.walkthrough.brand_theme as never,
     canHidePoweredBy: true,
   });
-  const viewerPatch = previewPolicy === "master" ? { ...patch, enabled: false } : patch;
+  const frames = (patch.keyframes ?? []) as OperatorKeyframe[];
+  const viewerPatch = tool === "Privacy" || previewPolicy === "master" ? { ...patch, enabled: true } : patch;
+
+  const writeKey = (partial?: Partial<OperatorKeyframe>) => {
+    const next = keyframeAtView(player?.getView() ?? clock, patch, partial);
+    setSelectedKeyT(next.t);
+    setPatch((p) => applyKeyframe(p, next));
+  };
   const redactions = previewPolicy === "master" ? [] : rulesForPolicy(allRules, previewPolicy);
   const narration = hydrateNarration(payload.narration ?? [], payload.audioAssets ?? [], walkthroughId);
   const transcripts = (payload.transcripts ?? []).map(toTranscript);
@@ -200,10 +198,10 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
           pins={pins}
           redactions={redactions}
           operatorPatch={viewerPatch}
+          mediaPolicy={previewPolicy === "public" ? "public" : previewPolicy === "client" ? "client" : "master"}
           onPlayerReady={setPlayer}
           onAddWaypoint={(view) => setDraft({ kind: "waypoint", ...view })}
           onAddPin={(view) => setDraft({ kind: "pin", ...view })}
-          onRefresh={() => void load()}
           narration={narration}
           transcripts={transcripts}
         />
@@ -222,9 +220,32 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
           patch={patch}
           onChangePatch={setPatch}
           onPersistPatch={() => void persistPatch()}
-          onMaskHere={() => {
-            if (!player) return;
-            setPatch((p) => ({ ...p, enabled: true, rearYawCenter: wrapYaw(player.getView().yaw + 180) }));
+          onMaskHere={() => writeKey()}
+          captureMeta={clip?.capture_meta}
+          currentT={clock.t}
+          keyCount={frames.length}
+          onPrevKey={() => {
+            const prev = prevKeyframe(frames, clock.t);
+            if (!prev || !player) return;
+            setSelectedKeyT(prev.t);
+            player.seekTo(prev.t, undefined, undefined, { pause: true });
+          }}
+          onNextKey={() => {
+            const next = nextKeyframe(frames, clock.t);
+            if (!next || !player) return;
+            setSelectedKeyT(next.t);
+            player.seekTo(next.t, undefined, undefined, { pause: true });
+          }}
+          onAddKey={() => writeKey()}
+          onDeleteKey={() => {
+            if (selectedKeyT == null) return;
+            setPatch((p) => ({ ...p, keyframes: removeKeyframeAt(p.keyframes ?? [], selectedKeyT) }));
+            setSelectedKeyT(null);
+          }}
+          onCopyPrev={() => {
+            const prev = prevKeyframe(frames, clock.t);
+            if (!prev) return writeKey();
+            writeKey({ ...prev, t: clock.t, yawCenter: rearYawFromView(clock.yaw) });
           }}
           draft={draft}
           label={label}
@@ -252,6 +273,17 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
           onExport={() => setExportOpen(true)}
         />
       </aside>
+      <StudioTransport
+        player={player}
+        currentT={clock.t}
+        duration={Number(clip?.duration_s ?? 0)}
+        playing={clock.playing}
+        clipId={clipId}
+        keyframes={frames}
+        redactions={allRules}
+        selectedT={selectedKeyT}
+        onSelectKey={setSelectedKeyT}
+      />
       <ExportModal walkthroughId={walkthroughId} clipId={clipId} open={exportOpen} onClose={() => setExportOpen(false)} />
     </div>
   );

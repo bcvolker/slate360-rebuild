@@ -199,6 +199,7 @@ export function WalkthroughExperience({
             chrome={{ title, capturedAt, logoUrl: theme.logoUrl }}
             selectedId={selectedId}
             autoplay={false}
+            autoRotate={!authoring}
             hudOpacity={nav.hudOpacity}
             onWaypointSelect={startExplore}
             onPinSelect={(id) => {
@@ -226,34 +227,24 @@ export function WalkthroughExperience({
       {nav.mode === "briefing" && !narration.length && !transcripts.length ? (
         <BriefingCueOverlay cue={briefingCue} />
       ) : null}
-      <WalkthroughChrome
-        waypoints={waypoints}
-        clipId={clipId}
-        currentT={currentT}
-        duration={duration}
-        redactions={redactions}
-        player={player}
-        mode={nav.mode}
-        onModeChange={nav.setMode}
-        shareHrefFor={shareHrefFor}
-        onStation={nav.bump}
-        pathVisible={nav.pathVisible}
-        onTogglePath={nav.togglePath}
-        playing={playing}
-        publicChrome={!authoring}
-        extra={
-          authoring ? (
-            <div className="flex gap-2">
-              <button type="button" className="sw-chrome-btn" onClick={() => player && onAddWaypoint?.(player.getView())}>
-                Waypoint
-              </button>
-              <button type="button" className="sw-chrome-btn" onClick={() => player && onAddPin?.(player.getView())}>
-                Pin
-              </button>
-            </div>
-          ) : null
-        }
-      />
+      {authoring ? null : (
+        <WalkthroughChrome
+          waypoints={waypoints}
+          clipId={clipId}
+          currentT={currentT}
+          duration={duration}
+          redactions={redactions}
+          player={player}
+          mode={nav.mode}
+          onModeChange={nav.setMode}
+          shareHrefFor={shareHrefFor}
+          onStation={nav.bump}
+          pathVisible={nav.pathVisible}
+          onTogglePath={nav.togglePath}
+          playing={playing}
+          publicChrome
+        />
+      )}
       <PinDrawer pin={selected} onClose={() => setSelectedId(null)} allowDownload={allowDownload} />
       <WalkthroughCollaborationHost
         collaboration={collaboration}

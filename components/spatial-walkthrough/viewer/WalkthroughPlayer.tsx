@@ -40,6 +40,7 @@ type Props = {
   chrome?: MarkerChrome;
   selectedId?: string | null;
   autoplay?: boolean;
+  autoRotate?: boolean;
   hudOpacity?: number;
   onPinSelect?: (id: string) => void;
   onWaypointSelect?: () => void;
@@ -61,6 +62,7 @@ export function WalkthroughPlayer({
   chrome,
   selectedId = null,
   autoplay: _autoplay = false,
+  autoRotate = true,
   hudOpacity = 1,
   onPinSelect,
   onWaypointSelect,
@@ -257,7 +259,9 @@ export function WalkthroughPlayer({
       readyRef.current?.(handle);
     });
     window.addEventListener("resize", resizeViewer);
-    let spinning = true;
+    const ro = typeof ResizeObserver === "undefined" ? null : new ResizeObserver(() => resizeViewer());
+    if (containerRef.current) ro?.observe(containerRef.current);
+    let spinning = autoRotate;
     const spin = window.setInterval(() => {
       if (!spinning) return;
       const pos = viewer.getPosition();
@@ -272,6 +276,7 @@ export function WalkthroughPlayer({
       window.clearInterval(spin);
       containerRef.current?.removeEventListener("pointerdown", stopSpin);
       window.removeEventListener("resize", resizeViewer);
+      ro?.disconnect();
       markers.removeEventListener("select-marker", onSelect as never);
       videoPlugin.removeEventListener("progress", onProgress as never);
       viewer.destroy();
@@ -279,7 +284,7 @@ export function WalkthroughPlayer({
       video.removeAttribute("src");
       video.load();
     };
-  }, [videoUrl, posterUrl]);
+  }, [videoUrl, posterUrl, autoRotate]);
 
   return (
     <div

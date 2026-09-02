@@ -15,11 +15,16 @@ export const GET = (req: NextRequest, ctx: Ctx) =>
     const clipId = req.nextUrl.searchParams.get("clip");
     const kind = (req.nextUrl.searchParams.get("kind") ?? "proxy") as MediaKind;
     if (!clipId) return notFound("clip required");
-    const policy = req.nextUrl.searchParams.get("policy") === "master" && access.canAuthor ? "master" : "client";
+    const requested = req.nextUrl.searchParams.get("policy");
+    const policy = requested === "master" && access.canAuthor
+      ? "master"
+      : requested === "public"
+        ? "public"
+        : "client";
     const allowMaster = policy === "master" && access.canAuthor;
     const { data: clip } = await admin
       .from("spatial_clips")
-      .select("proxy_key, poster_key, master_key, walkthrough_id")
+      .select("proxy_key, poster_key, master_key, public_proxy_key, client_poster_key, public_poster_key, walkthrough_id")
       .eq("id", clipId)
       .eq("walkthrough_id", id)
       .eq("org_id", orgId)

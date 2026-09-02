@@ -27,7 +27,7 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
 
   const { data: clip } = await admin
     .from("spatial_clips")
-    .select("walkthrough_id, proxy_key, poster_key, public_proxy_key")
+    .select("walkthrough_id, proxy_key, poster_key, public_proxy_key, client_poster_key, public_poster_key")
     .eq("id", clipId)
     .maybeSingle();
   if (!clip || clip.walkthrough_id !== row.walkthrough_id) {

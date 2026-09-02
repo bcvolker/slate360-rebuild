@@ -9,9 +9,13 @@ type Props = {
   onMaskHere: () => void;
   onPrevKey?: () => void;
   onNextKey?: () => void;
+  onAddKey?: () => void;
+  onDeleteKey?: () => void;
+  onCopyPrev?: () => void;
+  keyCount?: number;
 };
 
-export function PrivacyInspector({ patch, onChange, onPersist, onMaskHere, onPrevKey, onNextKey }: Props) {
+export function PrivacyInspector({ patch, onChange, onPersist, onMaskHere, onPrevKey, onNextKey, onAddKey, onDeleteKey, onCopyPrev, keyCount = 0 }: Props) {
   const set = (partial: Partial<OperatorPatch>) => onChange({ ...patch, ...partial });
   return (
     <div className="space-y-4" data-testid="sw-privacy-inspector">
@@ -34,10 +38,16 @@ export function PrivacyInspector({ patch, onChange, onPersist, onMaskHere, onPre
       <button type="button" onClick={onMaskHere} className="inline-flex h-12 w-full items-center justify-center border border-white/20 text-sm">
         Mask operator here
       </button>
+      <p className="text-xs text-[var(--graphite-muted)]">{keyCount} privacy keys</p>
       <div className="flex gap-2">
-        <button type="button" className="h-12 flex-1 border border-white/10 text-sm" onClick={onPrevKey} disabled={!onPrevKey}>Prev key</button>
-        <button type="button" className="h-12 flex-1 border border-white/10 text-sm" onClick={onNextKey} disabled={!onNextKey}>Next key</button>
+        <button type="button" className="h-12 flex-1 border border-white/10 text-sm" onClick={onPrevKey}>Prev key</button>
+        <button type="button" className="h-12 flex-1 border border-white/10 text-sm" onClick={onNextKey}>Next key</button>
       </div>
+      <div className="flex gap-2">
+        <button type="button" className="h-12 flex-1 border border-white/10 text-sm" onClick={onAddKey}>Add key</button>
+        <button type="button" className="h-12 flex-1 border border-white/10 text-sm" onClick={onDeleteKey}>Delete</button>
+      </div>
+      <button type="button" className="h-12 w-full border border-white/10 text-sm" onClick={onCopyPrev}>Copy previous</button>
       <button type="button" onClick={onPersist} className="h-12 w-full border border-white/10 text-sm">Save mask</button>
       <details className="text-xs text-[var(--graphite-muted)]">
         <summary className="min-h-12 cursor-pointer">Advanced numbers</summary>

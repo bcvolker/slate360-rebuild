@@ -7,6 +7,8 @@ export type ClipKeys = {
   proxy_key?: string | null;
   poster_key?: string | null;
   public_proxy_key?: string | null;
+  client_poster_key?: string | null;
+  public_poster_key?: string | null;
 };
 
 /** MASTER is never a share policy. Shares are CLIENT or PUBLIC only. */
@@ -31,7 +33,11 @@ export function selectDerivativeKey(
 ): string | null {
   if (!allowedMediaKind(policy, kind, allowMaster)) return null;
   if (kind === "master") return clip.master_key ?? null;
-  if (kind === "poster" || kind === "hero") return clip.poster_key ?? null;
+  if (kind === "poster" || kind === "hero") {
+    if (policy === "master" && allowMaster) return clip.poster_key ?? null;
+    if (policy === "public") return clip.public_poster_key ?? null;
+    return clip.client_poster_key ?? clip.public_poster_key ?? null;
+  }
   if (policy === "public") return clip.public_proxy_key ?? null;
   return clip.proxy_key ?? null;
 }

@@ -117,23 +117,30 @@ export function ChapterWalkthroughExperience({
   const briefingCues = placeholderBriefingCues(session.chapters);
 
   return (
-    <div className="relative flex h-[100dvh] min-h-[100dvh] flex-col">
-      <p className="sw-chapter-chip">{name}</p>
-      <ChapterPicker
-        chapters={session.chapters}
-        selectedId={session.selectedChapter?.id ?? null}
-        locked={session.pickerLocked}
-        open={pickerOpen}
-        onSelect={session.selectChapter}
-      />
-      {rest.authoring ? <NextChapterControl chapter={upcoming} onSelect={session.selectChapter} /> : null}
+    <div
+      className={rest.authoring ? "relative flex h-full min-h-0 flex-col" : "relative flex h-[100dvh] min-h-[100dvh] flex-col"}
+      data-studio={rest.authoring ? "true" : "false"}
+    >
+      {rest.authoring ? null : <p className="sw-chapter-chip">{name}</p>}
+      {rest.authoring ? null : (
+        <ChapterPicker
+          chapters={session.chapters}
+          selectedId={session.selectedChapter?.id ?? null}
+          locked={session.pickerLocked}
+          open={pickerOpen}
+          onSelect={session.selectChapter}
+        />
+      )}
       <ClipTransitionOverlay fade={session.fade} />
-      {rest.authoring ? <ClipEdgeActions actions={edgeActions} onSelect={(action) => session.followEdge(action.edge)} /> : null}
-      {rest.authoring ? (
+      {rest.authoring ? null : upcoming ? <NextChapterControl chapter={upcoming} onSelect={session.selectChapter} /> : null}
+      {rest.authoring ? null : (
+        <ClipEdgeActions actions={edgeActions} onSelect={(action) => session.followEdge(action.edge)} />
+      )}
+      {rest.authoring ? null : (
         <div className="sw-chapter-band-layer">
           <ChapterTimeline bands={bands} onSelect={session.selectChapter} />
         </div>
-      ) : null}
+      )}
       <WalkthroughExperience
         {...rest}
         clipId={session.clipId}
@@ -158,12 +165,12 @@ export function ChapterWalkthroughExperience({
           rest.onPlayerReady?.(handle);
         }}
       />
-      {rest.authoring ? (
+      {rest.authoring ? null : (
         <div className="sw-space-mark">
           <button type="button" className="sw-chrome-btn" onClick={() => player && onStartSpace?.(player.getView())}>Start space here</button>
           <button type="button" className="sw-chrome-btn" onClick={() => player && onEndSpace?.(player.getView())}>End space here</button>
         </div>
-      ) : null}
+      )}
     </div>
   );
 }

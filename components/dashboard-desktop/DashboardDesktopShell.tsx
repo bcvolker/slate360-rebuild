@@ -94,7 +94,9 @@ function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, visibleA
           spatialOnly={spatialOnly}
           onOpenCommand={() => setCommandOpen(true)}
         />
-        <main className={`${t.content} ${spatialOnly ? "max-lg:p-0" : ""}`}>{children}</main>
+        <main className={viewerRoute ? "min-h-0 flex-1 overflow-hidden p-0" : `${t.content} ${spatialOnly ? "max-lg:p-0" : ""}`}>
+          {children}
+        </main>
         {spatialOnly && !viewerRoute ? (
           <div className="lg:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
             <MobileBottomNav items={spatialOnlyMobileTabs} activeKey={resolveMainMobileTabKey(pathname)} />

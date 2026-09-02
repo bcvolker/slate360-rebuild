@@ -260,9 +260,20 @@ def bake_public_proxy(payload: dict[str, Any]) -> None:
         )
         public_key = f"orgs/{org_id}/spatial-walkthrough/{clip_id}/public-proxy.mp4"
         upload_file(s3, bucket, out, public_key, "video/mp4")
+        poster_t = float(payload.get("posterTime") or 12)
+        poster = str(work / "public-poster.jpg")
+        subprocess.run(
+            ["ffmpeg", "-y", "-ss", str(poster_t), "-i", out, "-frames:v", "1", "-q:v", "3", poster],
+            capture_output=True,
+            check=True,
+        )
+        poster_key = f"orgs/{org_id}/spatial-walkthrough/{clip_id}/public-poster.jpg"
+        upload_file(s3, bucket, poster, poster_key, "image/jpeg")
         post_callback({
             "jobId": job_id, "clipId": clip_id, "status": "completed", "progressPct": 100,
             "stage": "privacy-bake", "publicProxyKey": public_key,
+            "publicPosterKey": poster_key,
+            "posterMeta": {"t": poster_t, "policy": "public", "source": "baked-derivative"},
         }, site)
     except Exception as e:  # noqa: BLE001
         post_callback({"jobId": job_id, "clipId": clip_id, "status": "failed",

@@ -4,6 +4,7 @@ import { PrivacyInspector } from "./PrivacyInspector";
 import { PrivacyRulesPanel } from "./PrivacyRulesPanel";
 import { StudioAudioStack } from "./StudioAudioStack";
 import { StudioSharePanel } from "./StudioSharePanel";
+import { StudioCapturePanel } from "./StudioCapturePanel";
 import type { WalkthroughPlayerHandle } from "@/components/spatial-walkthrough/viewer/WalkthroughPlayer";
 import type { OperatorPatch, WaypointRecord } from "@/lib/spatial-walkthrough/types";
 import type { RedactionRule } from "@/lib/spatial-walkthrough/redaction";
@@ -41,9 +42,20 @@ type Props = {
   shares: Array<{ id: string; token_prefix?: string; policy: string; is_revoked: boolean; expires_at: string | null }>;
   chapters: Array<{ id: string; name: string }>;
   onExport: () => void;
+  captureMeta?: unknown;
+  currentT?: number;
+  onPrevKey?: () => void;
+  onNextKey?: () => void;
+  onAddKey?: () => void;
+  onDeleteKey?: () => void;
+  onCopyPrev?: () => void;
+  keyCount?: number;
 };
 
 export function StudioInspector(props: Props) {
+  if (props.tool === "Capture") {
+    return <StudioCapturePanel captureMeta={props.captureMeta} duration={props.duration} clipId={props.clipId} />;
+  }
   if (props.tool === "Privacy") {
     return (
       <>
@@ -52,6 +64,12 @@ export function StudioInspector(props: Props) {
           onChange={props.onChangePatch}
           onPersist={props.onPersistPatch}
           onMaskHere={props.onMaskHere}
+          onPrevKey={props.onPrevKey}
+          onNextKey={props.onNextKey}
+          onAddKey={props.onAddKey}
+          onDeleteKey={props.onDeleteKey}
+          onCopyPrev={props.onCopyPrev}
+          keyCount={props.keyCount}
         />
         <PrivacyRulesPanel
           clipId={props.clipId}
@@ -109,14 +127,30 @@ export function StudioInspector(props: Props) {
       </div>
     );
   }
-  const copy: Record<StudioTool, string> = {
-    Capture: "Upload or replace the source clip from the stage.",
-    Spaces: "Click the sphere to add a space marker.",
-    Path: "Click the sphere to drop a path station.",
-    Pins: "Click the sphere to place an issue, question, or document.",
-    Privacy: "",
-    Narration: "",
-    Publish: "",
-  };
-  return <p className="text-sm leading-relaxed text-[var(--graphite-text-body)]">{copy[props.tool]}</p>;
+  if (props.tool === "Path") {
+    return (
+      <div className="space-y-2">
+        <p className="text-sm text-white">Path stations</p>
+        {props.waypoints.length === 0 ? <p className="text-sm text-[var(--graphite-muted)]">No stations yet. Press M or place a pin, then convert from Path later.</p> : null}
+        {props.waypoints.map((wp) => (
+          <p key={wp.id} className="text-sm">{wp.label || "Station"} · {wp.tSeconds.toFixed(1)}s</p>
+        ))}
+      </div>
+    );
+  }
+  if (props.tool === "Spaces") {
+    return (
+      <div className="space-y-2">
+        <p className="text-sm text-white">Spaces</p>
+        {props.chapters.length === 0 ? <p className="text-sm text-[var(--graphite-muted)]">No spaces yet. Mark a range in Privacy skip or add a chapter from Path stations.</p> : null}
+        {props.chapters.map((ch) => (
+          <p key={ch.id} className="text-sm">{ch.name}</p>
+        ))}
+      </div>
+    );
+  }
+  if (props.tool === "Pins") {
+    return <p className="text-sm leading-relaxed text-[var(--graphite-text-body)]">Press M to drop a pin at the playhead and look direction. Attach a project document before saving.</p>;
+  }
+  return <p className="text-sm leading-relaxed text-[var(--graphite-text-body)]">Select a tool.</p>;
 }

@@ -58,6 +58,9 @@ describe("MASTER / derivative isolation", () => {
     expect(selectDerivativeKey(clip, "proxy", "public")).toBeNull();
     expect(selectDerivativeKey({ ...clip, public_proxy_key: "pub.mp4" }, "proxy", "public")).toBe("pub.mp4");
     expect(selectDerivativeKey(clip, "proxy", "client")).toBe(clip.proxy_key);
+    expect(selectDerivativeKey(clip, "poster", "public")).toBeNull();
+    expect(selectDerivativeKey({ ...clip, public_poster_key: "pub.jpg" }, "poster", "public")).toBe("pub.jpg");
+    expect(selectDerivativeKey(clip, "poster", "master", true)).toBe(clip.poster_key);
   });
 
   it("strips master fields from public payloads", () => {
