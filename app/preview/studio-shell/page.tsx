@@ -1,3 +1,5 @@
+"use client";
+
 import { PrivacyInspector } from "@/components/spatial-walkthrough/studio/PrivacyInspector";
 import { DEFAULT_OPERATOR_PATCH } from "@/lib/spatial-walkthrough/types";
 import "@/components/spatial-walkthrough/studio/studio-frame.css";

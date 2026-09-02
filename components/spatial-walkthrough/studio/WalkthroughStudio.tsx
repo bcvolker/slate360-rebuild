@@ -5,16 +5,11 @@ import { type ExperiencePin } from "@/components/spatial-walkthrough/viewer/Walk
 import { StudioChapterAuthoring } from "./StudioChapterAuthoring";
 import type { WalkthroughPlayerHandle } from "@/components/spatial-walkthrough/viewer/WalkthroughPlayer";
 import { StudioUpload } from "./StudioUpload";
-import { StudioSharePanel } from "./StudioSharePanel";
-import { OperatorPatchPanel } from "./OperatorPatchPanel";
-import { PrivacyInspector } from "./PrivacyInspector";
 import "./studio-frame.css";
-import { PrivacyRulesPanel } from "./PrivacyRulesPanel";
 import { ExportModal } from "./ExportModal";
-import { StudioAudioStack } from "./StudioAudioStack";
+import { STUDIO_TOOLS, StudioInspector, type StudioTool } from "./StudioInspector";
 import { parseOperatorPatch, resolveOperatorPatch } from "@/lib/spatial-walkthrough/operator-patch";
 import { wrapYaw } from "@/lib/spatial-walkthrough/redaction";
-import { captureMetaLabel, parseCaptureMeta } from "@/lib/spatial-walkthrough/capture-meta";
 import { toWaypoint } from "@/lib/spatial-walkthrough/waypoints";
 import { filterRuntime } from "@/lib/spatial-walkthrough/runtime-filter";
 import { rulesForPolicy, type RedactionRule } from "@/lib/spatial-walkthrough/redaction";
@@ -66,6 +61,7 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
   const [patch, setPatch] = useState<OperatorPatch>(() => parseOperatorPatch(null));
   const [exportOpen, setExportOpen] = useState(false);
   const [player, setPlayer] = useState<WalkthroughPlayerHandle | null>(null);
+  const [tool, setTool] = useState<StudioTool>("Privacy");
 
   const load = useCallback(async () => {
     const res = await fetch(`/api/spatial-walkthrough/${walkthroughId}`, { cache: "no-store" });
@@ -141,7 +137,6 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
     canHidePoweredBy: true,
   });
   const viewerPatch = previewPolicy === "master" ? { ...patch, enabled: false } : patch;
-  const captureLabel = captureMetaLabel(parseCaptureMeta(clip?.capture_meta));
   const redactions = previewPolicy === "master" ? [] : rulesForPolicy(allRules, previewPolicy);
   const narration = hydrateNarration(payload.narration ?? [], payload.audioAssets ?? [], walkthroughId);
   const transcripts = (payload.transcripts ?? []).map(toTranscript);
@@ -184,9 +179,10 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
         </label>
       </div>
       <aside className="sw-studio-rail hidden lg:block">
-        <p className="mb-2 text-xs text-[var(--graphite-muted)]">Tools</p>
-        {["Capture", "Spaces", "Path", "Pins", "Privacy", "Narration", "Publish"].map((tool) => (
-          <p key={tool} className="sw-studio-tool">{tool}</p>
+        {STUDIO_TOOLS.map((name) => (
+          <button key={name} type="button" className="sw-studio-tool" data-on={tool === name ? "true" : "false"} onClick={() => setTool(name)}>
+            {name}
+          </button>
         ))}
       </aside>
       {!clip || clip.status !== "ready" ? <StudioUpload walkthroughId={walkthroughId} onQueued={() => void load()} /> : null}
@@ -216,61 +212,33 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
       )}
       </div>
       <aside className="sw-studio-inspector">
-      <PrivacyInspector
-        patch={patch}
-        onChange={setPatch}
-        onPersist={() => void persistPatch()}
-        onMaskHere={() => {
-          if (!player) return;
-          setPatch((p) => ({ ...p, enabled: true, rearYawCenter: wrapYaw(player.getView().yaw + 180) }));
-        }}
-      />
-      {draft ? (
-        <div className="space-y-2 border border-white/10 p-4">
-          <p className="text-sm">Paused at {draft.t.toFixed(1)}s · yaw {draft.yaw.toFixed(0)} · pitch {draft.pitch.toFixed(0)}</p>
-          <input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="Label" className="h-11 w-full border border-white/10 bg-transparent px-3" />
-          {draft.kind === "pin" ? (
-            <select value={fileId} onChange={(e) => setFileId(e.target.value)} className="h-11 w-full border border-white/10 bg-transparent px-2">
-              <option value="">Attach project file (optional)</option>
-              {files.map((f) => <option key={f.id} value={f.id}>{f.file_name}</option>)}
-            </select>
-          ) : null}
-          <div className="flex flex-wrap gap-2">
-            <button type="button" onClick={() => void saveDraft()} className="h-11 border border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] px-4 text-[var(--graphite-primary)]">
-              Save {draft.kind}
-            </button>
-            <button type="button" onClick={() => setDraft(null)} className="h-11 px-3 text-sm">Cancel</button>
-          </div>
-        </div>
-      ) : null}
-      <OperatorPatchPanel
-        patch={patch}
-        onChange={setPatch}
-        onPersist={() => void persistPatch()}
-        onUseRearFromView={() => {
-          if (!player) return;
-          setPatch((p) => ({ ...p, rearYawCenter: wrapYaw(player.getView().yaw + 180) }));
-        }}
-      />
-      <PrivacyRulesPanel
-        clipId={clipId}
-        walkthroughId={walkthroughId}
-        draft={draft}
-        waypoints={payload.waypoints.map(toWaypoint)}
-        rules={allRules}
-        onRefresh={() => void load()}
-      />
-      {clipId ? (
-        <StudioAudioStack
+        <StudioInspector
+          tool={tool}
           walkthroughId={walkthroughId}
           clipId={clipId}
+          status={String(payload.walkthrough.status)}
           duration={Number(clip?.duration_s ?? 0)}
-          currentT={player?.getView().t ?? 0}
-          yaw={player?.getView().yaw ?? 0}
-          pitch={player?.getView().pitch ?? 0}
-          segments={narration}
+          player={player}
+          patch={patch}
+          onChangePatch={setPatch}
+          onPersistPatch={() => void persistPatch()}
+          onMaskHere={() => {
+            if (!player) return;
+            setPatch((p) => ({ ...p, enabled: true, rearYawCenter: wrapYaw(player.getView().yaw + 180) }));
+          }}
+          draft={draft}
+          label={label}
+          fileId={fileId}
+          files={files}
+          onLabel={setLabel}
+          onFileId={setFileId}
+          onSaveDraft={() => void saveDraft()}
+          onCancelDraft={() => setDraft(null)}
+          waypoints={payload.waypoints.map(toWaypoint)}
+          rules={allRules}
           onRefresh={() => void load()}
-          onDrag={(id, delta) => {
+          narration={narration}
+          onDragNarration={(id, delta) => {
             const s = narration.find((x) => x.id === id);
             if (!s) return;
             void fetch(`/api/spatial-walkthrough/${walkthroughId}/narration/${id}`, {
@@ -279,16 +247,10 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
               body: JSON.stringify({ startTime: s.startTime + delta, endTime: s.endTime + delta }),
             }).then(() => void load());
           }}
+          shares={payload.shares}
+          chapters={(payload.chapters ?? []).map((c) => ({ id: String(c.id), name: String(c.name ?? "Space") }))}
+          onExport={() => setExportOpen(true)}
         />
-      ) : null}
-      <StudioSharePanel
-        walkthroughId={walkthroughId}
-        status={String(payload.walkthrough.status)}
-        shares={payload.shares}
-        chapters={(payload.chapters ?? []).map((c) => ({ id: String(c.id), name: String(c.name ?? "Space") }))}
-        onRefresh={() => void load()}
-        onExport={() => setExportOpen(true)}
-      />
       </aside>
       <ExportModal walkthroughId={walkthroughId} clipId={clipId} open={exportOpen} onClose={() => setExportOpen(false)} />
     </div>
