@@ -100,7 +100,7 @@ export function buildViewerMarkers(args: {
       list.push({
         id: `path-${node.waypoint.id}`,
         yawDeg: node.waypoint.yawDeg,
-        pitchDeg: node.waypoint.pitchDeg,
+        pitchDeg: Math.max(node.waypoint.pitchDeg, 20),
         html: `<button type="button" class="sw-path-station" data-rank="${node.rank}" style="opacity:${node.opacity}" aria-label="${esc(label)}"><span class="sw-path-stem"></span><span class="sw-path-disc"></span><span class="sw-path-name">${esc(stationName(node.waypoint))}</span><span class="sw-path-label">${esc(label)}</span></button>`,
         width: Math.round(96 * node.scale),
         height: Math.round(80 * node.scale),

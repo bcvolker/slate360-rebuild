@@ -85,7 +85,9 @@ await page.screenshot({ path: `${OUT}/walkthrough/04-path-on.png`, timeout: 0 })
 
 const before = await page.locator("[data-testid='sw-timeline-time']").textContent();
 const clicked = await page.evaluate(() => {
-  const btn = document.querySelector(".sw-path-station");
+  const buttons = [...document.querySelectorAll(".sw-path-station")];
+  const kitchen = buttons.find((el) => (el.getAttribute("aria-label") || "").includes("Kitchen"));
+  const btn = kitchen || buttons[buttons.length - 1];
   if (btn instanceof HTMLElement) {
     btn.click();
     return btn.getAttribute("aria-label");
