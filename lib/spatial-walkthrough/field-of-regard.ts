@@ -84,10 +84,10 @@ export const COVERAGE_TOO_LIMITED =
   "Capture coverage is too limited — use another view or skip this segment.";
 
 /** Presentation pad so baked operator pixels stay outside a client FOV, not just the look center. */
-export const CLIENT_YAW_PAD = 28;
-export const CLIENT_PITCH_PAD = 18;
-/** Paired with WalkthroughPlayer maxFov 56. VisibleRange clamps look center only. */
-export const CLIENT_HALF_FOV = 28;
+export const CLIENT_YAW_PAD = 32;
+export const CLIENT_PITCH_PAD = 10;
+/** Modest extra above the baked operator top. Paired with client maxFov 42. */
+export const CLIENT_HALF_FOV = 16;
 
 export function presentationRegard(regard: FieldOfRegard): FieldOfRegard {
   return {
@@ -109,7 +109,7 @@ export function allowedVisibleRange(regard: FieldOfRegard | null): VisibleRangeP
   const half = presented.operatorYawWidth / 2;
   const left = wrapYaw(presented.operatorYawCenter - half);
   const right = wrapYaw(presented.operatorYawCenter + half);
-  const floor = Math.min(62, Math.max(18, presented.pitchMax + CLIENT_HALF_FOV));
+  const floor = Math.min(30, Math.max(16, presented.pitchMax + CLIENT_HALF_FOV));
   return {
     horizontal: [`${right}deg`, `${left}deg`],
     vertical: [`${floor}deg`, "78deg"],

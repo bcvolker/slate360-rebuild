@@ -32,7 +32,7 @@ export function applyVisibleRange(
   const range = allowedVisibleRange(regard);
   if (!range) {
     plugin.setHorizontalRange(null);
-    plugin.setVerticalRange(["42deg", "78deg"]);
+    plugin.setVerticalRange(["22deg", "72deg"]);
     return;
   }
   plugin.setHorizontalRange(range.horizontal);

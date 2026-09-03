@@ -44,7 +44,7 @@ const ctx = await browser.newContext({
 await ctx.addInitScript(() => {
   try {
     localStorage.setItem("slate360_cookie_consent", "accepted");
-    localStorage.removeItem("sw-look-hint-v1");
+    localStorage.setItem("sw-look-hint-v1", "1");
   } catch {
     /* ignore */
   }
@@ -84,13 +84,20 @@ note(`path_on_stations=${stationsOn}`);
 await page.screenshot({ path: `${OUT}/walkthrough/04-path-on.png`, timeout: 0 });
 
 const before = await page.locator("[data-testid='sw-timeline-time']").textContent();
-const station = page.locator(".sw-path-station").first();
-if (await station.count()) {
-  await station.click({ force: true });
-  await page.waitForTimeout(1600);
+const clicked = await page.evaluate(() => {
+  const btn = document.querySelector(".sw-path-station");
+  if (btn instanceof HTMLElement) {
+    btn.click();
+    return btn.getAttribute("aria-label");
+  }
+  return null;
+});
+if (!clicked) {
+  await page.locator("[data-testid='sw-public-toolbar'] button[aria-label='Next']").click().catch(() => undefined);
 }
+await page.waitForTimeout(1600);
 const after = await page.locator("[data-testid='sw-timeline-time']").textContent();
-note(`click_to_move ${before} -> ${after}`);
+note(`click_to_move ${before} -> ${after} station=${clicked}`);
 await page.screenshot({ path: `${OUT}/walkthrough/05-after-station.png`, timeout: 0 });
 
 await page.locator("[data-testid='sw-spaces']").click().catch(() => undefined);
