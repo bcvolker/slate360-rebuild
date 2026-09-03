@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { loadShareRow, shareDenied, passwordOk, filterRuntime } from "@/lib/spatial-walkthrough/share-resolve";
 import { resolveBrandTheme } from "@/lib/spatial-walkthrough/theme";
+import { orgThemeFromRow } from "@/lib/spatial-walkthrough/org-theme";
 import { parseOperatorPatch, resolveOperatorPatch } from "@/lib/spatial-walkthrough/operator-patch";
 import { sessionUnlocksShare } from "@/lib/spatial-walkthrough/share-session";
 import { publicShareDenial } from "@/lib/spatial-walkthrough/share-token";
@@ -92,12 +93,14 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
     metadata: { policy: row.policy },
   });
 
+  const { data: orgTheme } = await admin.from("spatial_org_themes").select("*").eq("org_id", row.org_id).maybeSingle();
   const theme = resolveBrandTheme({
+    org: orgThemeFromRow(orgTheme as Record<string, unknown> | null),
     snapshot: row.branding_snapshot as Record<string, unknown> | null,
     walkthrough: wt.brand_theme,
     canHidePoweredBy: true,
   });
-  if (theme.logoUrl) {
+  if (theme.logoUrl || orgTheme?.logo_display_key || orgTheme?.logo_key) {
     theme.logoUrl = `/api/spatial-walkthrough/public/${token}/logo`;
   }
 

@@ -30,7 +30,7 @@ export async function mapProjectCards(
         .select("id, project_id, status")
         .eq("org_id", orgId)
         .in("project_id", ids)
-        .eq("status", "ready")
+        .in("status", ["ready", "published"])
         .order("updated_at", { ascending: false })
     : { data: [] as Array<{ id: string; project_id: string }> };
   const walkByProject = new Map<string, string>();
@@ -43,7 +43,7 @@ export async function mapProjectCards(
   const { data: clips } = walkIds.length
     ? await admin
         .from("spatial_clips")
-        .select("id, walkthrough_id, capture_meta, public_proxy_key")
+        .select("id, walkthrough_id, capture_meta, poster_key")
         .in("walkthrough_id", walkIds)
         .eq("status", "ready")
         .order("sort_order")
@@ -57,7 +57,11 @@ export async function mapProjectCards(
     const walkId = walkByProject.get(row.id);
     const clip = walkId ? clipByWalk.get(walkId) : null;
     const meta = clip?.capture_meta && typeof clip.capture_meta === "object" ? clip.capture_meta : {};
-    const hasPoster = Boolean(meta.client_poster_key || meta.public_poster_key);
+    const hasPoster = Boolean(
+      meta.client_poster_key ||
+      meta.public_poster_key ||
+      clip?.id,
+    );
     const heroUrl = walkId && clip && hasPoster
       ? `/api/spatial-walkthrough/${walkId}/media?clip=${clip.id}&kind=hero&policy=client`
       : null;

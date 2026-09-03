@@ -80,3 +80,42 @@ export function waypointHiddenByOperator(
 }
 
 export const COVERAGE_REQUIRED = "Coverage required — this area is hidden by operator.";
+export const COVERAGE_TOO_LIMITED =
+  "Capture coverage is too limited — use another view or skip this segment.";
+
+/** Presentation pad so baked operator pixels stay outside a client FOV, not just the look center. */
+export const CLIENT_YAW_PAD = 28;
+export const CLIENT_PITCH_PAD = 18;
+/** Paired with WalkthroughPlayer maxFov 56. VisibleRange clamps look center only. */
+export const CLIENT_HALF_FOV = 28;
+
+export function presentationRegard(regard: FieldOfRegard): FieldOfRegard {
+  return {
+    ...regard,
+    operatorYawWidth: Math.min(168, regard.operatorYawWidth + CLIENT_YAW_PAD * 2),
+    pitchMax: regard.pitchMax + CLIENT_PITCH_PAD,
+  };
+}
+
+export type VisibleRangePair = {
+  horizontal: [string, string];
+  vertical: [string, string];
+};
+
+/** Allowed sphere = complement of the operator sector. One contiguous PSV range. */
+export function allowedVisibleRange(regard: FieldOfRegard | null): VisibleRangePair | null {
+  if (!regard || regard.operatorYawWidth >= 170) return null;
+  const presented = presentationRegard(regard);
+  const half = presented.operatorYawWidth / 2;
+  const left = wrapYaw(presented.operatorYawCenter - half);
+  const right = wrapYaw(presented.operatorYawCenter + half);
+  const floor = Math.min(62, Math.max(18, presented.pitchMax + CLIENT_HALF_FOV));
+  return {
+    horizontal: [`${right}deg`, `${left}deg`],
+    vertical: [`${floor}deg`, "78deg"],
+  };
+}
+
+export function coverageTooLimited(regard: FieldOfRegard | null): boolean {
+  return Boolean(regard && regard.operatorYawWidth > 140);
+}

@@ -13,7 +13,7 @@ describe("creator walkthrough ux reset gates", () => {
     const player = readFileSync("components/spatial-walkthrough/viewer/WalkthroughPlayer.tsx", "utf8");
     expect(player).toMatch(/mousewheel: true/);
     expect(player).toMatch(/mousemove: true/);
-    expect(player).toMatch(/maxFov: 100/);
+    expect(player).toMatch(/maxFov: restrictView \? 56 : 100/);
     expect(player).toMatch(/cursor-grab/);
   });
 

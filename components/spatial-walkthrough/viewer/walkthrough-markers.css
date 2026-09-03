@@ -153,19 +153,27 @@
   background: color-mix(in srgb, white 45%, transparent);
 }
 .sw-path-disc {
-  width: 14px;
-  height: 14px;
-  border: 2px solid color-mix(in srgb, var(--sw-accent, var(--graphite-primary)) 85%, white);
-  background: color-mix(in srgb, var(--sw-text, white) 80%, transparent);
+  width: 26px;
+  height: 26px;
+  border: 2px solid color-mix(in srgb, var(--sw-accent, var(--graphite-primary)) 90%, white);
+  background: color-mix(in srgb, var(--sw-text, white) 88%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, black 35%, transparent);
 }
 .sw-path-station[data-rank="0"] .sw-path-disc {
-  width: 18px;
-  height: 18px;
+  width: 30px;
+  height: 30px;
+}
+.sw-path-name {
+  margin-top: 4px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--sw-text, white);
+  white-space: nowrap;
 }
 .sw-path-label {
   display: none;
-  margin-top: 4px;
-  max-width: 88px;
+  margin-top: 2px;
+  max-width: 110px;
   font-size: 10px;
   letter-spacing: 0.04em;
   color: var(--sw-text, white);

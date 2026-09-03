@@ -25,3 +25,9 @@ export function projectThumbUrl(input: {
 }): string | null {
   return input.heroUrl || input.posterUrl || input.coverUrl || input.thumbnailUrl || null;
 }
+
+export function projectCardFallbackLabel(name: string): string {
+  const word = name.trim().split(/\s+/)[0] || "Project";
+  return word.slice(0, 12);
+}
+}

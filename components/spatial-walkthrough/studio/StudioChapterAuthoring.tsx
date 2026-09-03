@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { ChapterWalkthroughExperience } from "@/components/spatial-walkthrough/viewer/ChapterWalkthroughExperience";
 import { toChapter } from "@/lib/spatial-walkthrough/chapters";
 import { toClipEdge, type ClipSummary } from "@/lib/spatial-walkthrough/clip-edges";
@@ -32,6 +33,12 @@ type Props = {
 export function StudioChapterAuthoring({
   walkthroughId, theme, title, capturedAt, clips, chapters, edges, waypoints, pins, redactions, operatorPatch, mediaPolicy = "master", onPlayerReady, onAddWaypoint, onAddPin, narration = [], transcripts = [],
 }: Props) {
+  const [previewRegard, setPreviewRegard] = useState(false);
+  useEffect(() => {
+    const onPreview = (event: Event) => setPreviewRegard(Boolean((event as CustomEvent<boolean>).detail));
+    window.addEventListener("sw-preview-regard", onPreview);
+    return () => window.removeEventListener("sw-preview-regard", onPreview);
+  }, []);
   const ready = clips.filter((c) => c.status === "ready");
   const clip = ready[0];
   if (!clip) return null;
@@ -65,6 +72,7 @@ export function StudioChapterAuthoring({
         redactions={redactions}
         operatorPatch={operatorPatch}
         authoring
+        simulateClient={policy !== "master" || previewRegard}
         capturedAt={capturedAt}
         walkthroughId={walkthroughId}
         clips={summaries}

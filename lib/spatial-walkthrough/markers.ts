@@ -3,7 +3,7 @@ import { activeSectors, sectorYawCenter, type RedactionRule } from "./redaction"
 import { markerKindFromPinType, markerScaleFromPitch } from "./marker-scale";
 import { operatorPatchActiveAt } from "./operator-patch";
 import { pathHudNodes } from "./path-hud";
-import { stationLabel } from "./path-stations";
+import { stationLabel, stationName } from "./path-stations";
 
 type PatchFields = OperatorPatch & {
   nadirRadius?: number;
@@ -101,9 +101,9 @@ export function buildViewerMarkers(args: {
         id: `path-${node.waypoint.id}`,
         yawDeg: node.waypoint.yawDeg,
         pitchDeg: node.waypoint.pitchDeg,
-        html: `<button type="button" class="sw-path-station" data-rank="${node.rank}" style="opacity:${node.opacity}" aria-label="${esc(label)}"><span class="sw-path-stem"></span><span class="sw-path-disc"></span><span class="sw-path-label">${esc(label)}</span></button>`,
-        width: Math.round(88 * node.scale),
-        height: Math.round(72 * node.scale),
+        html: `<button type="button" class="sw-path-station" data-rank="${node.rank}" style="opacity:${node.opacity}" aria-label="${esc(label)}"><span class="sw-path-stem"></span><span class="sw-path-disc"></span><span class="sw-path-name">${esc(stationName(node.waypoint))}</span><span class="sw-path-label">${esc(label)}</span></button>`,
+        width: Math.round(96 * node.scale),
+        height: Math.round(80 * node.scale),
         data: { kind: "waypoint", id: node.waypoint.id, t: node.waypoint.tSeconds, yaw: node.waypoint.yawDeg, pitch: node.waypoint.pitchDeg },
       });
     }

@@ -51,6 +51,7 @@ type Props = {
   onAddKey?: () => void;
   onDeleteKey?: () => void;
   onCopyPrev?: () => void;
+  onSkipSegment?: () => void;
   keyCount?: number;
 };
 
@@ -71,6 +72,7 @@ export function StudioInspector(props: Props) {
           onAddKey={props.onAddKey}
           onDeleteKey={props.onDeleteKey}
           onCopyPrev={props.onCopyPrev}
+          onSkipSegment={props.onSkipSegment}
           keyCount={props.keyCount}
         />
         <PrivacyRulesPanel

@@ -2,6 +2,7 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveBrandTheme } from "./theme";
+import { orgThemeFromRow } from "./org-theme";
 import type { PortalLandingData } from "./portal-fixtures";
 
 export async function loadClientPortalLanding(args: {
@@ -76,7 +77,12 @@ export async function loadClientPortalLanding(args: {
     ? await admin.from("projects").select("id, name, location").eq("id", projectId).maybeSingle()
     : { data: null };
 
-  const brand = resolveBrandTheme({ snapshot: { showPoweredBy: true, logoOpacity: 0.88 }, canHidePoweredBy: true });
+  const { data: orgTheme } = await admin.from("spatial_org_themes").select("*").eq("org_id", args.orgId).maybeSingle();
+  const brand = resolveBrandTheme({
+    org: orgThemeFromRow(orgTheme as Record<string, unknown> | null),
+    snapshot: { showPoweredBy: true, logoOpacity: 0.88 },
+    canHidePoweredBy: true,
+  });
   const hero = clips[0] ?? null;
 
   const items = clientPins.map((p) => ({

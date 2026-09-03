@@ -5,7 +5,8 @@ import type { WaypointRecord } from "./types";
 /** 3–5 navigable stations, never a full tick strip. */
 export const PATH_HUD_MAX = 5;
 /** Path OFF is opacity 0. Path ON stays readable. */
-export const PATH_HUD_IDLE_OPACITY = 0.72;
+export const PATH_HUD_IDLE_OPACITY = 0.5;
+export const PATH_HUD_ACTIVE_OPACITY = 0.85;
 
 export type PathHudNode = {
   waypoint: WaypointRecord;
@@ -35,17 +36,16 @@ export function pathHudNodes(
   limit = PATH_HUD_MAX,
 ): PathHudNode[] {
   return upcomingWaypoints(waypoints, clipId, t, limit).map((waypoint, rank) => {
-    const falloff = 1 - rank * 0.22;
-    const orderScale = 1 - rank * 0.12;
+    const opacity = rank === 0 ? PATH_HUD_ACTIVE_OPACITY : PATH_HUD_IDLE_OPACITY;
     return {
       waypoint,
       rank,
-      opacity: Math.round(Math.max(0.06, hudOpacity * falloff) * 100) / 100,
-      scale: Math.round(markerScaleFromPitch(waypoint.pitchDeg) * orderScale * 100) / 100,
+      opacity: Math.round(hudOpacity * opacity * 100) / 100,
+      scale: Math.round(markerScaleFromPitch(waypoint.pitchDeg) * (rank === 0 ? 1 : 0.92) * 100) / 100,
     };
   });
 }
 
-export function pathHudOpacity(navigating: boolean, idle = PATH_HUD_IDLE_OPACITY): number {
+export function pathHudOpacity(navigating: boolean, idle = PATH_HUD_ACTIVE_OPACITY): number {
   return navigating ? 1 : idle;
 }

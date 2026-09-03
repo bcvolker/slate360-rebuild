@@ -55,6 +55,7 @@ export function DashboardDesktopSidebar({
 
       <nav className={cn("flex flex-1 flex-col gap-4 overflow-y-auto py-3", collapsed ? "px-2" : "px-3")} aria-label="Workspace">
         {(["primary", "tools", "labs", "account"] as const).map((section) => {
+          if (section === "tools" && !isCeo) return null;
           const items = nav.filter((item) => (item.section ?? "primary") === section);
           if (!items.length) return null;
           return (

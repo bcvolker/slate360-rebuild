@@ -5,6 +5,7 @@ import { Viewer } from "@photo-sphere-viewer/core";
 import { EquirectangularVideoAdapter } from "@photo-sphere-viewer/equirectangular-video-adapter";
 import { VideoPlugin } from "@photo-sphere-viewer/video-plugin";
 import { MarkersPlugin } from "@photo-sphere-viewer/markers-plugin";
+import { VisibleRangePlugin } from "@photo-sphere-viewer/visible-range-plugin";
 import "@photo-sphere-viewer/core/index.css";
 import "@photo-sphere-viewer/video-plugin/index.css";
 import "@photo-sphere-viewer/markers-plugin/index.css";
@@ -13,7 +14,7 @@ import type { BrandTheme, OperatorPatch, WaypointRecord } from "@/lib/spatial-wa
 import { applySkip, skipIntervals, type RedactionRule } from "@/lib/spatial-walkthrough/redaction";
 import { buildViewerMarkers, type MarkerChrome, type PinMarkerInput } from "@/lib/spatial-walkthrough/markers";
 import { operatorKeyframesFromRaw, resolvePatchAtTime } from "@/lib/spatial-walkthrough/housewalk-operator";
-import { attachRegardGuard } from "@/lib/spatial-walkthrough/viewer-regard";
+import { attachVisibleRangeSync } from "@/lib/spatial-walkthrough/viewer-visible-range";
 import { attachPlayerRuntime } from "./player-runtime";
 
 export type WalkthroughPlayerHandle = {
@@ -112,22 +113,26 @@ export function WalkthroughPlayer({
       adapter: EquirectangularVideoAdapter,
       panorama: { source: video },
       defaultYaw: "0deg",
-      defaultPitch: "0deg",
+      defaultPitch: restrictView ? "44deg" : "0deg",
       navbar: false,
       mousewheel: true,
       mousemove: true,
       mousewheelCtrlKey: false,
       moveSpeed: 1.5,
       zoomSpeed: 1.4,
-      defaultZoomLvl: 50,
+      defaultZoomLvl: restrictView ? 72 : 50,
       minFov: 40,
-      maxFov: 100,
+      maxFov: restrictView ? 56 : 100,
       touchmoveTwoFingers: false,
       keyboard: "fullscreen",
       loadingImg: undefined,
       plugins: [
         [VideoPlugin, { progressbar: false, bigbutton: false }],
         MarkersPlugin,
+        VisibleRangePlugin.withConfig({
+          horizontalRange: restrictView ? ["-90deg", "90deg"] : undefined,
+          verticalRange: restrictView ? ["42deg", "78deg"] : undefined,
+        }),
       ],
     });
     } catch (err) {
@@ -254,11 +259,16 @@ export function WalkthroughPlayer({
     }
     videoPlugin.addEventListener("progress", onProgress as never);
     markers.addEventListener("select-marker", onSelect as never);
-    const detachRegard = attachRegardGuard(viewer, () => videoPlugin.getTime(), () => liveRef.current);
+    const detachRange = attachVisibleRangeSync(
+      viewer,
+      () => videoPlugin.getTime(),
+      () => ({ restrictView: liveRef.current.restrictView, operatorPatch: liveRef.current.operatorPatch ?? null }),
+      containerRef.current,
+    );
     const detachRuntime = attachPlayerRuntime({
       container: containerRef.current,
       viewer,
-      autoRotate,
+      autoRotate: autoRotate && !restrictView,
       onTick: () => applyMarkers(videoPlugin.getTime()),
     });
     viewer.addEventListener("ready", () => {
@@ -267,8 +277,8 @@ export function WalkthroughPlayer({
     });
 
     return () => {
+      detachRange();
       detachRuntime();
-      detachRegard();
       markers.removeEventListener("select-marker", onSelect as never);
       videoPlugin.removeEventListener("progress", onProgress as never);
       viewer.destroy();
@@ -276,7 +286,7 @@ export function WalkthroughPlayer({
       video.removeAttribute("src");
       video.load();
     };
-  }, [videoUrl, posterUrl, autoRotate]);
+  }, [videoUrl, posterUrl, autoRotate, restrictView]);
 
   return (
     <div

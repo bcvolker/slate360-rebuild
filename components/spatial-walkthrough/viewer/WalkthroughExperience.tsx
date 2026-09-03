@@ -66,6 +66,7 @@ type Props = {
   briefingCues?: BriefingCue[];
   transcriptOpen?: boolean;
   collaboration?: WalkthroughCollaboration | null;
+  simulateClient?: boolean;
 };
 
 export function WalkthroughExperience({
@@ -103,6 +104,7 @@ export function WalkthroughExperience({
   briefingCues = [],
   transcriptOpen: transcriptOpenProp = false,
   collaboration = null,
+  simulateClient = false,
 }: Props) {
   const [player, setPlayer] = useState<WalkthroughPlayerHandle | null>(null);
   const [currentT, setCurrentT] = useState(0);
@@ -216,10 +218,10 @@ export function WalkthroughExperience({
             chrome={{ title, capturedAt, logoUrl: theme.logoUrl }}
             selectedId={selectedId}
             autoplay={false}
-            autoRotate={!authoring}
+            autoRotate={false}
             hudOpacity={nav.hudOpacity}
-            restrictView={!authoring}
-            showOperatorOverlay={authoring}
+            restrictView={!authoring || simulateClient}
+            showOperatorOverlay={authoring && !simulateClient}
             onWaypointSelect={startExplore}
             onPinSelect={(id) => {
               const pin = pins.find((p) => p.id === id);

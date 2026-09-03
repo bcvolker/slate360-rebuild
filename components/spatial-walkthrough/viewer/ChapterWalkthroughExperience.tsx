@@ -57,6 +57,7 @@ type Props = {
   initialMode?: NavMode;
   forceHud?: boolean;
   collaboration?: WalkthroughCollaboration | null;
+  simulateClient?: boolean;
 };
 
 export function ChapterWalkthroughExperience({
@@ -128,16 +129,27 @@ export function ChapterWalkthroughExperience({
       data-studio={rest.authoring ? "true" : "false"}
     >
       {rest.authoring ? <p className="sw-chapter-chip">{name}</p> : null}
-      <ChapterPicker
-        chapters={session.chapters}
-        selectedId={session.selectedChapter?.id ?? null}
-        locked={session.pickerLocked}
-        open={pickerOpen}
-        onSelect={(id) => {
-          setPickerOpen(false);
-          session.selectChapter(id);
-        }}
-      />
+      {rest.authoring ? (
+        <ChapterPicker
+          chapters={session.chapters}
+          selectedId={session.selectedChapter?.id ?? null}
+          locked={session.pickerLocked}
+          open={pickerOpen}
+          onSelect={(id) => {
+            setPickerOpen(false);
+            session.selectChapter(id);
+          }}
+        />
+      ) : pickerOpen ? (
+        <div className="sw-space-menu" data-testid="sw-space-menu">
+          <button type="button" className="sw-chrome-btn" onClick={() => { setPickerOpen(false); session.selectChapter(null); }}>Entire Walk</button>
+          {session.chapters.map((ch) => (
+            <button key={ch.id} type="button" className="sw-chrome-btn" onClick={() => { setPickerOpen(false); session.selectChapter(ch.id); }}>
+              {ch.name}
+            </button>
+          ))}
+        </div>
+      ) : null}
       <ClipTransitionOverlay fade={session.fade} />
       {rest.authoring && upcoming ? <NextChapterControl chapter={upcoming} onSelect={session.selectChapter} /> : null}
       {rest.authoring ? (

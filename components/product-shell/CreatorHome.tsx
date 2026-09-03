@@ -50,7 +50,7 @@ export function CreatorHome({ recentProjects, recentWalks, needsAttention }: Pro
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={project.imageUrl} alt="" className="h-full w-full object-cover" />
                 ) : (
-                  <p className="text-xs uppercase tracking-[0.14em] text-[var(--graphite-muted)]">Slate360</p>
+                  <p className="text-xs uppercase tracking-[0.14em] text-[var(--graphite-muted)]">{project.name.split(/\s+/)[0]}</p>
                 )}
               </div>
               <div className="px-3 py-3">

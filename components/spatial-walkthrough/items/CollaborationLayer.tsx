@@ -130,14 +130,11 @@ export function CollaborationLayer({
 
   return (
     <>
-      <div className="sw-item-ask sw-item-row">
-        <button type="button" className="sw-chrome-btn" data-accent="true" onClick={() => { setOpen("ask"); }}>
-          Ask about this
-        </button>
-        <button type="button" className="sw-chrome-btn" onClick={() => setOpen("list")}>
-          {canManage ? "Project Items" : "My questions"}
-        </button>
-      </div>
+      {canManage ? (
+        <div className="sw-item-ask sw-item-row">
+          <button type="button" className="sw-chrome-btn" onClick={() => setOpen("list")}>Project Items</button>
+        </div>
+      ) : null}
       {showAsk ? (
         <AskAboutThis locator={locator} onClose={() => setOpen(null)} onSubmit={submitAsk} />
       ) : null}

@@ -16,6 +16,7 @@ import { useStudioClock, useStudioHotkeys } from "./useStudioClock";
 import { toWaypoint } from "@/lib/spatial-walkthrough/waypoints";
 import { filterRuntime } from "@/lib/spatial-walkthrough/runtime-filter";
 import { rulesForPolicy, type RedactionRule } from "@/lib/spatial-walkthrough/redaction";
+import { postSkipSegment } from "@/lib/spatial-walkthrough/skip-segment";
 import type { AccessPolicy, BrandTheme, OperatorPatch, WaypointRecord } from "@/lib/spatial-walkthrough/types";
 import { resolveBrandTheme } from "@/lib/spatial-walkthrough/theme";
 import { hydrateNarration } from "@/lib/spatial-walkthrough/audio";
@@ -255,6 +256,10 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
             const prev = prevKeyframe(frames, clock.t);
             if (!prev) return writeKey();
             writeKey({ ...prev, t: clock.t, yawCenter: rearYawFromView(clock.yaw) });
+          }}
+          onSkipSegment={() => {
+            if (!clipId) return;
+            void postSkipSegment(walkthroughId, clipId, clock.t).then(() => void load());
           }}
           draft={draft}
           label={label}

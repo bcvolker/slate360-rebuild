@@ -34,7 +34,7 @@ describe("media delivery regression", () => {
     const src = readFileSync("components/spatial-walkthrough/viewer/WalkthroughExperience.tsx", "utf8");
     expect(src).toMatch(/usePosterBytes/);
     expect(src).toMatch(/posterBytes === "ok"/);
-    expect(src).toMatch(/restrictView=\{!authoring\}/);
+    expect(src).toMatch(/restrictView=\{!authoring \|\| simulateClient\}/);
     expect(mediaBootState({ status: "failed" }, "public")).toBe("FAILED");
   });
 });

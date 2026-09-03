@@ -46,7 +46,10 @@ export function stationClock(t: number): string {
   return `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, "0")}`;
 }
 
+export function stationName(wp: WaypointRecord): string {
+  return (wp.label || wp.zone || "Station").trim();
+}
+
 export function stationLabel(wp: WaypointRecord): string {
-  const name = (wp.label || wp.zone || "Station").trim();
-  return `${name} · ${stationClock(wp.tSeconds)}`;
+  return `${stationName(wp)} · ${stationClock(wp.tSeconds)}`;
 }
