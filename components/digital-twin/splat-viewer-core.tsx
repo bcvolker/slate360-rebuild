@@ -55,6 +55,7 @@ export const SplatViewerCore = forwardRef<
     onManifestChange?: (manifest: SplatManifest | null) => void;
     /** D2: live orbit-camera pose changes, for progression-compare sync. */
     onCameraChange?: (pose: SplatCameraPose) => void;
+    quiet?: boolean; // client surfaces: no byte counts / point-cap notices
   }
 >(function SplatViewerCore(
   {
@@ -67,8 +68,7 @@ export const SplatViewerCore = forwardRef<
     overlay,
     onCameraModeChange,
     repositionMode = false,
-    onManifestChange,
-    onCameraChange,
+    onManifestChange, onCameraChange, quiet = false,
   },
   ref,
 ) {
@@ -100,9 +100,7 @@ export const SplatViewerCore = forwardRef<
 
   const handleReady = useCallback(() => setLoadState("ready"), []);
   const handleRecenter = useCallback(() => {
-    setInteriorEntryHit(null);
-    onCameraModeChange?.("orbit");
-    setResetToken((n) => n + 1);
+    setInteriorEntryHit(null); onCameraModeChange?.("orbit"); setResetToken((n) => n + 1);
   }, [onCameraModeChange]);
 
   const handleEnterInterior = useCallback(
@@ -233,7 +231,7 @@ export const SplatViewerCore = forwardRef<
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-[var(--graphite-canvas)]/80 backdrop-blur-sm px-6">
           <Loader2 className={cn("size-7 animate-spin", twinAccent.spinner)} aria-hidden />
           <p className="text-xs font-medium tracking-wide text-zinc-300">Loading 3D twin…</p>
-          {progressPct != null ? (
+          {progressPct != null && !quiet ? (
             <div className="mt-1 w-full max-w-[220px]">
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
                 <div
@@ -245,7 +243,7 @@ export const SplatViewerCore = forwardRef<
                 {formatTwinBytes(bytesLoaded)} / {formatTwinBytes(bytesTotal ?? 0)}
               </p>
             </div>
-          ) : bytesLoaded > 0 ? (
+          ) : bytesLoaded > 0 && !quiet ? (
             <p className="mt-1 font-mono text-[10px] tracking-wide text-zinc-500">
               {formatTwinBytes(bytesLoaded)} loaded…
             </p>
@@ -253,7 +251,7 @@ export const SplatViewerCore = forwardRef<
         </div>
       ) : null}
 
-      {downsampleNotice ? (
+      {downsampleNotice && !quiet ? (
         <p className="pointer-events-none absolute left-2 top-2 z-10 max-w-[80%] rounded-md border border-white/10 bg-[color-mix(in_srgb,var(--graphite-canvas)_80%,transparent)] px-2 py-1 font-mono text-[10px] tracking-wide text-zinc-400 backdrop-blur-sm">
           {downsampleNotice}
         </p>
