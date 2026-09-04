@@ -50,6 +50,17 @@ export type PortalLandingData = {
   };
   planHref?: string | null;
   visitLabel?: string | null;
+  capabilities?: {
+    walkthrough: boolean;
+    stations: boolean;
+    plan: boolean;
+    twin: boolean;
+    aerial: boolean;
+    documents: boolean;
+    history: boolean;
+    items: boolean;
+  };
+  brandName?: string | null;
 };
 
 const HOUSEWALK_THEME = resolveBrandTheme({

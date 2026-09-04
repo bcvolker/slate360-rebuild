@@ -14,14 +14,17 @@ export function PortalChrome({
   children: React.ReactNode;
 }) {
   const t = data.token;
-  const items = [
-    ["overview", "Overview", `/portal/${t}`],
-    ["reality", "Reality", `/portal/${t}/reality`],
-    ["plan", "Plan", `/portal/${t}/plan`],
-    ["history", "History", `/portal/${t}/history`],
-    ["documents", "Documents", `/portal/${t}/documents`],
-    ["items", "Items", `/portal/${t}/items`],
-  ] as const;
+  const caps = data.capabilities;
+  const items = (
+    [
+      ["overview", "Overview", `/portal/${t}`, true],
+      ["reality", "Reality", `/portal/${t}/reality`, !caps || caps.walkthrough || caps.stations || caps.twin || caps.aerial],
+      ["plan", "Plan", `/portal/${t}/plan`, !caps || caps.plan],
+      ["history", "History", `/portal/${t}/history`, !caps || caps.history],
+      ["documents", "Documents", `/portal/${t}/documents`, !caps || caps.documents],
+      ["items", "Items", `/portal/${t}/items`, !caps || caps.items],
+    ] as const
+  ).filter((row) => row[3]);
 
   return (
     <div className="flex min-h-[100dvh] flex-col bg-[var(--graphite-canvas)] text-[var(--graphite-text-header)]">

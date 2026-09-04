@@ -102,8 +102,9 @@ export async function loadClientPortalLanding(args: {
     : { data: [] };
   const twin = (twinSpace ?? []).find((s) => {
     if (fixtureTitle(s.title)) return false;
-    const qa = (s.settings as { localQa?: string } | null)?.localQa;
-    return qa === "accepted";
+    const settings = (s.settings as { localQa?: string; qaStatus?: string; humanReviewAccepted?: boolean } | null) ?? {};
+    const qa = settings.qaStatus ?? settings.localQa;
+    return qa === "accepted" && settings.humanReviewAccepted === true;
   });
   const { data: twinShare } = twin
     ? await admin.from("digital_twin_share_tokens").select("token, is_revoked").eq("space_id", twin.id).eq("is_revoked", false).limit(1).maybeSingle()
@@ -184,5 +185,16 @@ export async function loadClientPortalLanding(args: {
     },
     planHref: planSet ? `/portal/${args.token}/plan` : null,
     visitLabel: walk.captured_at ? walk.captured_at.slice(0, 10) : null,
+    capabilities: {
+      walkthrough: Boolean(clientClips[0]),
+      stations: Boolean(stationTour?.viewer_slug),
+      plan: Boolean(planSet),
+      twin: Boolean(twinShare?.token),
+      aerial: false,
+      documents: docs.length > 0,
+      history: clientClips.length > 0,
+      items: items.length > 0,
+    },
+    brandName: brand.companyName ?? project?.name ?? null,
   };
 }

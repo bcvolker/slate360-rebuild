@@ -15,7 +15,16 @@ export const ARTIFACT_KINDS = [
   "geometry_cloud",
   "geometry_picking",
   "station_erp",
+  "station_thumb",
+  "station_preview",
+  "walkthrough_low",
+  "walkthrough_high",
   "plan_pdf",
+  "plan_raster",
+  "plan_thumb",
+  "gaussian_mobile",
+  "trajectory_source",
+  "walk_segments",
   "document",
 ] as const;
 
@@ -42,6 +51,8 @@ export type ArtifactManifest = {
   floor?: string;
   artifacts: ManifestArtifact[];
   planControls?: Array<{ pathX: number; pathY: number; planU: number; planV: number }>;
+  trajectory?: { source?: string; segments?: string; clientPath?: string };
+  humanReviewAccepted?: boolean;
 };
 
 export type ManifestIssue = { path: string; message: string };
@@ -52,7 +63,14 @@ const CLIENT_KINDS = new Set<ArtifactKind>([
   "gaussian_web",
   "gaussian_preview",
   "station_erp",
+  "station_thumb",
+  "station_preview",
+  "walkthrough_low",
+  "walkthrough_high",
   "plan_pdf",
+  "plan_raster",
+  "plan_thumb",
+  "gaussian_mobile",
   "document",
 ]);
 
@@ -115,6 +133,8 @@ export function validateManifest(raw: unknown): { manifest: ArtifactManifest | n
       floor: typeof o.floor === "string" ? o.floor : undefined,
       artifacts,
       planControls: Array.isArray(o.planControls) ? (o.planControls as ArtifactManifest["planControls"]) : undefined,
+      trajectory: o.trajectory && typeof o.trajectory === "object" ? (o.trajectory as ArtifactManifest["trajectory"]) : undefined,
+      humanReviewAccepted: o.humanReviewAccepted === true,
     },
     issues,
   };

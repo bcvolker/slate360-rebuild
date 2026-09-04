@@ -2,7 +2,6 @@
 
 import { useEffect, useRef, useState } from "react";
 import { isNavMode, type NavMode } from "@/lib/spatial-walkthrough/nav-mode";
-import { pathHudOpacity } from "@/lib/spatial-walkthrough/path-hud";
 import type { WalkthroughPlayerHandle } from "./WalkthroughPlayer";
 
 const IDLE_MS = 1400;
@@ -17,7 +16,18 @@ export function useWalkthroughNav({ player, initialMode = "explore", forceHud = 
   const start: NavMode = isNavMode(String(initialMode)) ? (initialMode as NavMode) : "explore";
   const [mode, setMode] = useState<NavMode>(start);
   const [navigating, setNavigating] = useState(forceHud || start === "play");
-  const [pathVisible, setPathVisible] = useState(false);
+  const [pathVisible, setPathVisible] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const saved = window.localStorage.getItem("sw-path-visible");
+    if (saved === "1") return true;
+    if (saved === "0") return false;
+    return window.matchMedia("(min-width: 768px)").matches;
+  });
+  const [pathOpacity, setPathOpacity] = useState(() => {
+    if (typeof window === "undefined") return 0.28;
+    const n = Number(window.localStorage.getItem("sw-path-opacity"));
+    return Number.isFinite(n) && n > 0 ? Math.min(0.45, Math.max(0.15, n)) : 0.28;
+  });
   const idle = useRef(0);
 
   const bump = () => {
@@ -47,9 +57,21 @@ export function useWalkthroughNav({ player, initialMode = "explore", forceHud = 
     mode,
     setMode,
     navigating: forceHud || mode === "play" || navigating,
-    hudOpacity: pathVisible ? pathHudOpacity(forceHud || mode === "play" || mode === "briefing" || navigating) : 0,
+    hudOpacity: pathVisible ? pathOpacity : 0,
     pathVisible,
-    togglePath: () => setPathVisible((v) => !v),
+    pathOpacity,
+    togglePath: () => {
+      setPathVisible((v) => {
+        const next = !v;
+        if (typeof window !== "undefined") window.localStorage.setItem("sw-path-visible", next ? "1" : "0");
+        return next;
+      });
+    },
+    setPathOpacity: (value: number) => {
+      const next = Math.min(0.45, Math.max(0.15, value));
+      setPathOpacity(next);
+      if (typeof window !== "undefined") window.localStorage.setItem("sw-path-opacity", String(next));
+    },
     bump,
   };
 }

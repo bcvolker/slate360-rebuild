@@ -38,8 +38,12 @@ Desktop workstation processes. This laptop/repo **publishes** approved files. No
 | `gs-preview` | `gaussian_preview` | `client` | Optional still. |
 | `gs-qa` | `gaussian_qa` | `internal` | QA JSON. Never shown in the client portal. |
 | `mesh` / `cloud` / `pick` | `geometry_*` | `internal` or `client` | Mesh / cloud / picking proxy. |
-| `st-NNN` | `station_erp` | `client` | One 2:1 JPEG per station. **`stationId` required.** |
-| `plan` | `plan_pdf` | `client` | Floor-plan PDF. |
+| `st-NNN` | `station_erp` | `client` | Full station ERP. Optional `station_thumb` / `station_preview`. |
+| `plan` | `plan_pdf` | `client` | Floor-plan PDF (download/source). |
+| `plan-raster` | `plan_raster` | `client` | Screen PNG/JPEG required for overlay. |
+| `traj` | `trajectory_source` | `internal` | `trajectory_project_source.json` (full poses). |
+| `segs` | `walk_segments` | `internal` | `walk_segments.json`. Never join across breaks. |
+| `gs-mobile` | `gaussian_mobile` | `client` | Only if `qaStatus: accepted` and `humanReviewAccepted`. |
 | `doc-*` | `document` | `client` | Other project PDFs. |
 
 Every artifact: `path` (local file), `role` (`client` \| `internal` \| `lineage`), optional `contentType`, optional `qaStatus` (`accepted` \| `rejected` \| `candidate`).

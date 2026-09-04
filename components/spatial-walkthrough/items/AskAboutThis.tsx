@@ -48,8 +48,9 @@ export function AskAboutThis({ locator, onClose, onSubmit, submitting = false }:
     <section className="sw-item-panel" data-view="ask">
       <header>
         <div>
-          <p className="sw-item-kicker">Ask about this</p>
+          <p className="sw-item-kicker">Ask a Question</p>
           <h2>Question from this view</h2>
+          <p className="sw-item-meta">This starts a spatial conversation. It is not a formal RFI.</p>
         </div>
         <button type="button" className="sw-chrome-btn" onClick={onClose}>Close</button>
       </header>

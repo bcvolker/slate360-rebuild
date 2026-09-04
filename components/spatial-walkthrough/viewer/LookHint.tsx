@@ -41,7 +41,7 @@ export function LookHint({ active }: { active: boolean }) {
   if (!show) return null;
   return (
     <p className="sw-look-hint" data-testid="sw-look-hint">
-      Drag to look · Scroll to zoom · Click path to move
+      Drag to look · Click forward to move along the recorded path
     </p>
   );
 }

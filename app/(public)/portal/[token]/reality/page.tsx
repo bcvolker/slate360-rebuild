@@ -21,15 +21,9 @@ export default async function PortalRealityPage({ params }: { params: Promise<{ 
     <PortalChrome data={data} active="reality">
       <main className="flex flex-col gap-3 px-4 py-8 sm:px-6" data-testid="portal-reality-page">
         <h1 className="text-xl font-semibold">Reality</h1>
-        {rows.map(([label, href]) =>
-          href ? (
-            <a key={label} href={href} className={btn}>{label}</a>
-          ) : (
-            <p key={label} className="min-h-12 border border-white/10 px-4 py-3 text-sm text-[var(--graphite-muted)]">
-              {label} is not on this visit.
-            </p>
-          ),
-        )}
+        {rows.filter(([, href]) => href).map(([label, href]) => (
+          <a key={label} href={href!} className={btn}>{label}</a>
+        ))}
       </main>
     </PortalChrome>
   );

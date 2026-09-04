@@ -19,6 +19,10 @@ type Props = {
   onPins?: () => void;
   onAsk?: () => void;
   spaces?: React.ReactNode;
+  mode?: "explore" | "play" | "briefing";
+  onModeChange?: (mode: "explore" | "play") => void;
+  playbackRate?: number;
+  onPlaybackRate?: (rate: number) => void;
 };
 
 function clock(t: number): string {
@@ -39,6 +43,10 @@ export function PublicWalkToolbar({
   onPins,
   onAsk,
   spaces,
+  mode = "explore",
+  onModeChange,
+  playbackRate = 1,
+  onPlaybackRate,
 }: Props) {
   const idx = indexAtTime(waypoints, clipId, currentT);
   const prev = prevWaypoint(waypoints, clipId, idx);
@@ -51,9 +59,25 @@ export function PublicWalkToolbar({
 
   return (
     <div className="sw-public-bar" data-testid="sw-public-toolbar">
-      <button type="button" className="sw-public-play" data-testid="sw-play-pause" aria-label={playing ? "Pause" : "Play"} onClick={() => (playing ? player?.pause() : player?.play())}>
-        {playing ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
+      {onModeChange ? (
+        <button type="button" className="sw-chrome-btn" data-testid="sw-nav-explore" aria-pressed={mode === "explore"} onClick={() => onModeChange("explore")}>
+          Explore
+        </button>
+      ) : null}
+      <button
+        type="button"
+        className="sw-public-play"
+        data-testid="sw-play-pause"
+        aria-label={mode === "play" ? "Pause walk" : "Play walk"}
+        onClick={() => (onModeChange ? onModeChange(mode === "play" ? "explore" : "play") : playing ? player?.pause() : player?.play())}
+      >
+        {mode === "play" || playing ? <Pause className="h-5 w-5" /> : <Play className="h-5 w-5" />}
       </button>
+      {onPlaybackRate && mode === "play" ? (
+        <button type="button" className="sw-chrome-btn" data-testid="sw-play-speed" onClick={() => onPlaybackRate(playbackRate >= 2 ? 1 : playbackRate >= 1.5 ? 2 : 1.5)}>
+          {playbackRate}x
+        </button>
+      ) : null}
       <button type="button" className="sw-chrome-btn" disabled={!prev} onClick={() => go(prev)} aria-label="Previous">
         <ChevronLeft className="h-4 w-4" />
       </button>
@@ -82,7 +106,7 @@ export function PublicWalkToolbar({
       ) : null}
       {onSpaces ? <button type="button" className="sw-chrome-btn" data-testid="sw-spaces" onClick={onSpaces}>Spaces</button> : null}
       {onPins ? <button type="button" className="sw-chrome-btn" data-testid="sw-pins" onClick={onPins}>Pins</button> : null}
-      {onAsk ? <button type="button" className="sw-chrome-btn" data-testid="sw-ask" onClick={onAsk}>Ask</button> : null}
+      {onAsk ? <button type="button" className="sw-chrome-btn" data-testid="sw-ask" onClick={onAsk}>Ask a Question</button> : null}
       {spaces}
       <button type="button" className="sw-chrome-btn" aria-label="Zoom out" onClick={() => player?.zoomBy?.(-8)}>
         <Minus className="h-4 w-4" />

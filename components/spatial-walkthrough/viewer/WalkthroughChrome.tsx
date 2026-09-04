@@ -9,6 +9,7 @@ import type { NavMode } from "@/lib/spatial-walkthrough/nav-mode";
 import type { WalkthroughPlayerHandle } from "./WalkthroughPlayer";
 import { PrivacyTimeline } from "./PrivacyTimeline";
 import { PublicWalkToolbar } from "./PublicWalkToolbar";
+import { WalkTapLayer } from "./WalkTapLayer";
 import { ShareCurrentView } from "./ShareCurrentView";
 
 type Props = {
@@ -86,6 +87,8 @@ export function WalkthroughChrome({
 
   if (publicChrome) {
     return (
+      <>
+      <WalkTapLayer player={player} waypoints={waypoints} clipId={clipId} currentT={currentT} enabled={mode === "explore"} />
       <PublicWalkToolbar
         waypoints={waypoints}
         clipId={clipId}
@@ -99,7 +102,11 @@ export function WalkthroughChrome({
         onSpaces={() => window.dispatchEvent(new Event("sw-open-spaces"))}
         onPins={() => window.dispatchEvent(new Event("sw-open-pins"))}
         onAsk={() => window.dispatchEvent(new Event("sw-open-ask"))}
+        mode={mode}
+        onModeChange={(next) => onModeChange(next)}
+        onPlaybackRate={(rate) => player?.setPlaybackRate(rate)}
       />
+      </>
     );
   }
 

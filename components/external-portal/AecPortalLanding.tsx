@@ -58,8 +58,9 @@ export function AecPortalLanding({
               <p className="text-sm text-[var(--graphite-text-body)]">{when(hero.capturedAt)} · {hero.kind}</p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <a href={hero.href} className={btn} data-testid="open-walkthrough">Open Walkthrough</a>
-              {data.shareHref ? <a href={data.shareHref} className={`${btn} text-[var(--graphite-muted)]`}>Share</a> : null}
+              {data.capabilities?.walkthrough === false ? null : (
+                <a href={hero.href} className={btn} data-testid="open-walkthrough">Open Walkthrough</a>
+              )}
             </div>
           </div>
         </section>
@@ -67,7 +68,7 @@ export function AecPortalLanding({
 
       {immersive ? null : (
         <div className="flex flex-1 flex-col gap-8 px-4 py-8 sm:px-6">
-          {reality ? (
+          {reality && (reality.walkthroughHref || reality.stationsHref || reality.twinHref || reality.aerialHref) ? (
             <section data-testid="portal-reality" className="grid gap-2 sm:grid-cols-3">
               {[
                 ["Walkthrough", reality.walkthroughHref],
@@ -81,12 +82,12 @@ export function AecPortalLanding({
               )}
             </section>
           ) : null}
-          <PortalAttention data={data} />
-          {compact ? null : <PortalItemsRail data={data} />}
-          <PortalHistoryRail data={data} />
-          {compact ? null : <PortalDocsRail data={data} />}
-          {compact ? null : <PortalActivityFeed data={data} />}
-          {compact ? null : <PortalCaptureTree data={data} />}
+          {data.attention.open || data.attention.questions ? <PortalAttention data={data} /> : null}
+          {compact || !data.items.length ? null : <PortalItemsRail data={data} />}
+          {data.history.length ? <PortalHistoryRail data={data} /> : null}
+          {compact || !data.documents.length ? null : <PortalDocsRail data={data} />}
+          {compact || !data.activity.length ? null : <PortalActivityFeed data={data} />}
+          {compact || !data.captureTree.length ? null : <PortalCaptureTree data={data} />}
         </div>
       )}
     </div>

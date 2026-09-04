@@ -220,7 +220,7 @@ export function WalkthroughExperience({
             autoplay={false}
             autoRotate={false}
             hudOpacity={nav.hudOpacity}
-            restrictView={!authoring || simulateClient}
+            restrictView={Boolean(operatorPatch?.enabled) && (!authoring || simulateClient) && (operatorPatch?.rearYawWidth ?? 180) <= 28}
             showOperatorOverlay={authoring && !simulateClient}
             onWaypointSelect={startExplore}
             onPinSelect={(id) => {
