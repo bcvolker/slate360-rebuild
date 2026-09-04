@@ -61,7 +61,7 @@ export function TwinExperience({ data, initial }: Props) {
   const openCount = items.filter((i) => i.status !== "resolved").length;
 
   return (
-    <div className="ce ce-viewer ce-twin" data-testid="ce-twin" data-simulated={twin.simulated ? "true" : undefined} style={brandStyle(data)}>
+    <div className="ce ce-viewer ce-twin" data-panel={panel ? "open" : "closed"} data-testid="ce-twin" data-simulated={twin.simulated ? "true" : undefined} style={brandStyle(data)}>
       <div className="ce-viewer__stage">
         <SplatViewerCore ref={viewer} src={twin.splatUrl} cameraMode={cameraMode} onCameraModeChange={onCoreMode} pickEnabled={mode === "walk"} quiet className="!rounded-none !border-0" />
       </div>

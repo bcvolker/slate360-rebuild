@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ProjectExperience, Station } from "@/lib/client-experience/types";
 import { formatDate, formatTime } from "@/lib/client-experience/utils";
 
@@ -30,10 +30,12 @@ export function StationStrip({ data, siblings, currentId, visitLabel, onSelect }
 
 function StationTile({ station, selected, onSelect }: { station: Station; selected: boolean; onSelect: () => void }) {
   const [loaded, setLoaded] = useState(false);
+  const img = useRef<HTMLImageElement>(null);
+  useEffect(() => { if (img.current?.complete && img.current.naturalWidth > 0) setLoaded(true); }, []);
   return (
     <button type="button" className={`ce-tile${selected ? " ce-tile--selected" : ""}`} onClick={onSelect} aria-current={selected ? "true" : undefined} style={{ textAlign: "left" }}>
       <div className={`ce-tile__img ce-tile__img--wide${loaded ? "" : " ce-skel"}`} style={{ position: "relative" }}>
-        <img src={station.thumbUrl} alt="" loading="lazy" decoding="async" className={`ce-img-fade${loaded ? " is-loaded" : ""}`} onLoad={() => setLoaded(true)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+        <img ref={img} src={station.thumbUrl} alt="" decoding="async" className={`ce-img-fade${loaded ? " is-loaded" : ""}`} onLoad={() => setLoaded(true)} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
       </div>
       <div className="ce-tile__body" style={{ padding: "8px 10px 10px" }}>
         <div className="ce-tile__title" style={{ fontSize: 13 }}>{station.label}</div>

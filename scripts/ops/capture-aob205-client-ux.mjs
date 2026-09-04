@@ -9,15 +9,24 @@ const ROOT = `${BASE}/preview/aob205`;
 const OUT = process.env.OUT_DIR ?? "docs/ops/aob205-client-ux-v3";
 const HIDE_DEV = "nextjs-portal, #__next-build-watcher, [data-nextjs-toast] { display: none !important; }";
 
-const settle = (ms = 1200) => async (page) => { await page.waitForTimeout(ms); };
+const settle = (ms = 1200) => async (page) => {
+  // Walk the page so lazy images below the fold load before a full-page capture.
+  await page.evaluate(async () => { for (let y = 0; y < document.body.scrollHeight; y += 600) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 120)); } window.scrollTo(0, 0); });
+  await page.waitForTimeout(ms);
+};
 const sphere = async (page) => {
   const up = await page.waitForSelector(".psv-canvas", { timeout: 25_000 }).then(() => true).catch(() => false);
   if (!up) { await page.reload({ waitUntil: "load" }); await page.waitForSelector(".psv-canvas", { timeout: 60_000 }); }
   await page.waitForTimeout(2200);
 };
 const twin = async (page) => { await page.waitForFunction(() => !/Loading 3D twin/.test(document.body.innerText), null, { timeout: 150_000 }).catch(() => undefined); await page.waitForTimeout(2500); };
+// Plan overlays fit after hydration; never capture the SSR scale.
+const planReady = async (page) => {
+  await page.waitForFunction(() => { const l = document.querySelector(".ce-plan__layer"); return l && !/scale\(0\.3\)/.test(l.style.transform); }, null, { timeout: 30_000 }).catch(() => undefined);
+  await page.waitForTimeout(600);
+};
 const then = (...steps) => async (page) => { for (const s of steps) await s(page); };
-const click = (sel) => async (page) => { await page.locator(sel).first().click({ timeout: 8000 }); await page.waitForTimeout(500); };
+const click = (sel) => async (page) => { await page.locator(sel).first().click({ timeout: 8000, force: true }); await page.waitForTimeout(600); };
 const tab = (label) => async (page) => { await page.locator("[role=tab]", { hasText: label }).first().click({ timeout: 8000 }); await page.waitForTimeout(500); };
 const tools = async (page) => { const open = await page.locator("[role=tab]").first().isVisible().catch(() => false); if (!open) { await page.getByRole("button", { name: "Tools" }).first().click(); await page.waitForTimeout(400); } };
 const hover = (x, y) => async (page) => { await page.mouse.move(x, y); await page.waitForTimeout(300); };
@@ -30,13 +39,13 @@ const SHOTS = {
     ["04-walk-explore-path-off", `${ROOT}/walk?t=26&path=off`, then(sphere, hover(720, 640))],
     ["05-walk-explore-path-on", `${ROOT}/walk?t=26&path=on`, sphere],
     ["06-walk-play", `${ROOT}/walk?t=8&mode=play`, then(sphere, settle(2500))],
-    ["07-walk-plan", `${ROOT}/walk?t=26&panel=plan`, sphere],
+    ["07-walk-plan", `${ROOT}/walk?t=26&panel=plan`, then(sphere, planReady)],
     ["08-walk-references", `${ROOT}/walk?t=26&panel=items`, sphere],
     ["09-walk-ask", `${ROOT}/walk?t=26&ask=1`, sphere],
     ["10-walk-highres-360", `${ROOT}/walk?t=33&path=off`, sphere],
     ["11-360-documentation", `${ROOT}/stations?s=s03`, sphere],
     ["12-360-stations-panel", `${ROOT}/stations?s=s03&panel=stations`, sphere],
-    ["13-plan", `${ROOT}/plan`, settle(1800)],
+    ["13-plan", `${ROOT}/plan`, then(planReady, settle(800))],
     ["14-item-panel", `${ROOT}/walk?t=32&yaw=-55&pitch=-8&item=i-101`, sphere],
     ["15-item-page", `${ROOT}/items/i-101`, settle(), { fullPage: true }],
     ["16-twin-simulated", `${ROOT}/twin?state=D`, twin],
@@ -52,17 +61,17 @@ const SHOTS = {
     ["06-play", `${ROOT}/walk?t=8&mode=play`, then(sphere, settle(2500))],
     ["07-ask", `${ROOT}/walk?t=26`, then(sphere, tools, tab("Items"), click("[data-testid=ce-ask-open]"))],
     ["08-references", `${ROOT}/walk?t=26`, then(sphere, tools, tab("Items"))],
-    ["09-walk-plan", `${ROOT}/walk?t=26`, then(sphere, tools, tab("Plan"))],
+    ["09-walk-plan", `${ROOT}/walk?t=26`, then(sphere, tools, tab("Plan"), planReady)],
     ["10-360-documentation", `${ROOT}/stations?s=s03`, sphere],
     ["11-station-browser", `${ROOT}/stations?s=s03`, then(sphere, tools, tab("Stations"))],
-    ["12-item", `${ROOT}/stations?s=s07`, then(sphere, tools, tab("Items"), click("text=Credenza clearance"))],
+    ["12-item", `${ROOT}/stations?s=s07`, then(sphere, tools, tab("Items"), click("[data-testid=ce-references] .ce-row"))],
     ["13-twin-simulated", `${ROOT}/twin?state=D`, then(twin, tools)],
     ["14-brand-client", `${ROOT}?brand=whitelabel`, settle()],
     ["15-brand-slate360", `${ROOT}?brand=slate`, settle()],
   ],
   tablet: [
     ["01-overview-1024", `${ROOT}`, settle()],
-    ["02-walk-1024", `${ROOT}/walk?t=26&panel=plan`, sphere],
+    ["02-walk-1024", `${ROOT}/walk?t=26&panel=plan`, then(sphere, planReady)],
     ["03-overview-768", `${ROOT}`, settle(), {}, { width: 768, height: 1024 }],
     ["04-walk-768", `${ROOT}/walk?t=26`, sphere, {}, { width: 768, height: 1024 }],
   ],
@@ -102,6 +111,7 @@ for (const [profile, shots] of Object.entries(SHOTS)) {
     await page.addStyleTag({ content: HIDE_DEV });
     await ready(page).catch((e) => console.log("WARN", profile, name, String(e).slice(0, 140)));
     const path = `${OUT}/${profile}/${name}.png`;
+    await page.evaluate(() => document.querySelectorAll("nextjs-portal, [data-next-badge-root], [data-nextjs-dev-tools-button]").forEach((el) => el.remove())).catch(() => undefined);
     await page.screenshot({ path, ...opts });
     console.log("captured", path);
   }

@@ -30,8 +30,8 @@ export function BrandSlot({ brand, compact = false }: { brand: ProjectBrand; com
   }
   return (
     <span className="ce-brand" data-testid="brand-slot" data-brand="paid">
-      <span className={`ce-brand__slate ce-brand__slate--small${compact ? " ce-brand__slate--hide-mobile" : ""}`} aria-label="Slate360"><SlateLogo size="sm" /></span>
-      <span className={`ce-brand__sep${compact ? " ce-brand__slate--hide-mobile" : ""}`} aria-hidden="true" />
+      <span className="ce-brand__slate ce-brand__slate--small ce-brand__slate--hide-mobile" aria-label="Slate360"><SlateLogo size="sm" /></span>
+      <span className="ce-brand__sep ce-brand__slate--hide-mobile" aria-hidden="true" />
       {client}
     </span>
   );

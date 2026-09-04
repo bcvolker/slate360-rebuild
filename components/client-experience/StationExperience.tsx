@@ -47,7 +47,7 @@ export function StationExperience({ data, initial }: Props) {
   const openCount = items.filter((i) => i.status !== "resolved").length;
 
   return (
-    <div className="ce ce-viewer" data-testid="ce-stations" style={brandStyle(data)}>
+    <div className="ce ce-viewer" data-panel={panel ? "open" : "closed"} data-testid="ce-stations" style={brandStyle(data)}>
       <div className="ce-viewer__stage">
         <StationViewer ref={viewer} station={station} stations={data.stations} items={items} selectedItemId={itemId} initial={look} onNavigate={go} onItemSelect={(id) => { setItemId(id); setAsking(false); setPanel("items"); }} onView={setView} />
       </div>

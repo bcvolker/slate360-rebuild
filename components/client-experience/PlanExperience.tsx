@@ -37,7 +37,7 @@ export function PlanExperience({ data, initial }: Props) {
   const openCount = items.filter((i) => i.status !== "resolved").length;
 
   return (
-    <div className="ce ce-viewer" data-testid="ce-plan-mode" style={brandStyle(data)}>
+    <div className="ce ce-viewer" data-panel={panel ? "open" : "closed"} data-testid="ce-plan-mode" style={brandStyle(data)}>
       <div className="ce-viewer__stage" style={{ top: "var(--ce-shell-h)" }}>
         <PlanCanvas sheet={plan} waypoints={waypoints} stations={stations} items={planItemMarkers(items)} selectedItemId={itemId} focusPoint={focusPoint}
           onWaypoint={(w) => router.push(withSuffix(`${data.basePath}/walk?t=${w.t}`, q))}

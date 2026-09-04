@@ -66,7 +66,7 @@ export function WalkExperience({ data, initial }: Props) {
   const openCount = items.filter((i) => i.status !== "resolved").length;
 
   return (
-    <div className="ce ce-viewer" data-testid="ce-walk" data-mode={mode} data-path={pathVisible ? "on" : "off"} style={brandStyle(data)}>
+    <div className="ce ce-viewer" data-panel={panel ? "open" : "closed"} data-testid="ce-walk" data-mode={mode} data-path={pathVisible ? "on" : "off"} style={brandStyle(data)}>
       <WalkViewer ref={viewer} videoUrl={clip.videoUrl} posterUrl={clip.posterUrl} waypoints={clip.waypoints} items={items} selectedItemId={itemId}
         pathVisible={pathVisible} pathOpacity={pathOpacity} initial={initial}
         onTime={setT} onView={setView} onPlayState={setPlaying} onItemSelect={(id) => { setItemId(id); setAsking(false); setPanel("items"); }} />

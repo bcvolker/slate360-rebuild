@@ -44,7 +44,7 @@ describe("capability-aware client layout", () => {
     expect(safeAccent(defaultPaidBrand())).toBeNull();
     const dark = safeAccent({ ...defaultPaidBrand(), accentColor: "#102030" });
     expect(dark).not.toBe("#102030");
-    expect(safeAccent({ ...defaultPaidBrand(), accentColor: "#00E699" })).toBe("#00e699");
+    expect(safeAccent({ ...defaultPaidBrand(), accentColor: "#4FA3FF" })).toBe("#4fa3ff");
   });
 
   it("brand fallback never shows initials without a client name", () => {
