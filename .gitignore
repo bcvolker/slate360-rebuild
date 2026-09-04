@@ -101,3 +101,6 @@ reference/
 /research-workers/odgs-slam/
 /research-workers/odgs/
 
+
+# AOB205 client-experience preview: local video proxy only (generated, not committed)
+public/preview/aob205/*.mp4

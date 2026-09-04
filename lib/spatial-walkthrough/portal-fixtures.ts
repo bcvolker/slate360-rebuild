@@ -1,6 +1,7 @@
 import type { BrandTheme } from "./types";
 import { resolveBrandTheme } from "./theme";
 
+/** Engineering fixture only. Revoked as a commercial AOB205 token. */
 const WALK = "S0Ho5PRcBjg6pW2uVrFFvm1EMSQjX269";
 const CLIP = "f278d37f-1c2f-4511-aef5-437b3992d39d";
 const POSTER = `/api/spatial-walkthrough/public/${WALK}/media?clip=${CLIP}&kind=hero`;
@@ -41,6 +42,14 @@ export type PortalLandingData = {
   }>;
   activity: Array<{ id: string; title: string; kind: string; href: string; createdAt: string }>;
   captureTree: Array<{ label: string; status: "ready" | "pocket"; href: string | null }>;
+  reality?: {
+    walkthroughHref: string | null;
+    twinHref: string | null;
+    stationsHref: string | null;
+    aerialHref: string | null;
+  };
+  planHref?: string | null;
+  visitLabel?: string | null;
 };
 
 const HOUSEWALK_THEME = resolveBrandTheme({

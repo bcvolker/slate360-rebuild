@@ -58,17 +58,20 @@ export async function loadClientPortalLanding(args: {
     }),
   );
 
-  const { data: pins } = await admin
-    .from("spatial_pins")
-    .select("id, label, pin_type, body, status, visibility, t_seconds, yaw_deg, pitch_deg")
-    .eq("walkthrough_id", args.walkthroughId)
-    .neq("visibility", "internal");
+  const pinSelect = "id, label, pin_type, body, status, visibility, t_seconds, yaw_deg, pitch_deg, walkthrough_id";
+  const { data: pins } = projectId
+    ? await admin.from("spatial_pins").select(pinSelect).eq("project_id", projectId).neq("visibility", "internal")
+    : await admin.from("spatial_pins").select(pinSelect).eq("walkthrough_id", args.walkthroughId).neq("visibility", "internal");
   const pinIds = (pins ?? []).map((p) => p.id);
   const { data: attachments } = pinIds.length
     ? await admin.from("spatial_pin_attachments").select("id, pin_id, title, kind, visible_on_public").in("pin_id", pinIds)
     : { data: [] as Array<{ id: string; pin_id: string; title: string; kind: string; visible_on_public: boolean }> };
 
-  const clientPins = (pins ?? []).filter((p) => p.visibility === "client" || p.visibility === "public");
+  const clientPins = (pins ?? []).filter(
+    (p) =>
+      (p.visibility === "client" || p.visibility === "public") &&
+      !/housewalk|kitchen|landing rail|ceiling stain/i.test(p.label ?? ""),
+  );
   const docs = attachments ?? [];
   const open = clientPins.filter((p) => p.status !== "closed").length;
   const questions = clientPins.filter((p) => p.pin_type === "rfi" || p.pin_type === "note").length;
@@ -77,13 +80,45 @@ export async function loadClientPortalLanding(args: {
     ? await admin.from("projects").select("id, name, location").eq("id", projectId).maybeSingle()
     : { data: null };
 
+  const fixtureTitle = (title: string | null | undefined) => /housewalk|kitchen|harbor point/i.test(title ?? "");
+  const clientClips = clips.filter((c) => !fixtureTitle(c.title));
+  const { data: tours } = projectId
+    ? await admin
+        .from("project_tours")
+        .select("id, title, viewer_slug, status")
+        .eq("project_id", projectId)
+        .eq("status", "published")
+        .limit(8)
+    : { data: [] };
+  const stationTour = (tours ?? []).find((t) => t.viewer_slug && !fixtureTitle(t.title));
+  const { data: twinSpace } = projectId
+    ? await admin
+        .from("digital_twin_spaces")
+        .select("id, title, published_model_id, settings")
+        .eq("project_id", projectId)
+        .not("published_model_id", "is", null)
+        .is("deleted_at", null)
+        .limit(8)
+    : { data: [] };
+  const twin = (twinSpace ?? []).find((s) => {
+    if (fixtureTitle(s.title)) return false;
+    const qa = (s.settings as { localQa?: string } | null)?.localQa;
+    return qa === "accepted";
+  });
+  const { data: twinShare } = twin
+    ? await admin.from("digital_twin_share_tokens").select("token, is_revoked").eq("space_id", twin.id).eq("is_revoked", false).limit(1).maybeSingle()
+    : { data: null };
+  const { data: planSet } = projectId
+    ? await admin.from("site_walk_plan_sets").select("id, title").eq("project_id", projectId).limit(1).maybeSingle()
+    : { data: null };
+
   const { data: orgTheme } = await admin.from("spatial_org_themes").select("*").eq("org_id", args.orgId).maybeSingle();
   const brand = resolveBrandTheme({
     org: orgThemeFromRow(orgTheme as Record<string, unknown> | null),
     snapshot: { showPoweredBy: true, logoOpacity: 0.88 },
     canHidePoweredBy: true,
   });
-  const hero = clips[0] ?? null;
+  const hero = clientClips[0] ?? null;
 
   const items = clientPins.map((p) => ({
     id: p.id,
@@ -102,7 +137,7 @@ export async function loadClientPortalLanding(args: {
     latestCaptureAt: hero?.capturedAt ?? walk.captured_at,
     brand,
     hero,
-    history: clips,
+    history: clientClips,
     attention: { open, urgent: clientPins.filter((p) => p.pin_type === "rfi").length, questions },
     documents: docs.map((d) => {
       const pin = clientPins.find((p) => p.id === d.pin_id);
@@ -141,5 +176,13 @@ export async function loadClientPortalLanding(args: {
       { label: [walk.building, walk.floor].filter(Boolean).join(" · ") || "Interior", status: "ready" as const, href: `/w/${args.token}` },
       { label: walk.title || "Main Walk", status: "ready" as const, href: `/w/${args.token}` },
     ],
+    reality: {
+      walkthroughHref: clientClips[0]?.href ?? null,
+      twinHref: twinShare?.token ? `/share/twin/${twinShare.token}` : null,
+      stationsHref: stationTour?.viewer_slug ? `/tours/view/${stationTour.viewer_slug}` : null,
+      aerialHref: null,
+    },
+    planHref: planSet ? `/portal/${args.token}/plan` : null,
+    visitLabel: walk.captured_at ? walk.captured_at.slice(0, 10) : null,
   };
 }

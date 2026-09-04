@@ -1,7 +1,6 @@
-import { ViewerBrandMark } from "@/components/shared/ViewerBrandMark";
-import { SlateIcon } from "@/components/shared/SlateIcon";
 import type { PortalLandingData } from "@/lib/spatial-walkthrough/portal-fixtures";
 import { viewerChromeCopy } from "@/lib/spatial-walkthrough/viewer-title";
+import { PortalChrome } from "./PortalChrome";
 import {
   PortalActivityFeed,
   PortalAttention,
@@ -29,37 +28,16 @@ export function AecPortalLanding({
   const hero = data.hero;
   const immersive = data.profile === "marketing" || data.profile === "wayfinding";
 
+  const reality = data.reality;
+
   return (
+    <PortalChrome data={data} active="overview">
     <div
-      className="flex min-h-[100dvh] flex-col bg-[var(--graphite-canvas)] text-[var(--graphite-text-header)]"
       data-testid="aec-portal"
       data-profile={data.profile}
       data-scene-visible={hero?.posterUrl ? "true" : "false"}
       data-visible-layer="hero"
     >
-      <header className="flex items-center justify-between gap-4 px-4 py-3 sm:px-6">
-        <div className="flex min-w-0 items-center gap-3">
-          <ViewerBrandMark logoUrl={data.brand.logoUrl} opacity={data.brand.logoOpacity ?? 0.88} />
-          <div className="min-w-0">
-            <p className="truncate text-sm font-semibold">{data.projectName}</p>
-            <p className="truncate font-mono text-[10px] uppercase tracking-[0.12em] text-[var(--graphite-muted)]">
-              {[data.location, when(data.latestCaptureAt)].filter(Boolean).join(" · ")}
-            </p>
-          </div>
-        </div>
-        <div className="flex shrink-0 items-center gap-3">
-          <a href={`#activity`} className={`${btn} hidden sm:inline-flex`}>
-            Activity
-          </a>
-          {data.brand.logoUrl && data.brand.showPoweredBy ? (
-            <p className="flex items-center gap-2 font-mono text-[9px] uppercase tracking-[0.12em] text-[var(--graphite-muted)]">
-              <SlateIcon className="h-5 w-5" />
-              Powered by Slate360
-            </p>
-          ) : null}
-        </div>
-      </header>
-
       {hero ? (
         <section
           className="relative min-h-[42dvh] w-full lg:min-h-[52dvh]"
@@ -89,6 +67,20 @@ export function AecPortalLanding({
 
       {immersive ? null : (
         <div className="flex flex-1 flex-col gap-8 px-4 py-8 sm:px-6">
+          {reality ? (
+            <section data-testid="portal-reality" className="grid gap-2 sm:grid-cols-3">
+              {[
+                ["Walkthrough", reality.walkthroughHref],
+                ["3D Twin", reality.twinHref],
+                ["360 Documentation", reality.stationsHref],
+                ...(reality.aerialHref ? [["Aerial", reality.aerialHref] as const] : []),
+              ].map(([label, href]) =>
+                href ? (
+                  <a key={label} href={href} className={`${btn} justify-start`}>{label}</a>
+                ) : null,
+              )}
+            </section>
+          ) : null}
           <PortalAttention data={data} />
           {compact ? null : <PortalItemsRail data={data} />}
           <PortalHistoryRail data={data} />
@@ -98,5 +90,6 @@ export function AecPortalLanding({
         </div>
       )}
     </div>
+    </PortalChrome>
   );
 }

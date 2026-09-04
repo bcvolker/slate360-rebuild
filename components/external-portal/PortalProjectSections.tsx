@@ -40,7 +40,7 @@ export function PortalHistoryRail({ data }: { data: PortalLandingData }) {
             </div>
             <p className="mt-2 truncate text-sm">{when(row.capturedAt)}</p>
             <p className="truncate font-mono text-[10px] uppercase tracking-wide text-[var(--graphite-muted)]">
-              {row.kind} · {row.status}
+              Visit
             </p>
           </a>
         ))}
