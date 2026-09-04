@@ -2,70 +2,66 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { ProjectExperience } from "@/lib/client-experience/types";
-import { formatDate, visitById } from "@/lib/client-experience/utils";
+import { MessageSquare } from "lucide-react";
+import type { ProjectExperience, SpatialRef } from "@/lib/client-experience/types";
+import { formatDate, visitById, withSuffix } from "@/lib/client-experience/utils";
 import { ProjectShell } from "./ProjectShell";
+import { brandStyle } from "@/lib/client-experience/layout";
 import { PlanCanvas } from "./PlanCanvas";
 import { ItemPanel } from "./ItemPanel";
-import { ViewerPanel } from "./ViewerPanel";
+import { ReferencesPanel } from "./ReferencesPanel";
+import { AskQuestion } from "./AskQuestion";
+import { ViewerPanel, SharePanelBody } from "./ViewerPanel";
+import { planItemMarkers } from "./WalkPanels";
+import { useProjectItems } from "./useProjectItems";
 
+type Panel = "items" | "more" | null;
 type Props = { data: ProjectExperience; initial: { u: number | null; v: number | null; item: string | null; visitId: string | null } };
 
-/** Plan mode: the sheet is the stage; everything on it is a way into another representation. */
+/** Plan mode: white sheet inside dark project chrome. Everything on it is a way into another representation. */
 export function PlanExperience({ data, initial }: Props) {
   const router = useRouter();
   const plan = data.plan!;
+  const q = data.linkSuffix;
   const [visitId, setVisitId] = useState(initial.visitId ?? data.latestVisitId);
   const [itemId, setItemId] = useState<string | null>(initial.item);
-  const [panel, setPanel] = useState<"items" | "legend" | null>(initial.item ? "items" : null);
+  const [asking, setAsking] = useState(false);
+  const [panel, setPanel] = useState<Panel>(initial.item ? "items" : null);
+  const { items, ask, reply } = useProjectItems(data.items);
   const visit = visitById(data, visitId);
   const stations = data.stations.filter((s) => s.visitId === visitId);
   const waypoints = data.walkthrough && data.walkthrough.visitId === visitId ? data.walkthrough.waypoints : [];
-  const item = data.items.find((i) => i.id === itemId) ?? null;
-  const planItems = data.items.flatMap((i) => i.refs.filter((r) => r.kind === "plan").map((r) => (r.kind === "plan" ? { id: i.id, label: i.title, status: i.status, u: r.u, v: r.v } : null))).filter((x): x is NonNullable<typeof x> => Boolean(x));
+  const item = items.find((i) => i.id === itemId) ?? null;
   const focusPoint = initial.u != null && initial.v != null ? { u: initial.u, v: initial.v } : null;
+  const locator: SpatialRef = { kind: "plan", label: `${plan.sheetNumber} · ${plan.title}`, u: focusPoint?.u ?? (plan.focus.u0 + plan.focus.u1) / 2, v: focusPoint?.v ?? (plan.focus.v0 + plan.focus.v1) / 2 };
+  const openCount = items.filter((i) => i.status !== "resolved").length;
 
   return (
-    <div className="ce ce-viewer" data-testid="ce-plan-mode">
+    <div className="ce ce-viewer" data-testid="ce-plan-mode" style={brandStyle(data)}>
       <div className="ce-viewer__stage" style={{ top: "var(--ce-shell-h)" }}>
-        <PlanCanvas sheet={plan} waypoints={waypoints} stations={stations} items={planItems} selectedItemId={itemId} focusPoint={focusPoint}
-          onWaypoint={(w) => router.push(`${data.basePath}/walk?t=${w.t}`)}
-          onStation={(s) => router.push(`${data.basePath}/stations?s=${s.id}`)}
-          onItem={(id) => { setItemId(id); setPanel("items"); }} />
+        <PlanCanvas sheet={plan} waypoints={waypoints} stations={stations} items={planItemMarkers(items)} selectedItemId={itemId} focusPoint={focusPoint}
+          onWaypoint={(w) => router.push(withSuffix(`${data.basePath}/walk?t=${w.t}`, q))}
+          onStation={(s) => router.push(withSuffix(`${data.basePath}/stations?s=${s.id}`, q))}
+          onItem={(id) => { setItemId(id); setAsking(false); setPanel("items"); }} />
       </div>
-      <ProjectShell data={data} section="plan" visitId={visitId} backHref={data.basePath} viewLabel={`${plan.sheetNumber} · ${plan.title}`}
+      <ProjectShell data={data} section="plan" visitId={visitId} backHref={data.basePath} viewLabel={`Plan · ${plan.sheetNumber}`} onShare={() => setPanel("more")}
         actions={data.visits.length > 1 ? (
-          <label className="ce-eyebrow" style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span className="ce-dock__desktop">Visit</span>
-            <select value={visitId} onChange={(e) => setVisitId(e.target.value)} aria-label="Visit" style={{ background: "transparent", color: "var(--ce-ink)", border: "1px solid var(--ce-line-strong)", borderRadius: 6, minHeight: 32, padding: "0 8px", font: "inherit", fontSize: 12.5 }}>
-              {data.visits.map((v) => <option key={v.id} value={v.id} style={{ color: "black" }}>{formatDate(v.capturedAt)} — {v.label}</option>)}
-            </select>
-          </label>
-        ) : null}
-      />
+          <select value={visitId} onChange={(e) => setVisitId(e.target.value)} aria-label="Visit" className="ce-btn ce-btn--sm" style={{ background: "var(--ce-glass-strong)", paddingRight: 8 }}>
+            {data.visits.map((v) => <option key={v.id} value={v.id} style={{ color: "black" }}>{formatDate(v.capturedAt)} — {v.label}</option>)}
+          </select>
+        ) : null} />
       <div className="ce-dock">
-        <span className="ce-dock__space" style={{ padding: "0 10px" }}>{visit ? `${stations.length} stations${waypoints.length ? " · walk path" : ""} · ${planItems.length} items` : ""}</span>
+        <span className="ce-dock__space" style={{ padding: "0 10px" }}><span>{visit ? `${stations.length} stations${waypoints.length ? " · walk path" : ""}` : ""}</span></span>
         <span className="ce-dock__sep" />
-        <button type="button" className="ce-dock__btn" onClick={() => setPanel((p) => (p === "items" ? null : "items"))} aria-pressed={panel === "items"}>Items</button>
-        {data.walkthrough ? <button type="button" className="ce-dock__btn" onClick={() => router.push(`${data.basePath}/walk`)}>Walkthrough</button> : null}
-        {stations[0] ? <button type="button" className="ce-dock__btn" onClick={() => router.push(`${data.basePath}/stations?s=${stations[0].id}`)}>360</button> : null}
+        <button type="button" className="ce-dock__btn" onClick={() => { setItemId(null); setAsking(false); setPanel((p) => (p === "items" ? null : "items")); }} aria-pressed={panel === "items"}><MessageSquare size={16} /> Items{openCount ? <span className="ce-badge">{openCount}</span> : null}</button>
+        {data.walkthrough ? <button type="button" className="ce-dock__btn" onClick={() => router.push(withSuffix(`${data.basePath}/walk`, q))}>Walkthrough</button> : null}
+        {stations[0] ? <button type="button" className="ce-dock__btn" onClick={() => router.push(withSuffix(`${data.basePath}/stations?s=${stations[0].id}`, q))}>360</button> : null}
       </div>
-      <ViewerPanel open={panel !== null} title="Items" onClose={() => setPanel(null)}>
-        {item ? (
-          <>
-            <button type="button" className="ce-btn ce-btn--sm" style={{ margin: "12px 18px 0" }} onClick={() => setItemId(null)}>All items</button>
-            <ItemPanel item={item} basePath={data.basePath} currentKind="plan" compact />
-          </>
-        ) : (
-          <div className="ce-list" style={{ padding: "0 8px" }}>
-            {data.items.map((i) => (
-              <button key={i.id} type="button" className="ce-row" style={{ textAlign: "left" }} onClick={() => setItemId(i.id)}>
-                <div><div className="ce-row__title">{i.title}</div><div className="ce-row__sub">{i.refs.length} locations</div></div>
-                <span className={`ce-chip ce-chip--${i.status}`} />
-              </button>
-            ))}
-          </div>
-        )}
+      <ViewerPanel open={panel !== null} title="Items" tabs={[{ key: "items", label: "Items", count: openCount }, { key: "more", label: "More" }]} activeTab={panel ?? undefined} onTab={(k) => setPanel(k as Panel)} onClose={() => setPanel(null)}>
+        {panel === "items" ? (asking ? <AskQuestion locator={locator} thumbUrl={data.documents[0]?.thumbUrl} onSubmit={(text) => { const created = ask(text, locator); setAsking(false); setItemId(created.id); }} onCancel={() => setAsking(false)} />
+          : item ? (<><button type="button" className="ce-btn ce-btn--quiet ce-btn--sm" style={{ margin: "10px 12px 0" }} onClick={() => setItemId(null)}>← All references</button><ItemPanel item={item} basePath={data.basePath} linkSuffix={q} currentKind="plan" allowed={{ twin: data.capabilities.twin }} compact onReply={(b) => reply(item.id, b)} /></>)
+          : <ReferencesPanel data={data} items={items} currentKind="plan" onSelectItem={(id) => setItemId(id)} onAsk={() => { setItemId(null); setAsking(true); }} />) : null}
+        {panel === "more" ? <SharePanelBody url={typeof window === "undefined" ? "" : window.location.href} poweredBy={data.brand.poweredBySlate360 && data.brand.whiteLabel} /> : null}
       </ViewerPanel>
     </div>
   );

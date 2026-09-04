@@ -1,2 +1,2 @@
 { "extends": "./tsconfig.json", "compilerOptions": { "incremental": false, "noEmit": true },
-  "include": ["next-env.d.ts", "lib/client-experience/**/*.ts", "components/client-experience/**/*.tsx", "app/preview/aob205/**/*.tsx", "components/digital-twin/splat-viewer-core.tsx", "types/**/*.d.ts"] }
+  "include": ["next-env.d.ts", "lib/client-experience/**/*.ts", "lib/spatial-experience/**/*.ts", "components/client-experience/**/*.ts*", "app/preview/aob205/**/*.ts*", "components/digital-twin/splat-viewer-core.tsx", "types/**/*.d.ts"] }

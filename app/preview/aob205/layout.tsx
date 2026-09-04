@@ -5,5 +5,5 @@ export const metadata: Metadata = { title: "AOB 205 DSL Classroom TI — Slate36
 
 /** AOB205 client-experience harness. Renders the real client components on the real AOB205 capture. */
 export default function Aob205Layout({ children }: { children: ReactNode }) {
-  return <div className="ce" data-app="client-experience">{children}</div>;
+  return <div data-app="client-experience">{children}</div>;
 }

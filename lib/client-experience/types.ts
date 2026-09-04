@@ -1,25 +1,18 @@
 /**
  * Client Experience data contract.
  *
- * Everything the contractor-facing AOB205 views render comes through this
- * shape. `lib/client-experience/aob205-fixture.ts` fills it from real AOB205
- * assets today; the portal-token loader should produce the same shape from
- * spatial_walkthroughs / spatial_pins / spatial_project_items / plan sheets
- * once those are ingested (see AOB205_UX_HANDOFF.md).
+ * Everything the contractor-facing views render comes through this shape.
+ * `aob205-variants.ts` fills it from real AOB205 assets today; the portal
+ * loader should produce the same shape from spatial_* tables. Brand and
+ * capability shapes are Cursor's (lib/spatial-experience) — not duplicated.
  *
  * Plan coordinates are fractions of the sheet image (u → x, v → y, 0..1).
  */
+import type { ProjectBrand } from "../spatial-experience/brand";
+import type { ProjectCapabilities } from "../spatial-experience/capabilities";
+import type { WalkSegment } from "../spatial-experience/trajectory";
 
 export type ModalityKind = "walkthrough" | "twin" | "stations" | "aerial";
-
-export type ClientBrand = {
-  /** Contractor / client organisation name shown in the shell. */
-  name: string;
-  logoUrl: string | null;
-  /** Optional accent override; falls back to the platform accent. */
-  accent?: string | null;
-  showPoweredBy: boolean;
-};
 
 export type ProjectIdentity = {
   name: string;
@@ -30,7 +23,6 @@ export type ProjectIdentity = {
 
 export type Visit = {
   id: string;
-  /** ISO date-time of the capture. */
   capturedAt: string;
   label: string;
   modalities: ModalityKind[];
@@ -41,25 +33,24 @@ export type PlanSheet = {
   id: string;
   title: string;
   sheetNumber: string;
+  /** Raster of the sheet. Interactive overlay requires this; a PDF alone is a document. */
   imageUrl: string;
   width: number;
   height: number;
-  /** Region of interest (fractions) the viewer should frame first. */
   focus: { u0: number; v0: number; u1: number; v1: number };
-  /** Approximate scale, used only for the plan scale bar (not for measurement). */
-  approxMetresPerU?: number;
+  pdfUrl?: string | null;
 };
 
 export type PlanPoint = { u: number; v: number };
 
 export type Waypoint = PlanPoint & {
   id: string;
-  /** Seconds into the walkthrough clip. */
   t: number;
   label: string;
   space: string;
   /** Yaw (deg) inside the sphere at which the path continues forward. */
   forwardYaw: number;
+  segmentId: string;
 };
 
 export type WalkthroughClip = {
@@ -69,8 +60,9 @@ export type WalkthroughClip = {
   posterUrl: string;
   durationS: number;
   waypoints: Waypoint[];
-  /** Ordered list of spaces along the walk (derived from waypoints). */
   spaces: string[];
+  /** Recorded-path segments; the path is never drawn across a boundary. */
+  segments: WalkSegment[];
 };
 
 export type Station = PlanPoint & {
@@ -79,11 +71,13 @@ export type Station = PlanPoint & {
   label: string;
   space: string;
   capturedAt: string;
+  /** Sharp source for the immersive viewer (standard/full variant). */
   imageUrl: string;
+  /** Small optimized thumb for filmstrips — never the ERP source. */
   thumbUrl: string;
-  /** Yaw (deg) of plan-north inside this station's sphere. */
+  /** Walk time (s) this station was captured at, when it lies on the walk. */
+  t?: number | null;
   northYaw: number;
-  /** Adjacent stations with the yaw at which their arrow should appear. */
   neighbors: { id: string; yawDeg: number }[];
 };
 
@@ -92,9 +86,11 @@ export type TwinModel = {
   visitId: string;
   label: string;
   splatUrl: string;
+  /** Explicitly simulated accepted-twin fixture for chrome review only. */
+  simulated?: boolean;
 };
 
-export type ItemType = "rfi" | "issue" | "note" | "document" | "photo";
+export type ItemType = "rfi" | "issue" | "note" | "document" | "photo" | "question";
 export type ItemStatus = "open" | "in_progress" | "resolved";
 
 export type SpatialRef =
@@ -120,12 +116,7 @@ export type Comment = {
   body: string;
 };
 
-export type ActivityEntry = {
-  id: string;
-  at: string;
-  summary: string;
-  itemId?: string;
-};
+export type ActivityEntry = { id: string; at: string; summary: string; itemId?: string };
 
 export type ProjectItem = {
   id: string;
@@ -134,20 +125,18 @@ export type ProjectItem = {
   status: ItemStatus;
   description: string;
   createdAt: string;
+  author?: string;
   refs: SpatialRef[];
   attachments: Attachment[];
   comments: Comment[];
   activity: ActivityEntry[];
 };
 
-export type ProjectDocument = Attachment & {
-  /** Number of spatial references pointing at this document. */
-  refCount: number;
-  sheetId?: string;
-};
+export type ProjectDocument = Attachment & { refCount: number; sheetId?: string };
 
 export type ProjectExperience = {
-  brand: ClientBrand;
+  brand: ProjectBrand;
+  capabilities: ProjectCapabilities;
   project: ProjectIdentity;
   visits: Visit[];
   latestVisitId: string;
@@ -159,6 +148,7 @@ export type ProjectExperience = {
   documents: ProjectDocument[];
   activity: ActivityEntry[];
   shareUrl: string | null;
-  /** Base path all in-experience links are built from. */
   basePath: string;
+  /** Query suffix that keeps the preview variant alive across in-experience links. */
+  linkSuffix?: string;
 };
