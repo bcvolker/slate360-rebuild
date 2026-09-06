@@ -21,6 +21,12 @@ Then the operator SOP:
 
 **→ [docs/design/LOCAL_SPLAT_PIPELINE.md](design/LOCAL_SPLAT_PIPELINE.md)**
 
+360 / GGPS (desktop PhD only):
+
+**→ [docs/research/GGPS_ON_DESKTOP.md](research/GGPS_ON_DESKTOP.md)**  
+**→ [docs/research/DESKTOP_GROK_GGPS_APP_PROMPT.md](research/DESKTOP_GROK_GGPS_APP_PROMPT.md)**  
+**→ [docs/design/360_SPLAT_CHANGE_LIST.md](design/360_SPLAT_CHANGE_LIST.md)**
+
 The dated handoff wins on business model, capture strategy, and build order when it conflicts
 with older `SESSION_HANDOFF.md`. Still obey `CLAUDE.md` for git/guards/tokens/no-`git add .`.
 

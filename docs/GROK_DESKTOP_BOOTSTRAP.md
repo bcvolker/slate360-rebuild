@@ -127,6 +127,15 @@ They use `${SUPABASE_ACCESS_TOKEN}` — load `.env.local` in the shell if that s
 
 ---
 
+## 6b. GGPS research tree (360 PhD trainer — not the product)
+
+GGPS is **not** in git. Get it onto this PC via OneDrive Desktop sync, USB
+(`scripts/research/copy-ggps-to-usb.ps1` on the laptop), or
+`git clone --recurse-submodules https://github.com/Insta360-Research-Team/GGPS.git C:\research\ggps`.
+
+Then read `docs/research/GGPS_ON_DESKTOP.md`. To build the drag-drop app, paste
+`docs/research/DESKTOP_GROK_GGPS_APP_PROMPT.md` into this desktop Grok session.
+
 ## 7. First command after Grok is up
 
 Paste this as the first desktop Grok prompt:

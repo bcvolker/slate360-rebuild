@@ -100,6 +100,7 @@ reference/
 # Imperial NC academic clones — never vendor into the commercial product tree
 /research-workers/odgs-slam/
 /research-workers/odgs/
+/research-workers/ggps/
 
 
 # AOB205 client-experience preview: local video proxy only (generated, not committed)
