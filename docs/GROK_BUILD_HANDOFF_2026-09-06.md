@@ -4,7 +4,7 @@
 **Owner:** Brian (Treppenwitz / bcvolker). **Repo:** `bcvolker/slate360-rebuild` @ `main`.
 **Conversation origin:** Grok Build on iPad, 2026-09-06. New chats do **not** inherit that thread. This file is the handoff.
 
-If you are a new Grok session: read this whole file before writing code. Then confirm to Brian that you have it.
+If you are a new Grok session: read `docs/GROK.md` first (laptop vs desktop), then this whole file before writing code. On the **desktop**, also read `docs/GROK_DESKTOP_BOOTSTRAP.md`. Then confirm to Brian that you have it.
 
 ---
 

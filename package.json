@@ -21,6 +21,8 @@
     "diag:storage-runtime": "node scripts/ops/check-storage-runtime.mjs",
     "diag:storage-runtime:write": "node scripts/ops/check-storage-runtime.mjs --write-probe",
     "diag:storage-runtime:presign": "node scripts/ops/check-storage-runtime.mjs --presign-probe",
+    "local-splat:frames": "node scripts/local-splat/extract-frames.mjs",
+    "local-splat:ingest": "node scripts/local-splat/ingest-splat.mjs",
     "smoke:slatedrop-public-flow": "node scripts/ops/smoke-slatedrop-public-flow.mjs",
     "verify:release": "node scripts/ops/verify-release.mjs",
     "start": "NEXT_TELEMETRY_DISABLED=1 next start",

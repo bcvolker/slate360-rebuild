@@ -104,3 +104,7 @@ reference/
 
 # AOB205 client-experience preview: local video proxy only (generated, not committed)
 public/preview/aob205/*.mp4
+
+# Grok local splat ingest writes the last share token here — never commit
+/tmp/local-splat-last-share.json
+/.grok-local/

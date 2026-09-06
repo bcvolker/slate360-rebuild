@@ -1,0 +1,71 @@
+# Slate360 — project-scoped MCP config for Grok Build
+#
+# Companion: docs/GROK_DESKTOP_BOOTSTRAP.md — secrets stay in .env.local, never git.
+#
+# RULES OBSERVED HERE
+#   - NO literal secrets. Every credential is a ${ENV_VAR} placeholder resolved from
+#     the environment (load .env.local from the repo root before starting Grok).
+#   - Only servers Grok can actually LAUNCH ITSELF are listed. Claude Code's Vercel and
+#     design-suite plugins are OAuth-bound to the Claude client and CANNOT be transferred;
+#     Brian must authenticate those inside Grok via /mcps.
+#
+# SCHEMA CAVEAT: Claude has no Grok CLI on this machine and could not validate this file's
+# format against Grok's parser. The [mcp_servers.<name>] convention below follows the common
+# TOML MCP layout. If Grok rejects it, keep the values and reshape the keys.
+#
+# Load env first (PowerShell):
+#   Get-Content .env.local | ForEach-Object {
+#     if ($_ -match '^\s*([A-Z0-9_]+)=(.*)$') {
+#       [Environment]::SetEnvironmentVariable($Matches[1], $Matches[2].Trim('"'), 'Process')
+#     }
+#   }
+
+# ---------------------------------------------------------------------------
+# Supabase — slate360-prod (ref hadnfcenpcfaeclczsmm)
+# Published server, version 0.12.0 verified on npm. NOT exercised by Claude — untested.
+# --read-only is deliberate: migrations are additive-only and applied by Brian.
+# Drop the flag only when Grok has an explicit write task.
+# ---------------------------------------------------------------------------
+[mcp_servers.supabase]
+command = "npx"
+args = [
+  "-y",
+  "@supabase/mcp-server-supabase@0.12.0",
+  "--read-only",
+  "--project-ref=hadnfcenpcfaeclczsmm",
+]
+[mcp_servers.supabase.env]
+SUPABASE_ACCESS_TOKEN = "${SUPABASE_ACCESS_TOKEN}"
+
+# Filesystem / kimi-k3 are laptop-local. Grok's built-in file tools cover the clone.
+# Do not hardcode C:\s360 paths here — the desktop clone path will differ.
+
+# ---------------------------------------------------------------------------
+# NOT CONFIGURED HERE — and why
+#
+#   vercel      Grok already has the plugin. It 403s on team scope `slate360`.
+#               Fix is interactive: /mcps -> Vercel -> re-auth -> choose team "Slate360".
+#               Claude cannot script this. Meanwhile `npx vercel` CLI works for both agents.
+#
+#   github      Grok already has GitHub MCP + `gh` as bcvolker. Nothing to add.
+#               Desktop: gh auth login, then gh auth refresh -s workflow if Actions edits.
+#
+#   cloudflare  Grok's plugin is enabled but needs user OAuth (/mcps). Claude has NO
+#               Cloudflare MCP either, so there is no server to hand over. If OAuth is
+#               inconvenient, drive R2/Workers with ${CLOUDFLARE_API_TOKEN} via wrangler
+#               or plain REST; bucket is `slate360-storage`, account id in
+#               ${CLOUDFLARE_ACCOUNT_ID}.
+#
+#   modal       CLI-only by design: `python -m modal` with profile `bcvolker` from
+#               %USERPROFILE%\.modal.toml. Always set PYTHONIOENCODING=utf-8 on Windows.
+#               No official MCP server; do not invent one.
+#
+#   trigger.dev CLI-only: `npx trigger.dev@latest`. Project proj_ydquoejbfqidzbjioyno.
+#               Task env is synced FROM C:\s360\.env.local at deploy time — redeploy
+#               Trigger after any MODAL_*_ENDPOINT change.
+#
+#   codemagic   REST API with ${CODEMAGIC_API_TOKEN}. App `slate360-rebuild`;
+#               workflows ios-capacitor, sitewalk360-ios, android-capacitor.
+#
+#   stripe      Forbidden edit zone (billing/entitlements). Read-only for audit; no server.
+# ---------------------------------------------------------------------------
