@@ -40,7 +40,7 @@ $fileMenu = New-Object System.Windows.Forms.ToolStripMenuItem("File")
 $miVideo = New-Object System.Windows.Forms.ToolStripMenuItem("Add 360 video...")
 $miStills = New-Object System.Windows.Forms.ToolStripMenuItem("Add stills folder...")
 $miOpenJobs = New-Object System.Windows.Forms.ToolStripMenuItem("Open jobs folder")
-$miExportPly = New-Object System.Windows.Forms.ToolStripMenuItem("Export Gaussian PLY...")
+$miExportPly = New-Object System.Windows.Forms.ToolStripMenuItem("Export Gaussian SPZ...")
 $miExportFrames = New-Object System.Windows.Forms.ToolStripMenuItem("Open extracted frames")
 $miExit = New-Object System.Windows.Forms.ToolStripMenuItem("Exit")
 [void]$fileMenu.DropDownItems.Add($miVideo)
@@ -168,7 +168,7 @@ $chkTrain.Location = New-Object System.Drawing.Point(12, $y)
 $chkTrain.Size = New-Object System.Drawing.Size(300, 24)
 $chkTrain.Checked = $true
 $left.Controls.Add($chkTrain)
-$tips.SetToolTip($chkTrain, "Needs the PanoLOG conda env in WSL. If that env is missing, you still get stills + camera poses, but no PLY yet.")
+$tips.SetToolTip($chkTrain, "Trains a Gaussian splat, then packs SPZ for the Twin viewer.")
 
 $y += 26
 $chkLarge = New-Object System.Windows.Forms.CheckBox
@@ -179,17 +179,45 @@ $chkLarge.Checked = $false
 $left.Controls.Add($chkLarge)
 $tips.SetToolTip($chkLarge, "Leave OFF for a 1-minute clip. ON only for hundreds-to-thousands of panos.")
 
-$y += 36
+$y += 26
+$chkIngest = New-Object System.Windows.Forms.CheckBox
+$chkIngest.Text = "Open result in Twin viewer (share link)"
+$chkIngest.Location = New-Object System.Drawing.Point(12, $y)
+$chkIngest.Size = New-Object System.Drawing.Size(300, 24)
+$chkIngest.Checked = $true
+$left.Controls.Add($chkIngest)
+$tips.SetToolTip($chkIngest, "Uploads gaussian.spz into Twin Studio and mints /share/twin/... so you can walk it in the viewer you already have.")
+
+$y += 28
+$qual = New-Object System.Windows.Forms.ComboBox
+$qual.DropDownStyle = "DropDownList"
+$qual.Location = New-Object System.Drawing.Point(12, $y)
+$qual.Size = New-Object System.Drawing.Size(300, 26)
+[void]$qual.Items.Add("Preview train  (faster, 7k steps)")
+[void]$qual.Items.Add("Full train  (30k steps)")
+$qual.SelectedIndex = 0
+$left.Controls.Add($qual)
+$tips.SetToolTip($qual, "Preview is for research screening. Full is slower and closer to GGPS paper settings.")
+
+$y += 32
+$btnInstall = New-Object System.Windows.Forms.Button
+$btnInstall.Text = "Install PanoLOG trainer"
+$btnInstall.Location = New-Object System.Drawing.Point(12, $y)
+$btnInstall.Size = New-Object System.Drawing.Size(300, 30)
+$left.Controls.Add($btnInstall)
+$tips.SetToolTip($btnInstall, "One-time WSL install: conda env, PyTorch CUDA, compile GGPS rasterizer for the 3090.")
+
+$y += 40
 $outBox = New-Object System.Windows.Forms.TextBox
 $outBox.Location = New-Object System.Drawing.Point(12, $y)
-$outBox.Size = New-Object System.Drawing.Size(300, 118)
+$outBox.Size = New-Object System.Drawing.Size(300, 90)
 $outBox.Multiline = $true
 $outBox.ReadOnly = $true
 $outBox.BackColor = $warnBg
 $outBox.BorderStyle = "FixedSingle"
 $left.Controls.Add($outBox)
 
-$y += 128
+$y += 100
 $btnAddVideo = New-Object System.Windows.Forms.Button
 $btnAddVideo.Text = "Add 360 video..."
 $btnAddVideo.Location = New-Object System.Drawing.Point(12, $y)
@@ -219,7 +247,7 @@ $btnOpen.Location = New-Object System.Drawing.Point(12, $y)
 $btnOpen.Size = New-Object System.Drawing.Size(145, 30)
 $left.Controls.Add($btnOpen)
 $btnExport = New-Object System.Windows.Forms.Button
-$btnExport.Text = "Export PLY..."
+$btnExport.Text = "Export SPZ..."
 $btnExport.Location = New-Object System.Drawing.Point(167, $y)
 $btnExport.Size = New-Object System.Drawing.Size(145, 30)
 $left.Controls.Add($btnExport)
@@ -301,13 +329,16 @@ function Add-UiLog([string]$t) {
 function Refresh-EnvBanner {
   if ($ggps) { $stGgps.Text = "GGPS ready" } else { $stGgps.Text = "GGPS missing" }
   if ($script:panoReady) {
-    $stPano.Text = "Trainer ready - will write gaussian.ply"
+    $stPano.Text = "Trainer ready - will write gaussian.spz"
     $outBox.BackColor = $okBg
-    $outBox.Text = "This run can produce a Gaussian splat as gaussian.ply in the job export folder. That is a research PLY for local inspect, not a phone share .spz."
+    $outBox.Text = "This run trains a Gaussian splat and packs gaussian.spz for the Twin viewer. Tick Open in Twin viewer to mint a share link."
+    $btnInstall.Enabled = $false
+    $btnInstall.Text = "PanoLOG trainer installed"
   } else {
-    $stPano.Text = "Trainer env missing - poses only this run"
+    $stPano.Text = "Trainer missing - click Install PanoLOG trainer"
     $outBox.BackColor = $warnBg
-    $outBox.Text = "You will NOT get a splat file yet. This PC still needs the PanoLOG conda env. Start will extract stills and estimate cameras. Then install PanoLOG (Help > docs) and run Train again."
+    $outBox.Text = "No splat until PanoLOG is installed. Click Install PanoLOG trainer (one-time, WSL, 3090). Then Start. Output is gaussian.spz plus an optional Twin share link."
+    $btnInstall.Enabled = $true
   }
 }
 
@@ -378,6 +409,8 @@ function Start-JobRun {
   $argList.Add("-LogPath"); $argList.Add("`"$($script:logFile)`"")
   if ($chkTrain.Checked) { $argList.Add("-Train") }
   if ($chkLarge.Checked) { $argList.Add("-LargeOutdoor") }
+  if ($chkIngest.Checked) { $argList.Add("-Ingest") }
+  if ($qual.SelectedIndex -eq 1) { $argList.Add("-Iters"); $argList.Add("30000") } else { $argList.Add("-Iters"); $argList.Add("7000") }
   $argList.Add("-InputPaths")
   foreach ($p in $script:inputs) { $argList.Add("`"$p`"") }
   $btnStart.Enabled = $false
@@ -426,6 +459,12 @@ $btnAddFolder.add_Click({
 $miStills.add_Click({ $btnAddFolder.PerformClick() })
 
 $btnStart.add_Click({ Start-JobRun })
+$btnInstall.add_Click({
+  Add-UiLog "Installing PanoLOG trainer in WSL. This takes a while (conda + PyTorch + compile)."
+  $inst = Join-Path $here "Install-PanoLog.ps1"
+  Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile","-ExecutionPolicy","Bypass","-File","`"$inst`"") -WindowStyle Hidden
+  $stage.Text = "Installing PanoLOG trainer... watch ggps-jobs\panolog-install.log"
+})
 $miExit.add_Click({ $form.Close() })
 $miOpenJobs.add_Click({
   $root = Join-Path $env:USERPROFILE "ggps-jobs"
@@ -444,21 +483,20 @@ $miExportFrames.add_Click({
 })
 
 function Export-Ply {
-  $src = $script:lastPly
-  if (-not $src -or -not (Test-Path -LiteralPath $src)) {
-    if ($script:jobDir) {
-      $hits = @(Get-ChildItem -LiteralPath $script:jobDir -Recurse -Filter "gaussian.ply" -ErrorAction SilentlyContinue)
-      if ($hits.Count -eq 0) { $hits = @(Get-ChildItem -LiteralPath $script:jobDir -Recurse -Filter "point_cloud.ply" -ErrorAction SilentlyContinue) }
-      if ($hits.Count -gt 0) { $src = $hits[0].FullName }
+  $src = $null
+  if ($script:jobDir) {
+    foreach ($n in @("gaussian.spz", "gaussian.ply", "point_cloud.ply")) {
+      $hits = @(Get-ChildItem -LiteralPath $script:jobDir -Recurse -Filter $n -ErrorAction SilentlyContinue)
+      if ($hits.Count -gt 0) { $src = $hits[0].FullName; break }
     }
   }
   if (-not $src) {
-    [System.Windows.Forms.MessageBox]::Show("No Gaussian PLY yet. That file is created only after training finishes. PanoLOG env is still missing on this PC.", "No splat file", "OK", "Information") | Out-Null
+    [System.Windows.Forms.MessageBox]::Show("No Gaussian splat yet. Install the PanoLOG trainer, then Start with Train on. Output is gaussian.spz for the Twin viewer.", "No splat file", "OK", "Information") | Out-Null
     return
   }
   $dlg = New-Object System.Windows.Forms.SaveFileDialog
-  $dlg.Filter = "Gaussian PLY (*.ply)|*.ply"
-  $dlg.FileName = "gaussian.ply"
+  $dlg.Filter = "Twin splat SPZ (*.spz)|*.spz|Gaussian PLY (*.ply)|*.ply"
+  $dlg.FileName = [IO.Path]::GetFileName($src)
   if ($dlg.ShowDialog() -eq "OK") {
     Copy-Item -LiteralPath $src -Destination $dlg.FileName -Force
     Add-UiLog ("Exported " + $dlg.FileName)
@@ -528,14 +566,22 @@ $timer.add_Tick({
     $code = $script:proc.ExitCode
     $script:proc = $null
     Refresh-Jobs
-    $ply = Join-Path $script:jobDir "export\gaussian.ply"
-    if (Test-Path -LiteralPath $ply) {
-      $script:lastPly = $ply
-      $stage.Text = "Done. Gaussian PLY is in the job export folder."
+    $spz = Join-Path $script:jobDir "export\gaussian.spz"
+    $shareFile = Join-Path $script:jobDir "share.json"
+    if (Test-Path -LiteralPath $spz) {
+      $script:lastPly = $spz
+      $stage.Text = "Done. gaussian.spz is ready for the Twin viewer."
       $outBox.BackColor = $okBg
-      $outBox.Text = "Splat file: $ply"
+      $outBox.Text = "Splat: $spz"
     } else {
       $stage.Text = "Finished without a splat file. See log."
+    }
+    if (Test-Path -LiteralPath $shareFile) {
+      $share = Get-Content -LiteralPath $shareFile -Raw | ConvertFrom-Json
+      if ($share.shareUrl) {
+        $outBox.Text = ("Twin share: " + $share.shareUrl)
+        Start-Process $share.shareUrl
+      }
     }
     Add-UiLog ("process exit " + $code)
   }

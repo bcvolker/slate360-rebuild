@@ -78,7 +78,7 @@ function Get-VideoInfo([string]$path) {
 }
 
 function Test-PanoLogReady {
-  $out = wsl -d Ubuntu-22.04 -- bash -lc 'if [ -x "$HOME/miniconda3/envs/PanoLOG/bin/python" ] || [ -x "$HOME/mambaforge/envs/PanoLOG/bin/python" ] || [ -x "$HOME/anaconda3/envs/PanoLOG/bin/python" ]; then echo PANOLOG_READY; else echo PANOLOG_MISSING; fi'
+  $out = wsl -d Ubuntu-22.04 -- bash -lc 'if [ -x "$HOME/miniconda3/envs/PanoLOG/bin/python" ] || [ -x "$HOME/mambaforge/envs/PanoLOG/bin/python" ] || [ -x "$HOME/anaconda3/envs/PanoLOG/bin/python" ]; then echo PANOLOG_READY; elif [ -f "$HOME/.panolog-ready" ]; then echo PANOLOG_READY; else echo PANOLOG_MISSING; fi'
   $line = (@($out) | Select-Object -Last 1).ToString().Trim()
   return ($line -eq "PANOLOG_READY")
 }

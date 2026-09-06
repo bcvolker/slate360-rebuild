@@ -32,15 +32,22 @@ This clip is **51 seconds**, **5760x2880** (true 2:1 equirect), HEVC, ~848 MB.
 
 **FPS is not the camera's 30 fps.** GGPS cannot train on the movie. The app cuts stills. 1.0 means “grab one panorama each second of walking.”
 
-### Will you get a Gaussian splat file?
+### Will you get a Gaussian splat / Twin you can inspect?
 
-| If | File |
+Yes, after the **PanoLOG trainer** is installed (button in the app, one-time WSL compile for the 3090). Then Start with:
+
+- Train Gaussian splat = ON
+- Open result in Twin viewer = ON
+
+Output:
+
+| File | What it is |
 |---|---|
-| PanoLOG conda env **missing** (this desktop today) | **No splat.** You get `images\` stills and camera poses only |
-| PanoLOG env installed and train finishes | `export\gaussian.ply` in the job folder. That **is** the Gaussian splat for local inspect |
-| Phone share link for a contractor | **Not this app.** That is Postshot `.spz` via `ingest-splat.mjs` |
+| `export\gaussian.ply` | Raw Gaussian |
+| `export\gaussian.spz` | Spark / Twin viewer format (this is what you open) |
+| Twin share URL | Minted into the existing digital-twin viewer if ingest is ticked |
 
-The Twin web viewer only loads `.spz`. This research trainer writes **`.ply`**. Do not expect a share URL from this window.
+The app packs SPZ v3 with `@playcanvas/splat-transform` and can call `scripts/local-splat/ingest-splat.mjs` so you walk it in the viewer you already built. Research-only; not a contractor SKU.
 
 ## What you can drop
 

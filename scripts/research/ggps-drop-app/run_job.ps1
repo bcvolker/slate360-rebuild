@@ -6,6 +6,8 @@ param(
   [string]$SceneName = "",
   [switch]$LargeOutdoor,
   [switch]$Train,
+  [switch]$Ingest,
+  [int]$Iters = 7000,
   [switch]$SelfTest,
   [string]$LogPath
 )
@@ -218,10 +220,12 @@ $trainFlag = ""
 if ($Train) { $trainFlag = "--train" }
 $largeFlag = ""
 if ($LargeOutdoor) { $largeFlag = "--large-outdoor" }
+if ($Iters -lt 1000) { $Iters = 7000 }
+if ($Iters -gt 30000) { $Iters = 30000 }
 
 Write-Log "STAGE sfm"
 Write-Log 'WSL pipeline (OpenSfM spherical / GGPS wrap)'
-$bash = "bash `"$wslScript`" --scene `"$wslScene`" --ggps `"$wslGgps`" $trainFlag $largeFlag"
+$bash = "bash `"$wslScript`" --scene `"$wslScene`" --ggps `"$wslGgps`" $trainFlag $largeFlag --iters $Iters"
 Write-Log $bash
 & wsl -d Ubuntu-22.04 -- bash -lc $bash
 $code = $LASTEXITCODE
@@ -231,13 +235,41 @@ $exportDir = Join-Path $JobDir "export"
 New-Item -ItemType Directory -Force -Path $exportDir | Out-Null
 $plyHits = @(Get-ChildItem -LiteralPath $JobDir -Recurse -Filter "point_cloud.ply" -ErrorAction SilentlyContinue)
 $splatPath = $null
+$spzPath = $null
+$shareUrl = $null
 if ($plyHits.Count -gt 0) {
   $splatPath = Join-Path $exportDir "gaussian.ply"
   Copy-Item -LiteralPath $plyHits[0].FullName -Destination $splatPath -Force
   Write-Log "STAGE export"
-  Write-Log "Gaussian PLY copied to $splatPath"
+  Write-Log "Gaussian PLY $splatPath"
+  $spzPath = Join-Path $exportDir "gaussian.spz"
+  $convert = Join-Path $here "ply-to-spz.mjs"
+  Write-Log "PLY to SPZ v3 for Twin viewer"
+  & node $convert --in $splatPath --out $spzPath
+  if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $spzPath)) {
+    Write-Log "SPZ convert failed. PLY is still in export."
+    $spzPath = $null
+  } else {
+    Write-Log "SPZ $spzPath"
+  }
 } else {
-  Write-Log "No point_cloud.ply yet. That is the Gaussian splat file. Training did not finish."
+  Write-Log "No point_cloud.ply yet. Install PanoLOG trainer, then Start with Train on."
+}
+
+if ($Ingest -and $spzPath) {
+  Write-Log "STAGE ingest Twin"
+  Push-Location C:\s360-desktop
+  try {
+    $title = $SceneName
+    if (-not $title) { $title = "GGPS research " + (Get-Date -Format "yyyy-MM-dd HH:mm") }
+    & node .\scripts\local-splat\ingest-splat.mjs --file $spzPath --title $title
+    $shareFile = Join-Path C:\s360-desktop "tmp\local-splat-last-share.json"
+    if (Test-Path -LiteralPath $shareFile) {
+      Copy-Item -LiteralPath $shareFile -Destination (Join-Path $JobDir "share.json") -Force
+      $shareUrl = (Get-Content -LiteralPath $shareFile -Raw | ConvertFrom-Json).shareUrl
+      Write-Log "twin share $shareUrl"
+    }
+  } finally { Pop-Location }
 }
 
 $readme = @(
@@ -245,8 +277,10 @@ $readme = @(
   "job: $JobDir",
   "exit: $code",
   "frames: $imgDir",
-  "gaussian ply: $(if ($splatPath) { $splatPath } else { 'NOT CREATED - need conda env PanoLOG then re-run Train' })",
-  "This is a .ply for local inspect. The Twin share viewer wants .spz from Postshot, not this research PLY."
+  "gaussian ply: $(if ($splatPath) { $splatPath } else { 'NOT CREATED' })",
+  "gaussian spz: $(if ($spzPath) { $spzPath } else { 'NOT CREATED' })",
+  "twin share: $(if ($shareUrl) { $shareUrl } else { 'not ingested' })",
+  "Open gaussian.spz in the Twin / Spark viewer. That is the inspectable splat."
 ) -join [Environment]::NewLine
 Set-Content -LiteralPath (Join-Path $JobDir "README.txt") -Value $readme -Encoding UTF8
 
@@ -257,6 +291,8 @@ $last = @{
   researchOnly = $true
   ingest = $false
   ply = $splatPath
+  spz = $spzPath
+  shareUrl = $shareUrl
   sceneName = $SceneName
 }
 $last | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $JobDir "last-run.json") -Encoding UTF8
