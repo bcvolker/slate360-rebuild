@@ -2,7 +2,8 @@
 param(
   [string[]]$InputPaths,
   [string]$JobDir,
-  [double]$Fps = 2,
+  [double]$Fps = 1,
+  [string]$SceneName = "",
   [switch]$LargeOutdoor,
   [switch]$Train,
   [switch]$SelfTest,
@@ -130,7 +131,12 @@ if ($stills.Count -eq 0 -and $videos.Count -eq 0) {
 
 if (-not $JobDir) {
   $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
-  $JobDir = Join-Path $env:USERPROFILE ("ggps-jobs\" + $stamp)
+  $safe = "job"
+  if ($SceneName) {
+    $safe = ($SceneName -replace '[^A-Za-z0-9_-]', '_').Trim('_')
+    if (-not $safe) { $safe = "job" }
+  }
+  $JobDir = Join-Path $env:USERPROFILE ("ggps-jobs\" + $stamp + "-" + $safe)
 }
 $imgDir = Join-Path $JobDir "images"
 New-Item -ItemType Directory -Force -Path $imgDir | Out-Null
@@ -139,8 +145,10 @@ if ($LogPath) {
   if ($logParent) { New-Item -ItemType Directory -Force -Path $logParent | Out-Null }
 }
 Write-Log "Research - not for customer jobs"
+Write-Log "STAGE import"
 Write-Log "job=$JobDir"
 Write-Log "GGPS=$ggps"
+if ($SceneName) { Write-Log "scene=$SceneName" }
 
 $copied = 0
 foreach ($s in $stills) {
@@ -158,6 +166,7 @@ if ($videos.Count -gt 0) {
   foreach ($v in $videos) {
     $vi++
     $pattern = Join-Path $imgDir ("v{0}_{1}_%05d.jpg" -f $vi, [IO.Path]::GetFileNameWithoutExtension($v))
+    Write-Log "STAGE extract"
     Write-Log "ffmpeg extract $Fps fps from $v"
     & ffmpeg -y -hide_banner -loglevel error -i $v -vf "fps=$Fps" -q:v 2 $pattern
     if ($LASTEXITCODE -ne 0) { throw "ffmpeg failed" }
@@ -210,18 +219,45 @@ if ($Train) { $trainFlag = "--train" }
 $largeFlag = ""
 if ($LargeOutdoor) { $largeFlag = "--large-outdoor" }
 
+Write-Log "STAGE sfm"
 Write-Log 'WSL pipeline (OpenSfM spherical / GGPS wrap)'
 $bash = "bash `"$wslScript`" --scene `"$wslScene`" --ggps `"$wslGgps`" $trainFlag $largeFlag"
 Write-Log $bash
 & wsl -d Ubuntu-22.04 -- bash -lc $bash
 $code = $LASTEXITCODE
 Write-Log ("wsl exit=$code")
+
+$exportDir = Join-Path $JobDir "export"
+New-Item -ItemType Directory -Force -Path $exportDir | Out-Null
+$plyHits = @(Get-ChildItem -LiteralPath $JobDir -Recurse -Filter "point_cloud.ply" -ErrorAction SilentlyContinue)
+$splatPath = $null
+if ($plyHits.Count -gt 0) {
+  $splatPath = Join-Path $exportDir "gaussian.ply"
+  Copy-Item -LiteralPath $plyHits[0].FullName -Destination $splatPath -Force
+  Write-Log "STAGE export"
+  Write-Log "Gaussian PLY copied to $splatPath"
+} else {
+  Write-Log "No point_cloud.ply yet. That is the Gaussian splat file. Training did not finish."
+}
+
+$readme = @(
+  "Research - not for customer jobs",
+  "job: $JobDir",
+  "exit: $code",
+  "frames: $imgDir",
+  "gaussian ply: $(if ($splatPath) { $splatPath } else { 'NOT CREATED - need conda env PanoLOG then re-run Train' })",
+  "This is a .ply for local inspect. The Twin share viewer wants .spz from Postshot, not this research PLY."
+) -join [Environment]::NewLine
+Set-Content -LiteralPath (Join-Path $JobDir "README.txt") -Value $readme -Encoding UTF8
+
 $last = @{
   jobDir = $JobDir
   ggps = $ggps
   exitCode = $code
   researchOnly = $true
   ingest = $false
+  ply = $splatPath
+  sceneName = $SceneName
 }
 $last | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $JobDir "last-run.json") -Encoding UTF8
 $jobsRoot = Join-Path $env:USERPROFILE "ggps-jobs"

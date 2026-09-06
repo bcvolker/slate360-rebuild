@@ -17,7 +17,30 @@ That puts **GGPS Research Drop** on the Desktop. Or double-click:
 
 `C:\s360-desktop\scripts\research\ggps-drop-app\Launch-GGPS-Research-Drop.bat`
 
-Drag stitched 360 stills or a stitched 360 mp4 onto the drop target, then **Start**. Jobs land in `%USERPROFILE%\ggps-jobs\<timestamp>\`.
+Open **GGPS Research Studio** from the Desktop shortcut, drop a stitched 360 mp4 or stills folder, then **Start processing**. Jobs land in `%USERPROFILE%\ggps-jobs\<timestamp>-<name>\`.
+
+### Settings for `VID_20260821_165600_00_120_STITCHED_360.mp4`
+
+This clip is **51 seconds**, **5760x2880** (true 2:1 equirect), HEVC, ~848 MB.
+
+| Control | Set to | Why |
+|---|---|---|
+| Preset | Short walk / this 51s clip | Matches a ~1 min campus/path walk |
+| Video extract rate | **1.0** | One still per second ≈ 51 frames. Enough overlap if you walked slowly. 2.0 ≈ 102 heavier 5.7K frames |
+| Train Gaussian splat | ON | You want a splat, but see output note below |
+| Large outdoor | **OFF** | That is for hundreds–thousands of panos, not a 51s clip |
+
+**FPS is not the camera's 30 fps.** GGPS cannot train on the movie. The app cuts stills. 1.0 means “grab one panorama each second of walking.”
+
+### Will you get a Gaussian splat file?
+
+| If | File |
+|---|---|
+| PanoLOG conda env **missing** (this desktop today) | **No splat.** You get `images\` stills and camera poses only |
+| PanoLOG env installed and train finishes | `export\gaussian.ply` in the job folder. That **is** the Gaussian splat for local inspect |
+| Phone share link for a contractor | **Not this app.** That is Postshot `.spz` via `ingest-splat.mjs` |
+
+The Twin web viewer only loads `.spz`. This research trainer writes **`.ply`**. Do not expect a share URL from this window.
 
 ## What you can drop
 
