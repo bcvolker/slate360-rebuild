@@ -68,7 +68,7 @@ They also need, per scene:
 2. `reconstruction/` — openMVG `sfm_data.bin` / json + `colorized.ply`  
    (or skip DAP with `SKIP_DAP=1` but you still need SfM poses)
 
-The drag-drop app (next doc) is supposed to wrap stitch-extract → SfM → train so you do not run those bash scripts by hand.
+The drag-drop app is built: `docs/research/GGPS_DROP_APP.md` and `scripts/research/ggps-drop-app/`. Wrap stitch-extract → SfM → train so you do not run those bash scripts by hand.
 
 ## Desktop Grok: build the drop app
 

@@ -24,6 +24,7 @@ Then the operator SOP:
 360 / GGPS (desktop PhD only):
 
 **→ [docs/research/GGPS_ON_DESKTOP.md](research/GGPS_ON_DESKTOP.md)**  
+**→ [docs/research/GGPS_DROP_APP.md](research/GGPS_DROP_APP.md)** (desktop drop UI)  
 **→ [docs/research/DESKTOP_GROK_GGPS_APP_PROMPT.md](research/DESKTOP_GROK_GGPS_APP_PROMPT.md)**  
 **→ [docs/design/360_SPLAT_CHANGE_LIST.md](design/360_SPLAT_CHANGE_LIST.md)**
 
