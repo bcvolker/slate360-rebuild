@@ -1,5 +1,4 @@
-# GGPS Research Studio UI. Wrap GGPS; do not vendor it.
-# Launch: powershell -STA -ExecutionPolicy Bypass -File this.ps1
+# Slate360 Research Studio. 360 GGPS + 2D Postshot. Research only.
 $ErrorActionPreference = "Stop"
 $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
 Add-Type -AssemblyName System.Windows.Forms
@@ -11,25 +10,31 @@ $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
-$navy = [System.Drawing.Color]::FromArgb(20, 40, 70)
-$accent = [System.Drawing.Color]::FromArgb(20, 110, 180)
-$warnBg = [System.Drawing.Color]::FromArgb(255, 243, 205)
-$okBg = [System.Drawing.Color]::FromArgb(214, 245, 224)
-$bg = [System.Drawing.Color]::FromArgb(244, 246, 248)
+$navy = [System.Drawing.Color]::FromArgb(12, 28, 48)
+$accent = [System.Drawing.Color]::FromArgb(201, 162, 79)
+$ink = [System.Drawing.Color]::FromArgb(28, 32, 38)
+$muted = [System.Drawing.Color]::FromArgb(90, 98, 110)
+$bg = [System.Drawing.Color]::FromArgb(246, 244, 240)
+$card = [System.Drawing.Color]::White
+$okBg = [System.Drawing.Color]::FromArgb(226, 242, 230)
+$warnBg = [System.Drawing.Color]::FromArgb(255, 243, 220)
 
 $ggps = Find-GgpsRoot
+$postshot = Join-Path $env:ProgramFiles "Jawset Postshot\bin\postshot-cli.exe"
 $script:panoReady = Test-PanoLogReady
 $script:inputs = New-Object System.Collections.Generic.List[string]
+$script:mode = "360"
 $script:jobDir = $null
 $script:proc = $null
 $script:logFile = $null
 $script:logPos = 0
-$script:lastPly = $null
+$script:exportFormat = "spz"
+$script:exportDir = Join-Path ([Environment]::GetFolderPath("Desktop")) "Slate360Exports"
 
 $form = New-Object System.Windows.Forms.Form
-$form.Text = "GGPS Research Studio"
-$form.Size = New-Object System.Drawing.Size(1080, 720)
-$form.MinimumSize = New-Object System.Drawing.Size(900, 600)
+$form.Text = "Slate360 Research Studio"
+$form.Size = New-Object System.Drawing.Size(1120, 740)
+$form.MinimumSize = New-Object System.Drawing.Size(960, 640)
 $form.StartPosition = "CenterScreen"
 $form.BackColor = $bg
 $form.Font = New-Object System.Drawing.Font("Segoe UI", 9.5)
@@ -37,322 +42,307 @@ $form.KeyPreview = $true
 
 $menu = New-Object System.Windows.Forms.MenuStrip
 $fileMenu = New-Object System.Windows.Forms.ToolStripMenuItem("File")
-$miVideo = New-Object System.Windows.Forms.ToolStripMenuItem("Add 360 video...")
-$miStills = New-Object System.Windows.Forms.ToolStripMenuItem("Add stills folder...")
-$miOpenJobs = New-Object System.Windows.Forms.ToolStripMenuItem("Open jobs folder")
-$miExportPly = New-Object System.Windows.Forms.ToolStripMenuItem("Export Gaussian SPZ...")
-$miExportFrames = New-Object System.Windows.Forms.ToolStripMenuItem("Open extracted frames")
+$miAdd = New-Object System.Windows.Forms.ToolStripMenuItem("Add files...")
+$miFolder = New-Object System.Windows.Forms.ToolStripMenuItem("Add folder...")
+$miJobs = New-Object System.Windows.Forms.ToolStripMenuItem("Open jobs folder")
+$miExport = New-Object System.Windows.Forms.ToolStripMenuItem("Export splat...")
 $miExit = New-Object System.Windows.Forms.ToolStripMenuItem("Exit")
-[void]$fileMenu.DropDownItems.Add($miVideo)
-[void]$fileMenu.DropDownItems.Add($miStills)
-[void]$fileMenu.DropDownItems.Add((New-Object System.Windows.Forms.ToolStripSeparator))
-[void]$fileMenu.DropDownItems.Add($miOpenJobs)
-[void]$fileMenu.DropDownItems.Add($miExportPly)
-[void]$fileMenu.DropDownItems.Add($miExportFrames)
-[void]$fileMenu.DropDownItems.Add((New-Object System.Windows.Forms.ToolStripSeparator))
-[void]$fileMenu.DropDownItems.Add($miExit)
+[void]$fileMenu.DropDownItems.AddRange(@($miAdd,$miFolder,(New-Object System.Windows.Forms.ToolStripSeparator),$miJobs,$miExport,(New-Object System.Windows.Forms.ToolStripSeparator),$miExit))
 $helpMenu = New-Object System.Windows.Forms.ToolStripMenuItem("Help")
-$miHow = New-Object System.Windows.Forms.ToolStripMenuItem("What should I click?")
-$miDocs = New-Object System.Windows.Forms.ToolStripMenuItem("Open GGPS_DROP_APP.md")
+$miHow = New-Object System.Windows.Forms.ToolStripMenuItem("How this works")
 [void]$helpMenu.DropDownItems.Add($miHow)
-[void]$helpMenu.DropDownItems.Add($miDocs)
-[void]$menu.Items.Add($fileMenu)
-[void]$menu.Items.Add($helpMenu)
+[void]$menu.Items.AddRange(@($fileMenu,$helpMenu))
 $form.MainMenuStrip = $menu
 $form.Controls.Add($menu)
 
 $header = New-Object System.Windows.Forms.Panel
 $header.Dock = "Top"
-$header.Height = 58
+$header.Height = 72
 $header.BackColor = $navy
 $form.Controls.Add($header)
-$title = New-Object System.Windows.Forms.Label
-$title.Text = "GGPS Research Studio"
-$title.ForeColor = [System.Drawing.Color]::White
-$title.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 16)
-$title.Location = New-Object System.Drawing.Point(16, 12)
-$title.AutoSize = $true
-$header.Controls.Add($title)
+$hTitle = New-Object System.Windows.Forms.Label
+$hTitle.Text = "Slate360 Research Studio"
+$hTitle.ForeColor = [System.Drawing.Color]::White
+$hTitle.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 18)
+$hTitle.Location = New-Object System.Drawing.Point(20, 10)
+$hTitle.AutoSize = $true
+$header.Controls.Add($hTitle)
+$hSub = New-Object System.Windows.Forms.Label
+$hSub.Text = "Drop a campus scan  ->  Gaussian splat  ->  Twin viewer"
+$hSub.ForeColor = [System.Drawing.Color]::FromArgb(180, 196, 214)
+$hSub.Location = New-Object System.Drawing.Point(22, 42)
+$hSub.AutoSize = $true
+$header.Controls.Add($hSub)
 $badge = New-Object System.Windows.Forms.Label
-$badge.Text = "  RESEARCH ONLY  "
-$badge.BackColor = [System.Drawing.Color]::FromArgb(196, 120, 40)
-$badge.ForeColor = [System.Drawing.Color]::White
+$badge.Text = "  RESEARCH  "
+$badge.BackColor = $accent
+$badge.ForeColor = $navy
 $badge.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 8)
-$badge.Location = New-Object System.Drawing.Point(280, 20)
+$badge.Location = New-Object System.Drawing.Point(320, 16)
 $badge.AutoSize = $true
 $header.Controls.Add($badge)
-$sub = New-Object System.Windows.Forms.Label
-$sub.Text = "Campus 360 stills or stitched video  ->  poses  ->  Gaussian PLY for local inspect"
-$sub.ForeColor = [System.Drawing.Color]::FromArgb(190, 210, 230)
-$sub.Location = New-Object System.Drawing.Point(16, 38)
-$sub.AutoSize = $true
-$header.Controls.Add($sub)
+
+$tabs = New-Object System.Windows.Forms.TabControl
+$tabs.Dock = "Top"
+$tabs.Height = 42
+$tabs.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 10)
+$tab360 = New-Object System.Windows.Forms.TabPage
+$tab360.Text = "  360 camera  "
+$tab2d = New-Object System.Windows.Forms.TabPage
+$tab2d.Text = "  Phone and drone  "
+$tabs.TabPages.Add($tab360)
+$tabs.TabPages.Add($tab2d)
+$form.Controls.Add($tabs)
 
 $tips = New-Object System.Windows.Forms.ToolTip
-$tips.AutoPopDelay = 20000
+$tips.AutoPopDelay = 22000
 
 $split = New-Object System.Windows.Forms.SplitContainer
 $split.Dock = "Fill"
-$split.SplitterDistance = 340
+$split.SplitterDistance = 360
 $split.BackColor = $bg
 $form.Controls.Add($split)
-$split.BringToFront()
-$header.BringToFront()
-$menu.BringToFront()
+$split.BringToFront(); $tabs.BringToFront(); $header.BringToFront(); $menu.BringToFront()
 
-# ----- left: settings -----
 $left = New-Object System.Windows.Forms.Panel
 $left.Dock = "Fill"
 $left.AutoScroll = $true
-$left.Padding = New-Object System.Windows.Forms.Padding(12)
+$left.Padding = New-Object System.Windows.Forms.Padding(16)
 $split.Panel1.Controls.Add($left)
 
-function Add-LeftLabel([int]$y, [string]$text, [int]$size = 9) {
+function Lbl([int]$y,[string]$t) {
   $l = New-Object System.Windows.Forms.Label
-  $l.Text = $text
-  $l.Location = New-Object System.Drawing.Point(12, $y)
-  $l.Size = New-Object System.Drawing.Size(300, 22)
-  $l.Font = New-Object System.Drawing.Font("Segoe UI Semibold", $size)
+  $l.Text = $t
+  $l.ForeColor = $muted
+  $l.Location = New-Object System.Drawing.Point(16, $y)
+  $l.Size = New-Object System.Drawing.Size(310, 18)
   $left.Controls.Add($l)
   return $l
 }
 
-$y = 10
-[void](Add-LeftLabel $y "Project")
-$y += 22
+$y = 12
+[void](Lbl $y "PROJECT NAME")
+$y += 20
 $sceneBox = New-Object System.Windows.Forms.TextBox
-$sceneBox.Location = New-Object System.Drawing.Point(12, $y)
-$sceneBox.Size = New-Object System.Drawing.Size(300, 26)
-$sceneBox.Text = "campus-walk"
+$sceneBox.Location = New-Object System.Drawing.Point(16, $y)
+$sceneBox.Size = New-Object System.Drawing.Size(312, 28)
+$sceneBox.Text = "campus-scan"
 $left.Controls.Add($sceneBox)
-$tips.SetToolTip($sceneBox, "Name for the job folder. Use the building or path, e.g. hassayampa-loop.")
 
-$y += 36
-[void](Add-LeftLabel $y "Preset")
-$y += 22
+$y += 42
+[void](Lbl $y "CAPTURE LENGTH")
+$y += 20
 $preset = New-Object System.Windows.Forms.ComboBox
 $preset.DropDownStyle = "DropDownList"
-$preset.Location = New-Object System.Drawing.Point(12, $y)
-$preset.Size = New-Object System.Drawing.Size(300, 26)
-[void]$preset.Items.Add("Short walk / this 51s clip  (1 fps)")
-[void]$preset.Items.Add("Fast walk, denser overlap  (2 fps)")
-[void]$preset.Items.Add("Long campus loop  (0.5 fps)")
-$preset.SelectedIndex = 0
+$preset.Location = New-Object System.Drawing.Point(16, $y)
+$preset.Size = New-Object System.Drawing.Size(312, 28)
+[void]$preset.Items.AddRange(@("Short walk  ~1 min","Medium walk  1-3 min","Long campus loop  3+ min"))
+$preset.SelectedIndex = 2
 $left.Controls.Add($preset)
-$tips.SetToolTip($preset, "FPS is how many still photos to cut from each second of video. GGPS does not train on the movie file itself.")
 
-$y += 40
-[void](Add-LeftLabel $y "Video extract rate")
-$y += 22
+$y += 42
+$lblFps = Lbl $y "STILLS PER SECOND FROM VIDEO"
+$y += 20
 $fpsBox = New-Object System.Windows.Forms.NumericUpDown
-$fpsBox.Location = New-Object System.Drawing.Point(12, $y)
-$fpsBox.Size = New-Object System.Drawing.Size(80, 26)
+$fpsBox.Location = New-Object System.Drawing.Point(16, $y)
+$fpsBox.Size = New-Object System.Drawing.Size(72, 28)
 $fpsBox.DecimalPlaces = 1
 $fpsBox.Minimum = 0.5
 $fpsBox.Maximum = 4
 $fpsBox.Increment = 0.5
-$fpsBox.Value = 1
+$fpsBox.Value = 0.5
 $left.Controls.Add($fpsBox)
 $fpsHint = New-Object System.Windows.Forms.Label
-$fpsHint.Location = New-Object System.Drawing.Point(100, $y)
-$fpsHint.Size = New-Object System.Drawing.Size(212, 40)
-$fpsHint.ForeColor = [System.Drawing.Color]::FromArgb(70, 80, 90)
-$fpsHint.Text = "1.0 = ~51 stills from your 51s clip. Start here."
+$fpsHint.Location = New-Object System.Drawing.Point(96, $y)
+$fpsHint.Size = New-Object System.Drawing.Size(232, 36)
+$fpsHint.ForeColor = $muted
+$fpsHint.Text = "Not camera fps. 0.5 = one still every 2 seconds."
 $left.Controls.Add($fpsHint)
-$tips.SetToolTip($fpsBox, "Not the camera's 30 fps. This is how often we grab a still from the stitched 360 video.")
 
 $y += 48
-$chkTrain = New-Object System.Windows.Forms.CheckBox
-$chkTrain.Text = "Train Gaussian splat after poses"
-$chkTrain.Location = New-Object System.Drawing.Point(12, $y)
-$chkTrain.Size = New-Object System.Drawing.Size(300, 24)
-$chkTrain.Checked = $true
-$left.Controls.Add($chkTrain)
-$tips.SetToolTip($chkTrain, "Trains a Gaussian splat, then packs SPZ for the Twin viewer.")
-
-$y += 26
-$chkLarge = New-Object System.Windows.Forms.CheckBox
-$chkLarge.Text = "Large outdoor partition  (campus-scale)"
-$chkLarge.Location = New-Object System.Drawing.Point(12, $y)
-$chkLarge.Size = New-Object System.Drawing.Size(300, 24)
-$chkLarge.Checked = $false
-$left.Controls.Add($chkLarge)
-$tips.SetToolTip($chkLarge, "Leave OFF for a 1-minute clip. ON only for hundreds-to-thousands of panos.")
-
-$y += 26
-$chkIngest = New-Object System.Windows.Forms.CheckBox
-$chkIngest.Text = "Open result in Twin viewer (share link)"
-$chkIngest.Location = New-Object System.Drawing.Point(12, $y)
-$chkIngest.Size = New-Object System.Drawing.Size(300, 24)
-$chkIngest.Checked = $true
-$left.Controls.Add($chkIngest)
-$tips.SetToolTip($chkIngest, "Uploads gaussian.spz into Twin Studio and mints /share/twin/... so you can walk it in the viewer you already have.")
-
-$y += 28
+[void](Lbl $y "QUALITY")
+$y += 20
 $qual = New-Object System.Windows.Forms.ComboBox
 $qual.DropDownStyle = "DropDownList"
-$qual.Location = New-Object System.Drawing.Point(12, $y)
-$qual.Size = New-Object System.Drawing.Size(300, 26)
-[void]$qual.Items.Add("Preview train  (faster, 7k steps)")
-[void]$qual.Items.Add("Full train  (30k steps)")
+$qual.Location = New-Object System.Drawing.Point(16, $y)
+$qual.Size = New-Object System.Drawing.Size(312, 28)
+[void]$qual.Items.AddRange(@("Preview  (faster look)","Full  (highest quality)"))
 $qual.SelectedIndex = 0
 $left.Controls.Add($qual)
-$tips.SetToolTip($qual, "Preview is for research screening. Full is slower and closer to GGPS paper settings.")
 
-$y += 32
-$btnInstall = New-Object System.Windows.Forms.Button
-$btnInstall.Text = "Install PanoLOG trainer"
-$btnInstall.Location = New-Object System.Drawing.Point(12, $y)
-$btnInstall.Size = New-Object System.Drawing.Size(300, 30)
-$left.Controls.Add($btnInstall)
-$tips.SetToolTip($btnInstall, "One-time WSL install: conda env, PyTorch CUDA, compile GGPS rasterizer for the 3090.")
+$y += 42
+$chkTrain = New-Object System.Windows.Forms.CheckBox
+$chkTrain.Text = "Train Gaussian splat"
+$chkTrain.Checked = $true
+$chkTrain.Location = New-Object System.Drawing.Point(16, $y)
+$chkTrain.Size = New-Object System.Drawing.Size(312, 24)
+$left.Controls.Add($chkTrain)
+$y += 24
+$chkIngest = New-Object System.Windows.Forms.CheckBox
+$chkIngest.Text = "Open in Twin viewer when done"
+$chkIngest.Checked = $true
+$chkIngest.Location = New-Object System.Drawing.Point(16, $y)
+$chkIngest.Size = New-Object System.Drawing.Size(312, 24)
+$left.Controls.Add($chkIngest)
+$y += 24
+$chkLarge = New-Object System.Windows.Forms.CheckBox
+$chkLarge.Text = "Huge outdoor partition"
+$chkLarge.Checked = $false
+$chkLarge.Location = New-Object System.Drawing.Point(16, $y)
+$chkLarge.Size = New-Object System.Drawing.Size(312, 24)
+$left.Controls.Add($chkLarge)
 
-$y += 40
+$y += 36
 $outBox = New-Object System.Windows.Forms.TextBox
-$outBox.Location = New-Object System.Drawing.Point(12, $y)
-$outBox.Size = New-Object System.Drawing.Size(300, 90)
 $outBox.Multiline = $true
 $outBox.ReadOnly = $true
+$outBox.Location = New-Object System.Drawing.Point(16, $y)
+$outBox.Size = New-Object System.Drawing.Size(312, 78)
 $outBox.BackColor = $warnBg
 $outBox.BorderStyle = "FixedSingle"
 $left.Controls.Add($outBox)
 
-$y += 100
-$btnAddVideo = New-Object System.Windows.Forms.Button
-$btnAddVideo.Text = "Add 360 video..."
-$btnAddVideo.Location = New-Object System.Drawing.Point(12, $y)
-$btnAddVideo.Size = New-Object System.Drawing.Size(145, 32)
-$left.Controls.Add($btnAddVideo)
-$btnAddFolder = New-Object System.Windows.Forms.Button
-$btnAddFolder.Text = "Add stills folder..."
-$btnAddFolder.Location = New-Object System.Drawing.Point(167, $y)
-$btnAddFolder.Size = New-Object System.Drawing.Size(145, 32)
-$left.Controls.Add($btnAddFolder)
-
-$y += 42
+$y += 90
 $btnStart = New-Object System.Windows.Forms.Button
-$btnStart.Text = "Start processing"
-$btnStart.Location = New-Object System.Drawing.Point(12, $y)
-$btnStart.Size = New-Object System.Drawing.Size(300, 40)
-$btnStart.BackColor = $accent
+$btnStart.Text = "Create splat"
+$btnStart.Location = New-Object System.Drawing.Point(16, $y)
+$btnStart.Size = New-Object System.Drawing.Size(312, 42)
+$btnStart.BackColor = $navy
 $btnStart.ForeColor = [System.Drawing.Color]::White
 $btnStart.FlatStyle = "Flat"
 $btnStart.Font = New-Object System.Drawing.Font("Segoe UI Semibold", 11)
 $left.Controls.Add($btnStart)
 
-$y += 48
-$btnOpen = New-Object System.Windows.Forms.Button
-$btnOpen.Text = "Open job folder"
-$btnOpen.Location = New-Object System.Drawing.Point(12, $y)
-$btnOpen.Size = New-Object System.Drawing.Size(145, 30)
-$left.Controls.Add($btnOpen)
+$y += 52
 $btnExport = New-Object System.Windows.Forms.Button
-$btnExport.Text = "Export SPZ..."
-$btnExport.Location = New-Object System.Drawing.Point(167, $y)
-$btnExport.Size = New-Object System.Drawing.Size(145, 30)
+$btnExport.Text = "Export..."
+$btnExport.Location = New-Object System.Drawing.Point(16, $y)
+$btnExport.Size = New-Object System.Drawing.Size(152, 34)
+$btnExport.BackColor = $card
 $left.Controls.Add($btnExport)
+$btnOpen = New-Object System.Windows.Forms.Button
+$btnOpen.Text = "Open job"
+$btnOpen.Location = New-Object System.Drawing.Point(176, $y)
+$btnOpen.Size = New-Object System.Drawing.Size(152, 34)
+$left.Controls.Add($btnOpen)
+
+$y += 44
+$btnContinue = New-Object System.Windows.Forms.Button
+$btnContinue.Text = "Continue last extract"
+$btnContinue.Location = New-Object System.Drawing.Point(16, $y)
+$btnContinue.Size = New-Object System.Drawing.Size(312, 30)
+$left.Controls.Add($btnContinue)
+$tips.SetToolTip($btnContinue, "Skip re-extracting. Use existing stills in the selected job and run SfM + train.")
 
 $y += 40
-[void](Add-LeftLabel $y "Recent jobs")
-$y += 22
+[void](Lbl $y "RECENT JOBS  (double-click to open)")
+$y += 20
 $jobsList = New-Object System.Windows.Forms.ListBox
-$jobsList.Location = New-Object System.Drawing.Point(12, $y)
-$jobsList.Size = New-Object System.Drawing.Size(300, 110)
+$jobsList.Location = New-Object System.Drawing.Point(16, $y)
+$jobsList.Size = New-Object System.Drawing.Size(312, 100)
 $left.Controls.Add($jobsList)
 
-# ----- right -----
+# right
 $grid = New-Object System.Windows.Forms.TableLayoutPanel
 $grid.Dock = "Fill"
 $grid.ColumnCount = 1
 $grid.RowCount = 5
-$grid.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 150))) | Out-Null
-$grid.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 72))) | Out-Null
-$grid.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 18))) | Out-Null
-$grid.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 24))) | Out-Null
-$grid.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 100))) | Out-Null
+[void]$grid.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 168)))
+[void]$grid.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 64)))
+[void]$grid.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 18)))
+[void]$grid.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Absolute, 26)))
+[void]$grid.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 100)))
+$split.Panel2.Padding = New-Object System.Windows.Forms.Padding(8, 8, 16, 8)
 $split.Panel2.Controls.Add($grid)
 
 $drop = New-Object System.Windows.Forms.Panel
 $drop.Dock = "Fill"
 $drop.AllowDrop = $true
-$drop.BackColor = [System.Drawing.Color]::White
-$drop.Padding = New-Object System.Windows.Forms.Padding(8)
+$drop.BackColor = $card
 $dropLabel = New-Object System.Windows.Forms.Label
 $dropLabel.Dock = "Fill"
 $dropLabel.TextAlign = "MiddleCenter"
-$dropLabel.ForeColor = [System.Drawing.Color]::FromArgb(40, 70, 120)
 $dropLabel.Font = New-Object System.Drawing.Font("Segoe UI", 11)
-$dropLabel.Text = "Drop a stitched 360 video or a folder of 360 stills here" + [Environment]::NewLine + [Environment]::NewLine + "Stitched mp4 from Insta360 Studio  |  Equirect jpg/png from a walk" + [Environment]::NewLine + "Not raw .insv  |  Not one single pano"
+$dropLabel.ForeColor = $navy
 $drop.Controls.Add($dropLabel)
 $grid.Controls.Add($drop, 0, 0)
 
 $fileList = New-Object System.Windows.Forms.ListBox
 $fileList.Dock = "Fill"
 $grid.Controls.Add($fileList, 0, 1)
-
 $prog = New-Object System.Windows.Forms.ProgressBar
 $prog.Dock = "Fill"
 $prog.Style = "Continuous"
 $grid.Controls.Add($prog, 0, 2)
-
 $stage = New-Object System.Windows.Forms.Label
 $stage.Dock = "Fill"
-$stage.Text = "Idle"
-$stage.Padding = New-Object System.Windows.Forms.Padding(8, 2, 8, 2)
+$stage.Text = "Ready"
+$stage.ForeColor = $muted
 $grid.Controls.Add($stage, 0, 3)
-
 $logBox = New-Object System.Windows.Forms.TextBox
 $logBox.Multiline = $true
 $logBox.ScrollBars = "Both"
 $logBox.Dock = "Fill"
 $logBox.ReadOnly = $true
-$logBox.Font = New-Object System.Drawing.Font("Consolas", 9)
-$logBox.BackColor = [System.Drawing.Color]::FromArgb(250, 251, 252)
+$logBox.BackColor = $card
+$logBox.Font = New-Object System.Drawing.Font("Cascadia Mono", 9)
 $grid.Controls.Add($logBox, 0, 4)
 
 $statusStrip = New-Object System.Windows.Forms.StatusStrip
-$stGgps = New-Object System.Windows.Forms.ToolStripStatusLabel
-$stPano = New-Object System.Windows.Forms.ToolStripStatusLabel
+$stMode = New-Object System.Windows.Forms.ToolStripStatusLabel
+$stTrain = New-Object System.Windows.Forms.ToolStripStatusLabel
 $stGpu = New-Object System.Windows.Forms.ToolStripStatusLabel
-$stGpu.Text = "RTX 3090"
 $stGpu.Spring = $true
-[void]$statusStrip.Items.Add($stGgps)
-[void]$statusStrip.Items.Add($stPano)
-[void]$statusStrip.Items.Add($stGpu)
+$stGpu.Text = "RTX 3090"
+[void]$statusStrip.Items.AddRange(@($stMode,$stTrain,$stGpu))
 $form.Controls.Add($statusStrip)
 $statusStrip.BringToFront()
 
-function Add-UiLog([string]$t) {
-  $logBox.AppendText($t + [Environment]::NewLine)
-}
+function Add-UiLog([string]$t) { $logBox.AppendText($t + [Environment]::NewLine) }
 
-function Refresh-EnvBanner {
-  if ($ggps) { $stGgps.Text = "GGPS ready" } else { $stGgps.Text = "GGPS missing" }
-  if ($script:panoReady) {
-    $stPano.Text = "Trainer ready - will write gaussian.spz"
-    $outBox.BackColor = $okBg
-    $outBox.Text = "This run trains a Gaussian splat and packs gaussian.spz for the Twin viewer. Tick Open in Twin viewer to mint a share link."
-    $btnInstall.Enabled = $false
-    $btnInstall.Text = "PanoLOG trainer installed"
+function Set-ModeUi {
+  if ($script:mode -eq "2d") {
+    $stMode.Text = "Phone / drone"
+    $dropLabel.Text = "Drop iPhone, drone, or camera photos or a 2D video" + [Environment]::NewLine + [Environment]::NewLine + "Postshot trains a pinhole Gaussian on the 3090. Output is Twin SPZ."
+    $lblFps.Text = "STILLS PER SECOND  (if you drop video)"
+    $chkLarge.Visible = $false
   } else {
-    $stPano.Text = "Trainer missing - click Install PanoLOG trainer"
-    $outBox.BackColor = $warnBg
-    $outBox.Text = "No splat until PanoLOG is installed. Click Install PanoLOG trainer (one-time, WSL, 3090). Then Start. Output is gaussian.spz plus an optional Twin share link."
-    $btnInstall.Enabled = $true
+    $stMode.Text = "360 camera"
+    $dropLabel.Text = "Drop a stitched 360 video or equirect stills from a walk" + [Environment]::NewLine + [Environment]::NewLine + "Not raw .insv. GGPS trains the 360 splat. Output is Twin SPZ."
+    $lblFps.Text = "STILLS PER SECOND FROM VIDEO"
+    $chkLarge.Visible = $true
+  }
+  if ($script:mode -eq "2d") {
+    if (Test-Path -LiteralPath $postshot) {
+      $stTrain.Text = "Postshot ready"
+      $outBox.BackColor = $okBg
+      $outBox.Text = "2D path uses Postshot. Default export is gaussian.spz for your Twin viewer."
+    } else {
+      $stTrain.Text = "Postshot missing"
+      $outBox.BackColor = $warnBg
+      $outBox.Text = "Install Jawset Postshot for phone/drone splats."
+    }
+  } else {
+    if ($script:panoReady) {
+      $stTrain.Text = "PanoLOG ready"
+      $outBox.BackColor = $okBg
+      $outBox.Text = "360 path is ready. Default export: Twin SPZ. Your last 360 extract can Continue without re-decoding the video."
+    } else {
+      $stTrain.Text = "PanoLOG missing"
+      $outBox.BackColor = $warnBg
+      $outBox.Text = "360 trainer is not ready. 2D tab still works with Postshot."
+    }
   }
 }
 
 function Refresh-Jobs {
   $jobsList.Items.Clear()
   $root = Join-Path $env:USERPROFILE "ggps-jobs"
-  if (Test-Path -LiteralPath $root) {
-    Get-ChildItem -LiteralPath $root -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 12 | ForEach-Object {
-      [void]$jobsList.Items.Add($_.Name)
-    }
+  if (Test-Path $root) {
+    Get-ChildItem $root -Directory | Sort-Object LastWriteTime -Descending | Select-Object -First 14 | ForEach-Object { [void]$jobsList.Items.Add($_.Name) }
   }
 }
-
-function Refresh-FileList {
+function Refresh-Files {
   $fileList.Items.Clear()
   foreach ($p in $script:inputs) { [void]$fileList.Items.Add($p) }
 }
@@ -361,202 +351,197 @@ function Add-InputPath([string]$p) {
   if (-not (Test-Path -LiteralPath $p)) { return }
   $ext = [IO.Path]::GetExtension($p).ToLowerInvariant()
   if ($ext -eq ".insv") {
-    [System.Windows.Forms.MessageBox]::Show("Raw .insv is rejected. Stitch in Insta360 Studio first: horizon lock ON, tilt recovery OFF, vibration reduction OFF.", "Need stitched 360", "OK", "Warning") | Out-Null
+    [System.Windows.Forms.MessageBox]::Show("Raw .insv is rejected. Stitch in Insta360 Studio first.", "Need stitched 360", "OK", "Warning") | Out-Null
     return
   }
   if (-not $script:inputs.Contains($p)) { $script:inputs.Add($p) }
-  if ($ext -in @(".mp4", ".mov", ".mkv", ".webm")) {
+  if ($ext -in @(".mp4",".mov",".mkv",".webm")) {
     $info = Get-VideoInfo $p
-    $fpsBox.Value = [decimal]$info.suggestedFps
-    $fpsHint.Text = ("{0}s clip. {1} fps ~ {2} stills." -f [int]$info.duration, $info.suggestedFps, [int]($info.duration * $info.suggestedFps))
-    if (-not $sceneBox.Text -or $sceneBox.Text -eq "campus-walk") {
-      $sceneBox.Text = [IO.Path]::GetFileNameWithoutExtension($p)
+    if ($info.duration -gt 0) {
+      $fpsBox.Value = [decimal]$info.suggestedFps
+      $n = [int]($info.duration * $info.suggestedFps)
+      $fpsHint.Text = ("{0}s  {1}x{2}. {3} fps ~ {4} stills." -f [int]$info.duration, $info.width, $info.height, $info.suggestedFps, $n)
+      if ($info.suggestedFps -le 0.6) { $preset.SelectedIndex = 2 }
+      elseif ($info.suggestedFps -ge 1.9) { $preset.SelectedIndex = 0 }
+      else { $preset.SelectedIndex = 1 }
+      $dropLabel.Text = Format-MediaSummary $info
+      Add-UiLog (Format-MediaSummary $info)
     }
-    if ($info.suggestedFps -ge 1.9) { $preset.SelectedIndex = 1 }
-    elseif ($info.suggestedFps -le 0.6) { $preset.SelectedIndex = 2 }
-    else { $preset.SelectedIndex = 0 }
-    $dropLabel.Text = Format-MediaSummary $info
-    Add-UiLog (Format-MediaSummary $info)
+    if ($sceneBox.Text -eq "campus-scan") { $sceneBox.Text = [IO.Path]::GetFileNameWithoutExtension($p) }
   }
-  Refresh-FileList
+  Refresh-Files
 }
 
-function Start-JobRun {
-  if ($script:inputs.Count -eq 0) {
-    [System.Windows.Forms.MessageBox]::Show("Add a stitched 360 video or a folder of stills first.", "Nothing queued", "OK", "Information") | Out-Null
+function Show-ExportDialog {
+  $srcSpz = $null; $srcPly = $null
+  if ($script:jobDir) {
+    $s = Join-Path $script:jobDir "export\gaussian.spz"
+    $p = Join-Path $script:jobDir "export\gaussian.ply"
+    if (Test-Path $s) { $srcSpz = $s }
+    if (Test-Path $p) { $srcPly = $p }
+    if (-not $srcPly) {
+      $hits = @(Get-ChildItem $script:jobDir -Recurse -Filter "point_cloud.ply" -ErrorAction SilentlyContinue)
+      if ($hits.Count -gt 0) { $srcPly = $hits[0].FullName }
+    }
+  }
+  if (-not $srcSpz -and -not $srcPly) {
+    [System.Windows.Forms.MessageBox]::Show("No splat yet. Create splat first. Default format is Twin SPZ.", "Nothing to export", "OK", "Information") | Out-Null
     return
   }
-  if (-not (Find-GgpsRoot)) {
-    Add-UiLog (Get-GgpsMissingHelp)
+  $dlg = New-Object System.Windows.Forms.SaveFileDialog
+  $dlg.Title = "Save Gaussian splat"
+  $dlg.Filter = "Twin viewer SPZ (*.spz)|*.spz|Gaussian PLY (*.ply)|*.ply|Standard splat (*.splat)|*.splat|Standalone HTML (*.html)|*.html"
+  $dlg.FilterIndex = 1
+  $dlg.InitialDirectory = $script:exportDir
+  $name = $sceneBox.Text
+  if (-not $name) { $name = "gaussian" }
+  $dlg.FileName = $name + ".spz"
+  if ($dlg.ShowDialog() -ne "OK") { return }
+  $script:exportDir = Split-Path $dlg.FileName
+  $ext = [IO.Path]::GetExtension($dlg.FileName).ToLowerInvariant()
+  $fmt = "spz"
+  if ($ext -eq ".ply") { $fmt = "ply" }
+  elseif ($ext -eq ".splat") { $fmt = "splat" }
+  elseif ($ext -eq ".html") { $fmt = "html" }
+  $convert = Join-Path $here "convert-splat.mjs"
+  if ($fmt -eq "spz" -and $srcSpz) { Copy-Item $srcSpz $dlg.FileName -Force }
+  elseif ($fmt -eq "ply" -and $srcPly) { Copy-Item $srcPly $dlg.FileName -Force }
+  elseif ($srcPly) {
+    & node $convert --in $srcPly --out $dlg.FileName --format $fmt
+  } elseif ($srcSpz -and $fmt -eq "spz") {
+    Copy-Item $srcSpz $dlg.FileName -Force
+  } else {
+    Add-UiLog "Need a PLY to convert to that format."
     return
   }
-  $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
-  $safe = ($sceneBox.Text -replace '[^A-Za-z0-9_-]', '_').Trim('_')
-  if (-not $safe) { $safe = "job" }
-  $script:jobDir = Join-Path $env:USERPROFILE ("ggps-jobs\" + $stamp + "-" + $safe)
-  New-Item -ItemType Directory -Force -Path $script:jobDir | Out-Null
+  Add-UiLog ("Saved " + $dlg.FileName)
+  Start-Process explorer.exe "/select,$($dlg.FileName)"
+}
+
+function Start-JobRun([switch]$Resume) {
+  $job = $null
+  if ($Resume -and $jobsList.SelectedItem) {
+    $job = Join-Path (Join-Path $env:USERPROFILE "ggps-jobs") ([string]$jobsList.SelectedItem)
+  } elseif ($Resume) {
+    $job = Join-Path $env:USERPROFILE "ggps-jobs\20260906-160452-stitchedhighpass"
+  }
+  if ($Resume -and $job -and (Test-Path (Join-Path $job "images"))) {
+    $script:jobDir = $job
+  } else {
+    if ($script:inputs.Count -eq 0) {
+      [System.Windows.Forms.MessageBox]::Show("Drop a video or photo folder first.", "Nothing queued", "OK", "Information") | Out-Null
+      return
+    }
+    $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
+    $safe = ($sceneBox.Text -replace '[^A-Za-z0-9_-]', '_').Trim('_')
+    if (-not $safe) { $safe = "job" }
+    $script:jobDir = Join-Path $env:USERPROFILE ("ggps-jobs\" + $stamp + "-" + $safe)
+    New-Item -ItemType Directory -Force -Path $script:jobDir | Out-Null
+  }
   $script:logFile = Join-Path $script:jobDir "drop.log"
   $script:logPos = 0
-  Set-Content -LiteralPath $script:logFile -Value ""
+  if (-not (Test-Path $script:logFile)) { Set-Content $script:logFile "" }
   $run = Join-Path $here "run_job.ps1"
   $argList = New-Object System.Collections.Generic.List[string]
-  $argList.Add("-NoProfile")
-  $argList.Add("-ExecutionPolicy"); $argList.Add("Bypass")
-  $argList.Add("-File"); $argList.Add("`"$run`"")
-  $argList.Add("-JobDir"); $argList.Add("`"$($script:jobDir)`"")
-  $argList.Add("-SceneName"); $argList.Add("`"$safe`"")
-  $argList.Add("-Fps"); $argList.Add([string]$fpsBox.Value)
-  $argList.Add("-LogPath"); $argList.Add("`"$($script:logFile)`"")
+  $argList.AddRange(@("-NoProfile","-ExecutionPolicy","Bypass","-File","`"$run`"","-JobDir","`"$($script:jobDir)`"","-SceneName","`"$($sceneBox.Text)`"","-Fps","$($fpsBox.Value)","-LogPath","`"$($script:logFile)`"","-Mode",$script:mode,"-ExportFormat","spz")) | Out-Null
   if ($chkTrain.Checked) { $argList.Add("-Train") }
-  if ($chkLarge.Checked) { $argList.Add("-LargeOutdoor") }
   if ($chkIngest.Checked) { $argList.Add("-Ingest") }
+  if ($chkLarge.Checked -and $script:mode -eq "360") { $argList.Add("-LargeOutdoor") }
   if ($qual.SelectedIndex -eq 1) { $argList.Add("-Iters"); $argList.Add("30000") } else { $argList.Add("-Iters"); $argList.Add("7000") }
-  $argList.Add("-InputPaths")
-  foreach ($p in $script:inputs) { $argList.Add("`"$p`"") }
+  if ($Resume) { $argList.Add("-SkipExtract"); $argList.Add("-SkipBlur") }
+  if ($script:inputs.Count -gt 0) {
+    $argList.Add("-InputPaths")
+    foreach ($p in $script:inputs) { $argList.Add("`"$p`"") }
+  } elseif ($Resume) {
+    $argList.Add("-SkipExtract")
+    $argList.Add("-InputPaths")
+    $argList.Add("`"$($script:jobDir)\images`"")
+  }
   $btnStart.Enabled = $false
   $prog.Style = "Marquee"
-  $stage.Text = "Starting..."
-  Add-UiLog ("Starting " + $script:jobDir)
-  Add-UiLog ("FPS " + $fpsBox.Value + "  train=" + $chkTrain.Checked + "  largeOutdoor=" + $chkLarge.Checked)
+  $stage.Text = "Working..."
+  Add-UiLog ("Start " + $script:mode + "  " + $script:jobDir)
   $script:proc = Start-Process -FilePath "powershell.exe" -ArgumentList $argList.ToArray() -PassThru -WindowStyle Hidden
   $timer.Start()
 }
 
+$tabs.add_SelectedIndexChanged({
+  if ($tabs.SelectedIndex -eq 1) { $script:mode = "2d" } else { $script:mode = "360" }
+  Set-ModeUi
+})
 $preset.add_SelectedIndexChanged({
   switch ($preset.SelectedIndex) {
-    0 { $fpsBox.Value = 1; $chkLarge.Checked = $false; $fpsHint.Text = "Short walk. 1 still per second." }
-    1 { $fpsBox.Value = 2; $chkLarge.Checked = $false; $fpsHint.Text = "Denser overlap. More stills, slower SfM." }
-    2 { $fpsBox.Value = [decimal]0.5; $chkLarge.Checked = $true; $fpsHint.Text = "Long outdoor. 0.5 fps. Partition is for huge sets." }
+    0 { $fpsBox.Value = 2 }
+    1 { $fpsBox.Value = 1 }
+    2 { $fpsBox.Value = [decimal]0.5 }
   }
 })
-
-$drop.add_DragEnter({
-  param($src, $e)
-  if ($e.Data.GetDataPresent([System.Windows.Forms.DataFormats]::FileDrop)) {
-    $e.Effect = [System.Windows.Forms.DragDropEffects]::Copy
-  }
-})
+$drop.add_DragEnter({ param($s,$e) if ($e.Data.GetDataPresent([Windows.Forms.DataFormats]::FileDrop)) { $e.Effect = "Copy" } })
 $drop.add_DragDrop({
-  param($src, $e)
-  $paths = [string[]]$e.Data.GetData([System.Windows.Forms.DataFormats]::FileDrop)
-  foreach ($p in $paths) { Add-InputPath $p }
+  param($s,$e)
+  foreach ($p in [string[]]$e.Data.GetData([Windows.Forms.DataFormats]::FileDrop)) { Add-InputPath $p }
 })
-
-$btnAddVideo.add_Click({
-  $dlg = New-Object System.Windows.Forms.OpenFileDialog
-  $dlg.Filter = "Stitched 360 video (*.mp4;*.mov;*.mkv)|*.mp4;*.mov;*.mkv|All files (*.*)|*.*"
-  $dlg.Multiselect = $true
-  $dlg.Title = "Add stitched 360 video"
-  if ($dlg.ShowDialog() -eq "OK") { foreach ($p in $dlg.FileNames) { Add-InputPath $p } }
+$miAdd.add_Click({
+  $d = New-Object System.Windows.Forms.OpenFileDialog
+  $d.Multiselect = $true
+  $d.Filter = "Media (*.mp4;*.mov;*.jpg;*.png)|*.mp4;*.mov;*.mkv;*.jpg;*.jpeg;*.png|All|*.*"
+  if ($d.ShowDialog() -eq "OK") { foreach ($p in $d.FileNames) { Add-InputPath $p } }
 })
-$miVideo.add_Click({ $btnAddVideo.PerformClick() })
-
-$btnAddFolder.add_Click({
-  $dlg = New-Object System.Windows.Forms.FolderBrowserDialog
-  $dlg.Description = "Folder of stitched 360 stills"
-  if ($dlg.ShowDialog() -eq "OK") { Add-InputPath $dlg.SelectedPath }
+$miFolder.add_Click({
+  $d = New-Object System.Windows.Forms.FolderBrowserDialog
+  if ($d.ShowDialog() -eq "OK") { Add-InputPath $d.SelectedPath }
 })
-$miStills.add_Click({ $btnAddFolder.PerformClick() })
-
 $btnStart.add_Click({ Start-JobRun })
-$btnInstall.add_Click({
-  Add-UiLog "Installing PanoLOG trainer in WSL. This takes a while (conda + PyTorch + compile)."
-  $inst = Join-Path $here "Install-PanoLog.ps1"
-  Start-Process -FilePath "powershell.exe" -ArgumentList @("-NoProfile","-ExecutionPolicy","Bypass","-File","`"$inst`"") -WindowStyle Hidden
-  $stage.Text = "Installing PanoLOG trainer... watch ggps-jobs\panolog-install.log"
-})
+$btnContinue.add_Click({ Start-JobRun -Resume })
+$btnExport.add_Click({ Show-ExportDialog })
+$miExport.add_Click({ Show-ExportDialog })
 $miExit.add_Click({ $form.Close() })
-$miOpenJobs.add_Click({
-  $root = Join-Path $env:USERPROFILE "ggps-jobs"
-  New-Item -ItemType Directory -Force -Path $root | Out-Null
-  Start-Process explorer.exe $root
-})
+$miJobs.add_Click({ Start-Process explorer.exe (Join-Path $env:USERPROFILE "ggps-jobs") })
 $btnOpen.add_Click({
-  $target = $script:jobDir
-  if (-not $target) { $target = Join-Path $env:USERPROFILE "ggps-jobs" }
-  if (Test-Path -LiteralPath $target) { Start-Process explorer.exe $target } else { Add-UiLog "No job folder yet." }
+  $t = $script:jobDir
+  if (-not $t) { $t = Join-Path $env:USERPROFILE "ggps-jobs" }
+  if (Test-Path $t) { Start-Process explorer.exe $t }
 })
-$miExportFrames.add_Click({
-  if ($script:jobDir -and (Test-Path (Join-Path $script:jobDir "images"))) {
-    Start-Process explorer.exe (Join-Path $script:jobDir "images")
-  } else { Add-UiLog "No extracted frames yet. Run Start first." }
-})
-
-function Export-Ply {
-  $src = $null
-  if ($script:jobDir) {
-    foreach ($n in @("gaussian.spz", "gaussian.ply", "point_cloud.ply")) {
-      $hits = @(Get-ChildItem -LiteralPath $script:jobDir -Recurse -Filter $n -ErrorAction SilentlyContinue)
-      if ($hits.Count -gt 0) { $src = $hits[0].FullName; break }
-    }
-  }
-  if (-not $src) {
-    [System.Windows.Forms.MessageBox]::Show("No Gaussian splat yet. Install the PanoLOG trainer, then Start with Train on. Output is gaussian.spz for the Twin viewer.", "No splat file", "OK", "Information") | Out-Null
-    return
-  }
-  $dlg = New-Object System.Windows.Forms.SaveFileDialog
-  $dlg.Filter = "Twin splat SPZ (*.spz)|*.spz|Gaussian PLY (*.ply)|*.ply"
-  $dlg.FileName = [IO.Path]::GetFileName($src)
-  if ($dlg.ShowDialog() -eq "OK") {
-    Copy-Item -LiteralPath $src -Destination $dlg.FileName -Force
-    Add-UiLog ("Exported " + $dlg.FileName)
-  }
-}
-$btnExport.add_Click({ Export-Ply })
-$miExportPly.add_Click({ Export-Ply })
-
 $jobsList.add_DoubleClick({
   if ($jobsList.SelectedItem) {
-    $p = Join-Path (Join-Path $env:USERPROFILE "ggps-jobs") ([string]$jobsList.SelectedItem)
-    if (Test-Path -LiteralPath $p) { Start-Process explorer.exe $p }
+    Start-Process explorer.exe (Join-Path (Join-Path $env:USERPROFILE "ggps-jobs") ([string]$jobsList.SelectedItem))
   }
 })
-
 $miHow.add_Click({
-  $msg = @"
-For the video on your Desktop (51 seconds, 5760x2880 stitched 360):
+  $m = @"
+360 tab: stitched equirect video or panos. GGPS on the 3090. Default save is Twin SPZ.
 
-1. Preset: Short walk / this 51s clip
-2. Video extract rate: 1.0
-3. Train Gaussian splat: ON (you want a splat, but this PC cannot train until PanoLOG is installed)
-4. Large outdoor: OFF
-5. Click Start processing
+Phone and drone tab: iPhone/drone photos or 2D video. Postshot on the 3090. Same SPZ export.
 
-What you get today without PanoLOG:
-  stills in ggps-jobs\...\images
-  camera poses after SfM
-  NO gaussian.ply yet
+stitchedhighpass.mp4 is 6 min 54 s at 5.7K. Use Long campus loop (0.5 fps, ~207 stills). Extract already finished. Click Continue last extract to skip the 7 GB decode and run cameras + train.
 
-What you get after PanoLOG is installed:
-  export\gaussian.ply  = the Gaussian splat for local inspect
-  That is NOT the phone share .spz from Postshot.
+Export... lets you pick SPZ (default), PLY, .splat, or HTML, and the save folder.
+
+Gaussian is not an OBJ mesh. Use SPZ in Twin. Sparse points are in the job folder if you need a point cloud.
 "@
-  [System.Windows.Forms.MessageBox]::Show($msg, "What should I click?", "OK", "Information") | Out-Null
-})
-$miDocs.add_Click({
-  $doc = Join-Path $here "..\..\..\docs\research\GGPS_DROP_APP.md"
-  if (Test-Path -LiteralPath $doc) { Start-Process $doc } else { Add-UiLog $doc }
+  [System.Windows.Forms.MessageBox]::Show($m, "How this works", "OK", "Information") | Out-Null
 })
 
 $timer = New-Object System.Windows.Forms.Timer
-$timer.Interval = 400
+$timer.Interval = 500
 $timer.add_Tick({
-  if ($script:logFile -and (Test-Path -LiteralPath $script:logFile)) {
-    $fs = [System.IO.File]::Open($script:logFile, "Open", "Read", "ReadWrite")
+  if ($script:logFile -and (Test-Path $script:logFile)) {
     try {
+      $fs = [IO.File]::Open($script:logFile, "Open", "Read", "ReadWrite")
       $fs.Seek($script:logPos, "Begin") | Out-Null
-      $sr = New-Object System.IO.StreamReader $fs
+      $sr = New-Object IO.StreamReader $fs
       $chunk = $sr.ReadToEnd()
       $script:logPos = $fs.Position
-      $sr.Close()
+      $sr.Close(); $fs.Close()
       if ($chunk) {
         $logBox.AppendText($chunk)
-        if ($chunk -match "STAGE extract") { $stage.Text = "Extracting stills from video..." }
-        elseif ($chunk -match "STAGE sfm") { $stage.Text = "Estimating 360 cameras (SfM)..." }
-        elseif ($chunk -match "STAGE export") { $stage.Text = "Copying Gaussian PLY..." }
-        elseif ($chunk -match "coarse train") { $stage.Text = "Training Gaussian splat..." }
+        if ($chunk -match "STAGE extract") { $stage.Text = "Extracting stills..." }
+        elseif ($chunk -match "STAGE sfm") { $stage.Text = "Estimating cameras..." }
+        elseif ($chunk -match "STAGE train") { $stage.Text = "Training Gaussian splat..." }
+        elseif ($chunk -match "STAGE export") { $stage.Text = "Packing Twin SPZ..." }
+        elseif ($chunk -match "STAGE ingest") { $stage.Text = "Opening Twin viewer..." }
       }
-    } finally { $fs.Close() }
+    } catch {}
   }
   if ($script:proc -and $script:proc.HasExited) {
     $timer.Stop()
@@ -567,34 +552,22 @@ $timer.add_Tick({
     $script:proc = $null
     Refresh-Jobs
     $spz = Join-Path $script:jobDir "export\gaussian.spz"
-    $shareFile = Join-Path $script:jobDir "share.json"
-    if (Test-Path -LiteralPath $spz) {
-      $script:lastPly = $spz
-      $stage.Text = "Done. gaussian.spz is ready for the Twin viewer."
-      $outBox.BackColor = $okBg
-      $outBox.Text = "Splat: $spz"
-    } else {
-      $stage.Text = "Finished without a splat file. See log."
+    $share = Join-Path $script:jobDir "share.json"
+    if (Test-Path $spz) { $stage.Text = "Done. Use Export to save the splat." ; $outBox.BackColor = $okBg ; $outBox.Text = "Splat ready: $spz" }
+    else { $stage.Text = "Finished without a splat. See log." }
+    if (Test-Path $share) {
+      $u = (Get-Content $share -Raw | ConvertFrom-Json).shareUrl
+      if ($u) { $outBox.Text = "Twin: $u" ; Start-Process $u }
     }
-    if (Test-Path -LiteralPath $shareFile) {
-      $share = Get-Content -LiteralPath $shareFile -Raw | ConvertFrom-Json
-      if ($share.shareUrl) {
-        $outBox.Text = ("Twin share: " + $share.shareUrl)
-        Start-Process $share.shareUrl
-      }
-    }
-    Add-UiLog ("process exit " + $code)
+    Add-UiLog ("exit " + $code)
   }
 })
-
 $form.add_FormClosed({ $timer.Stop() })
 
-Refresh-EnvBanner
+Set-ModeUi
 Refresh-Jobs
-Add-UiLog "GGPS Research Studio. Research - not for customer jobs."
-if ($ggps) { Add-UiLog "Trainer code: $ggps" } else { Add-UiLog (Get-GgpsMissingHelp) }
-if ($script:panoReady) { Add-UiLog "PanoLOG env found. Training can write gaussian.ply." }
-else { Add-UiLog "PanoLOG env is NOT installed. Start will extract stills and run SfM only." }
-Add-UiLog "For VID_20260821_165600 stitched 360: use 1.0 fps, Large outdoor OFF, then Start."
+Add-UiLog "Slate360 Research Studio. Research only."
+Add-UiLog "PanoLOG=$(if ($script:panoReady) { 'ready' } else { 'missing' })  Postshot=$(Test-Path $postshot)"
+Add-UiLog "stitchedhighpass.mp4 extract already produced 207 stills. Select that job and Continue last extract."
 
 [void]$form.ShowDialog()

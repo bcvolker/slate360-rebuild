@@ -8,6 +8,11 @@ param(
   [switch]$Train,
   [switch]$Ingest,
   [int]$Iters = 7000,
+  [string]$Mode = "360",
+  [switch]$SkipExtract,
+  [switch]$SkipBlur,
+  [string]$ExportFormat = "spz",
+  [string]$ExportPath = "",
   [switch]$SelfTest,
   [string]$LogPath
 )
@@ -150,8 +155,14 @@ Write-Log "Research - not for customer jobs"
 Write-Log "STAGE import"
 Write-Log "job=$JobDir"
 Write-Log "GGPS=$ggps"
+Write-Log ("mode=" + $Mode)
 if ($SceneName) { Write-Log "scene=$SceneName" }
+$is2d = ($Mode -eq "2d")
 
+$existing = @(Get-ChildItem -LiteralPath $imgDir -File -ErrorAction SilentlyContinue)
+if ($SkipExtract -and $existing.Count -ge 20) {
+  Write-Log ("Reuse $($existing.Count) existing frames; skip extract")
+} else {
 $copied = 0
 foreach ($s in $stills) {
   $dest = Join-Path $imgDir ([IO.Path]::GetFileName($s))
@@ -160,7 +171,7 @@ foreach ($s in $stills) {
 }
 Write-Log "copied $copied stills"
 
-if ($videos.Count -gt 0) {
+if ($videos.Count -gt 0 -and -not $is2d) {
   $ff = Get-Command ffmpeg -ErrorAction SilentlyContinue
   if (-not $ff) { Write-Log "ffmpeg missing"; exit 1 }
   if ($Fps -lt 0.5 -or $Fps -gt 4) { $Fps = 2 }
@@ -170,9 +181,12 @@ if ($videos.Count -gt 0) {
     $pattern = Join-Path $imgDir ("v{0}_{1}_%05d.jpg" -f $vi, [IO.Path]::GetFileNameWithoutExtension($v))
     Write-Log "STAGE extract"
     Write-Log "ffmpeg extract $Fps fps from $v"
-    & ffmpeg -y -hide_banner -loglevel error -i $v -vf "fps=$Fps" -q:v 2 $pattern
+    Write-Log "HEVC 360 decode can take several minutes. New jpgs appear in images\ while this runs."
+    $ffArgs = @("-y","-hide_banner","-loglevel","info","-stats","-i",$v,"-vf","fps=$Fps","-q:v","2",$pattern)
+    & ffmpeg @ffArgs
     if ($LASTEXITCODE -ne 0) { throw "ffmpeg failed" }
   }
+}
 }
 
 $frames = @(Get-ChildItem -LiteralPath $imgDir -File | Where-Object { $stillExt -contains $_.Extension.ToLowerInvariant() })
@@ -184,15 +198,20 @@ if ($frames.Count -eq 1) {
 $kept = New-Object System.Collections.Generic.List[object]
 foreach ($f in $frames) {
   $sz = Get-ImageSize $f.FullName
-  if (-not (Test-EquirectSize $sz.W $sz.H)) {
+  if (-not $is2d -and -not (Test-EquirectSize $sz.W $sz.H)) {
     Write-Log ("WARN not ~2:1 ERP, skipping {0} {1}x{2}" -f $f.Name, $sz.W, $sz.H)
+    continue
+  }
+  if ($SkipBlur -or $videos.Count -gt 0) {
+    $kept.Add([pscustomobject]@{ File = $f; Sharp = 99; W = $sz.W; H = $sz.H })
     continue
   }
   $sh = Get-Sharpness $f.FullName
   $kept.Add([pscustomobject]@{ File = $f; Sharp = $sh; W = $sz.W; H = $sz.H })
 }
 
-if ($kept.Count -lt 20) {
+$allowVideo2d = $is2d -and $videos.Count -gt 0
+if ($kept.Count -lt 20 -and -not $allowVideo2d) {
   Write-Log ("Need ~20+ stills after extract/filter; have {0}. Refuse to train." -f $kept.Count)
   exit 5
 }
@@ -213,23 +232,49 @@ if ($left.Count -lt 20) {
   exit 5
 }
 
-$wslScene = ConvertTo-WslPath $JobDir
-$wslGgps = ConvertTo-WslPath $ggps
-$wslScript = ConvertTo-WslPath (Join-Path $here "wsl\run_pipeline.sh")
-$trainFlag = ""
-if ($Train) { $trainFlag = "--train" }
-$largeFlag = ""
-if ($LargeOutdoor) { $largeFlag = "--large-outdoor" }
-if ($Iters -lt 1000) { $Iters = 7000 }
-if ($Iters -gt 30000) { $Iters = 30000 }
-
-Write-Log "STAGE sfm"
-Write-Log 'WSL pipeline (OpenSfM spherical / GGPS wrap)'
-$bash = "bash `"$wslScript`" --scene `"$wslScene`" --ggps `"$wslGgps`" $trainFlag $largeFlag --iters $Iters"
-Write-Log $bash
-& wsl -d Ubuntu-22.04 -- bash -lc $bash
-$code = $LASTEXITCODE
-Write-Log ("wsl exit=$code")
+$code = 0
+if ($is2d) {
+  $cli = Join-Path $env:ProgramFiles "Jawset Postshot\bin\postshot-cli.exe"
+  if (-not (Test-Path -LiteralPath $cli)) { Write-Log "Postshot CLI missing"; exit 1 }
+  $psht = Join-Path $JobDir "scene.psht"
+  $kSteps = 30
+  if ($Iters -ge 20000) { $kSteps = 60 }
+  Write-Log "STAGE train-2d Postshot"
+  $imports = New-Object System.Collections.Generic.List[string]
+  if ($frames.Count -ge 20) { $imports.Add($imgDir) }
+  else { foreach ($v in $videos) { $imports.Add($v) } }
+  $trainArgs = @("train","--gpu","0","-p","Splat3","--pose-quality","4","--max-image-size","3840","-s","$kSteps","--output",$psht)
+  foreach ($im in $imports) { $trainArgs += @("--import",$im) }
+  Write-Log ("postshot " + ($trainArgs -join " "))
+  & $cli @trainArgs
+  $code = $LASTEXITCODE
+  Write-Log ("postshot train exit=$code")
+  if ($code -eq 0 -and (Test-Path -LiteralPath $psht)) {
+    $rawSpz = Join-Path $JobDir "postshot.spz"
+    Write-Log "STAGE export-2d"
+    & $cli @("export","--file",$psht,"--export-splat",$rawSpz,"--spz-version","3")
+    $code = $LASTEXITCODE
+    if (Test-Path -LiteralPath $rawSpz) {
+      New-Item -ItemType Directory -Force -Path (Join-Path $JobDir "export") | Out-Null
+      Copy-Item $rawSpz (Join-Path $JobDir "export\gaussian.spz") -Force
+    }
+  }
+} else {
+  $wslScene = ConvertTo-WslPath $JobDir
+  $wslGgps = ConvertTo-WslPath $ggps
+  $wslScript = ConvertTo-WslPath (Join-Path $here "wsl\run_pipeline.sh")
+  if ($Iters -lt 1000) { $Iters = 7000 }
+  if ($Iters -gt 30000) { $Iters = 30000 }
+  Write-Log "STAGE sfm"
+  Write-Log "WSL OpenSfM spherical then GGPS train"
+  $wslArgs = @("-d","Ubuntu-22.04","--","bash",$wslScript,"--scene",$wslScene,"--ggps",$wslGgps,"--iters","$Iters")
+  if ($Train) { $wslArgs += "--train" }
+  if ($LargeOutdoor) { $wslArgs += "--large-outdoor" }
+  Write-Log ("wsl " + ($wslArgs -join " "))
+  & wsl.exe @wslArgs
+  $code = $LASTEXITCODE
+  Write-Log ("wsl exit=$code")
+}
 
 $exportDir = Join-Path $JobDir "export"
 New-Item -ItemType Directory -Force -Path $exportDir | Out-Null
@@ -237,23 +282,44 @@ $plyHits = @(Get-ChildItem -LiteralPath $JobDir -Recurse -Filter "point_cloud.pl
 $splatPath = $null
 $spzPath = $null
 $shareUrl = $null
+$readySpz = Join-Path $exportDir "gaussian.spz"
+if (Test-Path -LiteralPath $readySpz) { $spzPath = $readySpz }
 if ($plyHits.Count -gt 0) {
   $splatPath = Join-Path $exportDir "gaussian.ply"
   Copy-Item -LiteralPath $plyHits[0].FullName -Destination $splatPath -Force
   Write-Log "STAGE export"
   Write-Log "Gaussian PLY $splatPath"
-  $spzPath = Join-Path $exportDir "gaussian.spz"
-  $convert = Join-Path $here "ply-to-spz.mjs"
-  Write-Log "PLY to SPZ v3 for Twin viewer"
-  & node $convert --in $splatPath --out $spzPath
-  if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $spzPath)) {
-    Write-Log "SPZ convert failed. PLY is still in export."
-    $spzPath = $null
-  } else {
-    Write-Log "SPZ $spzPath"
+  if (-not $spzPath) {
+    $spzPath = Join-Path $exportDir "gaussian.spz"
+    $convert = Join-Path $here "convert-splat.mjs"
+    Write-Log "PLY to SPZ v3 for Twin viewer"
+    & node $convert --in $splatPath --out $spzPath --format spz
+    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $spzPath)) {
+      Write-Log "SPZ convert failed. PLY is still in export."
+      $spzPath = $null
+    } else {
+      Write-Log "SPZ $spzPath"
+    }
   }
-} else {
-  Write-Log "No point_cloud.ply yet. Install PanoLOG trainer, then Start with Train on."
+} elseif (-not $spzPath) {
+  Write-Log "No Gaussian output yet."
+}
+
+$fmt = $ExportFormat.ToLowerInvariant()
+if (-not $fmt) { $fmt = "spz" }
+$srcForUser = $null
+if ($fmt -eq "spz") { $srcForUser = $spzPath }
+elseif ($fmt -eq "ply") { $srcForUser = $splatPath }
+elseif ($splatPath -and $fmt -in @("splat","html")) {
+  $srcForUser = Join-Path $exportDir ("gaussian" + $(if ($fmt -eq "html") { ".html" } else { ".splat" }))
+  & node (Join-Path $here "convert-splat.mjs") --in $splatPath --out $srcForUser --format $fmt
+  if (-not (Test-Path -LiteralPath $srcForUser)) { $srcForUser = $null }
+}
+if ($ExportPath -and $srcForUser) {
+  $destDir = Split-Path -Parent $ExportPath
+  if ($destDir) { New-Item -ItemType Directory -Force -Path $destDir | Out-Null }
+  Copy-Item -LiteralPath $srcForUser -Destination $ExportPath -Force
+  Write-Log "Saved $ExportPath"
 }
 
 if ($Ingest -and $spzPath) {

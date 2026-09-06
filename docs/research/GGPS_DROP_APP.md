@@ -17,7 +17,16 @@ That puts **GGPS Research Drop** on the Desktop. Or double-click:
 
 `C:\s360-desktop\scripts\research\ggps-drop-app\Launch-GGPS-Research-Drop.bat`
 
-Open **GGPS Research Studio** from the Desktop shortcut, drop a stitched 360 mp4 or stills folder, then **Start processing**. Jobs land in `%USERPROFILE%\ggps-jobs\<timestamp>-<name>\`.
+Open **Slate360 Research Studio** from the Desktop shortcut.
+
+- **360 camera** tab: stitched equirect video or panos → GGPS → Twin **SPZ**
+- **Phone and drone** tab: iPhone/drone photos or 2D video → Postshot → Twin **SPZ**
+
+**Export...** always defaults to Twin SPZ. You pick the folder and can also save PLY, `.splat`, or HTML.
+
+Jobs: `%USERPROFILE%\ggps-jobs\<timestamp>-<name>\`.
+
+If extract already finished (e.g. `stitchedhighpass`), select that job and **Continue last extract** so you do not decode the 7 GB HEVC again.
 
 ### Settings for `VID_20260821_165600_00_120_STITCHED_360.mp4`
 
