@@ -3,8 +3,7 @@ import { MARKETING_FOOTER } from "@/components/marketing-launchpad/marketing-sty
 import { Slate360Logo } from "@/components/studio-ui/LogoProvider";
 
 const ECOSYSTEM_LINKS = [
-  { label: "Site Walk", href: "/product/site-walk" },
-  { label: "Digital Twin", href: "/product/digital-twin" },
+  { label: "Deliverables", href: "/#apps" },
 ] as const;
 
 const GOVERNANCE_LINKS = [
