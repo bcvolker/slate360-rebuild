@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { loadTwinSpaceViewerData, loadTwinSpaceStatus } from "@/lib/digital-twin/load-space-viewer";
+import { loadDigitalTwinHubData } from "@/lib/digital-twin/load-hub-data";
 import { TwinDetailClient } from "@/components/digital-twin/TwinDetailClient";
 import { isDigitalTwinDesktopEnabled } from "@/lib/digital-twin/desktop-feature";
 import { MobileEmptyState } from "@/components/mobile-system";
@@ -81,8 +82,14 @@ export default async function DigitalTwinViewerPage({ params }: Props) {
     );
   }
 
+  const hub = await loadDigitalTwinHubData(context.orgId);
+  const thisTwin = hub.twins.find((t) => t.id === viewer.spaceId) ?? null;
+
   return (
     <TwinDetailClient
+      projectId={thisTwin?.projectId ?? null}
+      projectName={thisTwin?.projectName ?? null}
+      projects={hub.projects}
       viewer={{
         spaceId: viewer.spaceId,
         modelId: viewer.modelId,

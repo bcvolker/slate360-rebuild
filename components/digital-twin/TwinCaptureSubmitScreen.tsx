@@ -17,6 +17,8 @@ type Props = {
   projectId: string;
   captureStatus: string;
   title: string;
+  /** Job · space, e.g. "AOB205 · Kitchen". */
+  contextLabel?: string | null;
   assets: TwinSubmitAsset[];
   canUseHighQuality?: boolean;
 };
@@ -27,6 +29,7 @@ export function TwinCaptureSubmitScreen({
   projectId,
   captureStatus,
   title,
+  contextLabel = null,
   assets,
   canUseHighQuality = false,
 }: Props) {
@@ -39,6 +42,7 @@ export function TwinCaptureSubmitScreen({
         spaceId,
         projectId,
         title,
+        contextLabel,
         captureStatus,
         assets: assets.map((asset) => ({
           id: asset.id,

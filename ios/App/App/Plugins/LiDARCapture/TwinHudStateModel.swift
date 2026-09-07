@@ -85,7 +85,9 @@ struct TwinHudActions {
 @MainActor
 final class TwinHudStateModel: ObservableObject {
     @Published var phase: TwinCapturePhase = .checking
-    @Published var headerLabel: String = "TWIN 360 · LIDAR"
+    @Published var headerLabel: String = "TWIN 360"
+    /// Second header line: visit label + build stamp ("Sep 6 · 5:56 PM · b123·abc1234").
+    @Published var subLabel: String = ""
     @Published var tipText: String = "Move slowly · capture corners · keep device steady"
     @Published var tipWarning: Bool = false
 

@@ -111,12 +111,16 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
             guard let host = self.bridge?.viewController else {
                 call.reject("No host view controller"); return
             }
-            let opts = TwinCaptureOptions.from(
+            var opts = TwinCaptureOptions.from(
                 confidence: call.getString("confidence"),
                 maxDurationSec: call.getDouble("maxDurationSec"),
                 maxPoints: call.getInt("maxPoints"),
                 reconstructionQuality: call.getString("reconstructionQuality")
             )
+            // Names for the HUD so the operator always sees which job and space this walk is.
+            opts.visitTitle = call.getString("title")
+            opts.spaceTitle = call.getString("spaceTitle")
+            opts.projectName = call.getString("projectName")
             // Upload target — the native uploader pushes the capture files straight to
             // storage so they never cross into the JS heap (the "Load failed" crash).
             let spaceId = call.getString("spaceId") ?? ""

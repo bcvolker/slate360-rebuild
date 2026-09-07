@@ -26,13 +26,17 @@ type Props = {
 type Selection = {
   spaceId: string;
   projectId: string;
+  projectName: string | null;
+  /** Stable twin name ("Kitchen"). */
   spaceTitle: string;
+  /** This walk's label ("Sep 6 · 5:56 PM") — becomes digital_twin_captures.title. */
+  visitTitle: string;
 };
 
 type QuickBootState = "loading" | "error" | "done";
 
 export function TwinCaptureFlow({
-  spaces: _spaces,
+  spaces,
   projects,
   initialProjectId,
   lockProject = false,
@@ -61,11 +65,24 @@ export function TwinCaptureFlow({
     setQuickBoot("loading");
     setQuickBootError(null);
     try {
+      // Walking an existing space again: no new row, the visit joins its timeline.
+      if (dest.spaceId) {
+        const space = spaces.find((s) => s.id === dest.spaceId);
+        setSelection({
+          spaceId: dest.spaceId,
+          projectId: space?.projectId ?? dest.projectId ?? "",
+          projectName: dest.quickScan ? null : space?.projectName ?? projects.find((p) => p.id === dest.projectId)?.name ?? null,
+          spaceTitle: dest.spaceTitle,
+          visitTitle: dest.visitTitle,
+        });
+        setQuickBoot("done");
+        return;
+      }
       const response = await fetch("/api/digital-twin/spaces", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: dest.title,
+          title: dest.spaceTitle,
           quick_scan: dest.quickScan,
           project_id: dest.projectId || undefined,
         }),
@@ -75,7 +92,9 @@ export function TwinCaptureFlow({
       setSelection({
         spaceId: data.space.id,
         projectId: data.space.projectId ?? dest.projectId ?? "",
-        spaceTitle: dest.title,
+        projectName: dest.quickScan ? null : data.space.projectName ?? null,
+        spaceTitle: dest.spaceTitle,
+        visitTitle: dest.visitTitle,
       });
       setQuickBoot("done");
     } catch (error) {
@@ -104,7 +123,7 @@ export function TwinCaptureFlow({
   const handleCaptureFinish = useCallback(
     async (result: TwinCaptureFinishResult) => {
       if (!selection || !result.files.length) return;
-      const projectName = projects.find((project) => project.id === selection.projectId)?.name ?? null;
+      const projectName = selection.projectName;
       const pendingSession = {
         selection,
         projectName,
@@ -124,7 +143,7 @@ export function TwinCaptureFlow({
       try {
         await persistTwinCaptureReviewState({
           session: pendingSession,
-          scanName: selection.spaceTitle,
+          scanName: selection.visitTitle,
           quality: "standard",
           addedSources: [],
         });
@@ -147,6 +166,7 @@ export function TwinCaptureFlow({
     return (
       <TwinCaptureNameGate
         projects={projects}
+        spaces={spaces}
         lockedProjectId={lockProject ? initialProjectId : null}
         onContinue={(dest) => void bootNamedVisit(dest)}
         onCancel={handleCancel}
@@ -165,13 +185,15 @@ export function TwinCaptureFlow({
     );
   }
 
-  const projectName = projects.find((project) => project.id === selection.projectId)?.name ?? null;
+  const projectName = selection.projectName;
   if (nativeLidar) {
     return (
       <TwinNativeCaptureLauncher
         spaceId={selection.spaceId}
         projectId={selection.projectId}
-        title={selection.spaceTitle}
+        title={selection.visitTitle}
+        spaceTitle={selection.spaceTitle}
+        projectName={projectName ?? undefined}
         onUploaded={handleNativeUploaded}
         onCancel={handleCancel}
       />

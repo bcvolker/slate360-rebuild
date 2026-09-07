@@ -122,11 +122,22 @@ private struct TwinHudTopBar: View {
                 .buttonStyle(.plain)
                 .accessibilityLabel("Back")
 
-                Text(model.headerLabel)
-                    .font(.system(size: 11, weight: .semibold, design: .monospaced))
-                    .foregroundStyle(TwinHudColor.body)
-                    .lineLimit(1)
-                    .frame(maxWidth: .infinity)
+                VStack(spacing: 1) {
+                    Text(model.headerLabel)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                    if !model.subLabel.isEmpty {
+                        Text(model.subLabel)
+                            .font(.system(size: 9, weight: .medium, design: .monospaced))
+                            .foregroundStyle(TwinHudColor.body.opacity(0.8))
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.7)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .accessibilityElement(children: .combine)
 
                 if model.clipCount > 0 {
                     Button(action: model.actions.onClipsToggle) {

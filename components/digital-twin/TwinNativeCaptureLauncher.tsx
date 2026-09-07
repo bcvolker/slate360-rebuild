@@ -10,7 +10,11 @@ import { LiDARCapture, type TwinCaptureManifest } from "@/src/plugins/LiDARCaptu
 type Props = {
   spaceId: string;
   projectId: string;
+  /** Visit label (this walk). */
   title?: string;
+  /** Stable space name and job name — HUD context only. */
+  spaceTitle?: string;
+  projectName?: string;
   onUploaded: (info: { captureId: string }) => void;
   onCancel: () => void;
 };
@@ -26,7 +30,7 @@ type Props = {
  * process — surfacing as the post-capture "Load failed" page. Native upload removes the
  * crossing entirely; here we only ever receive a lightweight `captureId`.
  */
-export function TwinNativeCaptureLauncher({ spaceId, projectId, title, onUploaded, onCancel }: Props) {
+export function TwinNativeCaptureLauncher({ spaceId, projectId, title, spaceTitle, projectName, onUploaded, onCancel }: Props) {
   const [phase, setPhase] = useState<"capturing" | "uploading" | "error">("capturing");
   const [uploadLabel, setUploadLabel] = useState<string | null>(null);
   const [uploadPct, setUploadPct] = useState<number | null>(null);
@@ -56,6 +60,8 @@ export function TwinNativeCaptureLauncher({ spaceId, projectId, title, onUploade
           spaceId,
           projectId,
           title,
+          spaceTitle,
+          projectName,
           apiBase: typeof window !== "undefined" ? window.location.origin : undefined,
         });
         if (cancelled) return;
@@ -87,7 +93,7 @@ export function TwinNativeCaptureLauncher({ spaceId, projectId, title, onUploade
       cancelled = true;
       void listener?.remove();
     };
-  }, [spaceId, projectId, title, onUploaded, onCancel]);
+  }, [spaceId, projectId, title, spaceTitle, projectName, onUploaded, onCancel]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-4 py-8 text-center">

@@ -3,7 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { provisionProjectFolders } from "@/lib/slatedrop/provisioning";
 
-const QUICK_SCAN_POOL_NAME = "Quick Scans";
+import { QUICK_SCAN_POOL_NAME } from "./quick-scan-title";
 const QUICK_SCAN_POOL_META_KEY = "twin_quick_scan_pool";
 
 type AdminClient = SupabaseClient;

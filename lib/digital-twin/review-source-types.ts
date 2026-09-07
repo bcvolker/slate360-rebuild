@@ -41,4 +41,6 @@ export type TwinReviewInitialCapture = TwinReviewTarget & {
   captureId: string;
   captureStatus: string;
   assets: TwinReviewExistingAsset[];
+  /** "AOB205 · Kitchen" — job and space this visit belongs to, for the review header. */
+  contextLabel?: string | null;
 };

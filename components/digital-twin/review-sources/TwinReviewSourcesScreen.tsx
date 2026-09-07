@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { useM1ReviewSources, type M1ReviewDevPreview } from "@/hooks/useM1ReviewSources";
 import type {
@@ -22,6 +23,8 @@ type Props = {
 
 export function TwinReviewSourcesScreen(props: Props) {
   const state = useM1ReviewSources(props);
+  // A finished native walk lands here with everything uploaded: lead with Process, not the file list.
+  const [showSources, setShowSources] = useState(!props.initialCapture);
 
   if (!state.sessionReady) return <CenteredMessage message="Loading your sources…" />;
   if (!state.session && !state.target) {
@@ -71,24 +74,44 @@ export function TwinReviewSourcesScreen(props: Props) {
       >
         <div className="mx-auto flex w-full max-w-lg flex-col gap-4">
           <section>
-            <p className="text-sm text-[var(--graphite-muted)]">
-              Check what you collected, add anything missing, then choose when to process.
+            {props.initialCapture?.contextLabel ? (
+              <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">{props.initialCapture.contextLabel}</p>
+            ) : null}
+            <p className="mt-1 truncate text-lg font-semibold text-[var(--graphite-text-header)]">{state.title}</p>
+            <p className="mt-1 text-sm text-[var(--graphite-muted)]">
+              {state.sources.length} source{state.sources.length === 1 ? "" : "s"} collected. Process when you are ready.
             </p>
-            <p className="mt-2 truncate text-base font-semibold text-[var(--graphite-text-header)]">{state.title}</p>
           </section>
 
-          <TwinReviewSourceList
-            sources={state.sources}
-            disabled={state.processState !== "idle"}
-            onChipChange={state.handleChipChange}
-            onRemove={state.handleRemoveSource}
-          />
-          <TwinReviewSourcePicker
-            projectId={state.target?.projectId ?? null}
-            disabled={state.processState !== "idle"}
-            onAddFiles={state.handleAddFiles}
-            onAddSlateDrop={state.handleAddSlateDrop}
-          />
+          <section className="rounded-xl border border-white/10">
+            <button
+              type="button"
+              onClick={() => setShowSources((v) => !v)}
+              aria-expanded={showSources}
+              className="flex min-h-12 w-full items-center justify-between px-3 text-sm font-semibold text-[var(--graphite-text-body)]"
+            >
+              <span>Sources <span className="font-mono text-xs text-[var(--graphite-muted)]">{state.sources.length}</span></span>
+              <span className="text-xs font-medium text-[var(--graphite-muted)]">{showSources ? "Hide" : "Show"}</span>
+            </button>
+            {showSources ? (
+              <div className="border-t border-white/10 px-3 pb-3 pt-2">
+                <TwinReviewSourceList
+                  sources={state.sources}
+                  disabled={state.processState !== "idle"}
+                  onChipChange={state.handleChipChange}
+                  onRemove={state.handleRemoveSource}
+                />
+                <div className="mt-3">
+                  <TwinReviewSourcePicker
+                    projectId={state.target?.projectId ?? null}
+                    disabled={state.processState !== "idle"}
+                    onAddFiles={state.handleAddFiles}
+                    onAddSlateDrop={state.handleAddSlateDrop}
+                  />
+                </div>
+              </div>
+            ) : null}
+          </section>
 
           {state.sourceNotice ? (
             <p className="text-xs text-[var(--graphite-muted)]" role="status">{state.sourceNotice}</p>

@@ -57,8 +57,12 @@ export interface TwinCapturePresentOptions {
   /** Twin space + project the capture uploads to (required for native upload). */
   spaceId?: string;
   projectId?: string;
-  /** Optional capture title. */
+  /** Visit label for this walk (lands on digital_twin_captures.title), e.g. "Sep 6 · 5:56 PM". */
   title?: string;
+  /** Stable name of the space being scanned, e.g. "Kitchen". Shown in the native HUD. */
+  spaceTitle?: string;
+  /** Job name, e.g. "AOB205". Shown in the native HUD. */
+  projectName?: string;
   /** Packed-depth keyframe density. Default `normal` (8 cm / 8°). `high` is ~4 cm / 4°. */
   reconstructionQuality?: "normal" | "high";
   /** Origin the native uploader posts to (defaults to https://www.slate360.ai). Pass

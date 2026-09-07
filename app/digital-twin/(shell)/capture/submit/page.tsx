@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { isOwnerEmail } from "@/lib/server/beta-access";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isQuickScanPoolName } from "@/lib/digital-twin/quick-scan-title";
 import {
   TwinCaptureSubmitScreen,
   type TwinSubmitAsset,
@@ -35,6 +36,16 @@ export default async function TwinCaptureSubmitPage({
 
   if (!capture) notFound();
 
+  // Job · space for the header — the operator should never wonder which walk this is.
+  const [{ data: space }, { data: project }] = await Promise.all([
+    admin.from("digital_twin_spaces").select("title").eq("id", capture.space_id).maybeSingle(),
+    capture.project_id
+      ? admin.from("projects").select("name").eq("id", capture.project_id).maybeSingle()
+      : Promise.resolve({ data: null as { name: string } | null }),
+  ]);
+  const contextLabel =
+    [project?.name && !isQuickScanPoolName(project.name) ? project.name : null, space?.title].filter(Boolean).join(" · ") || null;
+
   const { data: assetRows } = await admin
     .from("digital_twin_capture_assets")
     .select("id, storage_key, asset_kind, file_size_bytes, status, content_type")
@@ -56,7 +67,8 @@ export default async function TwinCaptureSubmitPage({
       spaceId={capture.space_id}
       projectId={capture.project_id}
       captureStatus={capture.capture_status ?? "uploaded"}
-      title={capture.title ?? "Quick scan"}
+      title={capture.title ?? "Untitled walk"}
+      contextLabel={contextLabel}
       assets={assets}
       canUseHighQuality={isOwnerEmail(context.user?.email)}
     />

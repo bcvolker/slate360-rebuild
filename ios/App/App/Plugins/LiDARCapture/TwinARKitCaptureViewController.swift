@@ -16,6 +16,11 @@ struct TwinCaptureOptions {
     /// Packed-depth keyframe density. Default stays `normal` (8 cm / 8°).
     /// `high` (~4 cm / 4°) is opt-in reconstruction quality, not an every-frame dump.
     var reconstructionQuality: CaptureReconstructionQuality = .normal
+    /// What is being scanned, for the HUD. Visit label lands on the capture row server-side;
+    /// space + project are display-only here. All optional: an old web bundle omits them.
+    var visitTitle: String? = nil
+    var spaceTitle: String? = nil
+    var projectName: String? = nil
 
     static func from(
         confidence: String?,
@@ -367,18 +372,25 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             // Keep this disabled; do not attempt lockForConfiguration exposure control.
             exposureLockEnabled: false
         )
+        // "AOB205 · Kitchen" when the web layer named the walk; otherwise the product name.
+        let context: String = {
+            let parts = [options.projectName, options.spaceTitle].compactMap { $0?.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+            return parts.isEmpty ? "TWIN 360" : parts.joined(separator: " · ")
+        }()
         let header: String = {
             switch phase {
             case .checking: return "Checking device…"
-            case .ready: return "TWIN 360 · \(buildStamp)"
-            case .recording: return "● Recording"
+            case .ready: return context
+            case .recording: return "● \(context)"
             case .finishing: return "Saving…"
             case .failed: return "Failed"
             }
         }()
+        let sub: String = [options.visitTitle, buildStamp].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: " · ")
         DispatchQueue.main.async { [weak self] in
             guard let self = self else { return }
             self.hudHost.state.headerLabel = header
+            self.hudHost.state.subLabel = sub
             self.hudHost.state.applySnapshot(
                 phase: phase,
                 isRecording: self.isRecording,

@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { Share2, Layers, Info, ChevronLeft } from "lucide-react";
+import { Share2, Layers, Info, ChevronLeft, Pencil } from "lucide-react";
+import type { HubTwinProject } from "@/lib/types/digital-twin-hub";
+import { isQuickScanPoolName } from "@/lib/digital-twin/quick-scan-title";
 import Link from "next/link";
 import type { TwinViewerKind } from "@/lib/digital-twin/viewer-format";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -35,6 +37,11 @@ type Props = {
   spaceStatus: string;
   latestGps: TwinGpsMetadata | null;
   desktopEditorEnabled: boolean;
+  /** Job this twin files under; null / Quick Scans pool renders as Unfiled. */
+  projectId?: string | null;
+  projectName?: string | null;
+  /** Active jobs the operator may move this twin into. */
+  projects?: HubTwinProject[];
 };
 
 type SheetKind = "share" | "versions" | "details" | null;
@@ -56,11 +63,32 @@ export function TwinDetailClient({
   spaceStatus,
   latestGps,
   desktopEditorEnabled,
+  projectId = null,
+  projectName = null,
+  projects = [],
 }: Props) {
   const [sheet, setSheet] = useState<SheetKind>(null);
   const [title, setTitle] = useState(spaceTitle);
   const [editingTitle, setEditingTitle] = useState(false);
   const [savingTitle, setSavingTitle] = useState(false);
+  const [job, setJob] = useState<{ id: string | null; name: string | null }>({ id: projectId, name: projectName });
+  const [movingJob, setMovingJob] = useState(false);
+  const jobs = projects.filter((p) => !isQuickScanPoolName(p.name));
+  const filedName = job.name && !isQuickScanPoolName(job.name) ? job.name : "Unfiled";
+  const moveTo = (nextId: string) => {
+    if (!nextId || nextId === job.id) { setMovingJob(false); return; }
+    void fetch(`/api/digital-twin/spaces/${viewer.spaceId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ project_id: nextId }),
+    }).then(async (res) => {
+      if (res.ok) {
+        const data = (await res.json().catch(() => ({}))) as { space?: { projectId?: string; projectName?: string | null } };
+        setJob({ id: data.space?.projectId ?? nextId, name: data.space?.projectName ?? jobs.find((p) => p.id === nextId)?.name ?? null });
+      }
+      setMovingJob(false);
+    });
+  };
   const [measureRefresh, setMeasureRefresh] = useState(0);
   const [overlayPins, setOverlayPins] = useState<TwinOverlayPin[]>([]);
   const [overlayMeasurements, setOverlayMeasurements] = useState<TwinOverlayMeasurement[]>([]);
@@ -134,14 +162,37 @@ export function TwinDetailClient({
             <button
               type="button"
               onClick={() => setEditingTitle(true)}
-              className="block max-w-full truncate text-left text-sm font-semibold text-zinc-100"
+              aria-label={`Rename ${title}`}
+              className="flex max-w-full items-center gap-1.5 text-left text-sm font-semibold text-zinc-100"
             >
-              {title}
+              <span className="truncate">{title}</span>
+              <Pencil className="h-3 w-3 shrink-0 text-[var(--graphite-muted)]" aria-hidden />
             </button>
           )}
-          <p className="truncate text-[11px] capitalize text-[var(--graphite-muted)]">
-            {spaceStatus.replace(/_/g, " ")} · tap name to rename
-          </p>
+          {movingJob && jobs.length ? (
+            <select
+              autoFocus
+              defaultValue={job.id ?? ""}
+              onChange={(e) => moveTo(e.target.value)}
+              onBlur={() => setMovingJob(false)}
+              aria-label="Move to project"
+              className="mt-0.5 max-w-full rounded-md border border-white/15 bg-[var(--graphite-canvas)] px-1 py-0.5 text-[11px] text-zinc-100"
+            >
+              {job.id && !jobs.some((p) => p.id === job.id) ? <option value="">{filedName}</option> : null}
+              {jobs.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          ) : (
+            <button
+              type="button"
+              onClick={() => jobs.length && setMovingJob(true)}
+              aria-label={jobs.length ? `Move to project (now ${filedName})` : undefined}
+              className="block max-w-full truncate text-left text-[11px] text-[var(--graphite-muted)]"
+            >
+              <span className={filedName === "Unfiled" ? "" : "text-[var(--graphite-text-body)]"}>{filedName}</span>
+              <span className="capitalize"> · {spaceStatus.replace(/_/g, " ")}</span>
+              {jobs.length ? <span> · move</span> : null}
+            </button>
+          )}
         </div>
       </div>
 
