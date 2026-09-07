@@ -31,6 +31,7 @@ Then the operator SOP:
 The dated handoff wins on business model, capture strategy, and build order when it conflicts
 with older `SESSION_HANDOFF.md`. Still obey `CLAUDE.md` for git/guards/tokens/no-`git add .`.
 
-Branch that contains the desktop bootstrap + L0 scripts: **`feat/grok-workspace`**.
+Branch: **`feat/grok-workspace`** (fast-forwarded onto `feat/grok-workspace-twin-visits` @ `ed04cf82`).
+TestFlight native HUD is commit **`579e13e`**. Web-only work after that does not need a new IPA.
 
 Parallel prompts for Cursor / Codex: **[docs/research/PARALLEL_AI_PROMPTS.md](research/PARALLEL_AI_PROMPTS.md)**.

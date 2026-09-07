@@ -31,7 +31,7 @@ export const MARKETING_HERO = {
   titleLine1: "Capture the site.",
   titleLine2: "Keep the twin.",
   subhead:
-    "Two independent apps for documenting real places — walk a job and it documents itself, or turn a short video into a 3D space anyone can explore from a link.",
+    "We document construction sites as dated visits — walkthroughs, drawings, and explorable twins your team shares by link. Owners do not need an app.",
   primaryCta: { label: "Request a scan", href: "/contact" },
   secondaryCta: { label: "See how it works", href: "#apps" },
 } as const;
