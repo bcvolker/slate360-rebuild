@@ -12,6 +12,8 @@ export type HubTwin = {
   updatedAt: string;
   /** Count of ready models on the space — the thing the list exists to reach. */
   readyModels: number;
+  /** Latest ready model with a rendered preview; feeds the card thumbnail. */
+  previewModelId: string | null;
 };
 
 export type HubTwinProject = {

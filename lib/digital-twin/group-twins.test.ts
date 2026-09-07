@@ -4,7 +4,7 @@ import { QUICK_SCAN_POOL_NAME, formatVisitTitle } from "./quick-scan-title";
 import type { HubTwin } from "@/lib/types/digital-twin-hub";
 
 const twin = (id: string, projectId: string | null, projectName: string | null): HubTwin => ({
-  id, title: id, status: "draft", statusChip: "Draft" as HubTwin["statusChip"], projectId, projectName, updatedAt: "2026-09-06T00:00:00Z", readyModels: 0,
+  id, title: id, status: "draft", statusChip: "Draft" as HubTwin["statusChip"], projectId, projectName, updatedAt: "2026-09-06T00:00:00Z", readyModels: 0, previewModelId: null,
 });
 
 describe("groupTwinsByProject", () => {

@@ -38,16 +38,16 @@ export function MarketingFaq() {
             could be the demo.
           </h2>
           <p className="mt-4 text-base leading-relaxed text-[var(--graphite-muted)]">
-            Start free, walk one job, and send your first interactive deliverable today.
+            Tell us about the site. We capture it, process it, and hand your team a branded portal they can share with owners and trades.
           </p>
           <Link
-            href="/signup"
+            href="/contact"
             className={cn(
               MKT_BTN_PRIMARY,
               "mt-8 bg-[var(--graphite-text-header)] text-[var(--graphite-canvas)] hover:brightness-95",
             )}
           >
-            Start free
+            Request a scan
           </Link>
         </motion.div>
 

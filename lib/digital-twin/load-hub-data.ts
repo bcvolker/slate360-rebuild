@@ -23,6 +23,8 @@ type ProjectRow = {
   created_at: string;
 };
 
+type ModelRow = { id: string; space_id: string | null; preview_storage_key: string | null; created_at: string };
+
 const EMPTY: { twins: HubTwin[]; projects: HubTwinProject[] } = {
   twins: [],
   projects: [],
@@ -64,9 +66,11 @@ export async function loadDigitalTwinHubData(
       .limit(500),
     admin
       .from("digital_twin_models")
-      .select("space_id")
+      .select("id, space_id, preview_storage_key, created_at")
       .eq("org_id", orgId)
       .eq("status", "ready")
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false })
       .limit(1000),
   ]);
 
@@ -93,9 +97,12 @@ export async function loadDigitalTwinHubData(
   }
 
   const readyModelsBySpace = new Map<string, number>();
-  for (const row of modelsResult.data ?? []) {
+  // Newest ready model that actually has a rendered preview — the card thumbnail.
+  const previewModelBySpace = new Map<string, string>();
+  for (const row of (modelsResult.data ?? []) as ModelRow[]) {
     if (!row.space_id) continue;
     readyModelsBySpace.set(row.space_id, (readyModelsBySpace.get(row.space_id) ?? 0) + 1);
+    if (row.preview_storage_key && !previewModelBySpace.has(row.space_id)) previewModelBySpace.set(row.space_id, row.id);
   }
 
   const twins: HubTwin[] = ((spacesResult.data ?? []) as SpaceRow[])
@@ -119,6 +126,7 @@ export async function loadDigitalTwinHubData(
         projectName: project?.name ?? null,
         updatedAt: space.updated_at,
         readyModels: readyModelsBySpace.get(space.id) ?? 0,
+        previewModelId: previewModelBySpace.get(space.id) ?? null,
       };
     })
     // Spaces that actually hold models are the reason this list exists — an

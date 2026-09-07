@@ -31,12 +31,6 @@ export function MarketingJsonLd() {
         applicationCategory: "BusinessApplication",
         operatingSystem: "iOS, Android, Web",
         description: app.tagline,
-        offers: {
-          "@type": "Offer",
-          price: "0",
-          priceCurrency: "USD",
-          description: "14-day free trial available",
-        },
         publisher: { "@id": `${SITE_URL}/#organization` },
       })),
     ],

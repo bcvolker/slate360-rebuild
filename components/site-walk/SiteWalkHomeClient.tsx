@@ -3,7 +3,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Building2,
   Camera,
   ClipboardList,
   FileText,
@@ -77,13 +76,6 @@ const SCOPED_WALK_COPY: Record<
   SiteWalkWalkStartTier,
   { title: string; icon: typeof MapPin; emptySubtext: string; startedFrom: string; ariaLabel: string }
 > = {
-  workspace: {
-    title: "Workspace Walk",
-    icon: Building2,
-    emptySubtext: "Create a workspace to capture on site",
-    startedFrom: "hub_workspace_walk",
-    ariaLabel: "Start a workspace walk",
-  },
   project: {
     title: "Project Walk",
     icon: MapPin,

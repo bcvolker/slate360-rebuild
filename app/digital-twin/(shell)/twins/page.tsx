@@ -5,6 +5,7 @@ import { loadUnsubmittedTwinCaptures } from "@/lib/digital-twin/load-unsubmitted
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { matchesTwinStatusFilter } from "@/lib/digital-twin/twin-hub-status";
 import { groupTwinsByProject } from "@/lib/digital-twin/group-twins";
+import { isQuickScanPoolName } from "@/lib/digital-twin/quick-scan-title";
 import { MobileEmptyState } from "@/components/mobile-system";
 import { UnsubmittedCaptureRow } from "@/components/digital-twin/UnsubmittedCaptureRow";
 import type { HubTwin } from "@/lib/types/digital-twin-hub";
@@ -42,13 +43,17 @@ function TwinCard({ twin }: { twin: HubTwin }) {
       href={`/digital-twin/twins/${twin.id}`}
       className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.04] px-3 py-3 backdrop-blur-md transition-colors hover:border-[color-mix(in_srgb,var(--twin360-blue)_40%,transparent)]"
     >
-      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg border border-[color-mix(in_srgb,var(--twin360-blue)_28%,transparent)] bg-[color-mix(in_srgb,var(--twin360-blue)_12%,transparent)] text-[var(--twin360-blue)]">
-        <Boxes className="h-5 w-5" strokeWidth={1.75} />
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-[color-mix(in_srgb,var(--twin360-blue)_28%,transparent)] bg-[color-mix(in_srgb,var(--twin360-blue)_12%,transparent)] text-[var(--twin360-blue)]">
+        {twin.previewModelId ? (
+          <img src={`/api/digital-twin/models/${twin.previewModelId}/preview-image`} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+        ) : (
+          <Boxes className="h-5 w-5" strokeWidth={1.75} />
+        )}
       </span>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold text-white">{twin.title}</p>
         <p className="mt-0.5 truncate text-xs text-zinc-400">
-          {twin.projectName ?? "No project"} · {relativeDate(twin.updatedAt)}
+          {twin.projectName && !isQuickScanPoolName(twin.projectName) ? twin.projectName : "Unfiled"} · {relativeDate(twin.updatedAt)}
         </p>
       </div>
       <span

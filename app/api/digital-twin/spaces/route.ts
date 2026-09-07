@@ -74,6 +74,7 @@ export const POST = (req: NextRequest) =>
         projectName: project.name,
         updatedAt: space.updated_at,
         readyModels: 0,
+        previewModelId: null,
       },
     });
   });

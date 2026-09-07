@@ -5,6 +5,7 @@ import { Boxes, ChevronRight, Loader2, Check, AlertTriangle } from "lucide-react
 import type { HubTwin } from "@/lib/types/digital-twin-hub";
 import type { TwinHubStatusChip } from "@/lib/digital-twin/twin-hub-status";
 import { groupTwinsByProject } from "@/lib/digital-twin/group-twins";
+import { isQuickScanPoolName } from "@/lib/digital-twin/quick-scan-title";
 import { MobileEmptyState, mobileTokens } from "@/components/mobile-system";
 
 /**
@@ -72,13 +73,17 @@ function TwinFeedRow({ twin }: { twin: HubTwin }) {
       className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/[0.04] p-2.5 transition active:scale-[0.99] hover:border-[var(--accent-border-blue)]"
       data-twin-feed-row={twin.id}
     >
-      <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] text-[var(--twin360-blue)]">
-        <Boxes className="h-6 w-6" strokeWidth={1.6} aria-hidden />
+      <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/10 bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] text-[var(--twin360-blue)]">
+        {twin.previewModelId ? (
+          <img src={`/api/digital-twin/models/${twin.previewModelId}/preview-image`} alt="" loading="lazy" decoding="async" className="h-full w-full object-cover" />
+        ) : (
+          <Boxes className="h-6 w-6" strokeWidth={1.6} aria-hidden />
+        )}
       </span>
       <div className="min-w-0 flex-1">
         <p className="truncate text-sm font-semibold text-zinc-100">{twin.title}</p>
         <p className="mt-0.5 truncate text-xs text-[var(--graphite-muted)]">
-          {twin.projectName ? twin.projectName : "Not in a project"}
+          {twin.projectName && !isQuickScanPoolName(twin.projectName) ? twin.projectName : "Unfiled"}
           <span className="text-white/20"> · </span>
           {timeAgo(twin.updatedAt)}
         </p>

@@ -115,6 +115,8 @@ const MOCK_SW_ASSIGNMENTS: MobileHomeAssignment[] = [
     title: "Verify fire caulking at stair B",
     status: "open",
     sessionId: "dev-walk-1",
+    flagged: false,
+    isTodo: false,
   },
 ];
 
@@ -137,6 +139,7 @@ const MOCK_TWINS: HubTwin[] = [
     projectName: "Riverside Medical Center",
     updatedAt: NOW,
     readyModels: 2,
+    previewModelId: null,
   },
   {
     id: "dev-twin-2",
@@ -147,6 +150,7 @@ const MOCK_TWINS: HubTwin[] = [
     projectName: "Oakline Logistics Hub",
     updatedAt: YESTERDAY,
     readyModels: 0,
+    previewModelId: null,
   },
   {
     id: "dev-twin-3",
@@ -157,6 +161,7 @@ const MOCK_TWINS: HubTwin[] = [
     projectName: null,
     updatedAt: LAST_WEEK,
     readyModels: 0,
+    previewModelId: null,
   },
 ];
 
@@ -191,6 +196,8 @@ const MOCK_APP_HOME_DATA: MobileAppHomeData = {
       title: "Punch item assigned",
       message: "Verify fire caulking at stair B",
       linkPath: "/site-walk/assigned-work",
+      flagged: false,
+      isTodo: false,
       createdAt: NOW,
     },
   ],

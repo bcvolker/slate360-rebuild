@@ -33,8 +33,8 @@ export function MarketingApps() {
           <p className={MKT_LABEL}>Two independent apps</p>
           <h2 className={cn(MKT_SECTION_TITLE, "mt-3")}>Use one. Or use both together.</h2>
           <p className={MKT_SUBHEAD}>
-            Each app stands on its own with its own plans — and they share projects and files when
-            you run them side by side.
+            Each capture stands on its own — and every visit files under the same project, so
+            walkthroughs, stations and twins share one client portal.
           </p>
         </motion.div>
 

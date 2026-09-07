@@ -8,7 +8,6 @@ import { MKT_BTN_GHOST } from "@/app/(public)/_components/marketing-styles";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
-  { label: "Pricing", href: "#pricing" },
   { label: "Contact", href: "/contact" },
 ] as const;
 
@@ -36,10 +35,10 @@ export function MarketingNav() {
             Sign In
           </Link>
           <Link
-            href="/signup"
+            href="/contact"
             className={cn(MKT_BTN_GHOST, "border-[color-mix(in_srgb,var(--graphite-primary)_30%,transparent)] text-[var(--graphite-primary)] hover:border-[color-mix(in_srgb,var(--graphite-primary)_45%,transparent)]")}
           >
-            Start free trial
+            Request a scan
           </Link>
         </nav>
 
@@ -69,8 +68,8 @@ export function MarketingNav() {
             <Link href="/login" className="rounded-lg px-3 py-2 text-sm font-medium text-[var(--graphite-text-body)]" onClick={() => setOpen(false)}>
               Sign In
             </Link>
-            <Link href="/signup" className={cn(MKT_BTN_GHOST, "w-full")} onClick={() => setOpen(false)}>
-              Start free trial
+            <Link href="/contact" className={cn(MKT_BTN_GHOST, "w-full")} onClick={() => setOpen(false)}>
+              Request a scan
             </Link>
           </nav>
         </div>

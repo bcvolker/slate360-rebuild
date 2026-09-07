@@ -5,7 +5,6 @@
  * "rasterization") on the homepage; depth lives on Learn More pages.
  */
 
-import { cheapestCreditPack, formatCreditPackPrice } from "@/lib/billing/credit-packs";
 
 export type DemoStep = {
   image: string;
@@ -33,8 +32,8 @@ export const MARKETING_HERO = {
   titleLine2: "Keep the twin.",
   subhead:
     "Two independent apps for documenting real places — walk a job and it documents itself, or turn a short video into a 3D space anyone can explore from a link.",
-  primaryCta: { label: "Start free", href: "/signup" },
-  secondaryCta: { label: "See pricing", href: "#pricing" },
+  primaryCta: { label: "Request a scan", href: "/contact" },
+  secondaryCta: { label: "See how it works", href: "#apps" },
 } as const;
 
 export const MARKETING_APPS: MarketingAppContent[] = [
@@ -94,7 +93,7 @@ export const MARKETING_APPS: MarketingAppContent[] = [
         caption: "End the walk — share the link",
       },
     ],
-    cta: { label: "Try Site Walk free", href: "/signup?plan=site-walk-basic" },
+    cta: { label: "About Site Walk", href: "/product/site-walk" },
   },
   {
     id: "twin-360",
@@ -145,7 +144,7 @@ export const MARKETING_APPS: MarketingAppContent[] = [
         caption: "Organize it and submit — your credits are shown up front",
       },
     ],
-    cta: { label: "Try Twin 360 free", href: "/signup?plan=twin-360-essential" },
+    cta: { label: "About Twin 360", href: "/product/digital-twin" },
   },
 ];
 
@@ -169,23 +168,23 @@ export const MARKETING_DELIVERABLE_STRIP = {
 
 export const MARKETING_FAQ = [
   {
-    q: "Do I need both apps?",
-    a: "No — they're independent. Site Walk is for documenting work as you walk a job. Twin 360 is for turning spaces into explorable 3D models. Plenty of teams use just one. If you want both, the Bundle saves you money versus subscribing separately.",
+    q: "What do we actually receive?",
+    a: "A branded project portal your team shares by link: dated 360 walkthroughs, high-resolution 360 documentation stations pinned to your drawings, and — where the job calls for it — an explorable 3D twin. Items, questions and documents live at their exact location in the space.",
   },
   {
-    q: "What's a credit?",
-    a: `Credits are how Twin 360 processing is measured. An average twin uses about 15 credits — smaller spaces use fewer and larger or higher-detail captures use more, depending on how much data you bring. Every Twin 360 plan includes a monthly allowance, and you can buy a credit pack anytime — packs start at ${formatCreditPackPrice(cheapestCreditPack())}, and prices are the same on the web and in the app.`,
+    q: "Do owners, architects or trades need an account?",
+    a: "No. Everything opens from a regular link in any browser — no app, no download, no login. You control who gets which link, and links can expire or be revoked.",
   },
   {
-    q: "Do my clients need an account to view what I send?",
-    a: "No. Reports and twins open from a regular link in any browser — no app, no download, no login.",
+    q: "Can we put our own brand on it?",
+    a: "Yes. The portal and every shared view carry your logo and colours, so what your owner sees is your documentation, delivered by you.",
   },
   {
-    q: "Does it work without cell service?",
-    a: "Yes. Site Walk keeps capturing offline and syncs everything when you're back in coverage.",
+    q: "How accurate is the 3D twin?",
+    a: "Twins are estimating-grade for visual coordination and quantity checks. Where scale is anchored on site we say so in the deliverable; critical dimensions should always be verified with a laser. We never describe a twin as survey-grade.",
   },
   {
-    q: "Do I need an iPhone Pro for Twin 360?",
-    a: "No — any modern phone camera works. If your device has a LiDAR sensor (iPhone Pro models), Twin 360 uses it automatically for even sharper, true-to-scale results.",
+    q: "How often should a site be documented?",
+    a: "Most teams document before cover-up and at regular intervals — weekly or biweekly on active floors. Every visit files under the same project, so conditions can be compared over time.",
   },
 ] as const;
