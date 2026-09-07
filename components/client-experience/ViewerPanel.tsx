@@ -16,19 +16,18 @@ type Props = {
 };
 
 /**
- * The one secondary surface for immersive views: a side panel on desktop, a
- * bottom sheet on mobile (see ce.css). Plan, Items, Spaces and Share all live
- * here so the viewer itself stays uncluttered.
+ * The one secondary surface for immersive views: side panel on desktop, bottom
+ * sheet on mobile (ce.css). Tabs carry compact count badges, never inline text.
  */
 export function ViewerPanel({ open, title, tabs, activeTab, onTab, onClose, children }: Props) {
   return (
     <aside className="ce-viewer__side" hidden={!open} aria-hidden={!open} data-testid="ce-panel">
       <div className="ce-viewer__side-head">
         {tabs && tabs.length > 1 ? (
-          <div role="tablist" style={{ display: "flex", gap: 2 }}>
+          <div role="tablist" className="ce-tabs" aria-label={title}>
             {tabs.map((t) => (
-              <button key={t.key} type="button" role="tab" aria-selected={t.key === activeTab} className="ce-dock__btn" aria-pressed={t.key === activeTab} onClick={() => onTab?.(t.key)}>
-                {t.label}{typeof t.count === "number" ? <span className="ce-num" style={{ opacity: .6, marginLeft: 4 }}>{t.count}</span> : null}
+              <button key={t.key} type="button" role="tab" aria-selected={t.key === activeTab} className="ce-tab" onClick={() => onTab?.(t.key)}>
+                {t.label}{typeof t.count === "number" && t.count > 0 ? <span className="ce-badge">{t.count}</span> : null}
               </button>
             ))}
           </div>
@@ -42,14 +41,15 @@ export function ViewerPanel({ open, title, tabs, activeTab, onTab, onClose, chil
   );
 }
 
-export function SharePanelBody({ url }: { url: string }) {
+export function SharePanelBody({ url, poweredBy }: { url: string; poweredBy?: boolean }) {
   return (
     <div className="ce-item">
-      <p className="ce-body" style={{ margin: 0 }}>This link opens the project exactly as you see it now — same view, same time. Anyone with the link and access to this project can open it.</p>
+      <p className="ce-body" style={{ margin: 0 }}>This link opens the project exactly as you see it now — same view, same moment. Anyone with the link and access to this project can open it.</p>
       <div style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
-        <input readOnly value={url} aria-label="Share link" style={{ minHeight: 40, padding: "0 12px", borderRadius: 6, border: "1px solid var(--ce-line-strong)", background: "transparent", color: "inherit", font: "inherit", fontSize: 13 }} />
+        <input readOnly value={url} aria-label="Share link" className="ce-field" style={{ fontSize: 13 }} />
         <button type="button" className="ce-btn" onClick={() => { void navigator.clipboard?.writeText(url); }}>Copy</button>
       </div>
+      {poweredBy ? <p className="ce-eyebrow">Powered by Slate360</p> : null}
     </div>
   );
 }

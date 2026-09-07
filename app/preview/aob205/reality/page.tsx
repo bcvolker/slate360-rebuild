@@ -1,7 +1,9 @@
-import { aob205Experience as data } from "@/lib/client-experience/aob205-fixture";
+import { experienceFromParams, type SP } from "../_variant";
 import { ProjectShell } from "@/components/client-experience/ProjectShell";
+import { brandStyle } from "@/lib/client-experience/layout";
 import { RealityIndex } from "@/components/client-experience/ProjectLists";
 
-export default function Page() {
-  return (<><ProjectShell data={data} section="reality" backHref={data.basePath} /><RealityIndex data={data} /></>);
+export default async function Page({ searchParams }: { searchParams: Promise<SP> }) {
+  const data = experienceFromParams(await searchParams);
+  return (<div className="ce" style={brandStyle(data)}><ProjectShell data={data} section="reality" backHref={data.basePath} /><RealityIndex data={data} /></div>);
 }

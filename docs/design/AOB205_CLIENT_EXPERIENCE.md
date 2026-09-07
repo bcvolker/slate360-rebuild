@@ -1,85 +1,55 @@
-# AOB205 Client Experience — handoff
+# AOB205 Client Experience — UX sprint V3 handoff
 
-Branch: `feature/aob205-client-ux` (from `feature/aec-commercial-walkthrough-v2`).
-Harness: `/preview/aob205/*`. Screenshots: `docs/ops/aob205-client-ux/{desktop,mobile}`.
-Capture: `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3000 node scripts/ops/capture-aob205-client-ux.mjs`.
+Branch: `feature/aob205-ux-polish-v3` (worktree `C:\s360-ux`), based on Cursor's
+`feature/aob205-spatial-experience-v3` @ `fd7b41b9`.
+Harness: `/preview/aob205/*` with `?state=A|B|C|D|E` and `?brand=slate|client|whitelabel`.
+Screenshots: `docs/ops/aob205-client-ux-v3/{desktop,mobile,tablet}`.
+Capture: `PLAYWRIGHT_BASE_URL=http://127.0.0.1:3100 node scripts/ops/capture-aob205-client-ux.mjs`
+(headed Chromium; `PROFILES=` and `ONLY=` filters).
 
-## What this is
+## Contracts used (Cursor's, not duplicated)
 
-The contractor-facing experience for one project, built as reusable components
-over one data contract (`lib/client-experience/types.ts`) and rendered on the
-real AOB205 capture via a fixture (`lib/client-experience/aob205-fixture.ts`).
-Nothing here touches reconstruction workers, Trigger, Modal or the database.
-
-## Navigation architecture
-
-```
-/preview/aob205               Overview        hero · Reality tiles · History · Open items · Documents · Activity
-/preview/aob205/reality       Reality         published modalities only (walkthrough · twin · 360)
-/preview/aob205/walk          Walkthrough     immersive · dock · panel {Plan, Spaces, Items, Share}
-/preview/aob205/plan          Plan            sheet is the stage · visit selector · items panel
-/preview/aob205/stations      360 Docs        immersive · prev/next · panel {Plan, Stations, Items, Share}
-/preview/aob205/twin          Reality twin    immersive · modes {Walk, Orbit, Overview, Top, Reset} · panel {Plan, Items, Share}
-/preview/aob205/history       History         visits with their modalities
-/preview/aob205/documents     Documents       files + which items reference them + "Open on plan"
-/preview/aob205/items         Items           list
-/preview/aob205/items/[id]    Item            full ItemPanel (same component as every in-viewer drawer)
-```
-
-Deep links carry state: `walk?t&yaw&pitch&item&panel`, `stations?s&yaw&pitch&item&panel`,
-`plan?u&v&item&visit`, `twin?item&panel`. Every spatial reference on an item
-resolves through `hrefForRef()` to one of these, so an item is addressable from
-plan, walkthrough, station and twin with the same panel.
-
-## Components (`components/client-experience/`)
-
-| File | Role |
+| Contract | Where it drives UX |
 |---|---|
-| `ce.css` | The visual language. Token-derived (`--ce-*` from Graphite vars). Accent only on interactive/selected state. Immersive dock + panel; mobile = bottom sheet. |
-| `ProjectShell.tsx` | Shared bar: client mark, project, view · date, primary nav, share, back. `immersive` floats it over a viewer. |
-| `ProjectOverview.tsx`, `ModalityTiles.tsx`, `ProjectLists.tsx` | Overview, Reality index, History, Documents, Items. |
-| `WalkViewer.tsx` | Photo Sphere Viewer video sphere. Forward/back navigation marker from `nextWaypointFor(t, yaw)`. Item pins within ±6 s. |
-| `WalkExperience.tsx` | Dock (play · prev/next space · timeline · time · current space · Plan · Items · Share · zoom), panel, mobile Tools. |
-| `PlanCanvas.tsx` | Pan/zoom sheet with SVG overlay: walk path, waypoints, stations, items, approximate current position. Constant-size markers. |
-| `PlanExperience.tsx` | Plan mode page. |
-| `StationViewer.tsx` / `StationExperience.tsx` | High-res ERP station with neighbour arrows, item pins, filmstrip, other-visit entry. |
-| `TwinExperience.tsx` | Client chrome over `SplatViewerCore` (`quiet` prop added: no byte counts / point-cap notices). Walk mode click-to-move uses the core's floor-derived eye placement. |
-| `ItemPanel.tsx` | One item presentation for every entry point. |
-| `ViewerPanel.tsx` | Side panel (desktop) / bottom sheet (mobile). |
+| `resolveProjectCapabilities` / `visiblePortalNav` / `visibleRealityTiles` | `lib/client-experience/layout.ts` → nav, hero actions, Reality tiles, overview sections. Twin appears only when `qaStatus === accepted && humanReviewAccepted`. |
+| `resolveProjectBrand` / `brandInitials` / `brandMarkAlt` | `BrandSlot.tsx`; accent via `safeAccent()` → `--ce-brand-accent` on the experience root. |
+| `tapAdvance` | `WalkViewer.tsx` click handler: lower-scene click → next anchor in a 55° cone along the recorded path. |
+| `AOB205_KNOWN_SEGMENTS` | `aob205-variants.ts` maps the 129.2–130 s break onto the proxy; `PlanCanvas` draws one polyline per segment; the HUD only cues anchors in the current segment. |
+| `QUESTION_COPY` / `questionTitle` | `AskQuestion.tsx`, `useProjectItems.ts`. |
+| `SpatialLocator` shapes | `SpatialRef` in `types.ts` mirrors plan/walkthrough/station/twin locators (geospatial not surfaced). |
+| Media variants | `Station.thumbUrl` (small) vs `Station.imageUrl` (sharp). The filmstrip never loads the ERP source. |
 
-## Design decisions
+Layout state fixtures follow `layoutStateGates` semantics: A walk-only, B 360-only,
+C walk + 360, D walk + **simulated** accepted twin, E rich AOB205 (real twin gate =
+candidate → hidden).
 
-- **Imagery dominates.** The overview hero is a real AOB205 station crop; modality tiles are real thumbnails; no stat-card wall.
-- **One dock, one panel.** Every immersive view has exactly one control dock and one secondary surface. Plan, Spaces, Items and Share are tabs in that surface, not separate overlays.
-- **Same shell everywhere.** Project identity, view label · date, back arrow, nav and share are identical across walkthrough, plan, stations and twin.
-- **Navigation markers are derived, not authored.** The single forward marker sits at the path's forward yaw and offers the next waypoint; turning around flips it to "back". No marker clutter.
-- **No processing vocabulary.** The twin shows nothing about confidence, PSNR, cameras or point caps. `SplatViewerCore` got a `quiet` prop for this.
-- **Mobile is its own layout.** At ≤760 px the dock is play · timeline · time · Tools; everything else is in the bottom sheet. Chapter picker removed.
-- **Operator handling in the preview proxy** is a blurred nadir band (bottom 24 %) — no black rectangles, no view clamping. The operator is still visible looking straight back at low camera height; capture SOP (pole above head) is the real fix.
+## What changed in V3
 
-## Real-data dependencies (Cursor / data integration)
+- **Brand slot** replaces the "AW" chip. Paid default = small Slate360 mark + client logo/name; no client → Slate360; white-label → client only, "Powered by Slate360" in the More menu / share sheet. Initials only for a named client, with `aria-label`.
+- **Typography**: sans for all UI; `.ce-code` (mono) reserved for sheet numbers, timestamps, station counts.
+- **Adaptive overview**: sections render only with content; hero actions only for live assets (1–3, reflowed).
+- **Explore / Play**: Explore default (paused sphere, move ring + tap-to-move); Play follows the route at 1×/1.5×/2× with free look. Crossfade on discontinuous seeks.
+- **Path HUD**: 3–4 chevrons beyond the move ring, rising toward the horizon, yaw following plan heading. Desktop/tablet on @ 0.28, phones off. Persisted in `sw-path-visible` / `sw-path-opacity` (same keys as `useWalkthroughNav`).
+- **High-res 360 in walkthrough**: chip appears within ±4 s of a mapped station; opens the station with `from=walk&t&yaw&pitch`; the station header offers "Back to walkthrough" restoring t/yaw/pitch.
+- **Panels**: desktop side panel / mobile bottom sheet with tabs Plan · Spaces · Items [n] · More (walk) and Plan · Stations [n] · Items [n] · More (360). Share in the header (desktop) or More (mobile).
+- **References index** inside Items: Items / Questions / Documents, scope All project / Nearby (honest ±6 s or same-station).
+- **Ask a Question**: location attached automatically, one field, "Send question", thread appears as a `question` item.
+- **Item panel**: type/status → title → clamped summary → Locations with a single "View" action → Attachments → Conversation → collapsible Activity.
+- **Plan**: thinner accent path with segment breaks, refined station/item/you markers, compact layer control (Path · Stations · Items · You) instead of a legend bar.
+- **Twin chrome (simulated only)**: Walk · Orbit · Fly · Overview · Top with text + icon; mobile Mode sheet + Tools; Reset under More. `quiet` prop keeps byte counts / point caps off client surfaces.
 
-Replace `aob205Experience` with a loader that fills `ProjectExperience` from:
+## Backend dependencies (Cursor)
 
-| Field | Source |
-|---|---|
-| `walkthrough.videoUrl/posterUrl/durationS` | `spatial_clips.public_proxy_key / public_poster_key` via the public media route |
-| `walkthrough.waypoints (t, u, v, space)` | `spatial_waypoints` + a plan registration (needs `plan_locator` or `xyz` → sheet u/v). Currently **authored approximate**. |
-| `plan` | new `spatial_plan_sheets` (sheet PDF raster, width/height, focus region) — not in schema yet |
-| `stations` | new `spatial_stations` (ERP key, sheet u/v, visit, neighbours) — not in schema yet |
-| `twin.splatUrl` | `/api/share/twin/<token>/splat` (or the preview asset route pattern) |
-| `items / documents / comments / activity` | `spatial_project_items`, `_documents`, `_comments`, `_activity`, `_locators` — migration `20260830200000` **not yet applied to prod** |
-| `brand` | `spatial_org_themes` + token `branding_snapshot` |
-| `visits` | derived from `captured_at` across walkthroughs/stations until a visit entity exists |
+- Registered station↔walk times (`Station.t`) and plan positions — currently authored.
+- Question persistence (`spatial_project_items` etc.), replies, resolve, notifications deep links (`questionDeepLink`).
+- Media variant URLs per station (`thumb/preview/standard/full`) and walk proxies (`low/standard/high`).
+- Plan raster + `rasterReady` from the plan set; PDF-only plans stay documents.
+- Real trajectory → `deriveClientPath` anchors with `segmentId`; the HUD/plan already honour segments.
+- Share token minting and branding snapshot for real portal tokens.
+- Twin `xyz` camera targeting when a public camera-to-point API exists on the splat core.
 
-Local-only asset: `public/preview/aob205/walk-proxy.mp4` (gitignored; 45 s, 1920×960, nadir-blurred). Regenerate with the ffmpeg command in the session notes or let the desktop processor supply the real proxy.
+## Not merged / not for merge yet
 
-## Known UX defects / not done
-
-- **Twin Fly mode** is not implemented — `SplatViewerCore` exposes orbit + interior only. Top view is an orbit pose from above, not a true plan projection.
-- **Twin quality** is the published model's (PSNR 20.97). The chrome is ready; the model is not. A retrain above baseline is a processing task.
-- **Station arrows** are placed at authored yaws; plan-registered headings (`northYaw`) are not derived from data.
-- **Compare across visits** opens the other visit's first station; there is no same-view side-by-side yet.
-- **Share** copies a deep link; token minting is not wired in the harness.
-- **Comment posting** is a form with no backend (tables not applied).
-- **Twin item location** ("Open location" for `twin` refs) lands on the twin but does not fly the camera to `xyz` (no public camera-to-point API on the core yet).
+- `public/preview/aob205/client-logo.svg` is a fictional contractor mark for the branded fixture only.
+- `walk-proxy.mp4` remains local-only (gitignored).
+- Twin "Fly" is a labelled mode over orbit controls; true free-flight needs a core camera mode.

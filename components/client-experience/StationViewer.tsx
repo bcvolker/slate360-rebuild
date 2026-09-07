@@ -102,7 +102,7 @@ export const StationViewer = forwardRef<StationViewerHandle, Props>(function Sta
         defs.push({
           id: `item:${it.id}`,
           position: { yaw: `${r.yaw}deg`, pitch: `${r.pitch}deg` },
-          html: `<div class="ce-pin-marker${it.id === selectedItemId ? " is-selected" : ""}"><i></i>${it.title}</div>`,
+          html: `<div class="ce-pin-marker${it.type === "question" ? " ce-pin-marker--question" : ""}${it.id === selectedItemId ? " is-selected" : ""}"><i></i>${it.title}</div>`,
           anchor: "center left",
           data: { kind: "item", id: it.id },
         });

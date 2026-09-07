@@ -79,8 +79,9 @@ export function stationsForVisit(data: ProjectExperience, visitId: string): Stat
 }
 
 /** Build an in-experience href for a spatial reference. */
-export function hrefForRef(base: string, ref: SpatialRef, itemId?: string): string {
-  const q = itemId ? `&item=${itemId}` : "";
+export function hrefForRef(base: string, ref: SpatialRef, itemId?: string, suffix = ""): string {
+  const extra = suffix.startsWith("?") ? `&${suffix.slice(1)}` : "";
+  const q = `${itemId ? `&item=${itemId}` : ""}${extra}`;
   switch (ref.kind) {
     case "plan":
       return `${base}/plan?u=${ref.u.toFixed(3)}&v=${ref.v.toFixed(3)}${q}`;
@@ -93,6 +94,18 @@ export function hrefForRef(base: string, ref: SpatialRef, itemId?: string): stri
   }
 }
 
+/** Append the preview-variant suffix to an in-experience href. */
+export function withSuffix(href: string, suffix?: string): string {
+  if (!suffix) return href;
+  const extra = suffix.startsWith("?") ? suffix.slice(1) : suffix;
+  return `${href}${href.includes("?") ? "&" : "?"}${extra}`;
+}
+
+/** Anchors for tap-to-move: the recorded path expressed as Cursor's PathAnchor shape. */
+export function pathAnchors(waypoints: Waypoint[]): { id: string; tSeconds: number; yawDeg: number; segmentId?: string }[] {
+  return waypoints.map((w) => ({ id: w.id, tSeconds: w.t, yawDeg: w.forwardYaw, segmentId: w.segmentId }));
+}
+
 export const REF_LABEL: Record<SpatialRef["kind"], string> = {
   plan: "Plan",
   walkthrough: "Walkthrough",
@@ -100,7 +113,7 @@ export const REF_LABEL: Record<SpatialRef["kind"], string> = {
   twin: "Reality twin",
 };
 
-export const ITEM_TYPE_LABEL = { rfi: "RFI", issue: "Issue", note: "Note", document: "Document", photo: "Photo" } as const;
+export const ITEM_TYPE_LABEL = { rfi: "RFI", issue: "Issue", note: "Note", document: "Document", photo: "Photo", question: "Question" } as const;
 export const ITEM_STATUS_LABEL = { open: "Open", in_progress: "In progress", resolved: "Resolved" } as const;
 
 export function readNumber(v: string | string[] | undefined, fallback: number): number {

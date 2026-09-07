@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 44" width="320" height="44" role="img" aria-label="Sonoran Ridge Construction">
+  <g fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M4 36 L18 10 L28 26 L36 16 L48 36 Z"/>
+    <path d="M18 10 L18 36"/>
+  </g>
+  <text x="62" y="21" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="17" font-weight="700" letter-spacing="0.5" fill="#FFFFFF">SONORAN RIDGE</text>
+  <text x="62" y="37" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="10.5" font-weight="500" letter-spacing="2.6" fill="#B8C1CC">CONSTRUCTION</text>
+</svg>
