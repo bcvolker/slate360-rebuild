@@ -47,7 +47,7 @@ export function MarketingFaq() {
               "mt-8 bg-[var(--graphite-text-header)] text-[var(--graphite-canvas)] hover:brightness-95",
             )}
           >
-            Request a scan
+            Request a site visit
           </Link>
         </motion.div>
 

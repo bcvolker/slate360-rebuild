@@ -38,7 +38,7 @@ export function MarketingNav() {
             href="/contact"
             className={cn(MKT_BTN_GHOST, "border-[color-mix(in_srgb,var(--graphite-primary)_30%,transparent)] text-[var(--graphite-primary)] hover:border-[color-mix(in_srgb,var(--graphite-primary)_45%,transparent)]")}
           >
-            Request a scan
+            Request a site visit
           </Link>
         </nav>
 
@@ -69,7 +69,7 @@ export function MarketingNav() {
               Sign In
             </Link>
             <Link href="/contact" className={cn(MKT_BTN_GHOST, "w-full")} onClick={() => setOpen(false)}>
-              Request a scan
+              Request a site visit
             </Link>
           </nav>
         </div>

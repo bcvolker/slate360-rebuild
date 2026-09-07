@@ -32,7 +32,7 @@ export const MARKETING_HERO = {
   titleLine2: "Keep the twin.",
   subhead:
     "We document construction sites as dated visits — walkthroughs, drawings, and explorable twins your team shares by link. Owners do not need an app.",
-  primaryCta: { label: "Request a scan", href: "/contact" },
+  primaryCta: { label: "Request a site visit", href: "/contact" },
   secondaryCta: { label: "See how it works", href: "#apps" },
 } as const;
 
@@ -93,7 +93,7 @@ export const MARKETING_APPS: MarketingAppContent[] = [
         caption: "End the walk — share the link",
       },
     ],
-    cta: { label: "About Site Walk", href: "/product/site-walk" },
+    cta: { label: "Request a site visit", href: "/contact" },
   },
   {
     id: "twin-360",
@@ -109,9 +109,9 @@ export const MARKETING_APPS: MarketingAppContent[] = [
           "Walk the space with your phone, then submit the walkthrough for processing.",
       },
       {
-        title: "Built for the camera in your pocket",
+        title: "Captured by us, not by your crew",
         description:
-          "Works with any modern phone — and automatically uses your device's LiDAR sensor when available (iPhone Pro models) for sharper results.",
+          "We bring the capture kit and walk the space; your team keeps building. Every visit is dated and filed under the project.",
       },
       {
         title: "Share an interactive link",
@@ -141,10 +141,10 @@ export const MARKETING_APPS: MarketingAppContent[] = [
         image: "/marketing/demo/twin-2-ghost.png",
         tapX: 50,
         tapY: 88,
-        caption: "Organize it and submit — your credits are shown up front",
+        caption: "Organize it and submit — the visit files under the project",
       },
     ],
-    cta: { label: "About Twin 360", href: "/product/digital-twin" },
+    cta: { label: "Request a site visit", href: "/contact" },
   },
 ];
 
@@ -181,7 +181,7 @@ export const MARKETING_FAQ = [
   },
   {
     q: "How accurate is the 3D twin?",
-    a: "Twins are estimating-grade for visual coordination and quantity checks. Where scale is anchored on site we say so in the deliverable; critical dimensions should always be verified with a laser. We never describe a twin as survey-grade.",
+    a: "Twins are estimating-grade for visual coordination and quantity checks. Where scale is anchored on site we say so in the deliverable; critical dimensions should always be verified with a laser. Where a legal dimension is required, a laser governs.",
   },
   {
     q: "How often should a site be documented?",
