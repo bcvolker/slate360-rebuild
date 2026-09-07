@@ -48,41 +48,39 @@ export function TwinHomeCaptureSheet({
         </SheetHeader>
 
         <div className="mt-4 space-y-2.5">
-          {/* Primary — Quick Scan */}
           <button
             type="button"
-            onClick={choose(onQuickScan)}
+            onClick={choose(onScanIntoProject)}
             className={`${ROW_BASE} border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_8%,transparent)] hover:border-[color-mix(in_srgb,var(--twin360-blue)_45%,transparent)]`}
-            data-twin-capture-choice="quick"
+            data-twin-capture-choice="project"
           >
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_14%,transparent)] text-[var(--twin360-blue)]">
-              <Scan className="h-6 w-6" strokeWidth={1.75} aria-hidden />
+              <MapPin className="h-6 w-6" strokeWidth={1.75} aria-hidden />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-bold text-zinc-100">Quick Scan</span>
+              <span className="block text-sm font-bold text-zinc-100">Scan into a project</span>
               <span className="mt-0.5 block text-xs text-[var(--graphite-muted)]">
-                Capture now — attach to a project later
+                {projectCount > 0
+                  ? "Name the visit. LiDAR and photos stay with this job."
+                  : "Create a project, then name each visit"}
               </span>
             </span>
             <ChevronRight className="h-5 w-5 shrink-0 text-[var(--twin360-blue)]" aria-hidden />
           </button>
 
-          {/* Secondary — Scan into a project */}
           <button
             type="button"
-            onClick={choose(onScanIntoProject)}
+            onClick={choose(onQuickScan)}
             className={`${ROW_BASE} border-white/10 bg-white/[0.04] hover:border-[var(--accent-border-blue)]`}
-            data-twin-capture-choice="project"
+            data-twin-capture-choice="quick"
           >
             <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] text-zinc-200">
-              <MapPin className="h-6 w-6" strokeWidth={1.6} aria-hidden />
+              <Scan className="h-6 w-6" strokeWidth={1.6} aria-hidden />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-sm font-semibold text-zinc-100">Scan into a project</span>
+              <span className="block text-sm font-semibold text-zinc-100">Scan without a project</span>
               <span className="mt-0.5 block text-xs text-[var(--graphite-muted)]">
-                {projectCount > 0
-                  ? "Keep it with the project's plans, files, and walks"
-                  : "Create a project first, then scan with full context"}
+                Still name it. File under a project later.
               </span>
             </span>
             <ChevronRight className="h-5 w-5 shrink-0 text-white/25" aria-hidden />

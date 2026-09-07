@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Boxes, ChevronRight, Loader2, Check, AlertTriangle } from "lucide-react";
 import type { HubTwin } from "@/lib/types/digital-twin-hub";
 import type { TwinHubStatusChip } from "@/lib/digital-twin/twin-hub-status";
+import { groupTwinsByProject } from "@/lib/digital-twin/group-twins";
 import { MobileEmptyState, mobileTokens } from "@/components/mobile-system";
 
 /**
@@ -119,9 +120,19 @@ export function TwinHomeFeed({
         // Contained scroll: the list stays inside its own area and scrolls
         // internally instead of running off the page as it grows.
         <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
-          <div className="flex flex-col gap-2 pb-2">
-            {twins.map((twin) => (
-              <TwinFeedRow key={twin.id} twin={twin} />
+          <div className="flex flex-col gap-4 pb-2">
+            {groupTwinsByProject(twins).map((group) => (
+              <div key={group.key}>
+                <p className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">
+                  {group.projectName}
+                  <span className="ml-1.5 font-mono text-[10px] font-normal">{group.twins.length}</span>
+                </p>
+                <div className="flex flex-col gap-2">
+                  {group.twins.map((twin) => (
+                    <TwinFeedRow key={twin.id} twin={twin} />
+                  ))}
+                </div>
+              </div>
             ))}
           </div>
         </div>

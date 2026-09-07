@@ -58,6 +58,9 @@ export function TwinDetailClient({
   desktopEditorEnabled,
 }: Props) {
   const [sheet, setSheet] = useState<SheetKind>(null);
+  const [title, setTitle] = useState(spaceTitle);
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [savingTitle, setSavingTitle] = useState(false);
   const [measureRefresh, setMeasureRefresh] = useState(0);
   const [overlayPins, setOverlayPins] = useState<TwinOverlayPin[]>([]);
   const [overlayMeasurements, setOverlayMeasurements] = useState<TwinOverlayMeasurement[]>([]);
@@ -105,9 +108,39 @@ export function TwinDetailClient({
           <ChevronLeft className="h-4 w-4" aria-hidden />
         </Link>
         <div className="min-w-0 flex-1">
-          <p className="truncate text-sm font-semibold text-zinc-100">{spaceTitle}</p>
+          {editingTitle ? (
+            <input
+              autoFocus
+              defaultValue={title}
+              maxLength={80}
+              disabled={savingTitle}
+              onBlur={(e) => {
+                const next = e.target.value.trim();
+                setEditingTitle(false);
+                if (!next || next === title) return;
+                setSavingTitle(true);
+                void fetch(`/api/digital-twin/spaces/${viewer.spaceId}`, {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ title: next }),
+                }).then((res) => {
+                  if (res.ok) setTitle(next);
+                  setSavingTitle(false);
+                });
+              }}
+              className="w-full rounded-md border border-white/15 bg-transparent px-1 py-0.5 text-sm font-semibold text-zinc-100"
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={() => setEditingTitle(true)}
+              className="block max-w-full truncate text-left text-sm font-semibold text-zinc-100"
+            >
+              {title}
+            </button>
+          )}
           <p className="truncate text-[11px] capitalize text-[var(--graphite-muted)]">
-            {spaceStatus.replace(/_/g, " ")}
+            {spaceStatus.replace(/_/g, " ")} · tap name to rename
           </p>
         </div>
       </div>

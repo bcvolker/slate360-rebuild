@@ -1,13 +1,16 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Capacitor } from "@capacitor/core";
 import { IconLoader2 } from "@tabler/icons-react";
 import { probeNativeTwinCapture, type NativeCaptureProbe } from "@/src/plugins/LiDARCapture";
 import { TwinNativeCaptureLauncher } from "./TwinNativeCaptureLauncher";
 import { TwinCaptureScreen, type TwinCaptureFinishResult } from "./TwinCaptureScreen";
-import { formatQuickScanSpaceTitle } from "@/lib/digital-twin/quick-scan-title";
+import {
+  TwinCaptureNameGate,
+  type NamedCaptureDestination,
+} from "./TwinCaptureNameGate";
 import { setTwinCapturePendingSession } from "@/lib/digital-twin/twin-capture-pending-session";
 import { persistTwinCaptureReviewState } from "@/lib/digital-twin/twin-capture-pending-persist";
 import type { HubTwin, HubTwinProject } from "@/lib/types/digital-twin-hub";
@@ -29,7 +32,7 @@ type Selection = {
 type QuickBootState = "loading" | "error" | "done";
 
 export function TwinCaptureFlow({
-  spaces,
+  spaces: _spaces,
   projects,
   initialProjectId,
   lockProject = false,
@@ -37,12 +40,9 @@ export function TwinCaptureFlow({
 }: Props) {
   const router = useRouter();
   const quickStart = quickMode && !lockProject;
-  const defaultSelection = useMemo(() => resolveSelection(spaces, initialProjectId), [initialProjectId, spaces]);
-  const [selection, setSelection] = useState<Selection | null>(quickStart ? null : defaultSelection);
-  const [quickBoot, setQuickBoot] = useState<QuickBootState>(quickStart ? "loading" : defaultSelection ? "done" : "error");
-  const [quickBootError, setQuickBootError] = useState<string | null>(
-    !quickStart && !defaultSelection ? "No capture destination is available." : null,
-  );
+  const [selection, setSelection] = useState<Selection | null>(null);
+  const [quickBoot, setQuickBoot] = useState<QuickBootState>("done");
+  const [quickBootError, setQuickBootError] = useState<string | null>(null);
   const [debugCapture, setDebugCapture] = useState(false);
   const [nativeLidar, setNativeLidar] = useState<boolean | null>(
     Capacitor.getPlatform() === "ios" ? null : false,
@@ -57,38 +57,32 @@ export function TwinCaptureFlow({
     setDebugCapture(params.get("debug") === "1");
   }, []);
 
-  useEffect(() => {
-    if (!quickStart || quickBoot !== "loading") return;
-    let cancelled = false;
-    async function bootQuickScan() {
-      const title = formatQuickScanSpaceTitle();
-      try {
-        const response = await fetch("/api/digital-twin/spaces", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title, quick_scan: true }),
-        });
-        const data = (await response.json().catch(() => ({}))) as { space?: HubTwin; error?: string };
-        if (!response.ok || !data.space?.id) throw new Error(data.error ?? "Could not prepare capture");
-        if (cancelled) return;
-        setSelection({
-          spaceId: data.space.id,
-          projectId: data.space.projectId ?? "",
-          spaceTitle: title,
-        });
-        setQuickBoot("done");
-      } catch (error) {
-        if (!cancelled) {
-          setQuickBootError(error instanceof Error ? error.message : "Could not prepare capture");
-          setQuickBoot("error");
-        }
-      }
+  async function bootNamedVisit(dest: NamedCaptureDestination) {
+    setQuickBoot("loading");
+    setQuickBootError(null);
+    try {
+      const response = await fetch("/api/digital-twin/spaces", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: dest.title,
+          quick_scan: dest.quickScan,
+          project_id: dest.projectId || undefined,
+        }),
+      });
+      const data = (await response.json().catch(() => ({}))) as { space?: HubTwin; error?: string };
+      if (!response.ok || !data.space?.id) throw new Error(data.error ?? "Could not prepare capture");
+      setSelection({
+        spaceId: data.space.id,
+        projectId: data.space.projectId ?? dest.projectId ?? "",
+        spaceTitle: dest.title,
+      });
+      setQuickBoot("done");
+    } catch (error) {
+      setQuickBootError(error instanceof Error ? error.message : "Could not prepare capture");
+      setQuickBoot("error");
     }
-    void bootQuickScan();
-    return () => {
-      cancelled = true;
-    };
-  }, [quickBoot, quickStart]);
+  }
 
   useEffect(() => {
     if (nativeLidar !== null) return;
@@ -149,26 +143,24 @@ export function TwinCaptureFlow({
     [router],
   );
 
+  if (!selection) {
+    return (
+      <TwinCaptureNameGate
+        projects={projects}
+        lockedProjectId={lockProject ? initialProjectId : null}
+        onContinue={(dest) => void bootNamedVisit(dest)}
+        onCancel={handleCancel}
+        busy={quickBoot === "loading"}
+        error={quickBootError}
+      />
+    );
+  }
+
   if (quickBoot === "loading" || nativeLidar === null) {
     return (
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 px-4 py-8">
         <IconLoader2 className="h-8 w-8 animate-spin text-[var(--twin360-blue)]" aria-hidden="true" />
         <p className="text-sm text-[var(--graphite-muted)]">Preparing capture…</p>
-      </div>
-    );
-  }
-
-  if (quickBoot === "error" || !selection) {
-    return (
-      <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 px-4 py-8 text-center">
-        <p className="text-sm text-[var(--graphite-muted)]">{quickBootError ?? "Could not prepare capture."}</p>
-        <button
-          type="button"
-          onClick={handleCancel}
-          className="min-h-12 rounded-xl border border-white/10 px-5 text-sm font-semibold text-[var(--graphite-text-body)]"
-        >
-          Back
-        </button>
       </div>
     );
   }
@@ -261,14 +253,4 @@ function NoLidarNotice({
   );
 }
 
-function resolveSelection(spaces: HubTwin[], projectId?: string | null): Selection | null {
-  const space = projectId
-    ? spaces.find((candidate) => candidate.projectId === projectId)
-    : spaces[0];
-  if (!space?.id || !space.projectId) return null;
-  return {
-    spaceId: space.id,
-    projectId: space.projectId,
-    spaceTitle: space.title,
-  };
-}
+

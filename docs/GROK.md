@@ -32,3 +32,5 @@ The dated handoff wins on business model, capture strategy, and build order when
 with older `SESSION_HANDOFF.md`. Still obey `CLAUDE.md` for git/guards/tokens/no-`git add .`.
 
 Branch that contains the desktop bootstrap + L0 scripts: **`feat/grok-workspace`**.
+
+Parallel prompts for Cursor / Codex: **[docs/research/PARALLEL_AI_PROMPTS.md](research/PARALLEL_AI_PROMPTS.md)**.

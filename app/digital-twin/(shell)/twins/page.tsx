@@ -4,6 +4,7 @@ import { loadDigitalTwinHubData } from "@/lib/digital-twin/load-hub-data";
 import { loadUnsubmittedTwinCaptures } from "@/lib/digital-twin/load-unsubmitted-captures";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { matchesTwinStatusFilter } from "@/lib/digital-twin/twin-hub-status";
+import { groupTwinsByProject } from "@/lib/digital-twin/group-twins";
 import { MobileEmptyState } from "@/components/mobile-system";
 import { UnsubmittedCaptureRow } from "@/components/digital-twin/UnsubmittedCaptureRow";
 import type { HubTwin } from "@/lib/types/digital-twin-hub";
@@ -158,13 +159,22 @@ export default async function DigitalTwinTwinsPage({ searchParams }: PageProps) 
       ) : null}
 
       {showingDrafts ? null : filteredTwins.length > 0 ? (
-        <ul className="space-y-2">
-          {filteredTwins.map((twin) => (
-            <li key={twin.id}>
-              <TwinCard twin={twin} />
-            </li>
+        <div className="space-y-5">
+          {groupTwinsByProject(filteredTwins).map((group) => (
+            <section key={group.key}>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                {group.projectName}
+              </p>
+              <ul className="space-y-2">
+                {group.twins.map((twin) => (
+                  <li key={twin.id}>
+                    <TwinCard twin={twin} />
+                  </li>
+                ))}
+              </ul>
+            </section>
           ))}
-        </ul>
+        </div>
       ) : (
         <MobileEmptyState
           icon={Boxes}
