@@ -42,6 +42,7 @@ if ($RequestFile -and (Test-Path -LiteralPath $RequestFile)) {
   if ($req.facePx) { $FacePx = [int]$req.facePx }
   if ($req.maxResolution) { $MaxResolution = [int]$req.maxResolution }
   if ($req.faces) { $Faces = [int]$req.faces }
+  if ($req.skipTo) { $SkipTo = [string]$req.skipTo }
 }
 $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -90,6 +91,9 @@ function To-Wsl([string]$winPath) {
 }
 function Invoke-Wsl([string[]]$argv, [string]$stageId = "") {
   # Every argument is passed as its own argv element: spaces in "Brian PC" survive.
+  # ErrorActionPreference must be Continue here: under Stop, PowerShell 5.1 turns the FIRST
+  # stderr line of a native command (pycolmap logs everything to stderr) into a terminating error.
+  $ErrorActionPreference = "Continue"
   $all = @("-d", $WslDistro, "--") + $argv
   & wsl.exe @all 2>&1 | ForEach-Object {
     $line = [string]$_
@@ -198,6 +202,7 @@ if (-not $SkipTo) {
       $pattern = Join-Path $imgDir ("v{0}_%05d.jpg" -f $vi)
       Emit ("INFO {0}: {1}s at {2} stills/s -> ~{3} stills" -f [IO.Path]::GetFileName($v), [int]$dur, $Fps, $expected)
       $ffArgs = @("-y", "-hide_banner", "-loglevel", "error", "-nostats", "-progress", "pipe:1", "-i", $v, "-vf", "fps=$Fps", "-q:v", "2", $pattern)
+      $ErrorActionPreference = "Continue"  # ffmpeg warnings on stderr must not abort the job (PS 5.1)
       & $ff.Source @ffArgs 2>&1 | ForEach-Object {
         $line = [string]$_
         if ($line -match '^out_time_ms=(\d+)') { $done = [Math]::Min($expected, [int]([double]$Matches[1] / 1e6 * $Fps)); Emit ("PROGRESS extract {0} {1}" -f $done, $expected) }
@@ -205,6 +210,7 @@ if (-not $SkipTo) {
       }
       if ($LASTEXITCODE -ne 0) { Fail "extract" "ffmpeg failed on $v" 1 }
     }
+    $ErrorActionPreference = "Stop"
     $count = @(Get-ChildItem -LiteralPath $imgDir -File).Count
     if ($count -lt 20) { Fail "extract" "Only $count stills. A splat needs a walk with overlap (20+ frames)." 5 }
     StageDone "extract" "$count stills"

@@ -13,7 +13,7 @@ $settingsPath = Join-Path $env:APPDATA "Slate360\capture-studio.json"
 New-Item -ItemType Directory -Force -Path $jobsRoot, (Split-Path -Parent $settingsPath) | Out-Null
 
 # ---------------------------------------------------------------- theme (Graphite)
-$C = @{
+$Theme = @{
   canvas = [System.Drawing.ColorTranslator]::FromHtml("#0B0F15")
   panel  = [System.Drawing.ColorTranslator]::FromHtml("#11161E")
   panel2 = [System.Drawing.ColorTranslator]::FromHtml("#161C26")
@@ -25,7 +25,7 @@ $C = @{
   warn   = [System.Drawing.ColorTranslator]::FromHtml("#E0A046")
   bad    = [System.Drawing.ColorTranslator]::FromHtml("#F07A6E")
 }
-$F = @{
+$Fonts = @{
   title = New-Object System.Drawing.Font("Segoe UI Semibold", 18)
   h     = New-Object System.Drawing.Font("Segoe UI Semibold", 10.5)
   body  = New-Object System.Drawing.Font("Segoe UI", 9.5)
@@ -56,27 +56,27 @@ function New-Label([string]$text, [int]$x, [int]$y, [int]$w, $font, $color, [int
   $l.Font = $font; $l.ForeColor = $color; $l.BackColor = [System.Drawing.Color]::Transparent
   return $l
 }
-function New-Eyebrow([string]$text, [int]$x, [int]$y, [int]$w = 300) { return (New-Label $text.ToUpperInvariant() $x $y $w $F.label $C.muted 16) }
+function New-Eyebrow([string]$text, [int]$x, [int]$y, [int]$w = 300) { return (New-Label $text.ToUpperInvariant() $x $y $w $Fonts.label $Theme.muted 16) }
 function New-Panel([int]$x, [int]$y, [int]$w, [int]$h) {
   $p = New-Object System.Windows.Forms.Panel
   $p.Location = New-Object System.Drawing.Point($x, $y); $p.Size = New-Object System.Drawing.Size($w, $h)
-  $p.BackColor = $C.panel
-  $p.Add_Paint({ param($s, $e) $pen = New-Object System.Drawing.Pen($C.line); $e.Graphics.DrawRectangle($pen, 0, 0, $s.Width - 1, $s.Height - 1); $pen.Dispose() })
+  $p.BackColor = $Theme.panel
+  $p.Add_Paint({ param($s, $e) $pen = New-Object System.Drawing.Pen($Theme.line); $e.Graphics.DrawRectangle($pen, 0, 0, $s.Width - 1, $s.Height - 1); $pen.Dispose() })
   return $p
 }
 function New-Button([string]$text, [int]$x, [int]$y, [int]$w, [int]$h, [bool]$primary = $false) {
   $b = New-Object System.Windows.Forms.Button
   $b.Text = $text; $b.Location = New-Object System.Drawing.Point($x, $y); $b.Size = New-Object System.Drawing.Size($w, $h)
-  $b.FlatStyle = "Flat"; $b.Font = $F.h; $b.Cursor = "Hand"
-  if ($primary) { $b.BackColor = $C.accent; $b.ForeColor = $C.canvas; $b.FlatAppearance.BorderSize = 0 }
-  else { $b.BackColor = $C.panel2; $b.ForeColor = $C.text; $b.FlatAppearance.BorderColor = $C.line }
+  $b.FlatStyle = "Flat"; $b.Font = $Fonts.h; $b.Cursor = "Hand"
+  if ($primary) { $b.BackColor = $Theme.accent; $b.ForeColor = $Theme.canvas; $b.FlatAppearance.BorderSize = 0 }
+  else { $b.BackColor = $Theme.panel2; $b.ForeColor = $Theme.text; $b.FlatAppearance.BorderColor = $Theme.line }
   return $b
 }
 function New-Combo([int]$x, [int]$y, [int]$w, [string[]]$items) {
   $c = New-Object System.Windows.Forms.ComboBox
   $c.Location = New-Object System.Drawing.Point($x, $y); $c.Size = New-Object System.Drawing.Size($w, 26)
-  $c.DropDownStyle = "DropDownList"; $c.FlatStyle = "Flat"; $c.Font = $F.body
-  $c.BackColor = $C.panel2; $c.ForeColor = $C.text
+  $c.DropDownStyle = "DropDownList"; $c.FlatStyle = "Flat"; $c.Font = $Fonts.body
+  $c.BackColor = $Theme.panel2; $c.ForeColor = $Theme.text
   foreach ($i in $items) { [void]$c.Items.Add($i) }
   $c.SelectedIndex = 0
   return $c
@@ -84,13 +84,13 @@ function New-Combo([int]$x, [int]$y, [int]$w, [string[]]$items) {
 function New-Check([string]$text, [int]$x, [int]$y, [int]$w, [bool]$checked) {
   $k = New-Object System.Windows.Forms.CheckBox
   $k.Text = $text; $k.Location = New-Object System.Drawing.Point($x, $y); $k.Size = New-Object System.Drawing.Size($w, 24)
-  $k.Font = $F.body; $k.ForeColor = $C.text; $k.Checked = $checked; $k.FlatStyle = "Flat"
+  $k.Font = $Fonts.body; $k.ForeColor = $Theme.text; $k.Checked = $checked; $k.FlatStyle = "Flat"
   return $k
 }
 function New-Text([int]$x, [int]$y, [int]$w) {
   $t = New-Object System.Windows.Forms.TextBox
   $t.Location = New-Object System.Drawing.Point($x, $y); $t.Size = New-Object System.Drawing.Size($w, 26)
-  $t.Font = $F.body; $t.BackColor = $C.panel2; $t.ForeColor = $C.text; $t.BorderStyle = "FixedSingle"
+  $t.Font = $Fonts.body; $t.BackColor = $Theme.panel2; $t.ForeColor = $Theme.text; $t.BorderStyle = "FixedSingle"
   return $t
 }
 function Fmt-Seconds([double]$s) { $ts = [TimeSpan]::FromSeconds([Math]::Max(0, $s)); if ($ts.TotalHours -ge 1) { return $ts.ToString("h\:mm\:ss") } return $ts.ToString("m\:ss") }
@@ -101,27 +101,27 @@ $form.Text = "Slate360 Capture Studio"
 $form.Size = New-Object System.Drawing.Size(1200, 840)
 $form.MinimumSize = New-Object System.Drawing.Size(1100, 760)
 $form.StartPosition = "CenterScreen"
-$form.BackColor = $C.canvas
-$form.ForeColor = $C.text
-$form.Font = $F.body
+$form.BackColor = $Theme.canvas
+$form.ForeColor = $Theme.text
+$form.Font = $Fonts.body
 
 # header
-$form.Controls.Add((New-Label "Slate360 Capture Studio" 24 18 500 $F.title $C.text 34))
-$subtitle = New-Label "Drop a capture  ->  Gaussian splat  ->  Twin viewer" 24 54 600 $F.body $C.muted
+$form.Controls.Add((New-Label "Slate360 Capture Studio" 24 18 500 $Fonts.title $Theme.text 34))
+$subtitle = New-Label "Drop a capture  ->  Gaussian splat  ->  Twin viewer" 24 54 600 $Fonts.body $Theme.muted
 $form.Controls.Add($subtitle)
 
 # mode switch (segmented)
 $btn360 = New-Button "360 photo or video" 24 86 190 34
 $btn2d = New-Button "2D photo or video" 214 86 190 34
 $form.Controls.AddRange(@($btn360, $btn2d))
-$modeHint = New-Label "" 420 92 700 $F.small $C.muted
+$modeHint = New-Label "" 420 92 700 $Fonts.small $Theme.muted
 $form.Controls.Add($modeHint)
 function Set-Mode([string]$m) {
   $script:mode = $m
   $script:settings.lastMode = $m; Save-Settings
   foreach ($pair in @(@($btn360, "360"), @($btn2d, "2d"))) {
     $b = $pair[0]; $on = ($pair[1] -eq $m)
-    if ($on) { $b.BackColor = $C.panel2; $b.ForeColor = $C.accent; $b.FlatAppearance.BorderColor = $C.accent } else { $b.BackColor = $C.canvas; $b.ForeColor = $C.muted; $b.FlatAppearance.BorderColor = $C.line }
+    if ($on) { $b.BackColor = $Theme.panel2; $b.ForeColor = $Theme.accent; $b.FlatAppearance.BorderColor = $Theme.accent } else { $b.BackColor = $Theme.canvas; $b.ForeColor = $Theme.muted; $b.FlatAppearance.BorderColor = $Theme.line }
   }
   if ($m -eq "360") { $modeHint.Text = "Stitched equirect MP4 or 2:1 stills from an Insta360 or any 360 camera. Raw .insv must be stitched first." }
   else { $modeHint.Text = "Regular video or photos from a phone, drone, or any camera. One lens per capture (iPhone: 1x Wide)." }
@@ -136,7 +136,7 @@ $left.Controls.Add((New-Eyebrow "Capture" 16 12))
 $drop = New-Object System.Windows.Forms.Label
 $drop.Location = New-Object System.Drawing.Point(16, 34); $drop.Size = New-Object System.Drawing.Size(340, 120)
 $drop.Text = "Drop a video or a folder of photos here"
-$drop.TextAlign = "MiddleCenter"; $drop.Font = $F.h; $drop.ForeColor = $C.muted; $drop.BackColor = $C.panel2
+$drop.TextAlign = "MiddleCenter"; $drop.Font = $Fonts.h; $drop.ForeColor = $Theme.muted; $drop.BackColor = $Theme.panel2
 $drop.BorderStyle = "FixedSingle"; $drop.AllowDrop = $true
 $left.Controls.Add($drop)
 $btnFiles = New-Button "Add files..." 16 162 165 30
@@ -147,35 +147,35 @@ $left.Controls.Add((New-Eyebrow "In this capture" 16 236))
 $inv = New-Object System.Windows.Forms.ListView
 $inv.Location = New-Object System.Drawing.Point(16, 256); $inv.Size = New-Object System.Drawing.Size(340, 190)
 $inv.View = "Details"; $inv.FullRowSelect = $true; $inv.HeaderStyle = "Nonclickable"; $inv.BorderStyle = "None"
-$inv.BackColor = $C.panel2; $inv.ForeColor = $C.text; $inv.Font = $F.small
+$inv.BackColor = $Theme.panel2; $inv.ForeColor = $Theme.text; $inv.Font = $Fonts.small
 [void]$inv.Columns.Add("Data", 110); [void]$inv.Columns.Add("Detail", 120); [void]$inv.Columns.Add("Used for", 106)
 $left.Controls.Add($inv)
-$invNote = New-Label "Add a capture to see what it contains." 16 452 340 $F.small $C.muted 76
+$invNote = New-Label "Add a capture to see what it contains." 16 452 340 $Fonts.small $Theme.muted 76
 $left.Controls.Add($invNote)
 
 # ---------------------------------------------------------------- middle: settings
 $mid = New-Panel 412 136 372 540
 $form.Controls.Add($mid)
 $mid.Controls.Add((New-Eyebrow "Settings" 16 12))
-$mid.Controls.Add((New-Label "Coverage" 16 34 120 $F.h $C.text))
+$mid.Controls.Add((New-Label "Coverage" 16 34 120 $Fonts.h $Theme.text))
 $coverage = New-Combo 16 56 340 @("Normal walk  -  1 still per second", "Short walk  -  2 stills per second", "Long walk  -  1 still every 2 seconds", "Photos only  -  use every file")
 $mid.Controls.Add($coverage)
-$coverageHint = New-Label "How many frames are pulled from video. More frames = better coverage, longer solve." 16 84 340 $F.small $C.muted 30
+$coverageHint = New-Label "How many frames are pulled from video. More frames = better coverage, longer solve." 16 84 340 $Fonts.small $Theme.muted 30
 $mid.Controls.Add($coverageHint)
-$mid.Controls.Add((New-Label "Quality" 16 120 120 $F.h $C.text))
+$mid.Controls.Add((New-Label "Quality" 16 120 120 $Fonts.h $Theme.text))
 $quality = New-Combo 16 142 340 @("Preview  -  7,000 steps, about 5 min", "Standard  -  15,000 steps, about 10 min", "Final  -  30,000 steps, about 20 min")
 $mid.Controls.Add($quality)
-$mid.Controls.Add((New-Label "Times are for one room on the RTX 3090." 16 170 340 $F.small $C.muted))
-$mid.Controls.Add((New-Label "Output" 16 200 120 $F.h $C.text))
+$mid.Controls.Add((New-Label "Times are for one room on the RTX 3090." 16 170 340 $Fonts.small $Theme.muted))
+$mid.Controls.Add((New-Label "Output" 16 200 120 $Fonts.h $Theme.text))
 $fmtSpz = New-Check "SPZ  -  opens in the Twin viewer (always)" 16 222 340 $true; $fmtSpz.Enabled = $false
 $fmtPly = New-Check "PLY  -  full-precision research copy" 16 246 340 $false
 $fmtSplat = New-Check ".splat  -  other viewers" 16 270 170 $false
 $fmtHtml = New-Check "HTML  -  double-click preview" 186 270 170 $false
 $mid.Controls.AddRange(@($fmtSpz, $fmtPly, $fmtSplat, $fmtHtml))
-$mid.Controls.Add((New-Label "Name" 16 302 120 $F.h $C.text))
+$mid.Controls.Add((New-Label "Name" 16 302 120 $Fonts.h $Theme.text))
 $nameBox = New-Text 16 324 340
 $mid.Controls.Add($nameBox)
-$mid.Controls.Add((New-Label "Save to" 16 356 120 $F.h $C.text))
+$mid.Controls.Add((New-Label "Save to" 16 356 120 $Fonts.h $Theme.text))
 $exportBox = New-Text 16 378 262
 $exportBox.Text = [string]$script:settings.exportDir
 $btnBrowse = New-Button "Browse..." 284 378 72 26
@@ -204,9 +204,9 @@ $stageDefs = @(
 $script:stageRows = @{}
 $y = 34
 foreach ($d in $stageDefs) {
-  $icon = New-Label ([string][char]0x25CB) 16 $y 20 $F.h $C.muted 22
-  $lbl = New-Label $d[1] 40 $y 200 $F.body $C.muted 22
-  $det = New-Label "" 40 ($y + 20) 316 $F.small $C.muted 16
+  $icon = New-Label ([string][char]0x25CB) 16 $y 20 $Fonts.h $Theme.muted 22
+  $lbl = New-Label $d[1] 40 $y 200 $Fonts.body $Theme.muted 22
+  $det = New-Label "" 40 ($y + 20) 316 $Fonts.small $Theme.muted 16
   $right.Controls.AddRange(@($icon, $lbl, $det))
   $script:stageRows[$d[0]] = @{ icon = $icon; label = $lbl; detail = $det }
   $y += 42
@@ -214,12 +214,12 @@ foreach ($d in $stageDefs) {
 $bar = New-Object System.Windows.Forms.ProgressBar
 $bar.Location = New-Object System.Drawing.Point(16, 378); $bar.Size = New-Object System.Drawing.Size(340, 8); $bar.Style = "Continuous"
 $right.Controls.Add($bar)
-$etaLbl = New-Label "" 16 390 340 $F.small $C.muted
+$etaLbl = New-Label "" 16 390 340 $Fonts.small $Theme.muted
 $right.Controls.Add($etaLbl)
 $logBox = New-Object System.Windows.Forms.TextBox
 $logBox.Location = New-Object System.Drawing.Point(16, 412); $logBox.Size = New-Object System.Drawing.Size(340, 84)
-$logBox.Multiline = $true; $logBox.ReadOnly = $true; $logBox.ScrollBars = "Vertical"; $logBox.Font = $F.mono
-$logBox.BackColor = $C.canvas; $logBox.ForeColor = $C.muted; $logBox.BorderStyle = "None"
+$logBox.Multiline = $true; $logBox.ReadOnly = $true; $logBox.ScrollBars = "Vertical"; $logBox.Font = $Fonts.mono
+$logBox.BackColor = $Theme.canvas; $logBox.ForeColor = $Theme.muted; $logBox.BorderStyle = "None"
 $right.Controls.Add($logBox)
 $btnOpenExport = New-Button "Open folder" 16 504 108 28
 $btnOpenShare = New-Button "Open link" 128 504 108 28
@@ -232,31 +232,31 @@ $form.Controls.Add((New-Eyebrow "Recent jobs   (double-click to open the folder)
 $jobs = New-Object System.Windows.Forms.ListView
 $jobs.Location = New-Object System.Drawing.Point(24, 710); $jobs.Size = New-Object System.Drawing.Size(1148, 60)
 $jobs.View = "Details"; $jobs.FullRowSelect = $true; $jobs.HeaderStyle = "Nonclickable"; $jobs.BorderStyle = "None"
-$jobs.BackColor = $C.panel; $jobs.ForeColor = $C.text; $jobs.Font = $F.small
+$jobs.BackColor = $Theme.panel; $jobs.ForeColor = $Theme.text; $jobs.Font = $Fonts.small
 foreach ($c in @(@("Job", 320), @("Mode", 60), @("Quality", 80), @("Status", 120), @("Result", 560))) { [void]$jobs.Columns.Add($c[0], $c[1]) }
 $form.Controls.Add($jobs)
 
 $status = New-Object System.Windows.Forms.StatusStrip
-$status.BackColor = $C.panel; $status.SizingGrip = $false
+$status.BackColor = $Theme.panel; $status.SizingGrip = $false
 $statusLbl = New-Object System.Windows.Forms.ToolStripStatusLabel
-$statusLbl.Text = "Checking tools..."; $statusLbl.ForeColor = $C.muted
+$statusLbl.Text = "Checking tools..."; $statusLbl.ForeColor = $Theme.muted
 [void]$status.Items.Add($statusLbl)
 $form.Controls.Add($status)
 
 # ---------------------------------------------------------------- behaviour
 function Add-Log([string]$t) { $logBox.AppendText($t + [Environment]::NewLine) }
 function Reset-Stages {
-  foreach ($k in $script:stageRows.Keys) { $r = $script:stageRows[$k]; $r.icon.Text = [string][char]0x25CB; $r.icon.ForeColor = $C.muted; $r.label.ForeColor = $C.muted; $r.detail.Text = "" }
+  foreach ($k in $script:stageRows.Keys) { $r = $script:stageRows[$k]; $r.icon.Text = [string][char]0x25CB; $r.icon.ForeColor = $Theme.muted; $r.label.ForeColor = $Theme.muted; $r.detail.Text = "" }
   $bar.Value = 0; $etaLbl.Text = ""
 }
 function Set-Stage([string]$id, [string]$state, [string]$detail) {
   if (-not $script:stageRows.ContainsKey($id)) { return }
   $r = $script:stageRows[$id]
   switch ($state) {
-    "running" { $r.icon.Text = [string][char]0x25CF; $r.icon.ForeColor = $C.accent; $r.label.ForeColor = $C.text }
-    "done"    { $r.icon.Text = [string][char]0x2713; $r.icon.ForeColor = $C.accent; $r.label.ForeColor = $C.text }
-    "failed"  { $r.icon.Text = [string][char]0x2715; $r.icon.ForeColor = $C.bad; $r.label.ForeColor = $C.bad }
-    "skipped" { $r.icon.Text = [string][char]0x2013; $r.icon.ForeColor = $C.muted }
+    "running" { $r.icon.Text = [string][char]0x25CF; $r.icon.ForeColor = $Theme.accent; $r.label.ForeColor = $Theme.text }
+    "done"    { $r.icon.Text = [string][char]0x2713; $r.icon.ForeColor = $Theme.accent; $r.label.ForeColor = $Theme.text }
+    "failed"  { $r.icon.Text = [string][char]0x2715; $r.icon.ForeColor = $Theme.bad; $r.label.ForeColor = $Theme.bad }
+    "skipped" { $r.icon.Text = [string][char]0x2013; $r.icon.ForeColor = $Theme.muted }
   }
   if ($detail -ne $null) { $r.detail.Text = $detail }
 }
@@ -284,7 +284,7 @@ function Add-Inputs([string[]]$paths) {
   foreach ($p in $paths) { if ($p -and -not $script:inputs.Contains($p)) { $script:inputs.Add($p) } }
   $n = $script:inputs.Count
   $drop.Text = if ($n -eq 0) { "Drop a video or a folder of photos here" } else { "$n item(s) added" + [Environment]::NewLine + (Split-Path -Leaf $script:inputs[0]) + $(if ($n -gt 1) { " ..." } else { "" }) }
-  $drop.ForeColor = if ($n -eq 0) { $C.muted } else { $C.text }
+  $drop.ForeColor = if ($n -eq 0) { $Theme.muted } else { $Theme.text }
   if (-not $nameBox.Text -and $n -gt 0) { $nameBox.Text = [IO.Path]::GetFileNameWithoutExtension((Split-Path -Leaf $script:inputs[0])) }
   Start-Probe
 }
@@ -327,7 +327,7 @@ function Show-Probe($p) {
   $note = $camText + "Looks like " + $(switch ($s.primary) { "360" { "a 360 capture" } "2d" { "a 2D capture" } "mixed" { "a mix of 360 and 2D" } "raw360" { "unstitched 360" } default { "nothing usable" } }) + "."
   foreach ($w in @($s.warnings)) { if ($w) { $note += [Environment]::NewLine + $w } }
   $invNote.Text = $note
-  $invNote.ForeColor = if (@($s.warnings).Count -gt 0) { $C.warn } else { $C.muted }
+  $invNote.ForeColor = if (@($s.warnings).Count -gt 0) { $Theme.warn } else { $Theme.muted }
   if ($s.primary -eq "360" -and $script:mode -ne "360") { Set-Mode "360" }
   elseif ($s.primary -eq "2d" -and $script:mode -ne "2d") { Set-Mode "2d" }
   $fpsIdx = switch ([double]$s.suggested_fps) { 2.0 { 1 } 0.5 { 2 } default { 0 } }
@@ -451,9 +451,9 @@ $probeTimer.Add_Tick({
 $probeTimer.Start()
 
 # events
-$drop.Add_DragEnter({ param($s, $e) if ($e.Data.GetDataPresent([System.Windows.Forms.DataFormats]::FileDrop)) { $e.Effect = "Copy"; $drop.BackColor = $C.line } })
-$drop.Add_DragLeave({ $drop.BackColor = $C.panel2 })
-$drop.Add_DragDrop({ param($s, $e) $drop.BackColor = $C.panel2; Add-Inputs @($e.Data.GetData([System.Windows.Forms.DataFormats]::FileDrop)) })
+$drop.Add_DragEnter({ param($s, $e) if ($e.Data.GetDataPresent([System.Windows.Forms.DataFormats]::FileDrop)) { $e.Effect = "Copy"; $drop.BackColor = $Theme.line } })
+$drop.Add_DragLeave({ $drop.BackColor = $Theme.panel2 })
+$drop.Add_DragDrop({ param($s, $e) $drop.BackColor = $Theme.panel2; Add-Inputs @($e.Data.GetData([System.Windows.Forms.DataFormats]::FileDrop)) })
 $btnFiles.Add_Click({ $d = New-Object System.Windows.Forms.OpenFileDialog; $d.Multiselect = $true; $d.Filter = "Video and photos|*.mp4;*.mov;*.mkv;*.jpg;*.jpeg;*.png;*.insv|All files|*.*"; if ($d.ShowDialog() -eq "OK") { Add-Inputs $d.FileNames } })
 $btnFolder.Add_Click({ $d = New-Object System.Windows.Forms.FolderBrowserDialog; if ($d.ShowDialog() -eq "OK") { Add-Inputs @($d.SelectedPath) } })
 $btnClear.Add_Click({ $script:inputs.Clear(); $nameBox.Text = ""; Add-Inputs @() })
@@ -481,7 +481,7 @@ $envTimer.Add_Tick({
       $parts += $(if ($j.pycolmap) { $j.pycolmap } else { "pycolmap missing (WSL)" })
       $parts += $(if ($j.ffmpeg) { "ffmpeg" } else { "ffmpeg missing" })
       $statusLbl.Text = ($parts -join "   ·   ")
-      $statusLbl.ForeColor = if ($j.ok) { $C.muted } else { $C.warn }
+      $statusLbl.ForeColor = if ($j.ok) { $Theme.muted } else { $Theme.warn }
       if (-not $j.ok) { $btnCreate.Enabled = $false; Add-Log "A required tool is missing. See the status bar." }
     } catch { $statusLbl.Text = "Tool check failed" }
   }
@@ -490,4 +490,10 @@ $envTimer.Start()
 
 Set-Mode $script:mode
 Refresh-Jobs
+if ($env:SLATE_STUDIO_SELFTEST -eq "1") {
+  # Build everything, run one probe of the pending inputs, then exit: used by CI/agents to prove the UI constructs.
+  $form.Show(); [System.Windows.Forms.Application]::DoEvents(); Start-Sleep -Milliseconds 800; [System.Windows.Forms.Application]::DoEvents()
+  Write-Output ("SELFTEST ok controls=" + $form.Controls.Count + " jobs=" + $jobs.Items.Count + " mode=" + $script:mode)
+  $form.Close(); exit 0
+}
 [void]$form.ShowDialog()

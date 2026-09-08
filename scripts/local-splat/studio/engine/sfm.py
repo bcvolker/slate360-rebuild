@@ -174,7 +174,8 @@ def main() -> int:
     sift.max_image_size = a.max_image_size
     sift.num_threads = a.threads
     sift.use_gpu = False  # pip wheel has no CUDA SIFT; CPU is fine at this scale
-    sift.sift.max_num_features = 8192
+    # 360 faces are 1600 px and there are 4-5 per panorama; 4096 features each is plenty.
+    sift.sift.max_num_features = 4096 if a.mode == "360" else 8192
     matching = pycolmap.FeatureMatchingOptions()
     matching.num_threads = a.threads
     matching.use_gpu = False
