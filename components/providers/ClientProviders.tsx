@@ -42,13 +42,6 @@ const OfflineBanner = dynamic(
   { ssr: false, loading: () => null }
 );
 
-const InstallBanner = dynamic(
-  () => import("@/components/shared/InstallBanner").then((m) => ({
-    default: m.InstallBanner,
-  })),
-  { ssr: false, loading: () => null }
-);
-
 const NativeChromeInit = dynamic(
   () => import("@/components/providers/NativeChromeInit").then((m) => ({
     default: m.NativeChromeInit,
@@ -72,7 +65,6 @@ export function ClientProviders({ children }: { children: ReactNode }) {
       <PostHogInit />
       <SWRegistrar />
       <OfflineBanner />
-      <InstallBanner />
       {children}
     </>
   );

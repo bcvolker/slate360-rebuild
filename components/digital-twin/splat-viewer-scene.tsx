@@ -28,6 +28,7 @@ import { fetchSplatManifest, type SplatManifest } from "@/lib/digital-twin/twin-
 import { estimateOrientationFromMesh } from "@/lib/digital-twin/splat-pca-orientation";
 import { applyEditListToMesh } from "@/lib/digital-twin/splat-edit-runtime";
 import { useCameraSyncBridge } from "@/lib/digital-twin/splat-camera-sync";
+import { useSplatBytes } from "@/hooks/useSplatBytes";
 
 extend({ SparkRenderer: SparkRendererImpl, SplatMesh: SplatMeshImpl });
 
@@ -94,6 +95,7 @@ export function SplatViewerScene({
   maxSplats,
   onReady,
   onProgress,
+  onLoadError,
   onDownsampled,
   pickEnabled,
   onPick,
@@ -116,6 +118,7 @@ export function SplatViewerScene({
   maxSplats: number;
   onReady: () => void;
   onProgress?: (loaded: number, total: number | null) => void;
+  onLoadError?: (message: string) => void;
   onDownsampled?: (originalCount: number, cappedCount: number) => void;
   pickEnabled: boolean;
   onPick?: (point: TwinPickPoint) => void;
@@ -173,14 +176,21 @@ export function SplatViewerScene({
   // is exactly the point of a HARD cap — the alternative (`maxSplats` alone) is only an
   // allocation hint that grows to fit the file, which is the bug this fixes.
   const sparkArgs = useMemo(() => ({ renderer: gl, enableLod: false }), [gl]);
+  // Download the file here (real byte progress) and hand Spark the bytes. Spark's
+  // own url loader never surfaced progress for this viewer, so the stall watchdog
+  // failed healthy loads with "Connection stalled" over a model that was still coming in.
+  const { bytes: splatBytes, error: splatFetchError } = useSplatBytes(url, onProgress);
+  useEffect(() => {
+    if (splatFetchError) onLoadError?.(`Could not download the model (${splatFetchError}).`);
+  }, [splatFetchError, onLoadError]);
+
   const splatArgs = useMemo(
     () => ({
-      url,
+      fileBytes: splatBytes ?? new Uint8Array(0),
+      // Spark sniffs the real format from the bytes; the name is only a fallback hint.
+      fileName: "model.spz",
       lod: false,
       maxSplats,
-      onProgress: (event: ProgressEvent) => {
-        onProgress?.(event.loaded, event.lengthComputable ? event.total : null);
-      },
       onLoad: async (mesh: SplatMesh) => {
         // Enforce the hard splat cap: downsample deterministically once `onLoad` proves
         // the real splat count is populated, and BEFORE the mesh's first GPU texture
@@ -232,7 +242,7 @@ export function SplatViewerScene({
         onReady();
       },
     }),
-    [url, maxSplats, onReady, onProgress, onDownsampled],
+    [splatBytes, maxSplats, onReady, onDownsampled],
   );
 
   useEffect(() => {
@@ -249,7 +259,7 @@ export function SplatViewerScene({
     <>
       <group ref={modelGroupRef} visible={modelVisible}>
         <sparkRenderer args={[sparkArgs]}>
-          <splatMesh args={[splatArgs]} rotation={[Math.PI, 0, 0]} />
+          {splatBytes ? <splatMesh args={[splatArgs]} rotation={[Math.PI, 0, 0]} /> : null}
         </sparkRenderer>
       </group>
       {loadedMesh ? (
