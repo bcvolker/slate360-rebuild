@@ -1,0 +1,84 @@
+# Slate360 Capture Studio
+
+Desktop operator app. Drop a capture, get a Gaussian splat the Twin viewer can
+open, optionally publish a share link. Free, local, commercially clean.
+
+Launch: `scripts/local-splat/studio/Launch-Capture-Studio.bat`
+(or run `Install-Capture-Studio-Shortcut.ps1` once for a desktop icon).
+
+## Engine (all free, all local)
+
+| Step | Tool | License | Where it runs |
+|---|---|---|---|
+| Pull stills from video | ffmpeg 9 | LGPL | Windows |
+| Sharpness filter | OpenCV | Apache-2.0 | WSL (ext4 disk) |
+| Camera positions | pycolmap 4.1 | BSD-3 | WSL |
+| 360 handling | pycolmap camera **rig**: cube faces share one pose per panorama | BSD-3 | WSL |
+| Gaussian training | Brush 0.3 | Apache-2.0 | Windows, RTX 3090 |
+| Pack for the viewer | `engine/pack_spz.py` (SPZ v3, 8-bit SH) | ours | WSL |
+| Publish | `scripts/local-splat/ingest-splat.mjs` | ours | Windows |
+
+Not used on the production path: Postshot (free tier is non-commercial and
+watermarked; SPZ v4 output does not open in Spark 2.1), GGPS/PanoLOG
+(CC BY-NC 4.0, research only), OpenSfM. Those stay under research tooling
+(`scripts/research/ggps-drop-app/`) for quality comparisons.
+
+The same chain (ffmpeg → pycolmap → Brush/gsplat → 8-bit SPZ) is what the
+cloud worker should run later. Nothing here is Windows-GUI-only.
+
+## Files
+
+```
+scripts/local-splat/studio/
+  Slate360-Capture-Studio.ps1     WinForms UI (Graphite theme)
+  Launch-Capture-Studio.bat
+  Install-Capture-Studio-Shortcut.ps1
+  engine/
+    run-job.ps1                   orchestrator; emits STAGE/PROGRESS/STAGEDONE/RESULT/DONE
+    check-env.ps1                 GPU / Brush / WSL / pycolmap / ffmpeg check
+    probe.py                      what is in the capture (360/2D/GPS/LiDAR/ARKit/GNSS)
+    frames.py                     sharpness filter (moves blurry frames aside, never deletes)
+    sfm.py                        pycolmap poses; 360 via rig-locked cube faces
+    pack_spz.py                   PLY -> SPZ v3 with 8-bit SH
+```
+
+Jobs live in `%USERPROFILE%\Slate360Jobs\<stamp>-<name>\`:
+`request.json` (what the UI asked for), `probe.json`, `images\`, `dataset\`
+(COLMAP text model + images for Brush), `export\gaussian.ply|spz`,
+`status.json`, `engine.log`. Exports copy to `Desktop\Slate360Exports\` by default.
+
+## What each kind of dropped data does
+
+| Dropped | Detected as | Used for |
+|---|---|---|
+| Stitched 360 MP4 or 2:1 stills (X4, X6, any 360) | 360 | Splat — appearance (Reality layer) |
+| Phone / drone / DSLR video or photos | 2D | Splat — appearance |
+| Raw `.insv` | raw360 | Rejected with instructions: stitch in Insta360 Studio first |
+| iPhone `.s360depth`, ARKit trajectory, `transforms.json` | ARKit / LiDAR | **Not fused into the splat.** Feeds the metric mesh job (Geometry layer). Shown in the inventory so you know it arrived. |
+| `.ply/.las/.laz/.e57` point clouds | LiDAR | Same: geometry job, not the splat |
+| GPS in EXIF or video tags, DJI `.srt` | GPS | Stored with the job; not used in the solve yet |
+| `.pos/.obs/.rinex/.ubx/.gpx`, lat/lon CSV | RTK / GNSS | Stored; georeference later |
+
+Rule: one lens per capture. iPhone splat walks use 1× Wide only. Mixing
+Ultra Wide / Tele / 360 in one job is refused by the solve, not by policy.
+
+## Settings, in plain terms
+
+- **Coverage** = stills per second pulled from video (2 / 1 / 0.5). Photos-only uses every file.
+- **Quality** = training steps: Preview 7k (~5 min), Standard 15k (~10 min), Final 30k (~20 min) for one room on the 3090.
+- **Output** = SPZ always (viewer format). PLY / .splat / HTML optional.
+- **Publish** = upload to R2, create a Twin share link, copy it.
+
+## Exit codes (engine)
+
+2 nothing usable · 4 raw .insv · 5 too few sharp frames · 6 camera solve failed
+· 7 fewer than 60% of images placed · 8 Brush wrote no PLY · 9 packing failed.
+
+## Roadmap (after the first sellable splat)
+
+1. LiDAR mesh sidecar: when `.s360depth` is present, queue the existing metric
+   mesh job and attach `geometry.glb` to the same share (Reality + Geometry).
+2. Operator sector mask for 360 at training time (Brush `--masks`), driven by
+   the same keyframed mask the Walkthrough uses.
+3. Cloud parity: run `frames.py` → `sfm.py` → Brush/gsplat → `pack_spz.py`
+   inside the Modal worker with the same request.json.
