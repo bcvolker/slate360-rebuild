@@ -74,6 +74,16 @@ Ultra Wide / Tele / 360 in one job is refused by the solve, not by policy.
 2 nothing usable · 4 raw .insv · 5 too few sharp frames · 6 camera solve failed
 · 7 fewer than 60% of images placed · 8 Brush wrote no PLY · 9 packing failed.
 
+## Verified on this desktop (2026-09-08)
+
+| Test | Input | Cameras | Train | Output |
+|---|---|---|---|---|
+| 2D | 365 iPhone 1x frames (kitchen), 1920x1440 | 295/365 placed, 0.71 px, 9.7 min CPU | Brush 3k steps, 74 s | 84,469 splats, 5.5 MB SPZ, sharp kitchen |
+| 360 | stitchedlowpass.mp4, 158 s, 5.7K, 2 stills/s | 604/1260 faces placed (48%), 1.06 px, 13 min CPU | Brush 7k steps, 3 min | 354,852 splats, 12.6 MB SPZ, saved to Desktop\Slate360Exports |
+
+Camera solving is the slow step (CPU SIFT). Coverage under 70% means thin
+spots, not failure; the engine says so in the progress panel.
+
 ## Roadmap (after the first sellable splat)
 
 1. LiDAR mesh sidecar: when `.s360depth` is present, queue the existing metric
