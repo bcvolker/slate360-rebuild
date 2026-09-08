@@ -1,5 +1,7 @@
 # Capture + Research Studio fix plan
 
+**Consensus after Cursor + second review (2026-09-08):** keep this file as the briefing. Execution contract is §10 at the bottom. Do **not** start 360, restyle, or TestFlight until Step A’s phone-open gate is true.
+
 **Date:** 2026-09-08  
 **Audience:** Brian + any other AI (Grok laptop, Cursor, Claude)  
 **Status:** Diagnosis complete. Desktop studio is **not** producing splats yet. This is fixable.  
@@ -302,3 +304,51 @@ Highest-confidence first splat: **2D tab + Postshot + SPZ**, not 360 GGPS. That 
 | Locked briefing | `docs/GROK_BUILD_HANDOFF_2026-09-06.md` |
 | Capture SOP | `docs/design/TWIN360_CAPTURE_SOP.md` |
 | Failed 360 stills | `%USERPROFILE%\ggps-jobs\20260906-161209-stitchedhighpass\images` (207 frames, keep) |
+| Proven 360 Route B (untracked on `C:\s360`, **not** in desktop clone) | `C:\s360\scripts\ops\x4-quality-gaussian\` + `brush_app.exe` |
+| 8-bit SPZ packer | `scripts/ops/pack-appearance-web-spz.py` (generalize; kitchen paths hardcoded today) |
+
+---
+
+## 10. Consensus execution contract (after two reviews)
+
+Reviewed 2026-09-08 against live `C:\s360-desktop` scripts. Adopt all of this.
+
+### Confirmed in code
+
+- 2D ffmpeg extract is **360-only** (`-not $is2d`). Dropping an iPhone `.mov` on the 2D tab writes **zero stills**.
+- Empty `$kept` still does `$sortedSharp[0].Sharp` → throw. Postshot never starts.
+- 2D path may import the **raw movie** if stills &lt; 20. Wrong first proof.
+- UI `Start-Process -ArgumentList` still quotes `C:\Users\Brian PC\...`. Same bug class as WSL.
+- `convert-splat.mjs` is SPZ **v3** but uses splat-transform **defaults** for SH bits. Kitchen packer uses **8/8**.
+- Postshot CLI default SPZ is **v4**; Spark rejects &gt; v3. Runner already passes `--spz-version 3` — still prefer **PLY → 8-bit packer**.
+- Route B + Brush exists on **`C:\s360`** (untracked) and `Desktop\Slate360Research\engines\brush\brush_app.exe`. **Not** in the desktop git clone. GGPS remains research-only.
+- Independent cube-face COLMAP = production bug. **Rig-locked** faces from one panorama pose = Route B, keep.
+
+### Must land before Brian hits Create splat (Step A code)
+
+1. 2D video: ffmpeg-extract stills (same Coverage fps as 360).
+2. If `$kept.Count -eq 0`, skip sharpness; do not index `[0]`.
+3. Postshot `--import` the **still folder**; export PLY; pack SPZ v3 **8-bit**; copy `export\gaussian.spz`.
+4. Launch `run_job.ps1` in-process or via `-File` temp script. Dummy job whose path contains a space must pass.
+5. Ingest remains `ingest-splat.mjs`.
+
+### Step A gate (only work until true)
+
+Short interior, iPhone **1× Wide**, 4K, AE/WB locked, HDR off, slow loop, Coverage Short (2 fps), Quality Preview.
+
+Pass: `export\gaussian.spz` exists; share `https://www.slate360.ai/share/twin/...`; Brian opens it on his phone; he would send it to a GC **or** he recaptures. **No more pipeline until that call.**
+
+### Step B (only after A)
+
+- Engine: **Route B + Brush** (commit `x4-quality-gaussian` / `x4-v1-canonical`). GGPS = Advanced/research.
+- Copy JPEGs onto ext4 as **real files**. No `/mnt/c/Users/Brian PC` image symlinks.
+- First 360: **short** stitched clip (~51 s), not the 207-frame 7 min walk.
+- Pack with 8-bit SPZ. Same phone-open gate. Then optionally resume 207 frames at 3840×1920.
+
+### After A (small)
+
+Tabs: **360 photo or video** / **2D photo or video**. Export → **Save as…**. Never show “trainer ready” with an empty export folder.
+
+### Later (frozen until A looks like money)
+
+TestFlight named sessions. 1× Wide lock in Twin360. Reality+Geometry on one share. Cloud 360. No fusion, no multi-focal, no App Store, no OpenSfM-as-default, no invented 360 poses.
