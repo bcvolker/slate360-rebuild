@@ -27,6 +27,7 @@ import { fetchSplatManifest, type SplatManifest } from "@/lib/digital-twin/twin-
 import { estimateOrientationFromMesh } from "@/lib/digital-twin/splat-pca-orientation";
 import { applyEditListToMesh } from "@/lib/digital-twin/splat-edit-runtime";
 import { useCameraSyncBridge } from "@/lib/digital-twin/splat-camera-sync";
+import { useSplatBytes } from "@/hooks/useSplatBytes";
 
 extend({ SparkRenderer: SparkRendererImpl, SplatMesh: SplatMeshImpl });
 
@@ -93,6 +94,7 @@ export function SplatViewerScene({
   maxSplats,
   onReady,
   onProgress,
+  onLoadError,
   onDownsampled,
   pickEnabled,
   onPick,
@@ -115,6 +117,7 @@ export function SplatViewerScene({
   maxSplats: number;
   onReady: () => void;
   onProgress?: (loaded: number, total: number | null) => void;
+  onLoadError?: (message: string) => void;
   onDownsampled?: (originalCount: number, cappedCount: number) => void;
   pickEnabled: boolean;
   onPick?: (point: TwinPickPoint) => void;
@@ -169,15 +172,21 @@ export function SplatViewerScene({
     () => ({ renderer: gl, enableLod: true, lodSplatCount: maxSplats }),
     [gl, maxSplats],
   );
+  // Download the file here (real byte progress) and hand Spark the bytes. Spark's
+  // own url loader never reports progress on the LOD/ExtSplats path, which made
+  // the stall watchdog fail healthy loads with "Connection stalled".
+  const { bytes: splatBytes, error: splatFetchError } = useSplatBytes(url, onProgress);
+  useEffect(() => {
+    if (splatFetchError) onLoadError?.(`Could not download the model (${splatFetchError}).`);
+  }, [splatFetchError, onLoadError]);
+
   const splatArgs = useMemo(
     () => ({
-      url,
+      fileBytes: splatBytes ?? new Uint8Array(0),
+      fileName: "model.spz",
       lod: true,
       enableLod: true,
       extSplats: true,
-      onProgress: (event: ProgressEvent) => {
-        onProgress?.(event.loaded, event.lengthComputable ? event.total : null);
-      },
       onLoad: async (mesh: SplatMesh) => {
         // Orient the model BEFORE framing runs. Precedence:
         //   1. worker-baked manifest quaternion (authoritative)
@@ -214,7 +223,7 @@ export function SplatViewerScene({
         onReady();
       },
     }),
-    [url, maxSplats, onReady, onProgress, onDownsampled],
+    [splatBytes, maxSplats, onReady, onDownsampled],
   );
 
   useEffect(() => {
@@ -231,7 +240,7 @@ export function SplatViewerScene({
     <>
       <group ref={modelGroupRef} visible={modelVisible}>
         <sparkRenderer args={[sparkArgs]}>
-          <splatMesh args={[splatArgs]} rotation={[Math.PI, 0, 0]} />
+          {splatBytes ? <splatMesh args={[splatArgs]} rotation={[Math.PI, 0, 0]} /> : null}
         </sparkRenderer>
       </group>
       {loadedMesh ? (

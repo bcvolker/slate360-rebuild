@@ -122,6 +122,11 @@ export const SplatViewerCore = forwardRef<
     }
   }, []);
 
+  const handleLoadError = useCallback((message: string) => {
+    setErrorMessage(message);
+    setLoadState("error");
+  }, []);
+
   const handleDownsampled = useCallback((originalCount: number, cappedCount: number) => {
     setDownsampleNotice(formatDownsampleNotice(originalCount, cappedCount));
   }, []);
@@ -275,6 +280,7 @@ export const SplatViewerCore = forwardRef<
             maxSplats={maxSplats}
             onReady={handleReady}
             onProgress={handleProgress}
+            onLoadError={handleLoadError}
             onDownsampled={handleDownsampled}
             pickEnabled={pickEnabled}
             onPick={onPick}
