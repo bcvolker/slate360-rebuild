@@ -105,7 +105,7 @@ def run_matching(db: Path, n_images: int, matching: pycolmap.FeatureMatchingOpti
     else:
         log("STAGE match sequential")
         seq = pycolmap.SequentialPairingOptions()
-        seq.overlap = 20
+        seq.overlap = 30  # frames of video; quadratic adds sparse long-range pairs for loop closure
         seq.quadratic_overlap = True
         seq.expand_rig_images = True
         seq.loop_detection = False
@@ -228,7 +228,7 @@ def main() -> int:
                 rc.cam_from_rig = pycolmap.Rigid3d(pycolmap.Rotation3d(r_face.T), np.zeros(3))
             rig_cams.append(rc)
         rig.cameras = rig_cams
-        database = pycolmap.Database(str(db))
+        database = pycolmap.Database.open(str(db))
         pycolmap.apply_rig_config([rig], database)
         database.close()
         run_matching(db, len(erps), matching)
@@ -263,9 +263,16 @@ def main() -> int:
         "seconds": round(time.time() - t0, 1),
         "cuda": use_cuda,
     })
+    frac = report["registered_fraction"]
+    report["coverage"] = "good" if frac >= 0.7 else "fair" if frac >= 0.4 else "poor"
     (out / "sfm_report.json").write_text(json.dumps(report, indent=2))
     log("RESULT sfm " + json.dumps(report))
-    return 0 if report["registered_fraction"] >= 0.6 else 7
+    if frac < 0.4:
+        log("INFO Fewer than 40% of images could be placed. Walk slower, overlap more, keep exposure locked.")
+        return 7
+    if frac < 0.7:
+        log(f"INFO Only {int(frac * 100)}% of images placed — the splat will have thin spots. Fine for a preview.")
+    return 0
 
 
 if __name__ == "__main__":
