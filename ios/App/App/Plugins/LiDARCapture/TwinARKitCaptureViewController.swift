@@ -195,6 +195,13 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private var photoAutoActive = false
     private var photoTimer: Timer?
 
+    // Camera settings (persisted across sessions in UserDefaults). ARKit exposes its
+    // primary camera for configuration on iOS 16+, which is what makes AE/WB lock and a
+    // shutter floor possible without leaving ARWorldTrackingConfiguration.
+    private var exposureLocked = false
+    private var fastShutter = false
+    private let fastShutterMaxDuration = CMTime(value: 1, timescale: 120)
+
     // Clips finalize in the BACKGROUND: ending a clip returns the shutter instantly
     // (crews capture back-to-back; blocking on AVAssetWriter.finishWriting was the
     // "can't start a new scan" dead time). Done waits for pending closes, then exports.
@@ -289,6 +296,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         depthSemanticsActive = true
         arSession.run(config, options: [.resetTracking, .removeExistingAnchors])
         sessionNeedsResume = false
+        // ARKit resets exposure when the session (re)starts — re-assert the operator's choice.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in self?.applyCameraSettings() }
         revealTorchIfAvailable()
         setState(.ready, message: "Ready — tap record")
     }
@@ -303,6 +312,23 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
 
     private func wireHudActions() {
         let model = hudHost.state
+        loadPersistedSettings()
+        model.actions.onExposureLockToggle = { [weak self] in
+            guard let self = self else { return }
+            self.exposureLocked.toggle()
+            if self.exposureLocked { self.fastShutter = false }
+            self.applyCameraSettings()
+            self.persistSettings()
+            self.pushHudState(force: true)
+        }
+        model.actions.onFastShutterToggle = { [weak self] in
+            guard let self = self else { return }
+            self.fastShutter.toggle()
+            if self.fastShutter { self.exposureLocked = false }
+            self.applyCameraSettings()
+            self.persistSettings()
+            self.pushHudState(force: true)
+        }
         model.actions.onBack = { [weak self] in self?.tapCancel() }
         model.actions.onHome = { [weak self] in self?.tapCancel() }
         model.actions.onToggleChrome = { [weak self] in
@@ -318,6 +344,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             guard let self = self, !self.isRecording else { return }
             self.stopPhotoAuto()
             self.captureMode = mode
+            self.persistSettings()
             self.tipText = mode == .photos
                 ? "Photos — tap the shutter · overlap each shot"
                 : "Ready · tap record"
@@ -326,6 +353,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         model.actions.onPhotoIntervalChange = { [weak self] interval in
             guard let self = self else { return }
             self.photoIntervalSec = interval
+            self.persistSettings()
             if self.photoAutoActive {
                 // Restart the cadence at the new interval (or stop if set to manual).
                 self.stopPhotoAuto()
@@ -351,9 +379,9 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             streamReady: state == .ready || state == .recording,
             needsResume: sessionNeedsResume,
             photosModeEnabled: true,
-            // ARKit owns camera exposure under ARWorldTrackingConfiguration.
-            // Keep this disabled; do not attempt lockForConfiguration exposure control.
-            exposureLockEnabled: false
+            // iOS 16+ hands ARKit's primary camera to us for configuration; below that the
+            // controls are hidden rather than shown dead.
+            exposureLockEnabled: configurableDevice() != nil
         )
         let header: String = {
             switch phase {
@@ -387,6 +415,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                 capability: capability,
                 tipText: self.tipText,
                 tipWarning: self.tipWarning,
+                exposureLocked: self.exposureLocked,
+                fastShutter: self.fastShutter,
                 force: force
             )
         }
@@ -404,6 +434,104 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
 
     private var hudClipCount: Int {
         completedClipCount + (isRecording ? 1 : 0)
+    }
+
+    // MARK: Camera settings (AE/WB lock, fast shutter)
+
+    private enum SettingsKey {
+        static let mode = "twin.capture.mode"
+        static let interval = "twin.capture.photoIntervalSec"
+        static let exposureLocked = "twin.capture.exposureLocked"
+        static let fastShutter = "twin.capture.fastShutter"
+    }
+
+    private func loadPersistedSettings() {
+        let d = UserDefaults.standard
+        if let raw = d.string(forKey: SettingsKey.mode), let mode = TwinCaptureMode(rawValue: raw) {
+            captureMode = mode
+        }
+        if d.object(forKey: SettingsKey.interval) != nil {
+            let v = d.double(forKey: SettingsKey.interval)
+            if [0, 0.5, 1, 2, 3].contains(v) { photoIntervalSec = v }
+        }
+        exposureLocked = d.bool(forKey: SettingsKey.exposureLocked)
+        fastShutter = d.bool(forKey: SettingsKey.fastShutter)
+        if exposureLocked && fastShutter { exposureLocked = false }
+    }
+
+    private func persistSettings() {
+        let d = UserDefaults.standard
+        d.set(captureMode.rawValue, forKey: SettingsKey.mode)
+        d.set(photoIntervalSec, forKey: SettingsKey.interval)
+        d.set(exposureLocked, forKey: SettingsKey.exposureLocked)
+        d.set(fastShutter, forKey: SettingsKey.fastShutter)
+    }
+
+    /// The AVCaptureDevice ARKit is driving, when the OS lets us configure it (iOS 16+).
+    private func configurableDevice() -> AVCaptureDevice? {
+        if #available(iOS 16.0, *) {
+            return ARWorldTrackingConfiguration.configurableCaptureDeviceForPrimaryCamera
+        }
+        return nil
+    }
+
+    /// Apply the operator's exposure choice to the live camera.
+    /// - fast shutter: custom exposure at <= 1/120 s, ISO scaled so brightness holds, WB locked;
+    /// - AE/WB lock: freeze whatever auto settled on;
+    /// - neither: continuous auto exposure + auto white balance (ARKit default).
+    private func applyCameraSettings() {
+        guard let device = configurableDevice() else { return }
+        do {
+            try device.lockForConfiguration()
+            defer { device.unlockForConfiguration() }
+            if fastShutter, device.isExposureModeSupported(.custom) {
+                let format = device.activeFormat
+                var duration = fastShutterMaxDuration
+                if CMTimeCompare(duration, format.minExposureDuration) < 0 { duration = format.minExposureDuration }
+                if CMTimeCompare(duration, format.maxExposureDuration) > 0 { duration = format.maxExposureDuration }
+                let currentSec = max(CMTimeGetSeconds(device.exposureDuration), 1e-6)
+                let targetSec = max(CMTimeGetSeconds(duration), 1e-6)
+                let scaledIso = Float(Double(device.iso) * (currentSec / targetSec))
+                let iso = min(max(scaledIso, format.minISO), format.maxISO)
+                device.setExposureModeCustom(duration: duration, iso: iso, completionHandler: nil)
+                if device.isWhiteBalanceModeSupported(.locked) { device.whiteBalanceMode = .locked }
+            } else if exposureLocked {
+                if device.isExposureModeSupported(.locked) { device.exposureMode = .locked }
+                if device.isWhiteBalanceModeSupported(.locked) { device.whiteBalanceMode = .locked }
+            } else {
+                if device.isExposureModeSupported(.continuousAutoExposure) { device.exposureMode = .continuousAutoExposure }
+                if device.isWhiteBalanceModeSupported(.continuousAutoWhiteBalance) { device.whiteBalanceMode = .continuousAutoWhiteBalance }
+            }
+        } catch {
+            NSLog("[TwinCap] camera settings not applied: \(error.localizedDescription)")
+        }
+    }
+
+    /// Cheap per-frame drift check: ARKit can put exposure back to auto after interruptions.
+    private func reapplyCameraSettingsIfNeeded() {
+        guard exposureLocked || fastShutter, let device = configurableDevice() else { return }
+        let wanted: AVCaptureDevice.ExposureMode = fastShutter ? .custom : .locked
+        if device.exposureMode != wanted { applyCameraSettings() }
+    }
+
+    /// Recorded into the capture manifest so the desktop Capture Studio and the cloud worker
+    /// know how the frames were shot.
+    private func captureSettingsDictionary() -> [String: Any] {
+        var dict: [String: Any] = [
+            "captureMode": captureMode.rawValue,
+            "photoIntervalSec": photoIntervalSec,
+            "exposureLocked": exposureLocked,
+            "fastShutter": fastShutter,
+            "lens": "wide_1x",
+            "depthSemantics": depthSemanticsActive,
+            "build": buildStamp,
+        ]
+        if let device = configurableDevice() {
+            dict["exposureDurationSec"] = CMTimeGetSeconds(device.exposureDuration)
+            dict["iso"] = device.iso
+            dict["exposureMode"] = device.exposureMode.rawValue
+        }
+        return dict
     }
 
     // MARK: Torch
@@ -781,6 +909,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             // Snapshot on main — clipVideos/photoURLs are main-thread-owned.
             let clips = self.clipVideos
             let photos = self.photoURLs
+            let captureSettings = self.captureSettingsDictionary()
             self.depthQueue.async { [weak self] in
                 guard let self = self else { return }
                 let sid = self.sessionId
@@ -820,6 +949,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                 "sessionStartUnix": self.sessionStartUnix,
                 "width": self.encWidth,
                 "height": self.encHeight,
+                "captureSettings": captureSettings,
             ]
             // Free the point cloud on THIS queue (the only queue allowed to touch the
             // collections). The data is already on disk. Doing this on the main thread
@@ -845,6 +975,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
 
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         reapplyTorchIfNeeded()  // ARKit resets the torch — re-assert desired state every frame
+        reapplyCameraSettingsIfNeeded()
         guard isRecording else { return }
 
         let arkitTs = frame.timestamp

@@ -12,6 +12,9 @@ export type HubTwin = {
   updatedAt: string;
   /** Count of ready models on the space — the thing the list exists to reach. */
   readyModels: number;
+  /** True when at least one capture has been uploaded into this space. A draft
+   * with a capture is "saved, not processed" — not an empty shell. */
+  hasCapture?: boolean;
 };
 
 export type HubTwinProject = {

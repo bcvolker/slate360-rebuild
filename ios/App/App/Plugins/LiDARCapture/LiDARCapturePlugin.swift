@@ -247,6 +247,13 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                 for photo in photoFiles {
                     entries.append(.init(url: photo.url, filename: photo.filename, contentType: "image/jpeg", assetKind: "photo"))
                 }
+                // Capture bundle: one JSON that lists every file in this capture (name, kind,
+                // bytes) plus the camera settings used, so the desktop Capture Studio and the
+                // cloud worker can treat the upload as one package instead of loose files.
+                if let bundleEntry = self.writeCaptureBundle(entries: entries, manifest: manifest, spaceId: spaceId, projectId: projectId) {
+                    let sidecarSlot = min(entries.count, videoFiles.count + (plyUrl == nil ? 0 : 1) + (posesUrl == nil ? 0 : 1))
+                    entries.insert(bundleEntry, at: sidecarSlot)
+                }
                 // Pass spaceId through even if empty — the uploader self-heals by creating a
                 // quick-scan workspace, so a stale web bundle can't strand the capture.
                 let uploader = TwinUploader(
@@ -324,6 +331,50 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
         }
     }
 
+    /// Writes `capture_bundle.json` next to the capture files and returns its upload entry.
+    /// Nil (and no upload) if the file cannot be written — the bundle is a convenience
+    /// index, never a gate on the capture itself.
+    private func writeCaptureBundle(
+        entries: [TwinUploader.FileEntry],
+        manifest: [String: Any],
+        spaceId: String,
+        projectId: String
+    ) -> TwinUploader.FileEntry? {
+        let fm = FileManager.default
+        let files: [[String: Any]] = entries.map { entry in
+            let size = (try? fm.attributesOfItem(atPath: entry.url.path)[.size] as? NSNumber)?.intValue ?? 0
+            return [
+                "filename": entry.filename,
+                "assetKind": entry.assetKind ?? "other",
+                "contentType": entry.contentType,
+                "bytes": size,
+            ]
+        }
+        var bundle: [String: Any] = [
+            "version": 1,
+            "kind": "twin360_capture_bundle",
+            "createdAt": ISO8601DateFormatter().string(from: Date()),
+            "spaceId": spaceId,
+            "projectId": projectId,
+            "files": files,
+            "clipCount": (manifest["clipCount"] as? NSNumber)?.intValue ?? 0,
+            "photoCount": (manifest["photoUris"] as? [[String: Any]])?.count ?? 0,
+            "pointCount": (manifest["pointCount"] as? NSNumber)?.intValue ?? 0,
+            "keyframeCount": (manifest["keyframeCount"] as? NSNumber)?.intValue ?? 0,
+            "depthEvidenceFrameCount": (manifest["depthEvidenceFrameCount"] as? NSNumber)?.intValue ?? 0,
+            "durationSec": (manifest["durationSec"] as? NSNumber)?.doubleValue ?? 0,
+        ]
+        if let start = manifest["sessionStartUnix"] { bundle["sessionStartUnix"] = start }
+        if let settings = manifest["captureSettings"] as? [String: Any] { bundle["captureSettings"] = settings }
+        guard JSONSerialization.isValidJSONObject(bundle),
+              let data = try? JSONSerialization.data(withJSONObject: bundle, options: [.prettyPrinted, .sortedKeys]) else {
+            return nil
+        }
+        let url = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("(UUID().uuidString)_capture_bundle.json")
+        guard (try? data.write(to: url, options: .atomic)) != nil else { return nil }
+        return .init(url: url, filename: "capture_bundle.json", contentType: "application/json", assetKind: "capture_bundle")
+    }
     /// Gzips a capture file for upload, returning the compressed entry (and deleting the
     /// raw original); falls back to the uncompressed file if compression fails.
     private func gzippedEntry(

@@ -106,7 +106,6 @@ export async function loadDigitalTwinHubData(
       if (latestJobBySpace.has(space.id)) return true;
       return space.status !== "draft" && space.status !== "capturing";
     })
-    .slice(0, 24)
     .map((space) => {
       const project = resolveProject(space.projects);
       const latestJobStatus = latestJobBySpace.get(space.id) ?? null;
@@ -119,11 +118,19 @@ export async function loadDigitalTwinHubData(
         projectName: project?.name ?? null,
         updatedAt: space.updated_at,
         readyModels: readyModelsBySpace.get(space.id) ?? 0,
+        hasCapture: spacesWithCapture.has(space.id),
       };
     })
     // Spaces that actually hold models are the reason this list exists — an
     // empty draft shell must never outrank them (LISTING-FIX, 2026-08-07).
-    .sort((a, b) => Number(b.readyModels > 0) - Number(a.readyModels > 0));
+    // Within each group, newest activity first. Sort BEFORE the cap so a ready
+    // twin at position 25 by recency is promoted instead of dropped.
+    .sort(
+      (a, b) =>
+        Number(b.readyModels > 0) - Number(a.readyModels > 0) ||
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+    )
+    .slice(0, 48);
 
   return {
     twins,

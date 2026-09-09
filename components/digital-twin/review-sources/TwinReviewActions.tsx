@@ -80,7 +80,7 @@ export function TwinReviewActions({
         {label}
       </button>
       <p className="mt-2 text-center text-[11px] text-[var(--graphite-muted)]">
-        Nothing starts until you tap Process twin.
+        Nothing starts until you tap Process twin. Your scan is already saved to the cloud.
       </p>
     </div>
   );

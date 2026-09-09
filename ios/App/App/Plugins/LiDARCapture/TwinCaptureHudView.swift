@@ -310,6 +310,12 @@ private struct TwinHudBottomRail: View {
             // accent only on the active segment). Locked while recording.
             modeSelector
 
+            // Camera settings — AE/WB lock, fast shutter, lens. Hidden while a clip or
+            // photo cadence is running so a stray tap cannot change exposure mid-scan.
+            if model.capability.exposureLockEnabled, !model.isRecording, !model.photoAutoActive {
+                cameraSettingsRow
+            }
+
             // Photo cadence (photos mode only): manual shutter or auto-capture every
             // 1/2/3 s. Exposure is ARKit-managed (locking it breaks tracking) — cadence
             // + torch are the controls the hardware allows.
@@ -351,6 +357,10 @@ private struct TwinHudBottomRail: View {
                 ? "PHOTOS · \(model.photoCount) captured · tap for more"
                 : (model.tipText.isEmpty ? "Photos — tap the shutter" : model.tipText)
         }
+        if model.exposureLocked || model.fastShutter {
+            let bits = [model.fastShutter ? "1/120 SHUTTER" : nil, model.exposureLocked ? "AE·WB LOCKED" : nil].compactMap { $0 }
+            return bits.joined(separator: " · ") + " · tap record"
+        }
         return model.tipText.isEmpty ? "Ready · tap record" : model.tipText
     }
 
@@ -385,6 +395,38 @@ private struct TwinHudBottomRail: View {
         .buttonStyle(.plain)
     }
 
+    private var cameraSettingsRow: some View {
+        HStack(spacing: 4) {
+            settingToggle("AE·WB LOCK", active: model.exposureLocked, action: model.actions.onExposureLockToggle)
+            settingToggle("FAST SHUTTER", active: model.fastShutter, action: model.actions.onFastShutterToggle)
+            Text("1× WIDE")
+                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                .foregroundStyle(TwinHudColor.muted)
+                .padding(.horizontal, 12)
+                .frame(height: 26)
+                .accessibilityLabel("Lens: 1x wide, locked")
+        }
+        .padding(3)
+        .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 10))
+        .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.white.opacity(0.10), lineWidth: 1))
+    }
+
+    private func settingToggle(_ label: String, active: Bool, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Text(label)
+                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                .foregroundStyle(active ? TwinHudColor.canvas : .white)
+                .padding(.horizontal, 12)
+                .frame(height: 26)
+                .background(
+                    active ? TwinHudColor.twinBlue : Color.clear,
+                    in: RoundedRectangle(cornerRadius: 8)
+                )
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel(label)
+        .accessibilityAddTraits(active ? .isSelected : [])
+    }
     private var intervalSelector: some View {
         // CEO spec: 0.5/1/2/3 s then manual — 1 s is the DEFAULT (crews walk and
         // shoot; "manual" as default confused users into single-shot mode).

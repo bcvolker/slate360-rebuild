@@ -9,6 +9,7 @@ import type {
 import { TwinReviewActions } from "./TwinReviewActions";
 import { TwinReviewEstimate } from "./TwinReviewEstimate";
 import { TwinReviewProcessingState } from "./TwinReviewProcessingState";
+import { TwinReviewSaveRow } from "./TwinReviewSaveRow";
 import { TwinReviewSourceList } from "./TwinReviewSourceList";
 import { TwinReviewSourcePicker } from "./TwinReviewSourcePicker";
 
@@ -76,6 +77,14 @@ export function TwinReviewSourcesScreen(props: Props) {
             </p>
             <p className="mt-2 truncate text-base font-semibold text-[var(--graphite-text-header)]">{state.title}</p>
           </section>
+
+          {state.captureId ? (
+            <TwinReviewSaveRow
+              spaceId={state.target?.spaceId ?? null}
+              projectId={state.target?.projectId ?? null}
+              disabled={state.processState !== "idle"}
+            />
+          ) : null}
 
           <TwinReviewSourceList
             sources={state.sources}

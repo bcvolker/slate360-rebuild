@@ -63,8 +63,11 @@ struct TwinHudCapability: Equatable {
     var depthPresent: Bool = false
     var streamReady: Bool = false
     var needsResume: Bool = false
-    var photosModeEnabled: Bool = false   // engine is video-only
-    var exposureLockEnabled: Bool = false // ARKit owns AVCaptureDevice exposure
+    var photosModeEnabled: Bool = false
+    /// True when ARKit exposes its primary camera for configuration (iOS 16+,
+    /// `configurableCaptureDeviceForPrimaryCamera`) so AE/WB lock and the fast
+    /// shutter are real controls rather than decoration.
+    var exposureLockEnabled: Bool = false
 }
 
 /// Action bridge — wired once by the view controller (UIKit targets).
@@ -78,6 +81,8 @@ struct TwinHudActions {
     var onClipsToggle: () -> Void = {}
     var onModeChange: (TwinCaptureMode) -> Void = { _ in }
     var onPhotoIntervalChange: (Double) -> Void = { _ in }
+    var onExposureLockToggle: () -> Void = {}
+    var onFastShutterToggle: () -> Void = {}
 }
 
 // MARK: - Observable state (main-actor only)
@@ -104,6 +109,10 @@ final class TwinHudStateModel: ObservableObject {
     @Published var photoCount: Int = 0
     @Published var photoIntervalSec: Double = 1   // 0 = manual shutter; default 1 s auto
     @Published var photoAutoActive: Bool = false
+    /// AE + white balance held at the values they had when the lock was tapped.
+    @Published var exposureLocked: Bool = false
+    /// Shutter clamped to 1/120 s or faster (ISO compensates) — kills walk blur.
+    @Published var fastShutter: Bool = false
     @Published var clipsExpanded: Bool = false
     @Published var chromeVisible: Bool = true
     @Published var finishing: Bool = false
@@ -137,6 +146,8 @@ final class TwinHudStateModel: ObservableObject {
         capability: TwinHudCapability,
         tipText: String?,
         tipWarning: Bool,
+        exposureLocked: Bool = false,
+        fastShutter: Bool = false,
         force: Bool = false
     ) {
         let now = ProcessInfo.processInfo.systemUptime
@@ -157,6 +168,8 @@ final class TwinHudStateModel: ObservableObject {
         self.photoCount = photoCount
         self.photoIntervalSec = photoIntervalSec
         self.photoAutoActive = photoAutoActive
+        self.exposureLocked = exposureLocked
+        self.fastShutter = fastShutter
         self.hasContent = hasContent
         self.finishing = finishing
         self.capability = capability
