@@ -1189,7 +1189,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             }
             if self.voxelGrid.count > self.options.maxPoints {
                 let excess = self.voxelGrid.count - self.options.maxPoints
-                if !self.pointCapHit { self.pointCapHit = true; NSLog("[TwinCap] LiDAR voxel cap reached ((self.options.maxPoints)) — cloud is being thinned") }
+                if !self.pointCapHit { self.pointCapHit = true; NSLog("[TwinCap] LiDAR voxel cap reached (\(self.options.maxPoints)) — cloud is being thinned") }
                 for k in self.voxelGrid.keys.prefix(excess) { self.voxelGrid.removeValue(forKey: k) }
             }
             if let kf = keyframeData {
