@@ -16,7 +16,7 @@ param(
   [switch]$Resume,
   [ValidateSet("","cameras","train","pack")][string]$SkipTo = "",
   [int]$FacePx = 1600,
-  [int]$MaxResolution = 1920,
+  [int]$MaxResolution = 0,   # 0 = by quality: preview 1280 / standard 1920 / final 2560 (12 MP stills deserve it)
   [int]$Faces = 4,
   [string]$WslDistro = "Ubuntu-22.04",
   [string]$WslPython = "/home/rian_/venvs/kitchen-apriltag/bin/python",
@@ -131,6 +131,9 @@ $stillExt = @(".jpg", ".jpeg", ".png", ".tif", ".tiff", ".webp")
 $videoExt = @(".mp4", ".mov", ".mkv", ".webm", ".m4v")
 $stepsByQuality = @{ preview = 7000; standard = 15000; final = 30000 }
 $steps = $stepsByQuality[$Quality]
+# Training resolution follows quality unless the request pins it. Phone stills are now 4032x3024
+# (build #87+); training them at 1920 threw away most of that detail.
+if ($MaxResolution -le 0) { $MaxResolution = @{ preview = 1280; standard = 1920; final = 2560 }[$Quality] }
 
 if (-not $JobDir) {
   $safe = ($Name -replace '[^A-Za-z0-9_-]', '_').Trim('_'); if (-not $safe) { $safe = $Mode + "-capture" }
