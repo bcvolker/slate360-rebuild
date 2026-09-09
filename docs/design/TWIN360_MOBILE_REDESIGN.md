@@ -203,10 +203,16 @@ for quick geometry-first room scans and is the only mode that records depth-evid
 Each slice ships behind the existing routes, passes typecheck/guards, and is TestFlight-built
 before the next starts. Nothing is "done" until Brian has used it on the phone.
 
-## 8. Decisions for Brian
+## 8. Decisions (made by Brian, 2026-09-09)
 
-1. Default project for Scan when none is chosen: last used (recommended) or always ask?
-2. Cloud processing button on the phone: keep (with credits shown) or desktop-only for now?
-3. Naming: "Twin" for the object and "Scan" for the action, or "Scan" for both?
-4. Should S7 replace the orbit viewer for cloud-processed models too (needs the worker to emit
-   walk sidecars) or only for models with stations?
+1. **Default project for Scan: last used**, one tap to change; Quick Scans only when no project exists.
+2. **No cloud-processing button on the phone for now.** Every scan is saved; processing happens on
+   the desktop Capture Studio, which publishes back to the twin. Revisit when the desktop path is
+   producing sellable models.
+3. **Words: "Twin" is the object, "Scan" is the act of capturing.**
+4. **The walkthrough viewer is the viewer for every model.** The cloud worker must emit the walk
+   sidecars (stations, floors, ceiling cut, upright manifest) as the desktop studio does; scheduled
+   after the desktop path is proven. Until then cloud-processed models stay on the orbit viewer.
+
+Status: recommendation accepted; slice 1 (data: capture summary, poster, cleanup job, rename route)
+is next.
