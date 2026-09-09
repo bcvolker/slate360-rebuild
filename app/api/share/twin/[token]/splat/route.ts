@@ -1,5 +1,5 @@
 import type { NextRequest } from "next/server";
-import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
 import { resolveTwinShareSplat } from "@/lib/digital-twin/share-splat";
 import { createTwinShareRateLimiter } from "@/lib/digital-twin/share-rate-limit";
 import { notFound, serverError } from "@/lib/server/api-response";
@@ -22,9 +22,21 @@ export async function GET(req: NextRequest, ctx: Params) {
     const result = await resolveTwinShareSplat(token);
     if (!result.ok) return notFound("Invalid, expired, or unavailable share link");
 
-    const object = await s3.send(
-      new GetObjectCommand({ Bucket: BUCKET, Key: result.storageKey }),
-    );
+    // `?variant=mobile` serves the phone derivative (`<key>.mobile.spz`: fewer splats,
+    // SH0) when the studio published one; otherwise the full model, so old links and
+    // models without a derivative keep working.
+    let key = result.storageKey;
+    if (req.nextUrl.searchParams.get("variant") === "mobile" && key.toLowerCase().endsWith(".spz")) {
+      const mobileKey = `${key.slice(0, -".spz".length)}.mobile.spz`;
+      try {
+        await s3.send(new HeadObjectCommand({ Bucket: BUCKET, Key: mobileKey }));
+        key = mobileKey;
+      } catch {
+        // no derivative — fall through to the full model
+      }
+    }
+
+    const object = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
 
     const body = object.Body as StreamBody | Blob | ReadableStream<Uint8Array> | undefined;
     let stream: ReadableStream<Uint8Array> | Blob | null = null;

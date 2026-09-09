@@ -10,7 +10,7 @@
  */
 
 import dynamic from "next/dynamic";
-import type { ReactElement } from "react";
+import { useState, type ReactElement } from "react";
 
 import type { TwinWalkSidecar } from "@/lib/digital-twin/share-walk-types";
 
@@ -26,6 +26,15 @@ const MeshTwinViewer = dynamic(
   },
 );
 
+/** Phones and low-memory devices get the thinned SH0 derivative when one exists. */
+function wantsMobileSplat(): boolean {
+  if (typeof navigator === "undefined") return false;
+  const nav = navigator as Navigator & { deviceMemory?: number };
+  const lowMemory = typeof nav.deviceMemory === "number" && nav.deviceMemory < 4;
+  const handheld = /iPhone|iPad|iPod|Android/i.test(nav.userAgent);
+  return lowMemory || handheld;
+}
+
 export function TwinShareWalkthrough({
   shareToken,
   modelId,
@@ -35,11 +44,12 @@ export function TwinShareWalkthrough({
   modelId?: string | null;
   walk: TwinWalkSidecar;
 }): ReactElement {
+  const [variant] = useState(() => (wantsMobileSplat() ? "?variant=mobile" : ""));
   return (
     <div className="absolute inset-0" data-app="twin360">
       <MeshTwinViewer
         meshUrl={null}
-        splatUrl={`/api/share/twin/${shareToken}/splat`}
+        splatUrl={`/api/share/twin/${shareToken}/splat${variant}`}
         stations={walk.stations}
         floors={walk.floors}
         ceilingCutY={walk.ceilingCutY ?? null}

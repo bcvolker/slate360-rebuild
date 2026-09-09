@@ -82,7 +82,13 @@ export function MeshSplatLayer({
   const manifestRef = useRef<SplatManifest | null>(null);
   const manifestPromiseRef = useRef<Promise<SplatManifest | null> | null>(null);
   const maxSplats = useMobileSplatBudget();
-  const sparkArgs = useMemo(() => ({ renderer: gl, enableLod: false }), [gl]);
+  // LOD on: Spark merges distant splats per frame, which is what keeps a 250k-splat
+  // room at frame rate on integrated and mobile GPUs. The hard cap below still bounds
+  // memory on the source set.
+  const sparkArgs = useMemo(
+    () => ({ renderer: gl, enableLod: true, lodSplatCount: maxSplats || DESKTOP_MAX_SPLATS }),
+    [gl, maxSplats],
+  );
   const { bytes } = useSplatBytes(url, onProgress);
 
   useEffect(() => {
@@ -139,7 +145,7 @@ export function MeshSplatLayer({
     () => ({
       fileBytes: bytes ?? new Uint8Array(0),
       fileName: "model.spz",
-      lod: false,
+      lod: true,
       maxSplats: maxSplats || DESKTOP_MAX_SPLATS,
       onLoad: async (mesh: SplatMesh) => {
         mesh.raycastable = false;
