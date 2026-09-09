@@ -58,7 +58,7 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
     private var keyframes: [[String: Any]] = []
 
     private let voxelSize: Float = 0.02
-    private let maxPoints = 500_000
+    private let maxPoints = 3_000_000
     private let keyframeInterval: TimeInterval = 0.5
     private var lastKeyframeTime: TimeInterval = 0
 

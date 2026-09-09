@@ -12,7 +12,9 @@ import simd
 struct TwinCaptureOptions {
     var confidence: ARConfidenceLevel = .medium
     var maxDurationSec: Double = 240      // 4 min field default (web may raise toward an 8 min ceiling)
-    var maxPoints: Int = 500_000
+    // 2 cm voxels: 500k covered a kitchen twice over and then silently thinned the cloud
+    // (2026-09-08 walk hit the cap exactly). 3M ≈ 240 MB on device; the PLY gzips to ~15 MB.
+    var maxPoints: Int = 3_000_000
 
     static func from(confidence: String?, maxDurationSec: Double?, maxPoints: Int?) -> TwinCaptureOptions {
         var o = TwinCaptureOptions()
@@ -111,6 +113,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     // and crashed with EXC_BAD_ACCESS on the main thread (verified from the device crash
     // report). Plain word-sized Ints are safe to read cross-thread (no pointer deref).
     private var pointCount = 0
+    private var pointCapHit = false
     private var keyframeCount = 0
 
     // Video writer
@@ -1186,6 +1189,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             }
             if self.voxelGrid.count > self.options.maxPoints {
                 let excess = self.voxelGrid.count - self.options.maxPoints
+                if !self.pointCapHit { self.pointCapHit = true; NSLog("[TwinCap] LiDAR voxel cap reached ((self.options.maxPoints)) — cloud is being thinned") }
                 for k in self.voxelGrid.keys.prefix(excess) { self.voxelGrid.removeValue(forKey: k) }
             }
             if let kf = keyframeData {
