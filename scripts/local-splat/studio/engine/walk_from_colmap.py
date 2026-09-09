@@ -157,7 +157,7 @@ def main() -> int:
     ap.add_argument("--mode", choices=["2d", "360"], default="2d")
     ap.add_argument("--camera-height", type=float, default=None)
     ap.add_argument("--station-spacing", type=float, default=0.7)
-    ap.add_argument("--ceiling-height", type=float, default=2.4, help="metres above floor for the dollhouse lid")
+    ap.add_argument("--ceiling-height", type=float, default=2.2, help="metres above floor for the dollhouse lid")
     a = ap.parse_args()
 
     cam_h = a.camera_height if a.camera_height is not None else (1.6 if a.mode == "360" else 1.45)
@@ -270,6 +270,11 @@ def main() -> int:
     out.mkdir(parents=True, exist_ok=True)
     (out / f"{a.name}.manifest.json").write_text(json.dumps(manifest, indent=1))
     (out / f"{a.name}.walk.json").write_text(json.dumps(walk, indent=1))
+    # COLMAP-frame facts for clean_ply.py (floor/ceiling clip happens before packing).
+    (out / f"{a.name}.frame.json").write_text(json.dumps({
+        "up_colmap": up.round(6).tolist(), "floor_h": round(float(floor_h), 6),
+        "median_cam_h": round(float(med_cam_h), 6), "scale": round(float(scale), 6),
+    }, indent=1))
     print("RESULT walk " + json.dumps({
         "cameras": len(keep), "stations": len(stations), "scale": round(float(scale), 4),
         "floor_y": round(floor_y, 3), "median_cam_above_floor_m": round(float(scale * (med_cam_h - floor_h)), 3),

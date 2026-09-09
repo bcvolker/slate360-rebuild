@@ -89,6 +89,28 @@ inverted. Scale puts the median camera 1.45 m (phone) / 1.6 m (360) above the
 floor; stations are camera centres thinned to 0.7 m. Verified 2026-09-08 on both
 test models (kitchen upright, cafeteria upright, 14 / 95 stations).
 
+## Reconstruction gate and 360 faces (panel review, 2026-09-09)
+
+`sfm.py` now fails a job when fewer than 70% of images register (exit 7) and warns
+below 90% or above 0.8 px reprojection. 360 side faces are rendered at 110° so
+neighbours overlap 20° (butt-jointed 90° faces left half of AOB 205 unregistered),
+at 2048 px. Feed the sharpest stitched ERP, never a "low-pass" or horizon-locked
+export; those are for the client walkthrough MP4 only.
+
+## Cleanup (`clean_ply.py`) — read before using
+
+The tool implements the panel's prune rules (invisible, giant, statistical outliers,
+floor/ceiling clip, footprint crop, visibility support, an optional faint+oversized+isolated
+"haze" rule) and a phone derivative (`--mobile-out`, pack with `--max-sh 0`).
+**On the 2026-09-08 test models every rule damaged real surfaces**: a 0.12 opacity cut
+blacked out walls and ceiling (surfaces are stacks of faint splats), the haze rule ate
+the near wall, the fixed 3.4 m ceiling clip removed AOB 205's ceiling, and a 3 m footprint
+crop removed its walls. Off-path fog is invisible from the training cameras, so it cannot
+be separated from surface splats by geometry alone on an undertrained model. Use the
+tool only after `render_compare.py`-style before/after checks; the fix for haze is a
+better capture (inside the room, two heights, sharp stills) and a longer train, not a
+prune.
+
 ## Exit codes (engine)
 
 2 nothing usable · 4 raw .insv · 5 too few sharp frames · 6 camera solve failed

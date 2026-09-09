@@ -34,7 +34,11 @@ FACES = {  # name -> (yaw, pitch) in degrees, ERP camera frame (x right, y down,
     "left": (270.0, 0.0),
     "up": (0.0, 90.0),
 }
-FOV_DEG = 90.0
+# Side faces are rendered wider than 90° so neighbours overlap (110° → 20° shared on
+# each seam). Four butt-jointed 90° faces gave SIFT nothing to match across the cut and
+# left half the faces unregistered (AOB 205: 48%). The up face stays at 90°.
+FOV_DEG = 110.0
+UP_FOV_DEG = 90.0
 
 
 def log(msg: str) -> None:
@@ -51,12 +55,16 @@ def rot_erp_from_face(yaw_deg: float, pitch_deg: float) -> np.ndarray:
     return ry @ rp
 
 
-def erp_to_face(erp: np.ndarray, yaw_deg: float, pitch_deg: float, out: int) -> np.ndarray:
+def face_fov(name: str) -> float:
+    return UP_FOV_DEG if name == "up" else FOV_DEG
+
+
+def erp_to_face(erp: np.ndarray, yaw_deg: float, pitch_deg: float, out: int, fov_deg: float = FOV_DEG) -> np.ndarray:
     import cv2
 
     h, w = erp.shape[:2]
     yy, xx = np.meshgrid(np.arange(out, dtype=np.float32), np.arange(out, dtype=np.float32), indexing="ij")
-    f = 0.5 * out / math.tan(math.radians(FOV_DEG) * 0.5)
+    f = 0.5 * out / math.tan(math.radians(fov_deg) * 0.5)
     x = (xx - (out - 1) / 2.0) / f
     y = (yy - (out - 1) / 2.0) / f
     z = np.ones_like(x)
@@ -86,14 +94,14 @@ def render_faces(images: list[Path], dst: Path, face_px: int, faces: list[str]) 
             continue
         for name in faces:
             yaw, pitch = FACES[name]
-            face = erp_to_face(erp, yaw, pitch, face_px)
+            face = erp_to_face(erp, yaw, pitch, face_px, face_fov(name))
             cv2.imwrite(str(dst / name / (src.stem + ".jpg")), face, [cv2.IMWRITE_JPEG_QUALITY, 95])
         if i % 5 == 0 or i == total:
             log(f"PROGRESS faces {i} {total}")
 
 
-def pinhole_camera(face_px: int) -> pycolmap.Camera:
-    fx = 0.5 * face_px / math.tan(math.radians(FOV_DEG) * 0.5)
+def pinhole_camera(face_px: int, fov_deg: float = FOV_DEG) -> pycolmap.Camera:
+    fx = 0.5 * face_px / math.tan(math.radians(fov_deg) * 0.5)
     cx = (face_px - 1) / 2.0
     return pycolmap.Camera(model="PINHOLE", width=face_px, height=face_px, params=[fx, fx, cx, cx])
 
@@ -156,7 +164,7 @@ def main() -> int:
     p.add_argument("--images", required=True)
     p.add_argument("--out", required=True)
     p.add_argument("--camera-model", default="PINHOLE")
-    p.add_argument("--face-px", type=int, default=1600)
+    p.add_argument("--face-px", type=int, default=2048)
     p.add_argument("--faces", type=int, default=4, choices=[4, 5])
     p.add_argument("--max-image-size", type=int, default=2400)
     p.add_argument("--threads", type=int, default=-1)
@@ -264,14 +272,19 @@ def main() -> int:
         "cuda": use_cuda,
     })
     frac = report["registered_fraction"]
-    report["coverage"] = "good" if frac >= 0.7 else "fair" if frac >= 0.4 else "poor"
+    reproj = report["mean_reproj_error"]
+    # Reconstruction gate (panel review 2026-09-09): training on a half-registered pose
+    # graph only sharpens the ghosts. AOB 205 at 48% would have stopped here.
+    report["coverage"] = "good" if frac >= 0.9 else "fair" if frac >= 0.7 else "poor"
     (out / "sfm_report.json").write_text(json.dumps(report, indent=2))
     log("RESULT sfm " + json.dumps(report))
-    if frac < 0.4:
-        log("INFO Fewer than 40% of images could be placed. Walk slower, overlap more, keep exposure locked.")
-        return 7
     if frac < 0.7:
-        log(f"INFO Only {int(frac * 100)}% of images placed — the splat will have thin spots. Fine for a preview.")
+        log(f"INFO Only {int(frac * 100)}% of images could be placed (gate is 70%). Recapture: sharper frames, "
+            "slower walk, exposure locked, no low-pass or horizon-lock export for the 360.")
+        return 7
+    if frac < 0.9 or reproj > 0.8:
+        log(f"INFO {int(frac * 100)}% placed, {reproj:.2f} px reprojection — below the 90% / 0.8 px target. "
+            "Expect thin spots; fine for a preview, recapture for a deliverable.")
     return 0
 
 

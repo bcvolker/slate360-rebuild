@@ -42,7 +42,9 @@ for (const f of files) {
   const suffix = name.slice(name.indexOf("."));
   const key = `${base}${suffix}`;
   const body = fs.readFileSync(f);
-  JSON.parse(body.toString("utf8")); // must be valid JSON
-  await s3.send(new PutObjectCommand({ Bucket: bucket, Key: key, Body: body, ContentType: "application/json" }));
+  const isJson = suffix.endsWith(".json");
+  if (isJson) JSON.parse(body.toString("utf8")); // must be valid JSON
+  const contentType = isJson ? "application/json" : "application/octet-stream";
+  await s3.send(new PutObjectCommand({ Bucket: bucket, Key: key, Body: body, ContentType: contentType }));
   console.log(`uploaded ${key} (${body.length} bytes)`);
 }
