@@ -68,6 +68,9 @@ struct TwinHudCapability: Equatable {
     /// `configurableCaptureDeviceForPrimaryCamera`) so AE/WB lock and the fast
     /// shutter are real controls rather than decoration.
     var exposureLockEnabled: Bool = false
+    /// The ARKit camera accepts a custom (fixed-duration) exposure, so the 1/120 s
+    /// fast shutter is a real control. False hides the toggle instead of showing a dud.
+    var fastShutterSupported: Bool = false
 }
 
 /// Action bridge — wired once by the view controller (UIKit targets).

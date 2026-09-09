@@ -110,6 +110,44 @@ export function nearestStation(
   return best;
 }
 
+/** Furthest a keyboard step may travel; beyond this the "next" station is not adjacent. */
+export const MAX_STEP_DISTANCE_M = 5;
+
+/**
+ * The station to step to from `position` while facing `yaw`, on `floorIndex`.
+ * `direction` 1 = ahead, -1 = behind. Candidates must lie inside a ±60° cone of
+ * the look direction (or its reverse) and within MAX_STEP_DISTANCE_M; the
+ * nearest one wins. Returns null when nothing qualifies — the caller stays put.
+ */
+export function stationInDirection(
+  stations: readonly WalkStation[],
+  position: readonly [number, number, number],
+  yaw: number,
+  direction: 1 | -1,
+  floorIndex: number,
+  excludeId: string | null,
+): WalkStation | null {
+  // Camera looks along (-sin yaw, -cos yaw) in XZ; see poseForMode.
+  const fx = -Math.sin(yaw) * direction;
+  const fz = -Math.cos(yaw) * direction;
+  let best: WalkStation | null = null;
+  let bestDistance = Number.POSITIVE_INFINITY;
+  for (const station of stations) {
+    if (station.floorIndex !== floorIndex || station.id === excludeId) continue;
+    const dx = station.position[0] - position[0];
+    const dz = station.position[2] - position[2];
+    const d = Math.hypot(dx, dz);
+    if (d < 0.2 || d > MAX_STEP_DISTANCE_M) continue;
+    const cos = (dx * fx + dz * fz) / d;
+    if (cos < 0.5) continue; // outside the 60° cone
+    if (d < bestDistance) {
+      best = station;
+      bestDistance = d;
+    }
+  }
+  return best;
+}
+
 /** Floor elevation + eye height; falls back to the station's own Y when the
  *  floor is unknown, so a station always has somewhere to stand. */
 export function eyeHeightFor(

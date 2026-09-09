@@ -34,7 +34,7 @@ import {
 import type { CeilingState } from "@/components/digital-twin/mesh-body";
 import { useSplatBytes } from "@/hooks/useSplatBytes";
 import { estimateOrientationFromMesh } from "@/lib/digital-twin/splat-pca-orientation";
-import { createSweepEdit } from "@/lib/digital-twin/splat-edit-runtime";
+import { applyEditListToMesh, createSweepEdit } from "@/lib/digital-twin/splat-edit-runtime";
 import { fetchSplatManifest, type SplatManifest } from "@/lib/digital-twin/twin-manifest";
 
 extend({ SparkRenderer: SparkRendererImpl, SplatMesh: SplatMeshImpl });
@@ -160,6 +160,8 @@ export function MeshSplatLayer({
         }
         const group = groupRef.current;
         if (group) orientGroup(group, mesh, manifest);
+        // Desktop-editor cleanup (crop / erase) travels with the manifest; honour it here too.
+        if (manifest?.edit_list?.length) applyEditListToMesh(mesh, manifest.edit_list);
         meshRef.current = mesh;
         onLoaded?.(mesh);
       },

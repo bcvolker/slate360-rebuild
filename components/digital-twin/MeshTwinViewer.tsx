@@ -30,6 +30,7 @@ import { HybridPinPanel } from "@/components/digital-twin/hybrid/HybridPinPanel"
 import { HybridSceneOverlays } from "@/components/digital-twin/hybrid/HybridSceneOverlays";
 import { useHybridMeasureTool } from "@/hooks/useHybridMeasureTool";
 import { useHybridPinTool } from "@/hooks/useHybridPinTool";
+import { useWalkthroughKeys } from "@/hooks/useWalkthroughKeys";
 import { useWalkthroughNavigation } from "@/hooks/useWalkthroughNavigation";
 import {
   cssColor,
@@ -139,6 +140,7 @@ export function MeshTwinViewer({
 
   const { fovRef, handlePointerDown, handlePointerMove, handlePointerUp, handlePointerCancel, handleWheel } =
     useViewerGestures(nav, { consumeTap, onHover });
+  useWalkthroughKeys(nav, !measure.active && !pins.active);
 
   const toggleFullscreen = useCallback(() => {
     const el = shellRef.current;
@@ -154,7 +156,6 @@ export function MeshTwinViewer({
 
   const onSplatProgress = useCallback((loaded: number, total: number | null) => setSplatBytes({ loaded, total }), []);
   const onSplatLoaded = useCallback(() => setSplatReady(true), []);
-
   const registration = useMemo(
     () => epoch?.registration ?? { status: "unvalidated" as const, method: null, rmse: null, timestamp: null, version: null, sourceFrame: "TSDF_MESH" as const, toWorld: { matrix: [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1], scale: 1 } },
     [epoch],
@@ -167,7 +168,7 @@ export function MeshTwinViewer({
       data-app="twin360"
     >
       <div
-        className="h-full w-full touch-none"
+        className="h-full w-full cursor-crosshair touch-none"
         onPointerDown={handlePointerDown}
         onPointerMove={handlePointerMove}
         onPointerUp={handlePointerUp}
@@ -268,7 +269,6 @@ export function MeshTwinViewer({
           />
         </>
       ) : null}
-      {/* Clients see the measure/pin panels only when they can act on them or asked for them. */}
       {chrome === "operator" || metricAvailable || measure.active ? (
         <HybridMeasureHud tool={measure} metricAvailable={metricAvailable} />
       ) : null}

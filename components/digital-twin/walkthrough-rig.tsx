@@ -39,22 +39,36 @@ export function StationMarkers({
       {stations
         .filter((s) => s.floorIndex === floorIndex)
         .map((s) => (
-          <mesh
+          // Matterport-style walk targets: a ring with a soft disc so they read as
+          // "step here" from eye height, not as debris on the floor.
+          <group
             key={s.id}
             position={[s.position[0], elevation + 0.03, s.position[2]]}
             rotation={[-Math.PI / 2, 0, 0]}
           >
-            <circleGeometry args={[s.id === currentId ? 0.22 : 0.16, 24]} />
-            <meshBasicMaterial
-              color={
-                s.id === currentId
-                  ? cssColor("--twin360-blue", TWIN_ACCENT_FALLBACK)
-                  : cssColor("--foreground", { h: 0, s: 0, l: 1 })
-              }
-              transparent
-              opacity={s.id === currentId ? 0.95 : 0.45}
-            />
-          </mesh>
+            <mesh>
+              <ringGeometry args={[0.2, 0.26, 32]} />
+              <meshBasicMaterial
+                color={
+                  s.id === currentId
+                    ? cssColor("--twin360-blue", TWIN_ACCENT_FALLBACK)
+                    : cssColor("--foreground", { h: 0, s: 0, l: 1 })
+                }
+                transparent
+                opacity={s.id === currentId ? 0.95 : 0.8}
+                depthWrite={false}
+              />
+            </mesh>
+            <mesh>
+              <circleGeometry args={[0.2, 32]} />
+              <meshBasicMaterial
+                color={cssColor("--twin360-blue", TWIN_ACCENT_FALLBACK)}
+                transparent
+                opacity={s.id === currentId ? 0.35 : 0.14}
+                depthWrite={false}
+              />
+            </mesh>
+          </group>
         ))}
     </group>
   );

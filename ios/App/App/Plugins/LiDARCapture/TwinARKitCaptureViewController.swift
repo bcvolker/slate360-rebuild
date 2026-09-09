@@ -318,7 +318,9 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         loadPersistedSettings()
         model.actions.onExposureLockToggle = { [weak self] in
             guard let self = self else { return }
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
             self.exposureLocked.toggle()
+            NSLog("[TwinCap] exposure lock -> \(self.exposureLocked)")
             if self.exposureLocked { self.fastShutter = false }
             self.applyCameraSettings()
             self.persistSettings()
@@ -326,7 +328,9 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         }
         model.actions.onFastShutterToggle = { [weak self] in
             guard let self = self else { return }
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
             self.fastShutter.toggle()
+            NSLog("[TwinCap] fast shutter -> \(self.fastShutter)")
             if self.fastShutter { self.exposureLocked = false }
             self.applyCameraSettings()
             self.persistSettings()
@@ -384,7 +388,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             photosModeEnabled: true,
             // iOS 16+ hands ARKit's primary camera to us for configuration; below that the
             // controls are hidden rather than shown dead.
-            exposureLockEnabled: configurableDevice() != nil
+            exposureLockEnabled: configurableDevice() != nil,
+            fastShutterSupported: configurableDevice()?.isExposureModeSupported(.custom) ?? false
         )
         let header: String = {
             switch phase {
@@ -514,6 +519,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     private func reapplyCameraSettingsIfNeeded() {
         guard exposureLocked || fastShutter, let device = configurableDevice() else { return }
         let wanted: AVCaptureDevice.ExposureMode = fastShutter ? .custom : .locked
+        guard device.isExposureModeSupported(wanted) else { return }
         if device.exposureMode != wanted { applyCameraSettings() }
     }
 

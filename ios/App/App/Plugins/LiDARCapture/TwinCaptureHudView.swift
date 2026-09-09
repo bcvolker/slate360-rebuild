@@ -397,8 +397,10 @@ private struct TwinHudBottomRail: View {
 
     private var cameraSettingsRow: some View {
         HStack(spacing: 4) {
-            settingToggle("AE·WB LOCK", active: model.exposureLocked, action: model.actions.onExposureLockToggle)
-            settingToggle("FAST SHUTTER", active: model.fastShutter, action: model.actions.onFastShutterToggle)
+            settingToggle("AE LOCK", active: model.exposureLocked, action: model.actions.onExposureLockToggle)
+            if model.capability.fastShutterSupported {
+                settingToggle("1/120 SHUTTER", active: model.fastShutter, action: model.actions.onFastShutterToggle)
+            }
             Text("1× WIDE")
                 .font(.system(size: 11, weight: .bold, design: .monospaced))
                 .foregroundStyle(TwinHudColor.muted)
@@ -416,11 +418,17 @@ private struct TwinHudBottomRail: View {
             Text(label)
                 .font(.system(size: 11, weight: .bold, design: .monospaced))
                 .foregroundStyle(active ? TwinHudColor.canvas : .white)
-                .padding(.horizontal, 12)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .padding(.horizontal, 10)
                 .frame(height: 26)
                 .background(
                     active ? TwinHudColor.twinBlue : Color.clear,
                     in: RoundedRectangle(cornerRadius: 8)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(active ? TwinHudColor.twinBlue : Color.white.opacity(0.18), lineWidth: 1)
                 )
         }
         .buttonStyle(.plain)

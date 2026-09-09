@@ -23,6 +23,7 @@ import {
   MAX_CLICK_DISTANCE_M,
   nearestStation,
   poseForMode,
+  stationInDirection,
   TRANSITION_MS,
   wrapYaw,
   type FloorInfo,
@@ -59,6 +60,8 @@ export type WalkthroughNavigation = {
   isTransitioning: boolean;
   /** Drag to look around while standing at a station. */
   handleLookDrag: (deltaX: number, deltaY: number) => void;
+  /** Keyboard walking: 1 = to the nearest station ahead, -1 = behind. */
+  step: (direction: 1 | -1) => void;
 };
 
 export function useWalkthroughNavigation(options: {
@@ -190,6 +193,25 @@ export function useWalkthroughNavigation(options: {
     [currentFloorIndex, goToStation, stations],
   );
 
+  const step = useCallback(
+    (direction: 1 | -1) => {
+      if (isTransitioning) return;
+      const pose = poseRef.current;
+      const target = stationInDirection(
+        stations,
+        pose.position,
+        pose.yaw,
+        direction,
+        currentFloorIndex,
+        currentStationId,
+      );
+      if (!target) return;
+      if (mode !== "inside") setModeState("inside");
+      goToStation(target);
+    },
+    [currentFloorIndex, currentStationId, goToStation, isTransitioning, mode, stations],
+  );
+
   const handleLookDrag = useCallback(
     (deltaX: number, deltaY: number) => {
       // Only a station-to-station transition blocks looking; standing still and
@@ -234,5 +256,6 @@ export function useWalkthroughNavigation(options: {
     updateCamera,
     isTransitioning,
     handleLookDrag,
+    step,
   };
 }
