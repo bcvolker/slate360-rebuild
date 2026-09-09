@@ -187,6 +187,7 @@ export function MeshTwinViewer({
           />
           <directionalLight intensity={0.9} position={[6, 10, 4]} />
           <ambientLight intensity={0.22} />
+          {/* Separate boundaries: the splat must not wait for an 8 MB mesh to download. */}
           <Suspense fallback={null}>
             {activeMesh ? (
               <MeshBody
@@ -199,6 +200,8 @@ export function MeshTwinViewer({
             ) : (
               <WalkFloorPlane stations={stations} floors={floors} floorIndex={nav.currentFloorIndex} />
             )}
+          </Suspense>
+          <Suspense fallback={null}>
             {activeSplat && splatRequested ? (
               <MeshSplatLayer
                 url={activeSplat}
