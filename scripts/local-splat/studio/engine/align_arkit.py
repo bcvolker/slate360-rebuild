@@ -109,6 +109,9 @@ def main() -> int:
     ap.add_argument("--out", required=True)
     ap.add_argument("--name", required=True)
     ap.add_argument("--out-ply", default="")
+    ap.add_argument("--video-clip", type=int, default=None, help="poses.clips index whose frames were extracted")
+    ap.add_argument("--video-fps", type=float, default=2.0, help="extraction rate used by the studio")
+    ap.add_argument("--frame-prefix", default="v0_", help="extracted frame filename prefix")
     ap.add_argument("--station-spacing", type=float, default=0.7)
     ap.add_argument("--ceiling-height", type=float, default=2.2)
     a = ap.parse_args()
@@ -129,16 +132,48 @@ def main() -> int:
             ar_by_photo[Path(photo).name.lower()] = c
     ar_centres_all = np.array(ar_centres_all) if ar_centres_all else np.zeros((0, 3))
 
+    # Video frames: match by time. The studio extracts clip N as `v<k>_%05d.jpg` at --video-fps;
+    # frame i sits at clip start_time + (i - 0.5) / fps, and the nearest ARKit pose (any clip
+    # index, within 0.12 s) gives its centre. Stills match by filename as above.
+    clip_start = None
+    if a.video_clip is not None:
+        clips = {int(c.get("index", i + 1)): c for i, c in enumerate(poses.get("clips", []))}
+        clip = clips.get(a.video_clip)
+        if clip is None or clip.get("start_time") is None:
+            print(json.dumps({"error": "video clip not found in poses", "clip": a.video_clip}))
+            return 3
+        clip_start = float(clip["start_time"])
+    pose_times = np.array([float(fr["timestamp"]) for fr in frames if "timestamp" in fr])
+    pose_centres = np.array([
+        np.asarray(fr["transform_4x4"], dtype=np.float64).reshape(4, 4, order="F")[:3, 3]
+        for fr in frames if "timestamp" in fr
+    ])
+    order = np.argsort(pose_times)
+    pose_times, pose_centres = pose_times[order], pose_centres[order]
+
+    def centre_at(t: float) -> np.ndarray | None:
+        j = int(np.searchsorted(pose_times, t))
+        cands = [k for k in (j - 1, j) if 0 <= k < len(pose_times)]
+        if not cands:
+            return None
+        k = min(cands, key=lambda k: abs(pose_times[k] - t))
+        return pose_centres[k] if abs(pose_times[k] - t) <= 0.12 else None
+
     rec = pycolmap.Reconstruction(a.sparse)
     src, dst, names = [], [], []
     for im in rec.images.values():
         key = Path(im.name).name.lower()
-        if key in ar_by_photo:
+        target = ar_by_photo.get(key)
+        if target is None and clip_start is not None and key.startswith(a.frame_prefix):
+            digits = "".join(ch for ch in Path(key).stem[len(a.frame_prefix):] if ch.isdigit())
+            if digits:
+                target = centre_at(clip_start + (int(digits) - 0.5) / a.video_fps)
+        if target is not None:
             cfw = im.cam_from_world()
             R = np.asarray(cfw.rotation.matrix())
             t = np.asarray(cfw.translation)
             src.append(-R.T @ t)
-            dst.append(ar_by_photo[key])
+            dst.append(target)
             names.append(im.name)
     if len(src) < 6:
         print(json.dumps({"error": "too few photo↔pose matches", "matches": len(src),

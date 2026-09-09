@@ -107,6 +107,7 @@ def main() -> int:
     ap.add_argument("--floor-margin", type=float, default=0.25, help="metres below floor to keep")
     ap.add_argument("--ceiling-clip", type=float, default=3.4, help="metres above floor; higher is deleted")
     ap.add_argument("--crop-margin", type=float, default=0.0, help="metres from the camera path (horizontal); 0 = off")
+    ap.add_argument("--max-out", type=int, default=0, help="thin the main output to this many splats by contribution; 0 = keep all")
     ap.add_argument("--mobile-out", default="")
     ap.add_argument("--mobile-max", type=int, default=160_000)
     ap.add_argument("--report", default="")
@@ -206,14 +207,27 @@ def main() -> int:
             keep &= m
 
     out = arr[keep]
+    # Optional thinning of the main output by contribution (opacity × footprint): a 30k-step
+    # train can hold 1.7M splats, most of them tiny; the web needs the ~800k that matter.
+    if a.max_out > 0 and len(out) > a.max_out:
+        score_main = op[keep] * np.clip(sc[keep].mean(axis=1), 1e-4, None)
+        order = np.argsort(-score_main)[: a.max_out]
+        order.sort()
+        out = out[order]
+        report["thinned_to"] = int(len(out))
     write_ply(Path(a.dst), out, props)
     report["output"] = int(len(out))
     report["kept_fraction"] = round(len(out) / max(n0, 1), 4)
 
     if a.mobile_out:
-        # Phones: keep the splats that matter most — opacity times footprint — then SH0 at pack time.
-        opk = op[keep]
-        sck = sc[keep]
+        # Phones: keep the splats that matter most — opacity times footprint — then SH0 at pack
+        # time. Scored from `out` itself so this also works after --max-out thinning.
+        opk = out["opacity"].astype(np.float64)
+        if opk.min() < 0 or opk.max() > 1:
+            opk = sigmoid(opk)
+        sck = np.column_stack([out["scale_0"], out["scale_1"], out["scale_2"]]).astype(np.float64)
+        if sck.min() < 0:
+            sck = np.exp(sck)
         score = opk * np.clip(sck.mean(axis=1), 1e-4, None)
         if len(out) > a.mobile_max:
             order = np.argsort(-score)[: a.mobile_max]
