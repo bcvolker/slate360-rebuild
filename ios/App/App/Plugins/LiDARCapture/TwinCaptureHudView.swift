@@ -358,7 +358,7 @@ private struct TwinHudBottomRail: View {
                 : (model.tipText.isEmpty ? "Photos — tap the shutter" : model.tipText)
         }
         if model.exposureLocked || model.fastShutter {
-            let bits = [model.fastShutter ? "1/120 SHUTTER" : nil, model.exposureLocked ? "AE·WB LOCKED" : nil].compactMap { $0 }
+            let bits = [model.fastShutter ? "\(model.shutterLabel) SHUTTER" : nil, model.exposureLocked ? "AE·WB LOCKED" : nil].compactMap { $0 }
             return bits.joined(separator: " · ") + " · tap record"
         }
         return model.tipText.isEmpty ? "Ready · tap record" : model.tipText
@@ -399,7 +399,9 @@ private struct TwinHudBottomRail: View {
         HStack(spacing: 4) {
             settingToggle("AE LOCK", active: model.exposureLocked, action: model.actions.onExposureLockToggle)
             if model.capability.fastShutterSupported {
-                settingToggle("1/120 SHUTTER", active: model.fastShutter, action: model.actions.onFastShutterToggle)
+                // Tapping cycles AUTO → 1/120 → 1/250 → 1/500. Works together with AE LOCK:
+                // a fixed shutter + ISO is already a locked exposure.
+                settingToggle("SHUTTER \(model.shutterLabel)", active: model.fastShutter, action: model.actions.onFastShutterToggle)
             }
             Text("1× WIDE")
                 .font(.system(size: 11, weight: .bold, design: .monospaced))

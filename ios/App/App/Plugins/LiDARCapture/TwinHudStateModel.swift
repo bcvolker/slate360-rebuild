@@ -68,8 +68,8 @@ struct TwinHudCapability: Equatable {
     /// `configurableCaptureDeviceForPrimaryCamera`) so AE/WB lock and the fast
     /// shutter are real controls rather than decoration.
     var exposureLockEnabled: Bool = false
-    /// The ARKit camera accepts a custom (fixed-duration) exposure, so the 1/120 s
-    /// fast shutter is a real control. False hides the toggle instead of showing a dud.
+    /// The ARKit camera accepts a custom (fixed-duration) exposure, so the shutter
+    /// chip (AUTO → 1/120 → 1/250 → 1/500) is a real control. False hides it.
     var fastShutterSupported: Bool = false
 }
 
@@ -114,8 +114,10 @@ final class TwinHudStateModel: ObservableObject {
     @Published var photoAutoActive: Bool = false
     /// AE + white balance held at the values they had when the lock was tapped.
     @Published var exposureLocked: Bool = false
-    /// Shutter clamped to 1/120 s or faster (ISO compensates) — kills walk blur.
-    @Published var fastShutter: Bool = false
+    /// 0 = auto; otherwise the shutter is held at 1/N s (ISO compensates) — kills walk blur.
+    @Published var shutterDenominator: Int = 0
+    var fastShutter: Bool { shutterDenominator > 0 }
+    var shutterLabel: String { shutterDenominator > 0 ? "1/\(shutterDenominator)" : "AUTO" }
     @Published var clipsExpanded: Bool = false
     @Published var chromeVisible: Bool = true
     @Published var finishing: Bool = false
@@ -150,7 +152,7 @@ final class TwinHudStateModel: ObservableObject {
         tipText: String?,
         tipWarning: Bool,
         exposureLocked: Bool = false,
-        fastShutter: Bool = false,
+        shutterDenominator: Int = 0,
         force: Bool = false
     ) {
         let now = ProcessInfo.processInfo.systemUptime
@@ -172,7 +174,7 @@ final class TwinHudStateModel: ObservableObject {
         self.photoIntervalSec = photoIntervalSec
         self.photoAutoActive = photoAutoActive
         self.exposureLocked = exposureLocked
-        self.fastShutter = fastShutter
+        self.shutterDenominator = shutterDenominator
         self.hasContent = hasContent
         self.finishing = finishing
         self.capability = capability

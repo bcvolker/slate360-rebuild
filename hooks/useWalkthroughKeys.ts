@@ -9,8 +9,9 @@ const TURN_DEG = 20;
 const LOOK_SENSITIVITY = 0.005; // must match useWalkthroughNavigation
 
 /**
- * Keyboard walking for desktop viewers: ↑/W step to the next station ahead,
- * ↓/S step back, ←/→ (A/D) turn. Ignored while typing in a form field.
+ * Keyboard walking for desktop viewers: ↑/W step 0.5 m ahead, ↓/S step back,
+ * Shift+↑/↓ jump to the next capture station, ←/→ (A/D) turn. Ignored while
+ * typing in a form field.
  */
 export function useWalkthroughKeys(nav: WalkthroughNavigation, enabled = true) {
   useEffect(() => {
@@ -23,12 +24,12 @@ export function useWalkthroughKeys(nav: WalkthroughNavigation, enabled = true) {
         case "ArrowUp":
         case "w":
         case "W":
-          nav.step(1);
+          nav.step(1, e.shiftKey);
           break;
         case "ArrowDown":
         case "s":
         case "S":
-          nav.step(-1);
+          nav.step(-1, e.shiftKey);
           break;
         case "ArrowLeft":
         case "a":

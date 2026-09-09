@@ -202,8 +202,11 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     // primary camera for configuration on iOS 16+, which is what makes AE/WB lock and a
     // shutter floor possible without leaving ARWorldTrackingConfiguration.
     private var exposureLocked = false
-    private var fastShutter = false
-    private let fastShutterMaxDuration = CMTime(value: 1, timescale: 120)
+    /// 0 = auto exposure duration; otherwise the shutter is held at 1/N s (ISO compensates).
+    private var shutterDenominator: Int32 = 0
+    /// Cycle order for the HUD chip: AUTO → 1/120 → 1/250 → 1/500 → AUTO.
+    private static let shutterSteps: [Int32] = [0, 120, 250, 500]
+    private var fastShutter: Bool { shutterDenominator > 0 }
 
     // Clips finalize in the BACKGROUND: ending a clip returns the shutter instantly
     // (crews capture back-to-back; blocking on AVAssetWriter.finishWriting was the
@@ -299,6 +302,13 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             fail("LiDAR depth not supported on this device"); return
         }
         config.worldAlignment = .gravity
+        if #available(iOS 16.0, *),
+           let hiRes = ARWorldTrackingConfiguration.recommendedVideoFormatForHighResolutionFrameCapturing {
+            // Same live resolution as the default; this format additionally supports
+            // captureHighResolutionFrame (12 MP stills) on demand.
+            config.videoFormat = hiRes
+            NSLog("[TwinCap] video format \(Int(hiRes.imageResolution.width))×\(Int(hiRes.imageResolution.height)) @\(hiRes.framesPerSecond) (hi-res capture ready)")
+        }
         depthSemanticsActive = true
         arSession.run(config, options: [.resetTracking, .removeExistingAnchors])
         sessionNeedsResume = false
@@ -324,7 +334,6 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
             self.exposureLocked.toggle()
             NSLog("[TwinCap] exposure lock -> \(self.exposureLocked)")
-            if self.exposureLocked { self.fastShutter = false }
             self.applyCameraSettings()
             self.persistSettings()
             self.pushHudState(force: true)
@@ -332,9 +341,10 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         model.actions.onFastShutterToggle = { [weak self] in
             guard let self = self else { return }
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            self.fastShutter.toggle()
-            NSLog("[TwinCap] fast shutter -> \(self.fastShutter)")
-            if self.fastShutter { self.exposureLocked = false }
+            let steps = Self.shutterSteps
+            let i = steps.firstIndex(of: self.shutterDenominator) ?? 0
+            self.shutterDenominator = steps[(i + 1) % steps.count]
+            NSLog("[TwinCap] shutter -> 1/\(self.shutterDenominator)")
             self.applyCameraSettings()
             self.persistSettings()
             self.pushHudState(force: true)
@@ -427,7 +437,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                 tipText: self.tipText,
                 tipWarning: self.tipWarning,
                 exposureLocked: self.exposureLocked,
-                fastShutter: self.fastShutter,
+                shutterDenominator: Int(self.shutterDenominator),
                 force: force
             )
         }
@@ -454,6 +464,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         static let interval = "twin.capture.photoIntervalSec"
         static let exposureLocked = "twin.capture.exposureLocked"
         static let fastShutter = "twin.capture.fastShutter"
+        static let shutter = "twin.capture.shutterDenominator"
     }
 
     private func loadPersistedSettings() {
@@ -466,8 +477,12 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             if [0, 0.5, 1, 2, 3].contains(v) { photoIntervalSec = v }
         }
         exposureLocked = d.bool(forKey: SettingsKey.exposureLocked)
-        fastShutter = d.bool(forKey: SettingsKey.fastShutter)
-        if exposureLocked && fastShutter { exposureLocked = false }
+        if d.object(forKey: SettingsKey.shutter) != nil {
+            let v = Int32(d.integer(forKey: SettingsKey.shutter))
+            shutterDenominator = Self.shutterSteps.contains(v) ? v : 0
+        } else if d.bool(forKey: SettingsKey.fastShutter) {
+            shutterDenominator = 120   // builds before #87 stored the old boolean
+        }
     }
 
     private func persistSettings() {
@@ -475,7 +490,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         d.set(captureMode.rawValue, forKey: SettingsKey.mode)
         d.set(photoIntervalSec, forKey: SettingsKey.interval)
         d.set(exposureLocked, forKey: SettingsKey.exposureLocked)
-        d.set(fastShutter, forKey: SettingsKey.fastShutter)
+        d.set(Int(shutterDenominator), forKey: SettingsKey.shutter)
+        d.removeObject(forKey: SettingsKey.fastShutter)
     }
 
     /// The AVCaptureDevice ARKit is driving, when the OS lets us configure it (iOS 16+).
@@ -487,8 +503,10 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     }
 
     /// Apply the operator's exposure choice to the live camera.
-    /// - fast shutter: custom exposure at <= 1/120 s, ISO scaled so brightness holds, WB locked;
-    /// - AE/WB lock: freeze whatever auto settled on;
+    /// - shutter 1/N: custom exposure at 1/N s, ISO scaled so brightness holds, WB locked.
+    ///   A custom duration + ISO is by definition a locked exposure, so AE LOCK and a shutter
+    ///   speed are compatible — with both on, the lock chip has nothing extra to do;
+    /// - AE/WB lock alone: freeze whatever auto settled on;
     /// - neither: continuous auto exposure + auto white balance (ARKit default).
     private func applyCameraSettings() {
         guard let device = configurableDevice() else { return }
@@ -497,7 +515,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             defer { device.unlockForConfiguration() }
             if fastShutter, device.isExposureModeSupported(.custom) {
                 let format = device.activeFormat
-                var duration = fastShutterMaxDuration
+                var duration = CMTime(value: 1, timescale: shutterDenominator)
                 if CMTimeCompare(duration, format.minExposureDuration) < 0 { duration = format.minExposureDuration }
                 if CMTimeCompare(duration, format.maxExposureDuration) > 0 { duration = format.maxExposureDuration }
                 let currentSec = max(CMTimeGetSeconds(device.exposureDuration), 1e-6)
@@ -534,6 +552,9 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             "photoIntervalSec": photoIntervalSec,
             "exposureLocked": exposureLocked,
             "fastShutter": fastShutter,
+            "shutterDenominator": Int(shutterDenominator),
+            "highResolutionStills": highResolutionStillsEnabled,
+            "highResolutionStillCount": highResPhotoCount,
             "lens": "wide_1x",
             "depthSemantics": depthSemanticsActive,
             "build": buildStamp,
@@ -650,13 +671,38 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         photoAutoActive = false
     }
 
-    /// Snaps a full-res still from the live ARSession frame (JPEG on videoQueue — the
-    /// CI render must not block the main thread).
+    /// Snaps a still. On iOS 16+ this asks ARKit for a full-sensor (12 MP) frame — the live
+    /// 1920×1440 frame was the ceiling on every photo walk's detail — and falls back to the
+    /// live frame if the high-resolution request fails. JPEG encode runs on videoQueue.
     private func capturePhoto() {
-        guard state == .ready, let frame = arSession.currentFrame else { return }
+        guard state == .ready, arSession.currentFrame != nil else { return }
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         photoSnapCounter += 1
         let index = photoSnapCounter
+        if #available(iOS 16.0, *), highResolutionStillsEnabled {
+            arSession.captureHighResolutionFrame { [weak self] hiRes, error in
+                DispatchQueue.main.async {
+                    guard let self = self else { return }
+                    if let hiRes {
+                        self.finishPhoto(frame: hiRes, index: index, highRes: true)
+                    } else {
+                        NSLog("[TwinCap] high-res still failed (\(error?.localizedDescription ?? "nil")) — using live frame")
+                        if let live = self.arSession.currentFrame { self.finishPhoto(frame: live, index: index, highRes: false) }
+                    }
+                }
+            }
+        } else if let frame = arSession.currentFrame {
+            finishPhoto(frame: frame, index: index, highRes: false)
+        }
+    }
+
+    /// Set false only for A/B tests; the manifest records which path each walk used.
+    private let highResolutionStillsEnabled = true
+    private var highResPhotoCount = 0
+
+    private func finishPhoto(frame: ARFrame, index: Int, highRes: Bool) {
+        guard state == .ready else { return }
+        if highRes { highResPhotoCount += 1 }
         let filename = "twin_photo_\(index).jpg"
         let url = URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent("\(sessionId)_photo\(index).jpg")
@@ -695,7 +741,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             DispatchQueue.main.async {
                 self.photoURLs.append((url, filename))
                 self.photoShotCount = self.photoURLs.count
-                self.tipText = "PHOTOS · \(self.photoShotCount) captured"
+                let res = frame.camera.imageResolution
+                self.tipText = "PHOTOS · \(self.photoShotCount) captured · \(Int(res.width))×\(Int(res.height))"
                 self.pushHudState(force: true)
             }
         }
@@ -912,12 +959,15 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             // onFinish within 45 s, surface a visible failure instead of an infinite
             // "Saving…" freeze. Runs on main (main is free during the depthQueue write).
             var handedOff = false
+            // Budget grows with the cloud: 45 s base + 20 s per million voxels, so a 3M-point
+            // walk gets ~105 s instead of being killed at 45 s while the PLY is still writing.
+            let exportBudget: TimeInterval = 45 + 20 * Double(self.pointCount) / 1_000_000
             let exportWatchdog = DispatchWorkItem { [weak self] in
                 guard let self = self, !handedOff else { return }
-                NSLog("[TwinCap] export WATCHDOG fired — save exceeded 45s")
-                self.fail("Saving took too long and was stopped. Your video clips are safe — please try the scan again.")
+                NSLog("[TwinCap] export WATCHDOG fired — save exceeded \(Int(exportBudget))s")
+                self.fail("Saving took too long and was stopped. Your clips and photos are safe — please try the scan again.")
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 45, execute: exportWatchdog)
+            DispatchQueue.main.asyncAfter(deadline: .now() + exportBudget, execute: exportWatchdog)
             // Snapshot on main — clipVideos/photoURLs are main-thread-owned.
             let clips = self.clipVideos
             let photos = self.photoURLs
@@ -1458,23 +1508,27 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     }
 
     private func writePLY(to url: URL) {
-        let pts = Array(voxelGrid.values)
-        var data = Data()
-        data.reserveCapacity(pts.count * 15 + 256)   // 12 B xyz + 3 B rgb/pt — avoids reallocs
-        let header = """
-        ply\nformat binary_little_endian 1.0\nelement vertex \(pts.count)\nproperty float x\nproperty float y\nproperty float z\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nend_header\n
-        """
-        data.append(contentsOf: header.utf8)
-        for pt in pts {
-            var x = pt.position.x, y = pt.position.y, z = pt.position.z
-            var r = pt.color.x, g = pt.color.y, b = pt.color.z
-            withUnsafeBytes(of: &x) { data.append(contentsOf: $0) }
-            withUnsafeBytes(of: &y) { data.append(contentsOf: $0) }
-            withUnsafeBytes(of: &z) { data.append(contentsOf: $0) }
-            withUnsafeBytes(of: &r) { data.append(contentsOf: $0) }
-            withUnsafeBytes(of: &g) { data.append(contentsOf: $0) }
-            withUnsafeBytes(of: &b) { data.append(contentsOf: $0) }
+        // Six Data.append calls per point cost ~40 s for a 3M-voxel cloud and tripped the
+        // export watchdog. One preallocated buffer with direct stores writes it in well
+        // under a second. Layout per point: 3 × Float32 xyz + 3 × UInt8 rgb = 15 bytes.
+        let count = voxelGrid.count
+        let header = "ply\nformat binary_little_endian 1.0\nelement vertex \(count)\nproperty float x\nproperty float y\nproperty float z\nproperty uchar red\nproperty uchar green\nproperty uchar blue\nend_header\n"
+        let headerBytes = Array(header.utf8)
+        let stride = 15
+        let total = headerBytes.count + count * stride
+        let buffer = UnsafeMutableRawPointer.allocate(byteCount: total, alignment: 4)
+        buffer.copyMemory(from: headerBytes, byteCount: headerBytes.count)
+        var offset = headerBytes.count
+        for pt in voxelGrid.values {
+            buffer.storeBytes(of: pt.position.x, toByteOffset: offset, as: Float.self)
+            buffer.storeBytes(of: pt.position.y, toByteOffset: offset + 4, as: Float.self)
+            buffer.storeBytes(of: pt.position.z, toByteOffset: offset + 8, as: Float.self)
+            buffer.storeBytes(of: pt.color.x, toByteOffset: offset + 12, as: UInt8.self)
+            buffer.storeBytes(of: pt.color.y, toByteOffset: offset + 13, as: UInt8.self)
+            buffer.storeBytes(of: pt.color.z, toByteOffset: offset + 14, as: UInt8.self)
+            offset += stride
         }
+        let data = Data(bytesNoCopy: buffer, count: total, deallocator: .custom { ptr, _ in ptr.deallocate() })
         try? data.write(to: url)
     }
 

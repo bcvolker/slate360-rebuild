@@ -14,13 +14,13 @@
 
 import { useCallback, useMemo, useRef, useState } from "react";
 
+import { clickLanding, fineStepTarget } from "@/lib/digital-twin/walkthrough-fine-step";
 import {
   applyLookDrag,
   clampPitch,
   EYE_HEIGHT_M,
   eyeHeightFor,
   lerpPose,
-  MAX_CLICK_DISTANCE_M,
   nearestStation,
   poseForMode,
   stationInDirection,
@@ -60,8 +60,10 @@ export type WalkthroughNavigation = {
   isTransitioning: boolean;
   /** Drag to look around while standing at a station. */
   handleLookDrag: (deltaX: number, deltaY: number) => void;
-  /** Keyboard walking: 1 = to the nearest station ahead, -1 = behind. */
-  step: (direction: 1 | -1) => void;
+  /** Keyboard walking: 1 = ahead, -1 = behind. A fine 0.5 m step when the
+   *  destination stays near the walked path; otherwise a jump to the next
+   *  station. Pass jump=true to force the station jump. */
+  step: (direction: 1 | -1, jump?: boolean) => void;
 };
 
 export function useWalkthroughNavigation(options: {
@@ -167,16 +169,36 @@ export function useWalkthroughNavigation(options: {
     [beginTransition, ceilingCutY, floors, mode, stations],
   );
 
+  /** Walk to an arbitrary floor point near the walked path, keeping the look direction. */
+  const goToPoint = useCallback(
+    (point: [number, number, number], station: WalkStation) => {
+      if (mode !== "inside") setModeState("inside");
+      setCurrentStationId(station.id);
+      setCurrentFloorIndex(station.floorIndex);
+      beginTransition({
+        position: [point[0], eyeHeightFor(station, floors), point[2]],
+        yaw: poseRef.current.yaw,
+        pitch: mode === "inside" ? poseRef.current.pitch : 0,
+      });
+    },
+    [beginTransition, floors, mode],
+  );
+
   const handleCanvasClick = useCallback(
     (screenX: number, screenY: number) => {
       if (isTransitioning) return;
       const hit = raycastFloor(screenX, screenY);
       if (!hit) return;
-      const station = nearestStation(stations, hit, MAX_CLICK_DISTANCE_M, currentFloorIndex);
-      if (!station) return;
-      goToStation(station);
+      const landing = clickLanding(stations, hit, currentFloorIndex);
+      if (!landing) return;
+      // Exact landings keep the viewer's heading; station jumps take the station's.
+      if (landing.point[0] === landing.station.position[0] && landing.point[2] === landing.station.position[2]) {
+        goToStation(landing.station);
+      } else {
+        goToPoint(landing.point, landing.station);
+      }
     },
-    [currentFloorIndex, goToStation, isTransitioning, raycastFloor, stations],
+    [currentFloorIndex, goToPoint, goToStation, isTransitioning, raycastFloor, stations],
   );
 
   const setFloorIndex = useCallback(
@@ -194,9 +216,19 @@ export function useWalkthroughNavigation(options: {
   );
 
   const step = useCallback(
-    (direction: 1 | -1) => {
+    (direction: 1 | -1, jump = false) => {
       if (isTransitioning) return;
       const pose = poseRef.current;
+      if (!jump && mode === "inside") {
+        const fine = fineStepTarget(stations, pose.position, pose.yaw, direction, currentFloorIndex);
+        if (fine) {
+          const anchor = nearestStation(stations, fine, Number.POSITIVE_INFINITY, currentFloorIndex);
+          if (anchor) {
+            goToPoint(fine, anchor);
+            return;
+          }
+        }
+      }
       const target = stationInDirection(
         stations,
         pose.position,
@@ -209,7 +241,7 @@ export function useWalkthroughNavigation(options: {
       if (mode !== "inside") setModeState("inside");
       goToStation(target);
     },
-    [currentFloorIndex, currentStationId, goToStation, isTransitioning, mode, stations],
+    [currentFloorIndex, currentStationId, goToPoint, goToStation, isTransitioning, mode, stations],
   );
 
   const handleLookDrag = useCallback(
