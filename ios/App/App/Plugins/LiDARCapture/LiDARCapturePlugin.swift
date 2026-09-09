@@ -373,7 +373,7 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
         let url = URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent("(UUID().uuidString)_capture_bundle.json")
         guard (try? data.write(to: url, options: .atomic)) != nil else { return nil }
-        return .init(url: url, filename: "capture_bundle.json", contentType: "application/json", assetKind: "capture_bundle")
+        return .init(url: url, filename: "capture_bundle.json", contentType: "application/json", assetKind: "other")
     }
     /// Gzips a capture file for upload, returning the compressed entry (and deleting the
     /// raw original); falls back to the uncompressed file if compression fails.

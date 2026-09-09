@@ -242,11 +242,14 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
 
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        // A timed photo walk is hands-off; the screen must not dim or lock mid-scan.
+        UIApplication.shared.isIdleTimerDisabled = true
         startSessionIfPermitted()
     }
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        UIApplication.shared.isIdleTimerDisabled = false
         hudHost.detach()
     }
 
@@ -976,29 +979,35 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     func session(_ session: ARSession, didUpdate frame: ARFrame) {
         reapplyTorchIfNeeded()  // ARKit resets the torch — re-assert desired state every frame
         reapplyCameraSettingsIfNeeded()
-        guard isRecording else { return }
+        // LiDAR accumulates during a video clip AND during a timed photo walk. Photos
+        // mode used to skip this entirely, so a stills capture uploaded a 0-point cloud
+        // (2026-09-08 kitchen walk). Only the video writer is clip-only.
+        let stillsWalk = captureMode == .photos && photoAutoActive
+        guard isRecording || stillsWalk else { return }
 
         let arkitTs = frame.timestamp
-        if !hasStartedWriter {
-            beginWriter(with: frame)
-        }
-        // Per-CLIP timeline: video PTS and the duration cap restart with each clip.
-        let rel = arkitTs - clipStartArkit
+        if isRecording {
+            if !hasStartedWriter {
+                beginWriter(with: frame)
+            }
+            // Per-CLIP timeline: video PTS and the duration cap restart with each clip.
+            let rel = arkitTs - clipStartArkit
 
-        // Enforce max duration per clip — close the clip, stay in capture for the next one.
-        if rel >= options.maxDurationSec {
-            DispatchQueue.main.async { [weak self] in self?.endClip(andExport: false) }
-            return
-        }
+            // Enforce max duration per clip — close the clip, stay in capture for the next one.
+            if rel >= options.maxDurationSec {
+                DispatchQueue.main.async { [weak self] in self?.endClip(andExport: false) }
+                return
+            }
 
-        // ── Video: keep ~30 fps (every 2nd ARKit frame) ──
-        frameCounter &+= 1
-        if frameCounter % 2 == 0, rel - lastVideoPTS >= (1.0 / 31.0) {
-            lastVideoPTS = rel
-            // Convert YCbCr → BGRA synchronously (Metal-backed) into an owned buffer, then append async.
-            if let bgra = convertToBGRA(frame.capturedImage) {
-                let pts = CMTime(seconds: rel, preferredTimescale: 600)
-                videoQueue.async { [weak self] in self?.appendVideo(bgra, pts: pts) }
+            // ── Video: keep ~30 fps (every 2nd ARKit frame) ──
+            frameCounter &+= 1
+            if frameCounter % 2 == 0, rel - lastVideoPTS >= (1.0 / 31.0) {
+                lastVideoPTS = rel
+                // Convert YCbCr → BGRA synchronously (Metal-backed) into an owned buffer, then append async.
+                if let bgra = convertToBGRA(frame.capturedImage) {
+                    let pts = CMTime(seconds: rel, preferredTimescale: 600)
+                    videoQueue.async { [weak self] in self?.appendVideo(bgra, pts: pts) }
+                }
             }
         }
 

@@ -19,7 +19,40 @@ export default async function DigitalTwinViewerPage({ params }: Props) {
     // user who left and came back mid-reconstruction doesn't hit a false "not found".
     const status = await loadTwinSpaceStatus(id, context.orgId);
 
-    if (status.exists && (status.jobStatus === "queued" || status.jobStatus === "processing" || status.jobStatus === null)) {
+    // No job at all: the scan is saved but nobody has asked for processing. Saying
+    // "still building" here was a lie that sent people waiting on a cloud run that
+    // was never started.
+    if (status.exists && status.jobStatus === null) {
+      return (
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 px-6 py-12 text-center">
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-[var(--twin360-blue)]">
+            <Boxes className="h-7 w-7" strokeWidth={1.75} />
+          </span>
+          <div className="space-y-1">
+            <p className="text-sm font-semibold text-zinc-100">
+              {status.title || "Your twin"} is saved, not processed
+            </p>
+            <p className="max-w-xs text-xs leading-relaxed text-[var(--graphite-muted)]">
+              The capture is in the cloud. Nothing runs until you start processing here, or build it
+              on the desktop Capture Studio and publish the result to this twin.
+            </p>
+          </div>
+          {status.captureId ? (
+            <Link
+              href={`/digital-twin/capture/submit?captureId=${encodeURIComponent(status.captureId)}`}
+              className="flex h-11 items-center justify-center rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_14%,transparent)] px-4 text-sm font-semibold text-[var(--twin360-blue)]"
+            >
+              Review capture
+            </Link>
+          ) : null}
+          <Link href="/digital-twin/twins" className="text-xs font-semibold text-[var(--graphite-muted)] hover:text-zinc-200">
+            Back to My Twins
+          </Link>
+        </div>
+      );
+    }
+
+    if (status.exists && (status.jobStatus === "queued" || status.jobStatus === "processing")) {
       return (
         <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 px-6 py-12 text-center">
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_10%,transparent)] text-[var(--twin360-blue)]">

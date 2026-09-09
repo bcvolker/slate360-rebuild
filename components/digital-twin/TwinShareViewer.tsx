@@ -11,6 +11,7 @@ import type { TwinViewerKind } from "@/lib/digital-twin/viewer-format";
 import { TwinShareLidarLayerSwitcher } from "@/components/digital-twin/TwinShareLidarLayerSwitcher";
 import { LidarPointCloudViewer } from "@/components/digital-twin/lidar/LidarPointCloudViewer";
 import { TwinShareWalkthrough } from "@/components/digital-twin/TwinShareWalkthrough";
+import { WebglGate } from "@/components/digital-twin/WebglGate";
 import type { TwinWalkSidecar } from "@/lib/digital-twin/share-walk-types";
 
 export function TwinShareViewer({
@@ -57,7 +58,7 @@ export function TwinShareViewer({
     );
   }
 
-  const visualViewer = !shareToken ? null : walk && viewerKind === "splat" ? (
+  const visualBody = !shareToken ? null : walk && viewerKind === "splat" ? (
     <TwinShareWalkthrough shareToken={shareToken} modelId={modelId} walk={walk} />
   ) : (
     <TwinShareAnnotateShell
@@ -71,6 +72,8 @@ export function TwinShareViewer({
       georef={georef}
     />
   );
+  // A browser with graphics acceleration off gets an explanation, not a spinner.
+  const visualViewer = visualBody ? <WebglGate>{visualBody}</WebglGate> : null;
   const viewer =
     shareToken && lidarModelId && viewerKind !== "lidar" ? (
       <TwinShareLidarLayerSwitcher

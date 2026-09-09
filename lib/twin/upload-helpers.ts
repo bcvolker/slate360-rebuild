@@ -33,12 +33,23 @@ export function buildTwinStorageKey(
   return buildS3Key(orgId, `digital-twin/${spaceId}/${captureId}`, filename);
 }
 
+/** Mirrors the asset_kind CHECK constraint (supabase/migrations/20260802153000_lidar_scan_contract.sql). */
+export const TWIN_ASSET_KINDS: ReadonlySet<string> = new Set([
+  "photo", "video", "panorama_360", "drone_photo", "drone_video",
+  "ply_lidar", "lidar_poses", "lidar_scan", "lidar_depth", "lidar_mesh",
+  "geospatial_kml", "geospatial_gpx", "geospatial_geojson", "imu_log", "other",
+]);
+
 export function inferTwinAssetKind(
   contentType: string,
   filename: string,
   explicit?: string,
 ): string {
-  if (explicit) return explicit;
+  // The DB check constraint (digital_twin_capture_assets_asset_kind_check) only
+  // accepts these kinds. An unknown explicit kind used to fail the whole upload/init
+  // batch with HTTP 500 (2026-09-08: a "capture_bundle" sidecar took 25 files down
+  // with it). Coerce anything else to "other" instead of rejecting the batch.
+  if (explicit) return TWIN_ASSET_KINDS.has(explicit) ? explicit : "other";
 
   const mime = contentType.toLowerCase();
   const ext = filename.split(".").pop()?.toLowerCase() ?? "";
