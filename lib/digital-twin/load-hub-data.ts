@@ -3,6 +3,8 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { HubTwin, HubTwinProject } from "@/lib/types/digital-twin-hub";
 import { resolveTwinHubStatusChip } from "@/lib/digital-twin/twin-hub-status";
+import { resolveTwinHubState } from "@/lib/digital-twin/twin-hub-state";
+import { readPosterRef } from "@/lib/twin/capture-summary";
 
 type SpaceRow = {
   id: string;
@@ -10,6 +12,7 @@ type SpaceRow = {
   status: string;
   project_id: string | null;
   updated_at: string;
+  settings?: unknown;
   projects?:
     | { name?: string | null }
     | Array<{ name?: string | null }>
@@ -38,12 +41,12 @@ export async function loadDigitalTwinHubData(
   const [spacesResult, projectsResult, jobsResult, capturesResult, modelsResult] = await Promise.all([
     admin
       .from("digital_twin_spaces")
-      .select("id, title, status, project_id, updated_at, projects(name)")
+      .select("id, title, status, project_id, updated_at, settings, projects(name)")
       .eq("org_id", orgId)
       .is("deleted_at", null)
       .neq("status", "archived")
       .order("updated_at", { ascending: false })
-      .limit(48),
+      .limit(200),
     admin
       .from("projects")
       .select("id, name, status, created_at")
@@ -59,9 +62,10 @@ export async function loadDigitalTwinHubData(
       .limit(200),
     admin
       .from("digital_twin_captures")
-      .select("space_id")
+      .select("space_id, capture_status")
       .eq("org_id", orgId)
-      .limit(500),
+      .is("deleted_at", null)
+      .limit(1000),
     admin
       .from("digital_twin_models")
       .select("space_id")
@@ -88,8 +92,11 @@ export async function loadDigitalTwinHubData(
   // capture flow is opened but abandoned) have no capture and no job — they must NOT show
   // as scans, and definitely not as "PROCESSING". Filter them out of My Twins entirely.
   const spacesWithCapture = new Set<string>();
+  const spacesUploading = new Set<string>();
   for (const row of capturesResult.data ?? []) {
-    if (row.space_id) spacesWithCapture.add(row.space_id as string);
+    if (!row.space_id) continue;
+    spacesWithCapture.add(row.space_id as string);
+    if (row.capture_status === "uploading") spacesUploading.add(row.space_id as string);
   }
 
   const readyModelsBySpace = new Map<string, number>();
@@ -109,6 +116,8 @@ export async function loadDigitalTwinHubData(
     .map((space) => {
       const project = resolveProject(space.projects);
       const latestJobStatus = latestJobBySpace.get(space.id) ?? null;
+      const readyModels = readyModelsBySpace.get(space.id) ?? 0;
+      const hasCapture = spacesWithCapture.has(space.id);
       return {
         id: space.id,
         title: space.title,
@@ -117,8 +126,16 @@ export async function loadDigitalTwinHubData(
         projectId: space.project_id,
         projectName: project?.name ?? null,
         updatedAt: space.updated_at,
-        readyModels: readyModelsBySpace.get(space.id) ?? 0,
-        hasCapture: spacesWithCapture.has(space.id),
+        readyModels,
+        hasCapture,
+        hubState: resolveTwinHubState({
+          spaceStatus: space.status,
+          latestJobStatus,
+          hasCapture,
+          uploading: spacesUploading.has(space.id),
+          readyModels,
+        }),
+        hasPoster: readPosterRef(space.settings) !== null,
       };
     })
     // Spaces that actually hold models are the reason this list exists — an
@@ -130,7 +147,7 @@ export async function loadDigitalTwinHubData(
         Number(b.readyModels > 0) - Number(a.readyModels > 0) ||
         new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
     )
-    .slice(0, 48);
+    .slice(0, 200);
 
   return {
     twins,

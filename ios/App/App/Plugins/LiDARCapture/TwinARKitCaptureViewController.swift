@@ -1071,7 +1071,10 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         }
 
         // ── Depth voxel accumulation (ported) ──
-        let depthAnchor = frame.smoothedSceneDepth ?? frame.sceneDepth
+        // Raw sceneDepth first: the smoothed map is temporally filtered and biases depth
+        // discontinuities toward their neighbours, which rounds every wall/cabinet edge in
+        // the measuring mesh. Raw is noisier per frame; 2 cm voxels + many frames average it.
+        let depthAnchor = frame.sceneDepth ?? frame.smoothedSceneDepth
         guard let depthMap = depthAnchor?.depthMap, let confMap = depthAnchor?.confidenceMap else { return }
         let transform = frame.camera.transform
         let intrinsics = frame.camera.intrinsics
@@ -1145,14 +1148,43 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         }
 
         var newVoxels = [(key: SIMD3<Int32>, data: PointData)]()
-        let step = 3
+        // step 2 (was 3): ~12k samples per frame at 256×192; 2 cm voxels dedupe the rest.
+        // 5 m (was 8 m): the iPhone ToF is honest to ~5 m; beyond that the returns are the
+        // floating junk that has to be pruned later. Stay inside 5 m of what matters.
+        let step = 2
         let minConf = options.confidence.rawValue
+        let maxDepth: Float32 = 5.0
+        // Real RGB from the camera frame (YCbCr 4:2:0 bi-planar), sampled at the depth pixel.
+        let image = frame.capturedImage
+        CVPixelBufferLockBaseAddress(image, .readOnly)
+        defer { CVPixelBufferUnlockBaseAddress(image, .readOnly) }
+        let imgW = CVPixelBufferGetWidthOfPlane(image, 0)
+        let imgH = CVPixelBufferGetHeightOfPlane(image, 0)
+        let yBase = CVPixelBufferGetBaseAddressOfPlane(image, 0)?.assumingMemoryBound(to: UInt8.self)
+        let cBase = CVPixelBufferGetBaseAddressOfPlane(image, 1)?.assumingMemoryBound(to: UInt8.self)
+        let yStride = CVPixelBufferGetBytesPerRowOfPlane(image, 0)
+        let cStride = CVPixelBufferGetBytesPerRowOfPlane(image, 1)
+        let colScale = Float(imgW) / Float(width)
+        let rowScale = Float(imgH) / Float(height)
+        @inline(__always) func colour(atRow row: Int, col: Int) -> SIMD3<UInt8> {
+            guard let yBase, let cBase else { return SIMD3<UInt8>(180, 180, 180) }
+            let ix = min(imgW - 1, Int(Float(col) * colScale))
+            let iy = min(imgH - 1, Int(Float(row) * rowScale))
+            let yv = Float(yBase[iy * yStride + ix])
+            let cIdx = (iy / 2) * cStride + (ix / 2) * 2
+            let cb = Float(cBase[cIdx]) - 128
+            let cr = Float(cBase[cIdx + 1]) - 128
+            let r = yv + 1.402 * cr
+            let g = yv - 0.344136 * cb - 0.714136 * cr
+            let b = yv + 1.772 * cb
+            return SIMD3<UInt8>(UInt8(max(0, min(255, r))), UInt8(max(0, min(255, g))), UInt8(max(0, min(255, b))))
+        }
         for row in stride(from: 0, to: height, by: step) {
             for col in stride(from: 0, to: width, by: step) {
                 let conf = Int(confBuf[row * confidenceStride + col])
                 guard conf >= minConf else { continue }
                 let depth = depthBuf[row * depthStride + col]
-                guard depth > 0.1, depth < 8.0 else { continue }
+                guard depth > 0.1, depth < maxDepth else { continue }
                 // Unproject to camera space in ARKit's own convention (X right, Y up,
                 // Z backward) so this is consistent with `transform` below, which is
                 // ARKit's Y-up camera-to-world matrix. Row increases downward in image
@@ -1167,8 +1199,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                     Int32(floor(pos.y / voxelSize)),
                     Int32(floor(pos.z / voxelSize))
                 )
-                // Grey placeholder for V1; real RGB is a Week-2 hardening item.
-                newVoxels.append((key: vk, data: PointData(position: pos, color: SIMD3<UInt8>(180, 180, 180))))
+                newVoxels.append((key: vk, data: PointData(position: pos, color: colour(atRow: row, col: col))))
             }
         }
 

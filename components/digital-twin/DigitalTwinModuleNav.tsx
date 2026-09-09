@@ -6,8 +6,10 @@ export function resolveDigitalTwinRouteTitle(pathname: string): string {
   if (pathname.includes("/editor")) return "Splat Editor";
   if (pathname.includes("/cinematic")) return "Cinematic Path";
   if (pathname.includes("/progression")) return "Progression";
-  if (pathname.match(/^\/digital-twin\/twins\/[^/]+$/)) return "Twin Viewer";
-  if (pathname.startsWith("/digital-twin/twins")) return "My Twins";
+  if (pathname.match(/^\/digital-twin\/twins\/[^/]+$/)) return "Twin";
+  if (pathname.startsWith("/digital-twin/twins")) return "Projects";
+  if (pathname.match(/^\/digital-twin\/projects\/[^/]+$/)) return "Project twins";
+  if (pathname.startsWith("/digital-twin/projects")) return "Projects";
   return "Digital Twin";
 }
 

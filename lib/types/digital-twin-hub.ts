@@ -2,6 +2,8 @@
 
 import type { TwinHubStatusChip } from "@/lib/digital-twin/twin-hub-status";
 
+export type HubTwinState = "uploading" | "saved" | "processing" | "ready" | "failed";
+
 export type HubTwin = {
   id: string;
   title: string;
@@ -15,6 +17,11 @@ export type HubTwin = {
   /** True when at least one capture has been uploaded into this space. A draft
    * with a capture is "saved, not processed" — not an empty shell. */
   hasCapture?: boolean;
+  /** Five honest states for the redesigned phone screens (S1/S2/S6). Optional
+   * only for older producers; the hub loader always sets it. */
+  hubState?: HubTwinState;
+  /** A poster photo exists; render /api/digital-twin/spaces/[id]/poster. */
+  hasPoster?: boolean;
 };
 
 export type HubTwinProject = {

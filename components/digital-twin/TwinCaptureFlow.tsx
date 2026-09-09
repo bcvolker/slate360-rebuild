@@ -16,6 +16,8 @@ type Props = {
   spaces: HubTwin[];
   projects: HubTwinProject[];
   initialProjectId?: string | null;
+  /** Capture into this exact twin (the New Scan sheet created it) — wins over initialProjectId. */
+  initialSpaceId?: string | null;
   lockProject?: boolean;
   quickMode?: boolean;
 };
@@ -32,12 +34,16 @@ export function TwinCaptureFlow({
   spaces,
   projects,
   initialProjectId,
+  initialSpaceId,
   lockProject = false,
   quickMode = false,
 }: Props) {
   const router = useRouter();
   const quickStart = quickMode && !lockProject;
-  const defaultSelection = useMemo(() => resolveSelection(spaces, initialProjectId), [initialProjectId, spaces]);
+  const defaultSelection = useMemo(
+    () => resolveSelection(spaces, initialProjectId, initialSpaceId),
+    [initialProjectId, initialSpaceId, spaces],
+  );
   const [selection, setSelection] = useState<Selection | null>(quickStart ? null : defaultSelection);
   const [quickBoot, setQuickBoot] = useState<QuickBootState>(quickStart ? "loading" : defaultSelection ? "done" : "error");
   const [quickBootError, setQuickBootError] = useState<string | null>(
@@ -144,9 +150,16 @@ export function TwinCaptureFlow({
 
   const handleNativeUploaded = useCallback(
     ({ captureId }: { captureId: string }) => {
+      // Decision 2 (2026-09-09): no cloud-processing funnel on the phone. A named,
+      // project-assigned scan lands on its twin (Saved); the desktop studio builds it.
+      // Legacy project-less captures still go through the review funnel to be filed.
+      if (initialSpaceId && selection) {
+        router.push(`/digital-twin/twins/${encodeURIComponent(selection.spaceId)}`);
+        return;
+      }
       router.push(`/digital-twin/capture/submit?captureId=${encodeURIComponent(captureId)}`);
     },
-    [router],
+    [initialSpaceId, router, selection],
   );
 
   if (quickBoot === "loading" || nativeLidar === null) {
@@ -261,10 +274,18 @@ function NoLidarNotice({
   );
 }
 
-function resolveSelection(spaces: HubTwin[], projectId?: string | null): Selection | null {
-  const space = projectId
-    ? spaces.find((candidate) => candidate.projectId === projectId)
-    : spaces[0];
+function resolveSelection(
+  spaces: HubTwin[],
+  projectId?: string | null,
+  spaceId?: string | null,
+): Selection | null {
+  // An explicit twin (from the New Scan sheet) wins; otherwise the project's first
+  // space — the legacy path that put every scan of a project into one twin.
+  const space = spaceId
+    ? spaces.find((candidate) => candidate.id === spaceId)
+    : projectId
+      ? spaces.find((candidate) => candidate.projectId === projectId)
+      : spaces[0];
   if (!space?.id || !space.projectId) return null;
   return {
     spaceId: space.id,
