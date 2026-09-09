@@ -3,6 +3,9 @@
  * Upload a Postshot .spz into Twin Studio and mint /share/twin/[token] (Phase L0).
  *
  *   node scripts/local-splat/ingest-splat.mjs --file room.spz --title "Kitchen 2026-09-06"
+ *   node scripts/local-splat/ingest-splat.mjs --file room.spz --space <spaceId> --sidecar a.manifest.json --sidecar a.walk.json --sidecar a.geometry.glb
+ *     (--space publishes INTO an existing twin instead of creating one; --sidecar files are stored
+ *      beside the .spz using the suffix after the first dot in their file name)
  */
 import { randomBytes } from "node:crypto";
 import fs from "node:fs";
@@ -37,6 +40,8 @@ loadEnv(path.resolve(".env.local"));
 
 const filePath = arg("file");
 const title = arg("title", path.basename(filePath || "local-splat", path.extname(filePath || "")));
+const targetSpaceId = arg("space", "");
+const sidecars = process.argv.flatMap((v, i) => (v === "--sidecar" && process.argv[i + 1] ? [process.argv[i + 1]] : []));
 const projectQuery = arg("project");
 if (!filePath || !fs.existsSync(filePath)) {
   console.error('usage: node scripts/local-splat/ingest-splat.mjs --file <file.spz> [--title "..."] [--project name]');
@@ -117,20 +122,36 @@ if (projectError || !projects?.length) {
 }
 const project = projects[0];
 
-const { data: space, error: spaceError } = await admin
-  .from("digital_twin_spaces")
-  .insert({
-    org_id: member.org_id,
-    project_id: project.id,
-    created_by: profile.id,
-    title,
-    status: "processing",
-  })
-  .select("id")
-  .single();
+let space, spaceError;
+if (targetSpaceId) {
+  ({ data: space, error: spaceError } = await admin
+    .from("digital_twin_spaces")
+    .select("id, project_id, title")
+    .eq("id", targetSpaceId)
+    .eq("org_id", member.org_id)
+    .is("deleted_at", null)
+    .maybeSingle());
+  if (space?.project_id) project.id = space.project_id;
+} else {
+  ({ data: space, error: spaceError } = await admin
+    .from("digital_twin_spaces")
+    .insert({
+      org_id: member.org_id,
+      project_id: project.id,
+      created_by: profile.id,
+      title,
+      status: "processing",
+    })
+    .select("id")
+    .single());
+}
 if (spaceError || !space?.id) {
-  console.error("Space create failed:", spaceError?.message);
+  console.error(targetSpaceId ? "Target space not found:" : "Space create failed:", spaceError?.message);
   process.exit(1);
+}
+// Publishing into an existing twin demotes the previous primary so exactly one model is primary.
+if (targetSpaceId) {
+  await admin.from("digital_twin_models").update({ is_primary: false }).eq("space_id", space.id);
 }
 
 const body = fs.readFileSync(filePath);
@@ -163,6 +184,15 @@ await s3.send(
   }),
 );
 
+for (const sc of sidecars) {
+  const name = path.basename(sc);
+  const suffix = name.slice(name.indexOf("."));
+  const key = storageKey.slice(0, -".spz".length) + suffix;
+  const ct = suffix.endsWith(".json") ? "application/json" : suffix.endsWith(".glb") ? "model/gltf-binary" : "application/octet-stream";
+  await s3.send(new PutObjectCommand({ Bucket: bucket, Key: key, Body: fs.readFileSync(sc), ContentType: ct }));
+  console.log("[local-splat] sidecar", key);
+}
+
 const { error: readyError } = await admin
   .from("digital_twin_models")
   .update({ storage_key: storageKey, status: "ready" })
@@ -176,8 +206,18 @@ await admin
   .update({ status: "ready", published_model_id: model.id })
   .eq("id", space.id);
 
-const token = randomBytes(24).toString("base64url");
-const { error: shareError } = await admin.from("digital_twin_share_tokens").insert({
+let token = randomBytes(24).toString("base64url");
+const { data: existingToken } = await admin
+  .from("digital_twin_share_tokens")
+  .select("token")
+  .eq("space_id", space.id)
+  .eq("role", "view")
+  .eq("is_revoked", false)
+  .order("created_at", { ascending: true })
+  .limit(1)
+  .maybeSingle();
+if (existingToken?.token) token = existingToken.token;
+const { error: shareError } = existingToken?.token ? { error: null } : await admin.from("digital_twin_share_tokens").insert({
   token,
   org_id: member.org_id,
   space_id: space.id,

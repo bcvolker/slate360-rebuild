@@ -89,6 +89,27 @@ inverted. Scale puts the median camera 1.45 m (phone) / 1.6 m (360) above the
 floor; stations are camera centres thinned to 0.7 m. Verified 2026-09-08 on both
 test models (kitchen upright, cafeteria upright, 14 / 95 stations).
 
+## Phone capture → metric twin with LiDAR geometry (2026-09-09)
+
+```
+node scripts/local-splat/pull-capture.mjs <captureId> <dir>        # photos, video, PLY, poses, depth, bundle
+run-job.ps1 ... (2D, photos)                                        # pycolmap + Brush → gaussian.ply
+python engine/align_arkit.py --sparse <dataset/sparse/0> --poses <dir>/lidar_poses.json \
+    --ply <job>/export/gaussian.ply --lidar <dir>/lidar_capture.ply --out <dir>/out --name <model>
+python engine/lidar_mesh.py --in <dir>/lidar_capture.ply --out <dir>/out/<model>.geometry.glb
+python engine/pack_spz.py --in <dir>/out/<model>.aligned.ply --out <dir>/out/<model>.spz
+node scripts/local-splat/ingest-splat.mjs --file <dir>/out/<model>.spz --space <spaceId> \
+    --sidecar <model>.manifest.json --sidecar <model>.walk.json --sidecar <model>.geometry.glb
+```
+
+`align_arkit.py` fits a robust SIM3 between the COLMAP camera centres and the ARKit poses
+recorded for the same stills (`lidar_poses.json` v6 `frames[].photo`), so the splat lands in
+the phone's metric, gravity-aligned world: scale is real, up is up, and the LiDAR mesh from
+`lidar_mesh.py` (Open3D Poisson on the phone's cloud) sits exactly under it. The share page
+then opens the walkthrough with the mesh as the Geometry layer — click-to-walk on real floor,
+measure and pins enabled, Reality / Hybrid / Geometry toggle. `--space` publishes back into
+the phone's twin so it turns Ready without cloud credits.
+
 ## Reconstruction gate and 360 faces (panel review, 2026-09-09)
 
 `sfm.py` now fails a job when fewer than 70% of images register (exit 7) and warns
