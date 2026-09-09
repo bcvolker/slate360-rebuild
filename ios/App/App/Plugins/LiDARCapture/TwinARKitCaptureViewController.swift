@@ -986,12 +986,12 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         guard isRecording || stillsWalk else { return }
 
         let arkitTs = frame.timestamp
+        // Clip-relative time; a stills walk has no clip, so its keyframes carry 0.
+        let rel = isRecording ? arkitTs - clipStartArkit : 0
         if isRecording {
             if !hasStartedWriter {
                 beginWriter(with: frame)
             }
-            // Per-CLIP timeline: video PTS and the duration cap restart with each clip.
-            let rel = arkitTs - clipStartArkit
 
             // Enforce max duration per clip — close the clip, stay in capture for the next one.
             if rel >= options.maxDurationSec {
