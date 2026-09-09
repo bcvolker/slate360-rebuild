@@ -47,7 +47,7 @@ export async function GET(req: NextRequest, ctx: Params) {
     if (object.ContentLength != null) headers.set("Content-Length", String(object.ContentLength));
     return new Response(stream, { status: 200, headers });
   } catch (err) {
-    console.error("[GET /api/share/twin/[token]/geometry]", err);
+    console.error("[GET /api/share/twin/[token]/geometry.glb]", err);
     return serverError(err instanceof Error ? err.message : "Geometry stream failed");
   }
 }

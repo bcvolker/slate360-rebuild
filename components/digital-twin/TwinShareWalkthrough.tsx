@@ -50,7 +50,7 @@ export function TwinShareWalkthrough({
   return (
     <div className="absolute inset-0" data-app="twin360">
       <MeshTwinViewer
-        meshUrl={hasGeometry ? `/api/share/twin/${shareToken}/geometry` : null}
+        meshUrl={hasGeometry ? `/api/share/twin/${shareToken}/geometry.glb` : null}
         splatUrl={`/api/share/twin/${shareToken}/splat${variant}`}
         stations={walk.stations}
         floors={walk.floors}
