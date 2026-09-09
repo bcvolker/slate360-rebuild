@@ -40,6 +40,8 @@ scripts/local-splat/studio/
     frames.py                     sharpness filter (moves blurry frames aside, never deletes)
     sfm.py                        pycolmap poses; 360 via rig-locked cube faces
     pack_spz.py                   PLY -> SPZ v3 with 8-bit SH
+    walk_from_colmap.py           viewer sidecars: upright manifest + walk stations (metres)
+  ../upload-sidecars.mjs          puts <model>.manifest.json / .walk.json beside the .spz in R2
 ```
 
 Jobs live in `%USERPROFILE%\Slate360Jobs\<stamp>-<name>\`:
@@ -68,6 +70,24 @@ Ultra Wide / Tele / 360 in one job is refused by the solve, not by policy.
 - **Quality** = training steps: Preview 7k (~5 min), Standard 15k (~10 min), Final 30k (~20 min) for one room on the 3090.
 - **Output** = SPZ always (viewer format). PLY / .splat / HTML optional.
 - **Publish** = upload to R2, create a Twin share link, copy it.
+
+## Walkthrough viewer sidecars
+
+The share page opens the Matterport-style walkthrough (Inside / Dollhouse / Plan,
+click-to-walk) when a `.walk.json` sits beside the published `.spz`. Generate both
+sidecars from the job's COLMAP model and upload them:
+
+```
+python engine/walk_from_colmap.py --mode 2d  --sparse <job>/dataset/sparse/0 --out <dir> --name <model>
+python engine/walk_from_colmap.py --mode 360 --sparse <job>/dataset/sparse/0 --out <dir> --name <model>
+node scripts/local-splat/upload-sidecars.mjs <storage_key.spz> <dir>/<model>.manifest.json <dir>/<model>.walk.json
+```
+
+Gravity comes from the data (camera-height spread + dense floor slab), not the
+image axis: iPhone video frames are stored landscape and a 360 camera may hang
+inverted. Scale puts the median camera 1.45 m (phone) / 1.6 m (360) above the
+floor; stations are camera centres thinned to 0.7 m. Verified 2026-09-08 on both
+test models (kitchen upright, cafeteria upright, 14 / 95 stations).
 
 ## Exit codes (engine)
 
