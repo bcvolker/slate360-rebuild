@@ -10,6 +10,8 @@ import { TwinShareDownloadButton } from "@/components/digital-twin/TwinShareDown
 import type { TwinViewerKind } from "@/lib/digital-twin/viewer-format";
 import { TwinShareLidarLayerSwitcher } from "@/components/digital-twin/TwinShareLidarLayerSwitcher";
 import { LidarPointCloudViewer } from "@/components/digital-twin/lidar/LidarPointCloudViewer";
+import { TwinShareWalkthrough } from "@/components/digital-twin/TwinShareWalkthrough";
+import type { TwinWalkSidecar } from "@/lib/digital-twin/share-walk-types";
 
 export function TwinShareViewer({
   embed,
@@ -27,6 +29,7 @@ export function TwinShareViewer({
   tokenState,
   qualityMetrics,
   georef,
+  walk = null,
 }: {
   embed: boolean;
   title: string;
@@ -44,6 +47,9 @@ export function TwinShareViewer({
   tokenState?: PortalTokenState | null;
   qualityMetrics?: Record<string, unknown> | null;
   georef?: Record<string, unknown> | null;
+  /** Capture stations beside the splat: when present the share opens in the
+   * walkthrough viewer (inside / dollhouse / plan, click-to-walk). */
+  walk?: TwinWalkSidecar | null;
 }) {
   if (tokenState) {
     return (
@@ -51,7 +57,9 @@ export function TwinShareViewer({
     );
   }
 
-  const visualViewer = shareToken ? (
+  const visualViewer = !shareToken ? null : walk && viewerKind === "splat" ? (
+    <TwinShareWalkthrough shareToken={shareToken} modelId={modelId} walk={walk} />
+  ) : (
     <TwinShareAnnotateShell
       shareToken={shareToken}
       canAnnotate={canAnnotate}
@@ -62,7 +70,7 @@ export function TwinShareViewer({
       qualityMetrics={qualityMetrics}
       georef={georef}
     />
-  ) : null;
+  );
   const viewer =
     shareToken && lidarModelId && viewerKind !== "lidar" ? (
       <TwinShareLidarLayerSwitcher

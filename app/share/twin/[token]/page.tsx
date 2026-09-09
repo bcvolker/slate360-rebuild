@@ -10,6 +10,7 @@ import {
   twinShareDenyToPortalState,
 } from "@/lib/digital-twin/share-token";
 import { resolveTwinViewerKind } from "@/lib/digital-twin/viewer-format";
+import { readTwinWalkSidecar } from "@/lib/digital-twin/share-walk";
 import { TwinShareViewer } from "@/components/digital-twin/TwinShareViewer";
 
 export const dynamic = "force-dynamic";
@@ -130,7 +131,7 @@ export default async function SharedTwinPage({ params, searchParams }: Props) {
     logoKey?: string | null;
   };
 
-  const [modelUrl, fallbackOrg, orgLogoUrl] = await Promise.all([
+  const [modelUrl, fallbackOrg, orgLogoUrl, walk] = await Promise.all([
     viewerKind === "splat"
       ? Promise.resolve(`/api/share/twin/${token}/splat`)
       : viewerKind === "lidar"
@@ -144,6 +145,8 @@ export default async function SharedTwinPage({ params, searchParams }: Props) {
           expiresIn: 3600,
         }).catch(() => null)
       : Promise.resolve(null),
+    // Capture stations beside the .spz → walkthrough viewer; absent → orbit viewer.
+    viewerKind === "splat" ? readTwinWalkSidecar(model.storage_key) : Promise.resolve(null),
   ]);
 
   const canAnnotate = claimed.role === "annotate";
@@ -167,6 +170,7 @@ export default async function SharedTwinPage({ params, searchParams }: Props) {
       georef={model.georef as Record<string, unknown> | null | undefined}
       canAnnotate={canAnnotate}
       canDownload={canDownload}
+      walk={walk}
     />
   );
 }

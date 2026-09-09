@@ -46,6 +46,14 @@ export type SplatManifest = {
   /** Q1: true when a real metric scale factor (recovered from ARKit<->COLMAP
    * trajectory correspondence) was baked into this model's positions. */
   metric_scale_applied?: boolean;
+  /** Uniform scale taking the model's stored units to metres, applied to the parent
+   * group alongside correction_quaternion (walk_from_colmap sidecars). Absent or 1
+   * when positions are already metric. */
+  metric_scale?: number;
+  /** World Y (post-flip, post-correction, metres) of the walkable floor plane. */
+  floor_y?: number;
+  /** World Y of the dollhouse lid: splats above it hide in dollhouse/plan views. */
+  ceiling_cut_y?: number;
   /** A1: the model's non-destructive desktop-editor edits (digital_twin_models.edit_list),
    * mixed into the manifest response server-side so every viewer that reads the manifest
    * for orientation also picks up cleanup edits — not just the desktop editor. */
