@@ -39,16 +39,18 @@ export function TwinShareWalkthrough({
   shareToken,
   modelId,
   walk,
+  hasGeometry = false,
 }: {
   shareToken: string;
   modelId?: string | null;
   walk: TwinWalkSidecar;
+  hasGeometry?: boolean;
 }): ReactElement {
   const [variant] = useState(() => (wantsMobileSplat() ? "?variant=mobile" : ""));
   return (
     <div className="absolute inset-0" data-app="twin360">
       <MeshTwinViewer
-        meshUrl={null}
+        meshUrl={hasGeometry ? `/api/share/twin/${shareToken}/geometry` : null}
         splatUrl={`/api/share/twin/${shareToken}/splat${variant}`}
         stations={walk.stations}
         floors={walk.floors}

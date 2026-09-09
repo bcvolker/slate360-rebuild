@@ -30,20 +30,12 @@ import { HybridPinPanel } from "@/components/digital-twin/hybrid/HybridPinPanel"
 import { HybridSceneOverlays } from "@/components/digital-twin/hybrid/HybridSceneOverlays";
 import { useHybridMeasureTool } from "@/hooks/useHybridMeasureTool";
 import { useHybridPinTool } from "@/hooks/useHybridPinTool";
+import { useVisibleFrameloop } from "@/hooks/useVisibleFrameloop";
 import { useWalkthroughKeys } from "@/hooks/useWalkthroughKeys";
 import { useWalkthroughNavigation } from "@/hooks/useWalkthroughNavigation";
-import {
-  cssColor,
-  MESH_GROUND_FALLBACK,
-  MESH_SURFACE_FALLBACK,
-} from "@/lib/digital-twin/css-color";
+import { cssColor, MESH_GROUND_FALLBACK, MESH_SURFACE_FALLBACK } from "@/lib/digital-twin/css-color";
 import { measurementRaycastTarget } from "@/lib/digital-twin/s360-world";
-import {
-  meshDisplayFor,
-  representationFromLayer,
-  splatVisibleFor,
-  type TwinEpoch,
-} from "@/lib/digital-twin/twin-epoch";
+import { meshDisplayFor, representationFromLayer, splatVisibleFor, type TwinEpoch } from "@/lib/digital-twin/twin-epoch";
 import type { FloorInfo, ViewMode, WalkStation } from "@/lib/digital-twin/walkthrough-navigation";
 
 export type { CeilingState };
@@ -141,6 +133,7 @@ export function MeshTwinViewer({
   const { fovRef, handlePointerDown, handlePointerMove, handlePointerUp, handlePointerCancel, handleWheel } =
     useViewerGestures(nav, { consumeTap, onHover });
   useWalkthroughKeys(nav, !measure.active && !pins.active);
+  const frameloop = useVisibleFrameloop();
 
   const toggleFullscreen = useCallback(() => {
     const el = shellRef.current;
@@ -177,7 +170,9 @@ export function MeshTwinViewer({
       >
         <Canvas
           camera={{ fov: DEFAULT_FOV, near: 0.05, far: 200 }}
-          dpr={[1, 2]}
+          dpr={[1, 1.5]}
+          frameloop={frameloop}
+          gl={{ antialias: false, powerPreference: "high-performance" }}
           onCreated={({ gl }) => {
             gl.setClearColor(cssColor("--graphite-canvas", MESH_GROUND_FALLBACK), 1);
             gl.localClippingEnabled = true;

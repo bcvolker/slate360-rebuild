@@ -31,6 +31,7 @@ export function TwinShareViewer({
   qualityMetrics,
   georef,
   walk = null,
+  hasGeometry = false,
 }: {
   embed: boolean;
   title: string;
@@ -51,6 +52,8 @@ export function TwinShareViewer({
   /** Capture stations beside the splat: when present the share opens in the
    * walkthrough viewer (inside / dollhouse / plan, click-to-walk). */
   walk?: TwinWalkSidecar | null;
+  /** A metric LiDAR mesh sits beside the model; enables measure/pins and the layer toggle. */
+  hasGeometry?: boolean;
 }) {
   if (tokenState) {
     return (
@@ -59,7 +62,7 @@ export function TwinShareViewer({
   }
 
   const visualBody = !shareToken ? null : walk && viewerKind === "splat" ? (
-    <TwinShareWalkthrough shareToken={shareToken} modelId={modelId} walk={walk} />
+    <TwinShareWalkthrough shareToken={shareToken} modelId={modelId} walk={walk} hasGeometry={hasGeometry} />
   ) : (
     <TwinShareAnnotateShell
       shareToken={shareToken}
