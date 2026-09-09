@@ -109,8 +109,10 @@ export function MeshSplatLayer({
   }, [visible]);
 
   // Dollhouse lid: a horizontal plane edit that zeroes opacity above the cut.
-  // The plane is positioned in the MESH's local frame, so the group's rotation
-  // and metric scale and the mesh's own X-flip are all undone first.
+  // Spark reads each SplatEditSdf's OWN matrixWorld (addSdf registers the SDF in a
+  // list; it is not a scene-graph child), so the plane is posed in WORLD space on
+  // the SDF itself. PLANE SDF is `distance = sdfPos.z`: the edited half-space is local
+  // -Z, so local +Z points at the floor and everything above the cut hides.
   useEffect(() => {
     const mesh = meshRef.current;
     if (!mesh) return;
@@ -126,16 +128,11 @@ export function MeshSplatLayer({
       lidEditRef.current = createSweepEdit();
       mesh.add(lidEditRef.current);
     }
-    mesh.updateMatrixWorld(true);
-    const local = mesh.worldToLocal(new THREE.Vector3(0, ceilingCutY, 0));
-    const inv = new THREE.Matrix4().copy(mesh.matrixWorld).invert();
-    const localUp = new THREE.Vector3(0, 1, 0).transformDirection(inv).normalize();
-    const edit = lidEditRef.current;
-    edit.position.copy(local);
-    // Spark's PLANE SDF is `distance = sdfPos.z`: the plane's normal is the edit's local Z
-    // and the "inside" (edited -> opacity 0) is the local -Z half-space. Point local +Z at
-    // the FLOOR so everything above the cut is inside and hides.
-    edit.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), localUp.negate());
+    const sdf = lidEditRef.current.sdfs?.[0];
+    if (!sdf) return;
+    sdf.position.set(0, ceilingCutY, 0);
+    sdf.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, -1, 0));
+    sdf.updateMatrixWorld(true);
   }, [ceilingCutY, ceilingState, bytes]);
 
   const splatArgs = useMemo(
