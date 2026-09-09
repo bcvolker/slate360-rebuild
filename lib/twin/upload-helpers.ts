@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { buildS3Key } from "@/lib/s3";
+import { recordCaptureSummary } from "@/lib/twin/capture-summary";
 import { TWIN_MULTIPART_PART_BYTES } from "@/lib/twin/upload-constants";
 
 type AdminClient = SupabaseClient;
@@ -237,4 +238,8 @@ export async function markCaptureUploadedIfReady(
     .eq("org_id", orgId);
 
   if (captureError) throw new Error(captureError.message);
+
+  // The receipt: what landed, in which settings, plus the twin's poster. Non-fatal by
+  // construction (recordCaptureSummary swallows its own errors) — the upload is done.
+  if (anyReady) await recordCaptureSummary(admin, captureId, orgId);
 }

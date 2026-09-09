@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { ok, unauthorized, serverError } from "@/lib/server/api-response";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { cleanupTwinDraftShells, type DraftShellCleanupResult } from "@/lib/twin/cleanup-draft-shells";
 import { recoverStaleDigitalTwinJobs } from "@/lib/twin/recover-stale-jobs";
 
 export const runtime = "nodejs";
@@ -44,7 +45,19 @@ export async function GET(req: NextRequest) {
       staleAssetsSwept = typeof swept === "number" ? swept : 0;
     }
 
-    return ok({ ok: true, processed, staleAssetsSwept });
+    // Abandoned draft shells and uploads that never delivered a byte (24 h). Non-fatal
+    // for the same reason as the asset GC above.
+    let draftShells: DraftShellCleanupResult | null = null;
+    try {
+      draftShells = await cleanupTwinDraftShells(admin);
+    } catch (cleanupErr) {
+      console.warn(
+        "[cron/recover-stale-twin-jobs] draft-shell cleanup skipped:",
+        cleanupErr instanceof Error ? cleanupErr.message : cleanupErr,
+      );
+    }
+
+    return ok({ ok: true, processed, staleAssetsSwept, draftShells });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     console.error("[GET /api/ops/cron/recover-stale-twin-jobs]", { error: message });
