@@ -132,9 +132,10 @@ export function MeshSplatLayer({
     const localUp = new THREE.Vector3(0, 1, 0).transformDirection(inv).normalize();
     const edit = lidEditRef.current;
     edit.position.copy(local);
-    // Spark's PLANE SDF is "inside" (edited -> opacity 0) on the local -Y side, so point
-    // the plane's +Y at the FLOOR: everything above the cut becomes the inside and hides.
-    edit.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), localUp.negate());
+    // Spark's PLANE SDF is `distance = sdfPos.z`: the plane's normal is the edit's local Z
+    // and the "inside" (edited -> opacity 0) is the local -Z half-space. Point local +Z at
+    // the FLOOR so everything above the cut is inside and hides.
+    edit.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), localUp.negate());
   }, [ceilingCutY, ceilingState, bytes]);
 
   const splatArgs = useMemo(
