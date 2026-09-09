@@ -214,5 +214,8 @@ before the next starts. Nothing is "done" until Brian has used it on the phone.
    sidecars (stations, floors, ceiling cut, upright manifest) as the desktop studio does; scheduled
    after the desktop path is proven. Until then cloud-processed models stay on the orbit viewer.
 
-Status: recommendation accepted; slice 1 (data: capture summary, poster, cleanup job, rename route)
-is next.
+Status (2026-09-09): slice 1 shipped (capture receipt in capture_metadata.summary, poster in
+space settings, rename/delete route, 24 h draft-shell cleanup in the 15-min cron, backfill endpoint).
+Slice 2 shipped (S1 Home, S2 Project twins, S3 New scan sheet without the capture-mode cards;
+capture into an explicit twin; after upload the phone lands on the twin — Decision 2). Next: slice 3
+(capture-mode cards passed to the native HUD as presets), then S5 Collected receipt, then S6/S7.
