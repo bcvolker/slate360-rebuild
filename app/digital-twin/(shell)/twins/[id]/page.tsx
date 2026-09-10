@@ -3,6 +3,9 @@ import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { loadTwinSpaceViewerData, loadTwinSpaceStatus } from "@/lib/digital-twin/load-space-viewer";
 import { TwinDetailClient } from "@/components/digital-twin/TwinDetailClient";
 import { isDigitalTwinDesktopEnabled } from "@/lib/digital-twin/desktop-feature";
+import { loadDigitalTwinHubData } from "@/lib/digital-twin/load-hub-data";
+import { loadTwinSavedState } from "@/lib/digital-twin/load-twin-saved";
+import { TwinSavedScreen } from "@/components/digital-twin/twin/TwinSavedScreen";
 import { MobileEmptyState } from "@/components/mobile-system";
 import { Boxes, Loader2, AlertTriangle } from "lucide-react";
 
@@ -23,33 +26,12 @@ export default async function DigitalTwinViewerPage({ params }: Props) {
     // "still building" here was a lie that sent people waiting on a cloud run that
     // was never started.
     if (status.exists && status.jobStatus === null) {
-      return (
-        <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-4 px-6 py-12 text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-[var(--twin360-blue)]">
-            <Boxes className="h-7 w-7" strokeWidth={1.75} />
-          </span>
-          <div className="space-y-1">
-            <p className="text-sm font-semibold text-zinc-100">
-              {status.title || "Your twin"} is saved, not processed
-            </p>
-            <p className="max-w-xs text-xs leading-relaxed text-[var(--graphite-muted)]">
-              The capture is in the cloud. Nothing runs until you start processing here, or build it
-              on the desktop Capture Studio and publish the result to this twin.
-            </p>
-          </div>
-          {status.captureId ? (
-            <Link
-              href={`/digital-twin/capture/submit?captureId=${encodeURIComponent(status.captureId)}`}
-              className="flex h-11 items-center justify-center rounded-xl border border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--twin360-blue)_14%,transparent)] px-4 text-sm font-semibold text-[var(--twin360-blue)]"
-            >
-              Review capture
-            </Link>
-          ) : null}
-          <Link href="/digital-twin/twins" className="text-xs font-semibold text-[var(--graphite-muted)] hover:text-zinc-200">
-            Back to My Twins
-          </Link>
-        </div>
-      );
+      // S6 Saved: the receipt, the desktop hand-off, scan again, rename/move/delete.
+      const [saved, { projects }] = await Promise.all([
+        loadTwinSavedState(id, context.orgId),
+        loadDigitalTwinHubData(context.orgId),
+      ]);
+      if (saved) return <TwinSavedScreen twin={saved} projects={projects} />;
     }
 
     if (status.exists && (status.jobStatus === "queued" || status.jobStatus === "processing")) {
@@ -75,8 +57,8 @@ export default async function DigitalTwinViewerPage({ params }: Props) {
               View progress
             </Link>
           ) : null}
-          <Link href="/digital-twin/twins" className="text-xs font-semibold text-[var(--graphite-muted)] hover:text-zinc-200">
-            Back to My Twins
+          <Link href="/digital-twin/projects" className="text-xs font-semibold text-[var(--graphite-muted)] hover:text-zinc-200">
+            Back to projects
           </Link>
         </div>
       );
@@ -94,8 +76,8 @@ export default async function DigitalTwinViewerPage({ params }: Props) {
               {status.errorText || "Your capture is safe. Open it from your project to try again."}
             </p>
           </div>
-          <Link href="/digital-twin/twins" className="text-xs font-semibold text-[var(--graphite-muted)] hover:text-zinc-200">
-            Back to My Twins
+          <Link href="/digital-twin/projects" className="text-xs font-semibold text-[var(--graphite-muted)] hover:text-zinc-200">
+            Back to projects
           </Link>
         </div>
       );
@@ -108,7 +90,7 @@ export default async function DigitalTwinViewerPage({ params }: Props) {
           title="Twin not found"
           description="This twin may have been removed or you may not have access."
           actionLabel="Back to twins"
-          actionHref="/digital-twin/twins"
+          actionHref="/digital-twin/projects"
         />
       </div>
     );
