@@ -85,7 +85,11 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
     // Depth accumulation (ported from LiDARCapturePlugin)
     private var voxelGrid: [SIMD3<Int32>: PointData] = [:]
     private var keyframes: [[String: Any]] = []
-    private let voxelSize: Float = 0.02
+    // Starts at 2 cm. When the cap is reached the whole grid is re-binned at 1.5x the size
+    // (merging neighbours, averaging colour) instead of deleting arbitrary voxels — coverage
+    // stays uniform and the cloud keeps growing at a coarser pitch. Depth-queue only.
+    private var voxelSize: Float = 0.02
+    private var voxelCoarsenings = 0
     // Keyframing is DISTANCE-based, not time-based. A flat 0.5 s interval
     // recorded one depth frame every ~31 cm on a genuinely slow 0.48 m/s walk
     // and discarded the other 29 of every 30 frames ARKit delivered — measured
@@ -801,6 +805,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             depthQueue.async { [weak self] in
                 self?.voxelGrid.removeAll(keepingCapacity: true)
                 self?.keyframes.removeAll(keepingCapacity: true)
+                self?.voxelSize = 0.02
+                self?.voxelCoarsenings = 0
             }
         }
         // Clips 2+ KEEP the accumulated cloud/poses — same ARSession, same world origin.
@@ -1005,6 +1011,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                 "depthEvidenceUri": self.depthEvidenceURL?.absoluteString ?? NSNull(),
                 "depthEvidenceFrameCount": self.depthEvidenceFrameCount,
                 "pointCount": self.voxelGrid.count,
+                "voxelSizeM": self.voxelSize,
+                "voxelCoarsenings": self.voxelCoarsenings,
                 "keyframeCount": self.keyframes.count,
                 "clipCount": clips.count,
                 "durationSec": totalDuration,
@@ -1269,9 +1277,8 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
                 self.lowOverlapDetected = false
             }
             if self.voxelGrid.count > self.options.maxPoints {
-                let excess = self.voxelGrid.count - self.options.maxPoints
-                if !self.pointCapHit { self.pointCapHit = true; NSLog("[TwinCap] LiDAR voxel cap reached (\(self.options.maxPoints)) — cloud is being thinned") }
-                for k in self.voxelGrid.keys.prefix(excess) { self.voxelGrid.removeValue(forKey: k) }
+                self.pointCapHit = true
+                self.coarsenVoxelGrid()
             }
             if let kf = keyframeData {
                 self.keyframes.append(kf)
@@ -1536,6 +1543,29 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             kf["heading"] = ["true": h.trueHeading, "magnetic": h.magneticHeading, "accuracy": h.headingAccuracy]
         }
         return kf
+    }
+
+    /// Re-bin the whole cloud at 1.5x the current voxel size (depth queue). A 3M-voxel grid
+    /// re-bins in well under a second; colours of merged voxels are averaged.
+    private func coarsenVoxelGrid() {
+        let oldSize = voxelSize
+        voxelSize *= 1.5
+        voxelCoarsenings += 1
+        var merged: [SIMD3<Int32>: (sum: SIMD3<Float>, colour: SIMD3<Float>, n: Float)] = [:]
+        merged.reserveCapacity(voxelGrid.count / 2)
+        for (_, pt) in voxelGrid {
+            let k = SIMD3<Int32>(Int32(floor(pt.position.x / voxelSize)), Int32(floor(pt.position.y / voxelSize)), Int32(floor(pt.position.z / voxelSize)))
+            let c = SIMD3<Float>(Float(pt.color.x), Float(pt.color.y), Float(pt.color.z))
+            if var m = merged[k] { m.sum += pt.position; m.colour += c; m.n += 1; merged[k] = m } else { merged[k] = (pt.position, c, 1) }
+        }
+        var next: [SIMD3<Int32>: PointData] = [:]
+        next.reserveCapacity(merged.count)
+        for (k, m) in merged {
+            let c = m.colour / m.n
+            next[k] = PointData(position: m.sum / m.n, color: SIMD3<UInt8>(UInt8(max(0, min(255, c.x))), UInt8(max(0, min(255, c.y))), UInt8(max(0, min(255, c.z)))))
+        }
+        NSLog("[TwinCap] LiDAR cap \(options.maxPoints) reached: re-binned \(voxelGrid.count) voxels at \(oldSize * 100) cm -> \(next.count) at \(voxelSize * 100) cm")
+        voxelGrid = next
     }
 
     private func writePLY(to url: URL) {
