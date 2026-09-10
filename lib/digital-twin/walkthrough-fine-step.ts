@@ -13,8 +13,10 @@ import {
   type WalkStation,
 } from "./walkthrough-navigation";
 
-/** Distance one fine keyboard step moves the viewer. */
+/** Distance one keyboard step moves the viewer. */
 export const FINE_STEP_M = 0.5;
+/** Ctrl/Alt + arrow: a precise nudge for lining up a measurement or a detail. */
+export const NUDGE_STEP_M = 0.15;
 /**
  * How far from the nearest station the viewer may stand. A splat renders well
  * anywhere the operator's camera passed close by; further out the imagery thins
@@ -49,11 +51,12 @@ export function fineStepTarget(
   yaw: number,
   direction: 1 | -1,
   floorIndex: number,
+  metres: number = FINE_STEP_M,
 ): [number, number, number] | null {
   const next: [number, number, number] = [
-    position[0] - Math.sin(yaw) * FINE_STEP_M * direction,
+    position[0] - Math.sin(yaw) * metres * direction,
     position[1],
-    position[2] - Math.cos(yaw) * FINE_STEP_M * direction,
+    position[2] - Math.cos(yaw) * metres * direction,
   ];
   return offStationDistance(stations, next, floorIndex) <= MAX_OFF_STATION_M ? next : null;
 }

@@ -63,7 +63,7 @@ export type WalkthroughNavigation = {
   /** Keyboard walking: 1 = ahead, -1 = behind. A fine 0.5 m step when the
    *  destination stays near the walked path; otherwise a jump to the next
    *  station. Pass jump=true to force the station jump. */
-  step: (direction: 1 | -1, jump?: boolean) => void;
+  step: (direction: 1 | -1, jump?: boolean, metres?: number) => void;
 };
 
 export function useWalkthroughNavigation(options: {
@@ -216,11 +216,11 @@ export function useWalkthroughNavigation(options: {
   );
 
   const step = useCallback(
-    (direction: 1 | -1, jump = false) => {
+    (direction: 1 | -1, jump = false, metres?: number) => {
       if (isTransitioning) return;
       const pose = poseRef.current;
       if (!jump && mode === "inside") {
-        const fine = fineStepTarget(stations, pose.position, pose.yaw, direction, currentFloorIndex);
+        const fine = fineStepTarget(stations, pose.position, pose.yaw, direction, currentFloorIndex, metres);
         if (fine) {
           const anchor = nearestStation(stations, fine, Number.POSITIVE_INFINITY, currentFloorIndex);
           if (anchor) {

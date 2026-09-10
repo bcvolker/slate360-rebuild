@@ -56,7 +56,7 @@ export function TwinShareWalkthrough({
         floors={walk.floors}
         ceilingCutY={walk.ceilingCutY ?? null}
         initialMode="inside"
-        caption="Tap the floor to walk there · drag to look · ↑↓ step 0.5 m · ⇧↑ next station · scroll to zoom"
+        caption="Tap the floor to walk there · drag to look · ↑↓ step 0.5 m · ⇧↑ next station · Ctrl+↑ nudge 15 cm · scroll to zoom"
         persistKey={`share:${shareToken}`}
         modelId={modelId ?? null}
         chrome="share"
