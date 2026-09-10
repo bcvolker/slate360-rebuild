@@ -15,13 +15,17 @@ const legacyConfig: CapacitorConfig = {
   webDir: "public",
   backgroundColor: "#0B0F15",
   server: {
-    url: "https://www.slate360.ai",
+    // Open on the app home, not the marketing site. Logged out, the middleware sends
+    // this to /login?redirectTo=/app and straight back in afterwards.
+    url: "https://www.slate360.ai/app",
     cleartext: false,
     androidScheme: "https",
   },
   ios: {
     contentInset: "never",
     backgroundColor: "#0B0F15",
+    // Lets the web side recognise the native shell (root page -> /app, never marketing).
+    appendUserAgent: "Slate360App",
   },
   android: {
     backgroundColor: "#0B0F15",
