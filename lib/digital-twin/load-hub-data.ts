@@ -155,6 +155,41 @@ export async function loadDigitalTwinHubData(
   };
 }
 
+/**
+ * One twin by id, in HubTwin shape, regardless of whether it would appear in the
+ * hub list. The hub list hides empty draft shells on purpose — but a twin the New
+ * Scan sheet just created IS an empty draft until the walk finishes, and the
+ * capture screen must be able to target it ("No capture destination is available"
+ * was this exact gap, 2026-09-09).
+ */
+export async function loadHubTwinById(spaceId: string, orgId: string | null): Promise<HubTwin | null> {
+  if (!orgId || !spaceId) return null;
+  const admin = createAdminClient();
+  const { data } = await admin
+    .from("digital_twin_spaces")
+    .select("id, title, status, project_id, updated_at, settings, projects(name)")
+    .eq("id", spaceId)
+    .eq("org_id", orgId)
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (!data) return null;
+  const space = data as SpaceRow;
+  const project = resolveProject(space.projects);
+  return {
+    id: space.id,
+    title: space.title,
+    status: space.status,
+    statusChip: resolveTwinHubStatusChip(space.status, null),
+    projectId: space.project_id,
+    projectName: project?.name ?? null,
+    updatedAt: space.updated_at,
+    readyModels: 0,
+    hasCapture: false,
+    hubState: "saved",
+    hasPoster: readPosterRef(space.settings) !== null,
+  };
+}
+
 function mapProjects(rows: ProjectRow[]): HubTwinProject[] {
   return rows.map((project) => ({
     id: project.id,
