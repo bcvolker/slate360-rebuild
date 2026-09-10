@@ -88,6 +88,12 @@ const nextConfig: NextConfig = {
     return [
       // /360-capture is not a real app route — redirect to its marketing page
       { source: "/360-capture", destination: "/features/360-tour-builder", permanent: false },
+      // Old SaaS product pages (per-app "Learn More"/subscribe pages) — retired
+      // with the service-first homepage reframe (2026-09-10). Redirect rather
+      // than 404 for anyone with an old link or a stale search-engine index.
+      // See docs/design/HOMEPAGE_LIGHT_REBUILD_PLAN.md §7 (SaaS teardown).
+      { source: "/product/:slug*", destination: "/", permanent: false },
+      { source: "/apps/:slug*", destination: "/", permanent: false },
       // NOTE: /design-studio, /content-studio, /virtual-studio, /geospatial, /tours
       //       are real dashboard-tab routes under app/(dashboard)/
       //       — do NOT redirect them to /features/*

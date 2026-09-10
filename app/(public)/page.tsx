@@ -2,13 +2,25 @@ import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { MarketingJsonLd } from "@/app/(public)/_components/marketing-json-ld";
-import { MarketingPage } from "@/app/(public)/_components/marketing-page";
+import { HomeNavLight } from "@/app/(public)/_components/home-nav-light";
+import { HomeFooterLight } from "@/app/(public)/_components/home-footer-light";
+import { HomeHeroLight } from "@/app/(public)/_components/home-hero-light";
+import { HomeProblemLight } from "@/app/(public)/_components/home-problem-light";
+import { HomeWhatYouGetLight } from "@/app/(public)/_components/home-what-you-get-light";
+import { HomePortalLight } from "@/app/(public)/_components/home-portal-light";
+import { HomeExamplesLight } from "@/app/(public)/_components/home-examples-light";
+import { HomeHowItWorksLight } from "@/app/(public)/_components/home-how-it-works-light";
+import { HomeDifferentLight } from "@/app/(public)/_components/home-different-light";
+import { HomeWhoPricingLight } from "@/app/(public)/_components/home-who-pricing-light";
+import { HomeThermalLight, HomeBuildsLineLight } from "@/app/(public)/_components/home-thermal-builds-light";
+import { HomeContactForm } from "@/app/(public)/_components/home-contact-form";
+import { MKT_L_PAGE } from "@/app/(public)/_components/marketing-styles-light";
 import { assets } from "@/lib/design-system/tokens";
 
 const SITE_URL = "https://www.slate360.ai";
-const TITLE = "Slate360 — One platform. Two powerful apps.";
+const TITLE = "Slate360 — Reality-capture documentation for the building industry";
 const DESCRIPTION =
-  "Site Walk for field documentation and project management. Twin 360 for 3D reality capture, inspection, and digital twins. Subscribe on slate360.ai.";
+  "We visit your site, capture it, and deliver an interactive record through your own project portal. Serving the Greater Phoenix area.";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -39,10 +51,27 @@ export default async function RootPage() {
   // and the middleware turns that into the login screen when the session is gone.
   const ua = (await headers()).get("user-agent") ?? "";
   if (ua.includes("Slate360App")) redirect("/app");
+
   return (
     <>
       <MarketingJsonLd />
-      <MarketingPage />
+      <div className={MKT_L_PAGE}>
+        <HomeNavLight />
+        <main className="pt-[78px]">
+          <HomeHeroLight />
+          <HomeProblemLight />
+          <HomeWhatYouGetLight />
+          <HomePortalLight />
+          <HomeExamplesLight />
+          <HomeHowItWorksLight />
+          <HomeDifferentLight />
+          <HomeWhoPricingLight />
+          <HomeThermalLight />
+          <HomeContactForm />
+          <HomeBuildsLineLight />
+        </main>
+        <HomeFooterLight />
+      </div>
     </>
   );
 }

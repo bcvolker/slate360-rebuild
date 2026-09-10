@@ -14,11 +14,11 @@ const SECTIONS = [
   },
   {
     heading: "2. Description of Service",
-    body: `Slate360 provides cloud-based construction documentation software, including Site Walk field capture, deliverable generation, file sharing, and project coordination tools. Features available to you depend on your access tier and release phase.`,
+    body: `Slate360 is a reality-capture and documentation service for the building industry. Slate360 visits client sites, captures them, and delivers interactive records — walkthroughs, floor plans, and related documentation — through a project portal. The portal is provided as part of engaging Slate360's capture services, not as standalone software.`,
   },
   {
-    heading: "3. Foundational Release Access",
-    body: `During the Foundational Release, workspace access may require manual approval after account creation. Slate360 may enable or restrict features, apps, and billing at its discretion while onboarding founding teams.`,
+    heading: "3. Portal Access",
+    body: `Portal access is provisioned when you engage Slate360 for a project. There is no public self-serve account creation. Slate360 may enable, restrict, or change portal features at its discretion.`,
   },
   {
     heading: "4. Eligibility",
@@ -29,8 +29,8 @@ const SECTIONS = [
     body: `You are responsible for your credentials and activity under your account. Notify support@slate360.ai of unauthorized use. We may suspend accounts that violate these Terms.`,
   },
   {
-    heading: "6. Payment (When Enabled)",
-    body: `When paid plans are offered, fees, billing cycles, and cancellation terms will be presented in-product. Until billing is enabled for your account, no subscription charges apply.`,
+    heading: "6. Payment",
+    body: `Each engagement is quoted individually based on scope and schedule. There is no subscription, tier, or self-serve checkout. Pricing and payment terms are provided directly, not in-product.`,
   },
   {
     heading: "7. Data and Privacy",
@@ -89,10 +89,7 @@ export default function TermsPage() {
             <Scale className="h-7 w-7 text-[var(--graphite-primary)]" />
           </div>
           <h1 className="text-3xl font-black text-[var(--graphite-text-header)] sm:text-4xl">Terms of Service</h1>
-          <p className="mt-3 text-sm text-[var(--graphite-muted)]">Effective Date: January 1, 2025 · Last Updated: May 2026</p>
-          <p className="mt-4 rounded-xl border border-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_5%,transparent)] px-4 py-3 text-sm text-[var(--graphite-text-body)]">
-            Foundational Release: self-serve billing may not be available until enabled for your account.
-          </p>
+          <p className="mt-3 text-sm text-[var(--graphite-muted)]">Effective Date: January 1, 2025 · Last Updated: September 2026</p>
         </div>
 
         <div className="divide-y divide-white/10 rounded-2xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_76%,transparent)] backdrop-blur-md">
@@ -109,8 +106,8 @@ export default function TermsPage() {
             Privacy Policy
           </Link>
           <span className="text-[var(--graphite-muted)]">·</span>
-          <Link href="/signup" className="text-sm font-semibold text-[var(--graphite-primary)] hover:text-[var(--graphite-text-header)]">
-            Request access
+          <Link href="/#request-a-visit" className="text-sm font-semibold text-[var(--graphite-primary)] hover:text-[var(--graphite-text-header)]">
+            Request a site visit
           </Link>
           <span className="text-[var(--graphite-muted)]">·</span>
           <Link href="/" className="text-sm font-semibold text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]">

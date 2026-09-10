@@ -78,10 +78,11 @@ function LoginForm() {
     <AuthGlassShell
       footer={
         <>
-          No account?{" "}
-          <Link href="/signup" className={AUTH_LINK}>
-            Request access
+          Portal access is set up when you begin a project with us —{" "}
+          <Link href="/#request-a-visit" className={AUTH_LINK}>
+            request a site visit
           </Link>
+          .
         </>
       }
     >
@@ -194,10 +195,11 @@ function LoginForm() {
       </form>
 
       <p className={`mt-6 text-center ${AUTH_MUTED}`}>
-        No account?{" "}
-        <Link href="/signup" className={AUTH_LINK}>
-          Create an account
+        Portal access is set up when you begin a project with us —{" "}
+        <Link href="/#request-a-visit" className={AUTH_LINK}>
+          request a site visit
         </Link>
+        .
       </p>
     </AuthGlassShell>
   );
