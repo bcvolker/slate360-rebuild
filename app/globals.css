@@ -121,6 +121,22 @@
   --mobile-field-primary-bg: var(--graphite-primary);
   --mobile-field-primary-fg: var(--graphite-canvas);
 
+  /* ── Marketing homepage — light professional palette (2026-09) ──
+     Scoped to the public homepage only (app/(public)/page.tsx and its own
+     components). Deliberately separate from --graphite-* (the dark,
+     teal-accent app shell) — see docs/design/HOMEPAGE_LIGHT_REBUILD_PLAN.md
+     §0/§2. Never mix --mkt-* into dashboard/app surfaces or vice versa. */
+  --mkt-canvas: #FAFAF8;
+  --mkt-canvas-alt: #F1F1EE;
+  --mkt-canvas-deep: #ECEAE4;
+  --mkt-surface: #FFFFFF;
+  --mkt-ink: #1A2433;
+  --mkt-ink-muted: #5B6B80;
+  --mkt-line: #E2E4E0;
+  --mkt-accent: #3E6FD8;
+  --mkt-accent-soft: color-mix(in srgb, var(--mkt-accent) 8%, transparent);
+  --mkt-accent-line: color-mix(in srgb, var(--mkt-accent) 30%, transparent);
+
   /* ── shadcn canonical surface + text (PREMIUM LIGHT 2026-04-23) ──
      Inner-app pages, cards, popovers, and authenticated dashboards now
      render against this light palette by default. Surfaces that must

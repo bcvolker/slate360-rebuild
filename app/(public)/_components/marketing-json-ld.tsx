@@ -1,8 +1,12 @@
 import { assets } from "@/lib/design-system/tokens";
-import { SLATE360_APPS } from "@/lib/apps-config";
 
 const SITE_URL = "https://www.slate360.ai";
 
+/**
+ * Organization + WebSite only — no SoftwareApplication/app entries and no
+ * trial/pricing offers (see docs/design/HOMEPAGE_LIGHT_REBUILD_PLAN.md §4.5,
+ * §5). This is a documentation/capture SERVICE, not app-store software.
+ */
 export function MarketingJsonLd() {
   const graph = {
     "@context": "https://schema.org",
@@ -24,21 +28,6 @@ export function MarketingJsonLd() {
         name: "Slate360",
         publisher: { "@id": `${SITE_URL}/#organization` },
       },
-      ...SLATE360_APPS.map((app) => ({
-        "@type": "SoftwareApplication",
-        "@id": `${SITE_URL}/#${app.slug}`,
-        name: app.name,
-        applicationCategory: "BusinessApplication",
-        operatingSystem: "iOS, Android, Web",
-        description: app.tagline,
-        offers: {
-          "@type": "Offer",
-          price: "0",
-          priceCurrency: "USD",
-          description: "14-day free trial available",
-        },
-        publisher: { "@id": `${SITE_URL}/#organization` },
-      })),
     ],
   };
 
