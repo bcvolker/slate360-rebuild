@@ -43,12 +43,13 @@ export function useHomeLocationPicker(value: HomeLocationValue, onChange: (v: Ho
   verticesRef.current = drawingVertices;
   const valueRef = useRef(value);
   valueRef.current = value;
+  const skipNextSearchRef = useRef(false);
   const previewLineRef = useRef<google.maps.Polyline | null>(null);
   const previewMarkersRef = useRef<google.maps.Marker[]>([]);
   const boundaryPolyRef = useRef<google.maps.Polygon | null>(null);
   const pinMarkerRef = useRef<google.maps.Marker | null>(null);
 
-  useEffect(() => { setInput(value.address); }, [value.address]);
+  useEffect(() => { skipNextSearchRef.current = true; setInput(value.address); }, [value.address]);
   useEffect(() => { if (map) map.setMapTypeId(mapType); }, [map, mapType]);
   useEffect(() => { if (map) { map.setTilt(is3D ? 45 : 0); map.setHeading(0); } }, [map, is3D]);
 
@@ -69,7 +70,7 @@ export function useHomeLocationPicker(value: HomeLocationValue, onChange: (v: Ho
         onChange({ ...valueRef.current, lat, lng });
         geocoder?.geocode({ location: { lat, lng } }).then((r) => {
           const address = r.results[0]?.formatted_address;
-          if (address) { setInput(address); onChange({ ...valueRef.current, address, lat, lng }); }
+          if (address) { skipNextSearchRef.current = true; setInput(address); onChange({ ...valueRef.current, address, lat, lng }); }
         }).catch(() => {});
       });
     } else {
@@ -79,8 +80,14 @@ export function useHomeLocationPicker(value: HomeLocationValue, onChange: (v: Ho
   }, [map, value.lat, value.lng]);
 
   // Autocomplete — legacy AutocompleteService first (confirmed working);
-  // Geocoder as a last-resort fallback only.
+  // Geocoder as a last-resort fallback only. skipNextSearchRef suppresses
+  // the search this effect would otherwise fire when setInput() is called
+  // programmatically (suggestion selected, map clicked, pin dragged) — a
+  // resolved address re-queried against itself was reopening the dropdown
+  // with itself as the only suggestion right after selection. Confirmed
+  // live during mobile QA, not just in code review.
   useEffect(() => {
+    if (skipNextSearchRef.current) { skipNextSearchRef.current = false; return; }
     const trimmed = input.trim();
     if (trimmed.length < 3) { setSuggestions([]); return; }
     const legacy = (placesLib as { AutocompleteService?: new () => google.maps.places.AutocompleteService } | null)?.AutocompleteService;
@@ -130,6 +137,7 @@ export function useHomeLocationPicker(value: HomeLocationValue, onChange: (v: Ho
       onChange({ ...valueRef.current, lat, lng });
       geocoder?.geocode({ location: { lat, lng } }).then((r) => {
         const address = r.results[0]?.formatted_address ?? `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
+        skipNextSearchRef.current = true;
         setInput(address);
         onChange({ ...valueRef.current, address, lat, lng });
       }).catch(() => {});
@@ -160,6 +168,7 @@ export function useHomeLocationPicker(value: HomeLocationValue, onChange: (v: Ho
       if (loc) {
         const lat = loc.lat(); const lng = loc.lng();
         const address = r.results[0].formatted_address;
+        skipNextSearchRef.current = true;
         setInput(address); map.panTo({ lat, lng }); map.setZoom(17);
         onChange({ ...valueRef.current, address, lat, lng });
       }
