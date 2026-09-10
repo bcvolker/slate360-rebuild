@@ -36,6 +36,7 @@ import { useWalkthroughNavigation } from "@/hooks/useWalkthroughNavigation";
 import { cssColor, MESH_GROUND_FALLBACK, MESH_SURFACE_FALLBACK } from "@/lib/digital-twin/css-color";
 import { measurementRaycastTarget } from "@/lib/digital-twin/s360-world";
 import { meshDisplayFor, representationFromLayer, splatVisibleFor, type TwinEpoch } from "@/lib/digital-twin/twin-epoch";
+import { MOBILE_MAX_SPLATS, useMobileSplatBudget } from "@/components/digital-twin/splat-viewer-constants";
 import type { FloorInfo, ViewMode, WalkStation } from "@/lib/digital-twin/walkthrough-navigation";
 
 export type { CeilingState };
@@ -93,6 +94,7 @@ export function MeshTwinViewer({
   const showSplat = Boolean(activeSplat) && splatVisibleFor(representation);
   const metricAvailable = Boolean(activeMesh);
   const raycastTarget = measurementRaycastTarget(metricAvailable);
+  const canvasDpr: number | [number, number] = useMobileSplatBudget() === MOBILE_MAX_SPLATS ? 1 : [1, 1.5];
   const splatOnly = !activeMesh && Boolean(activeSplat);
 
   const measure = useHybridMeasureTool({ persistKey: `${persistKey}:m`, epochId, modelId, spaceId, metricAvailable });
@@ -170,7 +172,7 @@ export function MeshTwinViewer({
       >
         <Canvas
           camera={{ fov: DEFAULT_FOV, near: 0.05, far: 200 }}
-          dpr={[1, 1.5]}
+          dpr={canvasDpr}
           frameloop={frameloop}
           gl={{ antialias: false, powerPreference: "high-performance" }}
           onCreated={({ gl }) => {
@@ -194,7 +196,7 @@ export function MeshTwinViewer({
                 url={activeMesh}
                 ceilingCutY={ceilingCutY}
                 ceilingState={ceilingState}
-                display={meshDisplayFor(representation)}
+                display={meshDisplayFor(nav.mode !== "inside" ? "geometry" : representation)}
                 appearance={{ opacity: meshOpacity, wireframe }}
               />
             ) : (
@@ -205,7 +207,7 @@ export function MeshTwinViewer({
             {activeSplat && splatRequested ? (
               <MeshSplatLayer
                 url={activeSplat}
-                visible={showSplat}
+                visible={showSplat && !(activeMesh && nav.mode !== "inside")}
                 ceilingCutY={splatOnly && nav.mode !== "inside" ? ceilingCutY : null}
                 ceilingState={ceilingState}
                 onProgress={onSplatProgress}

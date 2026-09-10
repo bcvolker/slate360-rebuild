@@ -223,9 +223,10 @@ export function poseForMode(
       : baseY + 2.4;
 
   if (mode === "floorplan") {
+    // North-up: a plan that spins with the last look direction reads as a smear.
     return {
       position: [cx, Math.max(roof, baseY) + spread * 1.4, cz],
-      yaw: currentYaw,
+      yaw: 0,
       pitch: -Math.PI / 2,
     };
   }

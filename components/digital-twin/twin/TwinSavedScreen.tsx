@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Check, Copy, MoreHorizontal, Scan } from "lucide-react";
 
 import { TwinNewScanSheet } from "@/components/digital-twin/home/TwinNewScanSheet";
@@ -72,8 +73,16 @@ export function TwinSavedScreen({ twin, projects }: { twin: TwinSavedState; proj
   const [menuOpen, setMenuOpen] = useState(false);
   const [scanOpen, setScanOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const router = useRouter();
   const latest = twin.captures[0] ?? null;
   const state: TwinHubState = latest ? stateOf(latest.status) : "saved";
+  // The page is server-rendered; while the phone is still uploading, poll so the state turns
+  // to Saved (and the receipt appears) without the user reloading — "stuck at 100 %" was this.
+  useEffect(() => {
+    if (state !== "uploading") return;
+    const id = window.setInterval(() => router.refresh(), 8000);
+    return () => window.clearInterval(id);
+  }, [router, state]);
   const asHubTwin: HubTwin = {
     id: twin.spaceId,
     title: twin.title,
