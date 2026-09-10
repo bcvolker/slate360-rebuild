@@ -210,8 +210,6 @@ if ($CaptureId -and -not $SkipTo) {
   if ($cap.pending -gt 0) { Emit ("INFO warning: {0} files are still uploading from the phone; building with what landed." -f $cap.pending) }
   StageDone "pull" ("{0} photos, {1} clip(s), LiDAR {2}, poses {3}" -f $nPhotos, $clips.Count, $(if (Test-Path -LiteralPath (Join-Path $captureDir "lidar_capture.ply")) { "yes" } else { "no" }), $(if (Test-Path -LiteralPath (Join-Path $captureDir "lidar_poses.json")) { "yes" } else { "no" }))
 }
-if (Test-Path -LiteralPath (Join-Path $captureDir "lidar_poses.json")) { $posesFile = Join-Path $captureDir "lidar_poses.json" }
-if (Test-Path -LiteralPath (Join-Path $captureDir "lidar_capture.ply")) { $lidarFile = Join-Path $captureDir "lidar_capture.ply" }
 if ($Mode -eq "phone") { $Mode = "2d" }
 
 $files = New-Object System.Collections.Generic.List[string]
@@ -222,6 +220,26 @@ foreach ($p in @($InputPaths)) {
   if ($item.PSIsContainer) { Get-ChildItem -LiteralPath $item.FullName -File -Recurse | ForEach-Object { $files.Add($_.FullName) } }
   else { $files.Add($item.FullName) }
 }
+# A phone capture folder copied over USB (Documents/Captures/<walk>/ on the phone) carries
+# lidar_poses.json(.gz) + lidar_capture.ply(.gz) + capture_bundle.json beside the photos.
+# Treat it exactly like a pulled capture: metric alignment, mesh, publish into its twin.
+if (-not $CaptureId) {
+  $posesHit = @($files | Where-Object { [IO.Path]::GetFileName($_) -match '^lidar_poses\.json(\.gz)?$' }) | Select-Object -First 1
+  if ($posesHit) {
+    $captureDir = Split-Path -Parent $posesHit
+    foreach ($gz in @(Get-ChildItem -LiteralPath $captureDir -Filter "*.gz" -File)) {
+      $plain = Join-Path $captureDir ($gz.Name -replace '\.gz$', '')
+      if (-not (Test-Path -LiteralPath $plain)) { Invoke-Wsl @("bash", "-c", "gunzip -kc '$(To-Wsl $gz.FullName)' > '$(To-Wsl $plain)'") | Out-Null }
+    }
+    $bundle = Join-Path $captureDir "capture_bundle.json"
+    if (-not $SpaceId -and (Test-Path -LiteralPath $bundle)) { try { $b = Get-Content -LiteralPath $bundle -Raw | ConvertFrom-Json; if ($b.spaceId) { $SpaceId = [string]$b.spaceId } } catch {} }
+    $nStills = @($files | Where-Object { $stillExt -contains [IO.Path]::GetExtension($_).ToLowerInvariant() }).Count
+    if ($nStills -ge 20) { $files = [System.Collections.Generic.List[string]]@($files | Where-Object { $videoExt -notcontains [IO.Path]::GetExtension($_).ToLowerInvariant() }) }
+    Emit ("INFO phone capture folder detected ({0} stills); publishing into twin {1}" -f $nStills, $(if ($SpaceId) { $SpaceId } else { "(new)" }))
+  }
+}
+if (Test-Path -LiteralPath (Join-Path $captureDir "lidar_poses.json")) { $posesFile = Join-Path $captureDir "lidar_poses.json" }
+if (Test-Path -LiteralPath (Join-Path $captureDir "lidar_capture.ply")) { $lidarFile = Join-Path $captureDir "lidar_capture.ply" }
 $stills = @($files | Where-Object { $stillExt -contains [IO.Path]::GetExtension($_).ToLowerInvariant() })
 $videos = @($files | Where-Object { $videoExt -contains [IO.Path]::GetExtension($_).ToLowerInvariant() })
 $raw360 = @($files | Where-Object { @(".insv", ".insp") -contains [IO.Path]::GetExtension($_).ToLowerInvariant() })
