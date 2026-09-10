@@ -24,6 +24,7 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
     public let jsName = "LiDARCapture"
     public let pluginMethods: [CAPPluginMethod] = [
         CAPPluginMethod(name: "isAvailable", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "resumeUploads", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "presentCapture", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "dismissCapture", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "startSession", returnType: CAPPluginReturnPromise),
@@ -81,6 +82,39 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
     /// engine persists per-part progress, so only the missing parts re-upload).
     public override func load() {
         TwinUploadSession.shared.resumePendingUploads()
+        // The launch pass is a no-op while signed out (no cookie). The 2026-09-09 walk stalled
+        // at 37/175 files because the app was reinstalled and reopened logged out: nothing
+        // resumed until the next cold start. Every return to the foreground retries now.
+        NotificationCenter.default.addObserver(
+            forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main
+        ) { _ in TwinUploadSession.shared.resumePendingUploads() }
+    }
+
+    /// Web-triggered resume (the Saved screen's "Resume upload").
+    @objc func resumeUploads(_ call: CAPPluginCall) {
+        TwinUploadSession.shared.resumePendingUploads()
+        call.resolve(["ok": true])
+    }
+
+    /// Copies every file of a capture into Documents/Captures/<stamp title>/ so the walk can
+    /// be pulled over USB (Apple Devices / Finder file sharing) or the Files app when the
+    /// upload is too slow for the connection. The upload keeps using the temp originals.
+    private func keepCaptureOnDevice(entries: [TwinUploader.FileEntry], title: String?) {
+        let fm = FileManager.default
+        guard let docs = fm.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
+        let df = DateFormatter(); df.dateFormat = "yyyyMMdd-HHmm"
+        let safeTitle = (title ?? "capture").replacingOccurrences(of: "[^A-Za-z0-9 _-]", with: "", options: .regularExpression).trimmingCharacters(in: .whitespaces)
+        let dir = docs.appendingPathComponent("Captures", isDirectory: true)
+            .appendingPathComponent("\(df.string(from: Date())) \(safeTitle.isEmpty ? "capture" : safeTitle)", isDirectory: true)
+        do { try fm.createDirectory(at: dir, withIntermediateDirectories: true) } catch { return }
+        var copied = 0
+        for entry in entries {
+            // Gzipped sidecars keep their .gz name; the desktop engine unpacks them.
+            let dest = dir.appendingPathComponent(entry.filename)
+            if fm.fileExists(atPath: dest.path) { continue }
+            if (try? fm.copyItem(at: entry.url, to: dest)) != nil { copied += 1 }
+        }
+        NSLog("[Slate360] kept \(copied) capture files on device at \(dir.lastPathComponent)")
     }
 
     // MARK: - Plugin API
@@ -254,6 +288,7 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                     let sidecarSlot = min(entries.count, videoFiles.count + (plyUrl == nil ? 0 : 1) + (posesUrl == nil ? 0 : 1))
                     entries.insert(bundleEntry, at: sidecarSlot)
                 }
+                self.keepCaptureOnDevice(entries: entries, title: title)
                 // Pass spaceId through even if empty — the uploader self-heals by creating a
                 // quick-scan workspace, so a stale web bundle can't strand the capture.
                 let uploader = TwinUploader(
