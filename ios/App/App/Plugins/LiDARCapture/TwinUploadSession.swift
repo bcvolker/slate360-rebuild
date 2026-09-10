@@ -122,11 +122,21 @@ final class TwinUploadSession: NSObject, URLSessionDataDelegate {
                     guard !header.isEmpty else { return } // not signed in yet — keep for later
                     self.queue.async {
                         for manifest in manifests where !self.activeUploads.contains(manifest.uploadId) {
-                            // Source file gone and parts still missing → unrecoverable; drop it.
+                            // Source file gone (iOS purges tmp on reinstall / low storage): still
+                            // resumable when every missing part already has its slice on disk —
+                            // the 2026-09-09 walk lost 63 registered photos to this check.
                             if !manifest.isFullyUploaded,
                                !FileManager.default.fileExists(atPath: manifest.filePath) {
-                                TwinUploadStore.shared.remove(manifest.uploadId)
-                                continue
+                                let slicesPresent = manifest.missingParts.allSatisfy { n in
+                                    let url = TwinUploadStore.shared.partFileURL(uploadId: manifest.uploadId, partNumber: n)
+                                    let size = (try? FileManager.default.attributesOfItem(atPath: url.path))?[.size] as? NSNumber
+                                    return size?.intValue == manifest.sizeOfPart(n)
+                                }
+                                if !slicesPresent {
+                                    NSLog("[Slate360] Twin upload \(manifest.filename) unrecoverable: source and slices gone")
+                                    TwinUploadStore.shared.remove(manifest.uploadId)
+                                    continue
+                                }
                             }
                             let live = Set(manifest.missingParts.filter {
                                 inFlight.contains("\(manifest.uploadId)|\($0)")
@@ -237,11 +247,10 @@ final class TwinUploadSession: NSObject, URLSessionDataDelegate {
                             body: ["uploadId": manifest.uploadId, "key": manifest.key, "parts": parts]
                         )
                         TwinUploadStore.shared.remove(manifest.uploadId)
-                        // The engine is the sole owner of source-file cleanup (the
-                        // plugin never deletes) — failed files must stay on disk for
-                        // the resume pass, and completed ones are removed here so a
-                        // multi-hundred-MB capture doesn't linger in tmp.
-                        try? FileManager.default.removeItem(atPath: manifest.filePath)
+                        // Sources now live in Documents/Captures (USB / Files pickup) and are
+                        // kept after upload; the user clears them from the Files app. Temp
+                        // originals are still swept so an old-build capture doesn't linger.
+                        if manifest.filePath.contains("/tmp/") { try? FileManager.default.removeItem(atPath: manifest.filePath) }
                         NSLog("[Slate360] Twin multipart complete: \(manifest.filename)")
                         self.finish(manifest.uploadId, error: nil)
                         return

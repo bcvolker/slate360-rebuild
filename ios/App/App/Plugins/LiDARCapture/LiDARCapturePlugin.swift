@@ -99,22 +99,31 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
     /// Copies every file of a capture into Documents/Captures/<stamp title>/ so the walk can
     /// be pulled over USB (Apple Devices / Finder file sharing) or the Files app when the
     /// upload is too slow for the connection. The upload keeps using the temp originals.
-    private func keepCaptureOnDevice(entries: [TwinUploader.FileEntry], title: String?) {
+    private func keepCaptureOnDevice(entries: [TwinUploader.FileEntry], title: String?) -> [TwinUploader.FileEntry] {
         let fm = FileManager.default
-        guard let docs = fm.urls(for: .documentDirectory, in: .userDomainMask).first else { return }
+        guard let docs = fm.urls(for: .documentDirectory, in: .userDomainMask).first else { return entries }
         let df = DateFormatter(); df.dateFormat = "yyyyMMdd-HHmm"
         let safeTitle = (title ?? "capture").replacingOccurrences(of: "[^A-Za-z0-9 _-]", with: "", options: .regularExpression).trimmingCharacters(in: .whitespaces)
         let dir = docs.appendingPathComponent("Captures", isDirectory: true)
             .appendingPathComponent("\(df.string(from: Date())) \(safeTitle.isEmpty ? "capture" : safeTitle)", isDirectory: true)
-        do { try fm.createDirectory(at: dir, withIntermediateDirectories: true) } catch { return }
-        var copied = 0
+        do { try fm.createDirectory(at: dir, withIntermediateDirectories: true) } catch { return entries }
+        var moved = 0
+        var out: [TwinUploader.FileEntry] = []
         for entry in entries {
-            // Gzipped sidecars keep their .gz name; the desktop engine unpacks them.
+            // Gzipped sidecars keep their .gz name; the desktop engine unpacks them. Move, not
+            // copy: tmp is purged on reinstall, Documents is not, and the upload reads from here.
             let dest = dir.appendingPathComponent(entry.filename)
-            if fm.fileExists(atPath: dest.path) { continue }
-            if (try? fm.copyItem(at: entry.url, to: dest)) != nil { copied += 1 }
+            if !fm.fileExists(atPath: dest.path), (try? fm.moveItem(at: entry.url, to: dest)) != nil {
+                moved += 1
+                out.append(.init(url: dest, filename: entry.filename, contentType: entry.contentType, assetKind: entry.assetKind))
+            } else if fm.fileExists(atPath: dest.path) {
+                out.append(.init(url: dest, filename: entry.filename, contentType: entry.contentType, assetKind: entry.assetKind))
+            } else {
+                out.append(entry)
+            }
         }
-        NSLog("[Slate360] kept \(copied) capture files on device at \(dir.lastPathComponent)")
+        NSLog("[Slate360] kept \(moved) capture files on device at \(dir.lastPathComponent)")
+        return out
     }
 
     // MARK: - Plugin API
@@ -288,7 +297,7 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                     let sidecarSlot = min(entries.count, videoFiles.count + (plyUrl == nil ? 0 : 1) + (posesUrl == nil ? 0 : 1))
                     entries.insert(bundleEntry, at: sidecarSlot)
                 }
-                self.keepCaptureOnDevice(entries: entries, title: title)
+                entries = self.keepCaptureOnDevice(entries: entries, title: title)
                 // Pass spaceId through even if empty — the uploader self-heals by creating a
                 // quick-scan workspace, so a stale web bundle can't strand the capture.
                 let uploader = TwinUploader(
