@@ -1,23 +1,31 @@
 # Slate360 Capture Studio — job engine (Windows side).
-# Drop -> probe -> extract -> prepare -> cameras -> train -> pack -> export -> share.
+# pull -> import -> extract -> prepare -> cameras -> train -> walk -> mesh -> pack -> export -> share.
 # Free, local, commercially clean: ffmpeg (LGPL), pycolmap (BSD), Brush (Apache-2.0),
 # our own SPZ packer. Prints machine-readable lines the studio UI renders:
 #   STAGE <id> <label>   PROGRESS <id> <n> <N>   INFO <text>   RESULT <key> <value>   DONE <code>
 param(
   [string[]]$InputPaths,
-  [ValidateSet("360","2d")][string]$Mode = "2d",
+  [ValidateSet("360","2d","phone")][string]$Mode = "2d",
   [string]$Name = "",
   [string]$JobDir = "",
   [double]$Fps = 0,
-  [ValidateSet("preview","standard","final")][string]$Quality = "preview",
+  [ValidateSet("preview","standard","final")][string]$Quality = "final",
   [string]$ExportDir = "",
   [string[]]$Formats = @("spz"),
   [switch]$Ingest,
   [switch]$Resume,
   [ValidateSet("","cameras","train","pack")][string]$SkipTo = "",
-  [int]$FacePx = 1600,
+  [int]$FacePx = 2048,
   [int]$MaxResolution = 0,   # 0 = by quality: preview 1280 / standard 1920 / final 2560 (12 MP stills deserve it)
   [int]$Faces = 4,
+  # Phone capture pulled from the cloud by its capture ID (the Saved screen's "Copy capture ID").
+  [string]$CaptureId = "",
+  # Publish into this existing twin instead of minting a new one (filled from the pulled capture).
+  [string]$SpaceId = "",
+  # >1 brightens dark footage during extraction (gamma); 1 = untouched.
+  [double]$Gamma = 1.0,
+  # Phone derivative: the top N splats by contribution, SH0. 0 disables.
+  [int]$MobileMax = 800000,
   [string]$WslDistro = "Ubuntu-22.04",
   [string]$WslPython = "/home/rian_/venvs/kitchen-apriltag/bin/python",
   [string]$BrushExe = "",
@@ -43,6 +51,10 @@ if ($RequestFile -and (Test-Path -LiteralPath $RequestFile)) {
   if ($req.maxResolution) { $MaxResolution = [int]$req.maxResolution }
   if ($req.faces) { $Faces = [int]$req.faces }
   if ($req.skipTo) { $SkipTo = [string]$req.skipTo }
+  if ($req.captureId) { $CaptureId = [string]$req.captureId }
+  if ($req.spaceId) { $SpaceId = [string]$req.spaceId }
+  if ($req.gamma) { $Gamma = [double]$req.gamma }
+  if ($req.mobileMax -ne $null) { $MobileMax = [int]$req.mobileMax }
 }
 $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -105,6 +117,20 @@ function Invoke-Wsl([string[]]$argv, [string]$stageId = "") {
   }
   return $LASTEXITCODE
 }
+function Invoke-Node([string[]]$argv, [string]$stageId = "") {
+  # Node scripts (pull / publish) run from the repo root so .env.local and node_modules resolve.
+  $ErrorActionPreference = "Continue"
+  Push-Location $repoRoot
+  try {
+    & node @argv 2>&1 | ForEach-Object {
+      $line = [string]$_
+      if ($line -match '^\[local-splat\] share\s+(\S+)') { Result "share" $Matches[1] }
+      Add-Content -LiteralPath $LogPath -Value $line
+      if ($stageId -and $line -and $line.Length -lt 160 -and $line -notmatch '^\s*$') { Emit ("INFO " + $line) }
+    }
+    return $LASTEXITCODE
+  } finally { Pop-Location }
+}
 function Find-Brush {
   if ($BrushExe -and (Test-Path -LiteralPath $BrushExe)) { return $BrushExe }
   $candidates = @(
@@ -124,6 +150,17 @@ function Get-VideoDuration([string]$path) {
   $d = 0.0
   [double]::TryParse(([string]$raw).Trim(), [ref]$d) | Out-Null
   return $d
+}
+function Run-Ffmpeg([string]$ff, [string[]]$ffArgs, [int]$expected, [string]$stageId, [double]$rate) {
+  $ErrorActionPreference = "Continue"  # ffmpeg warnings on stderr must not abort the job (PS 5.1)
+  & $ff @ffArgs 2>&1 | ForEach-Object {
+    $line = [string]$_
+    if ($line -match '^out_time_ms=(\d+)') { $done = [Math]::Min($expected, [int]([double]$Matches[1] / 1e6 * $rate)); Emit ("PROGRESS {0} {1} {2}" -f $stageId, $done, $expected) }
+    elseif ($line -notmatch '^[a-z_0-9]+=') { Add-Content -LiteralPath $LogPath -Value $line }
+  }
+  $rc = $LASTEXITCODE
+  $ErrorActionPreference = "Stop"
+  return $rc
 }
 
 # ---------------------------------------------------------------- inputs / job dir
@@ -150,6 +187,33 @@ Save-Status
 Emit "INFO job $JobDir"
 Emit "INFO mode $Mode quality $Quality steps $steps"
 
+# ---------------------------------------------------------------- pull (phone capture by ID)
+$captureDir = Join-Path $JobDir "capture"
+$posesFile = $null; $lidarFile = $null
+if ($CaptureId -and -not $SkipTo) {
+  Stage "pull" "Pulling the phone capture"
+  New-Item -ItemType Directory -Force -Path $captureDir | Out-Null
+  $rc = Invoke-Node @((Join-Path $repoRoot "scripts\local-splat\pull-capture.mjs"), $CaptureId, $captureDir) "pull"
+  $capJson = Join-Path $captureDir "capture.json"
+  if ($rc -ne 0 -or -not (Test-Path -LiteralPath $capJson)) { Fail "pull" "Could not pull capture $CaptureId (is the ID right, and is the upload finished?)" 3 }
+  $cap = Get-Content -LiteralPath $capJson -Raw | ConvertFrom-Json
+  if (-not $SpaceId -and $cap.capture.space_id) { $SpaceId = [string]$cap.capture.space_id }
+  if (-not $Name -and $cap.capture.title) { $Name = [string]$cap.capture.title }
+  # Stills win over video (96.8 % vs 64.6 % registration on the same room, 2026-09-08).
+  $photosDir = Join-Path $captureDir "photos"
+  New-Item -ItemType Directory -Force -Path $photosDir | Out-Null
+  Get-ChildItem -LiteralPath $captureDir -File | Where-Object { $stillExt -contains $_.Extension.ToLowerInvariant() } | Move-Item -Destination $photosDir -Force
+  $nPhotos = @(Get-ChildItem -LiteralPath $photosDir -File).Count
+  $clips = @(Get-ChildItem -LiteralPath $captureDir -File | Where-Object { $videoExt -contains $_.Extension.ToLowerInvariant() })
+  if ($nPhotos -ge 20) { $InputPaths = @($photosDir) } elseif ($clips.Count -gt 0) { $InputPaths = @($clips | ForEach-Object { $_.FullName }); if ($Fps -le 0) { $Fps = 2.0 } } else { Fail "pull" "The capture holds no photos and no video" 3 }
+  if ($Mode -eq "phone") { $Mode = "2d" }
+  if ($cap.pending -gt 0) { Emit ("INFO warning: {0} files are still uploading from the phone; building with what landed." -f $cap.pending) }
+  StageDone "pull" ("{0} photos, {1} clip(s), LiDAR {2}, poses {3}" -f $nPhotos, $clips.Count, $(if (Test-Path -LiteralPath (Join-Path $captureDir "lidar_capture.ply")) { "yes" } else { "no" }), $(if (Test-Path -LiteralPath (Join-Path $captureDir "lidar_poses.json")) { "yes" } else { "no" }))
+}
+if (Test-Path -LiteralPath (Join-Path $captureDir "lidar_poses.json")) { $posesFile = Join-Path $captureDir "lidar_poses.json" }
+if (Test-Path -LiteralPath (Join-Path $captureDir "lidar_capture.ply")) { $lidarFile = Join-Path $captureDir "lidar_capture.ply" }
+if ($Mode -eq "phone") { $Mode = "2d" }
+
 $files = New-Object System.Collections.Generic.List[string]
 foreach ($p in @($InputPaths)) {
   if (-not $p) { continue }
@@ -165,8 +229,7 @@ $raw360 = @($files | Where-Object { @(".insv", ".insp") -contains [IO.Path]::Get
 # ---------------------------------------------------------------- import + probe
 if (-not $SkipTo) {
   Stage "import" "Reading the capture"
-  if ($raw360.Count -gt 0) { Fail "import" "Raw .insv found. Stitch in Insta360 Studio first (horizon lock on; tilt recovery and vibration reduction off), then drop the MP4." 4 }
-  if (-not $Resume -and $stills.Count -eq 0 -and $videos.Count -eq 0) { Fail "import" "Nothing usable dropped. Add a video or a folder of photos." 2 }
+  if (-not $Resume -and $stills.Count -eq 0 -and $videos.Count -eq 0 -and $raw360.Count -eq 0) { Fail "import" "Nothing usable dropped. Add a video, a folder of photos, or a raw .insv." 2 }
   if ($files.Count -gt 0) {
     $probeOut = Join-Path $JobDir "probe.json"
     $probeArgs = @($WslPython, (To-Wsl (Join-Path $here "probe.py")), "--out", (To-Wsl $probeOut), "--inputs")
@@ -183,8 +246,9 @@ if (-not $SkipTo) {
       if ($s.primary -eq "2d" -and $Mode -eq "360") { Emit "INFO warning: this looks like 2D footage but the 360 tab is selected." }
     }
   }
-  if ($Fps -le 0) { $Fps = 1.0 }
-  StageDone "import" ("{0} video(s), {1} still(s)" -f $videos.Count, $stills.Count)
+  if ($raw360.Count -gt 0 -and $Mode -ne "360") { $Mode = "360"; Emit "INFO raw .insv found: switching to 360" }
+  if ($Fps -le 0) { $Fps = $(if ($Mode -eq "360") { 2.0 } else { 1.0 }) }
+  StageDone "import" ("{0} video(s), {1} still(s), {2} raw 360" -f $videos.Count, $stills.Count, $raw360.Count)
 
   # ---------------------------------------------------------------- extract
   Stage "extract" "Pulling stills from video"
@@ -196,7 +260,8 @@ if (-not $SkipTo) {
     foreach ($s in $stills) { Copy-Item -LiteralPath $s -Destination (Join-Path $imgDir ([IO.Path]::GetFileName($s))) -Force; $copied++ }
     if ($copied) { Emit "INFO copied $copied stills" }
     $ff = Get-Command ffmpeg -ErrorAction SilentlyContinue
-    if ($videos.Count -gt 0 -and -not $ff) { Fail "extract" "ffmpeg is not installed (winget install Gyan.FFmpeg)" 1 }
+    if (($videos.Count -gt 0 -or $raw360.Count -gt 0) -and -not $ff) { Fail "extract" "ffmpeg is not installed (winget install Gyan.FFmpeg)" 1 }
+    $gammaFilter = $(if ($Gamma -gt 1.001 -or $Gamma -lt 0.999) { ",eq=gamma=" + $Gamma.ToString([Globalization.CultureInfo]::InvariantCulture) } else { "" })
     $vi = 0
     foreach ($v in $videos) {
       $vi++
@@ -204,16 +269,22 @@ if (-not $SkipTo) {
       $expected = [int][Math]::Max(1, [Math]::Round($dur * $Fps))
       $pattern = Join-Path $imgDir ("v{0}_%05d.jpg" -f $vi)
       Emit ("INFO {0}: {1}s at {2} stills/s -> ~{3} stills" -f [IO.Path]::GetFileName($v), [int]$dur, $Fps, $expected)
-      $ffArgs = @("-y", "-hide_banner", "-loglevel", "error", "-nostats", "-progress", "pipe:1", "-i", $v, "-vf", "fps=$Fps", "-q:v", "2", $pattern)
-      $ErrorActionPreference = "Continue"  # ffmpeg warnings on stderr must not abort the job (PS 5.1)
-      & $ff.Source @ffArgs 2>&1 | ForEach-Object {
-        $line = [string]$_
-        if ($line -match '^out_time_ms=(\d+)') { $done = [Math]::Min($expected, [int]([double]$Matches[1] / 1e6 * $Fps)); Emit ("PROGRESS extract {0} {1}" -f $done, $expected) }
-        elseif ($line -notmatch '^[a-z_0-9]+=') { Add-Content -LiteralPath $LogPath -Value $line }
-      }
-      if ($LASTEXITCODE -ne 0) { Fail "extract" "ffmpeg failed on $v" 1 }
+      $ffArgs = @("-y", "-hide_banner", "-loglevel", "error", "-nostats", "-progress", "pipe:1", "-i", $v, "-vf", ("fps=$Fps" + $gammaFilter), "-q:v", "2", $pattern)
+      if ((Run-Ffmpeg $ff.Source $ffArgs $expected "extract" $Fps) -ne 0) { Fail "extract" "ffmpeg failed on $v" 1 }
     }
-    $ErrorActionPreference = "Stop"
+    foreach ($v in $raw360) {
+      # Raw Insta360 dual-fisheye: both lenses side by side -> equirect (ffmpeg v360), no Insta360
+      # Studio round-trip. Seams are optical-model approximations; the 110° side faces the solver
+      # uses sit on the lens centres, so the seams cost little. 195° is the X4/X5 lens field.
+      $vi++
+      $dur = Get-VideoDuration $v
+      $expected = [int][Math]::Max(1, [Math]::Round($dur * $Fps))
+      $pattern = Join-Path $imgDir ("erp{0}_%05d.jpg" -f $vi)
+      Emit ("INFO {0}: raw 360, {1}s at {2} stills/s -> ~{3} equirect stills (5760x2880)" -f [IO.Path]::GetFileName($v), [int]$dur, $Fps, $expected)
+      $graph = "[0:v:0][0:v:1]hstack[df];[df]v360=input=dfisheye:ih_fov=195:iv_fov=195:output=e:w=5760:h=2880" + $gammaFilter + ",fps=$Fps[o]"
+      $ffArgs = @("-y", "-hide_banner", "-loglevel", "error", "-nostats", "-progress", "pipe:1", "-i", $v, "-filter_complex", $graph, "-map", "[o]", "-q:v", "2", $pattern)
+      if ((Run-Ffmpeg $ff.Source $ffArgs $expected "extract" $Fps) -ne 0) { Fail "extract" "ffmpeg could not unwrap $v (is it a dual-lens .insv?)" 1 }
+    }
     $count = @(Get-ChildItem -LiteralPath $imgDir -File).Count
     if ($count -lt 20) { Fail "extract" "Only $count stills. A splat needs a walk with overlap (20+ frames)." 5 }
     StageDone "extract" "$count stills"
@@ -279,52 +350,98 @@ if (-not $SkipTo -or $SkipTo -in @("cameras", "train")) {
   StageDone "train" ("{0} steps in {1} min" -f $steps, $mins)
 }
 
-# ---------------------------------------------------------------- pack (8-bit SH, SPZ v3)
-$spzPath = Join-Path $exportJob "gaussian.spz"
+# ---------------------------------------------------------------- walk (metric frame, stations, floors) + mesh
+$base = if ($Name) { ($Name -replace '[^A-Za-z0-9 _-]', '').Trim() } else { Split-Path -Leaf $JobDir }
+if (-not $base) { $base = "splat" }
+# Sidecar names must hold no dot before the suffix: the publisher keys them by "first dot onward".
+$sideName = (($base -replace '\s+', '-') -replace '\.', '-')
+$sparseDir = Join-Path $datasetDir "sparse\0"
+$viewerPly = $plyPath
+$sidecars = @()
+if (-not (Test-Path -LiteralPath $plyPath)) { Fail "walk" "no gaussian.ply to finish" 8 }
+Stage "walk" "Building the walkthrough"
+if ($posesFile) {
+  # Phone capture: metric scale, upright, stations from ARKit; the LiDAR cloud gives the floor.
+  $alignArgs = @($WslPython, (To-Wsl (Join-Path $here "align_arkit.py")), "--sparse", (To-Wsl $sparseDir), "--poses", (To-Wsl $posesFile), "--ply", (To-Wsl $plyPath), "--out", (To-Wsl $exportJob), "--name", $sideName, "--out-ply", (To-Wsl (Join-Path $exportJob "$sideName.aligned.ply")))
+  if ($lidarFile) { $alignArgs += @("--lidar", (To-Wsl $lidarFile)) }
+  if ($videos.Count -gt 0 -and $stills.Count -lt 20) { $alignArgs += @("--video-clip", "1", "--video-fps", "$Fps", "--frame-prefix", "v1_") }
+  $rc = Invoke-Wsl $alignArgs "walk"
+  if ($rc -eq 0 -and (Test-Path -LiteralPath (Join-Path $exportJob "$sideName.aligned.ply"))) {
+    $viewerPly = Join-Path $exportJob "$sideName.aligned.ply"
+    StageDone "walk" "aligned to the phone's LiDAR frame (metric)"
+  } else {
+    Emit "INFO warning: ARKit alignment failed; falling back to the image-only walkthrough"
+    $rc = Invoke-Wsl @($WslPython, (To-Wsl (Join-Path $here "walk_from_colmap.py")), "--sparse", (To-Wsl $sparseDir), "--out", (To-Wsl $exportJob), "--name", $sideName, "--mode", $Mode) "walk"
+    if ($rc -ne 0) { Fail "walk" "walkthrough sidecar failed" 10 }
+    StageDone "walk" "stations from the camera path (not metric)"
+  }
+} else {
+  $rc = Invoke-Wsl @($WslPython, (To-Wsl (Join-Path $here "walk_from_colmap.py")), "--sparse", (To-Wsl $sparseDir), "--out", (To-Wsl $exportJob), "--name", $sideName, "--mode", $Mode) "walk"
+  if ($rc -ne 0) { Fail "walk" "walkthrough sidecar failed" 10 }
+  StageDone "walk" "stations from the camera path"
+}
+foreach ($suffix in @("manifest.json", "walk.json")) { $f = Join-Path $exportJob "$sideName.$suffix"; if (Test-Path -LiteralPath $f) { $sidecars += $f } }
+
+Stage "mesh" "Meshing the LiDAR"
+if ($lidarFile) {
+  $glb = Join-Path $exportJob "$sideName.geometry.glb"
+  $rc = Invoke-Wsl @($WslPython, (To-Wsl (Join-Path $here "lidar_mesh.py")), "--in", (To-Wsl $lidarFile), "--out", (To-Wsl $glb), "--report", (To-Wsl (Join-Path $JobDir "mesh_report.json"))) "mesh"
+  if ($rc -eq 0 -and (Test-Path -LiteralPath $glb)) { $sidecars += $glb; Result "mesh" $glb; StageDone "mesh" ([IO.Path]::GetFileName($glb)) }
+  else { Emit "INFO warning: LiDAR mesh failed; measuring will be unavailable on this twin"; StageDone "mesh" "skipped (mesh failed)" }
+} else { StageDone "mesh" "no LiDAR in this capture" }
+
+# ---------------------------------------------------------------- pack (8-bit SH, SPZ v3) — full model + phone derivative
+$spzPath = Join-Path $exportJob "$sideName.spz"
 Stage "pack" "Packing for the Twin viewer"
-if (-not (Test-Path -LiteralPath $plyPath)) { Fail "pack" "no gaussian.ply to pack" 8 }
-$rc = Invoke-Wsl @($WslPython, (To-Wsl (Join-Path $here "pack_spz.py")), "--in", (To-Wsl $plyPath), "--out", (To-Wsl $spzPath), "--report", (To-Wsl (Join-Path $JobDir "spz_report.json"))) "pack"
+$rc = Invoke-Wsl @($WslPython, (To-Wsl (Join-Path $here "pack_spz.py")), "--in", (To-Wsl $viewerPly), "--out", (To-Wsl $spzPath), "--report", (To-Wsl (Join-Path $JobDir "spz_report.json"))) "pack"
 if ($rc -ne 0 -or -not (Test-Path -LiteralPath $spzPath)) { Fail "pack" "SPZ packing failed" 9 }
 $pr = Get-Content -LiteralPath (Join-Path $JobDir "spz_report.json") -Raw | ConvertFrom-Json
 Result "spz" $spzPath
+if ($MobileMax -gt 0 -and $pr.splats -gt $MobileMax) {
+  # Never thin the primary (800k cost 3.9 dB on the kitchen). Phones get the top-N by contribution, SH0.
+  $mobPly = Join-Path $exportJob "$sideName.mobile.ply"
+  $mobSpz = Join-Path $exportJob "$sideName.mobile.spz"
+  $rc = Invoke-Wsl @($WslPython, (To-Wsl (Join-Path $here "clean_ply.py")), "--in", (To-Wsl $viewerPly), "--out", (To-Wsl $mobPly), "--min-opacity-hard", "0", "--max-scale-frac", "1000000", "--sor-k", "0", "--min-views", "0", "--max-out", "$MobileMax") "pack"
+  if ($rc -eq 0) { $rc = Invoke-Wsl @($WslPython, (To-Wsl (Join-Path $here "pack_spz.py")), "--in", (To-Wsl $mobPly), "--out", (To-Wsl $mobSpz), "--max-sh", "0") "pack" }
+  if ($rc -eq 0 -and (Test-Path -LiteralPath $mobSpz)) { $sidecars += $mobSpz } else { Emit "INFO warning: phone derivative failed; phones will load the full model" }
+}
 StageDone "pack" ("{0:N0} splats, SH{1} at 8-bit, {2} MB" -f $pr.splats, $pr.sh_degree, [Math]::Round($pr.bytes / 1MB, 1))
 
 # ---------------------------------------------------------------- export copies
 Stage "export" "Saving files"
-$base = if ($Name) { ($Name -replace '[^A-Za-z0-9 _-]', '').Trim() } else { Split-Path -Leaf $JobDir }
-if (-not $base) { $base = "splat" }
 if (-not $ExportDir) { $ExportDir = Join-Path $env:USERPROFILE "Desktop\Slate360Exports" }
 New-Item -ItemType Directory -Force -Path $ExportDir | Out-Null
 $saved = @()
 foreach ($fmt in @($Formats)) {
   switch ($fmt.ToLowerInvariant()) {
     "spz" { $d = Join-Path $ExportDir "$base.spz"; Copy-Item -LiteralPath $spzPath -Destination $d -Force; $saved += $d }
-    "ply" { $d = Join-Path $ExportDir "$base.ply"; Copy-Item -LiteralPath $plyPath -Destination $d -Force; $saved += $d }
+    "ply" { $d = Join-Path $ExportDir "$base.ply"; Copy-Item -LiteralPath $viewerPly -Destination $d -Force; $saved += $d }
     { $_ -in @("splat", "html") } {
       $d = Join-Path $ExportDir ("$base." + $_)
       Push-Location $repoRoot
-      try { & node (Join-Path $repoRoot "scripts\research\ggps-drop-app\convert-splat.mjs") --in $plyPath --out $d --format $_ 2>&1 | ForEach-Object { Add-Content -LiteralPath $LogPath -Value ([string]$_) } } finally { Pop-Location }
+      try { & node (Join-Path $repoRoot "scripts\research\ggps-drop-app\convert-splat.mjs") --in $viewerPly --out $d --format $_ 2>&1 | ForEach-Object { Add-Content -LiteralPath $LogPath -Value ([string]$_) } } finally { Pop-Location }
       if (Test-Path -LiteralPath $d) { $saved += $d }
     }
   }
 }
+foreach ($s in $sidecars) { $d = Join-Path $ExportDir ([IO.Path]::GetFileName($s)); Copy-Item -LiteralPath $s -Destination $d -Force }
 foreach ($s in $saved) { Result "saved" $s }
-StageDone "export" ("{0} file(s) in {1}" -f $saved.Count, $ExportDir)
+StageDone "export" ("{0} file(s) + {1} sidecar(s) in {2}" -f $saved.Count, $sidecars.Count, $ExportDir)
 
-# ---------------------------------------------------------------- share (optional)
+# ---------------------------------------------------------------- share (publish into a twin)
 if ($Ingest) {
   Stage "share" "Publishing to the Twin viewer"
-  Push-Location $repoRoot
-  try {
-    $title = if ($Name) { $Name } else { "Capture " + (Get-Date -Format "yyyy-MM-dd HH:mm") }
-    & node (Join-Path $repoRoot "scripts\local-splat\ingest-splat.mjs") --file $spzPath --title $title 2>&1 | ForEach-Object { Add-Content -LiteralPath $LogPath -Value ([string]$_) }
-    $shareFile = Join-Path $repoRoot "tmp\local-splat-last-share.json"
-    if (Test-Path -LiteralPath $shareFile) {
-      Copy-Item -LiteralPath $shareFile -Destination (Join-Path $JobDir "share.json") -Force
-      $url = (Get-Content -LiteralPath $shareFile -Raw | ConvertFrom-Json).shareUrl
-      if ($url) { Result "share" $url; StageDone "share" $url } else { StageDone "share" "no link returned" }
-    } else { StageDone "share" "ingest produced no share file" }
-  } finally { Pop-Location }
+  $title = if ($Name) { $Name } else { "Capture " + (Get-Date -Format "yyyy-MM-dd HH:mm") }
+  $ingestArgs = @((Join-Path $repoRoot "scripts\local-splat\ingest-splat.mjs"), "--file", $spzPath, "--title", $title)
+  if ($SpaceId) { $ingestArgs += @("--space", $SpaceId) }
+  foreach ($s in $sidecars) { $ingestArgs += @("--sidecar", $s) }
+  $rc = Invoke-Node $ingestArgs ""
+  $shareFile = Join-Path $repoRoot "tmp\local-splat-last-share.json"
+  if (Test-Path -LiteralPath $shareFile) {
+    Copy-Item -LiteralPath $shareFile -Destination (Join-Path $JobDir "share.json") -Force
+    $url = (Get-Content -LiteralPath $shareFile -Raw | ConvertFrom-Json).shareUrl
+    if ($url) { Result "share" $url; StageDone "share" $url } else { StageDone "share" "no link returned" }
+  } else { StageDone "share" $(if ($rc -eq 0) { "published (no share file)" } else { "publish failed (code $rc)" }) }
 }
 
 $script:status.stage = "done"; $script:status.finishedAt = (Get-Date).ToString("o"); Save-Status

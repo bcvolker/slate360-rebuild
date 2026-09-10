@@ -1,17 +1,15 @@
 # Slate360 Capture Studio — desktop operator app.
-# Drop a capture -> Gaussian splat (SPZ) -> Twin viewer. Free, local, RTX.
-# Engine: engine\run-job.ps1 (ffmpeg -> pycolmap -> Brush -> 8-bit SPZ -> share).
+# Drop a capture (or paste a phone capture ID) -> Gaussian splat -> Twin viewer. Free, local, RTX.
+# Engine: engine\run-job.ps1 (pull -> ffmpeg -> pycolmap -> Brush -> walk/mesh -> 8-bit SPZ -> publish).
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
-
 $ErrorActionPreference = "Stop"
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
 $engine = Join-Path $here "engine\run-job.ps1"
 $jobsRoot = Join-Path $env:USERPROFILE "Slate360Jobs"
 $settingsPath = Join-Path $env:APPDATA "Slate360\capture-studio.json"
 New-Item -ItemType Directory -Force -Path $jobsRoot, (Split-Path -Parent $settingsPath) | Out-Null
-
 # ---------------------------------------------------------------- theme (Graphite)
 $Theme = @{
   canvas = [System.Drawing.ColorTranslator]::FromHtml("#0B0F15")
@@ -20,8 +18,7 @@ $Theme = @{
   line   = [System.Drawing.ColorTranslator]::FromHtml("#232A34")
   text   = [System.Drawing.ColorTranslator]::FromHtml("#E7EAEE")
   muted  = [System.Drawing.ColorTranslator]::FromHtml("#8A94A3")
-  accent = [System.Drawing.ColorTranslator]::FromHtml("#00E699")
-  blue   = [System.Drawing.ColorTranslator]::FromHtml("#3D8EFF")
+  accent = [System.Drawing.ColorTranslator]::FromHtml("#3D8EFF")
   warn   = [System.Drawing.ColorTranslator]::FromHtml("#E0A046")
   bad    = [System.Drawing.ColorTranslator]::FromHtml("#F07A6E")
 }
@@ -33,14 +30,13 @@ $Fonts = @{
   mono  = New-Object System.Drawing.Font("Consolas", 8.5)
   label = New-Object System.Drawing.Font("Consolas", 8)
 }
-
-$script:settings = @{ exportDir = (Join-Path $env:USERPROFILE "Desktop\Slate360Exports"); publish = $true; lastMode = "2d" }
+$script:settings = @{ exportDir = (Join-Path $env:USERPROFILE "Desktop\Slate360Exports"); publish = $true; lastMode = "phone"; quality = 2; brighten = $false }
 if (Test-Path -LiteralPath $settingsPath) {
   try { $saved = Get-Content -LiteralPath $settingsPath -Raw | ConvertFrom-Json; foreach ($p in $saved.PSObject.Properties) { $script:settings[$p.Name] = $p.Value } } catch {}
 }
 function Save-Settings { ($script:settings | ConvertTo-Json) | Set-Content -LiteralPath $settingsPath -Encoding UTF8 }
-
 $script:mode = [string]$script:settings.lastMode
+if ($script:mode -notin @("phone", "360", "2d")) { $script:mode = "phone" }
 $script:inputs = New-Object System.Collections.Generic.List[string]
 $script:probe = $null
 $script:proc = $null
@@ -48,7 +44,6 @@ $script:jobDir = $null
 $script:logOffset = 0
 $script:shareUrl = $null
 $script:exportPaths = @()
-
 # ---------------------------------------------------------------- helpers
 function New-Label([string]$text, [int]$x, [int]$y, [int]$w, $font, $color, [int]$h = 20) {
   $l = New-Object System.Windows.Forms.Label
@@ -67,7 +62,7 @@ function New-Panel([int]$x, [int]$y, [int]$w, [int]$h) {
 function New-Button([string]$text, [int]$x, [int]$y, [int]$w, [int]$h, [bool]$primary = $false) {
   $b = New-Object System.Windows.Forms.Button
   $b.Text = $text; $b.Location = New-Object System.Drawing.Point($x, $y); $b.Size = New-Object System.Drawing.Size($w, $h)
-  $b.FlatStyle = "Flat"; $b.Font = $Fonts.h; $b.Cursor = "Hand"
+  $b.FlatStyle = "Flat"; $b.Font = $(if ($primary) { $Fonts.h } else { $Fonts.body }); $b.Cursor = "Hand"
   if ($primary) { $b.BackColor = $Theme.accent; $b.ForeColor = $Theme.canvas; $b.FlatAppearance.BorderSize = 0 }
   else { $b.BackColor = $Theme.panel2; $b.ForeColor = $Theme.text; $b.FlatAppearance.BorderColor = $Theme.line }
   return $b
@@ -94,12 +89,18 @@ function New-Text([int]$x, [int]$y, [int]$w) {
   return $t
 }
 function Fmt-Seconds([double]$s) { $ts = [TimeSpan]::FromSeconds([Math]::Max(0, $s)); if ($ts.TotalHours -ge 1) { return $ts.ToString("h\:mm\:ss") } return $ts.ToString("m\:ss") }
+function To-Wsl([string]$winPath) {
+  $full = [System.IO.Path]::GetFullPath($winPath)
+  if ($full -match '^([A-Za-z]):\\(.*)$') { return "/mnt/" + $Matches[1].ToLowerInvariant() + "/" + ($Matches[2] -replace '\\', '/') }
+  return $winPath
+}
+function Quote([string]$s) { return '"' + ($s -replace '"', '\"') + '"' }
 
 # ---------------------------------------------------------------- form
 $form = New-Object System.Windows.Forms.Form
 $form.Text = "Slate360 Capture Studio"
-$form.Size = New-Object System.Drawing.Size(1200, 840)
-$form.MinimumSize = New-Object System.Drawing.Size(1100, 760)
+$form.Size = New-Object System.Drawing.Size(1200, 860)
+$form.MinimumSize = New-Object System.Drawing.Size(1100, 780)
 $form.StartPosition = "CenterScreen"
 $form.BackColor = $Theme.canvas
 $form.ForeColor = $Theme.text
@@ -107,35 +108,30 @@ $form.Font = $Fonts.body
 
 # header
 $form.Controls.Add((New-Label "Slate360 Capture Studio" 24 18 500 $Fonts.title $Theme.text 34))
-$subtitle = New-Label "Drop a capture  ->  Gaussian splat  ->  Twin viewer" 24 54 600 $Fonts.body $Theme.muted
+$subtitle = New-Label "Phone capture or camera footage  ->  Gaussian splat + LiDAR mesh  ->  the twin on the phone" 24 54 800 $Fonts.body $Theme.muted
 $form.Controls.Add($subtitle)
 
 # mode switch (segmented)
-$btn360 = New-Button "360 photo or video" 24 86 190 34
-$btn2d = New-Button "2D photo or video" 214 86 190 34
-$form.Controls.AddRange(@($btn360, $btn2d))
-$modeHint = New-Label "" 420 92 700 $Fonts.small $Theme.muted
+$btnPhone = New-Button "Phone capture" 24 86 170 34
+$btn360 = New-Button "360 camera" 194 86 150 34
+$btn2d = New-Button "Photos or video" 344 86 150 34
+$form.Controls.AddRange(@($btnPhone, $btn360, $btn2d))
+$modeHint = New-Label "" 510 92 660 $Fonts.small $Theme.muted
 $form.Controls.Add($modeHint)
-function Set-Mode([string]$m) {
-  $script:mode = $m
-  $script:settings.lastMode = $m; Save-Settings
-  foreach ($pair in @(@($btn360, "360"), @($btn2d, "2d"))) {
-    $b = $pair[0]; $on = ($pair[1] -eq $m)
-    if ($on) { $b.BackColor = $Theme.panel2; $b.ForeColor = $Theme.accent; $b.FlatAppearance.BorderColor = $Theme.accent } else { $b.BackColor = $Theme.canvas; $b.ForeColor = $Theme.muted; $b.FlatAppearance.BorderColor = $Theme.line }
-  }
-  if ($m -eq "360") { $modeHint.Text = "Stitched equirect MP4 or 2:1 stills from an Insta360 or any 360 camera. Raw .insv must be stitched first." }
-  else { $modeHint.Text = "Regular video or photos from a phone, drone, or any camera. One lens per capture (iPhone: 1x Wide)." }
-}
-$btn360.Add_Click({ Set-Mode "360" })
-$btn2d.Add_Click({ Set-Mode "2d" })
 
 # ---------------------------------------------------------------- left: capture
-$left = New-Panel 24 136 372 540
+$left = New-Panel 24 136 372 560
 $form.Controls.Add($left)
 $left.Controls.Add((New-Eyebrow "Capture" 16 12))
+# phone: capture ID
+$idLabel = New-Label "Capture ID from the phone" 16 34 340 $Fonts.h $Theme.text
+$idBox = New-Text 16 58 340
+$idHint = New-Label "On the phone: open the twin, tap Copy capture ID, paste it here. The build publishes back into that same twin." 16 88 340 $Fonts.small $Theme.muted 60
+$left.Controls.AddRange(@($idLabel, $idBox, $idHint))
+# files: drop zone
 $drop = New-Object System.Windows.Forms.Label
 $drop.Location = New-Object System.Drawing.Point(16, 34); $drop.Size = New-Object System.Drawing.Size(340, 120)
-$drop.Text = "Drop a video or a folder of photos here"
+$drop.Text = "Drop a video, a folder of photos, or a raw .insv here"
 $drop.TextAlign = "MiddleCenter"; $drop.Font = $Fonts.h; $drop.ForeColor = $Theme.muted; $drop.BackColor = $Theme.panel2
 $drop.BorderStyle = "FixedSingle"; $drop.AllowDrop = $true
 $left.Controls.Add($drop)
@@ -150,11 +146,11 @@ $inv.View = "Details"; $inv.FullRowSelect = $true; $inv.HeaderStyle = "Nonclicka
 $inv.BackColor = $Theme.panel2; $inv.ForeColor = $Theme.text; $inv.Font = $Fonts.small
 [void]$inv.Columns.Add("Data", 110); [void]$inv.Columns.Add("Detail", 120); [void]$inv.Columns.Add("Used for", 106)
 $left.Controls.Add($inv)
-$invNote = New-Label "Add a capture to see what it contains." 16 452 340 $Fonts.small $Theme.muted 76
+$invNote = New-Label "Add a capture to see what it contains." 16 452 340 $Fonts.small $Theme.muted 96
 $left.Controls.Add($invNote)
 
 # ---------------------------------------------------------------- middle: settings
-$mid = New-Panel 412 136 372 540
+$mid = New-Panel 412 136 372 560
 $form.Controls.Add($mid)
 $mid.Controls.Add((New-Eyebrow "Settings" 16 12))
 $mid.Controls.Add((New-Label "Coverage" 16 34 120 $Fonts.h $Theme.text))
@@ -163,77 +159,83 @@ $mid.Controls.Add($coverage)
 $coverageHint = New-Label "How many frames are pulled from video. More frames = better coverage, longer solve." 16 84 340 $Fonts.small $Theme.muted 30
 $mid.Controls.Add($coverageHint)
 $mid.Controls.Add((New-Label "Quality" 16 120 120 $Fonts.h $Theme.text))
-$quality = New-Combo 16 142 340 @("Preview  -  7,000 steps, about 5 min", "Standard  -  15,000 steps, about 10 min", "Final  -  30,000 steps, about 20 min")
+$quality = New-Combo 16 142 340 @("Preview  -  7,000 steps at 1280 px, about 5 min", "Standard  -  15,000 steps at 1920 px, about 10 min", "Final  -  30,000 steps at 2560 px, about 25 min")
+$quality.SelectedIndex = [Math]::Min(2, [Math]::Max(0, [int]$script:settings.quality))
 $mid.Controls.Add($quality)
-$mid.Controls.Add((New-Label "Times are for one room on the RTX 3090." 16 170 340 $Fonts.small $Theme.muted))
-$mid.Controls.Add((New-Label "Output" 16 200 120 $Fonts.h $Theme.text))
-$fmtSpz = New-Check "SPZ  -  opens in the Twin viewer (always)" 16 222 340 $true; $fmtSpz.Enabled = $false
-$fmtPly = New-Check "PLY  -  full-precision research copy" 16 246 340 $false
-$fmtSplat = New-Check ".splat  -  other viewers" 16 270 170 $false
-$fmtHtml = New-Check "HTML  -  double-click preview" 186 270 170 $false
-$mid.Controls.AddRange(@($fmtSpz, $fmtPly, $fmtSplat, $fmtHtml))
-$mid.Controls.Add((New-Label "Name" 16 302 120 $Fonts.h $Theme.text))
-$nameBox = New-Text 16 324 340
+$mid.Controls.Add((New-Label "Times are for one room on the RTX 3090. Final is what gets sent to a client." 16 170 340 $Fonts.small $Theme.muted 30))
+$brighten = New-Check "Brighten dark footage before solving (gamma 1.4)" 16 202 340 ([bool]$script:settings.brighten)
+$mid.Controls.Add($brighten)
+$mid.Controls.Add((New-Label "Also save" 16 234 120 $Fonts.h $Theme.text))
+$mid.Controls.Add((New-Label "Always: full-detail SPZ + phone SPZ + walkthrough files (+ LiDAR mesh when the phone captured one)" 16 256 340 $Fonts.small $Theme.muted 30))
+$fmtPly = New-Check "PLY  -  full-precision research copy" 16 288 340 $false
+$fmtSplat = New-Check ".splat  -  other viewers" 16 312 170 $false
+$fmtHtml = New-Check "HTML  -  double-click preview" 186 312 170 $false
+$mid.Controls.AddRange(@($fmtPly, $fmtSplat, $fmtHtml))
+$mid.Controls.Add((New-Label "Name" 16 344 120 $Fonts.h $Theme.text))
+$nameBox = New-Text 16 366 340
 $mid.Controls.Add($nameBox)
-$mid.Controls.Add((New-Label "Save to" 16 356 120 $Fonts.h $Theme.text))
-$exportBox = New-Text 16 378 262
+$mid.Controls.Add((New-Label "Save to" 16 398 120 $Fonts.h $Theme.text))
+$exportBox = New-Text 16 420 262
 $exportBox.Text = [string]$script:settings.exportDir
-$btnBrowse = New-Button "Browse..." 284 378 72 26
+$btnBrowse = New-Button "Browse..." 284 420 72 26
 $mid.Controls.AddRange(@($exportBox, $btnBrowse))
-$publish = New-Check "Publish to the Twin viewer and give me a link" 16 410 340 ([bool]$script:settings.publish)
+$publish = New-Check "Publish to the Twin viewer and give me a link" 16 452 340 ([bool]$script:settings.publish)
 $mid.Controls.Add($publish)
-$btnCreate = New-Button "Create splat" 16 452 340 44 $true
-$btnCancel = New-Button "Cancel" 16 502 340 28
+$btnCreate = New-Button "Build the twin" 16 484 340 40 $true
+$btnCancel = New-Button "Cancel" 16 528 340 26
 $btnCancel.Enabled = $false
 $mid.Controls.AddRange(@($btnCreate, $btnCancel))
 
 # ---------------------------------------------------------------- right: progress
-$right = New-Panel 800 136 372 540
+$right = New-Panel 800 136 372 560
 $form.Controls.Add($right)
 $right.Controls.Add((New-Eyebrow "Progress" 16 12))
 $stageDefs = @(
+  @("pull", "Pull the phone capture"),
   @("import", "Read the capture"),
   @("extract", "Pull stills from video"),
   @("prepare", "Check sharpness"),
   @("cameras", "Solve camera positions"),
   @("train", "Train the Gaussian splat"),
+  @("walk", "Build the walkthrough"),
+  @("mesh", "Mesh the LiDAR"),
   @("pack", "Pack for the Twin viewer"),
   @("export", "Save files"),
-  @("share", "Publish link")
+  @("share", "Publish to the twin")
 )
 $script:stageRows = @{}
 $y = 34
 foreach ($d in $stageDefs) {
-  $icon = New-Label ([string][char]0x25CB) 16 $y 20 $Fonts.h $Theme.muted 22
-  $lbl = New-Label $d[1] 40 $y 200 $Fonts.body $Theme.muted 22
-  $det = New-Label "" 40 ($y + 20) 316 $Fonts.small $Theme.muted 16
+  $icon = New-Label ([string][char]0x25CB) 16 $y 20 $Fonts.body $Theme.muted 18
+  $lbl = New-Label $d[1] 40 $y 180 $Fonts.body $Theme.muted 18
+  $det = New-Label "" 222 $y 134 $Fonts.small $Theme.muted 18
   $right.Controls.AddRange(@($icon, $lbl, $det))
   $script:stageRows[$d[0]] = @{ icon = $icon; label = $lbl; detail = $det }
-  $y += 42
+  $y += 28
 }
 $bar = New-Object System.Windows.Forms.ProgressBar
-$bar.Location = New-Object System.Drawing.Point(16, 378); $bar.Size = New-Object System.Drawing.Size(340, 8); $bar.Style = "Continuous"
+$bar.Location = New-Object System.Drawing.Point(16, 350); $bar.Size = New-Object System.Drawing.Size(340, 8); $bar.Style = "Continuous"
 $right.Controls.Add($bar)
-$etaLbl = New-Label "" 16 390 340 $Fonts.small $Theme.muted
+$etaLbl = New-Label "" 16 362 340 $Fonts.small $Theme.muted
 $right.Controls.Add($etaLbl)
 $logBox = New-Object System.Windows.Forms.TextBox
-$logBox.Location = New-Object System.Drawing.Point(16, 412); $logBox.Size = New-Object System.Drawing.Size(340, 84)
+$logBox.Location = New-Object System.Drawing.Point(16, 384); $logBox.Size = New-Object System.Drawing.Size(340, 130)
 $logBox.Multiline = $true; $logBox.ReadOnly = $true; $logBox.ScrollBars = "Vertical"; $logBox.Font = $Fonts.mono
 $logBox.BackColor = $Theme.canvas; $logBox.ForeColor = $Theme.muted; $logBox.BorderStyle = "None"
 $right.Controls.Add($logBox)
-$btnOpenExport = New-Button "Open folder" 16 504 108 28
-$btnOpenShare = New-Button "Open link" 128 504 108 28
-$btnCopyShare = New-Button "Copy link" 240 504 116 28
+$btnOpenExport = New-Button "Open folder" 16 522 108 28
+$btnOpenShare = New-Button "Open link" 128 522 108 28
+$btnCopyShare = New-Button "Copy link" 240 522 116 28
 $btnOpenExport.Enabled = $false; $btnOpenShare.Enabled = $false; $btnCopyShare.Enabled = $false
 $right.Controls.AddRange(@($btnOpenExport, $btnOpenShare, $btnCopyShare))
 
 # ---------------------------------------------------------------- bottom: recent jobs
-$form.Controls.Add((New-Eyebrow "Recent jobs   (double-click to open the folder)" 24 690 500))
+$form.Controls.Add((New-Eyebrow "Recent jobs   (double-click to open the folder)" 24 708 500))
 $jobs = New-Object System.Windows.Forms.ListView
-$jobs.Location = New-Object System.Drawing.Point(24, 710); $jobs.Size = New-Object System.Drawing.Size(1148, 60)
+$jobs.Location = New-Object System.Drawing.Point(24, 728); $jobs.Size = New-Object System.Drawing.Size(1148, 66)
 $jobs.View = "Details"; $jobs.FullRowSelect = $true; $jobs.HeaderStyle = "Nonclickable"; $jobs.BorderStyle = "None"
 $jobs.BackColor = $Theme.panel; $jobs.ForeColor = $Theme.text; $jobs.Font = $Fonts.small
-foreach ($c in @(@("Job", 320), @("Mode", 60), @("Quality", 80), @("Status", 120), @("Result", 560))) { [void]$jobs.Columns.Add($c[0], $c[1]) }
+foreach ($c in @(@("Job", 320), @("Mode", 60), @("Quality", 80), @("Status", 140), @("Result", 540))) { [void]$jobs.Columns.Add($c[0], $c[1]) }
 $form.Controls.Add($jobs)
 
 $status = New-Object System.Windows.Forms.StatusStrip
@@ -242,6 +244,28 @@ $statusLbl = New-Object System.Windows.Forms.ToolStripStatusLabel
 $statusLbl.Text = "Checking tools..."; $statusLbl.ForeColor = $Theme.muted
 [void]$status.Items.Add($statusLbl)
 $form.Controls.Add($status)
+
+# ---------------------------------------------------------------- mode
+function Set-Mode([string]$m) {
+  $script:mode = $m
+  $script:settings.lastMode = $m; Save-Settings
+  foreach ($pair in @(@($btnPhone, "phone"), @($btn360, "360"), @($btn2d, "2d"))) {
+    $b = $pair[0]; $on = ($pair[1] -eq $m)
+    if ($on) { $b.BackColor = $Theme.panel2; $b.ForeColor = $Theme.accent; $b.FlatAppearance.BorderColor = $Theme.accent } else { $b.BackColor = $Theme.canvas; $b.ForeColor = $Theme.muted; $b.FlatAppearance.BorderColor = $Theme.line }
+  }
+  $phone = ($m -eq "phone")
+  foreach ($c in @($idLabel, $idBox, $idHint)) { $c.Visible = $phone }
+  foreach ($c in @($drop, $btnFiles, $btnFolder, $btnClear)) { $c.Visible = -not $phone }
+  $coverage.Enabled = -not $phone
+  switch ($m) {
+    "phone" { $modeHint.Text = "A scan from the Slate360 app: photos + LiDAR + poses. Metric, measurable, published back to the same twin."; $publish.Text = "Publish into the phone's twin (it turns Ready)" }
+    "360" { $modeHint.Text = "Raw .insv straight off the camera, or a stitched equirect MP4 / 2:1 stills. 8K, shutter 1/250+, lights on."; $publish.Text = "Publish to the Twin viewer and give me a link" }
+    default { $modeHint.Text = "Regular video or photos from a phone, drone, or any camera. One lens per capture (iPhone: 1x Wide)."; $publish.Text = "Publish to the Twin viewer and give me a link" }
+  }
+}
+$btnPhone.Add_Click({ Set-Mode "phone" })
+$btn360.Add_Click({ Set-Mode "360" })
+$btn2d.Add_Click({ Set-Mode "2d" })
 
 # ---------------------------------------------------------------- behaviour
 function Add-Log([string]$t) { $logBox.AppendText($t + [Environment]::NewLine) }
@@ -262,7 +286,7 @@ function Set-Stage([string]$id, [string]$state, [string]$detail) {
 }
 function Refresh-Jobs {
   $jobs.Items.Clear()
-  $dirs = @(Get-ChildItem -LiteralPath $jobsRoot -Directory -ErrorAction SilentlyContinue | Sort-Object Name -Descending | Select-Object -First 30)
+  $dirs = @(Get-ChildItem -LiteralPath $jobsRoot -Directory -ErrorAction SilentlyContinue | Sort-Object LastWriteTime -Descending | Select-Object -First 30)
   foreach ($d in $dirs) {
     $st = Join-Path $d.FullName "status.json"
     $mode = ""; $q = ""; $state = "no status"; $res = ""
@@ -270,7 +294,7 @@ function Refresh-Jobs {
       try {
         $j = Get-Content -LiteralPath $st -Raw | ConvertFrom-Json
         $mode = [string]$j.mode; $q = [string]$j.quality
-        if ($j.error) { $state = "failed: " + $j.stage } elseif ($j.stage -eq "done") { $state = "splat ready" } else { $state = "stopped at " + $j.stage }
+        if ($j.error) { $state = "failed: " + $j.stage } elseif ($j.stage -eq "done") { $state = $(if ($j.result.share) { "published" } else { "twin ready" }) } else { $state = "stopped at " + $j.stage }
         if ($j.result.share) { $res = [string]$j.result.share } elseif ($j.result.spz) { $res = [string]$j.result.spz }
       } catch {}
     }
@@ -283,7 +307,7 @@ function Refresh-Jobs {
 function Add-Inputs([string[]]$paths) {
   foreach ($p in $paths) { if ($p -and -not $script:inputs.Contains($p)) { $script:inputs.Add($p) } }
   $n = $script:inputs.Count
-  $drop.Text = if ($n -eq 0) { "Drop a video or a folder of photos here" } else { "$n item(s) added" + [Environment]::NewLine + (Split-Path -Leaf $script:inputs[0]) + $(if ($n -gt 1) { " ..." } else { "" }) }
+  $drop.Text = if ($n -eq 0) { "Drop a video, a folder of photos, or a raw .insv here" } else { "$n item(s) added" + [Environment]::NewLine + (Split-Path -Leaf $script:inputs[0]) + $(if ($n -gt 1) { " ..." } else { "" }) }
   $drop.ForeColor = if ($n -eq 0) { $Theme.muted } else { $Theme.text }
   if (-not $nameBox.Text -and $n -gt 0) { $nameBox.Text = [IO.Path]::GetFileNameWithoutExtension((Split-Path -Leaf $script:inputs[0])) }
   Start-Probe
@@ -303,11 +327,6 @@ function Start-Probe {
   $psi.Arguments = ($argv | ForEach-Object { if ($_ -match '[\s"]') { '"' + ($_ -replace '"', '\"') + '"' } else { $_ } }) -join " "
   $script:probeProc = [System.Diagnostics.Process]::Start($psi)
 }
-function To-Wsl([string]$winPath) {
-  $full = [System.IO.Path]::GetFullPath($winPath)
-  if ($full -match '^([A-Za-z]):\\(.*)$') { return "/mnt/" + $Matches[1].ToLowerInvariant() + "/" + ($Matches[2] -replace '\\', '/') }
-  return $winPath
-}
 function Show-Probe($p) {
   $inv.Items.Clear()
   $s = $p.summary
@@ -317,21 +336,21 @@ function Show-Probe($p) {
   foreach ($v in $vids) { Row ("Video " + $v.kind) ("{0}x{1}  {2}s  {3}" -f $v.width, $v.height, [int]$v.duration_s, $v.codec) "Splat (appearance)" }
   if ($c.still360 -gt 0) { Row "360 photos" ("{0} files" -f $c.still360) "Splat (appearance)" }
   if ($c.still2d -gt 0) { Row "Photos" ("{0} files" -f $c.still2d) "Splat (appearance)" }
-  if ($c.raw360 -gt 0) { Row "Raw .insv" ("{0} files" -f $c.raw360) "Stitch first" }
-  if ($s.has_arkit_poses) { Row "iPhone LiDAR / ARKit" "depth + poses" "Mesh (geometry), separate job" }
-  if ($c.lidar -gt 0) { Row "Point cloud" ("{0} files" -f $c.lidar) "Mesh (geometry), separate job" }
+  if ($c.raw360 -gt 0) { Row "Raw .insv" ("{0} files" -f $c.raw360) "Unwrapped here (no Studio needed)" }
+  if ($s.has_arkit_poses) { Row "iPhone LiDAR / ARKit" "depth + poses" "Metric frame + mesh" }
+  if ($c.lidar -gt 0) { Row "Point cloud" ("{0} files" -f $c.lidar) "Mesh (geometry)" }
   if ($s.has_gps) { Row "GPS" "in photo/video metadata" "Stored; not used in the solve" }
   if ($s.has_gnss_log) { Row "RTK / GNSS log" ("{0} files" -f $c.gnss) "Stored; georeference later" }
   if ($c.logs -gt 0) { Row "Flight / sensor logs" ("{0} files" -f $c.logs) "Stored" }
   $cams = @($s.cameras); $camText = if ($cams.Count -gt 0) { "Camera: " + ($cams -join ", ") + ". " } else { "" }
-  $note = $camText + "Looks like " + $(switch ($s.primary) { "360" { "a 360 capture" } "2d" { "a 2D capture" } "mixed" { "a mix of 360 and 2D" } "raw360" { "unstitched 360" } default { "nothing usable" } }) + "."
-  foreach ($w in @($s.warnings)) { if ($w) { $note += [Environment]::NewLine + $w } }
+  $note = $camText + "Looks like " + $(switch ($s.primary) { "360" { "a 360 capture" } "2d" { "a 2D capture" } "mixed" { "a mix of 360 and 2D" } "raw360" { "a raw 360 recording (unwrapped automatically)" } default { "nothing usable" } }) + "."
+  foreach ($w in @($s.warnings)) { if ($w -and $w -notmatch 'insv') { $note += [Environment]::NewLine + $w } }
   $invNote.Text = $note
-  $invNote.ForeColor = if (@($s.warnings).Count -gt 0) { $Theme.warn } else { $Theme.muted }
-  if ($s.primary -eq "360" -and $script:mode -ne "360") { Set-Mode "360" }
+  $invNote.ForeColor = if (@($s.warnings | Where-Object { $_ -and $_ -notmatch 'insv' }).Count -gt 0) { $Theme.warn } else { $Theme.muted }
+  if ($s.primary -in @("360", "raw360") -and $script:mode -ne "360") { Set-Mode "360" }
   elseif ($s.primary -eq "2d" -and $script:mode -ne "2d") { Set-Mode "2d" }
   $fpsIdx = switch ([double]$s.suggested_fps) { 2.0 { 1 } 0.5 { 2 } default { 0 } }
-  if ($vids.Count -gt 0) { $coverage.SelectedIndex = $fpsIdx } elseif ($c.still2d + $c.still360 -gt 0) { $coverage.SelectedIndex = 3 }
+  if ($vids.Count -gt 0 -or $c.raw360 -gt 0) { $coverage.SelectedIndex = $(if ($c.raw360 -gt 0) { 1 } else { $fpsIdx }) } elseif ($c.still2d + $c.still360 -gt 0) { $coverage.SelectedIndex = 3 }
   Update-CoverageHint
 }
 function Update-CoverageHint {
@@ -343,15 +362,17 @@ function Update-CoverageHint {
 }
 $coverage.Add_SelectedIndexChanged({ Update-CoverageHint })
 
-function Quote([string]$s) { return '"' + ($s -replace '"', '\"') + '"' }
 function Start-Job {
-  if ($script:inputs.Count -eq 0) { [System.Windows.Forms.MessageBox]::Show("Add a video or a folder of photos first.", "Nothing to process") | Out-Null; return }
+  $captureId = $idBox.Text.Trim()
+  if ($script:mode -eq "phone") {
+    if ($captureId -notmatch '^[0-9a-fA-F-]{32,36}$') { [System.Windows.Forms.MessageBox]::Show("Paste the capture ID from the phone (open the twin, tap Copy capture ID).", "No capture ID") | Out-Null; return }
+  } elseif ($script:inputs.Count -eq 0) { [System.Windows.Forms.MessageBox]::Show("Add a video, a folder of photos, or a raw .insv first.", "Nothing to process") | Out-Null; return }
   $fps = switch ($coverage.SelectedIndex) { 0 { 1 } 1 { 2 } 2 { 0.5 } default { 0 } }
   $q = @("preview", "standard", "final")[$quality.SelectedIndex]
   $formats = @("spz"); if ($fmtPly.Checked) { $formats += "ply" }; if ($fmtSplat.Checked) { $formats += "splat" }; if ($fmtHtml.Checked) { $formats += "html" }
-  $script:settings.exportDir = $exportBox.Text; $script:settings.publish = $publish.Checked; Save-Settings
+  $script:settings.exportDir = $exportBox.Text; $script:settings.publish = $publish.Checked; $script:settings.quality = $quality.SelectedIndex; $script:settings.brighten = $brighten.Checked; Save-Settings
   $stamp = Get-Date -Format "yyyyMMdd-HHmmss"
-  $safe = ($nameBox.Text -replace '[^A-Za-z0-9_-]', '_').Trim('_'); if (-not $safe) { $safe = $script:mode + "-capture" }
+  $safe = ($nameBox.Text -replace '[^A-Za-z0-9_-]', '_').Trim('_'); if (-not $safe) { $safe = $(if ($captureId) { "phone-" + $captureId.Substring(0, 8) } else { $script:mode + "-capture" }) }
   $script:jobDir = Join-Path $jobsRoot ($stamp + "-" + $safe)
   New-Item -ItemType Directory -Force -Path $script:jobDir | Out-Null
   $script:stdout = Join-Path $script:jobDir "engine.out"
@@ -362,6 +383,7 @@ function Start-Job {
   $request = [ordered]@{
     inputPaths = @($script:inputs); mode = $script:mode; quality = $q; fps = $fps; jobDir = $script:jobDir
     exportDir = $exportBox.Text; formats = $formats; name = $nameBox.Text; ingest = [bool]$publish.Checked
+    captureId = $captureId; gamma = $(if ($brighten.Checked) { 1.4 } else { 1.0 })
   }
   $reqPath = Join-Path $script:jobDir "request.json"
   ($request | ConvertTo-Json -Depth 4) | Set-Content -LiteralPath $reqPath -Encoding UTF8
@@ -381,7 +403,7 @@ function Start-Job {
   Add-Log ("Started " + $script:mode + " job: " + (Split-Path -Leaf $script:jobDir))
   $timer.Start()
 }
-$stageWeights = @{ import = 2; extract = 10; prepare = 6; cameras = 30; train = 45; pack = 3; export = 2; share = 2 }
+$stageWeights = @{ pull = 6; import = 2; extract = 8; prepare = 4; cameras = 28; train = 38; walk = 3; mesh = 3; pack = 3; export = 2; share = 3 }
 $script:progress = @{}
 function Update-Bar([string]$stageId, [int]$done, [int]$total) {
   if ($total -gt 0) { $script:progress[$stageId] = [Math]::Min(1.0, $done / [double]$total) }
@@ -411,7 +433,7 @@ function Finish-Job([int]$code) {
     foreach ($k in $script:stageRows.Keys) { if ($script:stageRows[$k].icon.Text -eq [string][char]0x25CB) { Set-Stage $k "skipped" "" } }
     $bar.Value = 100
     $etaLbl.Text = "Done in " + (Fmt-Seconds (((Get-Date) - $script:started).TotalSeconds))
-    Add-Log "Splat ready."
+    Add-Log $(if ($script:shareUrl) { "Published. Open the link, or open the twin on the phone." } else { "Twin built. Files are in the save folder." })
     if ($script:shareUrl) { $subtitle.Text = "Latest: " + $script:shareUrl }
   } else { $etaLbl.Text = "Stopped." }
   Refresh-Jobs
@@ -419,7 +441,6 @@ function Finish-Job([int]$code) {
 $timer = New-Object System.Windows.Forms.Timer
 $timer.Interval = 500
 $timer.Add_Tick({
-  # engine output
   if ($script:stdout -and (Test-Path -LiteralPath $script:stdout)) {
     try {
       $fs = [System.IO.File]::Open($script:stdout, "Open", "Read", "ReadWrite")
@@ -454,7 +475,7 @@ $probeTimer.Start()
 $drop.Add_DragEnter({ param($s, $e) if ($e.Data.GetDataPresent([System.Windows.Forms.DataFormats]::FileDrop)) { $e.Effect = "Copy"; $drop.BackColor = $Theme.line } })
 $drop.Add_DragLeave({ $drop.BackColor = $Theme.panel2 })
 $drop.Add_DragDrop({ param($s, $e) $drop.BackColor = $Theme.panel2; Add-Inputs @($e.Data.GetData([System.Windows.Forms.DataFormats]::FileDrop)) })
-$btnFiles.Add_Click({ $d = New-Object System.Windows.Forms.OpenFileDialog; $d.Multiselect = $true; $d.Filter = "Video and photos|*.mp4;*.mov;*.mkv;*.jpg;*.jpeg;*.png;*.insv|All files|*.*"; if ($d.ShowDialog() -eq "OK") { Add-Inputs $d.FileNames } })
+$btnFiles.Add_Click({ $d = New-Object System.Windows.Forms.OpenFileDialog; $d.Multiselect = $true; $d.Filter = "Video, photos, raw 360|*.mp4;*.mov;*.mkv;*.jpg;*.jpeg;*.png;*.insv|All files|*.*"; if ($d.ShowDialog() -eq "OK") { Add-Inputs $d.FileNames } })
 $btnFolder.Add_Click({ $d = New-Object System.Windows.Forms.FolderBrowserDialog; if ($d.ShowDialog() -eq "OK") { Add-Inputs @($d.SelectedPath) } })
 $btnClear.Add_Click({ $script:inputs.Clear(); $nameBox.Text = ""; Add-Inputs @() })
 $btnBrowse.Add_Click({ $d = New-Object System.Windows.Forms.FolderBrowserDialog; $d.SelectedPath = $exportBox.Text; if ($d.ShowDialog() -eq "OK") { $exportBox.Text = $d.SelectedPath } })
