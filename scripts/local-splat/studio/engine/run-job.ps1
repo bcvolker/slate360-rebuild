@@ -416,7 +416,12 @@ if (Test-Path -LiteralPath $glbForPrune) {
   # Floater prune by distance to the LiDAR mesh (the only rule that never ate a wall). Only
   # the far shell goes; everything within 12 cm of the mesh is untouchable.
   $prunedPly = Join-Path $exportJob "$sideName.pruned.ply"
-  $rc = Invoke-Wsl @($WslPython, (To-Wsl (Join-Path $here "clean_ply.py")), "--in", (To-Wsl $viewerPly), "--out", (To-Wsl $prunedPly), "--mesh", (To-Wsl $glbForPrune), "--min-opacity-hard", "0.02", "--max-scale-frac", "1000000", "--sor-k", "0", "--min-views", "0", "--report", (To-Wsl (Join-Path $JobDir "prune_report.json"))) "pack"
+  $pruneArgs = @($WslPython, (To-Wsl (Join-Path $here "clean_ply.py")), "--in", (To-Wsl $viewerPly), "--out", (To-Wsl $prunedPly), "--mesh", (To-Wsl $glbForPrune), "--min-opacity-hard", "0.02", "--max-scale-frac", "1000000", "--sor-k", "0", "--min-views", "0", "--report", (To-Wsl (Join-Path $JobDir "prune_report.json")))
+  $manifestForPrune = Join-Path $exportJob "$sideName.manifest.json"
+  $walkForPrune = Join-Path $exportJob "$sideName.walk.json"
+  if (Test-Path -LiteralPath $manifestForPrune) { $pruneArgs += @("--manifest", (To-Wsl $manifestForPrune)) }
+  if (Test-Path -LiteralPath $walkForPrune) { $pruneArgs += @("--stations", (To-Wsl $walkForPrune)) }
+  $rc = Invoke-Wsl $pruneArgs "pack"
   if ($rc -eq 0 -and (Test-Path -LiteralPath $prunedPly)) {
     $prr = Get-Content -LiteralPath (Join-Path $JobDir "prune_report.json") -Raw | ConvertFrom-Json
     Emit ("INFO mesh prune: {0:N0} -> {1:N0} splats ({2:N0} far from the LiDAR surface)" -f $prr.input, $prr.output, $prr.dropped_far_from_mesh)

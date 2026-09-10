@@ -148,6 +148,9 @@ def main() -> int:
     ap.add_argument("--mesh-near", type=float, default=0.12, help="metres from the mesh within which a splat is never pruned")
     ap.add_argument("--mesh-faint", type=float, default=0.08, help="between near and far: drop only if opacity is below this AND isolated")
     ap.add_argument("--manifest", default="", help="<name>.manifest.json: maps the mesh (ARKit world) into the PLY frame via correction_quaternion + metric_scale")
+    ap.add_argument("--stations", default="", help="<name>.walk.json (ARKit world): enables the near-camera blob rule")
+    ap.add_argument("--near-camera", type=float, default=0.6, help="metres from a station within which a large splat is a blob")
+    ap.add_argument("--near-camera-scale", type=float, default=0.25, help="metres: max-axis scale above which a splat that close to the camera is a blob, not detail")
     ap.add_argument("--mesh-min-coverage", type=float, default=0.50, help="skip the far rule unless at least this fraction of splats sits on the mesh (partial LiDAR walks must not delete the rest of the room)")
     ap.add_argument("--max-out", type=int, default=0, help="thin the main output to this many splats by contribution; 0 = keep all")
     ap.add_argument("--mobile-out", default="")
@@ -191,7 +194,9 @@ def main() -> int:
             report["mesh_rule"] = "applied"
         report["dropped_far_from_mesh"] = int((keep & far).sum())
         keep &= ~far
-        if cKDTree is not None:
+        # The faint-and-isolated pass is only meaningful when the mesh frame is right; with a
+        # skipped mesh rule every splat is "off-mesh" and 178k real ones went (2026-09-10).
+        if cKDTree is not None and coverage >= a.mesh_min_coverage:
             mid = keep & ~on_surface
             idx_mid = np.flatnonzero(mid)
             if len(idx_mid) > 25:
@@ -203,6 +208,21 @@ def main() -> int:
                 report["dropped_off_mesh_faint"] = int(faint_isolated.sum())
                 keep[idx_mid[faint_isolated]] = False
         report["on_surface"] = int(on_surface.sum())
+
+    # 1c. Near-camera blobs: a splat with a 25 cm+ footprint sitting within 60 cm of where the
+    # operator stood is a translucent veil (the haze that fills the frame when you turn), never
+    # a real surface — the phone was never that close to anything that big.
+    if a.stations and a.manifest:
+        walk = json.loads(Path(a.stations).read_text())
+        st = np.array([s_["position"] for s_ in walk.get("stations", []) if "position" in s_], dtype=np.float64)
+        if len(st) > 0 and cKDTree is not None:
+            st_ply = world_to_ply(st, Path(a.manifest))
+            scale_m = sc.max(axis=1) * float(json.loads(Path(a.manifest).read_text()).get("metric_scale") or 1.0)
+            d_cam, _ = cKDTree(st_ply).query(xyz, k=1, workers=-1)
+            d_cam_m = d_cam * float(json.loads(Path(a.manifest).read_text()).get("metric_scale") or 1.0)
+            blob = (d_cam_m < a.near_camera) & (scale_m > a.near_camera_scale)
+            report["dropped_near_camera_blobs"] = int((keep & blob).sum())
+            keep &= ~blob
 
     # 2. giant scales relative to the room
     lo, hi = np.percentile(xyz[keep], 2, axis=0), np.percentile(xyz[keep], 98, axis=0)
