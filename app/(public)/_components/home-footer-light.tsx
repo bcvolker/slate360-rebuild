@@ -23,7 +23,7 @@ export function HomeFooterLight() {
             <SlateIcon className="h-[30px] w-auto" />
             <span className="text-[15.5px] font-semibold tracking-[0.13em]">
               <span className="text-[var(--mkt-ink)]">SLATE</span>
-              <span className="text-[var(--graphite-primary)]">360</span>
+              <span className="text-[var(--mkt-brand-green)]">360</span>
             </span>
           </Link>
           <p className="mt-3.5 max-w-[64ch] text-xs leading-[1.8] text-[var(--mkt-ink-muted)]">

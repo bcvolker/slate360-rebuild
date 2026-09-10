@@ -4,6 +4,14 @@ import { redirect } from "next/navigation";
 import { MarketingJsonLd } from "@/app/(public)/_components/marketing-json-ld";
 import { HomeNavLight } from "@/app/(public)/_components/home-nav-light";
 import { HomeFooterLight } from "@/app/(public)/_components/home-footer-light";
+import { HomeHeroLight } from "@/app/(public)/_components/home-hero-light";
+import { HomeProblemLight } from "@/app/(public)/_components/home-problem-light";
+import { HomeWhatYouGetLight } from "@/app/(public)/_components/home-what-you-get-light";
+import { HomePortalLight } from "@/app/(public)/_components/home-portal-light";
+import { HomeHowItWorksLight } from "@/app/(public)/_components/home-how-it-works-light";
+import { HomeDifferentLight } from "@/app/(public)/_components/home-different-light";
+import { HomeWhoPricingLight } from "@/app/(public)/_components/home-who-pricing-light";
+import { HomeThermalBuildsLight } from "@/app/(public)/_components/home-thermal-builds-light";
 import { MKT_L_PAGE } from "@/app/(public)/_components/marketing-styles-light";
 import { assets } from "@/lib/design-system/tokens";
 
@@ -47,10 +55,19 @@ export default async function RootPage() {
       <MarketingJsonLd />
       <div className={MKT_L_PAGE}>
         <HomeNavLight />
-        {/* Hero, Problem beat, What you get, Client portal, How it works, What makes it
-            different, Who it's for, Thermal, Pricing, and the enquiry form land here across
-            the remaining build slices — see docs/design/HOMEPAGE_LIGHT_REBUILD_PLAN.md §7. */}
-        <main className="pt-[78px]" />
+        <main className="pt-[78px]">
+          <HomeHeroLight />
+          <HomeProblemLight />
+          <HomeWhatYouGetLight />
+          <HomePortalLight />
+          {/* Interactive examples section lands here, once a real permissioned
+              project exists — intentionally absent until then, per §3.7/§4.6. */}
+          <HomeHowItWorksLight />
+          <HomeDifferentLight />
+          <HomeWhoPricingLight />
+          <HomeThermalBuildsLight />
+          {/* Enquiry form lands here — slice 8/9/10. */}
+        </main>
         <HomeFooterLight />
       </div>
     </>

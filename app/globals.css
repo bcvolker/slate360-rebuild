@@ -133,7 +133,15 @@
   --mkt-ink: #1A2433;
   --mkt-ink-muted: #5B6B80;
   --mkt-line: #E2E4E0;
-  --mkt-accent: #3E6FD8;
+  /* Brian: keep the original brand green, not a different accent color —
+     but the raw --graphite-primary (#00E699) is calibrated for the dark app
+     shell and measures ~1.6:1 against --mkt-canvas (fails badly, "blends
+     in"). This is the same hue (~158° vs. the original's ~160°) deepened
+     until it clears WCAG AA as both text-on-light AND white-on-fill
+     (buttons): verified ~5.1:1 on --mkt-canvas, ~5.4:1 white-on-fill.
+     One token — used for the wordmark AND every accent/CTA on the page. */
+  --mkt-brand-green: #0C7A52;
+  --mkt-accent: var(--mkt-brand-green);
   --mkt-accent-soft: color-mix(in srgb, var(--mkt-accent) 8%, transparent);
   --mkt-accent-line: color-mix(in srgb, var(--mkt-accent) 30%, transparent);
 

@@ -51,7 +51,7 @@ export function HomeNavLight() {
             )}
           >
             <span className="text-[var(--mkt-ink)]">SLATE</span>
-            <span className="text-[var(--graphite-primary)]">360</span>
+            <span className="text-[var(--mkt-brand-green)]">360</span>
           </span>
         </Link>
 
