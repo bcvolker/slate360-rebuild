@@ -27,7 +27,10 @@ import {
 } from "@sparkjsdev/spark";
 
 import {
+  DESKTOP_LOD_SPLATS,
   DESKTOP_MAX_SPLATS,
+  MOBILE_LOD_SPLATS,
+  MOBILE_MAX_SPLATS,
   buildDownsampleIndices,
   useMobileSplatBudget,
 } from "@/components/digital-twin/splat-viewer-constants";
@@ -82,11 +85,15 @@ export function MeshSplatLayer({
   const manifestRef = useRef<SplatManifest | null>(null);
   const manifestPromiseRef = useRef<Promise<SplatManifest | null> | null>(null);
   const maxSplats = useMobileSplatBudget();
-  // LOD on: Spark merges distant splats per frame, which is what keeps a 250k-splat
-  // room at frame rate on integrated and mobile GPUs. The hard cap below still bounds
-  // memory on the source set.
+  // LOD on: Spark merges distant splats per frame, which is what keeps a full-detail
+  // room at frame rate on integrated and mobile GPUs. The per-frame budget is separate
+  // from the (much larger) source cap so detail survives up close.
   const sparkArgs = useMemo(
-    () => ({ renderer: gl, enableLod: true, lodSplatCount: maxSplats || DESKTOP_MAX_SPLATS }),
+    () => ({
+      renderer: gl,
+      enableLod: true,
+      lodSplatCount: maxSplats === MOBILE_MAX_SPLATS ? MOBILE_LOD_SPLATS : DESKTOP_LOD_SPLATS,
+    }),
     [gl, maxSplats],
   );
   const { bytes } = useSplatBytes(url, onProgress);

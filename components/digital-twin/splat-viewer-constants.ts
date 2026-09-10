@@ -24,8 +24,18 @@ export type SplatViewerHandle = {
 // Hard splat caps — enforced by a deterministic post-load downsample (see
 // buildDownsampleIndices below), since Spark's own `maxSplats` option is only an
 // initial allocation hint and grows to fit the actual file, not a real ceiling.
-export const MOBILE_MAX_SPLATS = 150_000;
-export const DESKTOP_MAX_SPLATS = 500_000;
+//
+// 2026-09-09 measurement on the kitchen (1.75M-splat Brush model, held-out PSNR):
+//   full 1.75M 29.8 dB · 800k 26.0 dB · 250k 20.4 dB. The old 500k/150k caps were
+// the single largest source of the "blurry twin" complaint — every published model
+// was being thrown away on the way to the screen. Caps now bound memory only;
+// frame rate is Spark LOD's job (LOD_SPLATS below), which merges distant splats
+// per frame instead of deleting them.
+export const MOBILE_MAX_SPLATS = 1_000_000;
+export const DESKTOP_MAX_SPLATS = 2_500_000;
+/** Per-frame render budget handed to Spark's LOD (not a source cap). */
+export const MOBILE_LOD_SPLATS = 500_000;
+export const DESKTOP_LOD_SPLATS = 1_500_000;
 
 export function useMobileSplatBudget(): number {
   const [maxSplats, setMaxSplats] = useState(DESKTOP_MAX_SPLATS);
