@@ -11,7 +11,8 @@ import { HomePortalLight } from "@/app/(public)/_components/home-portal-light";
 import { HomeHowItWorksLight } from "@/app/(public)/_components/home-how-it-works-light";
 import { HomeDifferentLight } from "@/app/(public)/_components/home-different-light";
 import { HomeWhoPricingLight } from "@/app/(public)/_components/home-who-pricing-light";
-import { HomeThermalBuildsLight } from "@/app/(public)/_components/home-thermal-builds-light";
+import { HomeThermalLight, HomeBuildsLineLight } from "@/app/(public)/_components/home-thermal-builds-light";
+import { HomeContactForm } from "@/app/(public)/_components/home-contact-form";
 import { MKT_L_PAGE } from "@/app/(public)/_components/marketing-styles-light";
 import { assets } from "@/lib/design-system/tokens";
 
@@ -65,8 +66,9 @@ export default async function RootPage() {
           <HomeHowItWorksLight />
           <HomeDifferentLight />
           <HomeWhoPricingLight />
-          <HomeThermalBuildsLight />
-          {/* Enquiry form lands here — slice 8/9/10. */}
+          <HomeThermalLight />
+          <HomeContactForm />
+          <HomeBuildsLineLight />
         </main>
         <HomeFooterLight />
       </div>
