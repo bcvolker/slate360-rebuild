@@ -77,7 +77,7 @@ export function HomePortalLight() {
           </div>
           <div className="flex aspect-video items-center justify-center bg-[var(--mkt-canvas-alt)] px-6 text-center">
             <p className="max-w-sm text-sm text-[var(--mkt-ink-muted)]">
-              A look at the portal — reviewing, pinning, and sharing a real project — goes here.
+              A look at the portal — reviewing, pinning, and sharing a project.
             </p>
           </div>
         </div>

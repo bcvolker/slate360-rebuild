@@ -47,7 +47,7 @@ export function HomeLocationPicker({ value, onChange }: { value: HomeLocationVal
 function HomeLocationPickerChrome({ value, onChange }: { value: HomeLocationValue; onChange: (v: HomeLocationValue) => void }) {
   const {
     input, setInput, suggestions, resolving, tool, mapType, setMapType,
-    drawingVertices, isDrawingBoundary, activateTool, finishBoundary, selectSuggestion,
+    drawingVertices, isDrawingBoundary, activateTool, clearLocation, finishBoundary, selectSuggestion,
   } = useHomeLocationPicker(value, onChange);
 
   const modeBtn = (active: boolean) =>
@@ -66,6 +66,17 @@ function HomeLocationPickerChrome({ value, onChange }: { value: HomeLocationValu
             placeholder="Search an address, or tap the map"
             className="h-9 flex-1 bg-transparent text-[15px] text-[var(--mkt-ink)] outline-none placeholder:text-[var(--mkt-ink-muted)]"
           />
+          {value.lat !== null || input ? (
+            <button
+              type="button"
+              onClick={clearLocation}
+              aria-label="Clear the selected location"
+              title="Clear the selected location"
+              className="mr-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[var(--mkt-ink-muted)] hover:bg-[var(--mkt-canvas-alt)] hover:text-[var(--mkt-ink)]"
+            >
+              <IconX size={17} />
+            </button>
+          ) : null}
           {suggestions.length > 0 ? (
             <ul className="absolute left-0 right-0 top-full z-10 mt-1.5 max-h-56 overflow-y-auto rounded-xl border border-[var(--mkt-line)] bg-white shadow-lg">
               {suggestions.map((s) => (
@@ -114,8 +125,17 @@ function HomeLocationPickerChrome({ value, onChange }: { value: HomeLocationValu
       ) : null}
 
       {value.address ? (
-        <div className="pointer-events-none absolute bottom-2 right-2 max-w-[60%] rounded-lg bg-white/95 px-2.5 py-1.5 text-[11.5px] text-[var(--mkt-ink)] shadow-md">
-          {value.address}
+        <div className="pointer-events-auto absolute bottom-2 right-2 flex max-w-[70%] items-center gap-1.5 rounded-lg bg-white/95 py-1.5 pl-2.5 pr-1.5 text-[11.5px] text-[var(--mkt-ink)] shadow-md">
+          <span className="truncate">{value.address}</span>
+          <button
+            type="button"
+            onClick={clearLocation}
+            aria-label="Clear this location"
+            title="Clear this location"
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[var(--mkt-ink-muted)] hover:bg-[var(--mkt-canvas-alt)] hover:text-[var(--mkt-ink)]"
+          >
+            <IconX size={13} />
+          </button>
         </div>
       ) : null}
     </div>

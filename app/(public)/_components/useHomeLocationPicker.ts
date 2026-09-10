@@ -181,5 +181,20 @@ export function useHomeLocationPicker(value: HomeLocationValue, onChange: (v: Ho
   };
   const clearBoundary = () => { boundaryPolyRef.current?.setMap(null); boundaryPolyRef.current = null; clearPreview(); onChange({ ...value, boundary: [] }); };
 
-  return { input, setInput, suggestions, resolving, tool, mapType, setMapType, is3D, setIs3D, drawingVertices, isDrawingBoundary: tool === "polygondraw", activateTool, clearPreview, clearBoundary, finishBoundary, selectSuggestion };
+  // Clears the dropped pin/address entirely (distinct from clearBoundary,
+  // which only clears a drawn outline) — lets someone who picked the wrong
+  // spot start over instead of being stuck with it.
+  const clearLocation = useCallback(() => {
+    pinMarkerRef.current?.setMap(null);
+    pinMarkerRef.current = null;
+    boundaryPolyRef.current?.setMap(null);
+    boundaryPolyRef.current = null;
+    clearPreview();
+    skipNextSearchRef.current = true;
+    setInput("");
+    setSuggestions([]);
+    onChange({ address: "", lat: null, lng: null, boundary: [] });
+  }, [clearPreview, onChange]);
+
+  return { input, setInput, suggestions, resolving, tool, mapType, setMapType, is3D, setIs3D, drawingVertices, isDrawingBoundary: tool === "polygondraw", activateTool, clearPreview, clearBoundary, clearLocation, finishBoundary, selectSuggestion };
 }

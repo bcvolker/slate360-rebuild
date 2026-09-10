@@ -744,149 +744,149 @@
 /* ─────────────────────────────────────────────────────────────────
    Auth Page Shared Styles
    Single source of truth for login, signup, forgot-password, reset,
-   verify confirmation, and pending-verification pages. Neutral
-   Graphite Glass canvas; topbar stays dark-isolated for header chrome.
+   verify confirmation, and pending-verification pages. Restyled
+   2026-09-10 onto the light marketing canvas (--mkt-*) so the login
+   gateway visually matches the public homepage — these are public
+   auth pages, not the authenticated dashboard, so this does not
+   violate the "never mix --mkt-* into dashboard/app surfaces" rule
+   above; the dashboard itself is unaffected by this block.
    ───────────────────────────────────────────────────────────────── */
 @utility auth-page {
   @apply min-h-screen flex flex-col;
-  color: var(--graphite-text-body);
-  background-color: var(--graphite-canvas);
+  color: var(--mkt-ink-muted);
+  background-color: var(--mkt-canvas);
   background-image:
-    radial-gradient(ellipse at top, color-mix(in srgb, var(--graphite-primary) 12%, transparent), transparent 36%),
-    radial-gradient(ellipse at bottom right, color-mix(in srgb, var(--graphite-primary-hover) 6%, transparent), transparent 50%),
-    linear-gradient(180deg, var(--graphite-canvas) 0%, var(--graphite-canvas-deep) 100%);
+    radial-gradient(ellipse at top, var(--mkt-accent-soft), transparent 36%),
+    radial-gradient(ellipse at bottom right, color-mix(in srgb, var(--mkt-accent) 5%, transparent), transparent 50%),
+    linear-gradient(180deg, var(--mkt-canvas) 0%, var(--mkt-canvas-alt) 100%);
   background-attachment: fixed;
-  color-scheme: dark;
+  color-scheme: light;
 }
 
-/* Topbar stays dark + isolated so it matches the marketing/header chrome.
-   The .dark variant must be applied via the className on the consumer
-   element (e.g. <header class="dark auth-topbar">), not via @apply here —
-   Tailwind v4 treats `dark` as a variant selector, not a utility. */
 @utility auth-topbar {
-  @apply flex items-center justify-between px-6 py-4 text-white;
-  color-scheme: dark;
-  background-color: var(--header-bg);
-  border-bottom: 1px solid var(--header-border);
+  @apply flex items-center justify-between px-6 py-4;
+  color-scheme: light;
+  background-color: color-mix(in srgb, var(--mkt-canvas) 85%, transparent);
+  border-bottom: 1px solid var(--mkt-line);
   backdrop-filter: blur(var(--app-backdrop-blur, 20px));
   -webkit-backdrop-filter: blur(var(--app-backdrop-blur, 20px));
 }
 
 @utility auth-card {
   @apply w-full max-w-md rounded-xl border p-8 backdrop-blur-md shadow-2xl;
-  border-color: color-mix(in srgb, white 5%, transparent);
-  background: color-mix(in srgb, var(--graphite-canvas) 76%, transparent);
-  color: var(--graphite-text-body);
+  border-color: var(--mkt-line);
+  background: color-mix(in srgb, var(--mkt-surface) 92%, transparent);
+  color: var(--mkt-ink-muted);
 }
 
-.auth-card .text-slate-900 { color: var(--graphite-text-header); }
+.auth-card .text-slate-900 { color: var(--mkt-ink); }
 .auth-card .text-slate-700,
 .auth-card .text-slate-600,
-.auth-card .text-slate-500 { color: var(--graphite-muted); }
+.auth-card .text-slate-500 { color: var(--mkt-ink-muted); }
 .auth-card .text-primary,
-.auth-card .text-cobalt { color: var(--graphite-primary); }
+.auth-card .text-cobalt { color: var(--mkt-accent); }
 
 @utility auth-heading {
   @apply text-2xl font-bold;
-  color: var(--graphite-text-header);
+  color: var(--mkt-ink);
 }
 
 @utility auth-subheading {
   @apply text-sm;
-  color: var(--graphite-text-body);
+  color: var(--mkt-ink-muted);
 }
 
 @utility auth-muted {
-  color: var(--graphite-muted);
+  color: var(--mkt-ink-muted);
 }
 
 @utility auth-footer {
   @apply text-center text-sm;
-  color: var(--graphite-muted);
+  color: var(--mkt-ink-muted);
 }
 
 @utility auth-icon-success {
-  color: var(--graphite-primary);
+  color: var(--mkt-accent);
 }
 
 @utility auth-icon-ring {
   @apply mx-auto flex h-16 w-16 items-center justify-center rounded-full ring-1;
-  background: color-mix(in srgb, var(--graphite-primary) 10%, transparent);
-  --tw-ring-color: color-mix(in srgb, var(--graphite-primary) 20%, transparent);
+  background: var(--mkt-accent-soft);
+  --tw-ring-color: var(--mkt-accent-line);
 }
 
 @utility auth-status-chip {
   @apply flex items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm;
-  border-color: color-mix(in srgb, white 10%, transparent);
-  background: color-mix(in srgb, var(--graphite-canvas) 92%, transparent);
-  color: var(--graphite-muted);
+  border-color: var(--mkt-line);
+  background: var(--mkt-canvas-alt);
+  color: var(--mkt-ink-muted);
 }
 
 @utility auth-info-panel {
   @apply rounded-xl border p-4 text-left text-sm;
-  border-color: color-mix(in srgb, white 10%, transparent);
-  background: color-mix(in srgb, var(--graphite-canvas) 92%, transparent);
-  color: var(--graphite-muted);
+  border-color: var(--mkt-line);
+  background: var(--mkt-canvas-alt);
+  color: var(--mkt-ink-muted);
 }
 
 @utility auth-input {
   @apply w-full h-11 rounded-xl border px-3.5 text-sm font-normal transition-all focus:outline-none focus:ring-1;
-  color: var(--graphite-text-header);
-  border-color: color-mix(in srgb, white 7%, transparent);
-  background: color-mix(in srgb, var(--graphite-canvas) 60%, #0f172a);
-  --tw-ring-color: color-mix(in srgb, var(--graphite-primary) 60%, transparent);
+  color: var(--mkt-ink);
+  border-color: var(--mkt-line);
+  background: var(--mkt-surface);
+  --tw-ring-color: var(--mkt-accent-line);
 }
-.auth-input::placeholder { color: var(--graphite-muted); }
-.auth-input:focus { border-color: color-mix(in srgb, var(--graphite-primary) 60%, transparent); }
+.auth-input::placeholder { color: var(--mkt-ink-muted); }
+.auth-input:focus { border-color: color-mix(in srgb, var(--mkt-accent) 55%, transparent); }
 
 @utility auth-label {
   @apply mb-1.5 block text-[0.7rem] font-semibold uppercase tracking-[0.14em];
-  color: var(--graphite-muted);
+  color: var(--mkt-ink-muted);
 }
 
 @utility auth-btn-primary {
   @apply w-full flex items-center justify-center gap-2 h-11 rounded-xl font-semibold text-sm tracking-tight transition-all disabled:opacity-50;
-  color: var(--graphite-canvas);
-  background-color: var(--graphite-primary);
-  box-shadow: 0 8px 20px -4px color-mix(in srgb, var(--graphite-primary) 25%, transparent);
+  color: #FFFFFF;
+  background-color: var(--mkt-accent);
+  box-shadow: 0 8px 20px -4px color-mix(in srgb, var(--mkt-accent) 25%, transparent);
 }
-.auth-btn-primary:hover { background-color: var(--graphite-primary-hover); }
+.auth-btn-primary:hover { filter: brightness(1.08); }
 .auth-btn-primary:active { transform: scale(0.985); }
 
 @utility auth-btn-secondary {
   @apply inline-flex w-full items-center justify-center gap-2 rounded-xl border px-4 py-3 text-sm font-semibold transition-colors disabled:opacity-50;
-  border-color: color-mix(in srgb, white 15%, transparent);
-  background: color-mix(in srgb, var(--graphite-canvas) 92%, transparent);
-  color: var(--graphite-text-body);
+  border-color: var(--mkt-line);
+  background: var(--mkt-canvas-alt);
+  color: var(--mkt-ink-muted);
 }
 .auth-btn-secondary:hover {
-  border-color: color-mix(in srgb, var(--graphite-primary) 40%, transparent);
-  color: var(--graphite-text-header);
+  border-color: var(--mkt-accent-line);
+  color: var(--mkt-ink);
 }
 
 @utility auth-btn-oauth {
   @apply w-full flex items-center justify-center gap-3 h-11 rounded-xl border px-4 text-sm font-medium transition-colors disabled:opacity-50;
-  border-color: color-mix(in srgb, white 7%, transparent);
-  background: color-mix(in srgb, var(--graphite-canvas) 60%, #0f172a);
-  color: var(--graphite-text-body);
+  border-color: var(--mkt-line);
+  background: var(--mkt-surface);
+  color: var(--mkt-ink-muted);
 }
 .auth-btn-oauth:hover {
-  background: color-mix(in srgb, var(--graphite-canvas) 80%, #0f172a);
-  border-color: color-mix(in srgb, var(--graphite-primary) 40%, transparent);
-  color: var(--graphite-text-header);
+  background: var(--mkt-canvas-alt);
+  border-color: var(--mkt-accent-line);
+  color: var(--mkt-ink);
 }
 
 @utility auth-link {
-  color: var(--graphite-primary);
+  color: var(--mkt-accent);
   transition: color 0.15s ease;
 }
-.auth-link:hover { color: var(--graphite-primary-hover); }
+.auth-link:hover { filter: brightness(0.85); }
 
 @utility auth-topbar-link {
   @apply text-sm transition-colors;
-  color: color-mix(in srgb, var(--graphite-muted) 85%, transparent);
+  color: var(--mkt-ink-muted);
 }
-.auth-topbar-link:hover { color: var(--graphite-text-header); }
+.auth-topbar-link:hover { color: var(--mkt-ink); }
 
 @utility auth-divider {
   @apply relative mb-6;
@@ -894,19 +894,19 @@
 
 @utility auth-divider-line {
   @apply w-full border-t;
-  border-color: color-mix(in srgb, white 7%, transparent);
+  border-color: var(--mkt-line);
 }
 
 @utility auth-divider-text {
   @apply px-3 text-xs auth-muted;
-  background: color-mix(in srgb, var(--graphite-canvas) 92%, transparent);
+  background: var(--mkt-surface);
 }
 
 @utility auth-error {
   @apply mb-4 rounded-xl border p-3 text-sm;
-  color: #FCA5A5;
-  background: rgba(127, 29, 29, 0.35);
-  border-color: rgba(239, 68, 68, 0.30);
+  color: #B42318;
+  background: #FEF3F2;
+  border-color: #FDA29B;
 }
 
 /* ── Marketing homepage scroll snap (desktop only, scoped) ───────── */
