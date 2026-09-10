@@ -66,10 +66,24 @@ Ultra Wide / Tele / 360 in one job is refused by the solve, not by policy.
 
 ## Settings, in plain terms
 
+- **Mode** = Phone capture (paste the capture ID from the twin's Saved screen), 360 camera (raw `.insv`
+  or stitched equirect), or Photos/video.
 - **Coverage** = stills per second pulled from video (2 / 1 / 0.5). Photos-only uses every file.
-- **Quality** = training steps: Preview 7k (~5 min), Standard 15k (~10 min), Final 30k (~20 min) for one room on the 3090.
-- **Output** = SPZ always (viewer format). PLY / .splat / HTML optional.
-- **Publish** = upload to R2, create a Twin share link, copy it.
+- **Quality** = training steps and resolution: Preview 7k @1280, Standard 15k @1920, Final 30k @2560 (~25 min
+  for one room on the 3090). Final is the default; it is what goes to a client.
+- **Brighten** = gamma 1.4 on extraction for dark footage (high-shutter interiors). SfM needs the contrast.
+- **Always produced** = full-detail SPZ (never thinned — the 800k thinning cost 3.9 dB on the kitchen), an 800k
+  SH0 phone SPZ, `manifest` + `walk` sidecars, and the LiDAR `geometry.glb` when the phone captured one.
+- **Publish** = upload everything beside the model in R2 and mint a share link; phone-capture jobs publish INTO
+  the phone's twin (it turns Ready on the phone).
+
+## One click, all stages (2026-09-10)
+
+`run-job.ps1` runs: pull (phone) → import → extract (ffmpeg; raw `.insv` is unwrapped with
+`v360=dfisheye→equirect`, 195° lenses, 5760×2880) → prepare → cameras → train → walk
+(`align_arkit.py` when poses exist, else `walk_from_colmap.py`) → mesh (`lidar_mesh.py`) → pack (full +
+mobile) → export → share (`ingest-splat.mjs --space … --sidecar …`). Request keys: `captureId`,
+`spaceId`, `gamma`, `mobileMax` in addition to the older ones.
 
 ## Walkthrough viewer sidecars
 
