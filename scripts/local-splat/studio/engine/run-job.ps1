@@ -411,6 +411,18 @@ if ($lidarFile) {
 # ---------------------------------------------------------------- pack (8-bit SH, SPZ v3) — full model + phone derivative
 $spzPath = Join-Path $exportJob "$sideName.spz"
 Stage "pack" "Packing for the Twin viewer"
+$glbForPrune = Join-Path $exportJob "$sideName.geometry.glb"
+if (Test-Path -LiteralPath $glbForPrune) {
+  # Floater prune by distance to the LiDAR mesh (the only rule that never ate a wall). Only
+  # the far shell goes; everything within 12 cm of the mesh is untouchable.
+  $prunedPly = Join-Path $exportJob "$sideName.pruned.ply"
+  $rc = Invoke-Wsl @($WslPython, (To-Wsl (Join-Path $here "clean_ply.py")), "--in", (To-Wsl $viewerPly), "--out", (To-Wsl $prunedPly), "--mesh", (To-Wsl $glbForPrune), "--min-opacity-hard", "0.02", "--max-scale-frac", "1000000", "--sor-k", "0", "--min-views", "0", "--report", (To-Wsl (Join-Path $JobDir "prune_report.json"))) "pack"
+  if ($rc -eq 0 -and (Test-Path -LiteralPath $prunedPly)) {
+    $prr = Get-Content -LiteralPath (Join-Path $JobDir "prune_report.json") -Raw | ConvertFrom-Json
+    Emit ("INFO mesh prune: {0:N0} -> {1:N0} splats ({2:N0} far from the LiDAR surface)" -f $prr.input, $prr.output, $prr.dropped_far_from_mesh)
+    $viewerPly = $prunedPly
+  } else { Emit "INFO warning: mesh prune failed; publishing the unpruned model" }
+}
 $rc = Invoke-Wsl @($WslPython, (To-Wsl (Join-Path $here "pack_spz.py")), "--in", (To-Wsl $viewerPly), "--out", (To-Wsl $spzPath), "--report", (To-Wsl (Join-Path $JobDir "spz_report.json"))) "pack"
 if ($rc -ne 0 -or -not (Test-Path -LiteralPath $spzPath)) { Fail "pack" "SPZ packing failed" 9 }
 $pr = Get-Content -LiteralPath (Join-Path $JobDir "spz_report.json") -Raw | ConvertFrom-Json

@@ -75,6 +75,42 @@ def load_cameras(sparse: Path):
     return cams
 
 
+def world_to_ply(points: np.ndarray, manifest: Path) -> np.ndarray:
+    """ARKit world -> aligned-PLY frame. The viewer applies p_world = s * Q * F * p_ply
+    (F = diag(1,-1,-1), Q = correction_quaternion, s = metric_scale), so the inverse is
+    p_ply = F * Q^T * p_world / s. Translation is already baked into the aligned PLY."""
+    m = json.loads(manifest.read_text())
+    q = m.get("correction_quaternion")
+    s = float(m.get("metric_scale") or 1.0)
+    if not q:
+        return points / s
+    x, y, z, w = [float(v) for v in q]
+    Rq = np.array([
+        [1 - 2 * (y * y + z * z), 2 * (x * y - z * w), 2 * (x * z + y * w)],
+        [2 * (x * y + z * w), 1 - 2 * (x * x + z * z), 2 * (y * z - x * w)],
+        [2 * (x * z - y * w), 2 * (y * z + x * w), 1 - 2 * (x * x + y * y)],
+    ])
+    F = np.diag([1.0, -1.0, -1.0])
+    return (points / s) @ (F @ Rq.T).T
+
+
+def mesh_distance(centres: np.ndarray, mesh_path: Path, samples: int = 3_000_000, manifest: Path | None = None) -> np.ndarray:
+    """Distance from each centre to the LiDAR surface, via a dense surface sample + KD-tree
+    (exact closest-point on 1.7M queries is minutes; this is seconds and ~1 cm off)."""
+    import trimesh
+
+    loaded = trimesh.load(str(mesh_path), force="mesh")
+    mesh = loaded if isinstance(loaded, trimesh.Trimesh) else trimesh.util.concatenate(tuple(loaded.geometry.values()))
+    pts, _ = trimesh.sample.sample_surface(mesh, samples)
+    pts = np.vstack([np.asarray(pts, dtype=np.float64), np.asarray(mesh.vertices, dtype=np.float64)])
+    if manifest is not None and manifest.exists():
+        pts = world_to_ply(pts, manifest)
+    if cKDTree is None:
+        raise SystemExit("clean_ply: scipy is required for --mesh")
+    d, _ = cKDTree(pts).query(centres, k=1, workers=-1)
+    return d
+
+
 def visibility_counts(centres: np.ndarray, cams, chunk: int = 200_000) -> np.ndarray:
     counts = np.zeros(len(centres), dtype=np.int32)
     for R, t, K, w, h in cams:
@@ -107,6 +143,12 @@ def main() -> int:
     ap.add_argument("--floor-margin", type=float, default=0.25, help="metres below floor to keep")
     ap.add_argument("--ceiling-clip", type=float, default=3.4, help="metres above floor; higher is deleted")
     ap.add_argument("--crop-margin", type=float, default=0.0, help="metres from the camera path (horizontal); 0 = off")
+    ap.add_argument("--mesh", default="", help="LiDAR mesh (GLB/PLY) in the SAME frame as the input PLY; enables the distance rule")
+    ap.add_argument("--mesh-far", type=float, default=0.35, help="metres from the mesh beyond which a splat is a floater")
+    ap.add_argument("--mesh-near", type=float, default=0.12, help="metres from the mesh within which a splat is never pruned")
+    ap.add_argument("--mesh-faint", type=float, default=0.08, help="between near and far: drop only if opacity is below this AND isolated")
+    ap.add_argument("--manifest", default="", help="<name>.manifest.json: maps the mesh (ARKit world) into the PLY frame via correction_quaternion + metric_scale")
+    ap.add_argument("--mesh-min-coverage", type=float, default=0.50, help="skip the far rule unless at least this fraction of splats sits on the mesh (partial LiDAR walks must not delete the rest of the room)")
     ap.add_argument("--max-out", type=int, default=0, help="thin the main output to this many splats by contribution; 0 = keep all")
     ap.add_argument("--mobile-out", default="")
     ap.add_argument("--mobile-max", type=int, default=160_000)
@@ -130,6 +172,37 @@ def main() -> int:
     m = op >= a.min_opacity_hard
     report["dropped_invisible"] = int((~m).sum())
     keep &= m
+
+    # 0. PRIMARY floater rule — distance to the LiDAR mesh. Walls sit on the mesh; the milky
+    # shell in the hallway and outside the windows does not. Every statistical rule below
+    # deleted real walls on the 2026-09-08 models because it had no such prior.
+    on_surface = np.zeros(n0, dtype=bool)
+    if a.mesh:
+        d_mesh = mesh_distance(xyz, Path(a.mesh), manifest=Path(a.manifest) if a.manifest else None)
+        on_surface = d_mesh <= a.mesh_near
+        far = d_mesh > a.mesh_far
+        coverage = float(on_surface[keep].mean()) if keep.any() else 0.0
+        report["mesh_coverage"] = round(coverage, 4)
+        if coverage < a.mesh_min_coverage:
+            # A half-room LiDAR mesh (old 500k cap) would take the other half of the kitchen with it.
+            report["mesh_rule"] = "skipped: coverage below threshold"
+            far = np.zeros(n0, dtype=bool)
+        else:
+            report["mesh_rule"] = "applied"
+        report["dropped_far_from_mesh"] = int((keep & far).sum())
+        keep &= ~far
+        if cKDTree is not None:
+            mid = keep & ~on_surface
+            idx_mid = np.flatnonzero(mid)
+            if len(idx_mid) > 25:
+                tree_all = cKDTree(xyz[keep])
+                dd, _ = tree_all.query(xyz[idx_mid], k=21, workers=-1)
+                gap = dd[:, 1:].mean(axis=1)
+                med_gap = float(np.median(gap))
+                faint_isolated = (op[idx_mid] < a.mesh_faint) & (gap > 2.5 * med_gap)
+                report["dropped_off_mesh_faint"] = int(faint_isolated.sum())
+                keep[idx_mid[faint_isolated]] = False
+        report["on_surface"] = int(on_surface.sum())
 
     # 2. giant scales relative to the room
     lo, hi = np.percentile(xyz[keep], 2, axis=0), np.percentile(xyz[keep], 98, axis=0)
@@ -183,7 +256,7 @@ def main() -> int:
         report["cameras"] = len(cams)
         if a.min_views > 0:
             counts = visibility_counts(xyz, cams)
-            m = counts >= a.min_views
+            m = (counts >= a.min_views) | on_surface
             report["dropped_visibility"] = int((keep & ~m).sum())
             keep &= m
         if a.crop_margin > 0 and a.frame:
