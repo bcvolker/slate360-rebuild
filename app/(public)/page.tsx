@@ -8,6 +8,7 @@ import { HomeHeroLight } from "@/app/(public)/_components/home-hero-light";
 import { HomeProblemLight } from "@/app/(public)/_components/home-problem-light";
 import { HomeWhatYouGetLight } from "@/app/(public)/_components/home-what-you-get-light";
 import { HomePortalLight } from "@/app/(public)/_components/home-portal-light";
+import { HomeExamplesLight } from "@/app/(public)/_components/home-examples-light";
 import { HomeHowItWorksLight } from "@/app/(public)/_components/home-how-it-works-light";
 import { HomeDifferentLight } from "@/app/(public)/_components/home-different-light";
 import { HomeWhoPricingLight } from "@/app/(public)/_components/home-who-pricing-light";
@@ -61,8 +62,7 @@ export default async function RootPage() {
           <HomeProblemLight />
           <HomeWhatYouGetLight />
           <HomePortalLight />
-          {/* Interactive examples section lands here, once a real permissioned
-              project exists — intentionally absent until then, per §3.7/§4.6. */}
+          <HomeExamplesLight />
           <HomeHowItWorksLight />
           <HomeDifferentLight />
           <HomeWhoPricingLight />

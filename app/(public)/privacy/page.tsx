@@ -18,7 +18,7 @@ const SECTIONS = [
   },
   {
     heading: "3. How We Use Your Information",
-    body: `We use your information to: (a) provide, maintain, and improve the Platform; (b) process account requests and manage Foundational Release access; (c) send transactional emails (account creation, password reset, approval notifications); (d) provide customer support; (e) generate aggregated, anonymized analytics; (f) comply with legal obligations; (g) detect and prevent fraud and abuse.`,
+    body: `We use your information to: (a) respond to site-visit requests and provide the portal for projects we're engaged on; (b) send transactional emails (portal access, project updates); (c) provide customer support; (d) generate aggregated, anonymized analytics; (e) comply with legal obligations; (f) detect and prevent fraud and abuse.`,
   },
   {
     heading: "4. AI Processing",
@@ -30,7 +30,7 @@ const SECTIONS = [
   },
   {
     heading: "6. Data Retention",
-    body: `We retain your project data for as long as your account is active or as needed to provide services. Foundational Release participants should refer to in-product notices about data retention during early access.`,
+    body: `We retain your project data for as long as needed to provide services and as agreed for your project's access term.`,
   },
   {
     heading: "7. Sharing of Information",
@@ -73,10 +73,7 @@ export default function PrivacyPage() {
             <Shield className="h-7 w-7 text-[var(--graphite-primary)]" />
           </div>
           <h1 className="text-3xl font-black text-[var(--graphite-text-header)] sm:text-4xl">Privacy Policy</h1>
-          <p className="mt-3 text-sm text-[var(--graphite-muted)]">Effective Date: January 1, 2025 · Last Updated: May 2026</p>
-          <p className="mt-4 rounded-xl border border-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_5%,transparent)] px-4 py-3 text-sm text-[var(--graphite-text-body)]">
-            Foundational Release: paid subscriptions may not be active for all accounts during early access.
-          </p>
+          <p className="mt-3 text-sm text-[var(--graphite-muted)]">Effective Date: January 1, 2025 · Last Updated: September 2026</p>
         </div>
 
         <div className="divide-y divide-white/10 rounded-2xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_76%,transparent)] backdrop-blur-md">
@@ -93,8 +90,8 @@ export default function PrivacyPage() {
             Terms of Service
           </Link>
           <span className="text-[var(--graphite-muted)]">·</span>
-          <Link href="/signup" className="text-sm font-semibold text-[var(--graphite-primary)] hover:text-[var(--graphite-text-header)]">
-            Request access
+          <Link href="/#request-a-visit" className="text-sm font-semibold text-[var(--graphite-primary)] hover:text-[var(--graphite-text-header)]">
+            Request a site visit
           </Link>
           <span className="text-[var(--graphite-muted)]">·</span>
           <Link href="/" className="text-sm font-semibold text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]">
