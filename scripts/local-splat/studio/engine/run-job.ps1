@@ -26,6 +26,9 @@ param(
   [double]$Gamma = 1.0,
   # Phone derivative: the top N splats by contribution, SH0. 0 disables.
   [int]$MobileMax = 800000,
+  # 360 walks: mask the operator (person segmentation + nadir) out of training. Proven on the X4
+  # kitchen 2026-09-10: the ghost behind every station is gone, nothing else changes.
+  [bool]$OperatorMasks = $true,
   [string]$WslDistro = "Ubuntu-22.04",
   [string]$WslPython = "/home/rian_/venvs/kitchen-apriltag/bin/python",
   [string]$BrushExe = "",
@@ -55,6 +58,7 @@ if ($RequestFile -and (Test-Path -LiteralPath $RequestFile)) {
   if ($req.spaceId) { $SpaceId = [string]$req.spaceId }
   if ($req.gamma) { $Gamma = [double]$req.gamma }
   if ($req.mobileMax -ne $null) { $MobileMax = [int]$req.mobileMax }
+  if ($req.operatorMasks -ne $null) { $OperatorMasks = [bool]$req.operatorMasks }
 }
 $env:Path = [Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [Environment]::GetEnvironmentVariable("Path", "User")
 $here = Split-Path -Parent $MyInvocation.MyCommand.Path
@@ -354,6 +358,11 @@ if (-not $SkipTo -or $SkipTo -eq "cameras") {
   if (Test-Path -LiteralPath $datasetDir) { Remove-Item -LiteralPath $datasetDir -Recurse -Force }
   $rc = Invoke-Wsl @("bash", "-c", "cp -rL '$wslJob/sfm/brush' '$(To-Wsl $datasetDir)' && cp '$wslJob/sfm/sfm_report.json' '$(To-Wsl (Join-Path $JobDir 'sfm_report.json'))'") "cameras"
   if ($rc -ne 0) { Fail "cameras" "could not copy the camera solve back" 1 }
+  if ($Mode -eq "360" -and $OperatorMasks) {
+    Emit "INFO masking the operator out of the training views"
+    $rc = Invoke-Wsl @($WslPython, (To-Wsl (Join-Path $here "operator_masks.py")), "--dataset", (To-Wsl $datasetDir), "--report", (To-Wsl (Join-Path $JobDir "masks_report.json"))) "cameras"
+    if ($rc -ne 0) { Emit "INFO warning: operator masks failed; training on the unmasked views" }
+  }
   $sr = Get-Content -LiteralPath (Join-Path $JobDir "sfm_report.json") -Raw | ConvertFrom-Json
   Result "cameras" ("{0}/{1} images registered, {2} points" -f $sr.registered_images, $sr.total_images, $sr.points3d)
   StageDone "cameras" ("{0} of {1} images placed, {2} 3D points, {3}s" -f $sr.registered_images, $sr.total_images, $sr.points3d, $sr.seconds)
