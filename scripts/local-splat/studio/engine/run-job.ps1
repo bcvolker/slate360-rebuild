@@ -15,7 +15,7 @@ param(
   [switch]$Ingest,
   [switch]$Resume,
   [ValidateSet("","cameras","train","pack")][string]$SkipTo = "",
-  [int]$FacePx = 2048,
+  [int]$FacePx = 0,          # 0 = from the panorama width: 110-degree faces at source pixels (1536..2304)
   [int]$MaxResolution = 0,   # 0 = by quality: preview 1280 / standard 1920 / final 2560 (12 MP stills deserve it)
   [int]$Faces = 4,
   # Phone capture pulled from the cloud by its capture ID (the Saved screen's "Copy capture ID").
@@ -143,6 +143,15 @@ function Find-Brush {
   if ($cmd) { return $cmd.Source }
   return $null
 }
+function Get-VideoWidth([string]$path) {
+  $probe = Get-Command ffprobe -ErrorAction SilentlyContinue
+  if (-not $probe) { return 0 }
+  $raw = & $probe.Source -v error -select_streams v:0 -show_entries stream=width -of csv=p=0 -i $path 2>$null
+  $w = 0
+  [int]::TryParse(([string]$raw).Trim().TrimEnd(','), [ref]$w) | Out-Null
+  return $w
+}
+
 function Get-VideoDuration([string]$path) {
   $probe = Get-Command ffprobe -ErrorAction SilentlyContinue
   if (-not $probe) { return 0 }
@@ -240,6 +249,9 @@ if (-not $CaptureId) {
 }
 if (Test-Path -LiteralPath (Join-Path $captureDir "lidar_poses.json")) { $posesFile = Join-Path $captureDir "lidar_poses.json" }
 if (Test-Path -LiteralPath (Join-Path $captureDir "lidar_capture.ply")) { $lidarFile = Join-Path $captureDir "lidar_capture.ply" }
+# Per-frame LiDAR depth maps (S360DEPTH1) — written by app builds from 2026-09-10 on stills walks too.
+$depthFile = $null
+if (Test-Path -LiteralPath (Join-Path $captureDir "lidar_depth.s360depth")) { $depthFile = Join-Path $captureDir "lidar_depth.s360depth" }
 $stills = @($files | Where-Object { $stillExt -contains [IO.Path]::GetExtension($_).ToLowerInvariant() })
 $videos = @($files | Where-Object { $videoExt -contains [IO.Path]::GetExtension($_).ToLowerInvariant() })
 $raw360 = @($files | Where-Object { @(".insv", ".insp") -contains [IO.Path]::GetExtension($_).ToLowerInvariant() })
@@ -298,8 +310,13 @@ if (-not $SkipTo) {
       $dur = Get-VideoDuration $v
       $expected = [int][Math]::Max(1, [Math]::Round($dur * $Fps))
       $pattern = Join-Path $imgDir ("erp{0}_%05d.jpg" -f $vi)
-      Emit ("INFO {0}: raw 360, {1}s at {2} stills/s -> ~{3} equirect stills (5760x2880)" -f [IO.Path]::GetFileName($v), [int]$dur, $Fps, $expected)
-      $graph = "[0:v:0][0:v:1]hstack[df];[df]v360=input=dfisheye:ih_fov=195:iv_fov=195:output=e:w=5760:h=2880" + $gammaFilter + ",fps=$Fps[o]"
+      # Unwrap at the lens's own size (X4 8K: 2 x 3840 -> 7680x3840). The old fixed 5760x2880
+      # threw away a quarter of the pixels before the faces were even cut.
+      $lensW = Get-VideoWidth $v
+      if ($lensW -le 0) { $lensW = 3840 }
+      $erpW = 2 * $lensW; $erpH = $lensW
+      Emit ("INFO {0}: raw 360, {1}s at {2} stills/s -> ~{3} equirect stills ({4}x{5})" -f [IO.Path]::GetFileName($v), [int]$dur, $Fps, $expected, $erpW, $erpH)
+      $graph = "[0:v:0][0:v:1]hstack[df];[df]v360=input=dfisheye:ih_fov=195:iv_fov=195:output=e:w=${erpW}:h=${erpH}" + $gammaFilter + ",fps=$Fps[o]"
       $ffArgs = @("-y", "-hide_banner", "-loglevel", "error", "-nostats", "-progress", "pipe:1", "-i", $v, "-filter_complex", $graph, "-map", "[o]", "-q:v", "2", $pattern)
       if ((Run-Ffmpeg $ff.Source $ffArgs $expected "extract" $Fps) -ne 0) { Fail "extract" "ffmpeg could not unwrap $v (is it a dual-lens .insv?)" 1 }
     }
@@ -323,6 +340,14 @@ if (-not $SkipTo) {
 $datasetDir = Join-Path $JobDir "dataset"
 if (-not $SkipTo -or $SkipTo -eq "cameras") {
   Stage "cameras" "Solving camera positions"
+  if ($Mode -eq "360" -and $FacePx -le 0) {
+    # A 110-degree face of a W-px panorama holds W*110/360 source pixels; cut the faces at that size
+    # (8K: 2347 -> 2304) instead of a fixed 2048 so the training never sees fewer pixels than the camera shot.
+    $first = @(Get-ChildItem -LiteralPath $imgDir -File | Select-Object -First 1)
+    $erpW = $(if ($first.Count) { Get-VideoWidth $first[0].FullName } else { 0 })
+    $FacePx = $(if ($erpW -gt 0) { [int][Math]::Min(2304, [Math]::Max(1536, [Math]::Round($erpW * 110.0 / 360.0))) } else { 2048 })
+    Emit ("INFO 360 faces at {0} px from {1}-px panoramas" -f $FacePx, $erpW)
+  } elseif ($FacePx -le 0) { $FacePx = 2048 }
   $sfmArgs = @($WslPython, (To-Wsl (Join-Path $here "sfm.py")), "--mode", $Mode, "--images", "$wslJob/images", "--out", "$wslJob/sfm", "--face-px", "$FacePx", "--faces", "$Faces")
   $rc = Invoke-Wsl $sfmArgs "cameras"
   if ($rc -ne 0) { Fail "cameras" "Camera solve failed (code $rc). Usually: too little overlap, or the walk is too fast." 6 }
@@ -401,12 +426,21 @@ if ($posesFile) {
 foreach ($suffix in @("manifest.json", "walk.json")) { $f = Join-Path $exportJob "$sideName.$suffix"; if (Test-Path -LiteralPath $f) { $sidecars += $f } }
 
 Stage "mesh" "Meshing the LiDAR"
-if ($lidarFile) {
-  $glb = Join-Path $exportJob "$sideName.geometry.glb"
+$glb = Join-Path $exportJob "$sideName.geometry.glb"
+$meshDone = $false
+if ($depthFile -and $posesFile) {
+  # Per-frame depth + poses -> TSDF: flat walls where the LiDAR saw them, honest holes where it
+  # did not. Poisson on the voxel cloud (below) is the fallback and the path for older captures.
+  $rc = Invoke-Wsl @($WslPython, (To-Wsl (Join-Path $here "tsdf_mesh.py")), "--depth", (To-Wsl $depthFile), "--poses", (To-Wsl $posesFile), "--out", (To-Wsl $glb), "--report", (To-Wsl (Join-Path $JobDir "mesh_report.json"))) "mesh"
+  if ($rc -eq 0 -and (Test-Path -LiteralPath $glb)) { $meshDone = $true; $sidecars += $glb; Result "mesh" $glb; StageDone "mesh" ("TSDF from the depth stream: " + [IO.Path]::GetFileName($glb)) }
+  else { Emit "INFO warning: TSDF mesh failed; falling back to the point-cloud mesh" }
+}
+if (-not $meshDone -and $lidarFile) {
   $rc = Invoke-Wsl @($WslPython, (To-Wsl (Join-Path $here "lidar_mesh.py")), "--in", (To-Wsl $lidarFile), "--out", (To-Wsl $glb), "--report", (To-Wsl (Join-Path $JobDir "mesh_report.json"))) "mesh"
-  if ($rc -eq 0 -and (Test-Path -LiteralPath $glb)) { $sidecars += $glb; Result "mesh" $glb; StageDone "mesh" ([IO.Path]::GetFileName($glb)) }
+  if ($rc -eq 0 -and (Test-Path -LiteralPath $glb)) { $meshDone = $true; $sidecars += $glb; Result "mesh" $glb; StageDone "mesh" ([IO.Path]::GetFileName($glb)) }
   else { Emit "INFO warning: LiDAR mesh failed; measuring will be unavailable on this twin"; StageDone "mesh" "skipped (mesh failed)" }
-} else { StageDone "mesh" "no LiDAR in this capture" }
+}
+if (-not $meshDone -and -not $lidarFile) { StageDone "mesh" $(if ($depthFile) { "skipped (mesh failed)" } else { "no LiDAR in this capture" }) }
 
 # ---------------------------------------------------------------- pack (8-bit SH, SPZ v3) — full model + phone derivative
 $spzPath = Join-Path $exportJob "$sideName.spz"
