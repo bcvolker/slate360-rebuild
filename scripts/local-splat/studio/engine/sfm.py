@@ -106,8 +106,13 @@ def pinhole_camera(face_px: int, fov_deg: float = FOV_DEG) -> pycolmap.Camera:
     return pycolmap.Camera(model="PINHOLE", width=face_px, height=face_px, params=[fx, fx, cx, cx])
 
 
-def run_matching(db: Path, n_images: int, matching: pycolmap.FeatureMatchingOptions) -> None:
-    if n_images <= 120:
+def run_matching(db: Path, n_images: int, matching: pycolmap.FeatureMatchingOptions, mode: str = "auto") -> None:
+    # "auto" assumes filename order tracks capture order (true for our own video-frame
+    # extraction). A drone mapping export (or any dataset renamed/shuffled by a third-party
+    # tool) breaks that assumption, so callers with non-sequential filenames must pass
+    # mode="exhaustive" explicitly rather than silently getting garbage pairs.
+    use_exhaustive = mode == "exhaustive" or (mode == "auto" and n_images <= 120)
+    if use_exhaustive:
         log("STAGE match exhaustive")
         pycolmap.match_exhaustive(db, matching_options=matching)
     else:
@@ -168,6 +173,9 @@ def main() -> int:
     p.add_argument("--faces", type=int, default=4, choices=[4, 5])
     p.add_argument("--max-image-size", type=int, default=2400)
     p.add_argument("--threads", type=int, default=-1)
+    p.add_argument("--matching", choices=["auto", "exhaustive", "sequential"], default="auto",
+                    help="auto assumes filenames track capture order; a shuffled/renamed image set (e.g. a "
+                         "third-party drone export) needs --matching exhaustive")
     a = p.parse_args()
 
     images_dir = Path(a.images)
@@ -200,7 +208,7 @@ def main() -> int:
         log("STAGE features")
         pycolmap.extract_features(db, images_dir, camera_mode=pycolmap.CameraMode.SINGLE,
                                  reader_options=reader, extraction_options=sift)
-        run_matching(db, len(imgs), matching)
+        run_matching(db, len(imgs), matching, a.matching)
         image_root = images_dir
     else:
         erps = list_images(images_dir)
@@ -239,7 +247,7 @@ def main() -> int:
         database = pycolmap.Database.open(str(db))
         pycolmap.apply_rig_config([rig], database)
         database.close()
-        run_matching(db, len(erps), matching)
+        run_matching(db, len(erps), matching, a.matching)
         image_root = face_root
 
     log("STAGE mapping")
