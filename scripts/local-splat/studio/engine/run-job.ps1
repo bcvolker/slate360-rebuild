@@ -433,6 +433,21 @@ if ($posesFile) {
   StageDone "walk" "stations from the camera path"
 }
 foreach ($suffix in @("manifest.json", "walk.json")) { $f = Join-Path $exportJob "$sideName.$suffix"; if (Test-Path -LiteralPath $f) { $sidecars += $f } }
+# Fold the probe's real GPS/capture-time findings (if any) into the manifest so a client
+# deliverable can show where and when the twin was shot, without touching the geometry.
+$manifestFile = Join-Path $exportJob "$sideName.manifest.json"
+$probeFile = Join-Path $JobDir "probe.json"
+if ((Test-Path -LiteralPath $manifestFile) -and (Test-Path -LiteralPath $probeFile)) {
+  try {
+    $probeGeo = (Get-Content -LiteralPath $probeFile -Raw | ConvertFrom-Json).summary.geo
+    if ($probeGeo -and $probeGeo.anchor) {
+      $manifestObj = Get-Content -LiteralPath $manifestFile -Raw | ConvertFrom-Json
+      $manifestObj | Add-Member -NotePropertyName "geo" -NotePropertyValue $probeGeo -Force
+      ($manifestObj | ConvertTo-Json -Depth 8) | Set-Content -LiteralPath $manifestFile -Encoding UTF8
+      Emit ("INFO stamped manifest with GPS anchor {0:N5}, {1:N5}" -f [double]$probeGeo.anchor.lat, [double]$probeGeo.anchor.lon)
+    }
+  } catch { Emit "INFO could not stamp GPS metadata (non-fatal): $_" }
+}
 
 Stage "mesh" "Meshing the LiDAR"
 $glb = Join-Path $exportJob "$sideName.geometry.glb"

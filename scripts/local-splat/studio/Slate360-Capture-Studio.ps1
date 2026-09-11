@@ -339,7 +339,11 @@ function Show-Probe($p) {
   if ($c.raw360 -gt 0) { Row "Raw .insv" ("{0} files" -f $c.raw360) "Unwrapped here (no Studio needed)" }
   if ($s.has_arkit_poses) { Row "iPhone LiDAR / ARKit" "depth + poses" "Metric frame + mesh" }
   if ($c.lidar -gt 0) { Row "Point cloud" ("{0} files" -f $c.lidar) "Mesh (geometry)" }
-  if ($s.has_gps) { Row "GPS" "in photo/video metadata" "Stored; not used in the solve" }
+  if ($s.geo -and $s.geo.anchor) {
+    $g = $s.geo
+    $when = if ($g.capture_start) { $(if ($g.capture_start -eq $g.capture_end) { $g.capture_start } else { "$($g.capture_start) - $($g.capture_end)" }) } else { "" }
+    Row "GPS" ("{0:N6}, {1:N6}" -f [double]$g.anchor.lat, [double]$g.anchor.lon) $(if ($when) { "Captured $when" } else { "Kept with the export; not used in the solve" })
+  } elseif ($s.has_gps) { Row "GPS" "in photo/video metadata" "Stored; not used in the solve" }
   if ($s.has_gnss_log) { Row "RTK / GNSS log" ("{0} files" -f $c.gnss) "Stored; georeference later" }
   if ($c.logs -gt 0) { Row "Flight / sensor logs" ("{0} files" -f $c.logs) "Stored" }
   $cams = @($s.cameras); $camText = if ($cams.Count -gt 0) { "Camera: " + ($cams -join ", ") + ". " } else { "" }
