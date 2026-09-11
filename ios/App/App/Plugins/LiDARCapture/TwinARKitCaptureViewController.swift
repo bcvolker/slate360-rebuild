@@ -1051,6 +1051,9 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
         // (2026-09-08 kitchen walk). Only the video writer is clip-only.
         let stillsWalk = captureMode == .photos && photoAutoActive
         guard isRecording || stillsWalk else { return }
+        // A stills walk never starts the video writer, so open the depth stream here once
+        // the session clock exists (the first photo sets it).
+        if stillsWalk, hasSessionStart, depthEvidenceHandle == nil { openDepthEvidenceIfNeeded() }
 
         let arkitTs = frame.timestamp
         // Clip-relative time; a stills walk has no clip, so its keyframes carry 0.
@@ -1342,10 +1345,30 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
 
     // MARK: Writer
 
+    /// Opens the S360DEPTH1 evidence stream once per session. Called from the video writer
+    /// AND from the stills walk: a photo walk has no clip, so until 2026-09-10 its 800+
+    /// keyframes carried per-frame depth that was never written (depthEvidenceFrameCount 0
+    /// on every stills capture). That stream is what the desktop TSDF mesher fuses.
+    private func openDepthEvidenceIfNeeded() {
+        guard depthEvidenceHandle == nil else { return }
+        let evidenceURL = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent("\(sessionId)_depth.s360depth")
+        try? FileManager.default.removeItem(at: evidenceURL)
+        FileManager.default.createFile(atPath: evidenceURL.path, contents: nil)
+        depthEvidenceURL = evidenceURL
+        depthEvidenceHandle = try? FileHandle(forWritingTo: evidenceURL)
+        depthEvidenceHandle?.write(Data("S360DEPTH1".utf8))
+    }
+
     private func appendDepthEvidence(_ frame: DepthEvidenceFrame) {
         guard let handle = depthEvidenceHandle else { return }
+        // RGB is stored at the depth grid's size (256x192), not the 1920x1440 camera frame:
+        // the TSDF only ever samples colour per depth pixel, and full frames would have made
+        // an 800-keyframe walk a 400 MB upload for nothing.
+        let source = CIImage(cvPixelBuffer: frame.rgbPixelBuffer)
+        let rgbScale = CGFloat(frame.width) / max(source.extent.width, 1)
         let rgbData = ciContext.jpegRepresentation(
-            of: CIImage(cvPixelBuffer: frame.rgbPixelBuffer),
+            of: source.transformed(by: CGAffineTransform(scaleX: rgbScale, y: rgbScale)),
             colorSpace: CGColorSpaceCreateDeviceRGB(),
             options: [:]
         ) ?? Data()
@@ -1399,15 +1422,7 @@ final class TwinARKitCaptureViewController: UIViewController, ARSessionDelegate,
             .appendingPathComponent("\(sid)_clip\(clipSequence).mp4")
         try? FileManager.default.removeItem(at: url)
         videoURL = url
-        if depthEvidenceHandle == nil {
-            let evidenceURL = URL(fileURLWithPath: NSTemporaryDirectory())
-                .appendingPathComponent("\(sid)_depth.s360depth")
-            try? FileManager.default.removeItem(at: evidenceURL)
-            FileManager.default.createFile(atPath: evidenceURL.path, contents: nil)
-            depthEvidenceURL = evidenceURL
-            depthEvidenceHandle = try? FileHandle(forWritingTo: evidenceURL)
-            depthEvidenceHandle?.write(Data("S360DEPTH1".utf8))
-        }
+        openDepthEvidenceIfNeeded()
 
         guard let w = try? AVAssetWriter(outputURL: url, fileType: .mp4) else {
             fail("Could not create video writer"); return
