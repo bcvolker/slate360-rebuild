@@ -1,7 +1,7 @@
 """Splat Lab pipeline orchestrator.
 
 Runs stages in order and emits one JSON progress record per line to stdout
-(mirrors AirVis `AIRVIS_STATUS|...` telemetry, but as JSON for easy parsing):
+(JSON for easy parsing):
     {"stage":"frames","status":"running","progress":0.5,"detail":"..."}
     {"stage":"frames","status":"done","progress":1.0,"elapsed_s":12.3}
     {"stage":"sfm","status":"failed","error":"nerfstudio not installed ..."}
@@ -67,23 +67,25 @@ def run(cfg: SplatLabConfig) -> dict:
     if results[-1].status == "failed":
         return _finalize(cfg, results, status="failed")
 
-    # Stage 2: SfM (stub until nerfstudio installed)
+    # Stage 2: People masking (optional — runs BEFORE SfM so people don't
+    # create spurious points). Skipped if remove_people is off or deps missing.
+    results.append(_timed("mask", mask_stage.run, ctx, cfg))
+    if results[-1].status == "failed":
+        return _finalize(cfg, results, status="failed")
+
+    # Stage 3: SfM (COLMAP via ns-process-data; 360 -> 6 cube faces first)
     results.append(_timed("sfm", sfm_stage.run, ctx, cfg))
     if results[-1].status == "failed":
         return _finalize(cfg, results, status="failed")
     if results[-1].status == "blocked":
         return _finalize(cfg, results, status="blocked")
 
-    # Stage 3: People masking (stub until onnxruntime + RTMDet model present)
-    results.append(_timed("mask", mask_stage.run, ctx, cfg))
-    # mask is optional — continue even if skipped/blocked
-
-    # Stage 4: Train (stub until nerfstudio installed)
+    # Stage 4: Train (ns-train splatfacto)
     results.append(_timed("train", train_stage.run, ctx, cfg))
     if results[-1].status in ("failed", "blocked"):
         return _finalize(cfg, results, status=results[-1].status)
 
-    # Stage 5: Export + convert (stub until ns-export + splat-transform present)
+    # Stage 5: Export + convert (ns-export -> .ply, splat-transform -> .spz)
     results.append(_timed("export", export_stage.run, ctx, cfg))
     if results[-1].status in ("failed", "blocked"):
         return _finalize(cfg, results, status=results[-1].status)

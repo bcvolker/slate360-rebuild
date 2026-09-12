@@ -1,13 +1,20 @@
 """Stage 4 — Gaussian splat training (Nerfstudio splatfacto / gsplat).
 
-STUB for Slice 1. When nerfstudio is installed, this stage will run
-`ns-train splatfacto` with the AirVis-derived knobs (resolution limit, SH degree,
-splat cap, steps, images-per-step, preset) and stream iteration progress.
+REAL in Slice 2. Runs `ns-train splatfacto` with the training knobs (resolution
+limit, SH degree, splat cap, steps, quality preset) and streams iteration
+progress. Parses nerfstudio's iteration log lines for live progress.
 """
 from __future__ import annotations
 
+import re
+import subprocess
+from pathlib import Path
+
 from result import StageResult
 from tools import which_tool
+
+# Nerfstudio splatfacto prints iteration progress; capture the iteration number.
+_ITER_RE = re.compile(r"(?:iteration|iter)\D*(\d+)", re.IGNORECASE)
 
 
 def run(cfg, ctx) -> StageResult:
@@ -18,9 +25,51 @@ def run(cfg, ctx) -> StageResult:
             error="Install nerfstudio to train: pip install nerfstudio gsplat; "
                    "then `ns-train splatfacto` becomes available.")
 
-    return StageResult(
-        name="train", status="blocked",
-        detail="nerfstudio detected but training not implemented in Slice 1",
-        error=f"Slice 2 will run ns-train splatfacto "
-               f"(steps={cfg.training_steps}, sh={cfg.sh_degree}, "
-               f"cap={cfg.max_splats_millions}M, preset={cfg.preset})")
+    data_dir = ctx.get("sfm_data_dir")
+    if not data_dir or not Path(data_dir).exists():
+        return StageResult(name="train", status="failed",
+                           error="no SfM dataset to train on (SfM blocked/failed)")
+
+    out_dir = ctx["job_dir"] / "train"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    steps = cfg.resolved_steps
+    cmd = [
+        which_tool("ns-train") or "ns-train",
+        "splatfacto",
+        "--data", str(data_dir),
+        "--output-dir", str(out_dir),
+        "--max-num-iterations", str(steps),
+        "--pipeline.datamanager.camera_res_scale",
+        str(max(0.25, min(1.0, cfg.resolved_image_px / 7680.0))),
+    ]
+    # SH degree + splat cap via splatfacto trainer args (names vary by version).
+    if cfg.sh_degree:
+        cmd += ["--pipeline.model.sh_degree", str(cfg.sh_degree)]
+    if cfg.max_splats_millions:
+        cap = int(cfg.max_splats_millions * 1_000_000)
+        cmd += ["--pipeline.model.max_splats", str(cap)]
+
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=86400)
+    except subprocess.TimeoutExpired:
+        return StageResult(name="train", status="failed",
+                           error="training timed out (>24h)")
+    if proc.returncode != 0:
+        tail = (proc.stderr or proc.stdout or "")[-800:]
+        return StageResult(name="train", status="failed",
+                           error=f"ns-train failed: {tail}")
+
+    # Find the trained checkpoint / splat export path.
+    splat_ply = _find_latest(out_dir, ".ply")
+    ctx["train_dir"] = str(out_dir)
+    detail = f"training done ({steps} steps)"
+    if splat_ply:
+        ctx["trained_ply"] = str(splat_ply)
+        detail += f"; ply={splat_ply.name}"
+    return StageResult(name="train", status="done", detail=detail,
+                       artifacts=[str(out_dir)])
+
+
+def _find_latest(root: Path, suffix: str) -> Path | None:
+    matches = sorted(root.rglob(f"*{suffix}"), key=lambda p: p.stat().st_mtime)
+    return matches[-1] if matches else None

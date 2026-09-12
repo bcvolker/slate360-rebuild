@@ -19,13 +19,18 @@ export async function POST(req: Request) {
   const opts: RunOptions = {
     input,
     is360: Boolean(body.is360),
-    fps: Number(body.fps ?? 2),
+    fps: Number(body.fps ?? 4),
     removePeople: Boolean(body.removePeople),
+    sfmMode: String(body.sfmMode ?? "faster"),
+    imageSize: String(body.imageSize ?? "auto"),
+    maxDuration: Number(body.maxDuration ?? 0),
+    precompute360Faces: body.precompute360Faces !== false,
     resolutionLimit: Number(body.resolutionLimit ?? 1920),
     shDegree: Number(body.shDegree ?? 1),
     maxSplatsMillions: Number(body.maxSplatsMillions ?? 1.5),
-    trainingSteps: Number(body.trainingSteps ?? 7000),
+    trainingSteps: Number(body.trainingSteps ?? 30_000),
     preset: String(body.preset ?? "classic"),
+    quality: String(body.quality ?? "auto"),
   };
   if (!Number.isFinite(opts.fps) || opts.fps <= 0) {
     return NextResponse.json({ error: "fps must be > 0" }, { status: 400 });

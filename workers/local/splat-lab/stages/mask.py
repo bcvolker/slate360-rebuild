@@ -2,8 +2,8 @@
 
 STUB for Slice 1. When onnxruntime + the RTMDet model are present, this stage
 will run instance segmentation on each frame and write black-background masks
-for people (the "Remove People" AirVis feature). The model is already copied at
-Desktop/AirVis-Study/third_party/models/rtmdet-ins-s-640.onnx for reuse.
+for people (the "Remove People" feature). Place the RTMDet-Ins-S ONNX model at
+workers/local/splat-lab/models/rtmdet-ins-s-640.onnx.
 """
 from __future__ import annotations
 

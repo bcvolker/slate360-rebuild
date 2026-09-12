@@ -63,8 +63,10 @@ def _from_video(src: Path, images_dir: Path, cfg) -> StageResult:
         "ffmpeg", "-y", "-i", str(src),
         "-vf", f"fps={cfg.fps}",
         "-q:v", "2",
-        pattern,
     ]
+    if cfg.max_duration and cfg.max_duration > 0:
+        cmd += ["-t", str(cfg.max_duration)]
+    cmd.append(pattern)
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=3600)
     except subprocess.TimeoutExpired:

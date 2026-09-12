@@ -39,6 +39,9 @@ const WSL_PYTHON =
   process.env.SPLAT_LAB_PYTHON ||
   "/home/rian_/slate360-engines/nerfstudio/.venv/bin/python";
 const WSL_REPO = process.env.SPLAT_LAB_WSL_REPO || "/mnt/c/s360";
+const WSL_COLMAP_BIN =
+  process.env.SPLAT_LAB_COLMAP_BIN ||
+  "/home/rian_/slate360-engines/colmap-4.1.0/bin";
 
 export function isSplatLabEnabled(): boolean {
   return process.env.SLATE360_SPLAT_LAB === "1" || process.env.NODE_ENV === "development";
@@ -76,11 +79,16 @@ export type RunOptions = {
   is360: boolean;
   fps: number;
   removePeople: boolean;
+  sfmMode: string;
+  imageSize: string;
+  maxDuration: number;
+  precompute360Faces: boolean;
   resolutionLimit: number;
   shDegree: number;
   maxSplatsMillions: number;
   trainingSteps: number;
   preset: string;
+  quality: string;
 };
 
 export function startJob(opts: RunOptions): string {
@@ -106,6 +114,7 @@ function spawnRunner(id: string, jobDir: string, opts: RunOptions): void {
   const wslJobDir = toWslPath(jobDir);
   const script = [
     `cd ${WSL_REPO}`,
+    `export PATH=${WSL_COLMAP_BIN}:$PATH`,
     `${WSL_PYTHON} workers/local/splat-lab/run.py`,
     `--input ${JSON.stringify(wslInput)}`,
     `--output ${JSON.stringify(wslOutput)}`,
@@ -113,11 +122,16 @@ function spawnRunner(id: string, jobDir: string, opts: RunOptions): void {
     opts.is360 ? "--is360" : "",
     opts.removePeople ? "--remove-people" : "",
     `--fps ${opts.fps}`,
+    `--sfm-mode ${opts.sfmMode}`,
+    `--image-size ${opts.imageSize}`,
+    `--max-duration ${opts.maxDuration}`,
+    opts.precompute360Faces ? "--precompute-360-faces" : "--no-precompute-360-faces",
     `--resolution-limit ${opts.resolutionLimit}`,
     `--sh-degree ${opts.shDegree}`,
     `--max-splats-millions ${opts.maxSplatsMillions}`,
     `--training-steps ${opts.trainingSteps}`,
     `--preset ${opts.preset}`,
+    `--quality ${opts.quality}`,
   ].filter(Boolean).join(" ");
 
   const proc = spawn("wsl.exe", ["bash", "-lc", `PYTHONIOENCODING=utf-8 ${script}`], {

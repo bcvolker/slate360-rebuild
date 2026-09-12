@@ -1,10 +1,9 @@
 # Slate360 Splat Lab — local Gaussian-splat pipeline runner
 
-A local-first reimplementation of the AirVis Studio Gaussian-splat pipeline,
-built from the same open-source components AirVis uses (COLMAP via Nerfstudio,
-gsplat, PlayCanvas splat-transform, RTMDet-Ins-S for people masking). This is a
-**desktop quality-evaluation tool** for the CEO — it is not shipped to mobile
-users and is gated to local/development use only.
+A local-first Gaussian-splat pipeline for Slate360, built from open-source
+components (COLMAP via Nerfstudio, gsplat, PlayCanvas splat-transform, RTMDet-Ins-S
+for people masking). This is a **desktop quality-evaluation tool** for the CEO —
+it is not shipped to mobile users and is gated to local/development use only.
 
 ## Pipeline
 
@@ -28,17 +27,12 @@ Each stage emits one JSON progress record per line to stdout:
 ## Quick start (Slice 1 — frames only)
 
 ```powershell
-# 1. ffmpeg must be on PATH
-ffmpeg -version
-
-# 2. Run on a 360 video
+# 1. ffmpeg must be on PATH (inside WSL it is at /usr/bin/ffmpeg)
+# 2. Run on a 360 video (the web UI at /splat-lab does this for you)
 python workers/local/splat-lab/run.py `
-  --input "C:\Users\Brian PC\Desktop\Kitchen-AirVis-Test\highpass.mp4" `
-  --output ./tmp/splat-lab-test `
+  --input "<video.mp4 or image folder>" `
+  --output ./tmp/splat-lab `
   --is360 --fps 2
-
-# 3. You should see frames extracted, then a `blocked` record for SfM
-#    telling you to install nerfstudio.
 ```
 
 ## Install nerfstudio (unlocks SfM + training)
@@ -51,27 +45,45 @@ ns-train splatfacto --help
 ns-export gaussian-splat --help
 ```
 
-## People masking (the AirVis "Remove People" feature)
+## COLMAP compatibility note (Slice 2)
 
-The RTMDet-Ins-S ONNX model used by AirVis is copied to:
-`Desktop/AirVis-Study/third_party/models/rtmdet-ins-s-640.onnx`
+The local WSL env has COLMAP 4.1.0 (with CUDA) at
+`/home/rian_/slate360-engines/colmap-4.1.0/bin/colmap`, but nerfstudio 1.1.5
+passes the old option name `--SiftExtraction.use_gpu`, which COLMAP 4.x renamed
+to `--FeatureExtraction.use_gpu`. This causes `ns-process-data` to fail at the
+feature-extraction step.
 
-Slice 2 will load it via `onnxruntime-gpu` and mask people before SfM. For now
-the mask stage reports `blocked` with install instructions.
+Fix options (pick one — this is the next thing to solve for a fully-running
+local pipeline):
+1. Install a COLMAP 3.x build (compatible with nerfstudio 1.1.5's option names).
+2. Upgrade nerfstudio to a version that supports COLMAP 4.x option names.
+3. Patch nerfstudio's `process_data_utils.py` colmap command builder to use the
+   new `--FeatureExtraction.*` names.
 
-## Knobs (AirVis-derived field names)
+The job-store already adds the colmap bin to PATH (`SPLAT_LAB_COLMAP_BIN` env)
+so once the version mismatch is resolved, SfM runs end-to-end. The cloud
+Modal worker uses its own pinned COLMAP and does not hit this.
+
+## People masking (the "Remove People" feature)
+
+Uses the RTMDet-Ins-S instance-segmentation model. Place it at:
+`workers/local/splat-lab/models/rtmdet-ins-s-640.onnx`
+
+Slice 2 loads it via `onnxruntime-gpu` and masks people before SfM.
+
+## Knobs (recommended defaults)
 
 | flag | default | notes |
 |---|---|---|
 | `--fps` | 2.0 | frame extraction rate |
 | `--is360` | off | equirectangular 360 video |
 | `--remove-people` | off | RTMDet people masking |
-| `--resolution-limit` | 1.0 | image resolution scale limit |
-| `--sh-degree` | 2 | spherical harmonics degree (0-3) |
-| `--max-splats-millions` | 3.0 | splat cap |
-| `--training-steps` | 30000 | training iterations |
-| `--images-per-step` | auto | `clamp(ceil(cams/5000),1,64)` |
-| `--preset` | classic | classic/lite/object/safe/conservative |
+| `--resolution-limit` | 1920 | image resolution limit in px |
+| `--sh-degree` | 1 | spherical harmonics degree (0-3) |
+| `--max-splats-millions` | 1.5 | splat cap |
+| `--training-steps` | 7000 | training iterations |
+| `--images-per-step` | 0 | 0 = auto: clamp(ceil(cameras/5000),1,64) |
+| `--preset` | classic | classic/lite/object/safe |
 
 ## Web UI
 
