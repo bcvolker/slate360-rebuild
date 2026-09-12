@@ -91,6 +91,21 @@ clip. The `strategy: "mcmc"` UI option exists in the Lab clone's knobs but the P
 runs the default nerfstudio trainer regardless of that setting; wiring the actual gsplat trainer is
 the next slice.
 
+**Correction found running a real full-scale training job (2026-09-12, superseding §2's "1280 px =
+64 GB (fits)" claim and §3.7/§4.3's "< 100 GB" language):** that estimate counted only raw pixel
+bytes. A real 272-panorama/1280px run (4,352 views) measured a raw estimate of 21.4 GB actually
+using **~61 GB RSS** — roughly 3x, from PyTorch/nerfstudio's own overhead (mask cache, prefetch
+buffers, tensor copies). Combined with WSL2's own default memory ceiling (~50% of host RAM — ~62 GB
+on this 127 GB machine, not the 128 GB the original estimate assumed), this pushed WSL2 into heavy
+swapping (15 of 16 GB swap used) and cratered training from ~6 it/s to under 2 it/s. Two fixes,
+commit `416d7ddf`: `RAM_OVERHEAD_FACTOR = 3.0` now folds into `ramEstimateBytes`/`ram_estimate_bytes`,
+budget lowered to a 75 GB target; and `C:\Users\Brian PC\.wslconfig` (machine-level, not in this
+repo) now sets `memory=100GB` so WSL2 can use the host's real RAM. One consequence: **Proven's
+stated 1280px default does not actually fit the full 13,040-view kitchen capture** even with the
+raised ceiling (13,040 × 1280² × 3 B × 3 ≈ 179 GB) — a capture this large needs a smaller Image size
+or a representative subset of panoramas; §7's acceptance criteria and the Proven-defaults table
+should be read with this correction, not the original numbers.
+
 ---
 
 ## 0. Rules (read before touching anything)
