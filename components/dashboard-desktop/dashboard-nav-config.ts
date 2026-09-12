@@ -83,6 +83,13 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     ceoOnly: true,
   },
   {
+    label: "Splat Lab",
+    href: "/splat-lab",
+    icon: FlaskConical,
+    matchPrefixes: ["/splat-lab"],
+    ceoOnly: true,
+  },
+  {
     // Parallel rebuild (see docs/design/THERMAL_V2_BUILD_LOG.md) — real
     // authenticated sessions via /thermal-studio-v2, the actual UI swap (S9)
     // is explicitly held pending review, so this stays a SEPARATE nav entry
