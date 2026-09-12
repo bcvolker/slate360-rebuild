@@ -45,6 +45,8 @@ async function runChecks(): Promise<DoctorReport> {
                  detail: lines.COLMAP_EQUIRECT ?? "unknown" });
     checks.push({ name: "vocab-tree", ok: lines.VOCAB_TREE === "yes",
                  detail: lines.VOCAB_TREE === "yes" ? "present" : "missing — run scripts/splat-lab/fetch-vocab-tree.sh" });
+    checks.push({ name: "npx (splat compression)", ok: Boolean(lines.NPX?.startsWith("yes")),
+                 detail: lines.NPX ?? "unknown — run scripts/splat-lab/install-node.sh" });
     checks.push({ name: "python-deps", ok: lines.PY_DEPS === "ok", detail: lines.PY_DEPS ?? "unknown" });
     checks.push({ name: "cuda", ok: lines.CUDA === "yes", detail: lines.CUDA ?? "unknown" });
   } catch (err) {

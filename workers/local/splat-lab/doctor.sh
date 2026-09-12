@@ -34,6 +34,16 @@ else
 fi
 if [ -s "$vocab" ]; then echo "VOCAB_TREE=yes"; else echo "VOCAB_TREE=no"; fi
 
+# Node/npx is what stages/export.py needs for `npx @playcanvas/splat-transform`
+# (PLY -> compact .spz/.sog). Root-caused 2026-09-12: this was missing from
+# the pipeline's PATH entirely, so every export silently served the raw,
+# uncompressed .ply. Now installed user-local (scripts/splat-lab/install-node.sh).
+if command -v npx >/dev/null 2>&1; then
+  echo "NPX=yes ($(node --version 2>/dev/null))"
+else
+  echo "NPX=no"
+fi
+
 "$py" -c "
 mods = ['py360convert', 'numpy', 'PIL', 'onnxruntime', 'gsplat', 'nerfstudio', 'tensorboard']
 missing = []

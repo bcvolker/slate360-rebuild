@@ -19,9 +19,17 @@ export const WSL_COLMAP_ROOT =
 export const WSL_VOCAB_TREE =
   process.env.SPLAT_LAB_VOCAB_TREE ||
   `${WSL_COLMAP_ROOT}/vocab_tree_faiss_flickr100K_words32K.bin`;
+// User-local Node.js (no sudo needed — installed by scripts/splat-lab/install-node.sh).
+// Root-caused 2026-09-12: the sanitized WSL PATH never included any Node.js,
+// so `shutil.which("npx")` in stages/export.py always returned None and
+// every export silently fell back to the raw, uncompressed .ply instead of
+// running `npx @playcanvas/splat-transform` for a much smaller .spz/.sog.
+export const WSL_NODE_BIN =
+  process.env.SPLAT_LAB_NODE_BIN || "/home/rian_/slate360-engines/node/bin";
 
 const CLEAN_PATH = [
   WSL_COLMAP_BIN,
+  WSL_NODE_BIN,
   "/usr/local/sbin",
   "/usr/local/bin",
   "/usr/sbin",
