@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { startJob, isSplatLabEnabled, type RunOptions } from "@/lib/splat-lab/job-store";
 import type { SplatLabClone } from "@/lib/splat-lab/clones";
+import type { SphericalMode, TrainStrategy, ViewImageSize } from "@/lib/splat-lab/job-types";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -21,19 +22,23 @@ export async function POST(req: Request) {
   const opts: RunOptions = {
     input,
     clone,
+    workspaceName: body.workspaceName ? String(body.workspaceName) : undefined,
     is360: Boolean(body.is360),
     fps: Number(body.fps ?? 4),
     removePeople: Boolean(body.removePeople),
-    sfmMode: String(body.sfmMode ?? (clone === "proven" ? "hq" : "faster")),
+    sphericalMode: (body.sphericalMode === "rig" ? "rig" : "native") as SphericalMode,
     imageSize: String(body.imageSize ?? "auto"),
     maxDuration: Number(body.maxDuration ?? 0),
-    precompute360Faces: body.precompute360Faces !== false,
-    resolutionLimit: Number(body.resolutionLimit ?? 1920),
-    shDegree: Number(body.shDegree ?? (clone === "proven" ? 3 : 2)),
-    maxSplatsMillions: Number(body.maxSplatsMillions ?? (clone === "proven" ? 20 : 5)),
+    maxFeatures: Number(body.maxFeatures ?? 16384),
+    viewImageSize: (String(body.viewImageSize ?? "1280")) as ViewImageSize,
+    shDegree: Number(body.shDegree ?? 3),
+    maxSplatsMillions: Number(body.maxSplatsMillions ?? 0),
     trainingSteps: Number(body.trainingSteps ?? 0),
+    imagesPerStep: Number(body.imagesPerStep ?? 2),
     preset: String(body.preset ?? "classic"),
     quality: String(body.quality ?? (clone === "proven" ? "auto" : "medium")),
+    strategy: (body.strategy === "mcmc" ? "mcmc" : "default") as TrainStrategy,
+    useBilateralGrid: Boolean(body.useBilateralGrid),
     useLidar: Boolean(body.useLidar),
     useRtk: Boolean(body.useRtk),
   };

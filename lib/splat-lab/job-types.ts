@@ -19,6 +19,16 @@ export type SplatLabTelemetry = {
   gpu?: string;
 };
 
+export type SplatLabQuality = {
+  sampled: number;
+  meanLuma: number;
+  deepShadowFraction: number;
+  clippedHighlightFraction: number;
+  laplacianVariance: number;
+  lowQuality: boolean;
+  message: string | null;
+};
+
 export type SplatLabJob = {
   id: string;
   status: "queued" | "running" | "completed" | "failed" | "blocked";
@@ -32,24 +42,34 @@ export type SplatLabJob = {
   error: string | null;
   telemetry: SplatLabTelemetry | null;
   hasSfmPreview: boolean;
+  quality?: SplatLabQuality | null;
 };
+
+export type SphericalMode = "native" | "rig";
+export type ViewImageSize = "768" | "1024" | "1280" | "1920" | "max";
+export type TrainStrategy = "default" | "mcmc";
 
 export type RunOptions = {
   input: string;
   is360: boolean;
   clone: SplatLabClone;
+  workspaceName?: string;
   fps: number;
   removePeople: boolean;
-  sfmMode: string;
+  sphericalMode: SphericalMode;
   imageSize: string;
   maxDuration: number;
-  precompute360Faces: boolean;
-  resolutionLimit: number;
+  maxFeatures: number;
+  viewImageSize: ViewImageSize;
   shDegree: number;
   maxSplatsMillions: number;
   trainingSteps: number;
+  imagesPerStep: number;
   preset: string;
   quality: string;
+  strategy: TrainStrategy;
+  useBilateralGrid: boolean;
   useLidar: boolean;
   useRtk: boolean;
+  fromStage?: string;
 };

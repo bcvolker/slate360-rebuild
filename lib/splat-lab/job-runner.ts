@@ -2,7 +2,7 @@ import { spawn, type ChildProcess } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { RunOptions, SplatLabJob, SplatLabStageRecord } from "@/lib/splat-lab/job-types";
-import { toWslPath, wslCleanEnv, WSL_PYTHON, WSL_REPO } from "@/lib/splat-lab/wsl";
+import { toWslPath, wslCleanEnv, WSL_DISTRO, WSL_PYTHON, WSL_REPO } from "@/lib/splat-lab/wsl";
 
 const REPO_ROOT = process.cwd();
 
@@ -16,31 +16,36 @@ export function spawnRunner(
   const wslInput = toWslPath(opts.input);
   const wslOutput = toWslPath(join(REPO_ROOT, "tmp", "splat-lab"));
   const flags = [
-    `cd ${WSL_REPO}`,
+    `cd ${WSL_REPO}/workers/local/splat-lab;`,
     wslCleanEnv(),
-    `${WSL_PYTHON} workers/local/splat-lab/run.py`,
+    `${WSL_PYTHON} run.py`,
     `--input ${JSON.stringify(wslInput)}`,
     `--output ${JSON.stringify(wslOutput)}`,
     `--job-id ${job.id}`,
     `--clone ${opts.clone}`,
+    opts.workspaceName ? `--workspace-name ${JSON.stringify(opts.workspaceName)}` : "",
     opts.is360 ? "--is360" : "",
     opts.removePeople ? "--remove-people" : "",
     opts.useLidar ? "--use-lidar" : "",
     opts.useRtk ? "--use-rtk" : "",
     `--fps ${opts.fps}`,
-    `--sfm-mode ${opts.sfmMode}`,
+    `--spherical-mode ${opts.sphericalMode}`,
     `--image-size ${opts.imageSize}`,
     `--max-duration ${opts.maxDuration}`,
-    opts.precompute360Faces ? "--precompute-360-faces" : "--no-precompute-360-faces",
-    `--resolution-limit ${opts.resolutionLimit}`,
+    `--max-features ${opts.maxFeatures}`,
+    `--view-image-size ${opts.viewImageSize}`,
     `--sh-degree ${opts.shDegree}`,
     `--max-splats-millions ${opts.maxSplatsMillions}`,
     `--training-steps ${opts.trainingSteps}`,
+    `--images-per-step ${opts.imagesPerStep}`,
     `--preset ${opts.preset}`,
     `--quality ${opts.quality}`,
+    `--strategy ${opts.strategy}`,
+    opts.useBilateralGrid ? "--use-bilateral-grid" : "",
+    opts.fromStage ? `--from-stage ${opts.fromStage}` : "",
   ].filter(Boolean).join(" ");
 
-  const proc = spawn("wsl.exe", ["bash", "-lc", flags], { cwd: REPO_ROOT });
+  const proc = spawn("wsl.exe", ["-d", WSL_DISTRO, "--", "bash", "-lc", flags], { cwd: REPO_ROOT });
   procs.set(job.id, proc);
 
   let buffer = "";
@@ -52,6 +57,7 @@ export function spawnRunner(
     applyRecord(job, rec, jobDir, commit);
   };
 
+  let stderrTail = "";
   proc.stdout?.setEncoding("utf-8");
   proc.stdout?.on("data", (chunk: string) => {
     buffer += chunk;
@@ -61,16 +67,29 @@ export function spawnRunner(
   });
   proc.stderr?.setEncoding("utf-8");
   proc.stderr?.on("data", (chunk: string) => {
+    // Buffered even when no stage has started yet — a failure before the
+    // first JSON stage line (e.g. a Python import error, a bad WSL command)
+    // must still be visible instead of silently dropped (root-caused
+    // 2026-09-12: a job that failed before any stage started showed only
+    // "runner exited with code 1" with no indication of why).
+    stderrTail = `${stderrTail}${chunk}`.slice(-4000);
     const last = job.stages[job.stages.length - 1];
-    if (last) last.detail = `${last.detail ?? ""}\n${chunk}`.trim();
-    commit(job);
+    if (last) { last.detail = `${last.detail ?? ""}\n${chunk}`.trim(); commit(job); }
   });
   proc.on("error", (err) => {
     job.status = "failed";
     job.error = String(err);
     commit(job);
   });
-  proc.on("close", () => { procs.delete(job.id); });
+  proc.on("close", (code) => {
+    procs.delete(job.id);
+    if (code !== 0 && job.status === "running") {
+      job.status = "failed";
+      job.error = job.error ?? `runner exited with code ${code}` +
+        (stderrTail.trim() ? `: ${stderrTail.trim().slice(-500)}` : "");
+      commit(job);
+    }
+  });
 }
 
 function applyRecord(
@@ -101,6 +120,10 @@ function applyRecord(
     if (existsSync(spz)) job.modelPath = spz;
     else if (existsSync(ply)) job.modelPath = ply;
     job.hasSfmPreview = existsSync(join(jobDir, "sfm", "preview.json"));
+    const qualityPath = join(jobDir, "quality.json");
+    try {
+      if (existsSync(qualityPath)) job.quality = JSON.parse(readFileSync(qualityPath, "utf-8"));
+    } catch { /* ignore */ }
     commit(job);
     return;
   }
