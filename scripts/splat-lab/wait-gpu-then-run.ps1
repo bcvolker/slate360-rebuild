@@ -17,11 +17,11 @@ function Get-GpuBusy {
   return ($util -ge 25 -or $mem -ge 12000 -or $trainer)
 }
 
-Write-Host "Waiting for GPU to free before Clone 1 kitchen run…"
+Write-Host "Waiting for GPU to free before Clone 1 kitchen run..."
 while (Get-GpuBusy) {
   Write-Host "$(Get-Date -Format o) GPU still busy — retry in ${PollSeconds}s"
   Start-Sleep -Seconds $PollSeconds
 }
 
-Write-Host "GPU free. Starting Clone 1 kitchen-proven → $log"
+Write-Host "GPU free. Starting Clone 1 kitchen-proven -> $log"
 wsl.exe -d Ubuntu-22.04 -- bash -lc "export PYTHONIOENCODING=utf-8; /home/rian_/slate360-engines/nerfstudio/.venv/bin/python $Script" *>&1 | Tee-Object -FilePath $log
