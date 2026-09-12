@@ -1,23 +1,33 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Loader2, Play, Square } from "lucide-react";
-import { Slate360Logo } from "@/components/studio-ui/LogoProvider";
-import { SplatLabKnobs } from "@/components/splat-lab/SplatLabKnobs";
-import { SplatLabProgress } from "@/components/splat-lab/SplatLabProgress";
-import { CaptureGuide } from "@/components/splat-lab/CaptureGuide";
-import { CLONE_META, defaultsFor, type SplatLabClone } from "@/lib/splat-lab/clones";
+import { HelpCircle } from "lucide-react";
+import { TitleBar } from "@/components/splat-lab/TitleBar";
+import { WorkspaceCard } from "@/components/splat-lab/WorkspaceCard";
+import { InputCard } from "@/components/splat-lab/InputCard";
+import { PrepareImagesCard } from "@/components/splat-lab/PrepareImagesCard";
+import { ReconstructionCard } from "@/components/splat-lab/ReconstructionCard";
+import { SplatGenerationCard } from "@/components/splat-lab/SplatGenerationCard";
+import { ViewPublishCard } from "@/components/splat-lab/ViewPublishCard";
+import { SettingsModal } from "@/components/splat-lab/SettingsModal";
+import { JobHistoryRail } from "@/components/splat-lab/JobHistoryRail";
+import { HelpSheet } from "@/components/splat-lab/HelpSheet";
+import { CLONE_META, defaultsFor, knobsToRunOptions, type SplatLabClone } from "@/lib/splat-lab/clones";
 import type { SplatLabJob } from "@/lib/splat-lab/job-store";
 
 export function SplatLabPanel({ clone }: { clone: SplatLabClone }) {
   const meta = CLONE_META[clone];
   const [input, setInput] = useState("");
+  const [workspaceName, setWorkspaceName] = useState("");
   const [knobs, setKnobs] = useState(() => defaultsFor(clone));
   const [jobId, setJobId] = useState<string | null>(null);
   const [job, setJob] = useState<SplatLabJob | null>(null);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [advanced, setAdvanced] = useState(clone === "lab");
+  const [showSettings, setShowSettings] = useState(false);
+  const [showHelp, setShowHelp] = useState(false);
+  const [showSfm, setShowSfm] = useState(false);
+  const [showLiveView, setShowLiveView] = useState(false);
   const pollRef = useRef<number | null>(null);
 
   const stopPoll = useCallback(() => {
@@ -41,20 +51,33 @@ export function SplatLabPanel({ clone }: { clone: SplatLabClone }) {
     fetch("/api/splat-lab/jobs", { cache: "no-store" })
       .then((r) => r.json())
       .then((d) => {
-        const latest = (d.jobs as SplatLabJob[] | undefined)?.find((j) => j.clone === clone) ?? (d.jobs?.[0] as SplatLabJob | undefined);
-        if (latest && !jobId) { setJobId(latest.id); setJob(latest); if (latest.status === "running") poll(latest.id); }
+        const latest = (d.jobs as SplatLabJob[] | undefined)?.find((j) => j.clone === clone);
+        if (latest && !jobId) {
+          setJobId(latest.id); setJob(latest); setInput(latest.input ?? "");
+          if (latest.status === "running") poll(latest.id);
+        }
       })
       .catch(() => undefined);
-  }, [clone]); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clone]);
+
+  const selectJob = useCallback(async (id: string) => {
+    stopPoll();
+    const res = await fetch(`/api/splat-lab/jobs/${id}`, { cache: "no-store" });
+    if (!res.ok) return;
+    const data = (await res.json()) as SplatLabJob;
+    setJobId(id); setJob(data); setInput(data.input ?? "");
+    if (data.status === "running") poll(id);
+  }, [poll, stopPoll]);
 
   const start = useCallback(async () => {
     setError(null);
-    if (!input.trim()) { setError("Paste a Windows path to a video or image folder."); return; }
+    if (!input.trim()) { setError("Paste a Windows path to a video or image folder, or Browse…"); return; }
     setStarting(true);
     try {
       const res = await fetch("/api/splat-lab/run", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ input: input.trim(), clone, ...knobs }),
+        body: JSON.stringify(knobsToRunOptions(knobs, input.trim(), clone, workspaceName)),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ error: "request failed" }));
@@ -63,7 +86,7 @@ export function SplatLabPanel({ clone }: { clone: SplatLabClone }) {
       const { id } = (await res.json()) as { id: string };
       setJobId(id); setJob(null); poll(id);
     } finally { setStarting(false); }
-  }, [input, knobs, poll, clone]);
+  }, [input, knobs, clone, workspaceName, poll]);
 
   const cancel = useCallback(async () => {
     if (!jobId) return;
@@ -71,67 +94,62 @@ export function SplatLabPanel({ clone }: { clone: SplatLabClone }) {
     stopPoll();
   }, [jobId, stopPoll]);
 
-  return (
-    <div className="mx-auto max-w-5xl space-y-4">
-      <Header clone={clone} label={meta.label} tag={meta.tag} />
-      <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur">
-        <div className="flex items-center justify-between">
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--graphite-muted)]">Input</p>
-          <span className="rounded-md border border-white/10 px-2 py-1 font-mono text-[10px] uppercase tracking-wide text-[var(--graphite-muted)]">Local · RTX 3090</span>
-        </div>
-        <div className="mt-2 flex gap-2">
-          <input value={input} onChange={(e) => setInput(e.target.value)}
-            placeholder="C:\Users\Brian PC\Desktop\9.10 kitchen high and low pass"
-            className="flex-1 rounded-md border border-white/10 bg-[var(--graphite-canvas)] px-3 py-2 font-mono text-xs text-[var(--graphite-text-body)] placeholder:text-zinc-600 focus:border-[var(--twin360-blue)] focus:outline-none" />
-          <button onClick={start} disabled={starting}
-            className="inline-flex items-center gap-2 rounded-md bg-[var(--twin360-blue)] px-4 py-2 text-xs font-semibold text-white transition hover:opacity-90 disabled:opacity-50">
-            {starting ? <Loader2 className="size-3.5 animate-spin" /> : <Play className="size-3.5" />} Run
-          </button>
-          {jobId ? (
-            <button onClick={cancel} className="inline-flex items-center gap-2 rounded-md border border-white/10 px-3 py-2 text-xs text-[var(--graphite-muted)] hover:text-white">
-              <Square className="size-3.5" /> Cancel
-            </button>
-          ) : null}
-        </div>
-        <p className="mt-2 text-[11px] text-[var(--graphite-muted)]">
-          Paste a Windows path to a 360 video file or a folder of photos. Files stay on disk.
-        </p>
-        {error ? <p className="mt-2 text-xs text-red-400">{error}</p> : null}
-      </div>
-      {clone === "proven" ? <CaptureGuide /> : null}
-      {clone === "proven" && !advanced ? (
-        <button onClick={() => setAdvanced(true)} className="font-mono text-[10px] uppercase tracking-wide text-[var(--graphite-muted)] hover:text-white">
-          Show advanced knobs
-        </button>
-      ) : (
-        <>
-          {clone === "proven" && advanced ? (
-            <button onClick={() => setAdvanced(false)} className="font-mono text-[10px] uppercase tracking-wide text-[var(--graphite-muted)] hover:text-white">
-              Hide advanced knobs
-            </button>
-          ) : null}
-          <SplatLabKnobs knobs={knobs} setKnobs={setKnobs} showLab={clone === "lab"} />
-        </>
-      )}
-      {jobId ? <SplatLabProgress job={job} jobId={jobId} /> : null}
-    </div>
-  );
-}
+  const rerun = useCallback(async (fromStage: string) => {
+    if (!jobId) return;
+    await fetch(`/api/splat-lab/jobs/${jobId}/rerun`, {
+      method: "POST", headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ fromStage }),
+    });
+    poll(jobId);
+  }, [jobId, poll]);
 
-function Header({ clone, label, tag }: { clone: SplatLabClone; label: string; tag: string }) {
+  const running = job?.status === "running";
+  const stages = job?.stages ?? [];
+
   return (
-    <div className="flex items-center justify-between gap-3">
-      <div className="flex items-center gap-4">
-        <Slate360Logo variant="dark" size="default" />
-        <div className="h-8 w-px bg-white/10" />
-        <div>
-          <h1 className="text-base font-bold text-[var(--graphite-text-header)]">{label}</h1>
-          <p className="mt-0.5 text-xs text-[var(--graphite-muted)]">
-            {clone === "proven" ? "Quality baseline — proven COLMAP + splatfacto method." : "Experimental — LiDAR, RTK, and speed work. Diff against Proven before promoting."}
-          </p>
+    <div className="mx-auto max-w-5xl space-y-4 p-4">
+      <TitleBar label={meta.label} tag={meta.tag} onOpenSettings={() => setShowSettings(true)} />
+      <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+        <div className="space-y-4">
+          <WorkspaceCard name={workspaceName} onChangeName={setWorkspaceName} />
+          <InputCard
+            input={input} onChangeInput={setInput}
+            knobs={knobs} setKnobs={setKnobs}
+            running={running} starting={starting}
+            onRun={start} onCancel={cancel} error={error}
+          />
+          <button onClick={() => setShowHelp(true)} className="inline-flex items-center gap-1 font-mono text-[10px] uppercase tracking-wide text-[var(--graphite-muted)] hover:text-white">
+            <HelpCircle className="size-3.5" /> Capture guide
+          </button>
         </div>
+        <JobHistoryRail activeId={jobId} onSelect={selectJob} />
       </div>
-      <span className="rounded-md border border-white/10 px-2 py-1 font-mono text-[10px] uppercase tracking-wide text-[var(--graphite-muted)]">{tag}</span>
+
+      {jobId ? (
+        <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
+          <div className="space-y-4">
+            <PrepareImagesCard
+              framesStage={stages.find((s) => s.name === "frames")}
+              maskStage={stages.find((s) => s.name === "mask")}
+              quality={job?.quality}
+              onRerun={() => rerun("frames")}
+            />
+            <ReconstructionCard job={job} onViewSfm={() => setShowSfm(true)} onRerun={() => rerun("sfm")} />
+            <SplatGenerationCard
+              job={job} jobId={jobId} knobs={knobs} setKnobs={setKnobs}
+              isLab={clone === "lab"} onRerun={() => rerun("train")}
+              onOpenLiveView={() => setShowLiveView((v) => !v)} showLiveView={showLiveView}
+            />
+          </div>
+          <ViewPublishCard
+            job={job} jobId={jobId} showSfm={showSfm} onCloseSfm={() => setShowSfm(false)}
+            showLiveView={showLiveView}
+          />
+        </div>
+      ) : null}
+
+      {showSettings ? <SettingsModal onClose={() => setShowSettings(false)} /> : null}
+      {showHelp ? <HelpSheet onClose={() => setShowHelp(false)} /> : null}
     </div>
   );
 }

@@ -24,7 +24,7 @@ export default async function SplatLabDesktopLayout({ children }: { children: Re
   // The dashboard's own layout normally supplies TooltipProvider app-wide; this route
   // deliberately skips that whole layout (see comment above), so every provider a
   // splat-lab component actually needs has to be supplied here instead. HelpTooltip
-  // (used throughout SplatLabKnobs) crashes with "Tooltip must be used within
+  // (used throughout the Splat Lab stage-option gears) crashes with "Tooltip must be used within
   // TooltipProvider" without this — root-caused from Brian's own screenshot of the error.
   return (
     <TooltipProvider>
