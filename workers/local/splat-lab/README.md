@@ -9,13 +9,19 @@ it is not shipped to mobile users and is gated to local/development use only.
 
 ```
 input (video | folder)
-  -> Stage 1 frames   (ffmpeg extract, REAL in Slice 1)
-  -> Stage 2 sfm      (COLMAP via `ns-process-data`, stub until nerfstudio installed)
-  -> Stage 3 mask     (RTMDet-Ins-S people masking, optional, stub)
-  -> Stage 4 train    (`ns-train splatfacto`, stub)
-  -> Stage 5 export   (`ns-export` -> .ply, `npx @playcanvas/splat-transform` -> .spz, stub)
+  -> Stage 1 frames   (ffmpeg extract)
+  -> Stage 2 mask     (RTMDet-Ins-S people masking — before SfM)
+  -> Stage 3 sfm      (COLMAP via ns-process-data; 360 → 6 cube faces)
+  -> Stage 4 train    (ns-train splatfacto, live telemetry)
+  -> Stage 5 export   (ns-export → .ply, splat-transform → .spz)
   -> manifest.json
 ```
+
+Two desktop clones:
+- **Proven** (`/splat-lab`) — quality baseline. Do not weaken these defaults.
+- **Lab** (`/splat-lab/lab`) — experimental LiDAR / RTK / speed work. Diff against Proven.
+
+Desktop icons: `npm run splat-lab:icons` then double-click **Slate360 Splat Lab** or **Slate360 Splat Lab (Lab)**.
 
 Each stage emits one JSON progress record per line to stdout:
 ```json
@@ -69,7 +75,8 @@ Modal worker uses its own pinned COLMAP and does not hit this.
 Uses the RTMDet-Ins-S instance-segmentation model. Place it at:
 `workers/local/splat-lab/models/rtmdet-ins-s-640.onnx`
 
-Slice 2 loads it via `onnxruntime-gpu` and masks people before SfM.
+The mask stage loads it via ONNX Runtime and blacks out the COCO person class
+before SfM so operators do not become spurious points.
 
 ## Knobs (recommended defaults)
 

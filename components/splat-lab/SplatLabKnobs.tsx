@@ -2,38 +2,10 @@
 
 import { cn } from "@/lib/utils";
 import { HelpTooltip } from "@/components/splat-lab/HelpTooltip";
+import { PROVEN_KNOBS, type Knobs } from "@/lib/splat-lab/clones";
 
-export type Knobs = {
-  is360: boolean;
-  removePeople: boolean;
-  sfmMode: "faster" | "hq";
-  imageSize: "auto" | "4k" | "6k" | "8k";
-  fps: number;
-  maxDuration: number;
-  precompute360Faces: boolean;
-  resolutionLimit: number;
-  shDegree: number;
-  maxSplatsMillions: number;
-  trainingSteps: number;
-  preset: string;
-  quality: "test" | "medium" | "high" | "auto";
-};
-
-export const DEFAULT_KNOBS: Knobs = {
-  is360: true,
-  removePeople: true,
-  sfmMode: "faster",
-  imageSize: "auto",
-  fps: 4,
-  maxDuration: 0,
-  precompute360Faces: true,
-  resolutionLimit: 1920,
-  shDegree: 1,
-  maxSplatsMillions: 1.5,
-  trainingSteps: 30_000,
-  preset: "classic",
-  quality: "auto",
-};
+export type { Knobs };
+export const DEFAULT_KNOBS: Knobs = { ...PROVEN_KNOBS };
 
 const HELP = {
   removePeople: "Detects and masks people in each frame before reconstruction so they don't bake into the splat as floaters. Recommended ON for occupied spaces.",
@@ -49,10 +21,16 @@ const HELP = {
   preset: "Training preset. Classic is the balanced default. Lite trains faster; Object for single-object scenes; Safe avoids aggressive densification.",
 };
 
-export function SplatLabKnobs({ knobs, setKnobs }: { knobs: Knobs; setKnobs: (k: Knobs) => void }) {
+export function SplatLabKnobs({ knobs, setKnobs, showLab }: { knobs: Knobs; setKnobs: (k: Knobs) => void; showLab?: boolean }) {
   const set = (patch: Partial<Knobs>) => setKnobs({ ...knobs, ...patch });
   return (
     <div className="space-y-3">
+      {showLab ? (
+        <Section title="Lab sources">
+          <ToggleField label="Phone LiDAR" help="Clone 2: ingest a LiDAR/depth folder next to the input when present. Does not change the proven Clone 1 method." value={knobs.useLidar} onChange={(v) => set({ useLidar: v })} />
+          <ToggleField label="RTK / GPS EXIF" help="Clone 2: use GPS/EXIF from RTK missions (e.g. Mavic 3E) as SfM priors. Experimental — A/B against Clone 1 before promoting." value={knobs.useRtk} onChange={(v) => set({ useRtk: v })} />
+        </Section>
+      ) : null}
       <Section title="Prepare Images">
         <ToggleField label="Remove people" help={HELP.removePeople} value={knobs.removePeople} onChange={(v) => set({ removePeople: v })} recommended />
         <ToggleField label="360 video" help="Input is 360° equirectangular video (X4 / DJI 360). Turn off for perspective photos (drone mapping, phone stills)." value={knobs.is360} onChange={(v) => set({ is360: v })} recommended={knobs.is360} />

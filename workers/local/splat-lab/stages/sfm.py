@@ -119,9 +119,18 @@ def _run_colmap(cfg, sfm_images: Path, work_dir: Path, cam_count: int, ctx: dict
     # Count registered cameras + points from the sparse model if present.
     points = _count_points(out_dir)
     ctx["sfm_data_dir"] = str(out_dir)  # consumed by the train stage
+    preview = None
+    try:
+        from sfm_preview import write_preview
+        preview = write_preview(out_dir, ctx["job_dir"] / "sfm" / "preview.json")
+        if preview:
+            ctx["sfm_preview"] = str(preview)
+    except Exception:
+        preview = None
     detail = f"SfM done (cameras~{cam_count}, points~{points})"
+    artifacts = [str(out_dir)] + ([str(preview)] if preview else [])
     return StageResult(name="sfm", status="done", detail=detail,
-                       artifacts=[str(out_dir)])
+                       artifacts=artifacts)
 
 
 def _count_points(sfm_dir: Path) -> int:

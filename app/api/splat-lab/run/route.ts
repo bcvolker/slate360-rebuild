@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { startJob, isSplatLabEnabled, type RunOptions } from "@/lib/splat-lab/job-store";
+import type { SplatLabClone } from "@/lib/splat-lab/clones";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,21 +17,25 @@ export async function POST(req: Request) {
   if (!input) {
     return NextResponse.json({ error: "input path is required" }, { status: 400 });
   }
+  const clone: SplatLabClone = body.clone === "lab" ? "lab" : "proven";
   const opts: RunOptions = {
     input,
+    clone,
     is360: Boolean(body.is360),
     fps: Number(body.fps ?? 4),
     removePeople: Boolean(body.removePeople),
-    sfmMode: String(body.sfmMode ?? "faster"),
+    sfmMode: String(body.sfmMode ?? (clone === "proven" ? "hq" : "faster")),
     imageSize: String(body.imageSize ?? "auto"),
     maxDuration: Number(body.maxDuration ?? 0),
     precompute360Faces: body.precompute360Faces !== false,
     resolutionLimit: Number(body.resolutionLimit ?? 1920),
-    shDegree: Number(body.shDegree ?? 1),
-    maxSplatsMillions: Number(body.maxSplatsMillions ?? 1.5),
+    shDegree: Number(body.shDegree ?? (clone === "proven" ? 3 : 2)),
+    maxSplatsMillions: Number(body.maxSplatsMillions ?? (clone === "proven" ? 20 : 5)),
     trainingSteps: Number(body.trainingSteps ?? 0),
     preset: String(body.preset ?? "classic"),
-    quality: String(body.quality ?? "auto"),
+    quality: String(body.quality ?? (clone === "proven" ? "auto" : "medium")),
+    useLidar: Boolean(body.useLidar),
+    useRtk: Boolean(body.useRtk),
   };
   if (!Number.isFinite(opts.fps) || opts.fps <= 0) {
     return NextResponse.json({ error: "fps must be > 0" }, { status: 400 });

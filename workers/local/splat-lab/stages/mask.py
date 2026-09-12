@@ -1,13 +1,6 @@
-"""Stage 3 — People / operator masking (RTMDet-Ins-S ONNX).
-
-STUB for Slice 1. When onnxruntime + the RTMDet model are present, this stage
-will run instance segmentation on each frame and write black-background masks
-for people (the "Remove People" feature). Place the RTMDet-Ins-S ONNX model at
-workers/local/splat-lab/models/rtmdet-ins-s-640.onnx.
-"""
+"""Stage 2 — Remove People (RTMDet-Ins-S ONNX, runs before SfM)."""
 from __future__ import annotations
 
-import shutil
 from pathlib import Path
 
 from result import StageResult
@@ -19,22 +12,61 @@ def run(cfg, ctx) -> StageResult:
                            detail="remove_people disabled")
 
     images_dir: Path = ctx["images_dir"]
-    if not list(images_dir.glob("*.jpg")):
+    frames = sorted(images_dir.glob("*.jpg")) + sorted(images_dir.glob("*.png"))
+    if not frames:
         return StageResult(name="mask", status="skipped",
                            detail="no images (SfM blocked)")
 
     try:
-        import onnxruntime  # noqa: F401
-    except ImportError:
+        from rtmdet import apply_mask, load_session, model_path, people_mask
+    except ImportError as exc:
         return StageResult(
             name="mask", status="blocked",
-            detail="onnxruntime not installed",
-            error="Install onnxruntime-gpu (pip install onnxruntime-gpu) "
-                   "and place rtmdet-ins-s-640.onnx in the models dir. "
-                   "See workers/local/splat-lab/README.md")
+            detail="onnxruntime / opencv not installed",
+            error=f"{exc}. pip install onnxruntime-gpu opencv-python pillow")
+
+    if not model_path().exists():
+        return StageResult(
+            name="mask", status="blocked",
+            detail="RTMDet ONNX missing",
+            error=f"Place {model_path().name} in {model_path().parent}")
+
+    try:
+        from PIL import Image
+        import numpy as np
+    except ImportError as exc:
+        return StageResult(name="mask", status="blocked",
+                           error=f"pillow/numpy missing: {exc}")
+
+    try:
+        session = load_session()
+    except Exception as exc:  # noqa: BLE001
+        return StageResult(name="mask", status="failed",
+                           error=f"RTMDet session failed: {exc}")
+
+    masks_dir: Path = ctx["job_dir"] / "masks"
+    masks_dir.mkdir(parents=True, exist_ok=True)
+    ctx["masks_dir"] = str(masks_dir)
+
+    hit = 0
+    for i, path in enumerate(frames):
+        rgb = np.asarray(Image.open(path).convert("RGB"))
+        keep = people_mask(session, rgb)
+        if int((keep == 0).sum()) > 0:
+            hit += 1
+            Image.fromarray(apply_mask(rgb, keep)).save(path, quality=92)
+        Image.fromarray(keep).save(masks_dir / f"{path.stem}.png")
+        if (i + 1) % 25 == 0 or i == 0:
+            import json
+            import sys
+            sys.stdout.write(json.dumps({
+                "stage": "mask", "status": "running",
+                "progress": round((i + 1) / len(frames), 3),
+                "detail": f"masked {i + 1}/{len(frames)}",
+            }) + "\n")
+            sys.stdout.flush()
 
     return StageResult(
-        name="mask", status="blocked",
-        detail="onnxruntime present but RTMDet inference not implemented in Slice 1",
-        error="Slice 2 will load rtmdet-ins-s-640.onnx and mask people in "
-               f"{images_dir}")
+        name="mask", status="done",
+        detail=f"masked people in {hit}/{len(frames)} frames",
+        artifacts=[str(masks_dir)])

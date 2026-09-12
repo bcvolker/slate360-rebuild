@@ -94,3 +94,6 @@ reference/
 /research-workers/odgs-slam/
 /research-workers/odgs/
 
+# Local Splat Lab ONNX weights (copied onto the workstation, too large for git)
+/workers/local/splat-lab/models/*.onnx
+

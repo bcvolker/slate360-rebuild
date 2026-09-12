@@ -5,5 +5,5 @@ export const metadata = {
 };
 
 export default function SplatLabPage() {
-  return <SplatLabPanel />;
+  return <SplatLabPanel clone="proven" />;
 }

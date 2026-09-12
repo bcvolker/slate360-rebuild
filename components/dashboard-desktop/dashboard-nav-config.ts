@@ -86,7 +86,7 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     label: "Splat Lab",
     href: "/splat-lab",
     icon: FlaskConical,
-    matchPrefixes: ["/splat-lab"],
+    matchPrefixes: ["/splat-lab", "/splat-lab/lab"],
     ceoOnly: true,
   },
   {

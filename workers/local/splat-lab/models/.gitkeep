@@ -1,0 +1,2 @@
+# ONNX weights are copied onto the workstation (gitignored).
+# Expected file: rtmdet-ins-s-640.onnx

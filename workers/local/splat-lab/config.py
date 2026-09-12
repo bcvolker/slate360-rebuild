@@ -30,21 +30,26 @@ class SplatLabConfig:
     output_dir: str
     job_id: str = field(default_factory=lambda: uuid.uuid4().hex[:12])
 
+    # Which desktop clone launched this job (proven = quality baseline).
+    clone: str = "proven"
+    use_lidar: bool = False
+    use_rtk: bool = False
+
     # Input kind
     is360: bool = False
     remove_people: bool = True
 
     # Prepare-images knobs (recommended defaults)
-    sfm_mode: str = "faster"            # faster | hq (COLMAP matcher quality)
+    sfm_mode: str = "hq"                # faster | hq (COLMAP matcher quality)
     image_size: str = "auto"            # auto | 4k | 6k | 8k (target frame size)
     fps: float = 4.0                    # frame extraction rate (3/4/5 recommended)
     max_duration: int = 0              # 0 = use full video; else cap seconds per video
     precompute_360_faces: bool = True   # precompute 6 cube faces for 360 input
 
     # Training knobs (recommended defaults for high quality)
-    resolution_limit: int = 1920       # SplatTrainerImageResolutionLimit
-    sh_degree: int = 1                 # SH degree (0-3); 2-3 for highest fidelity
-    max_splats_millions: float = 1.5   # splat cap
+    resolution_limit: int = 1920       # train scale cap (3090-safe; raise with more VRAM)
+    sh_degree: int = 3                 # SH degree (0-3); 3 for highest fidelity
+    max_splats_millions: float = 20.0  # quality target (~20M for a long 360 capture)
     training_steps: int = 0               # 0 = follow quality preset; >0 overrides
     images_per_step: int = 0           # 0 = auto: clamp(ceil(cameras/5000),1,64)
     preset: str = "classic"            # trainingPreset

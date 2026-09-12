@@ -41,7 +41,10 @@
     "mcp:start": "npx gitnexus mcp",
     "stripe:listen": "stripe listen --forward-to localhost:3000/api/stripe/webhook",
     "stripe:trigger:sub": "stripe trigger customer.subscription.created",
-    "prepare": "husky"
+    "prepare": "husky",
+    "splat-lab:proven": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/splat-lab/launch.ps1 -Clone proven",
+    "splat-lab:lab": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/splat-lab/launch.ps1 -Clone lab",
+    "splat-lab:icons": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/splat-lab/install-desktop-icons.ps1"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.995.0",
