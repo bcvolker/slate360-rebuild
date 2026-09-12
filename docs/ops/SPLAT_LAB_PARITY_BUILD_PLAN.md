@@ -1,292 +1,306 @@
-# Slate360 Splat — AirVis parity build plan (for Sonnet 5)
+# Slate360 Splat — parity build plan, revision 2 (for Sonnet 5)
 
-Written 2026-09-12 by Claude Fable 5.1 after reading AirVis Studio 1.11's own job output for the
-kitchen (`C:\Users\Brian PC\Documents\AirVis\kitchen_AirVisStudio`), Brian's screenshots of the
-AirVis UI, and the current Splat Lab code on branch `feature/splat-lab`. Everything in this file is
-a fact taken from a file on disk or a screenshot, unless marked *assumption*.
+Revised 2026-09-12 by Claude Fable 5.1 after (a) reading the reference studio's own kitchen job
+output, (b) two Cursor/Grok build-plan drafts and a Grok equipment thread supplied by Brian, and
+(c) verifying every technical claim below against the machine. Section 9 says exactly what was
+accepted or rejected from those drafts and why. Everything here is a fact taken from a file on
+disk, a command run on this machine, or one of Brian's screenshots, unless marked *assumption*.
 
-The goal is one desktop program, "Slate360 Splat", that a non-coder can double-click and use
-exactly like AirVis Studio: same cards, same buttons, same options, same live numbers, same
-outputs. Only colours, fonts, naming and the Slate360 logo differ. "Slate360 Splat Lab" is the
-same program with experimental knobs (LiDAR, RTK, alternative trainers) turned on.
+Goal: one desktop program, **Slate360 Splat**, that opens from a Desktop icon with no login and
+works like the reference studio card for card, plus **Slate360 Splat Lab**, the same program
+with experimental options on. Same pipeline architecture as the reference (native
+equirectangular SfM on panoramas, 16 derived training views, masks in SfM and training, auto
+step/cap formulas, live telemetry) so that no hidden difference makes Slate360's output worse.
 
----
-
-## 0. Rules for whoever builds this (read before touching anything)
-
-- Work only on branch `feature/splat-lab` in `C:\s360`. Never rebase, merge or force-push `main`.
-- Stage explicit paths. Never `git add .`. Never commit `.env.local`, `tmp/`, `workers/local/splat-lab/models/*.onnx`, or any video/frames.
-- Do not edit: entitlements, billing, Stripe, middleware, existing migrations, anything under `app/(dashboard)/splat-lab` (the CEO-gated hosted route stays as it is).
-- Every new `.ts`/`.tsx` file must be under 300 lines (guard:file-size-regression). Split components instead of growing them.
-- Colours are tokens only: `var(--graphite-canvas)`, `var(--graphite-primary)`, `var(--twin360-blue)`, `var(--graphite-muted)`, `var(--graphite-text-header)`, `var(--graphite-text-body)`. No hex, no amber, no glow, no `rounded-full` (guard:design).
-- The desktop route is `app/splat-lab-desktop/**`. It has **no login** on purpose; the only gate is the localhost Host check in `app/splat-lab-desktop/layout.tsx`. Keep it that way.
-- Typecheck with a scoped tsconfig (bare `tsc` OOM-crashes). Example: a temp `tsconfig.splatlab.json` extending `./tsconfig.json` with `include: ["app/splat-lab-desktop/**/*", "app/api/splat-lab/**/*", "components/splat-lab/**/*", "lib/splat-lab/**/*"]` and `incremental: false`.
-- Python for the pipeline runs inside WSL Ubuntu-22.04 with `/home/rian_/slate360-engines/nerfstudio/.venv/bin/python`. COLMAP 4.1.0 CUDA is at `/home/rian_/slate360-engines/colmap-4.1.0/bin`. Never pass `$VAR` inside an inline `wsl -lc '...'` string (paths get mangled); write a `.sh` file and run it.
-- Two uncommitted working-tree edits already exist (`workers/local/splat-lab/stages/frames.py`, `stages/mask.py`: "reuse existing frames/masks if present"). They are correct and wanted; keep them and commit them with Phase 2.
-- There is a live job on disk at `tmp/splat-lab/kitchen-proven` (see §2.4). Do not delete its `images/`, `masks/` or `sfm/faces/` folders; they are reusable inputs.
+The reference product's name is used in this internal doc only. **Never put it in UI copy, code
+identifiers, commit messages or user-facing text.** Say "reference layout" if needed.
 
 ---
 
-## 1. Ground truth: what AirVis actually did on the kitchen
+## 0. Rules (read before touching anything)
 
-Source files: `airvisstudio-workspace.json`, `splats/0/airvisstudio-splat.json`, `splats/splat-trainer.log`
-("Resolved trainer configuration"), `Extracted/splat-training-views/airvisstudio-splat-training-views.json`,
-`SFM/splat-cube-faces/airvisstudio-splat-cube-faces.json`.
+- Branch `feature/splat-lab` in `C:\s360` only. Never rebase, merge or force-push `main`.
+- Stage explicit paths. Never `git add .`. Never commit `.env.local`, `tmp/`, `scripts/splat-lab/bin/`, `workers/local/splat-lab/models/*.onnx`, videos or frames.
+- Do not edit: entitlements, billing, Stripe, middleware, existing migrations. You **may** edit the thin pages under `app/(dashboard)/splat-lab/**` so the CEO-gated hosted route reuses the new panel; keep its `layout.tsx` gate untouched.
+- Every new `.ts`/`.tsx` file < 300 lines (guard:file-size-regression, `.ts/.tsx` only). Split, don't grow.
+- Tokens only: `var(--graphite-canvas)`, `var(--graphite-primary)`, `var(--twin360-blue)`, `var(--graphite-muted)`, `var(--graphite-text-header)`, `var(--graphite-text-body)`. No hex, no amber, no glow, no `rounded-full` (guard:design).
+- Desktop route `app/splat-lab-desktop/**`: no login, localhost-only Host check in its `layout.tsx`. Any filesystem-browsing API you add must refuse non-localhost hosts the same way and must not be reachable from the hosted app.
+- Typecheck with a scoped tsconfig (bare `tsc` OOM-crashes): temp `tsconfig.splatlab.json` extending `./tsconfig.json`, `incremental: false`, `include: ["app/splat-lab-desktop/**/*","app/(dashboard)/splat-lab/**/*","app/api/splat-lab/**/*","components/splat-lab/**/*","lib/splat-lab/**/*"]`.
+- WSL: distro `Ubuntu-22.04`; Python `/home/rian_/slate360-engines/nerfstudio/.venv/bin/python` (nerfstudio 1.1.5, gsplat 1.5.3, torch 2.5.1+cu124, tensorboard 2.20); COLMAP 4.1.0 CUDA at `/home/rian_/slate360-engines/colmap-4.1.0/bin/colmap`; ffmpeg on PATH. The vocab tree at `/home/rian_/.local/share/nerfstudio/vocab_tree.fbow` is the **legacy format and crashes COLMAP 4.1** (`visual_index.cc:690 Failed to read faiss index`, verified). COLMAP ≥ 3.12 needs the FAISS index file `vocab_tree_faiss_flickr100K_words32K.bin` from the COLMAP GitHub releases page (Phase 1 task; store it under `/home/rian_/slate360-engines/colmap-4.1.0/`). Never put `$VAR` inside an inline `wsl -lc '...'` string; write a `.sh` file and run it.
+- Two uncommitted edits exist (`workers/local/splat-lab/stages/frames.py`, `stages/mask.py`: reuse existing frames/masks). They are correct; commit them in Phase 1.
+- `tmp/splat-lab/kitchen-proven/{images,masks,sfm/faces}` are reusable inputs: keep. Its `sfm/colmap/colmap/database.db` (3.8 GB, exhaustive matcher, never finished) can be deleted.
+- Do not start a GPU train while `nvidia-smi` shows another trainer.
+- Quality claims only via matched screenshots in one viewer (§7). Never "looks good" from a metric.
 
-| Item | AirVis value | Where it came from |
+---
+
+## 1. Ground truth: the reference studio on this kitchen
+
+Files: `C:\Users\Brian PC\Documents\AirVis\kitchen_AirVisStudio\{airvisstudio-workspace.json, splats/0/airvisstudio-splat.json, splats/splat-trainer.log, Extracted/splat-training-views/*.json, SFM/splat-cube-faces/*.json}`.
+
+| Item | Value | Source |
 |---|---|---|
-| Input | `highpass.mp4` + `lowpass.mp4` (X4, stitched 7680×3840 equirect) | workspace.json `inputPaths` |
-| Frame rate | 4 fps → **815 panoramas** | `sphericalFramesPerSecond`, cube-faces json |
-| Sharpest-frame pick | 25 candidates per bucket | `sharpnessCandidateCount` |
-| Prepared pano resolution | 7680×3840 kept for SfM (`sfm-panoramas-7680/`) | Extracted folder names |
-| People mask | RTMDet instance seg, used in SfM **and** training (`maskInSfM: true`, `alpha.masked=13040`) | workspace.json, trainer log |
-| SfM camera model | **native EQUIRECTANGULAR**, one pose per pano, panorama loop closure | `sphericalSfmMode: nativeEquirectangular` |
-| SfM matching | sequential, overlap 4, vocab-tree retrieval, **not exhaustive** | `sphericalSequentialMatchingOverlap: 4`, `useExhaustiveMatching: false` |
-| SfM result | 815/815 registered, **416,273 points** | splat json `inputPointCount`, screenshot |
-| SfM timings | extraction 1210 s, features 2475 s, matching **434 s**, mapping 752 s | manifests (previous session) |
-| Training views | **16 virtual pinhole views per pano**, 90° FOV, max 1280 px each → **13,040 views** | training-views json `layout: canonical16-fov90-max1280-v1` |
-| Trainer | VkSplat fork (Vulkan), **MCMC** strategy, preset `safe` | trainer log |
-| Training image size | **`image.max_resolution=1024`** (UI "Image Size 1024"; options 768 / 1024 / 1920 / Max) | trainer log, screenshot |
-| Steps | **326,000** = views 13,040 × 50 ÷ imagesPerStep 2, floor 25,000 | splat json `stepResolution` |
-| Splat cap | **6,520,000** = views × 500 ("SceneTarget"); GPU-safe limit 17.4 M | splat json `splatCapResolution` |
-| Final splat count | 6,519,997 (at cap) | splat json |
-| SH | degree 3, interval 10,866 | trainer log |
-| Losses | L1 + SSIM 0.2, background 0.5 grey + noise 0.5, opacity reg 0.01, scale reg 0.01 | trainer log |
-| MCMC schedule | refine 5,433 → 271,666 every 1,086; growth 1.05; min opacity 0.005; noise 80→0.8 | trainer log |
-| Bilateral grid | **off** | trainer log |
-| Black point boost | on | splat json |
-| **Low-quality capture preset** | **`lowQualityCapture: true`** → trainer `--low-quality` "fixed 0.2" scene-scale preset | splat json `settings.lowQualityCapture`, CLI help in AirVis-EVERYTHING.md |
-| Runtime | ≈5 h total, ≈4 h training, RTX 3090 | manifests, screenshot |
-| Output | `model.ply` (standard 3DGS PLY, 1.54 GB) + `model.rad` (LOD); SPZ/SOG optional; collision "none" | splat json |
+| Input | `highpass.mp4` + `lowpass.mp4`, X4 stitched 7680×3840, 203.5 s total | workspace json |
+| Frames | 4 fps → **815 panoramas**, sharpest of 25 candidates per slot | workspace json |
+| Masks | RTMDet people (+ nadir) on the equirect, used in SfM **and** training (`alpha.masked=13040`) | workspace json, trainer log |
+| SfM | **native EQUIRECTANGULAR** camera, one pose per pano, sequential overlap 4 + vocab-tree loop closure, **not exhaustive**; 815/815 registered, **416,273 points**; features 2475 s, matching 434 s, mapping 752 s | workspace json, splat json, manifests |
+| Training views | **16 virtual 90° pinhole views per pano**, max 1280 px each → 13,040 views | training-views json `canonical16-fov90-max1280-v1` |
+| Trainer | Vulkan MCMC fork, preset `safe`, **image.max_resolution=1024**, SH 3 (interval 10,866), L1+SSIM 0.2, opacity/scale reg 0.01, background grey+noise, bilateral grid off, black-point boost on | trainer log |
+| Steps | **326,000** = 13,040 × 50 ÷ imagesPerStep 2 (floor 25,000) | splat json `stepResolution` |
+| Splat cap | **6,520,000** = views × 500; GPU-safe 17.4 M; final 6,519,997 | splat json `splatCapResolution` |
+| Low-quality flag | **`lowQualityCapture: true`** → `--low-quality` preset (scene scale fixed 0.2) | splat json, trainer CLI help |
+| Runtime | ≈ 5 h on the RTX 3090 (≈ 4 h training) | manifests |
+| Output | `model.ply` 1.54 GB standard 3DGS + `model.rad` (LOD); SPZ/SOG optional; collision none | splat json |
 
-**The single most important line above is `lowQualityCapture: true`.** AirVis's own quality
-classifier flagged Brian's kitchen footage as low quality before training and switched to a
-degraded preset. Measured on the 815 panoramas AirVis trained on (`exposure-stats.py`, previous
-session): mean luma **59.5 / 255**, **23.4 %** of pixels in deep shadow (< 30), Laplacian
-sharpness variance ≈ 100 at 1920 px wide. The room was shot at night under warm ceiling lights
-(see `Extracted/sfm-panoramas-7680/v01-highpass-f000200.jpg`). No trainer setting recovers detail
-that the sensor never recorded.
+Footage measured on the 815 panoramas: mean luma **59.5/255**, **23.4 %** deep shadow, Laplacian
+variance ≈ 100 at 1920 px. Night, warm ceiling lights, glossy dark cabinets.
+
+**Conclusion (unchanged by the reviews):** the reference already ran the stronger 360 stack and
+its own classifier flagged the capture as low quality. Its softness is (1) darkness, (2) training
+at 1024 px, (3) a 3.4-minute night walk. A Slate360 clone matches that recipe; it cannot add
+photons. Sellable output needs a lit recapture (§8) and training at ≥ 1280–1920.
 
 ---
 
-## 2. Diagnosis: what is wrong today
+## 2. What was verified on this machine today (facts the plan depends on)
 
-### 2.1 Desktop shortcuts and icon (already fixed, one item left for Brian)
+| Claim | Result | How verified |
+|---|---|---|
+| Stock COLMAP 4.1.0 supports `EQUIRECTANGULAR` cameras | **Yes.** feature_extractor, sequential_matcher and mapper all accept it; 3 real panos registered with 2,811 points in a smoke test. `SPHERICAL` is **not** a valid model name. | `probe-equirect.sh`, 2026-09-12 11:53 |
+| Full native SfM on all 815 kitchen panoramas with masks | See §2.1 (proof run, numbers filled in below) | `native-sfm-test.sh` → `tmp/splat-lab/native-sfm-test/` |
+| COLMAP option names | `--ImageReader.camera_model`, `--ImageReader.mask_path` (mask = `<mask_path>/<image name incl. .jpg>.png`, zero = ignore), `--ImageReader.single_camera 1`, `--FeatureExtraction.max_image_size`, `--SiftExtraction.max_num_features` (default 8192; **not** `FeatureExtraction.max_num_features`), `--SequentialMatching.{overlap,quadratic_overlap,loop_detection,loop_detection_period,loop_detection_num_images,vocab_tree_path}`, `--VocabTreeMatching.match_list_path`, `matches_importer --match_list_path --match_type pairs`, `rig_configurator --rig_config_path` | `colmap <cmd> -h` |
+| nerfstudio 1.1.5 splatfacto: MCMC / splat cap flag | **None.** Only `default` densification. gsplat 1.5.3 has `MCMCStrategy`; `/home/rian_/slate360-engines/gsplat/examples/simple_trainer.py` runs `mcmc --strategy.cap-max N`. | `ns-train splatfacto --help` |
+| nerfstudio image cache | `--pipeline.datamanager.cache-images {cpu,gpu}` only, **no disk streaming**. 13,040 views × 1920² × 3 B = **144 GB > 128 GB RAM**. At 1280 px = 64 GB (fits). At 1024 = 41 GB. | `ns-train splatfacto --help` |
+| nerfstudio dataparser `mask_path` per frame and `ply_file_path` init | Supported (`nerfstudio_dataparser.py:171, 353`) | grep |
+| Trainer prints tqdm `N / M … it/s`? | **No** (local-writer table). Current `train.py` regexes never match → HUD stays "—". | code read |
+| `cancelJob` | SIGTERMs `wsl.exe` only; Linux chain survives (observed: `run.py` → `ns-process-data` → `colmap exhaustive_matcher` alive 2 h 35 m after the UI was closed; the reboot killed it). | `ps` in WSL |
+| Exhaustive matcher on 9,768 faces | 47.7 M pairs; 3.8 GB db after 67 min, unfinished. Reference matched 815 panos in 434 s. | `ps`, `ls -la` |
+| C# compiler for `.exe` launchers | `C:\WINDOWS\Microsoft.NET\Framework64\v4.0.30319\csc.exe` present; no .NET SDK. | PowerShell |
+| Two `.exe` Desktop programs | **Built and placed today**: `Slate360 Splat.exe`, `Slate360 Splat Lab.exe` (290 KB each, hex-S icon baked in, no shortcut arrow because they are programs, not `.lnk`). All `.lnk` variants removed. Source: `scripts/splat-lab/Slate360Launcher.cs` + `build-launchers.ps1`. | `build-launchers.ps1` run |
+| Browser folder picker gives a path? | **No.** `<input webkitdirectory>` exposes file names, never the absolute folder path, and the pipeline needs a path for WSL. Use a localhost-only `fs/list` API + mini browser (§3.3). | Chromium behaviour |
+| py360convert / numpy / pillow in the venv | Present (1.0.4 / 1.26.4 / 12.3.0). The blocked screenshot predates the install. | `pip show` |
 
-- Desktop now has exactly two shortcuts: `Slate360 Splat.lnk` → `wscript.exe launch-proven.vbs` and `Slate360 Splat Lab.lnk` → `wscript.exe launch-lab.vbs`. The stale `Slate360 Splat Lab (Lab).lnk` was deleted 2026-09-12.
-- Both point at `C:\s360\scripts\splat-lab\slate360-splat-lab.ico` (16/32/48/256 px frames). The 256 px frame is the hexagonal teal Slate360 "S" on canvas; verified by decoding the ICO.
-- The "additional thing on the icon" is **Windows' shortcut-arrow overlay** (the `Shell Icons\29` registry value is absent, so the default arrow is drawn on every `.lnk`). Options, both Brian's call because they change system settings: (a) pin the two shortcuts to the taskbar or Start (no arrow there), or (b) set `HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Shell Icons` value `29` to a blank icon and restart Explorer. Claude must not change (b) without an explicit yes.
-- Icon cache was refreshed (`ie4uinit -show`). If the desktop still shows an old picture, sign out / in once.
+### 2.1 Native SfM proof run on all 815 panoramas (stock COLMAP, masks on)
 
-### 2.2 Pipeline blocker Brian screenshotted ("SfM blocked · py360convert / numpy / pillow not installed")
+Settings: `EQUIRECTANGULAR`, single camera, `mask_path` (the reference's own RTMDet masks renamed to COLMAP's `<name>.jpg.png`), `max_image_size 4096`, default 8,192 SIFT features, exhaustive matching on the 815 panoramas (the sequential+vocab-tree attempt aborted on the legacy tree file, see §0), mapper defaults. Recipe: `docs/ops/splat-lab-parity/native-sfm-recipe.sh` (Sonnet copies the two scratch scripts there in Phase 2).
 
-- Root cause: the 360 split deps were not in the nerfstudio venv when the job ran. They were installed at 00:58 on 2026-09-12 (`py360convert 1.0.4`, `numpy 1.26.4`, `pillow 12.3.0`) and verified importable. **Fixed.**
-- Add a startup self-check so this can never show as a mid-run block again (Phase 2, `doctor` stage).
+Result so far (2026-09-12, RTX 3090, panoramas read from `/mnt/c`):
 
-### 2.3 The pipeline design does not match AirVis and cannot finish in reasonable time
+| Step | Measured |
+|---|---|
+| Feature extraction, 815 panos, masks applied, 4096 px | **471 s** (reference: 2475 s at 7680 px) |
+| Sequential + vocab-tree loop detection | aborted: legacy tree file (§0); use the FAISS tree or exhaustive |
+| Exhaustive matching, 815 panos (332 k pairs) | in progress at the time of writing: ~28/45 blocks in 21 min → ≈ 35 min expected |
+| Mapper | pending — Sonnet: run `docs/ops/splat-lab-parity/native-sfm-recipe.sh` and paste `model_analyzer` output here (registered / points / reprojection error) |
 
-1. **Exhaustive matching over 9,768 face images.** `stages/sfm.py::_run_colmap` hard-codes `--matching-method exhaustive`. With HQ mode the kitchen becomes 814 panos × 12 views = **9,768 images → 47.7 million pairs**. As of 11:07 on 2026-09-12 that matcher (`colmap exhaustive_matcher`, WSL pid 956) had run 67 min and written a 3.8 GB `database.db` with no end in sight. AirVis matched the same walk in 434 s. This must become sequential matching with loop detection (§4.2).
-2. **SfM runs on all training views instead of on panoramas.** AirVis registers 815 panoramas once and *derives* the 16 training views from each pano pose. Splat Lab registers every synthetic view independently (no shared-centre constraint), which is slower, drifts more, and makes the "816 cameras" number meaningless in the SfM viewer.
-3. **Wrong camera model for synthetic views.** ns-process-data uses OPENCV (distortion) for faces that are perfectly pinhole. Use PINHOLE with the known focal length (`f = W/2` for 90° FOV) and shared intrinsics.
-4. **No 16-view training set, no per-view masks in training.** Training uses the 12 SfM faces at `camera-res-scale-factor`. AirVis trains on 16 canonical views with the RTMDet mask applied as alpha (`alpha.masked=13040`). nerfstudio's dataparser supports `mask_path` per frame in `transforms.json` (checked: `nerfstudio_dataparser.py:171`), so masks can be used today.
-5. **Training options don't exist as AirVis exposes them.** AirVis: Image Size 768 / 1024 / 1920 / Max, Steps Test / Medium / High / Auto (auto = views×50/imagesPerStep, floor 25k), Splat limit Auto (views×500, GPU-capped) or number, SH 0–3, Outputs PLY / SPZ / SOG, Collision none/…, GPU auto, RAM estimate. Splat Lab has `resolutionLimit` (a number), `quality` (fixed 5k/30k/100k/300k), `maxSplatsMillions` (not enforced: nerfstudio 1.1.5 splatfacto has no splat cap flag), `preset` (four names that map to nothing).
-6. **MCMC is not available in the installed trainer.** nerfstudio 1.1.5 splatfacto exposes no `strategy`/`max-gs-num` flag (checked `ns-train splatfacto --help`). gsplat 1.5.3 *is* installed and ships `strategy.MCMCStrategy`, and `/home/rian_/slate360-engines/gsplat/examples/simple_trainer.py` supports `mcmc --strategy.cap-max N`. Phase 3 chooses one.
-7. **Live telemetry never updates.** `stages/train.py::STEP_RE` expects tqdm-style `N / M … it/s`; ns-train prints a local-writer table instead. `GAUSS_RE` looks for "num gaussians" which ns-train never prints. So Iter / Splats / it/s / ETA stay "—".
-8. **Cancel does not stop the job.** `lib/splat-lab/job-store.ts::cancelJob` sends SIGTERM to `wsl.exe` only; the Linux `run.py` → `ns-process-data` → `colmap` chain keeps running (this is why the matcher above is still alive after the UI was closed). Cancel must `pkill` inside WSL by job id.
-9. **No per-stage rerun, no stage sub-steps, no timings per sub-step.** AirVis shows Feature Extraction / Feature Matching / Sparse Model as separate rows, each with elapsed time and a Rerun button, and "Run All" at the top.
-10. **No workspace concept.** AirVis has a named workspace folder per capture (`kitchen_AirVisStudio/`) holding inputs, Extracted/, SFM/, splats/N/. Splat Lab has anonymous 8-character job ids under `tmp/splat-lab/`.
-
-### 2.4 State of the machine right now
-
-- WSL processes alive (started ≈08:30): `run.py --job-id kitchen-proven` (pid 436), `ns-process-data` (634), `colmap exhaustive_matcher` (955/956). **Cancel these before any new run** with the command in §4.7 (the UI Cancel button will not do it until item 8 is fixed).
-- `tmp/splat-lab/kitchen-proven/` already has 814 frames, 814 RTMDet masks (people found in 526), 9,768 split faces, and a 3.8 GB COLMAP database with features extracted. The frames, masks and faces are reusable; the database should be rebuilt with the new matcher.
-- GPU idle apart from the matcher (802 MiB used).
-
-### 2.5 UI mismatch (Brian: "a weird bizarre interpretation")
-
-Current `SplatLabPanel` = header + one Input card with a path box + "Run" + a Capture Guide list + a
-grid of raw knobs + a two-column Pipeline / Preview area. AirVis (from Brian's screenshots) is a
-top-to-bottom **job board**: Workspace → Input → Run All → Prepare Images → Reconstruction → Splat
-Generation → View / Publish, with each stage a card that has its own status, elapsed time, options
-popover and action buttons. The knobs are hidden behind gear icons per stage, never shown as a wall.
-§3 specifies the replacement screen by screen.
+The important fact is already proven: the native equirectangular path runs on this machine with masks and finishes feature extraction 5× faster than the reference. Phase 2's acceptance numbers (§7.2) are the targets; if the mapper registers fewer than 805/815, try `--SiftExtraction.max_num_features 16384` before considering Rig mode.
 
 ---
 
-## 3. Target UI — card by card (match AirVis, Slate360 skin)
+## 3. Target UI — card by card (reference layout, Slate360 skin)
 
-Layout: single column, max width 1120 px, 16 px gaps, cards `rounded-xl border border-white/10
-bg-white/[0.04] backdrop-blur p-4`. Mono uppercase 10 px labels for card titles. Accent
-`var(--twin360-blue)` for interactive states only. Page background `var(--graphite-canvas)`.
+Single column, max 1120 px, 16 px gaps, cards `rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur p-4`, mono uppercase 10 px card labels, accent `var(--twin360-blue)` on interactive states only, page `var(--graphite-canvas)`. No capture essay on the home screen (it moves to a `?` help sheet). No wall of knobs: every option lives behind a gear on its stage card.
 
 ### 3.1 Title bar
-- Left: Slate360 logo (`Slate360Logo variant="dark"`), product name "Slate360 Splat" (or "Slate360 Splat Lab"), version tag from `package.json`.
-- Right: **Settings** gear (opens §3.9), GPU chip ("RTX 3090 · 24 GB"), engine health dot (green when `doctor` passed).
+Slate360 logo (`Slate360Logo variant="dark"`), product name ("Slate360 Splat" / "Slate360 Splat Lab"), version from `package.json`; right: GPU chip ("RTX 3090 · 24 GB"), **doctor dot** (green when §4.7 passed, red with a tooltip listing what failed), Settings gear.
 
 ### 3.2 Workspace card
-- Fields: Workspace name (text), Workspace folder (path, default `C:\Users\Brian PC\Slate360Jobs\<name>`), Open folder button, Recent workspaces dropdown (last 10 from `tmp/splat-lab/workspaces.json`).
-- Creating a workspace creates `<folder>/{input,extracted,sfm,splats,exports}`.
+Name, folder (default `C:\Users\Brian PC\Slate360Jobs\<name>`), Open folder, Recent (last 10, from `tmp/splat-lab/workspaces.json`). Creating one makes `<folder>/{input,extracted,sfm,views,splats,exports}`.
 
 ### 3.3 Input card
-- Drop zone + "Browse…" (server-side directory picker is not possible from a browser; use a text path plus a `/api/splat-lab/fs/list` endpoint that lists a folder so the user can click through folders in a mini file browser).
-- Accepts: one or more 360 videos (.mp4/.mov), a folder of stills, a phone capture folder (Lab only: with `depth/` + `arkit.json`).
-- Shows detected kind: "360 video · 7680×3840 · 2 files · 3 min 24 s" (probe with ffprobe in WSL).
-- Toggles exactly as AirVis "Prepare Images" popover: Spherical mode **Native / Rig** (see §4.2 for what each does), Frame rate 2/3/4/5, Image size Auto/4K/6K/8K, Max duration, Precompute faces, Mask people (default on).
+Path box + **Browse…** opening `PathBrowser` (calls `GET /api/splat-lab/fs/list?path=` which returns folders + video/image files; localhost-only, refuses anything outside fixed roots `C:\Users\Brian PC\{Desktop,Documents,Slate360Jobs,Videos}`), plus drag-drop of files (names only, used to pre-fill the box when the folder is already chosen). Shows detection: "360 video · 7680×3840 · 2 files · 3 m 24 s" via `ffprobe` in WSL. Gear = Prepare Images options: Spherical mode **Native / Rig**, fps 2/3/4/5, Image size Auto/4K/6K/8K, Max duration, Mask people (default on).
 
-### 3.4 Run All button row
-- Primary button **Run All**; secondary **Cancel** (enabled while anything runs); status text "Idle / Preparing / Reconstructing / Training / Done".
-- Run All = frames → mask → sfm.features → sfm.matching → sfm.mapping → views → train → export, skipping stages whose outputs already exist and whose settings fingerprint is unchanged (AirVis's `sfmFingerprint`/`settingsFingerprint` idea).
+### 3.4 Run All row
+**Run All**, **Cancel** (enabled while running), status text Idle / Preparing / Reconstructing / Building views / Training / Exporting / Done. Run All skips stages whose outputs exist and whose settings fingerprint is unchanged (`lib/splat-lab/fingerprint.ts`).
 
 ### 3.5 Prepare Images card
-- Row: status dot · "Prepare Images" · "814 frames @ 4 fps · 526 with people" · elapsed · **Rerun** · gear.
-- Thumbnail strip of 8 evenly spaced frames with the mask overlaid in accent colour at 30 % (proves masking worked; AirVis shows this in its Extracted view).
+Status dot · "1 · Prepare Images" · "814 frames @ 4 fps · people in 526" · elapsed · **Rerun** · gear. Strip of 8 frame thumbnails with the mask tinted at 30 %.
 
-### 3.6 Reconstruction card (SfM)
-- Sub-rows, each with status, detail and elapsed: **Feature Extraction** ("814 panos · 32k features max"), **Feature Matching** ("sequential overlap 4 + loop closure"), **Sparse Model** ("815 / 815 registered · 416,273 points").
-- Buttons: **View SfM** (opens the existing `SfmViewer` full-width, not in the preview pane), **Rerun**, gear (SfM options: mode Native/Rig, max features 8k/16k/32k, matching overlap, loop closure on/off, high precision).
-- Summary chips under the rows: registered %, points, mean reprojection error, elapsed total.
+### 3.6 Reconstruction card
+Sub-rows with status, detail, elapsed: **Feature Extraction** ("815 panos · native spherical · 8k features"), **Feature Matching** ("sequential 4 + loop closure · N pairs"), **Sparse Model** ("815 / 815 registered · 416,273 points · 0.9 px"). Buttons: **View SfM** (existing `SfmViewer`, full width; cameras = panorama centres), **Rerun**, gear (mode Native/Rig, max features 8k/16k/32k, overlap, loop closure on/off). Chips: registered %, points, mean reprojection error, total time.
 
 ### 3.7 Splat Generation card
-- Steps preset segmented control **Test / Medium / High / Auto** with the resolved number shown ("Auto · 326,000 steps") using the AirVis formula (§4.4).
-- Options popover (gear): **Image size 768 / 1024 / 1920 / Max**, SH 0–3, Splat limit Auto / number (show the auto value and the GPU-safe cap), Outputs PLY / SPZ / SOG checkboxes, Collision none / mesh (Lab only), GPU auto / device, Strategy default / MCMC (Lab only until Phase 3 promotes it), Bilateral grid on/off, estimated VRAM.
-- Live row while training: **Iteration 12,340 / 326,000 · Splats 1.84 M · 22.5 it/s · ETA 3 h 51 m · Elapsed 0 h 09 m**, progress bar, **Cancel**, **Live View** (iframe of nerfstudio viewer :7007), **Export** (enabled at completion).
-- Completed row: output path, file size, splat count, "Open in viewer".
+Steps segmented **Test / Medium / High / Auto** with the resolved number ("Auto · 326,000 steps"). Gear: **Image size 768 / 1024 / 1280 / 1920 / Max** with a live **RAM estimate** (`views × W² × 3 B`) and a red note when it exceeds 100 GB, SH 0–3, Splat limit Auto (`views × 500`, shown) / number with "enforced only with the Lab trainer" note, Outputs PLY / SPZ / SOG, Strategy Default / MCMC (Lab), Bilateral grid, GPU. Live row: **Iteration 12,340 / 326,000 · Splats 1.84 M · 22.5 it/s · ETA 3 h 51 m · Elapsed 9 m**, progress bar, **Cancel**, **Live View** (nerfstudio viewer iframe, opened on demand only), **Export**. Completed: path, size, splat count, Open in viewer.
 
 ### 3.8 View / Publish card
-- Embedded `SplatViewerCore` at 16:9, full-screen button.
-- **Export** (PLY/SPZ/SOG to `<workspace>/exports/`), **Publish to portal** (existing `PublishToPortal`, still needs the hosted login: keep it but label it "Publish to Slate360 (requires sign-in)").
-- Compare mode: pick a second model (e.g. AirVis `model.ply`) and toggle A/B in the same viewer. This is how "is it better than AirVis" is judged.
+`SplatViewerCore` at 16:9, full-screen; **Export** (PLY/SPZ/SOG → `exports/`); **Compare** (load a second model, A/B toggle, same camera); **Publish to Slate360** (existing `PublishToPortal`, labelled "requires sign-in").
 
 ### 3.9 Settings modal
-- Engine paths (WSL distro, python venv, COLMAP bin, ffmpeg), GPU selection, default workspace root, default fps, theme (Graphite only for now), "Run doctor" button showing each dependency with a version and a green/red dot.
+Engine paths, GPU, default workspace root, default fps, **Run doctor** (each dependency with version + dot).
 
-### 3.10 Job history rail (right side on wide screens, collapsible)
-- List of workspaces/jobs with status, date, splat count; click to load.
+### 3.10 Job history rail
+Collapsible list of workspaces with status/date/splats; click loads.
 
 ### 3.11 Lab differences
-- Same screen plus a **Lab sources** card (Phone LiDAR, RTK/GPS priors) and the experimental options in popovers marked "Lab". Nothing else differs.
+Same screen plus a **Lab sources** card (Phone LiDAR, RTK priors) **only when those code paths do something**; until then hide them (Cursor's point, accepted). Lab-only gear options: Strategy MCMC, sharpest-frame pick, 12-view legacy SfM.
 
-### 3.12 Component file plan (each < 300 lines)
+### 3.12 File plan (each < 300 lines)
 ```
 components/splat-lab/
-  SplatLabPanel.tsx        shell: state, polling, Run All, layout of the cards
-  TitleBar.tsx             logo, version, settings, GPU chip
-  WorkspaceCard.tsx
-  InputCard.tsx            + PathBrowser.tsx (mini file browser)
-  StageCard.tsx            generic card: title, status, elapsed, Rerun, gear slot
-  PrepareImagesCard.tsx    uses StageCard + FrameStrip.tsx
-  ReconstructionCard.tsx   uses StageCard ×3 sub-rows + SfmSummary
-  SplatGenerationCard.tsx  steps control, options popover (SplatOptions.tsx), LiveRow.tsx
-  ViewPublishCard.tsx      viewer, export, compare
-  SettingsModal.tsx
-  JobHistoryRail.tsx
-  SfmViewer.tsx, LiveViewHud.tsx, PublishToPortal.tsx, HelpTooltip.tsx (keep)
+  SplatLabPanel.tsx      shell: state, polling, Run All, card order (rewrite; keep name)
+  TitleBar.tsx           WorkspaceCard.tsx   InputCard.tsx   PathBrowser.tsx
+  StageCard.tsx          PrepareImagesCard.tsx (+FrameStrip.tsx)
+  ReconstructionCard.tsx SplatGenerationCard.tsx (+SplatOptions.tsx, LiveRow.tsx)
+  ViewPublishCard.tsx    SettingsModal.tsx   JobHistoryRail.tsx   HelpSheet.tsx
+  keep: SfmViewer.tsx, LiveViewHud.tsx, PublishToPortal.tsx, HelpTooltip.tsx
+  delete: SplatLabKnobs.tsx (its HELP strings move into the gears), CaptureGuide.tsx → HelpSheet
 lib/splat-lab/
-  clones.ts, job-types.ts, job-store.ts, job-runner.ts, wsl.ts, publish-export.ts (keep, extend)
-  steps.ts                 auto-steps + auto-cap formulas (pure functions, unit-tested)
-  fingerprint.ts           settings/sfm fingerprints for skip-if-unchanged
+  keep + extend: clones.ts, job-types.ts, job-store.ts, job-runner.ts, wsl.ts, publish-export.ts
+  new: steps.ts (auto formulas, unit-tested), fingerprint.ts, fs-roots.ts (allowed roots), doctor.ts
+app/api/splat-lab/
+  new: fs/list/route.ts (localhost-only), doctor/route.ts, jobs/[id]/rerun/route.ts (body {fromStage})
+app/(dashboard)/splat-lab/page.tsx + lab/page.tsx  → render the same SplatLabPanel (gate untouched)
 ```
 
 ---
 
-## 4. Target pipeline — what each stage must do
+## 4. Target pipeline — stage by stage
 
-All stages keep emitting one JSON line per event to stdout (`pipeline.py::emit`). Add sub-stage
-names `sfm.features`, `sfm.matching`, `sfm.mapping`, and a new `views` stage. Every record carries
-`elapsed_s`. Add `--from-stage <name>` to `run.py` so the UI Rerun buttons work, and a
-`--workspace <dir>` argument replacing `--output/--job-id`.
+Keep `pipeline.py::emit` (one JSON line per event). New stage names: `frames`, `mask`, `sfm.features`, `sfm.matching`, `sfm.mapping`, `views`, `train`, `export`, plus `doctor`. Every record has `elapsed_s`. `run.py` gains `--workspace <dir>` (replaces `--output/--job-id`) and `--from-stage <name>`.
 
-### 4.1 frames (keep) + mask (keep)
-- Keep ffmpeg extraction at N fps. Add AirVis's sharpest-of-25 pick: extract at 25× the target rate is too slow; instead extract at target fps ± 2 neighbours (3 candidates) and keep the highest Laplacian variance. Record the chosen timestamps in `extracted/frames.json`.
-- Masks: keep RTMDet on the equirect frame. Also write the dilated mask (24 px at 7680 wide) — AirVis dilates.
+### 4.1 frames, mask (keep; small changes)
+- ffmpeg at N fps into `extracted/frames/`; write `extracted/frames.json` (timestamps). Exact 4 fps in Phases 1–3 (sharpest-of-25 is Phase 4, so the A/B against the reference uses the same frames — Cursor's point, accepted).
+- RTMDet masks on the equirect; also write the COLMAP-named copy `extracted/masks-colmap/<frame>.jpg.png` (zero = ignore, dilated 24 px at 7680 wide).
+- Compute `extracted/quality.json`: mean luma, deep-shadow %, Laplacian variance on 24 sampled frames. Thresholds for the banner: luma < 70, shadow > 20 %, sharpness < 150.
 
-### 4.2 sfm — register **panoramas**, not training views
-Two modes, both through COLMAP 4.1.0 CLI directly (drop `ns-process-data` for 360; keep it for flat stills):
+### 4.2 sfm — native equirectangular on panoramas (Proven default; verified §2)
+```
+colmap feature_extractor --database_path sfm/database.db --image_path extracted/frames \
+  --ImageReader.camera_model EQUIRECTANGULAR --ImageReader.single_camera 1 \
+  --ImageReader.mask_path extracted/masks-colmap \
+  --FeatureExtraction.use_gpu 1 --FeatureExtraction.max_image_size 4096 --SiftExtraction.max_num_features 16384
+# Matching: panoramas are few (one per 0.25 s), so exhaustive is cheap and closes every loop
+# (high pass ↔ low pass) with no vocab tree. 815 panos = 332k pairs. Use it up to 1,200 panos.
+colmap exhaustive_matcher --database_path sfm/database.db --ExhaustiveMatching.block_size 100 \
+  --FeatureMatching.use_gpu 1 --FeatureMatching.num_threads 16
+# Longer walks (> 1,200 panos): sequential + loop closure with the FAISS vocab tree (§0).
+colmap sequential_matcher --database_path sfm/database.db \
+  --SequentialMatching.overlap 4 --SequentialMatching.quadratic_overlap 0 \
+  --SequentialMatching.loop_detection 1 --SequentialMatching.loop_detection_period 10 \
+  --SequentialMatching.loop_detection_num_images 30 \
+  --SequentialMatching.vocab_tree_path /home/rian_/slate360-engines/colmap-4.1.0/vocab_tree_faiss_flickr100K_words32K.bin \
+  --FeatureMatching.use_gpu 1
+colmap mapper --database_path sfm/database.db --image_path extracted/frames --output_path sfm/sparse --Mapper.num_threads 16
+colmap model_analyzer --path sfm/sparse/0      # → registered, points, mean reprojection error
+```
+Never run exhaustive on split faces (that is the 9,768-image / 47 M-pair mistake); exhaustive is only ever on panoramas.
+- Emit the three sub-stages with elapsed times. Write `sfm/stats.json` `{registered, total, points, mean_reproj_px, elapsed:{features,matching,mapping}}`, `sfm/points.ply` (`colmap model_converter --output_type PLY`), and `sfm/preview.json` (existing `sfm_preview.py`; cameras = the 815 pano poses).
+- **Rig mode** (gear option, Lab first): 6 cube faces per pano at 1536 px, PINHOLE `f = W/2`, `rig_configurator` JSON with zero baseline and fixed rotations, same matcher. Only needed if Native under-registers on some capture. Not needed for the kitchen.
+- Retire `ns-process-data` and `_split_cube_faces` for 360 input. Keep `ns-process-data images` for flat stills/drone folders.
+- Budget for the kitchen: matching ≤ 15 min, whole SfM ≤ 30 min, ≥ 805/815 registered, ≥ 300 k points (§2.1 gives the measured numbers).
 
-- **Rig** (default, proven with COLMAP): split each pano into **6 cube faces at 1536 px** (front/right/back/left/up/down, 90°, PINHOLE, `f = 768`). Feature extraction with the warped mask as `--ImageReader.mask_path` (COLMAP skips masked pixels). Register with COLMAP's **rig** support: `colmap rig_configurator` with a rig JSON declaring 6 cameras with fixed relative rotations (identity, yaw ±90°, 180°, pitch ±90°) and zero baseline, then `sequential_matcher --SequentialMatching.overlap 4 --SequentialMatching.loop_detection 1 --SequentialMatching.vocab_tree_path /home/rian_/.local/share/nerfstudio/vocab_tree.fbow` (file exists), then `mapper` with `--Mapper.ba_refine_sensor_from_rig 0`. Pairs ≈ 814 × 6 × (4 × 6 + loop candidates) ≈ 150 k, minutes not days. Faces are grouped per pano by naming `pano-%05d-<face>.jpg` so COLMAP's rig configurator can associate them (`rig_configurator --image_names` pattern; see `colmap rig_configurator --help`).
-- **Native** (Lab only, experiment): COLMAP 4.1.0's camera model list should be checked for a spherical/equirect model (`colmap feature_extractor --help | grep -i camera_model`). If absent, Native is greyed out with tooltip "needs a COLMAP build with spherical cameras".
-- Output: `sfm/sparse/0` (bin), `sfm/preview.json` (existing `sfm_preview.py`, but cameras must be **panorama** centres = rig frame poses, so the viewer shows 815 cameras, not 4,884), `sfm/points.ply`, and `sfm/stats.json` = `{registered, total, points, mean_reproj_px, elapsed: {features, matching, mapping}}`.
-- Time budget for the kitchen: ≤ 30 min total on the 3090. Acceptance in §6.
+### 4.3 views — the training set (new; mirrors the reference's `splat-training-views`)
+- For each registered pano render **16 canonical 90° pinhole views**: yaw 0,45,…,315 at pitch 0 (8), yaw 0,90,180,270 at pitch +45 (4) and −45 (4). Use `py360convert.e2p(equi, fov_deg=90, u_deg=yaw, v_deg=pitch, out_hw=(W,W))`; same call on the mask → 1-channel PNG.
+- Pose: `c2w_view = c2w_pano @ R_view` where `R_view` is the rotation of the view frame relative to the pano frame in e2p's convention. **Prove it once**: `tests/test_views_reprojection.py` projects `sfm/points.ply` into one generated view and requires ≥ 60 % of projections to fall on an image edge (Canny) within 3 px; the stage fails if the test fails. This is the only place a sign error can hide.
+- COLMAP's EQUIRECTANGULAR model: read `images.bin` (`qvec, tvec` world→cam) exactly as for any camera; the pano frame's +Z is the image centre column, +X right, +Y down (COLMAP convention). Write nerfstudio `transforms.json` with the OpenGL flip nerfstudio expects (`c2w[:, 1:3] *= -1`), `camera_model: "OPENCV"`, `fl_x = fl_y = W/2`, `cx = cy = W/2`, `w = h = W`, per frame `file_path`, `mask_path`, `transform_matrix`, and top-level `ply_file_path: "../sfm/points.ply"`.
+- **Image size** option → `W`: 768 / 1024 / 1280 / 1920 / Max (Max = pano width ÷ 4). **Proven default 1280** for 16 views (64 GB RAM cache; the reference's own view layout is max 1280). 1920 is allowed only when `views × W² × 3 B < 100 GB` (i.e. ≤ 9,000 views) or with the Lab trainer once it streams from disk; the gear shows the estimate and blocks otherwise.
 
-### 4.3 views — build the training set (new stage, mirrors AirVis "splat-training-views")
-- For every registered pano: render **16 canonical 90° pinhole views** (AirVis `canonical16-fov90`): 8 yaws × pitch 0 at 45° steps, 4 yaws × pitch +45°, 4 yaws × pitch −45°. Skip nothing; the mask handles the operator.
-- Pose of view = pano pose composed with the view's fixed rotation. Verify once with a reprojection check: project `sfm/points.ply` into a generated view and assert ≥ 60 % of projected points land on edges within 3 px (write `tests/test_views_reprojection.py`; this is the proof the rotation convention of `py360convert.e2p(u_deg, v_deg)` was translated correctly).
-- Resolution comes from the **Image size** option: 768 / 1024 / 1920 / Max (Max = pano width / 4 = 1920 for 7680 input, so "Max" and "1920" coincide for X4 8K; for 5.7K input Max = 1440).
-- Write `views/transforms.json` (nerfstudio format: `camera_model: OPENCV`, `fl_x = fl_y = W/2`, `cx = cy = W/2`, per-frame `file_path`, `mask_path`, `transform_matrix`, plus `ply_file_path: "../sfm/points.ply"` so training initialises from SfM points exactly as AirVis does (`splats.initial=416273`)).
-- Masks are warped from the equirect mask with the same `e2p` call and saved as 1-channel PNG (white = keep).
-
-### 4.4 train — AirVis parity numbers
-- **Auto steps** = `views × 50 / images_per_step`, floor 25,000 (AirVis: 13,040 × 50 / 2 = 326,000). Test = 5,000, Medium = 30,000, High = 100,000. Show the resolved number in the UI before starting.
-- **Auto splat cap** = `views × 500` capped by GPU-safe limit (AirVis: 6,520,000; safe 17.4 M on a 24 GB card). Number option overrides.
-- **Image size** applies to §4.3, not `camera-res-scale-factor`.
-- **SH degree** 0–3, `sh-degree-interval = auto_steps / 30` (AirVis 10,866 for 326k).
-- Trainer, Phase 2 (today's installed nerfstudio 1.1.5): `ns-train splatfacto --data views/ --max-num-iterations N --pipeline.model.sh-degree K --pipeline.model.use-bilateral-grid <opt> --pipeline.datamanager.masks-on-gpu True --logging.local-writer.enable True --logging.steps-per-log 50 --vis viewer+tensorboard --viewer.quit-on-train-completion True`. Densification: keep default strategy; set `--pipeline.model.stop-split-at` to 60 % of steps and `--pipeline.model.cull-alpha-thresh 0.005` (AirVis min opacity 0.005). The splat cap cannot be enforced in 1.1.5; report it as "not enforced" in the UI until Phase 3.
-- Trainer, Phase 3 (parity): MCMC via gsplat's `simple_trainer.py mcmc --strategy.cap-max <cap> --sh-degree 3 --data-dir <colmap-style dataset>`; needs the views written in COLMAP layout too (images/ + sparse/0 with the 16-view pinhole cameras) and mask support (simple_trainer has none → add an alpha-mask multiply in its loss, ~20 lines). Promote to Proven only after the §6 A/B shows it wins.
-- **Telemetry**: parse the local-writer lines (`Step (% Done)  ...  Train Iter (time)  ETA (time)`; regex on `^\s*(\d+)\s+\(([\d.]+)%\)` for step, `ETA` column for remaining), and read `gaussian_count` from the TensorBoard event file under `train/**/events.out.tfevents*` every 10 s with `tensorboard.backend.event_processing.event_accumulator.EventAccumulator` (tensorboard 2.20 is in the venv). Emit `{"stage":"train","iteration","steps","splats","it_s","eta_s","elapsed_s"}` at most once per 2 s.
-- Auto-detect **low-quality capture** the way AirVis does, but tell the user instead of silently degrading: compute mean luma, deep-shadow fraction and Laplacian variance on 24 sampled frames in `frames`; if luma < 70 or shadow > 20 % or sharpness < 150, show a yellow (token `--graphite-muted`, not amber) banner "Capture is dim / soft: expect a soft model. Re-shoot with lights on and 1/250 s" and store the numbers in `extracted/quality.json`.
+### 4.4 train
+- **Auto steps** = `views × 50 ÷ images_per_step`, floor 25,000 (kitchen: 326,000). Test 5,000 / Medium 30,000 / High 100,000. **Auto cap** = `views × 500`, GPU-limited (kitchen: 6,520,000). Both in `lib/splat-lab/steps.ts` with unit tests; the UI shows the resolved values before Run.
+- Proven (nerfstudio 1.1.5):
+  ```
+  ns-train splatfacto --data views/ --output-dir splats/N/train --max-num-iterations <steps> \
+    --pipeline.model.sh-degree <sh> --pipeline.model.sh-degree-interval <steps/30> \
+    --pipeline.model.cull-alpha-thresh 0.005 --pipeline.model.stop-split-at <0.6*steps> \
+    --pipeline.model.use-bilateral-grid <opt> --pipeline.datamanager.cache-images cpu \
+    --pipeline.datamanager.masks-on-gpu True --logging.local-writer.enable True --logging.steps-per-log 50 \
+    --vis viewer+tensorboard --viewer.quit-on-train-completion True --viewer.websocket-port 7007
+  ```
+  Splat cap is **not enforced** here; the UI says so. Expected wall time at 1280/326k on the 3090: longer than the reference's 4 h (*assumption*: 6–9 h); the ETA in the live row is the truth, not a promise.
+- Lab (Phase 4): gsplat `simple_trainer.py mcmc --strategy.cap-max <cap> --sh-degree 3` on a COLMAP-layout copy of `views/` (`images/` + `sparse/0` with 13,040 PINHOLE cameras written by the views stage), plus a ≈ 20-line alpha-mask multiply in its loss. Promote to Proven only after §7.6 on a **bright** recapture.
+- **Telemetry** (fix now): parse local-writer lines `^\s*(\d+)\s+\((\d+\.\d+)%\)` for step/percent and the `ETA` column for remaining; read `gaussian_count` every 10 s from `splats/N/train/**/events.out.tfevents*` with `tensorboard.backend.event_processing.event_accumulator.EventAccumulator`. Emit at most one train record per 2 s. Acceptance: HUD moves within 60 s.
+- Low-quality banner (from `extracted/quality.json`) before training: "This capture is dim/soft (luma 59, 23 % shadow). Expect a soft model. Re-shoot with lights on." Never silently degrade.
 
 ### 4.5 export
-- Keep `ns-export gaussian-splat` → `splats/N/model.ply`; then splat-transform → `.spz` and (Outputs option) `.sog`. Write `splats/N/slate360-splat.json` with the same fields AirVis writes (`iterations`, `splatCount`, `inputPointCount`, `stepResolution`, `splatCapResolution`, settings) so the two products can be compared line by line.
+`ns-export gaussian-splat` → `splats/N/model.ply`; splat-transform → `.spz` (+ `.sog` if selected); write `splats/N/slate360-splat.json` with `iterations, splatCount, inputPointCount, stepResolution, splatCapResolution, settings, quality` so the two products compare line by line.
 
-### 4.6 doctor (new, runs at app start and from Settings)
-- Checks, each with version and path: ffmpeg, python venv, `import py360convert, numpy, PIL, onnxruntime, gsplat, nerfstudio, tensorboard`, `colmap --version`, vocab tree file, CUDA visible (`torch.cuda.is_available()`), free disk on the workspace drive. Writes `tmp/splat-lab/doctor.json`; the title-bar dot reads it.
+### 4.6 cancel (fix now)
+```ts
+// lib/splat-lab/job-store.ts
+execFileSync("wsl.exe", ["-d","Ubuntu-22.04","--","bash","-lc",
+  `pkill -TERM -f -- "--job-id ${id}( |$)"; sleep 1; pkill -KILL -f -- "splat-lab/${id}/"; true`]);
+```
+Job ids are 8 hex chars, so the pattern cannot hit another job. Then SIGTERM the `wsl.exe` child and mark cancelled. Verify `ps -eo args | grep <id>` is empty within 5 s.
 
-### 4.7 cancel (fix now, Phase 1)
-- `cancelJob` must run `wsl.exe -d Ubuntu-22.04 -- bash -lc 'pkill -TERM -f "run.py .*--job-id <id>"; sleep 1; pkill -KILL -f "splat-lab/<id>/"'` and only then mark the job cancelled. Verify with `ps -eo pid,args | grep <id>` returning nothing.
-- One-off cleanup of the orphaned kitchen run before starting Phase 2 (Brian or Sonnet runs it):
-  ```bash
-  wsl -d Ubuntu-22.04 -- bash -lc 'pkill -TERM -f "job-id kitchen-proven"; sleep 2; pkill -KILL -f "kitchen-proven/sfm"; ps -eo pid,args | grep -c "kitchen-proven"'
-  ```
+### 4.7 doctor (new; runs at app start and from Settings)
+Checks with version + path: ffmpeg/ffprobe, venv python, `import py360convert, numpy, PIL, onnxruntime, gsplat, nerfstudio, tensorboard`, `colmap --version`, `EQUIRECTANGULAR` in `colmap feature_extractor -h`, vocab tree file, `torch.cuda.is_available()`, free disk on the workspace drive, port 7007 free. Writes `tmp/splat-lab/doctor.json`; title-bar dot reads it. This is what turns "blocked mid-run: package missing" into a red dot before Run.
 
----
-
-## 5. Build order (phases; commit and typecheck after each)
-
-**Phase 1 — stop the bleeding (½ day)**
-1. Fix cancel (§4.7). 2. Replace exhaustive matching with sequential + loop closure even in the current face-based flow (`--matching-method sequential` is not enough because nerfstudio doesn't expose overlap; call COLMAP directly). 3. Fix telemetry parsing (§4.4). 4. Add `doctor`. 5. Commit the two uncommitted reuse edits. 6. Kill the orphaned run.
-
-**Phase 2 — pipeline parity (2–3 days)**
-`views` stage, rig SfM, AirVis auto formulas, Image size option, `slate360-splat.json`, low-quality banner, workspace folders, `--from-stage`.
-
-**Phase 3 — UI parity (2–3 days)**
-All cards in §3 on `/splat-lab-desktop` (Proven) and `/splat-lab-desktop/lab`. Delete `SplatLabKnobs.tsx` wall-of-knobs; its HELP strings move into the popovers. Keep every file < 300 lines.
-
-**Phase 4 — trainer parity (research, Lab first)**
-MCMC via gsplat with cap; bilateral grid A/B; promote to Proven only on a §6 win.
+### 4.8 desktop launchers (done today; Sonnet keeps them working)
+`scripts/splat-lab/Slate360Launcher.cs` + `build-launchers.ps1` compile two `.exe` files with the hex-S icon and copy them to the Desktop; `launch.ps1` does the real work (port check, `npm run dev` if needed, Edge `--app=http://localhost:3000/splat-lab-desktop[/lab]`). Add `scripts/splat-lab/bin/` to `.gitignore`. Improve: the launcher should show a small "Starting Slate360 Splat…" window while the dev server compiles (today it is silent for up to a minute on a cold machine), and `launch.ps1` should pass `-Clone lab` through unchanged.
 
 ---
 
-## 6. Acceptance — nothing is "done" without these
+## 5. Quality-parity matrix (Brian's worry: "differences that make ours worse")
 
-1. **Screenshots side by side.** For each AirVis screenshot Brian supplied (Prepare Images popover, SFM options, SfM viewer, Splat options, training progress, completed job) produce the Slate360 Splat equivalent at the same window size and put both in `docs/ops/splat-lab-parity/<name>-{airvis,slate360}.png`. Same cards, same controls, same numbers displayed.
-2. **Kitchen SfM** on `C:\Users\Brian PC\Desktop\9.10 kitchen high and low pass`: ≥ 805 / 815 panos registered, ≥ 300 k points, matching ≤ 15 min, whole SfM ≤ 30 min. Numbers into `sfm/stats.json`.
-3. **Training telemetry** visibly updates Iteration / Splats / it/s / ETA within 60 s of start.
-4. **Cancel** kills every WSL process for the job within 5 s (verified with `ps`).
-5. **Auto formulas**: with 13,040 views the UI shows "326,000 steps" and "6,520,000 splats" before training (unit test in `lib/splat-lab/steps.test.ts`).
-6. **A/B in one viewer.** Load AirVis `model.ply` (pack to SPZ with splat-transform; 1.5 GB PLY → ≈ 250 MB SPZ) and the Slate360 model into the same `SplatViewerCore`; capture four matched screenshots (on-path, off-path, ceiling, plan) for each. This is the only quality claim allowed. No PSNR-only claims.
-7. Guards: scoped typecheck clean, `npm run guard:design`, `npm run guard:architecture`, `npm run guard:file-size-regression` all pass.
-8. Double-click test: from a cold machine (no dev server), `Slate360 Splat.lnk` opens the UI within 90 s and shows the doctor dot green.
+| Dimension | Reference | Slate360 today | Slate360 after this plan |
+|---|---|---|---|
+| SfM camera | native equirect, 1 pose/pano | 12 independent pinholes/pano, exhaustive | native equirect, 1 pose/pano (§4.2) — **same** |
+| Matching | sequential 4 + loop closure | exhaustive (days) | sequential 4 + loop closure — **same** |
+| Masks in SfM | yes | yes (burned into images) | yes via `mask_path` — **same** |
+| Training views | 16 × 90° at ≤ 1280 | 12 SfM faces | 16 × 90° derived from pano pose — **same** |
+| Training resolution | 1024 (their kitchen run) | 1920 nominal | 1280 default, 1920 where RAM allows — **≥ theirs** |
+| Init | 416k SfM points | SfM points | SfM points via `ply_file_path` — **same** |
+| Masks in training | alpha | none | `mask_path` per view — **same** |
+| Densification | MCMC, cap views×500 | default, no cap | Proven: default (no cap, stated); Lab: MCMC with cap — **gap until Phase 4** |
+| Steps | views×50/2 | fixed presets | same formula — **same** |
+| SH | 3 | 3 | 3 — same |
+| Exposure handling | black-point boost | none | bilateral grid option (better founded) |
+| Telemetry | live | dead | live — same |
+| Output | PLY + RAD LOD | PLY/SPZ | PLY/SPZ/SOG; LOD later |
+| Wall time | ≈ 5 h | never finished | SfM ≤ 30 min; train 6–9 h at 1280/326k (*assumption*) |
 
----
-
-## 7. What to tell users about capture (goes in the Capture guide + the low-quality banner)
-
-From the kitchen evidence and current 360-splat guidance (Splatware, Real Horizons, Niantic
-Scaniverse 360 guide, Tommy Lahitte's best-practices), the capture-side changes that matter more
-than any trainer setting:
-
-- **Light the room.** Every lamp on, blinds open, daytime. Target mean luma ≥ 100/255 and < 5 % deep shadow. The kitchen was 59/255 and 23 %.
-- **Lock exposure** (manual: 1/250–1/500 s, ISO auto capped 800, fixed WB) so brightness does not drift between frames; AirVis had to compensate with black-point boost.
-- **Slow.** 0.3–0.5 m/s, no pivots; at 4 fps that gives ≈ 10 cm between panoramas.
-- **Two heights, closed loops, 0.7–1 m from surfaces**, and a third pass over anything with fine detail (cabinet fronts, appliances).
-- **Clean both lenses** before every walk (one smudge blurs a quarter of the sphere).
-- **Highest resolution** (8K 30 fps on X4), stitched equirect export, no FlowState/horizon lock.
-- Keep the operator under the camera; keep "Mask people" on.
+Only one row stays open (MCMC + cap), and that row is not why the kitchen is soft.
 
 ---
 
-## 8. Open questions for Brian (do not block on these)
+## 6. Build order
 
-- Shortcut arrow: taskbar pin, or registry change (needs his yes).
-- Should AirVis be re-run on the same kitchen at Image size 1920 / Max to measure how much of its softness is the 1024 training size? (Recommended: yes, ≈ 6–8 h, gives a second ground-truth point for §6.6.)
-- Native equirect SfM in COLMAP 4.1: check camera-model list first; if absent it stays Lab-only.
+**Phase 0 — hygiene (30 min).** `nvidia-smi` idle; delete `tmp/splat-lab/kitchen-proven/sfm/colmap/colmap/database.db`; keep images/masks/faces; `.gitignore` `scripts/splat-lab/bin/`.
+
+**Phase 1 — stop the bleeding (½ day).** 1 cancel (§4.6). 2 telemetry (§4.4). 3 doctor + dot (§4.7). 4 commit frames/mask reuse. 5 fetch the FAISS vocab tree into `/home/rian_/slate360-engines/colmap-4.1.0/` and make the doctor check it. 6 remove the hard-coded exhaustive matching on faces: until §4.2 lands, the face flow uses `sequential_matcher --SequentialMatching.overlap 48` (12 faces × 4 panos) with no loop detection, so nothing can run for days again.
+
+**Phase 2 — pipeline parity (2–3 days).** Native equirect SfM with sub-stages; `views` stage + reprojection test; auto formulas; Image size enum with RAM estimate; workspace folders; `--from-stage`; `slate360-splat.json`; quality banner. Run the kitchen end to end at Medium steps to prove the chain, then Auto.
+
+**Phase 3 — UI parity (2–3 days).** All cards (§3) on `/splat-lab-desktop`, `/splat-lab-desktop/lab`, and the hosted `/splat-lab` pages. Delete the knob wall. Screenshot acceptance (§7.1).
+
+**Phase 4 — trainer research (Lab).** MCMC + cap via gsplat; bilateral grid A/B; sharpest-of-25 frames; disk-streaming datamanager for 1920 × 16 views. Promote only on a §7.6 win on a bright recapture.
+
+---
+
+## 7. Acceptance — nothing is "done" without these
+
+1. **Screenshots side by side.** For every reference screenshot Brian supplied (Prepare Images popover, SfM options, SfM viewer, Splat options, training progress, completed job, home) produce the Slate360 equivalent at the same window size → `docs/ops/splat-lab-parity/<name>-{reference,slate360}.png`. Same cards, same controls, same numbers.
+2. **Kitchen SfM** on `C:\Users\Brian PC\Desktop\9.10 kitchen high and low pass`: ≥ 805/815 registered, ≥ 300 k points, matching ≤ 15 min, total ≤ 30 min; numbers in `sfm/stats.json`.
+3. **Views**: 13,040 images + 13,040 masks, reprojection test passes.
+4. **Telemetry** moves within 60 s; **Cancel** clears WSL within 5 s (`ps`).
+5. **Formulas**: 13,040 views → "326,000 steps" and "6,520,000 splats" shown before Run (unit test).
+6. **A/B in one viewer**: reference `model.ply` packed to SPZ (1.54 GB → ≈ 250 MB; never load the raw PLY in the browser) vs the Slate360 model; four matched screenshots each (on-path, off-path, ceiling, plan). The only allowed quality claim.
+7. Guards: scoped typecheck, `guard:design`, `guard:architecture`, `guard:file-size-regression`.
+8. **Cold double-click**: with no dev server running, `Slate360 Splat.exe` opens the UI within 90 s with a green doctor dot; `Slate360 Splat Lab.exe` opens `/lab`.
+
+---
+
+## 8. Capture with the equipment Brian already owns (no purchases)
+
+Kit: Insta360 X4, iPhone Pro (LiDAR), Mavic 3 Enterprise RTK; possibly a DJI Avata 360. None of the priced upgrades (X6, Luna, handheld SLAM LiDAR, Livox DIY) are required for a sellable kitchen; X6 only helps dark interiors, and the plan's first rule is to not shoot dark interiors.
+
+- **Light the room**: every lamp, blinds open, daytime. Target mean luma ≥ 100/255, < 5 % deep shadow (the app's banner tells him if not).
+- **X4**: 360 video, Standard colour (no I-Log), **8K30 when bright; 5.7K60 or interval stills if still dim** (Grok's "never 5.7K60" rejected for dark rooms), AE + WB locked on a mid-tone, shutter ≈ 1/250 if light allows, FlowState / horizon lock / tilt recovery **off** on export (Grok's "FlowState on" rejected), equirect, max bitrate, keep `.insv`.
+- Pole above head, operator under the camera, Mask people on.
+- 0.3–0.7 m/s, no pivots, high + low pass (already right), close the loop, 0.7–1 m from surfaces, a third slow pass over fine detail.
+- Both lenses wiped before every walk.
+- Process: Image size 1280–1920, SH 3, Auto steps, cap Auto; never a "safe / low-quality" preset.
+- iPhone LiDAR = a scale bar (a 0.915 m door), not appearance. Drone RTK = the outdoor coordinate frame. Do not mix phone + drone + 360 in one first job; sub-scenes then merge is a later product (Grok, accepted for later).
+- Fastest test on the footage already captured: retrain the reference's kitchen SfM at Image size 1920 / Max with the low-quality preset off (≈ 6–8 h). Recommended, Brian's call.
+
+---
+
+## 9. Review of the supplied drafts (what changed and why)
+
+**Accepted from the Cursor drafts:** no third-party brand name in UI/code/commits; reuse the new panel on the hosted `/splat-lab` pages (gate untouched); `.exe` launchers instead of a registry icon change; defer sharpest-of-25 so the A/B uses identical frames; hide Lab LiDAR/RTK toggles until wired; job-scoped `pkill`; localhost-only filesystem API; stated ETA honesty for splatfacto vs the Vulkan trainer; "Proven SfM must not stay 12-view".
+
+**Corrected in the Cursor drafts:** (1) "Native equirect is Lab-only / we don't have their COLMAP fork" — **wrong**: stock COLMAP 4.1.0 on this machine supports `EQUIRECTANGULAR` end to end (§2), so Native is the Proven default and the rig path is the fallback, not the other way round. (2) "`<input webkitdirectory>` folder picker" — cannot yield a path; use `fs/list`. (3) "Kill the orphan first" — already dead after the reboot; the database is the only leftover. (4) "SfM ~12.5 min" for the reference — their manifests say features 2475 s + matching 434 s + mapping 752 s ≈ 61 min plus extraction. (5) "Proven train default 1920" — impossible with 16 views on nerfstudio's in-RAM cache (144 GB); default is 1280 with 1920 gated by the RAM estimate. (6) Sub-stage checkboxes "UI only until runner supports skip" — `--from-stage` makes them real in Phase 2; don't ship fake controls.
+
+**Accepted from the Grok equipment thread:** stay on the X4; quality is capture + overlap + locked exposure; 1024 is preview quality, finals at 1280–2048; iPhone LiDAR is scale, not beauty; COLMAP import is the door for GPS/LiDAR later; sub-scene merges for whole sites later.
+
+**Rejected from Grok:** FlowState on; never 5.7K60; 30–50k steps as "final" (the reference used 326k on this kitchen; use the formula); "5 min 360 ≈ 2 h" (this kitchen took ≈ 5 h at 1024); any purchase as a prerequisite.
