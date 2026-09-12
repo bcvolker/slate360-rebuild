@@ -188,7 +188,18 @@ export function cancelJob(id: string): boolean {
   if (proc) proc.kill("SIGTERM");
 
   const job = getJob(id) ?? JOBS.get(id);
-  if (job) { job.status = "failed"; job.error = "cancelled"; commit(job); }
+  if (job) {
+    job.status = "failed";
+    job.error = "cancelled";
+    // A stage badge left saying "running" after the job itself is marked
+    // failed is confusing (observed on a job whose WSL process died via an
+    // unrelated dev-server restart, leaving a stale "running" mask stage
+    // next to an overall "failed" job) — mark any in-flight stage stopped too.
+    for (const stage of job.stages) {
+      if (stage.status === "running") stage.status = "failed";
+    }
+    commit(job);
+  }
   return true;
 }
 
