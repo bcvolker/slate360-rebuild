@@ -17,6 +17,82 @@ identifiers, commit messages or user-facing text.** Say "reference layout" if ne
 
 ---
 
+## Implementation status (2026-09-12, Claude Sonnet 5)
+
+Phases 0–3 are built, verified end-to-end through the real web UI (not scratch scripts), and
+committed on `feature/splat-lab` (commits `94b9e2bc`, `3d3cb67d`, `540f9d0e`, `e1d0dda4`). What
+changed from the plan as written, and three real bugs found only by actually running the finished
+system, are below. Phase 4 (MCMC trainer) is not started — see the note at the end of this section.
+
+**What works, proven live:** started a job through `POST /api/splat-lab/run` on the real kitchen
+folder (an 8-second-capped clip for a fast test) and watched it complete unattended through the
+actual card UI: frames (11.5s) → mask (43.3s) → native equirect SfM (111.2s, **64/64 panoramas
+registered, 31,795 points, 1.11px mean reprojection error**) → 16-view training-set build (164.9s,
+**1,024 views, reprojection sanity check 18.2%**) → training (65.9s, 300 steps) → export (11.8s,
+a 3.2 MB PLY). The low-quality-capture banner fired correctly (luma 53.5/255, 26% shadow) and the
+exported splat rendered in the View/Publish card's 3D viewer. Cancel killed the WSL process tree
+in ~4s; Rerun-from-frames correctly reused existing frames without racing the newly spawned
+process (see bug 3 below). All three project guards (`design`, `architecture`,
+`file-size-regression`) pass; 36 Python tests pass (33 new, permanently locking down the 16-view
+rotation math to 1e-6 against COLMAP's own camera model — see `test_views_reprojection.py`).
+
+**Full-scale proof run, completed** (the real 815-panorama kitchen capture, not the 8-second test):
+native equirect feature extraction took 471s (reference: 2,475s at higher resolution). Matching was
+measured twice on the identical feature set: **exhaustive took 2,900s (48.3 min)**; **sequential +
+FAISS-vocab-tree loop closure took 197s (3.3 min)** — a 14.7x speedup, consistent with the
+reference's own ~434s. This is why `_EXHAUSTIVE_MAX` in `sfm.py` is 200, not the 1,200 originally
+guessed — exhaustive is only sane for small captures now that sequential+loop is proven fast and
+correct. `colmap model_analyzer` on the finished sparse model:
+
+```
+Registered images: 815 / 815 (100%)
+Points: 420,993
+Mean reprojection error: 1.258 px
+```
+
+**815/815 registered with more points than the reference's own run on this same kitchen**
+(416,273) — the native path is not just parity, it is a slightly denser reconstruction. Mapping
+(retriangulation + global bundle adjustment) took **2,585s (43.1 min)** — this is the one number
+that misses the plan's own ≤30-min-total target (features 471s + matching 197s + mapping 2,585s ≈
+54.2 min total). The reference reports 752s (12.5 min) for the equivalent phase, so its
+proprietary Vulkan-based bundle adjuster is meaningfully faster than stock COLMAP's CPU Ceres
+solver on this problem size. Follow-up for Sonnet/Lab: check whether this COLMAP 4.1 build's
+`mapper` has a GPU bundle-adjustment path (`--Mapper.ba_use_gpu` or similar) before accepting 43
+minutes as the ceiling — not investigated in this session for time.
+
+**Three real bugs found only by running the finished system, not visible from reading the code:**
+
+1. **Cross-instance job state.** `job-store.ts`'s in-memory `Map` is not reliably shared across
+   different Next.js API route handlers in dev mode — a job started by `POST /api/splat-lab/run`
+   was invisible to `GET /api/splat-lab/jobs/[id]` moments later. Every write now also persists to
+   `<jobDir>/live-status.json`, and every read prefers that file. `tmp/` was also never actually
+   gitignored (`/tmp-*` only matches root-level `tmp-*`, not the `tmp/` directory) — fixed.
+2. **Every real pipeline run silently failed before writing a single stage record.**
+   `wslCleanEnv()`'s return value had no trailing `;`, and the array-joined-with-spaces command
+   string swallowed the entire `python run.py --input ... --quality auto --strategy default`
+   invocation as arguments to the preceding `export PYTHONIOENCODING=utf-8` statement
+   (`export: '--quality': not a valid identifier`). This means the desktop app's Run button never
+   actually worked end-to-end before this fix, regardless of which pipeline version was behind it.
+3. **Rerun raced its own kill.** The fire-and-forget WSL kill has an internal 1-second delayed
+   SIGKILL sweep matching by job id, not a specific PID — it was killing the brand-new process for
+   the same job id moments after Rerun started it. Now awaited to completion first.
+
+Also: COLMAP 4.1's **binary** sparse-model format (`cameras.bin`/`images.bin`) does not match the
+classic enum this codebase's original binary reader assumed (COLMAP's newer rig/frame architecture
+renumbered camera model IDs and added `frames.bin`/`rigs.bin`) — crashed the first live-data run of
+the views stage. Fixed by exporting and reading COLMAP's **TEXT** format instead, which is stable
+and documented across versions; `colmap_io.py`'s docstring has the detail. Two hydration bugs
+(`HelpTooltip`'s own `<button>` nested inside another `<button>` in two components) were also found
+and fixed while checking the browser console during verification.
+
+**Not done: Phase 4 (MCMC trainer via gsplat).** This needs a real bright recapture to A/B against
+per the plan's own acceptance rule (§7.6) — it cannot be honestly promoted from a dark 8-second test
+clip. The `strategy: "mcmc"` UI option exists in the Lab clone's knobs but the Python side still
+runs the default nerfstudio trainer regardless of that setting; wiring the actual gsplat trainer is
+the next slice.
+
+---
+
 ## 0. Rules (read before touching anything)
 
 - Branch `feature/splat-lab` in `C:\s360` only. Never rebase, merge or force-push `main`.
@@ -80,20 +156,23 @@ photons. Sellable output needs a lit recapture (§8) and training at ≥ 1280–
 | Browser folder picker gives a path? | **No.** `<input webkitdirectory>` exposes file names, never the absolute folder path, and the pipeline needs a path for WSL. Use a localhost-only `fs/list` API + mini browser (§3.3). | Chromium behaviour |
 | py360convert / numpy / pillow in the venv | Present (1.0.4 / 1.26.4 / 12.3.0). The blocked screenshot predates the install. | `pip show` |
 
-### 2.1 Native SfM proof run on all 815 panoramas (stock COLMAP, masks on)
+### 2.1 Native SfM proof run on all 815 panoramas (stock COLMAP, masks on) — COMPLETE
 
-Settings: `EQUIRECTANGULAR`, single camera, `mask_path` (the reference's own RTMDet masks renamed to COLMAP's `<name>.jpg.png`), `max_image_size 4096`, default 8,192 SIFT features, exhaustive matching on the 815 panoramas (the sequential+vocab-tree attempt aborted on the legacy tree file, see §0), mapper defaults. Recipe: `docs/ops/splat-lab-parity/native-sfm-recipe.sh` (Sonnet copies the two scratch scripts there in Phase 2).
+Settings: `EQUIRECTANGULAR`, single camera, `mask_path` (the reference's own RTMDet masks renamed to COLMAP's `<name>.jpg.png`), `max_image_size 4096`, default 8,192 SIFT features, mapper defaults. Recipe: `docs/ops/splat-lab-parity/native-sfm-recipe.sh`.
 
-Result so far (2026-09-12, RTX 3090, panoramas read from `/mnt/c`):
+Result (2026-09-12, RTX 3090, panoramas read from `/mnt/c`):
 
 | Step | Measured |
 |---|---|
 | Feature extraction, 815 panos, masks applied, 4096 px | **471 s** (reference: 2475 s at 7680 px) |
-| Sequential + vocab-tree loop detection | aborted: legacy tree file (§0); use the FAISS tree or exhaustive |
-| Exhaustive matching, 815 panos (332 k pairs) | in progress at the time of writing: ~28/45 blocks in 21 min → ≈ 35 min expected |
-| Mapper | pending — Sonnet: run `docs/ops/splat-lab-parity/native-sfm-recipe.sh` and paste `model_analyzer` output here (registered / points / reprojection error) |
+| Sequential + FAISS vocab-tree loop detection | **197 s** (legacy tree crashed, see §0; FAISS tree fixed it) |
+| Exhaustive matching, same 815 panos, same features (comparison) | 2,900 s — 14.7x slower than sequential |
+| Mapper (retriangulation + global BA) | **2,585 s (43.1 min)** — the reference reports 752 s for the equivalent phase |
+| **Registered** | **815 / 815 (100%)** |
+| **Points** | **420,993** (reference: 416,273 — denser) |
+| **Mean reprojection error** | **1.258 px** |
 
-The important fact is already proven: the native equirectangular path runs on this machine with masks and finishes feature extraction 5× faster than the reference. Phase 2's acceptance numbers (§7.2) are the targets; if the mapper registers fewer than 805/815, try `--SiftExtraction.max_num_features 16384` before considering Rig mode.
+Native equirectangular SfM registers every panorama with more points than the reference's own run on this same kitchen. Total wall time (features+matching+mapping) ≈ 54 min, over the plan's ≤30-min target — mapping (COLMAP's CPU Ceres bundle adjustment) is now the bottleneck, not matching. Worth checking whether this COLMAP build exposes a GPU bundle-adjustment path before accepting 43 minutes as the ceiling (not done this session).
 
 ---
 
