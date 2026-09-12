@@ -23,8 +23,16 @@ export const QUALITY_STEPS: Record<"test" | "medium" | "high", number> = {
 export const VIEWS_PER_PANO = 16;
 
 // nerfstudio 1.1.5 caches every training image in RAM/VRAM (no disk
-// streaming — verified via `ns-train --help`). 3 bytes/px (uint8 RGB).
-export const RAM_BUDGET_BYTES = 100 * 1024 ** 3; // 100 GB of this machine's 128 GB
+// streaming — verified via `ns-train --help`). Root-caused 2026-09-12 on a
+// real 272-panorama/1280px run: raw pixel bytes alone undercounts real usage
+// by roughly 3x once PyTorch/nerfstudio's own overhead (mask cache, prefetch
+// buffers, tensor copies) is included — a 21.4 GB raw estimate actually used
+// ~61 GB RSS and pushed WSL2 into heavy swapping, cratering training from
+// ~6 it/s to under 2 it/s. RAM_OVERHEAD_FACTOR folds that in. WSL2's memory
+// ceiling was also raised from its ~62 GB default to 100 GB via .wslconfig —
+// RAM_BUDGET_BYTES leaves headroom under that for the OS and other stages.
+export const RAM_OVERHEAD_FACTOR = 3.0;
+export const RAM_BUDGET_BYTES = 75 * 1024 ** 3; // target ceiling under WSL2's 100 GB (see .wslconfig)
 
 export const VIEW_IMAGE_SIZES_PX: Record<string, number> = {
   "768": 768,
@@ -38,8 +46,10 @@ export function viewPx(viewImageSize: string, panoWidthPx = 7680): number {
   return VIEW_IMAGE_SIZES_PX[viewImageSize] ?? 1280;
 }
 
+/** Realistic estimate of actual RSS during training, not just raw pixel
+ * bytes — see RAM_OVERHEAD_FACTOR above for why the multiplier is needed. */
 export function ramEstimateBytes(viewCount: number, widthPx: number): number {
-  return viewCount * widthPx * widthPx * 3;
+  return Math.round(viewCount * widthPx * widthPx * 3 * RAM_OVERHEAD_FACTOR);
 }
 
 /** views * 50 / imagesPerStep, floor 25,000 (the reference's own formula). */

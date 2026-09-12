@@ -82,13 +82,26 @@ describe("viewPx", () => {
 });
 
 describe("ramEstimateBytes / ramFitsBudget", () => {
-  it("flags 13,040 views at 1920px as exceeding the 100 GB RAM budget", () => {
+  // Root-caused 2026-09-12 on a real 272-panorama/1280px run: raw pixel
+  // bytes alone undercounts real usage ~3x (RAM_OVERHEAD_FACTOR) once
+  // PyTorch/nerfstudio's own overhead is included — a 21.4 GB raw estimate
+  // for that run actually used ~61 GB RSS and pushed WSL2 into heavy
+  // swapping. At the full kitchen's 13,040 views, even Proven's stated
+  // 1280px default does not actually fit once that overhead is accounted
+  // for — a smaller capture or a lower Image size is needed for a walk this
+  // large, and the UI's own RAM estimate now surfaces that honestly instead
+  // of understating it.
+  it("flags 13,040 views at 1920px as exceeding the RAM budget", () => {
     const bytes = ramEstimateBytes(KITCHEN_VIEWS, 1920);
-    expect(bytes).toBeGreaterThan(100 * 1024 ** 3);
+    expect(bytes).toBeGreaterThan(75 * 1024 ** 3);
     expect(ramFitsBudget(KITCHEN_VIEWS, 1920)).toBe(false);
   });
 
-  it("fits 13,040 views at 1280px (Proven's default) within the RAM budget", () => {
-    expect(ramFitsBudget(KITCHEN_VIEWS, 1280)).toBe(true);
+  it("flags 13,040 views at 1280px as exceeding the RAM budget once real overhead is counted", () => {
+    expect(ramFitsBudget(KITCHEN_VIEWS, 1280)).toBe(false);
+  });
+
+  it("a 272-panorama subset (4,352 views) at 1280px fits comfortably", () => {
+    expect(ramFitsBudget(4_352, 1280)).toBe(true);
   });
 });

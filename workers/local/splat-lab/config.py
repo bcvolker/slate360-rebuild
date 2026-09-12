@@ -57,9 +57,18 @@ GPU_SAFE_SPLATS = 17_400_000
 
 # Training-image RAM budget (nerfstudio 1.1.5 caches every training image in
 # process RAM or VRAM - no disk streaming, verified via `ns-train --help`).
-# 3 bytes/px (uint8 RGB) x W^2 x view_count must stay under this or the run
-# OOMs; the UI shows the estimate and blocks Image size choices that do not fit.
-RAM_BUDGET_BYTES = 100 * 1024 ** 3  # 100 GB of the machine's 128 GB
+# Root-caused 2026-09-12 on a real 272-panorama/1280px run: raw pixel bytes
+# alone (views * W^2 * 3B) undercounts real usage by roughly 3x once
+# PyTorch/nerfstudio's own overhead (mask cache, prefetch buffers, tensor
+# copies) is included - a 21.4 GB raw estimate actually used ~61 GB RSS and
+# pushed WSL2 into heavy swapping (15/16 GB swap used), cratering training
+# from ~6 it/s to under 2 it/s. RAM_OVERHEAD_FACTOR folds that in so the UI's
+# estimate reflects real usage, not just raw pixels. WSL2's memory ceiling
+# was also raised from its ~62 GB default to 100 GB via .wslconfig (see
+# docs/ops/SPLAT_LAB_PARITY_BUILD_PLAN.md) - RAM_BUDGET_BYTES leaves
+# headroom under that for the OS and other concurrent pipeline stages.
+RAM_OVERHEAD_FACTOR = 3.0
+RAM_BUDGET_BYTES = 75 * 1024 ** 3  # target ceiling under WSL2's 100 GB (see .wslconfig)
 
 VIEW_IMAGE_SIZES_PX = {"768": 768, "1024": 1024, "1280": 1280, "1920": 1920}
 
@@ -72,7 +81,9 @@ def view_px(view_image_size: str, pano_width: int = 7680) -> int:
 
 
 def ram_estimate_bytes(view_count: int, w: int) -> int:
-    return view_count * w * w * 3
+    """Realistic estimate of actual RSS during training, not just raw pixel
+    bytes - see RAM_OVERHEAD_FACTOR above for why the multiplier is needed."""
+    return int(view_count * w * w * 3 * RAM_OVERHEAD_FACTOR)
 
 
 def resolve_auto_steps(view_count: int, images_per_step: int) -> int:
