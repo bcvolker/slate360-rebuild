@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { FolderOpen, Loader2, Play, Square } from "lucide-react";
 import { PathBrowser } from "@/components/splat-lab/PathBrowser";
+import { DropZone } from "@/components/splat-lab/DropZone";
 import { HelpTooltip } from "@/components/splat-lab/HelpTooltip";
+import type { DropSummary } from "@/lib/splat-lab/file-detect";
 import type { Knobs } from "@/lib/splat-lab/clones";
 
 const HELP = {
@@ -35,31 +37,68 @@ export function InputCard({
   error: string | null;
 }) {
   const [browsing, setBrowsing] = useState(false);
+  const [manualEntry, setManualEntry] = useState(false);
+  const [detected, setDetected] = useState<DropSummary | null>(null);
   const set = (patch: Partial<Knobs>) => setKnobs({ ...knobs, ...patch });
 
   return (
     <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur">
       <div className="flex items-center justify-between">
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--graphite-muted)]">Input</p>
+        {input ? (
+          <button onClick={() => { onChangeInput(""); setDetected(null); }} className="font-mono text-[10px] text-[var(--graphite-muted)] hover:text-white">
+            Clear
+          </button>
+        ) : null}
       </div>
-      <div className="mt-2 flex gap-2">
-        <input
-          value={input}
-          onChange={(e) => onChangeInput(e.target.value)}
-          placeholder="C:\Users\Brian PC\Desktop\9.10 kitchen high and low pass"
-          className="flex-1 rounded-md border border-white/10 bg-[var(--graphite-canvas)] px-3 py-2 font-mono text-xs text-[var(--graphite-text-body)] placeholder:text-zinc-600 focus:border-[var(--twin360-blue)] focus:outline-none"
-        />
-        <button
-          onClick={() => setBrowsing(true)}
-          className="inline-flex items-center gap-2 rounded-md border border-white/10 px-3 py-2 text-xs text-[var(--graphite-muted)] hover:text-white"
-        >
-          <FolderOpen className="size-3.5" /> Browse…
+
+      {input ? (
+        <div className="mt-2 rounded-md border border-white/10 bg-[var(--graphite-canvas)] px-3 py-2">
+          <p className="truncate font-mono text-xs text-[var(--graphite-text-body)]" title={input}>{input}</p>
+          {detected ? (
+            <p className="mt-1 text-[11px] text-[var(--graphite-primary)]">{detected.message}</p>
+          ) : null}
+          {detected?.warnings.map((w) => (
+            <p key={w} className="mt-0.5 text-[10px] text-[var(--graphite-muted)]">{w}</p>
+          ))}
+        </div>
+      ) : (
+        <div className="mt-2">
+          <DropZone
+            onResolved={({ path, suggestedIs360, summary }) => {
+              onChangeInput(path);
+              setDetected(summary);
+              set({ is360: suggestedIs360 });
+            }}
+          />
+        </div>
+      )}
+
+      <div className="mt-2 flex items-center gap-3">
+        <button onClick={() => setManualEntry((v) => !v)} className="font-mono text-[10px] uppercase tracking-wide text-[var(--graphite-muted)] hover:text-white">
+          {manualEntry ? "Hide" : "Or paste / browse a path"}
         </button>
       </div>
+      {manualEntry ? (
+        <div className="mt-2 flex gap-2">
+          <input
+            value={input}
+            onChange={(e) => { onChangeInput(e.target.value); setDetected(null); }}
+            placeholder="C:\Users\Brian PC\Desktop\9.10 kitchen high and low pass"
+            className="flex-1 rounded-md border border-white/10 bg-[var(--graphite-canvas)] px-3 py-2 font-mono text-xs text-[var(--graphite-text-body)] placeholder:text-zinc-600 focus:border-[var(--twin360-blue)] focus:outline-none"
+          />
+          <button
+            onClick={() => setBrowsing(true)}
+            className="inline-flex items-center gap-2 rounded-md border border-white/10 px-3 py-2 text-xs text-[var(--graphite-muted)] hover:text-white"
+          >
+            <FolderOpen className="size-3.5" /> Browse…
+          </button>
+        </div>
+      ) : null}
       {error ? <p className="mt-2 text-xs text-red-400">{error}</p> : null}
       {browsing ? (
         <PathBrowser
-          onPick={(p) => { onChangeInput(p); setBrowsing(false); }}
+          onPick={(p) => { onChangeInput(p); setDetected(null); setBrowsing(false); }}
           onClose={() => setBrowsing(false)}
         />
       ) : null}
