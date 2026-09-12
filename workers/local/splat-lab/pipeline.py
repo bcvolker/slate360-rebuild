@@ -65,41 +65,52 @@ def run(cfg: SplatLabConfig) -> dict:
     # Stage 1: Prepare images (real — ffmpeg or folder copy)
     results.append(_timed("frames", frames_stage.run, ctx, cfg))
     if results[-1].status == "failed":
-        return _finalize(cfg, results, status="failed")
+        return _finalize(cfg, results, ctx, "failed")
 
     # Stage 2: People masking (optional — runs BEFORE SfM so people don't
     # create spurious points). Skipped if remove_people is off or deps missing.
     results.append(_timed("mask", mask_stage.run, ctx, cfg))
     if results[-1].status == "failed":
-        return _finalize(cfg, results, status="failed")
+        return _finalize(cfg, results, ctx, "failed")
 
     # Stage 3: SfM (COLMAP via ns-process-data; 360 -> 6 cube faces first)
     results.append(_timed("sfm", sfm_stage.run, ctx, cfg))
     if results[-1].status == "failed":
-        return _finalize(cfg, results, status="failed")
+        return _finalize(cfg, results, ctx, "failed")
     if results[-1].status == "blocked":
-        return _finalize(cfg, results, status="blocked")
+        return _finalize(cfg, results, ctx, "blocked")
 
     # Stage 4: Train (ns-train splatfacto)
     results.append(_timed("train", train_stage.run, ctx, cfg))
     if results[-1].status in ("failed", "blocked"):
-        return _finalize(cfg, results, status=results[-1].status)
+        return _finalize(cfg, results, ctx, results[-1].status)
 
     # Stage 5: Export + convert (ns-export -> .ply, splat-transform -> .spz)
     results.append(_timed("export", export_stage.run, ctx, cfg))
     if results[-1].status in ("failed", "blocked"):
-        return _finalize(cfg, results, status=results[-1].status)
+        return _finalize(cfg, results, ctx, results[-1].status)
 
-    return _finalize(cfg, results, status="completed")
+    return _finalize(cfg, results, ctx, "completed")
 
 
 def _finalize(cfg: SplatLabConfig, results: list[StageResult],
-               status: str) -> dict:
+               ctx: dict, status: str) -> dict:
+    # Normalize the final model location: copy the produced .ply to
+    # job_dir/output.ply so the web viewer can find it (and .spz if present).
+    model_path = ctx.get("model_path")
+    out_ply = cfg.job_dir / "output.ply"
+    out_spz = cfg.job_dir / "output.spz"
+    if model_path and Path(model_path).exists() and model_path != str(out_ply) and model_path != str(out_spz):
+        # Source ply lives under export/; surface it at the job root.
+        if model_path.endswith(".ply") and not out_ply.exists():
+            import shutil as _sh
+            _sh.copy2(model_path, out_ply)
     manifest = {
         "jobId": cfg.job_id,
         "status": status,
         "input": cfg.input_path,
         "is360": cfg.is360,
+        "modelPath": str(out_spz) if out_spz.exists() else (str(out_ply) if out_ply.exists() else None),
         "stages": [
             {"name": r.name, "status": r.status, "elapsed_s": r.elapsed_s,
              "detail": r.detail, "error": r.error, "artifacts": r.artifacts}

@@ -34,6 +34,13 @@ def run(cfg, ctx) -> StageResult:
                    "then `ns-process-data images` becomes available. "
                    "See workers/local/splat-lab/README.md")
 
+    # Apply the COLMAP 4.x option-name compatibility shim (idempotent).
+    try:
+        from colmap4_compat import patch as colmap4_patch
+        colmap4_patch()
+    except Exception:
+        pass
+
     work_dir: Path = ctx["job_dir"] / "sfm"
     work_dir.mkdir(parents=True, exist_ok=True)
 
@@ -47,7 +54,7 @@ def run(cfg, ctx) -> StageResult:
     else:
         sfm_images = images_dir
 
-    return _run_colmap(cfg, sfm_images, work_dir, count)
+    return _run_colmap(cfg, sfm_images, work_dir, count, ctx)
 
 
 def _split_cube_faces(images_dir: Path, faces_dir: Path, cfg) -> StageResult:
@@ -83,7 +90,7 @@ def _split_cube_faces(images_dir: Path, faces_dir: Path, cfg) -> StageResult:
                        artifacts=[str(faces_dir)])
 
 
-def _run_colmap(cfg, sfm_images: Path, work_dir: Path, cam_count: int) -> StageResult:
+def _run_colmap(cfg, sfm_images: Path, work_dir: Path, cam_count: int, ctx: dict) -> StageResult:
     """Run ns-process-data images (COLMAP SfM) and stream progress."""
     out_dir = work_dir / "colmap"
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -94,11 +101,10 @@ def _run_colmap(cfg, sfm_images: Path, work_dir: Path, cam_count: int) -> StageR
         "--output-dir", str(out_dir),
         "--camera-type", "perspective",
     ]
-    # SfM mode: faster = vocab_tree matcher (balanced, default); hq = exhaustive.
-    if cfg.sfm_mode == "hq":
-        cmd += ["--matching-method", "exhaustive"]
-    else:
-        cmd += ["--matching-method", "vocab_tree"]
+    # Matching method: exhaustive is the safe universal default (no external
+    # vocab-tree file needed). vocab_tree crashes without a prebuilt tree.
+    # "faster" still benefits from lower image res; "hq" adds refine + higher res.
+    cmd += ["--matching-method", "exhaustive"]
 
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=14400)

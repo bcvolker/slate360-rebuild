@@ -1,20 +1,16 @@
 """Stage 4 — Gaussian splat training (Nerfstudio splatfacto / gsplat).
 
-REAL in Slice 2. Runs `ns-train splatfacto` with the training knobs (resolution
-limit, SH degree, splat cap, steps, quality preset) and streams iteration
-progress. Parses nerfstudio's iteration log lines for live progress.
+REAL in Slice 2. Runs `ns-train splatfacto` with the training knobs
+(resolution scale, SH degree, steps, quality preset) and streams iteration
+progress. Arg names match nerfstudio 1.1.5's splatfacto config.
 """
 from __future__ import annotations
 
-import re
 import subprocess
 from pathlib import Path
 
 from result import StageResult
 from tools import which_tool
-
-# Nerfstudio splatfacto prints iteration progress; capture the iteration number.
-_ITER_RE = re.compile(r"(?:iteration|iter)\D*(\d+)", re.IGNORECASE)
 
 
 def run(cfg, ctx) -> StageResult:
@@ -33,21 +29,22 @@ def run(cfg, ctx) -> StageResult:
     out_dir = ctx["job_dir"] / "train"
     out_dir.mkdir(parents=True, exist_ok=True)
     steps = cfg.resolved_steps
+    # camera-res-scale-factor: 1.0 = full source res; lower = faster, less detail.
+    res_scale = max(0.25, min(1.0, cfg.resolved_image_px / 7680.0))
+
     cmd = [
         which_tool("ns-train") or "ns-train",
         "splatfacto",
         "--data", str(data_dir),
         "--output-dir", str(out_dir),
         "--max-num-iterations", str(steps),
-        "--pipeline.datamanager.camera_res_scale",
-        str(max(0.25, min(1.0, cfg.resolved_image_px / 7680.0))),
+        "--pipeline.datamanager.camera-res-scale-factor", f"{res_scale:.3f}",
+        "--vis", "viewer",
+        "--viewer.quit-on-train-completion", "True",
     ]
-    # SH degree + splat cap via splatfacto trainer args (names vary by version).
-    if cfg.sh_degree:
-        cmd += ["--pipeline.model.sh_degree", str(cfg.sh_degree)]
-    if cfg.max_splats_millions:
-        cap = int(cfg.max_splats_millions * 1_000_000)
-        cmd += ["--pipeline.model.max_splats", str(cap)]
+    # SH degree: splatfacto ramps SH via sh-degree-interval (0 = no SH, higher = earlier ramp).
+    if cfg.sh_degree and cfg.sh_degree > 0:
+        cmd += ["--pipeline.model.sh-degree-interval", str(max(1, cfg.sh_degree * 1000))]
 
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=86400)
@@ -59,7 +56,6 @@ def run(cfg, ctx) -> StageResult:
         return StageResult(name="train", status="failed",
                            error=f"ns-train failed: {tail}")
 
-    # Find the trained checkpoint / splat export path.
     splat_ply = _find_latest(out_dir, ".ply")
     ctx["train_dir"] = str(out_dir)
     detail = f"training done ({steps} steps)"

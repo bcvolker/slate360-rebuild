@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     resolutionLimit: Number(body.resolutionLimit ?? 1920),
     shDegree: Number(body.shDegree ?? 1),
     maxSplatsMillions: Number(body.maxSplatsMillions ?? 1.5),
-    trainingSteps: Number(body.trainingSteps ?? 30_000),
+    trainingSteps: Number(body.trainingSteps ?? 0),
     preset: String(body.preset ?? "classic"),
     quality: String(body.quality ?? "auto"),
   };

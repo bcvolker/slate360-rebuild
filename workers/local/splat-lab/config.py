@@ -45,7 +45,7 @@ class SplatLabConfig:
     resolution_limit: int = 1920       # SplatTrainerImageResolutionLimit
     sh_degree: int = 1                 # SH degree (0-3); 2-3 for highest fidelity
     max_splats_millions: float = 1.5   # splat cap
-    training_steps: int = 30_000       # iterations (quality preset overrides if >0)
+    training_steps: int = 0               # 0 = follow quality preset; >0 overrides
     images_per_step: int = 0           # 0 = auto: clamp(ceil(cameras/5000),1,64)
     preset: str = "classic"            # trainingPreset
     quality: str = "auto"              # test | medium | high | auto (step target)
@@ -60,8 +60,8 @@ class SplatLabConfig:
             errs.append(f"sh_degree must be one of {SH_DEGREES}")
         if self.max_splats_millions <= 0:
             errs.append("max_splats_millions must be > 0")
-        if self.training_steps <= 0:
-            errs.append("training_steps must be > 0")
+        if self.training_steps < 0:
+            errs.append("training_steps must be >= 0")
         if self.sfm_mode not in SFM_MODES:
             errs.append(f"sfm_mode must be one of {SFM_MODES}")
         if self.image_size not in IMAGE_SIZES:
@@ -76,9 +76,10 @@ class SplatLabConfig:
 
     @property
     def resolved_steps(self) -> int:
-        """Quality preset step target, unless training_steps was set higher."""
-        target = QUALITY_STEPS.get(self.quality, self.training_steps)
-        return max(self.training_steps, target)
+        """Quality-preset step target, unless training_steps was set > 0."""
+        if self.training_steps and self.training_steps > 0:
+            return self.training_steps
+        return QUALITY_STEPS.get(self.quality, 30_000)
 
     @property
     def resolved_image_px(self) -> int:

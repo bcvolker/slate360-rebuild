@@ -48,7 +48,8 @@ def main(argv: list[str] | None = None) -> int:
                    help="image resolution limit in px (default 1920)")
     p.add_argument("--sh-degree", type=int, default=1, choices=[0, 1, 2, 3])
     p.add_argument("--max-splats-millions", type=float, default=1.5)
-    p.add_argument("--training-steps", type=int, default=30_000)
+    p.add_argument("--training-steps", type=int, default=0,
+                   help="0 = follow quality preset; >0 overrides")
     p.add_argument("--images-per-step", type=int, default=0,
                    help="0 = auto: clamp(ceil(cameras/5000),1,64)")
     p.add_argument("--preset", default="classic",
