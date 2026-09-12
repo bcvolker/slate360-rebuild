@@ -19,7 +19,7 @@ function Get-GpuBusy {
 
 Write-Host "Waiting for GPU to free before Clone 1 kitchen run..."
 while (Get-GpuBusy) {
-  Write-Host "$(Get-Date -Format o) GPU still busy — retry in ${PollSeconds}s"
+  Write-Host "$(Get-Date -Format o) GPU still busy - retry in ${PollSeconds}s"
   Start-Sleep -Seconds $PollSeconds
 }
 
