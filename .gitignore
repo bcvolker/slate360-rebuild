@@ -100,3 +100,7 @@ reference/
 
 # Slate360 Splat desktop launcher build output (rebuild with scripts/splat-lab/build-launchers.ps1)
 /scripts/splat-lab/bin/
+
+# Splat Lab local job workspace: extracted frames, masks, SfM databases, trained
+# models, live-status.json — all local job output, some multi-GB, never for git.
+/tmp/
