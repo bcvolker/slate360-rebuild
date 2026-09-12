@@ -1,13 +1,20 @@
 """Splat Lab pipeline orchestrator.
 
-Runs stages in order and emits one JSON progress record per line to stdout
-(JSON for easy parsing):
+Runs stages in order and emits one JSON progress record per line to stdout:
     {"stage":"frames","status":"running","progress":0.5,"detail":"..."}
     {"stage":"frames","status":"done","progress":1.0,"elapsed_s":12.3}
-    {"stage":"sfm","status":"failed","error":"nerfstudio not installed ..."}
+    {"stage":"sfm","status":"failed","error":"..."}
 
-Stages are real where deps are available; otherwise they emit a structured
-`blocked` record with install instructions so the web UI can show next steps.
+Stage order: frames -> mask -> sfm (sub-stages sfm.features/sfm.matching/
+sfm.mapping emitted internally) -> views -> train -> export. `views` is
+skipped (not failed) for rig-mode or non-360 input, since those already
+produce their own pinhole training set during SfM.
+
+`from_stage` lets the UI's per-stage Rerun buttons resume mid-pipeline,
+reusing whatever earlier stages already wrote to disk (frames.py/mask.py
+already skip re-work when their outputs exist; sfm/views/train do not cache
+partial output today, so a from-stage of "sfm" or later re-runs that stage
+and everything after it, while frames/mask are skipped entirely).
 """
 from __future__ import annotations
 
@@ -19,11 +26,14 @@ from typing import Callable
 
 from config import SplatLabConfig
 from result import StageResult
-from stages import frames as frames_stage
-from stages import sfm as sfm_stage
-from stages import mask as mask_stage
-from stages import train as train_stage
 from stages import export as export_stage
+from stages import frames as frames_stage
+from stages import mask as mask_stage
+from stages import sfm as sfm_stage
+from stages import train as train_stage
+from stages import views as views_stage
+
+STAGE_ORDER = ("frames", "mask", "sfm", "views", "train", "export")
 
 
 def emit(record: dict) -> None:
@@ -48,8 +58,8 @@ def _timed(name: str, fn: Callable[[SplatLabConfig, dict], StageResult],
     return res
 
 
-def run(cfg: SplatLabConfig) -> dict:
-    """Run the full pipeline. Returns the final manifest dict."""
+def run(cfg: SplatLabConfig, from_stage: str | None = None) -> dict:
+    """Run the pipeline from `from_stage` (default: the start). Returns the manifest dict."""
     errs = cfg.validate()
     if errs:
         emit({"stage": "pipeline", "status": "failed", "error": "; ".join(errs)})
@@ -59,49 +69,86 @@ def run(cfg: SplatLabConfig) -> dict:
     job_dir.mkdir(parents=True, exist_ok=True)
     (job_dir / "config.json").write_text(cfg.to_json(), encoding="utf-8")
 
-    ctx: dict = {"job_dir": job_dir, "images_dir": job_dir / "images"}
+    ctx: dict = {
+        "job_dir": job_dir,
+        "images_dir": job_dir / "images",
+        "masks_colmap_dir": str(job_dir / "masks_colmap"),
+    }
+    _prime_ctx_from_disk(ctx, job_dir)
     results: list[StageResult] = []
 
-    # Stage 1: Prepare images (real — ffmpeg or folder copy)
-    results.append(_timed("frames", frames_stage.run, ctx, cfg))
-    if results[-1].status == "failed":
-        return _finalize(cfg, results, ctx, "failed")
+    start_idx = STAGE_ORDER.index(from_stage) if from_stage in STAGE_ORDER else 0
 
-    # Stage 2: People masking (optional — runs BEFORE SfM so people don't
-    # create spurious points). Skipped if remove_people is off or deps missing.
-    results.append(_timed("mask", mask_stage.run, ctx, cfg))
-    if results[-1].status == "failed":
-        return _finalize(cfg, results, ctx, "failed")
+    if start_idx <= STAGE_ORDER.index("frames"):
+        results.append(_timed("frames", frames_stage.run, ctx, cfg))
+        if results[-1].status == "failed":
+            return _finalize(cfg, results, ctx, "failed")
 
-    # Stage 3: SfM (COLMAP via ns-process-data; 360 -> 6 cube faces first)
-    results.append(_timed("sfm", sfm_stage.run, ctx, cfg))
-    if results[-1].status == "failed":
-        return _finalize(cfg, results, ctx, "failed")
-    if results[-1].status == "blocked":
-        return _finalize(cfg, results, ctx, "blocked")
+    if start_idx <= STAGE_ORDER.index("mask"):
+        results.append(_timed("mask", mask_stage.run, ctx, cfg))
+        if results[-1].status == "failed":
+            return _finalize(cfg, results, ctx, "failed")
 
-    # Stage 4: Train (ns-train splatfacto)
-    results.append(_timed("train", train_stage.run, ctx, cfg))
-    if results[-1].status in ("failed", "blocked"):
-        return _finalize(cfg, results, ctx, results[-1].status)
+    if start_idx <= STAGE_ORDER.index("sfm"):
+        results.append(_timed("sfm", sfm_stage.run, ctx, cfg))
+        if results[-1].status in ("failed", "blocked"):
+            return _finalize(cfg, results, ctx, results[-1].status)
 
-    # Stage 5: Export + convert (ns-export -> .ply, splat-transform -> .spz)
-    results.append(_timed("export", export_stage.run, ctx, cfg))
-    if results[-1].status in ("failed", "blocked"):
-        return _finalize(cfg, results, ctx, results[-1].status)
+    if start_idx <= STAGE_ORDER.index("views"):
+        results.append(_timed("views", views_stage.run, ctx, cfg))
+        if results[-1].status in ("failed", "blocked"):
+            return _finalize(cfg, results, ctx, results[-1].status)
+
+    if start_idx <= STAGE_ORDER.index("train"):
+        results.append(_timed("train", train_stage.run, ctx, cfg))
+        if results[-1].status in ("failed", "blocked"):
+            return _finalize(cfg, results, ctx, results[-1].status)
+
+    if start_idx <= STAGE_ORDER.index("export"):
+        results.append(_timed("export", export_stage.run, ctx, cfg))
+        if results[-1].status in ("failed", "blocked"):
+            return _finalize(cfg, results, ctx, results[-1].status)
 
     return _finalize(cfg, results, ctx, "completed")
 
 
+def _prime_ctx_from_disk(ctx: dict, job_dir: Path) -> None:
+    """When resuming with --from-stage, populate ctx from artifacts already on
+    disk so later stages don't need the earlier ones to have run in-process."""
+    sfm_sparse = job_dir / "sfm" / "sparse"
+    if sfm_sparse.exists():
+        from colmap_io import find_sparse_dir
+        found = find_sparse_dir(job_dir / "sfm")
+        if found:
+            ctx["sfm_sparse_dir"] = str(found)
+    if (job_dir / "sfm" / "images").exists():
+        ctx.setdefault("sfm_images_dir", str(job_dir / "images"))
+    else:
+        ctx.setdefault("sfm_images_dir", str(job_dir / "images"))
+    stats_path = job_dir / "sfm" / "stats.json"
+    if stats_path.exists():
+        try:
+            ctx["sfm_stats"] = json.loads(stats_path.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    if (job_dir / "views").exists():
+        ctx["views_dir"] = str(job_dir / "views")
+    if (job_dir / "train").exists():
+        ctx["train_dir"] = str(job_dir / "train")
+    quality_path = job_dir / "quality.json"
+    if quality_path.exists():
+        try:
+            ctx["quality"] = json.loads(quality_path.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+
+
 def _finalize(cfg: SplatLabConfig, results: list[StageResult],
                ctx: dict, status: str) -> dict:
-    # Normalize the final model location: copy the produced .ply to
-    # job_dir/output.ply so the web viewer can find it (and .spz if present).
     model_path = ctx.get("model_path")
     out_ply = cfg.job_dir / "output.ply"
     out_spz = cfg.job_dir / "output.spz"
     if model_path and Path(model_path).exists() and model_path != str(out_ply) and model_path != str(out_spz):
-        # Source ply lives under export/; surface it at the job root.
         if model_path.endswith(".ply") and not out_ply.exists():
             import shutil as _sh
             _sh.copy2(model_path, out_ply)
@@ -110,14 +157,15 @@ def _finalize(cfg: SplatLabConfig, results: list[StageResult],
         "status": status,
         "input": cfg.input_path,
         "is360": cfg.is360,
+        "sphericalMode": cfg.spherical_mode,
         "modelPath": str(out_spz) if out_spz.exists() else (str(out_ply) if out_ply.exists() else None),
+        "quality": ctx.get("quality"),
         "stages": [
             {"name": r.name, "status": r.status, "elapsed_s": r.elapsed_s,
              "detail": r.detail, "error": r.error, "artifacts": r.artifacts}
             for r in results
         ],
     }
-    (cfg.job_dir / "manifest.json").write_text(
-        json.dumps(manifest, indent=2), encoding="utf-8")
+    (cfg.job_dir / "manifest.json").write_text(json.dumps(manifest, indent=2), encoding="utf-8")
     emit({"stage": "pipeline", "status": status, "jobId": cfg.job_id})
     return manifest
