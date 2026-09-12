@@ -1,5 +1,6 @@
 import { headers } from "next/headers";
 import { notFound } from "next/navigation";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 export const metadata = {
   title: "Slate360 Splat",
@@ -20,5 +21,14 @@ function isLocalHost(host: string | null): boolean {
 export default async function SplatLabDesktopLayout({ children }: { children: React.ReactNode }) {
   const h = await headers();
   if (!isLocalHost(h.get("host"))) notFound();
-  return <div className="min-h-screen w-full bg-[var(--canvas,#0B0F15)]">{children}</div>;
+  // The dashboard's own layout normally supplies TooltipProvider app-wide; this route
+  // deliberately skips that whole layout (see comment above), so every provider a
+  // splat-lab component actually needs has to be supplied here instead. HelpTooltip
+  // (used throughout SplatLabKnobs) crashes with "Tooltip must be used within
+  // TooltipProvider" without this — root-caused from Brian's own screenshot of the error.
+  return (
+    <TooltipProvider>
+      <div className="min-h-screen w-full bg-[var(--canvas,#0B0F15)]">{children}</div>
+    </TooltipProvider>
+  );
 }
