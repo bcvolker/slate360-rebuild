@@ -5,6 +5,7 @@ import { Loader2, Play, Square } from "lucide-react";
 import { Slate360Logo } from "@/components/studio-ui/LogoProvider";
 import { SplatLabKnobs } from "@/components/splat-lab/SplatLabKnobs";
 import { SplatLabProgress } from "@/components/splat-lab/SplatLabProgress";
+import { CaptureGuide } from "@/components/splat-lab/CaptureGuide";
 import { CLONE_META, defaultsFor, type SplatLabClone } from "@/lib/splat-lab/clones";
 import type { SplatLabJob } from "@/lib/splat-lab/job-store";
 
@@ -16,6 +17,7 @@ export function SplatLabPanel({ clone }: { clone: SplatLabClone }) {
   const [job, setJob] = useState<SplatLabJob | null>(null);
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [advanced, setAdvanced] = useState(clone === "lab");
   const pollRef = useRef<number | null>(null);
 
   const stopPoll = useCallback(() => {
@@ -96,7 +98,21 @@ export function SplatLabPanel({ clone }: { clone: SplatLabClone }) {
         </p>
         {error ? <p className="mt-2 text-xs text-red-400">{error}</p> : null}
       </div>
-      <SplatLabKnobs knobs={knobs} setKnobs={setKnobs} showLab={clone === "lab"} />
+      {clone === "proven" ? <CaptureGuide /> : null}
+      {clone === "proven" && !advanced ? (
+        <button onClick={() => setAdvanced(true)} className="font-mono text-[10px] uppercase tracking-wide text-[var(--graphite-muted)] hover:text-white">
+          Show advanced knobs
+        </button>
+      ) : (
+        <>
+          {clone === "proven" && advanced ? (
+            <button onClick={() => setAdvanced(false)} className="font-mono text-[10px] uppercase tracking-wide text-[var(--graphite-muted)] hover:text-white">
+              Hide advanced knobs
+            </button>
+          ) : null}
+          <SplatLabKnobs knobs={knobs} setKnobs={setKnobs} showLab={clone === "lab"} />
+        </>
+      )}
       {jobId ? <SplatLabProgress job={job} jobId={jobId} /> : null}
     </div>
   );

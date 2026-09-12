@@ -4,6 +4,10 @@ if (-not (Test-Path -LiteralPath (Join-Path $repo "package.json"))) { $repo = "C
 
 $launch = Join-Path $repo "scripts\splat-lab\launch.ps1"
 $iconDir = Join-Path $repo "scripts\splat-lab"
+$officialSvg = Join-Path $repo "assets\brand\slate360-icon.svg"
+if (Test-Path -LiteralPath $officialSvg) {
+  Copy-Item -LiteralPath $officialSvg -Destination (Join-Path $iconDir "slate360-icon.svg") -Force
+}
 $ico = Join-Path $iconDir "slate360-splat-lab.ico"
 $desktop = [Environment]::GetFolderPath("Desktop")
 

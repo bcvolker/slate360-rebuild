@@ -31,7 +31,7 @@ def run(cfg, ctx) -> StageResult:
     if src.is_dir():
         return _from_folder(src, images_dir, cfg)
     if src.is_file() and _is_video(src):
-        return _from_video(src, images_dir, cfg)
+        return _from_video(src, images_dir, cfg, start=1)
     return StageResult(
         name="frames", status="failed",
         error=f"input is not a folder or a supported video file: {src}")
@@ -44,21 +44,39 @@ def _from_folder(src: Path, images_dir: Path, cfg) -> StageResult:
         if f.suffix.lower() in exts and f.is_file():
             shutil.copy2(f, images_dir / f"{copied + 1:06d}{f.suffix.lower()}")
             copied += 1
-    if copied == 0:
+    if copied:
+        return StageResult(name="frames", status="done",
+                           detail=f"copied {copied} images",
+                           artifacts=[str(images_dir)])
+
+    # Folder of stitched videos (e.g. high-pass + low-pass 360 exports).
+    # Prefer .mp4/.mov over raw .insv / .lrv proxies.
+    videos = [f for f in sorted(src.iterdir())
+              if f.is_file() and f.suffix.lower() in {".mp4", ".mov", ".m4v", ".webm"}]
+    if not videos:
         return StageResult(name="frames", status="failed",
-                           error="no .jpg/.png images found in folder")
+                           error="no .jpg/.png images or stitched videos in folder")
+    total = 0
+    for vid in videos:
+        start = total + 1
+        res = _from_video(vid, images_dir, cfg, start=start)
+        if res.status != "done":
+            return StageResult(name="frames", status="failed",
+                               error=f"{vid.name}: {res.error}")
+        total = len(list(images_dir.glob("*.jpg")))
     return StageResult(name="frames", status="done",
-                        detail=f"copied {copied} images",
-                        artifacts=[str(images_dir)])
+                       detail=f"extracted {total} frames from {len(videos)} videos @ {cfg.fps} fps",
+                       artifacts=[str(images_dir)])
 
 
-def _from_video(src: Path, images_dir: Path, cfg) -> StageResult:
+def _from_video(src: Path, images_dir: Path, cfg, start: int = 1) -> StageResult:
     if not _have_ffmpeg():
         return StageResult(
             name="frames", status="failed",
             error="ffmpeg not found on PATH. Install ffmpeg "
                   "(winget install Gyan.FFmpeg) and retry.")
     pattern = str(images_dir / "%06d.jpg")
+    start_number = ["-start_number", str(max(1, start))]
     cmd = [
         "ffmpeg", "-y", "-i", str(src),
         "-vf", f"fps={cfg.fps}",
@@ -66,6 +84,7 @@ def _from_video(src: Path, images_dir: Path, cfg) -> StageResult:
     ]
     if cfg.max_duration and cfg.max_duration > 0:
         cmd += ["-t", str(cfg.max_duration)]
+    cmd += start_number
     cmd.append(pattern)
     try:
         proc = subprocess.run(cmd, capture_output=True, text=True, timeout=3600)

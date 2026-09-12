@@ -57,8 +57,14 @@ def run(cfg, ctx) -> StageResult:
     return _run_colmap(cfg, sfm_images, work_dir, count, ctx)
 
 
+# COLMAP official overlapping spherical rig (4 yaw × 3 pitch, 90° FOV).
+# Avoids the nadir, where the operator usually sits.
+_HQ_YAWS = (0.0, 90.0, 180.0, 270.0)
+_HQ_PITCHES = (-35.0, 0.0, 35.0)
+
+
 def _split_cube_faces(images_dir: Path, faces_dir: Path, cfg) -> StageResult:
-    """Split equirect JPGs into 6 perspective cube faces via py360convert."""
+    """Split equirect JPGs into perspective views via py360convert."""
     try:
         import numpy as np
         from PIL import Image
@@ -72,21 +78,32 @@ def _split_cube_faces(images_dir: Path, faces_dir: Path, cfg) -> StageResult:
     faces_dir.mkdir(parents=True, exist_ok=True)
     face_size = min(2048, cfg.resolved_image_px // 2)
     frames = sorted(images_dir.glob("*.jpg"))
+    hq = getattr(cfg, "sfm_mode", "faster") == "hq"
     for i, f in enumerate(frames):
         try:
             equi = np.asarray(Image.open(f).convert("RGB"))
-            cube = py360convert.e2c(equi, face_w=face_size, mode="bilinear")
-            # cube shape: (6, face_size, face_size, 3) for some impls; handle both.
-            for face_idx in range(6):
-                face = cube[face_idx] if cube.ndim == 4 else cube
-                out = faces_dir / f"{i:06d}_f{face_idx}.jpg"
-                Image.fromarray(face).save(out, quality=92)
+            if hq:
+                n = 0
+                for yaw in _HQ_YAWS:
+                    for pitch in _HQ_PITCHES:
+                        face = py360convert.e2p(
+                            equi, fov_deg=90, u_deg=yaw, v_deg=pitch,
+                            out_hw=(face_size, face_size), mode="bilinear")
+                        Image.fromarray(face).save(
+                            faces_dir / f"{i:06d}_y{int(yaw)}_p{int(pitch)}.jpg", quality=92)
+                        n += 1
+            else:
+                cube = py360convert.e2c(equi, face_w=face_size, mode="bilinear")
+                for face_idx in range(6):
+                    face = cube[face_idx] if cube.ndim == 4 else cube
+                    Image.fromarray(face).save(faces_dir / f"{i:06d}_f{face_idx}.jpg", quality=92)
         except Exception as exc:  # noqa: BLE001
             return StageResult(name="sfm", status="failed",
                                error=f"cube split failed on {f.name}: {exc}")
     total = len(list(faces_dir.glob("*.jpg")))
+    kind = "12 overlapping views" if hq else "cube faces"
     return StageResult(name="sfm", status="done",
-                       detail=f"split {len(frames)} equirect -> {total} cube faces",
+                       detail=f"split {len(frames)} equirect -> {total} {kind}",
                        artifacts=[str(faces_dir)])
 
 
