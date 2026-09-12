@@ -1,10 +1,13 @@
-param(
+﻿param(
   [ValidateSet("proven", "lab")]
   [string]$Clone = "proven"
 )
 
 $ErrorActionPreference = "Stop"
 $logPath = Join-Path $env:TEMP "slate360-splat-lab-launch.log"
+# The dev server's own output goes to these files so a silent `npm run dev` failure is visible.
+$devLog = Join-Path $env:TEMP "slate360-splat-lab-dev.log"
+$devErr = Join-Path $env:TEMP "slate360-splat-lab-dev.err.log"
 function Log([string]$msg) { Add-Content -LiteralPath $logPath -Value ("[{0:HH:mm:ss.fff}] {1}" -f (Get-Date), $msg) }
 Log "=== launch start, Clone=$Clone, PID=$PID ==="
 
@@ -55,8 +58,8 @@ try {
       [void][System.Windows.Forms.MessageBox]::Show("Node.js npm.cmd not found. Install Node, then retry.", "Slate360 Splat Lab")
       exit 1
     }
-    Log "port free — starting npm run dev"
-    Start-Process -FilePath $npmCmd -ArgumentList "run", "dev" -WorkingDirectory $repo -WindowStyle Minimized
+    Log "port free - starting npm run dev (output -> $devLog)"
+    Start-Process -FilePath $npmCmd -ArgumentList "run", "dev" -WorkingDirectory $repo -WindowStyle Minimized -RedirectStandardOutput $devLog -RedirectStandardError $devErr
   } else {
     Log "port already bound — assuming a dev server is already running, not starting a second one"
   }

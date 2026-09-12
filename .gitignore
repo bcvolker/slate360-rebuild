@@ -97,3 +97,6 @@ reference/
 # Local Splat Lab ONNX weights (copied onto the workstation, too large for git)
 /workers/local/splat-lab/models/*.onnx
 
+
+# Slate360 Splat desktop launcher build output (rebuild with scripts/splat-lab/build-launchers.ps1)
+/scripts/splat-lab/bin/
