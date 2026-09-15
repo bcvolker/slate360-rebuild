@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { MKT_L_CONTAINER, MKT_L_H2, MKT_L_KICKER, MKT_L_LEDE } from "@/app/(public)/_components/marketing-styles-light";
+import { MKT_L_BTN_PRIMARY, MKT_L_CONTAINER, MKT_L_H2, MKT_L_KICKER, MKT_L_LEDE } from "@/app/(public)/_components/marketing-styles-light";
 
 const WHO = [
   { title: "General contractors", body: "Pre-cover documentation, progress you can prove, dispute evidence." },
@@ -30,10 +30,7 @@ export function HomeWhoPricingLight() {
             Pricing depends on the size and scope of the site, how often you need it revisited, and
             what the project needs documented. Reach out and we&rsquo;ll put together a quote.
           </p>
-          <Link
-            href="#request-a-visit"
-            className="mt-6 inline-flex h-12 items-center justify-center rounded-[10px] bg-[var(--mkt-accent)] px-6 text-[15px] font-semibold text-white transition-all hover:brightness-110"
-          >
+          <Link href="#request-a-visit" className={`mt-6 ${MKT_L_BTN_PRIMARY}`}>
             Get a quote
           </Link>
         </div>

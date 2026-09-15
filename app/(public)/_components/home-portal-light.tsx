@@ -1,3 +1,4 @@
+import { MonitorPlay } from "lucide-react";
 import {
   MKT_L_CONTAINER,
   MKT_L_H2,
@@ -67,7 +68,10 @@ export function HomePortalLight() {
         </div>
 
         {/* Preview slot — replace with a real screenshot or a short screen
-            recording of a real project being managed once one exists. */}
+            recording of a real project being managed once one exists. Dashed
+            outline + icon matches the hero viewer panel's "coming soon"
+            treatment (home-hero-viewer-panel.tsx) so both empty-content slots
+            on the page read as deliberate, not broken. */}
         <div className="mt-12 overflow-hidden rounded-2xl border border-[var(--mkt-line)] bg-[var(--mkt-surface)] shadow-[0_20px_50px_-24px_rgba(26,36,51,0.18)]">
           <div className="flex items-center gap-2 border-b border-[var(--mkt-line)] px-4 py-2.5">
             <span className="h-2.5 w-2.5 rounded-full bg-[var(--mkt-line)]" />
@@ -75,10 +79,15 @@ export function HomePortalLight() {
             <span className="h-2.5 w-2.5 rounded-full bg-[var(--mkt-line)]" />
             <span className="ml-2 text-[11.5px] text-[var(--mkt-ink-muted)]">portal.slate360.ai</span>
           </div>
-          <div className="flex aspect-video items-center justify-center bg-[var(--mkt-canvas-alt)] px-6 text-center">
-            <p className="max-w-sm text-sm text-[var(--mkt-ink-muted)]">
-              A look at the portal — reviewing, pinning, and sharing a project.
-            </p>
+          <div className="p-3">
+            <div className="flex aspect-video flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-[var(--mkt-accent-line)] bg-[var(--mkt-canvas-alt)] px-6 text-center">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--mkt-accent-soft)] ring-1 ring-[var(--mkt-accent-line)]">
+                <MonitorPlay className="h-4.5 w-4.5 text-[var(--mkt-accent)]" aria-hidden />
+              </div>
+              <p className="max-w-sm text-sm text-[var(--mkt-ink-muted)]">
+                A look at the portal — reviewing, pinning, and sharing a project.
+              </p>
+            </div>
           </div>
         </div>
       </div>

@@ -100,6 +100,7 @@ export function HomeContactForm() {
             <div className={labelClass}>Project location</div>
             <p className="mt-1 text-[13px] text-[var(--mkt-ink-muted)]">
               Search an address, drop a pin, or outline the property — whatever&rsquo;s easiest.
+              You can clear it and start over anytime with the × next to it.
             </p>
             <div className="mt-2.5">
               <HomeLocationPicker value={location} onChange={setLocation} />
