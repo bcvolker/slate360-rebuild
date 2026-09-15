@@ -2,7 +2,6 @@
   "_comment": "Design ratchets — see docs/design/GRAPHITE_GLASS.md. Each list may only shrink. Regenerate after a kill pass with: node scripts/ops/check-design-guardrails.mjs --update",
   "legacyAmberFiles": [],
   "legacyBrandHexFiles": [
-    "app/(public)/product/digital-twin/page.tsx",
     "app/(public)/product/site-walk/page.tsx",
     "app/api/calendar/route.ts",
     "app/api/contacts/route.ts",
