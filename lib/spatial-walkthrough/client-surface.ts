@@ -78,7 +78,7 @@ export function isSpatialOnlyPortal(flags: ClientSurfaceFlags): boolean {
 }
 
 export function portalHomeHref(flags: ClientSurfaceFlags): string {
-  return isSpatialOnlyPortal(flags) ? "/projects" : "/dashboard";
+  return isSpatialOnlyPortal(flags) ? "/client-home" : "/dashboard";
 }
 
 export function projectTabIdsForSurface(flags: ClientSurfaceFlags): string[] {
