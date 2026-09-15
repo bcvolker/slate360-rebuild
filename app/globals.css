@@ -121,6 +121,24 @@
   --mobile-field-primary-bg: var(--graphite-primary);
   --mobile-field-primary-fg: var(--graphite-canvas);
 
+  /* ── Marketing light tokens (imported from main 2026-09-11, unmodified) ──────
+     Ported verbatim from the shipped homepage rebuild (main, PRs #29/#30) so this
+     branch can reference the same palette. §0/§2. Never mix --mkt-* into
+     dashboard/app surfaces or vice versa — kept isolated pending the
+     DASHBOARD_PORTAL_DESIGN_ALIGNMENT.md decision on whether dashboard/portal
+     adopt these tokens directly or a sibling set. */
+  --mkt-canvas: #FAFAF8;
+  --mkt-canvas-alt: #F1F1EE;
+  --mkt-canvas-deep: #ECEAE4;
+  --mkt-surface: #FFFFFF;
+  --mkt-ink: #1A2433;
+  --mkt-ink-muted: #5B6B80;
+  --mkt-line: #E2E4E0;
+  --mkt-brand-green: #0C7A52;
+  --mkt-accent: var(--mkt-brand-green);
+  --mkt-accent-soft: color-mix(in srgb, var(--mkt-accent) 8%, transparent);
+  --mkt-accent-line: color-mix(in srgb, var(--mkt-accent) 30%, transparent);
+
   /* ── shadcn canonical surface + text (PREMIUM LIGHT 2026-04-23) ──
      Inner-app pages, cards, popovers, and authenticated dashboards now
      render against this light palette by default. Surfaces that must
