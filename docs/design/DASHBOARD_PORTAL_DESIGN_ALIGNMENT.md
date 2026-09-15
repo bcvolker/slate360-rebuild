@@ -1,6 +1,8 @@
 # Dashboard + Portal design-token alignment — decision needed
 
-Status: **DRAFT — needs Brian's sign-off before any dashboard/portal reskinning starts.**
+Status: **CONFIRMED 2026-09-15** — Brian: "For design and style and colors I would like to continue
+using what we have on the new home page since it looks pretty nice so far." Treated as sign-off on
+questions 1–2 below. Question 3 (build order) proceeding on the same basis — flag if that's wrong.
 Written 2026-09-15 on `feature/dashboard-portal-alignment-2026-09`. Companion:
 [DASHBOARD_PORTAL_AUDIT_2026-09.md](./DASHBOARD_PORTAL_AUDIT_2026-09.md).
 

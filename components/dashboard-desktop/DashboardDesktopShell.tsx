@@ -78,9 +78,9 @@ function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, visibleA
       />
       <div className={t.main}>
         {spatialOnly ? (
-          <header className="flex h-12 shrink-0 items-center justify-between border-b border-white/10 px-4 lg:hidden" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
-            <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">Spatial Walkthrough</span>
-            <span className="truncate text-sm text-[var(--graphite-text-header)]">{userName}</span>
+          <header className="flex h-12 shrink-0 items-center justify-between border-b border-[var(--mkt-line)] px-4 lg:hidden" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+            <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--mkt-ink-muted)]">Spatial Walkthrough</span>
+            <span className="truncate text-sm text-[var(--mkt-ink)]">{userName}</span>
           </header>
         ) : null}
         <DashboardDesktopTopBar

@@ -143,7 +143,7 @@ export default function CustomizableWidgetBoard({
           <button
             type="button"
             onClick={reset}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-white/10 px-2.5 py-1.5 text-xs font-semibold text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--mkt-line)] px-2.5 py-1.5 text-xs font-semibold text-[var(--mkt-ink-muted)] hover:text-[var(--mkt-ink)]"
           >
             <RotateCcw className="h-3.5 w-3.5" /> Reset
           </button>
@@ -153,8 +153,8 @@ export default function CustomizableWidgetBoard({
           onClick={() => setEditing((v) => !v)}
           className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors ${
             editing
-              ? "border-[color-mix(in_srgb,var(--graphite-primary)_45%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_14%,transparent)] text-[var(--graphite-primary)]"
-              : "border-white/10 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+              ? "border-[var(--mkt-accent-line)] bg-[var(--mkt-accent-soft)] text-[var(--mkt-accent)]"
+              : "border-[var(--mkt-line)] text-[var(--mkt-ink-muted)] hover:text-[var(--mkt-ink)]"
           }`}
         >
           <LayoutGrid className="h-3.5 w-3.5" /> {editing ? "Done" : "Customize layout"}
@@ -171,12 +171,12 @@ export default function CustomizableWidgetBoard({
               <section
                 key={w.id}
                 id={`dashboard-widget-${w.id}`}
-                className={`${SPAN_CLASS[w.span] ?? "lg:col-span-4"} flex min-h-0 flex-col overflow-hidden rounded-2xl border bg-[var(--mobile-app-card-bg)] transition-colors ${
+                className={`${SPAN_CLASS[w.span] ?? "lg:col-span-4"} flex min-h-0 flex-col overflow-hidden rounded-2xl border bg-[var(--mkt-surface)] shadow-[0_1px_2px_rgba(15,23,42,0.04)] transition-colors ${
                   dragId === w.id
-                    ? "border-[color-mix(in_srgb,var(--graphite-primary)_55%,transparent)] opacity-60"
+                    ? "border-[var(--mkt-accent-line)] opacity-60"
                     : isDragTarget
-                      ? "border-dashed border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)]"
-                      : "border-[var(--mobile-app-card-border)]"
+                      ? "border-dashed border-[color-mix(in_srgb,var(--mkt-accent)_40%,transparent)]"
+                      : "border-[var(--mkt-line)]"
                 }`}
                 onDragOver={(e) => {
                   if (editing && dragId) e.preventDefault();
@@ -186,26 +186,26 @@ export default function CustomizableWidgetBoard({
                   setDragId(null);
                 }}
               >
-                <header className="flex shrink-0 items-center gap-2 border-b border-white/[0.06] px-4 py-2.5">
+                <header className="flex shrink-0 items-center gap-2 border-b border-[var(--mkt-line)] px-4 py-2.5">
                   {editing && (
                     <span
                       draggable
                       onDragStart={() => setDragId(w.id)}
                       onDragEnd={() => setDragId(null)}
-                      className="-ml-1 cursor-grab text-[var(--graphite-muted)] active:cursor-grabbing"
+                      className="-ml-1 cursor-grab text-[var(--mkt-ink-muted)] active:cursor-grabbing"
                       aria-label="Drag to reorder"
                     >
                       <GripVertical className="h-4 w-4" />
                     </span>
                   )}
-                  <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-[var(--graphite-text-header)]">
+                  <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-[var(--mkt-ink)]">
                     {widget.title}
                   </h3>
                   {editing ? (
                     <button
                       type="button"
                       onClick={() => cycleSpan(w.id)}
-                      className="rounded-md p-1 text-[var(--graphite-muted)] hover:text-[var(--graphite-primary)]"
+                      className="rounded-md p-1 text-[var(--mkt-ink-muted)] hover:text-[var(--mkt-accent)]"
                       aria-label="Resize widget"
                       title={`Width: ${w.span}/12 — click to resize`}
                     >
@@ -215,7 +215,7 @@ export default function CustomizableWidgetBoard({
                     <button
                       type="button"
                       onClick={() => toggleCollapse(w.id)}
-                      className="rounded-md p-1 text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+                      className="rounded-md p-1 text-[var(--mkt-ink-muted)] hover:text-[var(--mkt-ink)]"
                       aria-label={w.collapsed ? "Expand" : "Collapse"}
                     >
                       <ChevronDown className={`h-4 w-4 transition-transform ${w.collapsed ? "-rotate-90" : ""}`} />

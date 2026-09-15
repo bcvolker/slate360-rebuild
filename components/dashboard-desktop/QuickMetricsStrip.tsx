@@ -22,7 +22,7 @@ export function QuickMetricsStrip({ chips }: { chips: QuickMetricChip[] }) {
           key={chip.id}
           type="button"
           onClick={chip.onClick}
-          className="inline-flex h-7 items-center rounded-full border border-[color-mix(in_srgb,var(--graphite-primary)_32%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] px-3 text-xs font-semibold text-[var(--graphite-primary)] transition-colors hover:bg-[color-mix(in_srgb,var(--graphite-primary)_18%,transparent)]"
+          className="inline-flex h-7 items-center rounded-full border border-[var(--mkt-accent-line)] bg-[var(--mkt-accent-soft)] px-3 text-xs font-semibold text-[var(--mkt-accent)] transition-colors hover:bg-[color-mix(in_srgb,var(--mkt-accent)_16%,transparent)]"
         >
           {chip.label}
         </button>

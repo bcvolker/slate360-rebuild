@@ -6,7 +6,7 @@ import { DashboardDesktopTopBar } from "@/components/dashboard-desktop/Dashboard
 import { DashboardHomeContent } from "@/components/dashboard-desktop/DashboardHomeContent";
 import { dashboardDesktopTokens as t } from "@/components/dashboard-desktop/dashboard-tokens";
 
-const COUNTS = { projects: 12, siteWalks: 34, digitalTwins: 5 };
+const COUNTS = { projects: 12, siteWalks: 34, digitalTwins: 5, walksInProgress: 2, twinsDraft: 1 };
 const PROJECTS = Array.from({ length: 6 }, (_, i) => ({
   id: String(i),
   name: `Oak Ridge Roof Inspection ${i + 1}`,
@@ -23,6 +23,10 @@ const WALKS = Array.from({ length: 4 }, (_, i) => ({
   status: "complete",
   updatedAt: new Date().toISOString(),
 }));
+const NEEDS_ATTENTION = [
+  { id: "n1", title: "Client asked a question", message: "Oak Ridge Roof Inspection 1 — new question on the portal", linkPath: "/projects/0", createdAt: new Date().toISOString() },
+  { id: "n2", title: "Twin ready for review", message: "Warehouse Bay 3 finished processing", linkPath: "/twin-studio/tw1", createdAt: new Date().toISOString() },
+];
 
 export default function DashboardLookPreview() {
   const [collapsed, setCollapsed] = useState(false);
@@ -42,7 +46,7 @@ export default function DashboardLookPreview() {
           onOpenCommand={() => {}}
         />
         <main className={t.content}>
-          <DashboardHomeContent counts={COUNTS} recentProjects={PROJECTS} recentWalks={WALKS} recentTwins={TWINS} />
+          <DashboardHomeContent counts={COUNTS} recentProjects={PROJECTS} recentWalks={WALKS} recentTwins={TWINS} needsAttention={NEEDS_ATTENTION} />
         </main>
       </div>
     </div>

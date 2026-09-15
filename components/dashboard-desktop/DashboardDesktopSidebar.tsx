@@ -35,10 +35,10 @@ export function DashboardDesktopSidebar({
       className={cn(t.sidebarBase, spatialOnly && "hidden lg:flex", collapsed ? "w-14" : "w-52")}
       aria-label="Main navigation"
     >
-      <div className={cn("flex h-12 shrink-0 items-center border-b border-[var(--mobile-app-card-border)]", collapsed ? "justify-center px-2" : "justify-between px-4")}>
+      <div className={cn("flex h-12 shrink-0 items-center border-b border-[var(--mkt-line)]", collapsed ? "justify-center px-2" : "justify-between px-4")}>
         {!collapsed ? (
           <Link href={homeHref} aria-label="Slate360 home">
-            <SlateLogo size="sm" className="text-[var(--graphite-primary)]" />
+            <SlateLogo size="sm" className="text-[var(--app-accent)]" />
           </Link>
         ) : null}
         {onToggleCollapse ? (
@@ -46,7 +46,7 @@ export function DashboardDesktopSidebar({
             type="button"
             onClick={onToggleCollapse}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--graphite-muted)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] hover:text-[var(--graphite-text-header)]"
+            className="flex h-7 w-7 items-center justify-center rounded-md text-[var(--mkt-ink-muted)] hover:bg-[color-mix(in_srgb,var(--app-accent)_10%,transparent)] hover:text-[var(--mkt-ink)]"
           >
             {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
           </button>
@@ -61,7 +61,7 @@ export function DashboardDesktopSidebar({
           return (
             <div key={section}>
               {!collapsed && section !== "primary" ? (
-                <p className="mb-1 px-2 text-[11px] text-[var(--graphite-muted)]">
+                <p className="mb-1 px-2 text-[11px] text-[var(--mkt-ink-muted)]">
                   {section === "tools" ? "Tools" : section === "labs" ? "Labs" : "Account"}
                 </p>
               ) : null}

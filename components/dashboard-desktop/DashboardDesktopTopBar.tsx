@@ -40,32 +40,36 @@ export function DashboardDesktopTopBar({
   void spatialOnly;
 
   return (
-    <header className="hidden h-12 shrink-0 items-center gap-3 border-b border-[var(--mobile-app-card-border)] px-4 lg:flex">
-      <p className="truncate text-sm text-[var(--graphite-text-body)]">Workspace</p>
+    <header className="hidden h-12 shrink-0 items-center gap-3 border-b border-[var(--mkt-line)] px-4 lg:flex">
+      <p className="truncate text-sm text-[var(--mkt-ink-muted)]">Workspace</p>
 
       <div className={shellTokens.topBarSpacer} />
 
-      <button type="button" onClick={() => setCreate(true)} className="inline-flex h-10 items-center border border-white/15 px-3 text-sm text-white">
+      <button
+        type="button"
+        onClick={() => setCreate(true)}
+        className="inline-flex h-10 items-center rounded-lg bg-[var(--mkt-accent)] px-3 text-sm font-semibold text-white"
+      >
         + Create
       </button>
 
       <button
         type="button"
         onClick={onOpenCommand}
-        className={`${shellTokens.commandTrigger} hidden md:flex`}
+        className="hidden h-9 items-center gap-2 rounded-lg border border-[var(--mkt-line)] bg-[var(--mkt-surface)] px-3 text-[13px] text-[var(--mkt-ink-muted)] transition-colors hover:border-[var(--mkt-accent-line)] hover:text-[var(--mkt-ink)] md:flex"
         aria-label="Open command palette"
       >
         <Search className="h-4 w-4" />
         <span>Search or jump…</span>
-        <kbd className="ml-2 rounded border border-white/10 bg-white/[0.06] px-1.5 py-0.5 font-mono text-[10px]">
+        <kbd className="ml-2 rounded border border-[var(--mkt-line)] bg-[var(--mkt-canvas-alt)] px-1.5 py-0.5 font-mono text-[10px]">
           ⌘K
         </kbd>
       </button>
 
       <div className="flex shrink-0 items-center gap-2.5">
-        <span className="hidden text-sm text-[var(--graphite-text-body)] lg:inline">{userName}</span>
+        <span className="hidden text-sm text-[var(--mkt-ink-muted)] lg:inline">{userName}</span>
         <span
-          className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_82%,transparent)] text-xs font-bold text-[var(--app-accent)]"
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--mkt-line)] bg-[var(--mkt-canvas-alt)] text-xs font-bold text-[var(--app-accent)]"
           aria-hidden
         >
           {initial}
