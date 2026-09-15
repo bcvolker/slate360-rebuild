@@ -66,7 +66,7 @@ export function HomeNavLight() {
         <div className="hidden items-center gap-5 md:flex">
           <Link
             href="/#request-a-visit"
-            className="inline-flex h-10 items-center justify-center rounded-[9px] bg-[var(--mkt-accent)] px-5 text-sm font-semibold text-white transition-all hover:brightness-110"
+            className="inline-flex h-10 items-center justify-center rounded-[9px] bg-[var(--mkt-accent)] px-5 text-sm font-semibold text-white transition-all hover:-translate-y-px hover:brightness-110 hover:shadow-[0_10px_22px_-10px_color-mix(in_srgb,var(--mkt-accent)_55%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mkt-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--mkt-canvas)]"
           >
             Request a site visit
           </Link>

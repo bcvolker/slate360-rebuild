@@ -21,10 +21,10 @@ export const MKT_L_H2 =
 export const MKT_L_LEDE = "mt-3.5 max-w-[62ch] text-base leading-relaxed text-[var(--mkt-ink-muted)] sm:text-[17px]";
 
 export const MKT_L_BTN_PRIMARY =
-  "inline-flex h-12 items-center justify-center gap-2 rounded-[10px] bg-[var(--mkt-accent)] px-6 text-[15px] font-semibold text-white shadow-[0_10px_26px_-10px_color-mix(in_srgb,var(--mkt-accent)_55%,transparent)] transition-all hover:brightness-110 active:scale-[0.99]";
+  "inline-flex h-12 items-center justify-center gap-2 rounded-[10px] bg-[var(--mkt-accent)] px-6 text-[15px] font-semibold text-white shadow-[0_10px_26px_-10px_color-mix(in_srgb,var(--mkt-accent)_55%,transparent)] transition-all hover:-translate-y-px hover:shadow-[0_16px_34px_-10px_color-mix(in_srgb,var(--mkt-accent)_60%,transparent)] hover:brightness-110 active:translate-y-0 active:scale-[0.99] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mkt-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--mkt-canvas)]";
 
 export const MKT_L_BTN_GHOST =
-  "inline-flex h-12 items-center justify-center gap-2 rounded-[10px] border border-[var(--mkt-line)] bg-white/60 px-6 text-[15px] font-semibold text-[var(--mkt-ink)] backdrop-blur-sm transition-all hover:border-[var(--mkt-accent-line)]";
+  "inline-flex h-12 items-center justify-center gap-2 rounded-[10px] border border-[var(--mkt-line)] bg-white/60 px-6 text-[15px] font-semibold text-[var(--mkt-ink)] backdrop-blur-sm transition-all hover:-translate-y-px hover:border-[var(--mkt-accent-line)] hover:shadow-[0_10px_24px_-14px_rgba(26,36,51,0.35)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--mkt-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--mkt-canvas)]";
 
 export const MKT_L_LINK =
   "text-[var(--mkt-ink-muted)] transition-colors hover:text-[var(--mkt-ink)]";

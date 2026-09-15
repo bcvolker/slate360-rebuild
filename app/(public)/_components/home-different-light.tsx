@@ -33,7 +33,8 @@ export function HomeDifferentLight() {
           ))}
         </div>
         <p className="mt-6 max-w-[70ch] text-[13.5px] text-[var(--mkt-ink-muted)]">
-          Where a legal dimension is required, a laser still governs.
+          Where a measurement needs to hold up legally, a licensed surveyor is still the standard —
+          our tools are for planning, not certification.
         </p>
       </div>
     </section>
