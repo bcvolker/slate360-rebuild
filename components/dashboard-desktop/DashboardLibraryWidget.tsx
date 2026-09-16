@@ -45,7 +45,7 @@ export function DashboardLibraryWidget({
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="mb-3 flex shrink-0 items-center gap-1 border-b border-white/[0.06] pb-2">
+      <div className="mb-3 flex shrink-0 items-center gap-1 border-b border-[var(--mkt-line)] pb-2">
         {tabs.map((tab) => {
           const isActive = tab.id === activeTab;
           return (
@@ -55,13 +55,13 @@ export function DashboardLibraryWidget({
               onClick={() => onTabChange(tab.id)}
               className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                 isActive
-                  ? "bg-[color-mix(in_srgb,var(--graphite-primary)_14%,transparent)] text-[var(--graphite-primary)]"
-                  : "text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+                  ? "bg-[var(--mkt-accent-soft)] text-[var(--mkt-accent)]"
+                  : "text-[var(--mkt-ink-muted)] hover:text-[var(--mkt-ink)]"
               }`}
             >
               {tab.label}
               {tab.badge ? (
-                <span className="rounded-md bg-[color-mix(in_srgb,var(--graphite-primary)_22%,transparent)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--graphite-primary)]">
+                <span className="rounded-md bg-[color-mix(in_srgb,var(--mkt-accent)_20%,transparent)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--mkt-accent)]">
                   {tab.badge}
                 </span>
               ) : null}

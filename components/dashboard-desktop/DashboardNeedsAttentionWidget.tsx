@@ -23,9 +23,9 @@ export function DashboardNeedsAttentionWidget({ items }: { items: DashboardNeeds
   if (items.length === 0) {
     return (
       <div className="flex h-full min-h-0 flex-col items-center justify-center gap-2 py-6 text-center">
-        <CheckCircle2 className="h-6 w-6 text-[var(--graphite-muted)]" />
-        <p className="text-sm font-medium text-[var(--graphite-text-header)]">All caught up</p>
-        <p className="text-xs text-[var(--graphite-muted)]">No items need your attention right now.</p>
+        <CheckCircle2 className="h-6 w-6 text-[var(--mkt-ink-muted)]" />
+        <p className="text-sm font-medium text-[var(--mkt-ink)]">All caught up</p>
+        <p className="text-xs text-[var(--mkt-ink-muted)]">No items need your attention right now.</p>
       </div>
     );
   }
@@ -36,14 +36,14 @@ export function DashboardNeedsAttentionWidget({ items }: { items: DashboardNeeds
         <Link
           key={item.id}
           href={desktopTwinHref(item.linkPath)}
-          className="flex items-start gap-2.5 rounded-xl border border-white/[0.06] bg-white/[0.02] px-3 py-2.5 transition-colors hover:border-[color-mix(in_srgb,var(--graphite-primary)_42%,transparent)]"
+          className="flex items-start gap-2.5 rounded-xl border border-[var(--mkt-line)] bg-[var(--mkt-surface)] px-3 py-2.5 transition-colors hover:border-[var(--mkt-accent-line)]"
         >
-          <Bell className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--graphite-primary)]" />
+          <Bell className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--mkt-accent)]" />
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-semibold text-[var(--graphite-text-header)]">{item.title}</span>
-            <span className="block truncate text-xs text-[var(--graphite-muted)]">{item.message}</span>
+            <span className="block truncate text-sm font-semibold text-[var(--mkt-ink)]">{item.title}</span>
+            <span className="block truncate text-xs text-[var(--mkt-ink-muted)]">{item.message}</span>
           </span>
-          <span className="shrink-0 text-[10px] text-[var(--graphite-muted)]">{timeAgo(item.createdAt)}</span>
+          <span className="shrink-0 text-[10px] text-[var(--mkt-ink-muted)]">{timeAgo(item.createdAt)}</span>
         </Link>
       ))}
     </div>

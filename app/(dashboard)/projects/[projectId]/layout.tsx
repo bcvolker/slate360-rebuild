@@ -65,6 +65,11 @@ export default async function ProjectDetailLayout({
   });
 
   const flags = await resolveClientSurfaceFlags(orgId, Boolean(isSlateCeo));
+  // Spatial-only clients get the package page (docs/design/CLIENT_PROJECT_PACKAGE_2026-09.md),
+  // which is the whole project for them — no internal tab shell.
+  if (isSpatialOnlyPortal(flags)) {
+    return <>{children}</>;
+  }
   const allowed = new Set(projectTabIdsForSurface(flags));
   const hiddenTabIds = PROJECT_DETAIL_TABS.map((tab) => tab.id).filter((id) => !allowed.has(id)) as ProjectDetailTabId[];
   const tabLabels = isSpatialOnlyPortal(flags)

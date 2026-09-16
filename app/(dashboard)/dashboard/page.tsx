@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { CreatorHome } from "@/components/product-shell/CreatorHome";
+import { DashboardHomeContent } from "@/components/dashboard-desktop/DashboardHomeContent";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { loadDashboardHomeData } from "@/lib/dashboard/load-dashboard-home-data";
 import { resolveClientSurfaceFlags } from "@/lib/spatial-walkthrough/access";
@@ -21,9 +21,11 @@ export default async function DashboardHomePage() {
   const data = await loadDashboardHomeData(orgId, user.id);
 
   return (
-    <CreatorHome
+    <DashboardHomeContent
+      counts={data.counts}
       recentProjects={data.recentProjects}
       recentWalks={data.recentWalks}
+      recentTwins={data.recentTwins}
       needsAttention={data.needsAttention}
     />
   );

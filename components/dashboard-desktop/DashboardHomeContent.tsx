@@ -80,32 +80,39 @@ export function DashboardHomeContent({
         featured ? (
           <Link
             href={featured.href}
-            className="group relative block h-full min-h-[220px] overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)]"
+            className="group relative block h-full min-h-[220px] overflow-hidden rounded-xl border border-[var(--mkt-line)]"
           >
             {featured.imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={featured.imageUrl} alt={featured.name} decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={featured.imageUrl} alt={featured.name} decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+                <div className="absolute inset-x-0 bottom-0 flex flex-col justify-end p-5">
+                  <p className="truncate text-2xl font-extrabold text-white">{featured.name}</p>
+                  <p className="mt-1 text-sm text-white/70">{featured.status} · {formatDashboardDate(featured.date)}</p>
+                  <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-white">
+                    {featured.kind === "twin" ? "Open twin" : "Open project"}{" "}
+                    <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                  </span>
+                </div>
+              </>
             ) : (
-              <div
-                className="absolute inset-0 flex items-center justify-center"
-                style={{ background: "radial-gradient(120% 120% at 25% 15%, color-mix(in srgb, var(--graphite-primary) 30%, var(--graphite-canvas)) 0%, var(--graphite-canvas) 70%)" }}
-              >
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[var(--mkt-canvas-alt)] p-5 text-center">
                 {featured.kind === "twin" ? (
-                  <Box className="h-16 w-16 text-[color-mix(in_srgb,var(--graphite-primary)_55%,transparent)]" strokeWidth={1} />
+                  <Box className="h-14 w-14 text-[var(--mkt-accent)]" strokeWidth={1} />
                 ) : (
-                  <FolderOpen className="h-16 w-16 text-[color-mix(in_srgb,var(--graphite-primary)_55%,transparent)]" strokeWidth={1} />
+                  <FolderOpen className="h-14 w-14 text-[var(--mkt-accent)]" strokeWidth={1} />
                 )}
+                <div>
+                  <p className="truncate text-lg font-semibold text-[var(--mkt-ink)]">{featured.name}</p>
+                  <p className="mt-1 text-sm text-[var(--mkt-ink-muted)]">{featured.status} · {formatDashboardDate(featured.date)}</p>
+                </div>
+                <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--mkt-accent)]">
+                  {featured.kind === "twin" ? "Open twin" : "Open project"}{" "}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                </span>
               </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-            <div className="absolute inset-x-0 bottom-0 flex flex-col justify-end p-5">
-              <p className="truncate text-2xl font-extrabold text-white">{featured.name}</p>
-              <p className="mt-1 text-sm text-white/70">{featured.status} · {formatDashboardDate(featured.date)}</p>
-              <span className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-white">
-                {featured.kind === "twin" ? "Open twin" : "Open project"}{" "}
-                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
-              </span>
-            </div>
           </Link>
         ) : (
           <DashboardEmptyState
