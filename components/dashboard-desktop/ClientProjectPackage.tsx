@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowLeft, FileText, MessageCircleQuestion, Box, Film, Map } from "lucide-react";
+import { ArrowLeft, FileText, MessageCircleQuestion, Box, Film, Map, Share2 } from "lucide-react";
 import type { ClientChapter, ClientProjectData } from "@/lib/dashboard/load-client-project";
+import { ClientShareManager } from "./ClientShareManager";
 import { dashboardDesktopTokens as t } from "./dashboard-tokens";
 
 function when(iso: string): string {
@@ -20,25 +21,37 @@ function ChapterIcon({ kind }: { kind: ClientChapter["kind"] }) {
   return <Box className={cls} strokeWidth={1} />;
 }
 
-function ChapterCard({ chapter }: { chapter: ClientChapter }) {
+function ChapterCard({ chapter, onShare }: { chapter: ClientChapter; onShare?: () => void }) {
   return (
-    <Link
-      href={chapter.href}
-      className="group relative block aspect-video overflow-hidden rounded-xl border border-[var(--mkt-line)] bg-[var(--mkt-canvas-alt)]"
-    >
-      {chapter.posterUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={chapter.posterUrl} alt={chapter.title} decoding="async" className="absolute inset-0 h-full w-full object-cover" />
-      ) : (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <ChapterIcon kind={chapter.kind} />
+    <div className="relative">
+      <Link
+        href={chapter.href}
+        className="group relative block aspect-video overflow-hidden rounded-xl border border-[var(--mkt-line)] bg-[var(--mkt-canvas-alt)]"
+      >
+        {chapter.posterUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={chapter.posterUrl} alt={chapter.title} decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <ChapterIcon kind={chapter.kind} />
+          </div>
+        )}
+        {chapter.posterUrl ? <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" /> : null}
+        <div className="absolute inset-x-0 bottom-0 p-3 pr-14">
+          <p className={`text-sm font-semibold ${chapter.posterUrl ? "text-white" : "text-[var(--mkt-ink)]"}`}>{chapter.title}</p>
         </div>
-      )}
-      {chapter.posterUrl ? <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" /> : null}
-      <div className="absolute inset-x-0 bottom-0 p-3">
-        <p className={`text-sm font-semibold ${chapter.posterUrl ? "text-white" : "text-[var(--mkt-ink)]"}`}>{chapter.title}</p>
-      </div>
-    </Link>
+      </Link>
+      {onShare ? (
+        <button
+          type="button"
+          onClick={onShare}
+          aria-label={`Share ${chapter.title}`}
+          className="absolute bottom-2.5 right-2.5 inline-flex h-10 w-10 items-center justify-center rounded-lg border border-[var(--mkt-line)] bg-[var(--mkt-surface)]/95 text-[var(--mkt-ink)] hover:text-[var(--mkt-accent)]"
+        >
+          <Share2 className="h-4 w-4" aria-hidden />
+        </button>
+      ) : null}
+    </div>
   );
 }
 
@@ -47,8 +60,9 @@ function ChapterCard({ chapter }: { chapter: ClientChapter }) {
  * as cards, documents by folder, open questions. Product-agnostic copy only
  * (docs/design/CLIENT_PROJECT_PACKAGE_2026-09.md).
  */
-export function ClientProjectPackage({ data }: { data: ClientProjectData }) {
+export function ClientProjectPackage({ data, mockShares }: { data: ClientProjectData; mockShares?: boolean }) {
   const [selected, setSelected] = useState(0);
+  const [sharing, setSharing] = useState<ClientChapter | null>(null);
   const scan = data.scans[selected] ?? null;
   const folders = [...new Set(data.documents.map((d) => d.folder))];
 
@@ -103,7 +117,7 @@ export function ClientProjectPackage({ data }: { data: ClientProjectData }) {
               <p className={`${t.sectionLabel} mb-2`}>{when(scan.date)}</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {scan.chapters.map((c) => (
-                  <ChapterCard key={c.id} chapter={c} />
+                  <ChapterCard key={c.id} chapter={c} onShare={c.shareRef ? () => setSharing(c) : undefined} />
                 ))}
               </div>
             </div>
@@ -164,6 +178,17 @@ export function ClientProjectPackage({ data }: { data: ClientProjectData }) {
 
       {data.brand.showPoweredBy ? (
         <p className="mt-auto text-xs text-[var(--mkt-ink-muted)]">Powered by Slate360</p>
+      ) : null}
+
+      {sharing?.shareRef ? (
+        <ClientShareManager
+          projectId={data.project.id}
+          walkthroughId={sharing.shareRef.walkthroughId}
+          chapterTitle={`${sharing.title} · ${when(sharing.capturedAt)}`}
+          defaultLabel={`${data.project.name} — ${sharing.title}`}
+          onClose={() => setSharing(null)}
+          mock={mockShares}
+        />
       ) : null}
     </div>
   );

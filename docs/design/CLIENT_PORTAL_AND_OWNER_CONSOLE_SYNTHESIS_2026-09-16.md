@@ -132,7 +132,8 @@ work-queue + tools layout above — one owner (this track), one design.
 | # | Slice | Note |
 |---|---|---|
 | ✓ | Login home + project package page | shipped |
-| 1 | **Contractor share manager + recipient viewer**: create a link scoped to project / visit / chapter, password, expiry, revoke, view log; recipient sees only that scope, view-only, can call out a location, comment, ask a question | applies the drafted `spatial_project_shares` migration; reuses `/w/[token]`, `AskAboutThis`, `DeliverableQnA`; adds the manager UI to the package page |
+| 1a ✓ | **Contractor share manager (walkthrough chapters)** — shipped 2026-09-16: Share button on each walkthrough card → create link (label, access code, expiry), copy, active links with view count / last viewed, "Turn off". Recipient lands on the existing view-only `/w/[token]` viewer (password unlock, view log, "call out a spot + ask a question"). `ClientShareManager.tsx`; reuses the existing create/list/revoke APIs (list now returns `has_password`, never the hash). Bottom sheet on phones. | Requires the contractor login to be an **org admin** with `standalone_spatial_walkthrough` on — bake that into the "create client login" flow. |
+| 1b | **Project-level scoped links** for tours / 3D / whole visit: apply the drafted `spatial_project_shares` (+grants) migration, one recipient package view that honors grants, share buttons on tour/3D cards | Tours today are public-by-slug and 3D is per-space token — no contractor control yet; do not add Share buttons there until 1b |
 | 2 | Per-visit "What changed" + visit PDF | forwardable summary |
 | 3 | Owner console home + Publish panel (`project_chapters`) | Brian's production line |
 | 4 | Locations + pin ↔ location + trade | place / trade browsing, same-room compare |

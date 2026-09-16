@@ -22,7 +22,7 @@ const FULL: ClientProjectData = {
     {
       date: "2026-09-15",
       chapters: [
-        { id: "w3", kind: "walkthrough", title: "Walkthrough", posterUrl: pic("w3"), href: "#", capturedAt: "2026-09-15T16:00:00Z" },
+        { id: "w3", kind: "walkthrough", title: "Walkthrough", posterUrl: pic("w3"), href: "#", capturedAt: "2026-09-15T16:00:00Z", shareRef: { kind: "walkthrough", walkthroughId: "w3" } },
         { id: "t3", kind: "tour", title: "360 Tour on plans", posterUrl: pic("t3"), href: "#", capturedAt: "2026-09-15T16:00:00Z" },
         { id: "s3", kind: "splat", title: "3D model", posterUrl: pic("s3"), href: "#", capturedAt: "2026-09-15T16:00:00Z" },
       ],
@@ -68,7 +68,7 @@ export default function ClientProjectPreview() {
               </button>
             ))}
           </div>
-          <ClientProjectPackage data={data} />
+          <ClientProjectPackage data={data} mockShares />
         </main>
       </div>
     </div>

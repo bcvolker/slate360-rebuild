@@ -17,6 +17,8 @@ export type ClientChapter = {
   posterUrl: string | null;
   href: string;
   capturedAt: string;
+  /** Present when the contractor can mint controlled share links for this chapter. */
+  shareRef?: { kind: "walkthrough"; walkthroughId: string };
 };
 
 export type ClientScan = { date: string; chapters: ClientChapter[] };
@@ -120,6 +122,7 @@ export async function loadClientProject(args: {
       posterUrl: clip ? `/api/spatial-walkthrough/${w.id}/media?clip=${clip}&kind=hero&policy=client` : null,
       href: `/projects/${projectId}/walkthroughs/${w.id}`,
       capturedAt: w.captured_at,
+      shareRef: { kind: "walkthrough", walkthroughId: w.id },
     };
   });
 
