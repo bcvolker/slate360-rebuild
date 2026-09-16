@@ -1,6 +1,9 @@
 # Client project page ("the package") — design + published-chapter contract
 
-Status: **DRAFT — needs Brian's yes on §4 before code.** Written 2026-09-15 on
+Status: **CONFIRMED 2026-09-15 (Brian):** §4.1 reuse structure / rebuild look — yes; §4.2 chapter
+kinds — contract is broad, slice 1 wires walkthrough, tour, splat, documents/photos (ortho/mesh
+reserved until a client-ready viewer exists); §4.3 this chat owns the owner/tools home shell;
+§4.4 reshare deferred. Written 2026-09-15 on
 `feature/dashboard-portal-alignment-2026-09`. Follows [CLIENT_ACCOUNT_HOME_2026-09.md](./CLIENT_ACCOUNT_HOME_2026-09.md)
 (the login landing); coordinates with the desktop track's
 `docs/ops/DESKTOP_SPLAT_MAP_SESSION_2026-09-15.md` §7.8 (package publisher) and §9 (one viewer).
@@ -87,6 +90,25 @@ Notes:
 4. **Downstream reshare** (contractor → their client/stakeholders) under login-only: defer, or
    plan for contractor-created sub-logins now? Recommendation: defer; design the chapter page so
    a share feature can be added without changing the contract.
+
+## 4b. Slice 1 as built (2026-09-15)
+
+- **Chapters are derived, not stored.** `lib/dashboard/load-client-project.ts` builds the chapter
+  list from rows that already carry a published/ready state: `spatial_walkthroughs`
+  (ready/published), `project_tours` (published + slug), `digital_twin_spaces` (published model +
+  QA accepted + a live share token). No `project_chapters` migration was applied — §3 stays the
+  contract for the desktop publisher to add explicit chapters (splat exports, ortho) later; when
+  that table exists the loader unions it in.
+- Chapter hrefs: walkthrough → the authenticated in-project viewer
+  (`/projects/[id]/walkthroughs/[walkId]`, `WalkthroughClientView`, `policy=client`); tour →
+  `/tours/view/[slug]`; 3D model → `/share/twin/[token]` resolved server-side. The last two still
+  surface a slug/token URL once opened — wrap them behind authenticated routes in a follow-up.
+- Documents = SlateDrop uploads under the project's folders, grouped by folder name; questions =
+  client-visible `spatial_pins` of type rfi/note. Empty sections are omitted, not rendered blank.
+- Route: `app/(dashboard)/projects/[projectId]` — spatial-only clients get `ClientProjectPackage`
+  with no internal tab shell (layout branch); staff keep the existing overview + tabs untouched.
+- Verified in `app/preview/client-project` (full / sparse / empty fixtures) at 1440 px and 375 px.
+  The harness hardcodes the desktop sidebar, so the phone check covers content stacking only.
 
 ## 5. Build order once §4 is answered
 
