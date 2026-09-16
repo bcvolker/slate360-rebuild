@@ -7,11 +7,12 @@ import type { SplatMesh } from "@sparkjsdev/spark";
 import { CameraTweenRunner } from "@/lib/digital-twin/camera-tween";
 import {
   directionFromYawPitch,
-  eyePositionFromHit,
+  sceneFloorY,
   type InteriorCameraFrame,
 } from "@/lib/digital-twin/interior-camera-frame";
 import { frameSplatMeshInterior, getSplatSceneBounds } from "@/lib/digital-twin/splat-camera-frame";
-import { raycastSplatMesh } from "@/lib/digital-twin/splat-raycast";
+import { raycastGroundPlane, raycastSplatMesh } from "@/lib/digital-twin/splat-raycast";
+import { flyInteriorFromHit, pickWalkHit } from "@/lib/digital-twin/walk-step";
 import type { SplatManifest } from "@/lib/digital-twin/twin-manifest";
 import { applyWalkMovement, useWalkKeys } from "@/lib/digital-twin/walk-movement";
 import {
@@ -128,12 +129,15 @@ export function SplatInteriorNavigation({
 
     const onWheel = (event: WheelEvent) => {
       event.preventDefault();
+      // Kitchen share: drag looks, scroll zooms. Mouse-wheel pitch felt like
+      // the model tilting instead of moving closer.
       const factor = event.deltaY > 0 ? ZOOM_WHEEL_FACTOR : 1 / ZOOM_WHEEL_FACTOR;
       zoomRef.current = THREE.MathUtils.clamp(
         zoomRef.current * factor,
         INTERIOR_MIN_ZOOM,
         INTERIOR_MAX_ZOOM,
       );
+      applyStateToCamera();
     };
 
     const activeTouches = activeTouchesRef.current;
@@ -195,6 +199,8 @@ export function SplatInteriorNavigation({
       pointerRef.current.lastY = event.clientY;
       if (!pointerRef.current.moved) return;
 
+      // Drag left = look left (first-person / Matterport). Verified in the pane:
+      // with "+=" a left drag turned the view right.
       stateRef.current.yaw -= dx * LOOK_SENSITIVITY;
       stateRef.current.pitch = THREE.MathUtils.clamp(
         stateRef.current.pitch - dy * LOOK_SENSITIVITY,
@@ -217,16 +223,22 @@ export function SplatInteriorNavigation({
       pointerRef.current.pointerId = -1;
       if (!wasTap || !(camera instanceof THREE.PerspectiveCamera)) return;
 
-      const hit = raycastSplatMesh(mesh, camera, event.clientX, event.clientY, canvas);
-      if (!hit) return;
+      const bounds = boundsRef.current ?? getSplatSceneBounds(mesh);
+      const splat = raycastSplatMesh(mesh, camera, event.clientX, event.clientY, canvas);
+      const ground = raycastGroundPlane(
+        camera,
+        event.clientX,
+        event.clientY,
+        canvas,
+        sceneFloorY(bounds),
+      );
+      const point = pickWalkHit(splat?.point ?? null, ground, bounds);
+      if (!point) return;
       if (pickEnabled && onPick) {
-        onPick({ x: hit.point.x, y: hit.point.y, z: hit.point.z });
+        onPick({ x: point.x, y: point.y, z: point.z });
         return;
       }
-      // NAV-FIX-2: click/tap-to-move — glide to the clicked spot at eye height,
-      // the standard "advance through the space" gesture. Reuses the same fly
-      // helper the entry transition uses.
-      flyInteriorFromHit(mesh, camera, hit.point, stateRef, tweenRef);
+      flyInteriorFromHit(mesh, camera, point, stateRef, tweenRef);
     };
 
     canvas.addEventListener("wheel", onWheel, { passive: false });
@@ -267,25 +279,4 @@ export function SplatInteriorNavigation({
   });
 
   return null;
-}
-
-export function flyInteriorFromHit(
-  mesh: SplatMesh,
-  camera: THREE.PerspectiveCamera,
-  hit: THREE.Vector3,
-  stateRef: React.MutableRefObject<{ yaw: number; pitch: number; position: THREE.Vector3 }>,
-  tweenRef: React.MutableRefObject<CameraTweenRunner>,
-) {
-  const bounds = getSplatSceneBounds(mesh);
-  const floorY = bounds.min.y;
-  const destination = eyePositionFromHit(hit, floorY, camera.position);
-  tweenRef.current.start(
-    {
-      position: stateRef.current.position.clone(),
-      yaw: stateRef.current.yaw,
-      pitch: stateRef.current.pitch,
-    },
-    { position: destination, yaw: stateRef.current.yaw, pitch: 0 },
-    950,
-  );
 }
