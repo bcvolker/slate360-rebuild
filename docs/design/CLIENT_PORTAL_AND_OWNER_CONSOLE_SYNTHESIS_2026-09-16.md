@@ -52,13 +52,32 @@ Twin 360, Site Walk, Splat, Map or Thermal Studio.
   come with punch and closeout.
 - **No AI-only notes** — raw note kept beside any summary (already the evidentiary rule).
 
-## 5. Sharing under login-only
+## 5. Sharing — decided by Brian 2026-09-16
 
-Brian creates the contractor's login. The contractor can invite named stakeholders (owner, owner's
-rep, architect, sub) by email; each gets a Viewer seat scoped to that project. No public links.
-This gives the contractor "share anything with my clients" without tokens, and keeps every view
-attributable — which also strengthens the record for disputes. A time-boxed guest link can be
-revisited later if a real client asks for it; it is not needed for the pilot.
+Two different things, and the earlier "no tokens" applies only to the first:
+
+1. **The contractor's own access is a login.** Brian creates it; they sign in and see their
+   projects. No link is ever the contractor's way in.
+2. **The contractor shares outward with controlled links.** They can show any deliverable to any
+   stakeholder — owner, architect, their own client, a sub — with **no cap** on how many. Each
+   share is a link the contractor controls: what it exposes (a whole project, one visit, one
+   chapter, one item), who can open it (password, expiry, revoke), and how private it is.
+   The recipient is **view-only**: they cannot change anything permanently or reach the rest of
+   the project, but they can call out a spot in the model, comment there, and ask questions in a
+   chat thread. A document exchange for those recipients is a later add-on.
+
+Named viewer seats (email → login) can still exist for regular stakeholders, but the primary
+mechanism is the controlled link. Every link view is logged (who/when/what), so the record stays
+attributable even without a seat.
+
+What already exists for this (verified in repo): per-walkthrough share tokens with password,
+expiry, revoke and view counts (`spatial_share_tokens`, `lib/spatial-walkthrough/share-resolve.ts`,
+viewer `/w/[token]`); a drafted-but-unapplied **project-level** share table with per-share grants
+(`supabase/migrations/20260901120000_spatial_project_shares.sql`: `can_comment`,
+`can_create_items`, `can_see_documents`, `can_see_internal_items`, `can_measure`); the
+"Ask a question" flow with locators (`AskAboutThis`) and a deliverable Q&A widget
+(`DeliverableQnA`). The gap is the **contractor-facing share manager** (create/scope/password/
+expire/revoke a link, see who viewed) and a single recipient viewer that honors the grants.
 
 ## 6. Owner console — proposal
 
@@ -100,9 +119,23 @@ work-queue + tools layout above — one owner (this track), one design.
 | 7 | Search across pins/docs/measurements | Compounds with data | Weak metadata → weak search |
 | 8 | Closeout generator, owner handover role | End-of-job product, archive revenue | Needs 5–6 done well |
 
-## 8. Decisions needed from Brian
+## 8. Decisions (Brian, 2026-09-16)
 
-1. Three roles for the pilot (operator / project admin / viewer) — yes/no.
-2. Stakeholder sharing = invited seats, no public links for now — yes/no.
-3. Owner console = work-queue-by-visit-state with a Publish panel (not tiles) — yes/no.
-4. Build order §7 — approve, or move something up.
+1. Three roles for the pilot — **yes** (operator / project admin / link recipient as view-only).
+2. Stakeholder sharing — **controlled links, uncapped, contractor-scoped, view-only with
+   callouts + questions + chat**; see §5. (Supersedes the "seats only" option.)
+3. Owner console = work queue by visit state + Publish panel — **yes**.
+4. Build order — revised below to put sharing where Brian put it: right after the record.
+
+## 7b. Build order, revised
+
+| # | Slice | Note |
+|---|---|---|
+| ✓ | Login home + project package page | shipped |
+| 1 | **Contractor share manager + recipient viewer**: create a link scoped to project / visit / chapter, password, expiry, revoke, view log; recipient sees only that scope, view-only, can call out a location, comment, ask a question | applies the drafted `spatial_project_shares` migration; reuses `/w/[token]`, `AskAboutThis`, `DeliverableQnA`; adds the manager UI to the package page |
+| 2 | Per-visit "What changed" + visit PDF | forwardable summary |
+| 3 | Owner console home + Publish panel (`project_chapters`) | Brian's production line |
+| 4 | Locations + pin ↔ location + trade | place / trade browsing, same-room compare |
+| 5 | Documents as references + folder templates | one file, many places |
+| 6 | Search | needs 4–5 |
+| 7 | Closeout generator, owner handover | needs 4–5 |
