@@ -34,7 +34,7 @@ export function PaynePlanBoard({
             <span
               className={`block h-3 w-3 ${
                 item.action === "MOVE"
-                  ? "bg-[var(--twin360-blue)]"
+                  ? "bg-[var(--mkt-accent)]"
                   : "bg-[var(--mkt-canvas)]/70"
               } ${selectedId === item.id ? "ring-2 ring-[var(--mkt-canvas)]" : ""}`}
             />

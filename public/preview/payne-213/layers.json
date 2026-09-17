@@ -1,0 +1,11 @@
+{
+  "room": "Payne Hall 213",
+  "stills": "/preview/payne-213/stills.json",
+  "lidarPly": "/preview/payne-213-lidar.ply",
+  "splat": "/preview/payne-213.spz",
+  "phoneSplat": "/preview/payne-213-phone.spz",
+  "plan": "/preview/payne-213/brooke-layout.png",
+  "items": "/preview/payne-213-items.json",
+  "labJob": "cecc2763",
+  "note": "Stills and LiDAR live in public/preview so a Next restart does not drop them. Walk tab appears when payne-213.spz exists."
+}

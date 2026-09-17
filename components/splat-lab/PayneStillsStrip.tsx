@@ -36,7 +36,7 @@ export function PayneStillsStrip({
             type="button"
             onClick={() => setOpen(s)}
             className={`h-16 w-24 shrink-0 overflow-hidden border ${
-              open?.id === s.id ? "border-[var(--twin360-blue)]" : "border-white/10"
+              open?.id === s.id ? "border-[var(--mkt-accent)]" : "border-white/10"
             }`}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
