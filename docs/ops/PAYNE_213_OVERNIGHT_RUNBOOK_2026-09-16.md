@@ -269,3 +269,65 @@ reads pgrep for liveness.
 nor kill `wsl.exe`/`powershell.exe` processes. Next can be restarted freely now; the job does not
 depend on it. Status: `tmp/splat-lab/cecc2763/run.log` (runner output), `live-status.json`
 (stages), `_alive.txt` (heartbeat), `Slate360Jobs\payne-213-lab-babysit.log` (restarts).
+
+---
+
+## Part 5 — the two-camera question (23:05 PDT)
+
+**Correction to "mixing 360 + phone stills is not built."** It is built, end to end, and nobody has
+ever run it:
+- `workers/local/splat-lab/sources.py` (**untracked**) — `discover_groups` finds `images/equirect/`
+  and `images/pinhole/` and tags them EQUIRECTANGULAR / OPENCV.
+- `stages/sfm.py` `_run_mixed` — one COLMAP mapper, features extracted per group with that group's
+  camera model, unordered (vocab-tree) matching across both sets, images staged into `sfm/images_all`.
+- `stages/views.py` (**89 uncommitted lines**) — warps only the EQUIRECTANGULAR cameras into 16
+  pinhole views, falls back to `images/equirect/<name>` for the source file, then appends the phone
+  stills through `pinhole_views.py` into the same `transforms.json`.
+
+So the training set would be one merged pinhole set with per-image intrinsics, which is ordinary
+nerfstudio. The capability is real. It is unproven, which is a different statement.
+
+**Why it is still not tonight, and may not be the quality win it sounds like.** Measured:
+
+| Source | Trained at | Angular resolution |
+|---|---|---|
+| X4 8K equirect → 16 views | 1280 px / 90° | 14 px per degree |
+| iPhone still (4032×3024) | 2560 px / ~68° | 38 px per degree |
+
+The phone is about 2.7× sharper per degree (4× at native). Three consequences:
+1. **The blurrier majority wins.** 6,016 pano views vs 491 stills share one photometric loss. Where
+   both see a surface, the optimum is a compromise weighted by view count, and it sits near the 360's
+   blur. You do not get the sharp source's detail by adding the soft one.
+2. **Mixed resolution is a known 3DGS failure mode.** It is what Mip-Splatting exists to fix; stock
+   splatfacto has no such filter, so the expected artifact is aliasing and surface erosion.
+3. **Exposure mismatch.** X4 at a fixed fast shutter vs iPhone auto-exposure gives two brightnesses
+   for the same wall. The bilateral grid absorbs some of that per image, not a whole camera offset.
+
+Also: the phone stills have **EXIF stripped** (no focal length), so COLMAP must solve the phone
+intrinsics with no prior. Workable, less robust.
+
+**The multi-camera strategy is right; the fusion point is the coordinate frame, not the loss.** Two
+models registered into one metric frame give: the phone's sharpness where it looked closely, the
+360's complete walkable coverage, the LiDAR's metric scale and mesh for plan/dollhouse, and one pin
+that appears in all of them. That is the deliverable Brian described. A single blended model is a
+research experiment, not the way to get there.
+
+**Staged so the experiment is one command tomorrow** (hard links, no new disk, no GPU used):
+`C:\Users\Brian PC\Slate360Jobs\payne-213-mixed-input\images\` with `equirect\` (376 panos, reused
+from cecc2763 — no re-extraction) and `pinhole\` (491 stills). To run it **after** the GPU is free:
+```bash
+mkdir -p /mnt/c/s360/tmp/splat-lab/payne213mix
+cp -rl "/mnt/c/Users/Brian PC/Slate360Jobs/payne-213-mixed-input/images" /mnt/c/s360/tmp/splat-lab/payne213mix/
+cd /mnt/c/s360/workers/local/splat-lab && <env line from the babysitter> \
+  python run.py --input /dev/null --output /mnt/c/s360/tmp/splat-lab --job-id payne213mix \
+  --is360 --from-stage sfm --spherical-mode native --view-image-size 1280 --training-steps 3000 ...
+```
+Judge it at SfM, not at the end: `sfm/stats.json` must show **both** groups registered in one model.
+If the phone stills do not register against the panoramas, cross-camera matching failed and the whole
+idea stops there for this capture. That answer costs about an hour of CPU and no training time. Run
+the 3,000-step smoke first; do not spend 30k on it.
+
+**Unrelated finding tonight:** the views stage segfaulted once (`run.py exited rc=139`, 22:42:49, no
+Python traceback — a native crash in the image path). The babysitter relaunched it 3 minutes later
+and views resumed from where it was. That is the second distinct stall cause, and the babysitter
+absorbs it: it does not need to know why the runner died.
