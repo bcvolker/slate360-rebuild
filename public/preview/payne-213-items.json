@@ -2,7 +2,7 @@
   "room": "Payne Hall 213",
   "title": "Furniture Move",
   "source": "Brooke Bogart, Sep 14 — 18 tables stay, 10 tables + 2 fixtures + 1 whiteboard to Sun Devil Hall",
-  "plan": "/preview/payne-213/brooke-layout.png",
+  "plan": "/preview/payne-213/room-plan.png",
   "items": [
     { "id": "M01", "action": "MOVE", "kind": "table", "label": "Table 01", "destination": "Sun Devil Hall", "fx": 0.28, "fy": 0.32, "photo": "/preview/payne-213/move-table-underside.jpg", "note": "Green sticky Sun Dvl on underside", "done": false },
     { "id": "M02", "action": "MOVE", "kind": "table", "label": "Table 02", "destination": "Sun Devil Hall", "fx": 0.42, "fy": 0.32, "photo": null, "note": "Blue/green sticky Sun Dvl", "done": false },

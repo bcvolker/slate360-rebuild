@@ -41,7 +41,6 @@ export function PayneMoveShell({
   }, [geometrySrc, splatSrc]);
   const [layer, setLayer] = useState<PayneLayer>(layers[0] ?? "list");
   const [picked, setPicked] = useState<string | null>(null);
-  const [showStay, setShowStay] = useState(false);
   const [gl, setGl] = useState<boolean | null>(null);
   const [view, setView] = useState<SplatViewMode>("dollhouse");
   const [stride, setStride] = useState<WalkStride>("normal");
@@ -92,13 +91,7 @@ export function PayneMoveShell({
       ) : null}
       {layer === "layout" ? (
         <div className="absolute inset-0 overflow-y-auto pt-24 pb-36">
-          <PaynePlanBoard
-            planSrc={planSrc}
-            items={items}
-            showStay={showStay}
-            selectedId={picked}
-            onPick={setPicked}
-          />
+          <PaynePlanBoard planSrc={planSrc} />
         </div>
       ) : null}
       {layer === "list" ? (
@@ -113,15 +106,6 @@ export function PayneMoveShell({
         className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex flex-col items-center gap-2 px-3 pl-[max(3.5rem,env(safe-area-inset-left))] pr-[max(0.75rem,env(safe-area-inset-right))] sm:px-4"
         style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom, 0px))" }}
       >
-        {layer === "layout" ? (
-          <button
-            type="button"
-            onClick={() => setShowStay((v) => !v)}
-            className="pointer-events-auto min-h-11 text-[12px] font-semibold text-[var(--mkt-accent)]"
-          >
-            {showStay ? "Hide stay" : "Show stay"}
-          </button>
-        ) : null}
         <PayneLayerBar layers={layers} active={layer} onPick={setLayer} />
         {showWalkBar ? (
           <SplatWalkBar

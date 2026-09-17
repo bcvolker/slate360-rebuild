@@ -84,11 +84,9 @@ export function PayneItemList({
       {picked ? (
         <aside className="shrink-0 border-t border-white/10 px-5 py-4">
           <p className="text-[14px] font-semibold">{picked.label}</p>
-          <p className="text-[12px] text-[var(--mkt-canvas)]/70">{picked.note}</p>
-          {picked.photo ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={picked.photo} alt={picked.label} className="mt-3 max-h-40 w-full object-cover" />
-          ) : null}
+          <p className="text-[12px] text-[var(--mkt-canvas)]/70">
+            {picked.action === "MOVE" ? `Move to ${picked.destination}` : "Stays in Payne 213"}
+          </p>
         </aside>
       ) : null}
     </div>
