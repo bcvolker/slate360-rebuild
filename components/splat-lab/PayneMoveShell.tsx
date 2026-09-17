@@ -1,47 +1,47 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PayneItemList } from "@/components/splat-lab/PayneItemList";
-import { SplatLabWalkViewer } from "@/components/splat-lab/SplatLabWalkViewer";
+import { PaynePlanBoard } from "@/components/splat-lab/PaynePlanBoard";
+import { PayneStillsStrip, type PayneStill } from "@/components/splat-lab/PayneStillsStrip";
+import { PayneTabBar, type PayneTab } from "@/components/splat-lab/PayneTabBar";
+import { PayneLidarCloud } from "@/components/splat-lab/PayneLidarCloud";
+import { PayneSplatStage } from "@/components/splat-lab/PayneSplatStage";
 import type { PayneItem } from "@/lib/splat-lab/payne-items";
-
-type Tab = "items" | "plan" | "walk";
 
 export function PayneMoveShell({
   splatSrc,
+  geometrySrc,
   items,
   planSrc,
+  stills,
+  stillsCaptured,
 }: {
   splatSrc: string | null;
+  geometrySrc: string | null;
   items: PayneItem[];
   planSrc: string;
+  stills: PayneStill[];
+  stillsCaptured?: number;
 }) {
-  const [tab, setTab] = useState<Tab>(splatSrc ? "walk" : "items");
+  const tabs = useMemo(() => {
+    const next: PayneTab[] = ["items", "plan"];
+    if (stills.length) next.push("photos");
+    if (splatSrc) next.push("walk");
+    if (geometrySrc) next.push("geometry");
+    return next;
+  }, [geometrySrc, splatSrc, stills.length]);
+  const [tab, setTab] = useState<PayneTab>("items");
   const [picked, setPicked] = useState<string | null>(null);
+  const [showStay, setShowStay] = useState(false);
 
   useEffect(() => {
-    if (!splatSrc && tab === "walk") setTab("items");
-  }, [splatSrc, tab]);
+    if (!tabs.includes(tab)) setTab(tabs[0] ?? "items");
+  }, [tab, tabs]);
 
   return (
     <div className="relative min-h-[100dvh] bg-[var(--graphite-canvas)] lg:h-[100dvh] lg:overflow-hidden">
-      <nav className="absolute inset-x-0 top-0 z-30 flex gap-1 px-3 pt-[max(0.5rem,env(safe-area-inset-top))]">
-        {(["items", "plan", "walk"] as Tab[]).map((id) => {
-          if (id === "walk" && !splatSrc) return null;
-          return (
-            <button
-              key={id}
-              type="button"
-              onClick={() => setTab(id)}
-              className={`min-h-11 px-3 text-[12px] font-semibold uppercase tracking-wide ${
-                tab === id ? "text-[var(--twin360-blue)]" : "text-[var(--mkt-canvas)]/55"
-              }`}
-            >
-              {id === "items" ? "Items" : id === "plan" ? "Plan" : "Walk"}
-            </button>
-          );
-        })}
-      </nav>
+      <PayneTabBar tabs={tabs} active={tab} onPick={setTab} />
       <div className="pt-14 lg:h-full">
         {tab === "items" ? (
           <div className="mx-auto h-[calc(100dvh-3.5rem)] max-w-lg">
@@ -49,23 +49,39 @@ export function PayneMoveShell({
           </div>
         ) : null}
         {tab === "plan" ? (
-          <div className="mx-auto max-w-3xl px-4 py-6">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={planSrc} alt="Brooke target layout for Payne 213" className="w-full" />
-            <p className="mt-3 text-[13px] text-[var(--mkt-canvas)]/70">
-              Pink blocks are the tables that stay, arranged as Brooke drew. Move items go to Sun Devil Hall.
-            </p>
+          <PaynePlanBoard
+            planSrc={planSrc}
+            items={items}
+            showStay={showStay}
+            selectedId={picked}
+            onPick={setPicked}
+          />
+        ) : null}
+        {tab === "photos" ? (
+          <div className="h-[calc(100dvh-3.5rem)]">
+            <PayneStillsStrip stills={stills} captured={stillsCaptured} />
           </div>
         ) : null}
         {tab === "walk" && splatSrc ? (
-          <SplatLabWalkViewer
-            src={splatSrc}
-            kicker="Payne Hall 213"
-            title="Furniture move"
-            note="Walk the room. Items tab lists what moves. Pins will be confirmed on site."
-          />
+          <PayneSplatStage src={splatSrc} kicker="Payne Hall 213 · 360" title="Furniture move" />
+        ) : null}
+        {tab === "geometry" && geometrySrc ? (
+          geometrySrc.endsWith(".ply") ? (
+            <PayneLidarCloud src={geometrySrc} />
+          ) : (
+            <PayneSplatStage src={geometrySrc} kicker="Payne Hall 213 · LiDAR" title="Metric room" />
+          )
         ) : null}
       </div>
+      {tab === "plan" ? (
+        <button
+          type="button"
+          onClick={() => setShowStay((v) => !v)}
+          className="absolute right-3 top-14 z-30 min-h-11 text-[12px] font-semibold text-[var(--twin360-blue)]"
+        >
+          {showStay ? "Hide stay" : "Show stay"}
+        </button>
+      ) : null}
     </div>
   );
 }

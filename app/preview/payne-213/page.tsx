@@ -1,29 +1,58 @@
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { PayneMoveShell } from "@/components/splat-lab/PayneMoveShell";
+import type { PayneStill } from "@/components/splat-lab/PayneStillsStrip";
 import type { PayneItem } from "@/lib/splat-lab/payne-items";
 
 export const dynamic = "force-dynamic";
 
 const PUBLIC_SPZ = "/preview/payne-213.spz";
+const PUBLIC_GEO = "/preview/payne-213-lidar.spz";
 const LOCAL_JOB = process.env.NEXT_PUBLIC_PAYNE_SPLAT_JOB?.trim();
 
 type Pack = { items: PayneItem[]; plan: string };
 
+function publicFile(rel: string): boolean {
+  return existsSync(join(process.cwd(), "public", rel.replace(/^\//, "")));
+}
+
 async function loadPack(): Promise<Pack> {
   const raw = await readFile(join(process.cwd(), "public/preview/payne-213-items.json"), "utf8");
-  const data = JSON.parse(raw) as { items: PayneItem[]; plan: string };
-  return { items: data.items, plan: data.plan };
+  return JSON.parse(raw) as Pack;
+}
+
+function loadStills(): { shown: PayneStill[]; count: number } {
+  const p = join(process.cwd(), "public/preview/payne-213/stills.json");
+  if (!existsSync(p)) return { shown: [], count: 0 };
+  try {
+    const data = JSON.parse(readFileSync(p, "utf8")) as { shown?: PayneStill[]; count?: number };
+    return { shown: data.shown ?? [], count: data.count ?? 0 };
+  } catch {
+    return { shown: [], count: 0 };
+  }
 }
 
 export default async function Payne213Page() {
   const pack = await loadPack();
   const hosted = process.env.NEXT_PUBLIC_PAYNE_SPLAT_SRC?.trim();
-  const hasSpz = existsSync(join(process.cwd(), "public/preview/payne-213.spz"));
   const splatSrc = hosted
-    || (hasSpz ? PUBLIC_SPZ : (!process.env.VERCEL && LOCAL_JOB
+    || (publicFile(PUBLIC_SPZ) ? PUBLIC_SPZ : (!process.env.VERCEL && LOCAL_JOB
       ? `/api/splat-lab/jobs/${LOCAL_JOB}/model`
       : null));
-  return <PayneMoveShell splatSrc={splatSrc} items={pack.items} planSrc={pack.plan} />;
+  const geometrySrc = process.env.NEXT_PUBLIC_PAYNE_LIDAR_SRC?.trim()
+    || (publicFile("/preview/payne-213-phone.spz") ? "/preview/payne-213-phone.spz" : null)
+    || (publicFile(PUBLIC_GEO) ? PUBLIC_GEO : null)
+    || (publicFile("/preview/payne-213-lidar.ply") ? "/preview/payne-213-lidar.ply" : null);
+  const stills = loadStills();
+  return (
+    <PayneMoveShell
+      splatSrc={splatSrc}
+      geometrySrc={geometrySrc}
+      items={pack.items}
+      planSrc={pack.plan}
+      stills={stills.shown}
+      stillsCaptured={stills.count}
+    />
+  );
 }
