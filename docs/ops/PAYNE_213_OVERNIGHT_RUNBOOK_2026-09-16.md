@@ -178,3 +178,44 @@ the item list with photos. Tabs only appear when the layer exists.
 | gaussian_count @3k / @30k | |
 | Export splats / SPZ MB | |
 | Preview URL | |
+
+---
+
+## Part 3 — phone / LiDAR track (added 22:00 PDT, Claude desktop session)
+
+**Status at 22:00.** Lab job `cecc2763` launched by Cursor with the Part 2 recipe (376 frames, masks
+376/376 nadir 40°, sequential+loop matching 101 s, mapping running). The pause clamp proves itself at
+train step ~3,000.
+
+**Where the phone data actually is.** Two uploads exist for the same walk:
+- In-app capture `ddf04085-1031-4b1f-ad33-edc4ca174ceb` ("Quick Scans · Sep 16, 2:01 PM", space
+  `2dd778d4-…`): LiDAR sidecars all **ready** (poses 0.4 MB, point cloud 35 MB, depth stream 180 MB,
+  bundle) but photos stalled at 126 ready / 195 uploading since 14:25. Not usable for the pull-by-ID path.
+- SlateDrop / `unified_files` under `orgs/c5538bfd…/674bfe46-…/`: **496 stills** (`twin_photo_NNN 2.jpg`,
+  2.0 GB) + the same four sidecars with a ` 2` suffix. `folder_id` null, so the SlateDrop UI may hide
+  them. This set is complete and is what tonight uses.
+
+**What is chained (no action needed):**
+1. `C:\Users\Brian PC\Slate360Jobs\payne-213-phone-capture\` — the 496 stills + `lidar_poses.json.gz`,
+   `lidar_capture.ply.gz`, `lidar_depth.s360depth`, `capture_bundle.json`, downloaded from R2 with
+   the ` 2` suffix stripped so the Studio recognises a phone capture folder. Log:
+   `payne-213-phone-capture.pull.log` (ends with `DONE downloaded`).
+2. `payne-213-phone-chain.ps1` (running hidden, log `payne-213-phone-chain.log`) waits for `cecc2763`
+   to reach a terminal state (export exists / status not running), or **03:30** at the latest, then runs
+   Capture Studio phone mode: `run-job.ps1 -Mode phone -Name Payne-213-phone-0916 -Quality final -Ingest`
+   → job dir `Slate360Jobs\payne-213-phone`. Stages: cameras (COLMAP on 496 stills, ~30 min) → Brush
+   30k at 2560 (~60–80 min) → walk aligned to the LiDAR frame (metric) → **TSDF mesh from the depth
+   stream** (~15–20 min, CPU) → pack (full SPZ + 800k phone SPZ) → share (publishes into the phone's
+   twin; link in `share.json`). Kitchen precedent 2026-09-10: 782 stills took 2 h 37 min end to end.
+3. Expected: Lab export ~02:30, phone twin published ~04:30–05:00.
+
+**Morning check (Brian or Cursor):**
+- `Slate360Jobs\payne-213-phone-chain.log` last line: `SHARE {...shareUrl...}` = done. Open the link on
+  the phone: Reality (Brush splat), Geometry (LiDAR TSDF mesh), Dollhouse/Plan from the mesh.
+- `C:\s360\tmp\splat-lab\cecc2763\export\output.spz` = the 360 model; Part 2 steps 4–6 publish it.
+- If the chain log says `deadline reached` while the Lab was still training, both shared the GPU for a
+  while; slower, not broken.
+
+**Tell Cursor:** the phone job is chained by the desktop Claude session; do not start a second Studio or
+pull job on this capture tonight. Do not kill `powershell` processes. Cursor's morning job is Part 2
+steps 4–6 (publish the 360 SPZ, MOVE/STAY pins) plus verifying the phone share link.
