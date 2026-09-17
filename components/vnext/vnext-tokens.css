@@ -1,0 +1,48 @@
+/* Isolated vNext visual system. Do not apply outside [data-s360-vnext]. */
+
+[data-s360-vnext] {
+  --vnext-canvas: #f4f1ea;
+  --vnext-surface: #fbfaf6;
+  --vnext-ink: #1f1e1b;
+  --vnext-ink-secondary: #4b4944;
+  --vnext-ink-muted: #6d6a64;
+  --vnext-line: #ddd8ce;
+  --vnext-accent: #2c5aa0;
+  --vnext-accent-hover: #244b86;
+  --vnext-accent-soft: color-mix(in srgb, var(--vnext-accent) 12%, var(--vnext-surface));
+  --vnext-focus: var(--vnext-accent);
+  --vnext-danger: #b42318;
+  --vnext-warning: #8a5a10;
+  --vnext-success: #17663a;
+  --vnext-disabled: #a39f97;
+  --vnext-header-h: 3.5rem;
+  --vnext-sidebar-w: 13.75rem;
+  --vnext-pad-x: 1.25rem;
+  --vnext-pad-y: 1.25rem;
+  --vnext-touch: 2.75rem;
+  --vnext-content-max: 42rem;
+  --vnext-radius: 0.375rem;
+  --vnext-shadow: 0 1px 2px color-mix(in srgb, var(--vnext-ink) 7%, transparent);
+  --vnext-font: var(--font-geist-sans), "Segoe UI", sans-serif;
+  --vnext-title: 1.25rem;
+  --vnext-body: 0.9375rem;
+  --vnext-nav: 0.9375rem;
+  --vnext-meta: 0.8125rem;
+  color: var(--vnext-ink);
+  background: var(--vnext-canvas);
+  font-family: var(--vnext-font);
+  font-size: var(--vnext-body);
+  line-height: 1.45;
+}
+
+[data-s360-vnext] *,
+[data-s360-vnext] *::before,
+[data-s360-vnext] *::after {
+  box-sizing: border-box;
+}
+
+[data-s360-vnext] a:focus-visible,
+[data-s360-vnext] button:focus-visible {
+  outline: 2px solid var(--vnext-focus);
+  outline-offset: 2px;
+}

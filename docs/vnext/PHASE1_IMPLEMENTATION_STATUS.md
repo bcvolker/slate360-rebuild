@@ -1,8 +1,8 @@
 # Slate360 Phase 1 — Implementation Status
 
 **Last updated:** 2026-09-17  
-**Current slice:** 0 — **APPROVED WITH SMALL FIXES** (documentation corrections; awaiting final Slice 0 approval)  
-**Next slice:** 1 (vNext foundation + shells) — **NOT STARTED**
+**Current slice:** 1 in progress on `feature/ui-vnext-phase1`  
+**Next slice:** 2 (client project portfolio) — **NOT STARTED**
 
 Canonical plan: `docs/vnext/SLATE360_UI_PHASE1_MASTER_BUILD_PLAN.md`  
 Slice prompts: `docs/vnext/SLATE360_UI_PHASE1_CURSOR_SLICE_PROMPTS.md`  
@@ -30,8 +30,8 @@ The feature branch is **pushed**. It is not an unpushed `origin/main` clone.
 
 | Slice | Name | Status |
 |---|---|---|
-| 0 | Repo audit + salvage map + route contract | **APPROVED WITH SMALL FIXES** — awaiting final Slice 0 approval after this doc correction |
-| 1 | vNext foundation + shells | Not started |
+| 0 | Repo audit + salvage map + route contract | **APPROVED** |
+| 1 | vNext foundation + shells | **COMPLETE — awaiting approval** |
 | 2 | Client project portfolio | Not started |
 | 3 | Client project overview | Not started |
 | 4 | Unified Explore viewer | Not started |
@@ -259,21 +259,24 @@ Selective salvage later requires explicit relevance and review.
 
 ---
 
-## Safety confirmation (Slice 0, including this doc correction)
+## Safety confirmation (Slice 0)
 
-- No user-facing UI was designed or changed
-- No routes were renamed, added (except docs), or deleted
-- No legacy code was deleted
-- No reconstruction, Gaussian-splatting, trainer, COLMAP, photogrammetry, LiDAR processing, Modal, or Trigger worker code was modified
-- No future product (Site Walk, Twin 360, Thermal Studio, SlateDrop, Tours, studios) was newly exposed
-- No subscription/billing behavior changed
-- `middleware.ts` was not altered
-- Slice 1 was not started
+- Slice 0 documentation only; see git history through `595d1fc5`.
 
 ---
 
-## Handoff — wait for final Slice 0 approval
+## Slice 1 notes
 
-Slice 0 received **APPROVED WITH SMALL FIXES**. This commit is the documentation correction only.
+Authenticated vNext lives under `/vnext/*` (session + beta). Owner `/vnext/ops/*` additionally requires `canAccessOperationsConsole`. Visual fixtures live under `/preview/vnext/*` and are not the authorization model.
 
-Do not begin Slice 1 until Brian sends explicit **final Slice 0 approval**.
+Design rules: `docs/vnext/UI_DESIGN_RULES.md`.
+
+Middleware was not modified.
+
+Slice 2 (project portfolio) has **not** started.
+
+---
+
+## Handoff
+
+Slice 1 completion report is returned in the Cursor response. Do not begin Slice 2 until Brian explicitly approves Slice 1.
