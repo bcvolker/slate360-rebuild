@@ -6,6 +6,7 @@ import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { matchesTwinStatusFilter } from "@/lib/digital-twin/twin-hub-status";
 import { MobileEmptyState } from "@/components/mobile-system";
 import { UnsubmittedCaptureRow } from "@/components/digital-twin/UnsubmittedCaptureRow";
+import { TwinPhoneRescueBar } from "@/components/digital-twin/TwinPhoneRescueBar";
 import type { HubTwin } from "@/lib/types/digital-twin-hub";
 import { Boxes, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -94,6 +95,7 @@ export default async function DigitalTwinTwinsPage({ searchParams }: PageProps) 
 
   return (
     <div className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain px-4 py-4">
+      <TwinPhoneRescueBar />
       {filterLabel ? (
         <p className="mb-3 text-xs font-medium text-zinc-400">
           Showing {filterLabel.toLowerCase()} {showingDrafts ? "" : "twins"}

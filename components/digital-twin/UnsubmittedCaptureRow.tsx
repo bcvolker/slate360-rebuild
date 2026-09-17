@@ -21,9 +21,12 @@ export function UnsubmittedCaptureRow({
   const router = useRouter();
   const [moving, setMoving] = useState(false);
 
-  const resumeHref = `/digital-twin/upload?capture=${capture.id}${
-    capture.projectId ? `&projectId=${capture.projectId}&mode=project` : ""
-  }`;
+  const resumeHref =
+    capture.status === "uploading"
+      ? `/digital-twin/capture/submit?captureId=${capture.id}`
+      : `/digital-twin/upload?capture=${capture.id}${
+          capture.projectId ? `&projectId=${capture.projectId}&mode=project` : ""
+        }`;
 
   // Other workspaces this capture could move to (re-point only).
   const moveTargets = workspaces.filter((w) => w.id !== capture.spaceId);

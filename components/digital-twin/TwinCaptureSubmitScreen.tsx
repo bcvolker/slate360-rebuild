@@ -1,6 +1,7 @@
 "use client";
 
 import { TwinReviewSourcesScreen } from "./review-sources/TwinReviewSourcesScreen";
+import { TwinPhoneRescueBar } from "./TwinPhoneRescueBar";
 
 export type TwinSubmitAsset = {
   id: string;
@@ -31,6 +32,10 @@ export function TwinCaptureSubmitScreen({
   canUseHighQuality = false,
 }: Props) {
   return (
+    <div className="flex min-h-0 flex-1 flex-col">
+      <div className="px-4 pt-4">
+        <TwinPhoneRescueBar />
+      </div>
     <TwinReviewSourcesScreen
       allowPendingSession={false}
       canUseHighQuality={canUseHighQuality}
@@ -50,5 +55,6 @@ export function TwinCaptureSubmitScreen({
         })),
       }}
     />
+    </div>
   );
 }

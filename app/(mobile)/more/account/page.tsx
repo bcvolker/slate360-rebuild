@@ -84,6 +84,16 @@ export default async function MoreAccountPage() {
         </div>
       </section>
 
+      <a
+        href="/auth/logout"
+        className={cn(
+          mobileTokens.mobileGlassRowLink,
+          "mt-4 min-h-12 border border-white/10 bg-white/[0.04] px-4",
+        )}
+      >
+        <span className="text-sm font-semibold text-white">Sign out</span>
+      </a>
+
       <section className={cn("overflow-hidden", mobileTokens.panelBase)}>
         {links.map((item) => {
           const Icon = item.icon;
