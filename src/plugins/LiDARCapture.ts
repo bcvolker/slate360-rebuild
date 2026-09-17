@@ -69,15 +69,33 @@ export interface LiDARUploadPhaseEvent {
   progress?: number;
 }
 
+export type TwinPendingUploadFile = {
+  filename: string;
+  sourcePresent: boolean;
+  missingParts: number;
+  totalParts: number;
+};
+
+export type TwinPendingUploadStatus = {
+  pending: number;
+  sourcePresent?: number;
+  sourceMissing: number;
+  resumed?: number;
+  signedIn?: boolean;
+  files?: TwinPendingUploadFile[];
+};
+
 export interface LiDARCapturePlugin {
   isAvailable(): Promise<{
     available: boolean;
     nativeCapture?: boolean;
     /** Short git SHA of the installed native build (Info.plist SlateBuildCommit). */
     buildCommit?: string;
-    /** CFBundleVersion of the installed build — the number TestFlight shows. */
+    /** CFBundleVersion of the installed native build — the number TestFlight shows. */
     buildNumber?: string;
   }>;
+  pendingUploadStatus(): Promise<TwinPendingUploadStatus>;
+  resumePendingUploads(): Promise<TwinPendingUploadStatus>;
   /**
    * Native-led Twin capture: presents a full-screen ARKit capture screen that owns the camera
    * and records video + LiDAR depth + poses in one pass. Resolves with the capture manifest

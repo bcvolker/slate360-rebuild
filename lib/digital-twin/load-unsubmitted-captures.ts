@@ -7,6 +7,7 @@ export type UnsubmittedTwinCapture = {
   title: string;
   spaceId: string;
   projectId: string | null;
+  status: string;
   updatedAt: string;
   counts: { video: number; photo: number; lidar: number; other: number };
   assetTotal: number;
@@ -63,7 +64,7 @@ export async function loadUnsubmittedTwinCaptures(
     .select("id, title, space_id, project_id, capture_status, updated_at, created_at")
     .eq("org_id", orgId)
     .is("deleted_at", null)
-    .in("capture_status", ["draft", "uploaded"])
+    .in("capture_status", ["draft", "uploaded", "uploading"])
     .order("updated_at", { ascending: false })
     .limit(24);
 
@@ -104,6 +105,7 @@ export async function loadUnsubmittedTwinCaptures(
         title: c.title ?? "Untitled capture",
         spaceId: c.space_id,
         projectId: c.project_id,
+        status: c.capture_status ?? "draft",
         updatedAt: c.updated_at ?? c.created_at,
         counts,
         assetTotal,

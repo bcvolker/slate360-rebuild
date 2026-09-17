@@ -105,22 +105,72 @@ final class TwinUploadSession: NSObject, URLSessionDataDelegate {
         }
     }
 
+    /// Snapshot of on-disk Twin upload manifests (main-thread safe).
+    func pendingUploadReport() -> [String: Any] {
+        let manifests = TwinUploadStore.shared.loadAll()
+        var sourcePresent = 0
+        var sourceMissing = 0
+        var files: [[String: Any]] = []
+        for manifest in manifests {
+            let present = manifest.isFullyUploaded || FileManager.default.fileExists(atPath: manifest.filePath)
+            if present { sourcePresent += 1 } else { sourceMissing += 1 }
+            files.append([
+                "filename": manifest.filename,
+                "sourcePresent": present,
+                "missingParts": manifest.missingParts.count,
+                "totalParts": manifest.totalParts,
+            ])
+        }
+        return [
+            "pending": manifests.count,
+            "sourcePresent": sourcePresent,
+            "sourceMissing": sourceMissing,
+            "files": files,
+        ]
+    }
+
     /// Finishes any uploads interrupted by a crash/kill/relaunch: re-signs the missing
     /// parts and enqueues them; sessions whose parts all landed just re-POST complete.
     /// Parts whose background task survived the relaunch (iOS persists background-session
     /// tasks) are NOT re-enqueued — the live task's delegate events complete them.
     /// Called from the plugin's `load()` on every app launch. No-op when signed out.
     func resumePendingUploads() {
+        resumePendingUploads(cookieHeader: nil, completion: nil)
+    }
+
+    /// Same resume path, but the web layer can pass the live WebView cookie header so
+    /// a "Continue upload" tap is not silently dropped when `WKWebsiteDataStore.default()`
+    /// does not contain the Capacitor login cookies.
+    func resumePendingUploads(cookieHeader: String?, completion: (([String: Any]) -> Void)?) {
         queue.async {
             let manifests = TwinUploadStore.shared.loadAll()
-            guard !manifests.isEmpty else { return }
+            guard !manifests.isEmpty else {
+                DispatchQueue.main.async {
+                    completion?([
+                        "pending": 0, "resumed": 0, "sourceMissing": 0, "signedIn": true,
+                        "files": [] as [[String: Any]],
+                    ])
+                }
+                return
+            }
             self.session.getAllTasks { tasks in
                 let inFlight = Set(tasks
                     .filter { $0.state == .running || $0.state == .suspended }
                     .compactMap { $0.taskDescription })
-                TwinUploadHTTP.fetchCookieHeader { header in
-                    guard !header.isEmpty else { return } // not signed in yet — keep for later
+                let apply: (String) -> Void = { header in
+                    guard !header.isEmpty else {
+                        DispatchQueue.main.async {
+                            completion?([
+                                "pending": manifests.count, "resumed": 0, "sourceMissing": 0,
+                                "signedIn": false, "files": [] as [[String: Any]],
+                            ])
+                        }
+                        return
+                    }
                     self.queue.async {
+                        var resumed = 0
+                        var sourceMissing = 0
+                        var files: [[String: Any]] = []
                         for manifest in manifests where !self.activeUploads.contains(manifest.uploadId) {
                             // Source file gone (iOS purges tmp on reinstall / low storage): still
                             // resumable when every missing part already has its slice on disk —
@@ -135,6 +185,13 @@ final class TwinUploadSession: NSObject, URLSessionDataDelegate {
                                 if !slicesPresent {
                                     NSLog("[Slate360] Twin upload \(manifest.filename) unrecoverable: source and slices gone")
                                     TwinUploadStore.shared.remove(manifest.uploadId)
+                                    sourceMissing += 1
+                                    files.append([
+                                        "filename": manifest.filename,
+                                        "sourcePresent": false,
+                                        "missingParts": manifest.missingParts.count,
+                                        "totalParts": manifest.totalParts,
+                                    ])
                                     continue
                                 }
                             }
@@ -144,8 +201,29 @@ final class TwinUploadSession: NSObject, URLSessionDataDelegate {
                             NSLog("[Slate360] Resuming twin upload \(manifest.uploadId) (\(manifest.missingParts.count)/\(manifest.totalParts) parts left, \(live.count) already in flight)")
                             self.start(manifest: manifest, cookieHeader: header,
                                        onBytes: nil, onDone: nil, excludingParts: live)
+                            resumed += 1
+                            files.append([
+                                "filename": manifest.filename,
+                                "sourcePresent": true,
+                                "missingParts": manifest.missingParts.count,
+                                "totalParts": manifest.totalParts,
+                            ])
+                        }
+                        DispatchQueue.main.async {
+                            completion?([
+                                "pending": manifests.count,
+                                "resumed": resumed,
+                                "sourceMissing": sourceMissing,
+                                "signedIn": true,
+                                "files": files,
+                            ])
                         }
                     }
+                }
+                if let header = cookieHeader, !header.isEmpty {
+                    apply(header)
+                } else {
+                    TwinUploadHTTP.fetchCookieHeader { apply($0) }
                 }
             }
         }

@@ -31,6 +31,8 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
         CAPPluginMethod(name: "stopSession", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "exportData", returnType: CAPPluginReturnPromise),
         CAPPluginMethod(name: "cleanup", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "pendingUploadStatus", returnType: CAPPluginReturnPromise),
+        CAPPluginMethod(name: "resumePendingUploads", returnType: CAPPluginReturnPromise),
     ]
 
     // Native-led capture (modal AR view controller).
@@ -124,6 +126,24 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
         }
         NSLog("[Slate360] kept \(moved) capture files on device at \(dir.lastPathComponent)")
         return out
+    }
+
+    /// Disk-only: how many interrupted Twin uploads still have a local file.
+    @objc func pendingUploadStatus(_ call: CAPPluginCall) {
+        let report = TwinUploadSession.shared.pendingUploadReport()
+        call.resolve(report)
+    }
+
+    /// User-tapped retry. Uses the live WebView cookies (same store as login), not the
+    /// default cookie store — silent resume-on-launch no-ops when those stores differ.
+    @objc func resumePendingUploads(_ call: CAPPluginCall) {
+        collectCookieHeader { [weak self] header in
+            guard let self = self else { return }
+            self.notifyListeners("uploadPhase", data: ["phase": "uploading", "label": "Continuing upload…"])
+            TwinUploadSession.shared.resumePendingUploads(cookieHeader: header) { report in
+                call.resolve(report)
+            }
+        }
     }
 
     // MARK: - Plugin API

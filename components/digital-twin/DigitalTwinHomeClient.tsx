@@ -7,6 +7,7 @@ import { useMobileShellDock } from "@/components/mobile-system";
 import { TwinHomeContinue } from "@/components/digital-twin/home/TwinHomeContinue";
 import { TwinHomeProjects } from "@/components/digital-twin/home/TwinHomeProjects";
 import { TwinNewScanSheet } from "@/components/digital-twin/home/TwinNewScanSheet";
+import { TwinPhoneRescueBar } from "@/components/digital-twin/TwinPhoneRescueBar";
 import { buildTwinProjectCards, pickContinueTwin } from "@/lib/digital-twin/twin-hub-state";
 import type { HubTwin, HubTwinProject } from "@/lib/types/digital-twin-hub";
 
@@ -43,6 +44,8 @@ export function DigitalTwinHomeClient({ twins, projects }: Props) {
         <Scan className="h-7 w-7" strokeWidth={2} aria-hidden />
         Scan
       </button>
+
+      <TwinPhoneRescueBar />
 
       <TwinHomeContinue twin={continueTwin} />
 
