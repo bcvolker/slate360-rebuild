@@ -30,15 +30,64 @@ from pathlib import Path
 
 from result import StageResult
 from tools import which_tool
+from sources import discover_groups
 
 _EXHAUSTIVE_MAX = 200
 _COLMAP_ROOT = "/home/rian_/slate360-engines/colmap-4.1.0"
 _VOCAB_TREE = f"{_COLMAP_ROOT}/vocab_tree_faiss_flickr100K_words32K.bin"
 
 
+_LIVE_DIR: Path | None = None
+
+
 def _emit(record: dict) -> None:
-    sys.stdout.write(json.dumps(record, ensure_ascii=False) + "\n")
-    sys.stdout.flush()
+    # stdout may be a pipe into a Next.js process that has died (2026-09-16:
+    # every overnight stall). Never let a closed pipe kill SfM; the on-disk
+    # live-status.json is the record that survives.
+    try:
+        sys.stdout.write(json.dumps(record, ensure_ascii=False) + "\n")
+        sys.stdout.flush()
+    except (BrokenPipeError, OSError):
+        pass
+    if _LIVE_DIR is not None:
+        try:
+            from live_status import patch_live
+            patch_live(_LIVE_DIR, record)
+        except Exception:
+            pass
+
+
+def _matching_done(job_dir: Path, db_path: Path, image_count: int) -> bool:
+    """True when a previous run finished matching for this database.
+
+    Resume-from-sfm used to redo features + matching (GPU, ~10 min on 376
+    panos) before the mapper. Features already resume via _db_image_count;
+    this reuses the matches when live-status.json recorded sfm.matching done
+    and the database really holds pairs for every image.
+    """
+    try:
+        live = json.loads((job_dir / "live-status.json").read_text(encoding="utf-8"))
+        rec = next((s for s in live.get("stages", []) if s.get("name") == "sfm.matching"), None)
+        if not rec or rec.get("status") != "done":
+            return False
+    except Exception:
+        return False
+    return _db_image_count(db_path) >= image_count and _db_pair_count(db_path) > 0
+
+
+def _db_pair_count(db_path: Path) -> int:
+    if not db_path.exists():
+        return 0
+    try:
+        import sqlite3
+        con = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+        try:
+            row = con.execute("SELECT COUNT(*) FROM two_view_geometries").fetchone()
+            return int(row[0]) if row else 0
+        finally:
+            con.close()
+    except Exception:
+        return 0
 
 
 def _colmap() -> str | None:
@@ -46,6 +95,8 @@ def _colmap() -> str | None:
 
 
 def run(cfg, ctx) -> StageResult:
+    global _LIVE_DIR
+    _LIVE_DIR = Path(ctx["job_dir"]) if ctx.get("job_dir") else None
     images_dir: Path = ctx["images_dir"]
     masks_dir = Path(ctx["masks_colmap_dir"]) if ctx.get("masks_colmap_dir") else None
     frames = sorted(images_dir.glob("*.jpg")) + sorted(images_dir.glob("*.png"))
@@ -65,6 +116,9 @@ def run(cfg, ctx) -> StageResult:
 
     if cfg.is360 and cfg.spherical_mode == "rig":
         return _run_rig(cfg, colmap, images_dir, masks_dir, work_dir, ctx)
+    groups = discover_groups(images_dir)
+    if len(groups) > 1:
+        return _run_mixed(cfg, colmap, groups, masks_dir, work_dir, ctx)
     if cfg.is360:
         return _run_native(cfg, colmap, images_dir, masks_dir, work_dir, ctx)
     return _run_flat(cfg, colmap, images_dir, masks_dir, work_dir, ctx)
@@ -84,7 +138,13 @@ def _run_native(cfg, colmap: str, images_dir: Path, masks_dir: Path | None,
         return t_features
 
     matcher_kind = "exhaustive" if n <= _EXHAUSTIVE_MAX else "sequential+loop"
-    t_matching = _timed_step("sfm.matching", lambda: _match(colmap, db_path, n))
+    if _matching_done(ctx["job_dir"], db_path, n):
+        t_matching = StageResult(name="sfm.matching", status="done", elapsed_s=0.0,
+                                 detail=f"reused matches from a previous run ({n} images)")
+        _emit({"stage": "sfm.matching", "status": "done", "progress": 1.0, "elapsed_s": 0.0,
+               "detail": t_matching.detail, "error": ""})
+    else:
+        t_matching = _timed_step("sfm.matching", lambda: _match(colmap, db_path, n))
     if t_matching.status != "done":
         return t_matching
 
@@ -209,12 +269,22 @@ def _run_flat(cfg, colmap: str, images_dir: Path, masks_dir: Path | None,
     frames = sorted(images_dir.glob("*.jpg")) + sorted(images_dir.glob("*.png"))
     n = len(frames)
     db_path = work_dir / "database.db"
+    existing_model = _latest_model(work_dir / "sparse")
+    if existing_model is not None:
+        stats = _analyze(colmap, existing_model)
+        ctx["sfm_sparse_dir"] = str(existing_model)
+        ctx["sfm_images_dir"] = str(images_dir)
+        ctx["sfm_stats"] = stats
+        ctx["sfm_camera_model"] = "OPENCV"
+        return StageResult(name="sfm", status="done",
+                           detail=f"reused SfM: {stats['registered']}/{n} registered",
+                           artifacts=[str(existing_model)])
     t_features = _timed_step("sfm.features", lambda: _feature_extract(
         colmap, db_path, images_dir, masks_dir, "OPENCV", cfg.max_features,
-        single_camera_per_folder=True))
+        single_camera_per_folder=True, max_image_size=2048, use_gpu=True))
     if t_features.status != "done":
         return t_features
-    t_matching = _timed_step("sfm.matching", lambda: _match(colmap, db_path, n))
+    t_matching = _timed_step("sfm.matching", lambda: _match(colmap, db_path, n, unordered=True))
     if t_matching.status != "done":
         return t_matching
     sparse_dir = work_dir / "sparse"
@@ -245,6 +315,83 @@ def _run_flat(cfg, colmap: str, images_dir: Path, masks_dir: Path | None,
                        artifacts=[str(model_dir), str(work_dir / "points.ply")])
 
 
+def _run_mixed(cfg, colmap: str, groups, masks_dir: Path | None,
+               work_dir: Path, ctx: dict) -> StageResult:
+    """One mapper, several camera models (drone OPENCV + 360 EQUIRECTANGULAR)."""
+    db_path = work_dir / "database.db"
+    total = sum(g.count for g in groups)
+    existing = _db_image_count(db_path)
+    seen = 0
+    for g in groups:
+        image_dir = Path(g.path)
+        folder_n = _count_images(image_dir)
+        t_features = _timed_step(
+            "sfm.features",
+            lambda d=image_dir, model=g.camera_model, until=seen + folder_n: _feature_extract(
+                colmap, db_path, d, masks_dir, model, cfg.max_features,
+                single_camera_per_folder=False, max_image_size=2048, use_gpu=True,
+                complete_at=until))
+        if t_features.status != "done":
+            return t_features
+        seen += folder_n
+    t_matching = _timed_step("sfm.matching", lambda: _match(colmap, db_path, total, unordered=True))
+    if t_matching.status != "done":
+        return t_matching
+    images_root = work_dir / "images_all"
+    images_root.mkdir(parents=True, exist_ok=True)
+    _stage_mixed_images(groups, images_root)
+    sparse_dir = work_dir / "sparse"
+    sparse_dir.mkdir(parents=True, exist_ok=True)
+    t_mapping = _timed_step("sfm.mapping", lambda: _mapper(colmap, db_path, images_root, sparse_dir))
+    if t_mapping.status != "done":
+        return t_mapping
+    model_dir = _latest_model(sparse_dir)
+    if model_dir is None:
+        return StageResult(name="sfm", status="failed", error="mapper produced no sparse model")
+    stats = _analyze(colmap, model_dir)
+    _write_points_ply(colmap, model_dir, work_dir / "points.ply")
+    text_dir = _write_text_export(colmap, model_dir, work_dir)
+    ctx["sfm_sparse_txt_dir"] = str(text_dir)
+    _write_preview(work_dir, ctx)
+    (work_dir / "stats.json").write_text(json.dumps({
+        "mode": "mixed", "groups": [g.id for g in groups],
+        "registered": stats["registered"], "total": total,
+        "points": stats["points"], "mean_reproj_px": stats["mean_reproj_px"],
+        "elapsed": {"matching": t_matching.elapsed_s, "mapping": t_mapping.elapsed_s},
+        "reused_features": existing,
+    }, indent=2), encoding="utf-8")
+    ctx["sfm_sparse_dir"] = str(model_dir)
+    ctx["sfm_images_dir"] = str(images_root)
+    ctx["sfm_stats"] = stats
+    ctx["sfm_camera_model"] = "MIXED"
+    ctx["sfm_mixed"] = True
+    detail = (
+        f"mixed SfM ({'+'.join(g.id for g in groups)}): "
+        f"{stats['registered']}/{total} registered, {stats['points']} points"
+    )
+    return StageResult(name="sfm", status="done", detail=detail,
+                       artifacts=[str(model_dir), str(work_dir / "points.ply")])
+
+
+def _count_images(folder: Path) -> int:
+    return len(list(folder.glob("*.jpg"))) + len(list(folder.glob("*.png")))
+
+
+def _stage_mixed_images(groups, dest: Path) -> None:
+    for g in groups:
+        for src in Path(g.path).glob("*"):
+            if src.suffix.lower() not in {".jpg", ".jpeg", ".png"}:
+                continue
+            link = dest / src.name
+            if link.exists() or link.is_symlink():
+                continue
+            try:
+                link.hardlink_to(src)
+            except OSError:
+                import shutil
+                shutil.copy2(src, link)
+
+
 def _timed_step(name: str, fn) -> StageResult:
     import time
     _emit({"stage": name, "status": "running", "progress": 0.0})
@@ -262,15 +409,21 @@ def _timed_step(name: str, fn) -> StageResult:
 
 def _feature_extract(colmap: str, db_path: Path, image_dir: Path, mask_dir: Path | None,
                       camera_model: str, max_features: int,
-                      single_camera_per_folder: bool = False) -> tuple[bool, str, str]:
-    if db_path.exists():
-        db_path.unlink()
+                      single_camera_per_folder: bool = False,
+                      max_image_size: int = 4096,
+                      use_gpu: bool = True,
+                      complete_at: int | None = None) -> tuple[bool, str, str]:
+    n = len(list(image_dir.glob("*.jpg"))) + len(list(image_dir.glob("*.png")))
+    existing = _db_image_count(db_path)
+    target = complete_at if complete_at is not None else n
+    if existing >= target > 0:
+        return True, f"reused {existing} features", ""
     cmd = [
         colmap, "feature_extractor",
         "--database_path", str(db_path), "--image_path", str(image_dir),
         "--ImageReader.camera_model", camera_model,
-        "--FeatureExtraction.use_gpu", "1",
-        "--FeatureExtraction.max_image_size", "4096",
+        "--FeatureExtraction.use_gpu", "1" if use_gpu else "0",
+        "--FeatureExtraction.max_image_size", str(max_image_size),
         "--SiftExtraction.max_num_features", str(max_features),
     ]
     if single_camera_per_folder:
@@ -282,11 +435,30 @@ def _feature_extract(colmap: str, db_path: Path, image_dir: Path, mask_dir: Path
     proc = subprocess.run(cmd, capture_output=True, text=True, timeout=7200)
     if proc.returncode != 0:
         return False, "", f"feature_extractor failed: {(proc.stderr or proc.stdout)[-800:]}"
-    n = len(list(image_dir.glob("*.jpg"))) + len(list(image_dir.glob("*.png")))
     return True, f"{n} images, {max_features} max features/image", ""
 
 
-def _match(colmap: str, db_path: Path, image_count: int) -> tuple[bool, str, str]:
+def _match(colmap: str, db_path: Path, image_count: int, unordered: bool = False) -> tuple[bool, str, str]:
+    # Unordered photogrammetry (drone stills with hashed names) cannot use
+    # sequential matching — that assumes capture order. Vocab-tree matching
+    # is the COLMAP default for unordered sets; exhaustive stays for small
+    # jobs where the pair count is cheap.
+    if unordered:
+        if image_count <= 400 or not Path(_VOCAB_TREE).exists():
+            cmd = [colmap, "exhaustive_matcher", "--database_path", str(db_path),
+                   "--ExhaustiveMatching.block_size", "100",
+                   "--FeatureMatching.use_gpu", "1", "--FeatureMatching.num_threads", "16"]
+            label = "exhaustive"
+        else:
+            cmd = [colmap, "vocab_tree_matcher", "--database_path", str(db_path),
+                   "--VocabTreeMatching.vocab_tree_path", _VOCAB_TREE,
+                   "--FeatureMatching.use_gpu", "1"]
+            label = "vocab-tree"
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=14400)
+        if proc.returncode != 0:
+            return False, "", f"{label} matcher failed: {(proc.stderr or proc.stdout)[-800:]}"
+        return True, f"{label} matching on {image_count} unordered images", ""
+
     if image_count <= _EXHAUSTIVE_MAX:
         cmd = [colmap, "exhaustive_matcher", "--database_path", str(db_path),
                "--ExhaustiveMatching.block_size", "100",
@@ -314,6 +486,21 @@ def _mapper(colmap: str, db_path: Path, image_dir: Path, sparse_dir: Path) -> tu
     if proc.returncode != 0:
         return False, "", f"mapper failed: {(proc.stderr or proc.stdout)[-800:]}"
     return True, "sparse model built", ""
+
+
+def _db_image_count(db_path: Path) -> int:
+    if not db_path.exists():
+        return 0
+    try:
+        import sqlite3
+        con = sqlite3.connect(f"file:{db_path}?mode=ro", uri=True)
+        try:
+            row = con.execute("SELECT COUNT(*) FROM images").fetchone()
+            return int(row[0]) if row else 0
+        finally:
+            con.close()
+    except Exception:
+        return 0
 
 
 def _latest_model(sparse_dir: Path) -> Path | None:

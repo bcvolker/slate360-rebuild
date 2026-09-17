@@ -219,3 +219,53 @@ train step ~3,000.
 **Tell Cursor:** the phone job is chained by the desktop Claude session; do not start a second Studio or
 pull job on this capture tonight. Do not kill `powershell` processes. Cursor's morning job is Part 2
 steps 4–6 (publish the 360 SPZ, MOVE/STAY pins) plus verifying the phone share link.
+
+---
+
+## Part 4 — why jobs stall overnight, and what now keeps them alive (22:50 PDT)
+
+**Diagnosis, verified on the live process tree, not inferred.** The Lab runner is spawned by the
+Next dev server: `wsl.exe … bash -lc 'python run.py …'` with **stdout piped into Node** and a pty
+on Next's wsl.exe relay (`ps` showed `tty pts/0`, parent `/init`). Two consequences:
+1. When Next wedges or is restarted, the pipe closes and `run.py` dies with `BrokenPipeError` on
+   its next progress line. Cursor's `detached: true` does not change this: `stdio` is still
+   `pipe`, and the pty still belongs to Next's relay (SIGHUP on relay exit). That is the whole
+   "it stopped and nobody knew" pattern.
+2. `live-status.json` is only patched by the runner while it lives, so a dead runner leaves the
+   file frozen at "running". The `database.db-shm` heartbeat Cursor removed was a second, separate
+   false positive.
+
+Answers to the outside AI's questions:
+- (a) Next's 4–6 GB: not root-caused tonight and no longer on the critical path; the job must not
+  depend on Next at all.
+- (b) Process tree: `setsid nohup` inside WSL does **not** survive (tested: killed when the wsl.exe
+  session ended). A **hidden standalone `wsl.exe` relay started by PowerShell** does survive the
+  launcher exiting (tested twice). That is the mechanism now in use.
+- (c) Heartbeat: the relay's bash keeps `run.py` as a child and writes an epoch stamp to
+  `tmp/splat-lab/cecc2763/_alive.txt` every 10 s while it lives. The babysitter reads the stamp's
+  content (not mtime, not pgrep through wsl.exe, both of which mis-read under a hidden window).
+- (d) Mapper-only resume: `stages/sfm.py` now reuses matches when `live-status.json` recorded
+  `sfm.matching` done and the database holds pairs for every image (`_matching_done`). Features
+  already resumed via the image count. Sub-step records are also written to `live-status.json`
+  directly by the SfM stage now, so they survive a dead Next.
+- (e) Yes: the watchdog lives outside Next. `Slate360Jobs\payne-213-lab-babysit.ps1` (hidden
+  PowerShell, log `payne-213-lab-babysit.log`) relaunches from the inferred stage after 6 stale
+  polls (3 min), up to 25 times, and exits when `export/output.spz` exists.
+
+Code hardening (committed on `feature/splat-lab`):
+- `workers/local/splat-lab/run.py`: stdout wrapped so a closed pipe redirects to `<job>/run.log`
+  instead of raising; SIGHUP ignored.
+- `workers/local/splat-lab/stages/sfm.py`: `_emit` never raises on a closed pipe and patches
+  `live-status.json`; `_matching_done` skips matching on resume.
+
+Tonight's sequence: mapper finished 22:25 (376/376, model in `sfm/sparse/0`); views started under
+Next; babysitter took the job over at 22:39 (kill + relaunch from `views`, which resumes per image);
+views 150/376 at 22:45 (~4 min per 50 panoramas → done ~23:05); then train 30k, export.
+Earlier babysitter versions (22:27–22:36) mis-read pgrep output through wsl.exe under a hidden
+window and kill-looped the job three times; each restart resumed views without loss. v3 no longer
+reads pgrep for liveness.
+
+**Cursor must not:** restart, rerun, pause or "resume" job cecc2763 from the Lab UI or API tonight,
+nor kill `wsl.exe`/`powershell.exe` processes. Next can be restarted freely now; the job does not
+depend on it. Status: `tmp/splat-lab/cecc2763/run.log` (runner output), `live-status.json`
+(stages), `_alive.txt` (heartbeat), `Slate360Jobs\payne-213-lab-babysit.log` (restarts).

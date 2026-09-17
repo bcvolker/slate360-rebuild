@@ -18,6 +18,62 @@ from config import SplatLabConfig
 from pipeline import run
 
 
+class _SafeStdout:
+    """stdout that survives the reader dying.
+
+    Next.js spawns this runner with stdout piped. When Next wedges or restarts
+    the pipe closes and the next progress line raised BrokenPipeError, killing
+    COLMAP / ns-train hours into a job (every overnight stall, 2026-09-16).
+    After the first failed write, output goes to <job_dir>/run.log instead.
+    """
+
+    def __init__(self, inner, fallback_path):
+        self._inner = inner
+        self._fallback_path = fallback_path
+        self._file = None
+
+    def _fallback(self):
+        if self._file is None:
+            self._file = open(self._fallback_path, "a", encoding="utf-8", buffering=1)
+        return self._file
+
+    def write(self, s):
+        if self._file is None:
+            try:
+                return self._inner.write(s)
+            except (BrokenPipeError, OSError, ValueError):
+                pass
+        return self._fallback().write(s)
+
+    def flush(self):
+        try:
+            if self._file is None:
+                self._inner.flush()
+            else:
+                self._file.flush()
+        except (BrokenPipeError, OSError, ValueError):
+            pass
+
+    def __getattr__(self, name):
+        return getattr(self._inner, name)
+
+
+def _harden_process(job_dir) -> None:
+    """Ignore terminal hangups and never die on a closed stdout pipe."""
+    import signal
+    from pathlib import Path
+    if hasattr(signal, "SIGHUP"):
+        try:
+            signal.signal(signal.SIGHUP, signal.SIG_IGN)
+        except Exception:
+            pass
+    try:
+        Path(job_dir).mkdir(parents=True, exist_ok=True)
+        sys.stdout = _SafeStdout(sys.stdout, Path(job_dir) / "run.log")
+    except Exception:
+        pass
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Slate360 Splat Lab runner")
     p.add_argument("--input", required=True, help="path to a video file or a folder of images")
@@ -49,6 +105,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--quality", default="auto", choices=["test", "medium", "high", "auto"])
     p.add_argument("--strategy", default="default", choices=["default", "mcmc"])
     p.add_argument("--use-bilateral-grid", action="store_true")
+    p.add_argument("--nadir-deg", type=float, default=0.0,
+                   help="equirect bottom-band to mask (0=off, 40=overhead operator)")
+    p.add_argument("--dilate-px", type=int, default=0, help="0 = auto from frame width")
     p.add_argument("--from-stage", default=None,
                    choices=["frames", "mask", "sfm", "views", "train", "export"],
                    help="resume from this stage, reusing earlier stages' outputs on disk")
@@ -64,10 +123,12 @@ def main(argv: list[str] | None = None) -> int:
         max_splats_millions=args.max_splats_millions, training_steps=args.training_steps,
         images_per_step=args.images_per_step, preset=args.preset, quality=args.quality,
         strategy=args.strategy, use_bilateral_grid=args.use_bilateral_grid,
+        nadir_deg=args.nadir_deg, dilate_px=args.dilate_px,
     )
     if args.job_id:
         kwargs["job_id"] = args.job_id
     cfg = SplatLabConfig(**kwargs)
+    _harden_process(cfg.job_dir)
     manifest = run(cfg, from_stage=args.from_stage)
     return 0 if manifest.get("status") in ("completed", "blocked") else 1
 
