@@ -42,7 +42,7 @@ export function PaynePlanBoard({
         ))}
       </div>
       <p className="mt-3 text-[13px] text-[var(--mkt-canvas)]/70">
-        Blue marks MOVE to Sun Devil Hall. Pink blocks on the drawing are tables that stay.
+        Marks are MOVE to Sun Devil Hall. Pink blocks on the drawing are tables that stay.
       </p>
     </div>
   );
