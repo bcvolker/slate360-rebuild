@@ -22,7 +22,7 @@ function webglOk(): boolean {
 }
 
 export function PayneMoveShell({
-  splatSrc,
+  splatSrc: _splatSrc,
   geometrySrc,
   items,
   planSrc,
@@ -34,11 +34,10 @@ export function PayneMoveShell({
 }) {
   const layers = useMemo(() => {
     const next: PayneLayer[] = [];
-    if (splatSrc) next.push("scene");
     if (geometrySrc && !geometrySrc.endsWith(".ply")) next.push("lidar");
     next.push("layout", "list");
     return next;
-  }, [geometrySrc, splatSrc]);
+  }, [geometrySrc]);
   const [layer, setLayer] = useState<PayneLayer>(layers[0] ?? "list");
   const [picked, setPicked] = useState<string | null>(null);
   const [gl, setGl] = useState<boolean | null>(null);
