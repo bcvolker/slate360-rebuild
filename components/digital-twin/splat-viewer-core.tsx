@@ -234,12 +234,6 @@ export const SplatViewerCore = forwardRef<
     <div className={cn(SPLAT_VIEWER_SURFACE, "absolute inset-0", className)}>
       {loadState === "loading" ? <SplatLoadingOverlay bytesLoaded={bytesLoaded} bytesTotal={bytesTotal} /> : null}
 
-      {downsampleNotice ? (
-        <p className="pointer-events-none absolute left-2 top-2 z-10 max-w-[80%] rounded-md border border-white/10 bg-[color-mix(in_srgb,var(--graphite-canvas)_80%,transparent)] px-2 py-1 font-mono text-[10px] tracking-wide text-zinc-400 backdrop-blur-sm">
-          {downsampleNotice}
-        </p>
-      ) : null}
-
       <SplatErrorBoundary resetKey={canvasKey} onRetry={handleRetry}>
         <Canvas
           key={canvasKey}

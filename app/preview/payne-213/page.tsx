@@ -1,15 +1,11 @@
 import { existsSync } from "node:fs";
-import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { PayneMoveShell } from "@/components/splat-lab/PayneMoveShell";
-import type { PayneItem } from "@/lib/splat-lab/payne-items";
 
 export const dynamic = "force-dynamic";
 
 const PUBLIC_SPZ = "/preview/payne-213.spz";
 const LOCAL_JOB = process.env.NEXT_PUBLIC_PAYNE_SPLAT_JOB?.trim() || "cecc2763";
-
-type Pack = { items: PayneItem[]; plan: string };
 
 function publicFile(rel: string): boolean {
   return existsSync(join(process.cwd(), "public", rel.replace(/^\//, "")));
@@ -24,24 +20,9 @@ function jobModel(id: string): string | null {
   return null;
 }
 
-async function loadPack(): Promise<Pack> {
-  const raw = await readFile(join(process.cwd(), "public/preview/payne-213-items.json"), "utf8");
-  return JSON.parse(raw) as Pack;
-}
-
-export default async function Payne213Page() {
-  const pack = await loadPack();
+export default function Payne213Page() {
   const hosted = process.env.NEXT_PUBLIC_PAYNE_SPLAT_SRC?.trim();
   const splatSrc = hosted
     || (publicFile(PUBLIC_SPZ) ? PUBLIC_SPZ : jobModel(LOCAL_JOB));
-  const geometrySrc = process.env.NEXT_PUBLIC_PAYNE_LIDAR_SRC?.trim()
-    || (publicFile("/preview/payne-213-phone.spz") ? "/preview/payne-213-phone.spz" : null);
-  return (
-    <PayneMoveShell
-      splatSrc={splatSrc}
-      geometrySrc={geometrySrc}
-      items={pack.items}
-      planSrc={pack.plan}
-    />
-  );
+  return <PayneMoveShell splatSrc={splatSrc} />;
 }

@@ -31,8 +31,8 @@ export type SplatViewerHandle = {
 // was being thrown away on the way to the screen. Caps now bound memory only;
 // frame rate is Spark LOD's job (LOD_SPLATS below), which merges distant splats
 // per frame instead of deleting them.
-export const MOBILE_MAX_SPLATS = 1_000_000;
-export const DESKTOP_MAX_SPLATS = 2_500_000;
+export const MOBILE_MAX_SPLATS = 3_300_000;
+export const DESKTOP_MAX_SPLATS = 3_300_000;
 /** Per-frame render budget handed to Spark's LOD (not a source cap). */
 export const MOBILE_LOD_SPLATS = 500_000;
 export const DESKTOP_LOD_SPLATS = 1_500_000;
