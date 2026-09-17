@@ -331,3 +331,56 @@ the 3,000-step smoke first; do not spend 30k on it.
 Python traceback — a native crash in the image path). The babysitter relaunched it 3 minutes later
 and views resumed from where it was. That is the second distinct stall cause, and the babysitter
 absorbs it: it does not need to know why the runner died.
+
+---
+
+## Part 6 — surviving a reboot, and the first real densify (2026-09-17 00:00)
+
+**The machine crashed twice while Part 5 was being written**: Kernel-Power 41 at 23:17 and 23:43
+(six unexpected restarts in the past week). The babysitter cannot help there because it dies with
+Windows. That was the remaining hole and it is now closed at the layer above.
+
+**Supervisor** (`Slate360Jobs\payne-213-supervisor.ps1`), registered as Scheduled Task
+`Slate360-Payne213-Supervisor`, triggers **at logon** and **every 5 minutes for 20 hours**, plus a
+Startup-folder shortcut as a second path. Each run is idempotent and single-instance: it starts the
+babysitter if the Lab export is missing and no babysitter is alive, starts the phone chain if the
+phone twin is unpublished and no chain is alive, and disables itself once both deliverables exist.
+Verified end to end: babysitter killed, supervisor restored it within a second, and the restarted
+babysitter left the running train alone (steps 850 -> 1200 uninterrupted).
+
+Two babysitter fixes made that safe:
+- **Takeover is now conditional.** A fresh `_alive.txt` means a healthy wrapped job, so a restarted
+  babysitter monitors instead of killing and losing up to 750 steps.
+- **Single instance.** Two babysitters both reach their strike limit and both relaunch, which
+  double-starts the runner on one job directory (observed 23:56 when a manual start raced the task).
+
+**S4U could not be registered** (`Access is denied` without elevation), so the task runs as the
+logged-on user. **This is the one remaining gap and only Brian can close it:** with automatic
+sign-in off (`AutoAdminLogon=0`), a bugcheck reboot stops at the lock screen and nothing resumes
+until someone logs in. Turning on auto sign-in (`netplwiz`, uncheck the password box) makes the
+whole chain survive a crash unattended. It needs his password, so it is his call, not an
+automated change.
+
+**Gap 27 is closed, and it overshot.** This is the first splatfacto train in this project where
+densification ever ran:
+
+| Step | Gaussians |
+|---|---|
+| 0 (COLMAP seed) | 209,587 |
+| 3,950 | 7,286,268 |
+
+For comparison, both backyard trains sat frozen at 383,657 for every logged step. The clamp in
+`ns_train_wrap.py` works.
+
+**But splatfacto's DefaultStrategy has no absolute cap** (only MCMC does), and growth was still
+running at ~250k gaussians per 100 steps with 11.9 GB of 24 GB used. Left alone it OOMs, and every
+checkpoint restart then OOMs at the same place, which would have burned the night in a fail-loop.
+Added `SPLAT_LAB_STOP_SPLIT_AT` to `stages/train.py`: an absolute step ceiling for splitting,
+unset = the old 85%-of-steps behaviour for every other job. The babysitter exports it as **4300**,
+so the run resumes from `step-000003750.ckpt` (~9.4M gaussians), stops splitting almost immediately,
+and refines a fixed model for the remaining ~26k steps.
+
+**Morning note for Cursor:** expect a very large SPZ (order 150-250 MB at ~10M gaussians). The
+viewer downsamples on load (1M mobile / 2.5M desktop) but the *download* does not, so publish a
+decimated variant for the movers' phones rather than the full file. That is a packaging step, not
+a retrain.
