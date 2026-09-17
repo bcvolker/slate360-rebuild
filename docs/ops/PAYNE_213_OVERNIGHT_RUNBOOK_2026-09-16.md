@@ -173,7 +173,7 @@ the item list with photos. Tabs only appear when the layer exists.
 
 | Field | Value |
 |---|---|
-| Job id | |
+| Job id | `cecc2763` (launched 2026-09-16 21:36 local, stab-off 003+004, fps 1, 1280, 30k, pause cap 250 → 24 densify events in 0..3000) |
 | Frames / registered / seed points | |
 | gaussian_count @3k / @30k | |
 | Export splats / SPZ MB | |
