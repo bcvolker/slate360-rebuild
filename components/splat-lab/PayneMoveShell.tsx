@@ -7,9 +7,7 @@ import {
 } from "@/components/digital-twin/splat-viewer-core";
 import { PayneItemList } from "@/components/splat-lab/PayneItemList";
 import { PayneLayerBar, type PayneLayer } from "@/components/splat-lab/PayneLayerBar";
-import { PayneLidarCloud } from "@/components/splat-lab/PayneLidarCloud";
 import { PaynePlanBoard } from "@/components/splat-lab/PaynePlanBoard";
-import { PayneStillsStrip, type PayneStill } from "@/components/splat-lab/PayneStillsStrip";
 import { SplatWalkBar, type SplatViewMode, type WalkStride } from "@/components/splat-lab/SplatWalkBar";
 import { setWalkStride } from "@/lib/digital-twin/walk-step";
 import type { PayneItem } from "@/lib/splat-lab/payne-items";
@@ -28,24 +26,19 @@ export function PayneMoveShell({
   geometrySrc,
   items,
   planSrc,
-  stills,
-  stillsCaptured,
 }: {
   splatSrc: string | null;
   geometrySrc: string | null;
   items: PayneItem[];
   planSrc: string;
-  stills: PayneStill[];
-  stillsCaptured?: number;
 }) {
   const layers = useMemo(() => {
     const next: PayneLayer[] = [];
     if (splatSrc) next.push("scene");
-    if (geometrySrc) next.push("lidar");
-    if (stills.length) next.push("photos");
+    if (geometrySrc && !geometrySrc.endsWith(".ply")) next.push("lidar");
     next.push("layout", "list");
     return next;
-  }, [geometrySrc, splatSrc, stills.length]);
+  }, [geometrySrc, splatSrc]);
   const [layer, setLayer] = useState<PayneLayer>(layers[0] ?? "list");
   const [picked, setPicked] = useState<string | null>(null);
   const [showStay, setShowStay] = useState(false);
@@ -73,7 +66,7 @@ export function PayneMoveShell({
           Furniture move
         </h1>
         <p className="mt-1 hidden max-w-lg text-[12px] leading-relaxed text-[var(--mkt-canvas)]/70 md:block landscape:hidden">
-          13 items to Sun Devil Hall · 18 tables stay. Photos and LiDAR are on this link; the 360 walk appears when the overnight train finishes.
+          13 items to Sun Devil Hall · 18 tables stay.
         </p>
       </header>
 
@@ -94,15 +87,8 @@ export function PayneMoveShell({
           />
         )
       ) : null}
-      {layer === "lidar" && geometrySrc ? (
-        geometrySrc.endsWith(".ply") ? <PayneLidarCloud src={geometrySrc} /> : (
-          <SplatViewerCore src={geometrySrc} className="absolute inset-0 h-full w-full" cameraMode="orbit" />
-        )
-      ) : null}
-      {layer === "photos" ? (
-        <div className="absolute inset-0 overflow-y-auto pt-24 pb-28">
-          <PayneStillsStrip stills={stills} captured={stillsCaptured} />
-        </div>
+      {layer === "lidar" && geometrySrc && !geometrySrc.endsWith(".ply") ? (
+        <SplatViewerCore src={geometrySrc} className="absolute inset-0 h-full w-full" cameraMode="orbit" />
       ) : null}
       {layer === "layout" ? (
         <div className="absolute inset-0 overflow-y-auto pt-24 pb-36">
