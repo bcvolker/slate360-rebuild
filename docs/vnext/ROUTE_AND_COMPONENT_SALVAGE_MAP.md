@@ -23,15 +23,16 @@ Where this map conflicts with older repo docs, current homepage layout, existing
 |---|---|
 | GitHub repo | `bcvolker/slate360-rebuild` |
 | Implementation worktree | `C:\s360-ui-vnext` (created this slice; did not exist) |
-| Implementation branch | `feature/ui-vnext-phase1` (created this slice from `origin/main`) |
+| Implementation branch | `feature/ui-vnext-phase1` (created this slice from `origin/main`; tracks `origin/feature/ui-vnext-phase1`) |
 | Baseline SHA | `a7b1c66c0871c4e41adb89d0d58dab86183a9665` |
+| Slice 0 audit commit | `0d425cb3b579fe4757a1fc4d4883804fc8fc4090` |
 | Baseline tip message | `Add Twin Continue upload and Sign out so a stuck phone scan can retry.` |
 | Older UI branch | `origin/feature/ui-phase-1` @ `8466d81c` — **already an ancestor of `main`**. Inspected only. Not adopted. |
 | Active reconstruction / spatial tree | `C:\s360` @ `feature/aob205-spatial-experience-v3` (`302917d6`) — **not merged**, inspected as OTHER-BRANCH salvage |
 | Dashboard/portal experiment | `C:\s360-dashboard-portal` @ `feature/dashboard-portal-alignment-2026-09` — **not merged** |
 | Counts on baseline | 164 `app/**/page.tsx`, 32 `layout.tsx`, 305 `app/api/**/route.ts` |
 
-`feature/ui-vnext-phase1` tracks `origin/main`. It does **not** contain the 67 spatial-experience commits that exist only on `feature/aob205-spatial-experience-v3`, nor the 55 `main` commits missing from that spatial branch. Those trees have diverged.
+`feature/ui-vnext-phase1` was created from `origin/main` @ `a7b1c66c` and now tracks `origin/feature/ui-vnext-phase1`. It does **not** contain the 67 spatial-experience commits that exist only on `feature/aob205-spatial-experience-v3`, nor the 55 `main` commits missing from that spatial branch. Those trees have diverged.
 
 ---
 
@@ -580,8 +581,8 @@ Rewrite: host `app.sitewalk360.app` → `/sw360/:path` (excludes `/api`, `/_next
 | From | To | Flag |
 |---|---|---|
 | `/ceo`, `/ceo/*` | `/operations-console*` | Legacy alias |
-| `/dashboard` if mobile/tablet | `/app` | Device fork — **misleads responsive testing** |
-| `/app` if not mobile | `/dashboard` | Inverse |
+| `/dashboard` if mobile/tablet | `/app` | Exact `pathname === "/dashboard"` only. Misleads **current production** `/dashboard` testing. Does **not** match `/vnext` or `/preview/vnext` |
+| `/app` if not mobile | `/dashboard` | Exact `pathname === "/app"` only. Inverse of the row above. Does **not** match `/vnext` or `/preview/vnext` |
 | Mobile `/my-work*`, `/my-account*` | `/app?blocked=` | Quarantine |
 | Mobile `/site-walk/{deliverables,reports,slatedrop,more,plans}*` | `/site-walk` | Capture-v2 exempt |
 | Unauth beta-protected | `/login?redirectTo=` | OK |
@@ -606,6 +607,8 @@ Rewrite: host `app.sitewalk360.app` → `/sw360/:path` (excludes `/api`, `/_next
 | Native UA on `/` | `/app` |
 
 Circular / multi-hop risks: `/login` → `/app` → `/dashboard`; historical ops/analytics paths landing on Site Walk; Phase-1 block vs still-present dashboard pages.
+
+**Device-fork scope (corrected after Slice 0 review):** the `/dashboard` ↔ `/app` swap is exact-path only. `resolveMobileLegacyRedirect()` does not match `/vnext` or `/preview/vnext`. Slice 1 must **not** modify `middleware.ts` merely to support those trees. Verify responsive behavior on vNext routes directly. Middleware stays untouched unless a later route/auth requirement demonstrates a real need.
 
 ---
 
@@ -681,7 +684,7 @@ Rules:
 - If a stakeholder has one project, Overview is still required (identity + latest state).
 - Optional later: `/vnext/shared` (“Shared with me”).
 
-Authenticated vs token-only clients is an approval question (§20). Until then, rebuild `/portal/[token]` as the public client record and `/vnext/projects` as the logged-in record.
+**DECIDED (see status doc):** authenticated `/vnext/projects` uses existing auth/membership; public token sharing stays separate. Do not replace production `/portal/[token]` in early slices.
 
 ---
 
@@ -773,18 +776,22 @@ Existing `/operations-console` is not this tree (SaaS ops + Site Walk dumps). Re
 
 ## 20. Risks / questions requiring approval before Slice 1
 
-1. **Baseline vs spatial absorb.** Slice 1 on `origin/main` will **not** include AOB205 `client-experience` or spatial APIs. Should Slice 1 stay on main and treat spatial as a later graft, or is there an approved, non-reconstruction subset to cherry-pick? Recommendation: **stay on main**; salvage contracts only.
-2. **Who is a “client” in auth?** Map onto (a) new/existing orgs, (b) `org_contacts` + magic links, (c) collaborators, (d) token-only `/portal`. Recommendation: Phase 1 **token portal + optional login**, no new identity migration in Slice 1.
-3. **Visit entity.** Invent a unified `visits` table vs adapter over sessions/captures/spatial walkthroughs. Recommendation: **adapter in FE/loaders**; no migration in Phase 1.
-4. **Parallel route prefix.** Approve `/vnext/*` + `/preview/vnext/*` vs only preview harnesses.
-5. **Owner route prefix.** `/vnext/ops` vs `/vnext/owner` vs reuse `/operations-console`.
-6. **Thermal and Drone in Explore.** Show when published assets exist, even if capture stays CEO/internal?
-7. **360 source of truth.** Tours vs walk photo_360 vs twin panorama vs spatial stations. Recommendation: Explore `360` adapter; do not pick a single table yet.
-8. **Billing visibility.** Hide entirely from vNext nav, including owner?
-9. **Middleware device fork.** Leave `/app`↔`/dashboard` until Slice 12, knowing vNext testing on “mobile emulation” will be weird unless vNext routes are exempted. Recommendation: **exempt `/vnext` and `/preview/vnext` from the device swap in Slice 1** (middleware is a forbidden zone unless the task is route/auth — Phase 1 Slice 1 is shells; **ask before touching middleware**).
-10. **Entitlements.** Client Phase 1 should not upsell apps. Keep server file untouched; do not add upgrade UI.
-11. **`/portal/[token]` rebuild vs new host.** Existing portal tokens currently show a dead-end card. Rebuilding in place is high-value but production-visible. Recommendation: build vNext portal under `/vnext/portal/[token]` or preview first; switch in Slice 11–12.
-12. **Do not merge** `feature/ui-phase-1`, `feature/dashboard-portal-alignment-2026-09`, or `feature/aob205-spatial-experience-v3` into this branch.
+The original Slice 0 questions below are retained as audit history. They are now **decided**. Locked decisions live in `docs/vnext/PHASE1_IMPLEMENTATION_STATUS.md` under **Approved Decisions After Slice 0**.
+
+Item 9 is **corrected**: the original recommendation to exempt `/vnext` from the device swap was wrong. See §13 device-fork scope.
+
+1. **Baseline vs spatial absorb.** Slice 1 on `origin/main` will **not** include AOB205 `client-experience` or spatial APIs. Should Slice 1 stay on main and treat spatial as a later graft, or is there an approved, non-reconstruction subset to cherry-pick? Recommendation: **stay on main**; salvage contracts only. **DECIDED:** stay on main; do not merge/cherry-pick spatial in Slice 1.
+2. **Who is a “client” in auth?** Map onto (a) new/existing orgs, (b) `org_contacts` + magic links, (c) collaborators, (d) token-only `/portal`. **DECIDED:** reuse existing Supabase auth + org/project membership; token portal is separate, not a replacement for the authenticated portfolio; no identity migration in Slice 1.
+3. **Visit entity.** Invent a unified `visits` table vs adapter over sessions/captures/spatial walkthroughs. **DECIDED:** adapter only; no `visits` table in Phase 1 foundation.
+4. **Parallel route prefix.** Approve `/vnext/*` + `/preview/vnext/*` vs only preview harnesses. **DECIDED:** both prefixes approved.
+5. **Owner route prefix.** `/vnext/ops` vs `/vnext/owner` vs reuse `/operations-console`. **DECIDED:** `/vnext/ops`.
+6. **Thermal and Drone in Explore.** Show when published assets exist, even if capture stays CEO/internal? **DECIDED:** representations appear only when real renderable data exists; no dead Drone tab.
+7. **360 source of truth.** Tours vs walk photo_360 vs twin panorama vs spatial stations. **DECIDED:** adapter later; do not pick one table in Slice 1; do not expose Tours as a client product.
+8. **Billing visibility.** Hide entirely from vNext nav, including owner? **DECIDED:** billing/subscriptions/plans/seats/upgrade/app entitlements absent from both client and owner vNext primary nav.
+9. **Middleware device fork.** Current production `/dashboard` and `/app` testing **is** affected by the exact-path device swap. `/vnext/*` and `/preview/vnext/*` are **not** affected (`pathname === "/dashboard"` / `pathname === "/app"` only; `resolveMobileLegacyRedirect()` does not match those trees). **CORRECTED:** do **not** modify middleware merely to support `/vnext`. No Slice 1 middleware exemption is required. Middleware remains untouched unless a later route/auth requirement demonstrates a real need. Verify responsive behavior directly on vNext.
+10. **Entitlements.** Client Phase 1 should not upsell apps. Keep server file untouched; do not add upgrade UI. **DECIDED:** keep entitlements intact; no upsells/locked tiles/subscription messaging in vNext.
+11. **`/portal/[token]` rebuild vs new host.** Existing portal tokens currently show a dead-end card. Rebuilding in place is high-value but production-visible. **DECIDED:** do not replace production `/portal/[token]` in early slices; build in vNext/preview; keep live token URL hosts stable.
+12. **Do not merge** `feature/ui-phase-1`, `feature/dashboard-portal-alignment-2026-09`, or `feature/aob205-spatial-experience-v3` into this branch. **DECIDED:** no wholesale merges; later selective salvage requires explicit relevance and review.
 
 ---
 
