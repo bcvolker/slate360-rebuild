@@ -561,8 +561,11 @@ def exp5_grouped_results() -> dict[str, Any]:
         shutil.rmtree(work)
     work.mkdir(parents=True)
 
-    doc = _committed_recipe("exp5-frozen-recipe.json")
-    split = doc["recipe"]["grouped_validation"]
+    # No recipe lookup needed here: qa/ (where the frozen recipes live) is not mounted into
+    # this container's image, and every value this function actually uses -- the panorama
+    # holdout, dataparser transform -- is recomputed directly below from files that ARE
+    # mounted (the frozen views tree, visual-poses.json), the same single source of truth
+    # the preflight and training already used.
     dataparser = json.loads((Path("/root/recon-experiment") / "visual-poses.json").read_text())["dataparser"]
     built = exp5.build_grouped_safe_frames(full_views / "transforms.json")
     # built["by_pano"] maps panorama id -> list of file_path STRINGS (identity/verification
