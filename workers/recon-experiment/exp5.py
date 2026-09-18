@@ -47,7 +47,17 @@ EXPECTED_GROUPED_SAFE_POOL_PANORAMAS = 338
 EXPECTED_GROUPED_SAFE_POOL_VIEWS = 5408
 EXPECTED_NERFSTUDIO_INTERNAL_TRAIN = 4868
 EXPECTED_NERFSTUDIO_INTERNAL_EVAL = 540
-EXPECTED_GROUPED_SAFE_TRANSFORMS_SHA256 = "52f622b1815d43e8dface4f11d10f70eb4bb9b0cae74c79fbc84d457f5fa766e"
+EXPECTED_GROUPED_SAFE_TRANSFORMS_SHA256 = "95f678f14dd4208cda32b0a0eef7273acfd7dfee63c7bdc04c4822ccc80c29b4"
+# Corrected 2026-09-18 (data unchanged): the value above is the portable hash of
+# build_grouped_safe_frames()'s JSON output serialized with LF-only line endings, matching
+# what every container (Linux) actually writes. The original value recorded during the
+# Experiment 4 preflight (52f622b1...) was computed from a copy this Windows machine wrote
+# via Path.write_text() in text mode, which silently translates '\n' to '\r\n' on Windows --
+# a platform-dependent artifact of the reference copy, not of the dataset. Same bug class
+# already found and fixed for the mask hash during Experiment 3 (see
+# docs/ops/ROOM213_EXPERIMENT3_FINAL.md's "Portable-hash correction" note). No frame, pose,
+# mask, or split membership changed -- same 5,408 frames, same 38 withheld panoramas, same
+# zero-leakage result -- confirmed by re-running dataset_split_grouped() after this fix.
 EXPECTED_HISTORICAL_STYLE_TRAIN_SHA256 = "0f8f367e6a43001f42fe58199009c9423876869192dfc3e50e5c4c25dbff0949"
 EXPECTED_HISTORICAL_STYLE_EVAL_SHA256 = "bdccc23ccd377f2e659fc83635d05d175cace40c71307a75d45261df5b21b3a5"
 EXPECTED_WITHHELD_IMAGES_SHA256 = "a4651d9eab83fd663b9c7188b889f7df72f416a94de06f00892ed6c33474e9d8"

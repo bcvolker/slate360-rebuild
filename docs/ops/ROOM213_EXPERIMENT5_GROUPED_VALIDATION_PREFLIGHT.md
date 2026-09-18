@@ -208,6 +208,32 @@ Grouped-validation results pass (`exp5_grouped_results`, read-only, both arms): 
 stats — estimated **15–25 minutes, a few dollars**, well inside the 60-minute budget set for
 that function.
 
+## 9a. Addendum (2026-09-18) — portable-hash correction, first launch attempt caught it
+
+The first launch attempt of Experiment 5 refused to stage, exactly as designed:
+`_ensure_exp5_grouped_inputs` freshly regenerated the grouped-safe `transforms.json` inside
+the Linux training container and its hash did not match `EXPECTED_GROUPED_SAFE_TRANSFORMS_
+SHA256` — so it raised and stopped before any GPU training cycle ran. **No GPU training
+budget was spent on this failure.**
+
+Root cause: the "expected" hash recorded during Experiment 4's preflight was computed from
+a local reference copy this Windows machine wrote via `Path.write_text()` in text mode,
+which silently translates `\n` to `\r\n` on Windows. The Linux training container correctly
+writes plain `\n`. The two were never going to match — this was a platform-dependent
+artifact of how the *reference copy* was written, not a data problem. Same bug class
+already found and fixed for the mask hash during Experiment 3 (see
+`docs/ops/ROOM213_EXPERIMENT3_FINAL.md`'s "Portable-hash correction" note).
+
+Fix: `EXPECTED_GROUPED_SAFE_TRANSFORMS_SHA256` in `exp5.py` now records the portable,
+LF-only-serialized hash (`95f678f1…`), reproduced locally and confirmed to match the
+container's own freshly-computed value exactly. `qa/exp5-frozen-recipe.json`'s `pose_hash`
+and `recipe_hash` were updated the same way, with the old value preserved on record
+(`pose_hash_legacy_windows_crlf_artifact`). Re-ran `dataset_split_grouped()` after the fix:
+**identical 38 withheld panoramas, 608 views, zero leakage, and identical content hashes for
+the withheld/train/eval image lists** — confirming no frame, pose, mask, or split membership
+changed, only the file's own serialization identity. Re-ran the resolved-config diff after
+the fix: unchanged, `ok=true`, exactly one differing field.
+
 ## 9. What is NOT done yet
 
 - No training has run. No checkpoint exists for G5 or H5.

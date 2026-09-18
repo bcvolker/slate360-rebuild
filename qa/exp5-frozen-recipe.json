@@ -10,7 +10,7 @@
     "optimizer": "splatfacto-adam",
     "output_converter": "ns-export gaussian-splat PLY (no SPZ step)",
     "pano_count": 338,
-    "pose_hash": "52f622b1815d43e8dface4f11d10f70eb4bb9b0cae74c79fbc84d457f5fa766e",
+    "pose_hash": "95f678f14dd4208cda32b0a0eef7273acfd7dfee63c7bdc04c4822ccc80c29b4",
     "qa_pose_hash": "ee51124640e16c92ea2c48cf420719b77ab9c8a02ea996dc4ed849045f3fb37a",
     "resolution": 1280,
     "rng_seed": 42,
@@ -19,7 +19,7 @@
     "source_hash": "1753a05b9eef0262d075bf9dc81d8ce49e56cdb6ae88fb9a2e713f7b73b35c99",
     "use_lidar": false,
     "view_count": 5408,
-    "pose_hash_source": "grouped-safe transforms.json (38 panoramas / 608 views removed from the frozen 6016-view manifest); mask_hash/seed_hash/qa_pose_hash unchanged (same source files)",
+    "pose_hash_source": "grouped-safe transforms.json (38 panoramas / 608 views removed from the frozen 6016-view manifest); mask_hash/seed_hash/qa_pose_hash unchanged (same source files); corrected 2026-09-18 -- original value was a Windows text-mode (CRLF) serialization artifact of the reference copy, not of the dataset; portable value uses LF-only serialization, matching what every container actually writes",
     "grouped_validation": {
       "withheld_panoramas": 38,
       "withheld_images": 608,
@@ -28,7 +28,8 @@
       "nerfstudio_internal_train_images": 4868,
       "nerfstudio_internal_eval_images": 540,
       "leakage_check_ok": true
-    }
+    },
+    "pose_hash_legacy_windows_crlf_artifact": "52f622b1815d43e8dface4f11d10f70eb4bb9b0cae74c79fbc84d457f5fa766e"
   },
-  "recipe_hash": "c05b8a57d91e0b01a81b6848c1ff85d1bbeeb027bf15ce46d969550e649d643e"
+  "recipe_hash": "df051810df9a6edd4db6518bf579c344b8fdd9079a0d02f7f7f5b34fe69dd8b7"
 }

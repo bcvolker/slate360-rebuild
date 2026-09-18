@@ -620,6 +620,33 @@ def exp5_grouped_results() -> dict[str, Any]:
     return out
 
 
+@app.function(
+    image=gpu_image,
+    gpu=GPU_TRAIN,
+    timeout=20 * 60,
+    memory=MEMORY_MIB,
+    cpu=CPU,
+    volumes={"/vol": ckpt_vol},
+    retries=0,
+)
+def exp5_evaluator_sanity_check() -> str:
+    """Evaluator validation for Experiment 5: scores one existing eval image via stock
+    nerfstudio ns-eval's own per-image path and the new direct grouped evaluator, on the
+    same checkpoint (D4). Read-only, no training. Kept as reusable validation tooling, not
+    training-specific -- can be re-run against any future checkpoint if the evaluator code
+    changes."""
+    sys.path.insert(0, "/root/recon-experiment")
+    sys.path.insert(0, "/root/splat-lab")
+    import io
+    import contextlib
+
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        import exp5_evaluator_sanity_check as m
+        m.main()
+    return buf.getvalue()
+
+
 def _committed_recipe(name: str) -> dict[str, Any]:
     """Recipes live in the repo (qa/*.json) so a fresh clone can launch; /experiments is gitignored."""
     for candidate in (ROOT / "qa" / name, ROOT / "experiments" / "room213-densification" / "frozen-recipe.json"):
@@ -686,6 +713,9 @@ def main(phase: str = "exp3"):
             {**results4, "status": "needs_review", "HUMAN_VISUAL_VERDICT": "UNREVIEWED"},
             indent=2, default=str,
         ))
+        return
+    if phase == "exp5-sanity-check":
+        print(exp5_evaluator_sanity_check.remote())
         return
     if phase == "exp5-grouped-results":
         result = exp5_grouped_results.remote()
