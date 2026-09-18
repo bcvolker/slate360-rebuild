@@ -14,15 +14,16 @@ import {
 const BASE_PATH = "/preview/vnext/project/explore";
 
 /**
- * The one interactive Explore preview route — reads ?rep=/?source=/?present= itself and resolves
- * fixture data via the same decision logic the real page uses, so e2e/vnext/explore.spec.ts can
- * drive representation switching, deep links, and Back/Forward without an authenticated session
+ * The one interactive Explore preview route — reads ?rep=/?source=/?item=/?present= itself and
+ * resolves fixture data via the same decision logic the real page uses, so e2e/vnext/explore.spec.ts
+ * can drive representation switching, deep links, and Back/Forward without an authenticated session
  * (this suite tests every other vNext page the same way; see e2e/vnext/routes.spec.ts).
  */
 export default function PreviewVnextProjectExplorePage() {
   const searchParams = useSearchParams();
   const data = resolvePreviewExploreData(searchParams.get("rep"), searchParams.get("source"));
   const present = searchParams.get("present") === "1";
+  const item = searchParams.get("item");
 
   return (
     <VnextClientShell pathname={PREVIEW_OVERVIEW_NAV_PATH}>
@@ -31,7 +32,7 @@ export default function PreviewVnextProjectExplorePage() {
         pathname={PREVIEW_PROJECT_NAV_ITEMS[1].href}
         items={PREVIEW_PROJECT_NAV_ITEMS}
       />
-      <VnextExploreShell data={data} initialPresent={present} basePath={BASE_PATH} />
+      <VnextExploreShell data={data} initialPresent={present} basePath={BASE_PATH} item={item} />
     </VnextClientShell>
   );
 }

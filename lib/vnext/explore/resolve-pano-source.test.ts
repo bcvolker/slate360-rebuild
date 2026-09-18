@@ -38,12 +38,12 @@ describe("loadPanoSources", () => {
 });
 
 describe("resolvePanoSourceData", () => {
-  it("builds the proven /api/site-walk/items/[id]/image URL for the requested source", async () => {
+  it("builds the vNext-scoped project image URL, not the legacy punchwalk-gated route", async () => {
     const admin = mockAdmin([ITEM]);
     const result = await resolvePanoSourceData(admin, "p1", "item-1");
     expect(result).toEqual({
       sourceId: "item-1",
-      data: { kind: "360", imageUrl: "/api/site-walk/items/item-1/image", title: "East stair" },
+      data: { kind: "360", imageUrl: "/api/vnext/projects/p1/items/item-1/image", title: "East stair" },
     });
   });
 

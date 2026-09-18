@@ -3,6 +3,7 @@
 import { useCallback, useRef, useState, type PointerEvent, type WheelEvent } from "react";
 import { Minus, Plus, RotateCcw } from "lucide-react";
 import type { VnextPlanSourceData } from "@/lib/vnext/explore-types";
+import { VnextViewerMediaError } from "./VnextViewerMediaError";
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 6;
@@ -15,7 +16,18 @@ const MAX_SCALE = 6;
 export default function VnextPlanViewer({ data }: { data: VnextPlanSourceData }) {
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [mediaError, setMediaError] = useState(false);
+  const [retryAttempt, setRetryAttempt] = useState(0);
   const dragRef = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
+
+  const retry = useCallback(() => {
+    setMediaError(false);
+    setRetryAttempt((n) => n + 1);
+  }, []);
+
+  if (mediaError) {
+    return <VnextViewerMediaError onRetry={retry} />;
+  }
 
   const clampScale = (value: number) => Math.min(MAX_SCALE, Math.max(MIN_SCALE, value));
 
@@ -73,10 +85,11 @@ export default function VnextPlanViewer({ data }: { data: VnextPlanSourceData })
           {/* Plan sheet raster — intentionally a plain img, not a canvas/tile engine. */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={data.imageUrl}
+            src={retryAttempt > 0 ? `${data.imageUrl}?retry=${retryAttempt}` : data.imageUrl}
             alt={data.sheetName}
             className="max-h-full max-w-full object-contain"
             draggable={false}
+            onError={() => setMediaError(true)}
           />
         </div>
       </div>

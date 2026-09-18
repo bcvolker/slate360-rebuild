@@ -75,7 +75,12 @@ export async function resolveTwinSourceData(
     return {
       kind: "reality",
       viewerKind: "splat",
-      modelUrl: `/api/digital-twin/models/${model.id}/splat`,
+      // vNext-scoped proxy (project-access contract), not the legacy /api/digital-twin/models/[id]/splat
+      // route, which matches the model's org_id against the signed-in user's single org and would
+      // wrongly refuse a project_members collaborator whose access comes from a different org. Still a
+      // same-origin stream (Spark/three.js can't load a cross-origin presigned URL) — see the route's
+      // own comment.
+      modelUrl: `/api/vnext/projects/${projectId}/twin-models/${model.id}/splat`,
       modelTitle,
     };
   }

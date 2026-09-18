@@ -2,9 +2,11 @@
 
 import { useState } from "react";
 import type { VnextThermalSourceData } from "@/lib/vnext/explore-types";
+import { VnextViewerMediaError } from "./VnextViewerMediaError";
 
 export default function VnextThermalViewer({ data }: { data: VnextThermalSourceData }) {
   const [index, setIndex] = useState(0);
+  const [errorCaptureId, setErrorCaptureId] = useState<string | null>(null);
   const captures = data.captures;
   const current = captures[Math.min(index, Math.max(0, captures.length - 1))];
 
@@ -19,12 +21,20 @@ export default function VnextThermalViewer({ data }: { data: VnextThermalSourceD
   return (
     <div className="flex h-full w-full flex-col bg-[var(--graphite-canvas)]">
       <div className="relative flex-1 overflow-hidden">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={current?.imageUrl}
-          alt={current?.label ?? data.sessionName}
-          className="h-full w-full object-contain"
-        />
+        {current && errorCaptureId === current.id ? (
+          // Thermal capture URLs are presigned S3 links, not a re-signing proxy — a genuine retry
+          // needs a fresh signed URL from the server, which a full reload gets honestly (not a
+          // placebo re-render of the same broken link).
+          <VnextViewerMediaError onRetry={() => window.location.reload()} />
+        ) : (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={current?.imageUrl}
+            alt={current?.label ?? data.sessionName}
+            className="h-full w-full object-contain"
+            onError={() => current && setErrorCaptureId(current.id)}
+          />
+        )}
       </div>
 
       {captures.length > 1 ? (

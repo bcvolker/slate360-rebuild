@@ -22,6 +22,7 @@ export default function PreviewVnextProjectExploreThermalPage() {
         data={PREVIEW_EXPLORE_THERMAL}
         initialPresent={false}
         basePath="/preview/vnext/project/explore-thermal"
+        item={null}
       />
     </VnextClientShell>
   );

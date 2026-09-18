@@ -22,6 +22,7 @@ export default function PreviewVnextProjectExploreEmptyPage() {
         data={PREVIEW_EXPLORE_EMPTY}
         initialPresent={false}
         basePath="/preview/vnext/project/explore-empty"
+        item={null}
       />
     </VnextClientShell>
   );

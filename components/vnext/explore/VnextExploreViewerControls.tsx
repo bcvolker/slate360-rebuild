@@ -18,7 +18,7 @@ export function VnextExploreViewerControls({ isFullscreen, onToggleFullscreen, p
         onClick={onTogglePresent}
         aria-pressed={present}
         data-vnext-present-toggle="true"
-        className="flex h-11 min-w-[44px] items-center gap-1.5 border border-white/15 bg-black/40 px-3 text-xs font-medium text-white backdrop-blur"
+        className="flex h-11 min-w-[44px] items-center gap-1.5 border border-white/15 bg-black/70 px-3 text-xs font-medium text-white"
       >
         {present ? <X className="h-4 w-4" aria-hidden /> : <Play className="h-4 w-4" aria-hidden />}
         {present ? "Exit presentation" : "Present"}
@@ -28,7 +28,7 @@ export function VnextExploreViewerControls({ isFullscreen, onToggleFullscreen, p
         onClick={onToggleFullscreen}
         aria-pressed={isFullscreen}
         data-vnext-fullscreen-toggle="true"
-        className="flex h-11 w-11 items-center justify-center border border-white/15 bg-black/40 text-white backdrop-blur"
+        className="flex h-11 w-11 items-center justify-center border border-white/15 bg-black/70 text-white"
         aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
       >
         {isFullscreen ? <Minimize className="h-4 w-4" aria-hidden /> : <Maximize className="h-4 w-4" aria-hidden />}

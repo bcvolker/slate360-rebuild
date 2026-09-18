@@ -27,7 +27,7 @@ function mockAdmin(tables: Record<string, unknown[]>) {
 const SPACE = { id: "space-1", updated_at: "2026-01-01T00:00:00.000Z" };
 
 describe("resolveTwinSourceData", () => {
-  it("resolves a splat model to the same-origin authenticated proxy URL, not a presigned link", async () => {
+  it("resolves a splat model to the vNext-scoped project proxy URL, not the legacy org-only route", async () => {
     const admin = mockAdmin({
       digital_twin_spaces: [SPACE],
       digital_twin_models: [
@@ -40,7 +40,7 @@ describe("resolveTwinSourceData", () => {
     expect(result).toEqual({
       kind: "reality",
       viewerKind: "splat",
-      modelUrl: "/api/digital-twin/models/model-1/splat",
+      modelUrl: "/api/vnext/projects/p1/twin-models/model-1/splat",
       modelTitle: "Front yard",
     });
   });
@@ -87,6 +87,6 @@ describe("resolveTwinSourceData", () => {
       ],
     });
     const result = await resolveTwinSourceData(admin, "p1", "splat", "Reality");
-    expect(result?.modelUrl).toBe("/api/digital-twin/models/newer/splat");
+    expect(result?.modelUrl).toBe("/api/vnext/projects/p1/twin-models/newer/splat");
   });
 });

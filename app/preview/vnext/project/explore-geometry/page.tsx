@@ -22,6 +22,7 @@ export default function PreviewVnextProjectExploreGeometryPage() {
         data={PREVIEW_EXPLORE_GEOMETRY}
         initialPresent={false}
         basePath="/preview/vnext/project/explore-geometry"
+        item={null}
       />
     </VnextClientShell>
   );

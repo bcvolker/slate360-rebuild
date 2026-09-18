@@ -22,6 +22,7 @@ export default function PreviewVnextProjectExplore360Page() {
         data={PREVIEW_EXPLORE_360}
         initialPresent={false}
         basePath="/preview/vnext/project/explore-360"
+        item={null}
       />
     </VnextClientShell>
   );

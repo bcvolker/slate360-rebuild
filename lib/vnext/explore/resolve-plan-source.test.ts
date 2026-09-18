@@ -36,14 +36,14 @@ describe("loadPlanSources", () => {
 });
 
 describe("resolvePlanSourceData", () => {
-  it("builds the proven /api/site-walk/plan-sheets/[id]/image URL", async () => {
+  it("builds the vNext-scoped project image URL, not the legacy punchwalk-gated route", async () => {
     const admin = mockAdmin([
       { id: "sheet-1", sheet_name: "A1.0", sheet_number: 1, thumbnail_s3_key: "orgs/x/a1.jpg", rasterized_key: null, image_s3_key: null },
     ]);
     const result = await resolvePlanSourceData(admin, "p1", "sheet-1");
     expect(result).toEqual({
       sourceId: "sheet-1",
-      data: { kind: "plan", imageUrl: "/api/site-walk/plan-sheets/sheet-1/image", sheetName: "A1.0" },
+      data: { kind: "plan", imageUrl: "/api/vnext/projects/p1/plan-sheets/sheet-1/image", sheetName: "A1.0" },
     });
   });
 

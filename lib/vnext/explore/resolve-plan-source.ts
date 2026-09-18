@@ -50,7 +50,9 @@ export async function resolvePlanSourceData(
     sourceId: sheet.id,
     data: {
       kind: "plan",
-      imageUrl: `/api/site-walk/plan-sheets/${sheet.id}/image`,
+      // vNext-scoped route (project-access contract), not the legacy punchwalk-gated,
+      // single-org route — see resolve-pano-source.ts's identical rationale.
+      imageUrl: `/api/vnext/projects/${projectId}/plan-sheets/${sheet.id}/image`,
       sheetName: sheetLabel(sheet),
     },
   };

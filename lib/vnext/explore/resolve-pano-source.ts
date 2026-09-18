@@ -6,7 +6,11 @@ import type { VnextExploreSourceData, VnextExploreSourceSummary } from "@/lib/vn
 
 type Admin = ReturnType<typeof createAdminClient>;
 
-/** Proven client-renderable 360 source: site_walk_items.photo_360 (/api/site-walk/items/[id]/image).
+/** Proven client-renderable 360 source: site_walk_items.photo_360, served through the vNext-scoped
+ *  /api/vnext/projects/[projectId]/items/[itemId]/image route (project-access contract — see
+ *  lib/server/api-auth.ts withProjectAuth), NOT the legacy /api/site-walk/items/[id]/image route,
+ *  which gates on the punchwalk standalone-app entitlement and a single-org match and would wrongly
+ *  refuse a project_members collaborator whose access comes from a different org.
  *  digital_twin_capture_assets.panorama_360 is deliberately NOT used here — no serving route exists
  *  for that table (see lib/vnext/load-portfolio-evidence.ts for the same decision). */
 export async function loadPanoSources(admin: Admin, projectId: string): Promise<VnextExploreSourceSummary[]> {
@@ -45,7 +49,7 @@ export async function resolvePanoSourceData(
     sourceId: item.id,
     data: {
       kind: "360",
-      imageUrl: `/api/site-walk/items/${item.id}/image`,
+      imageUrl: `/api/vnext/projects/${projectId}/items/${item.id}/image`,
       title: (item.title as string | null)?.trim() || "360 photo",
     },
   };

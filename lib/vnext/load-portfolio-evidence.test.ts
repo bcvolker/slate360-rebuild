@@ -112,7 +112,8 @@ describe("loadPortfolioEvidence — drone is not a client-renderable representat
         { id: "sheet-1", project_id: "p1", thumbnail_s3_key: "orgs/x/plan-thumb.jpg", rasterized_key: null, image_s3_key: null },
       ],
       thermal_analysis_sessions: [{ id: "thermal-1", project_id: "p1", updated_at: "2026-01-03T00:00:00.000Z" }],
-      thermal_analysis_share_tokens: [{ session_id: "thermal-1", is_revoked: false }],
+      thermal_analysis_share_tokens: [{ session_id: "thermal-1", is_revoked: false, expires_at: null, layer_config: null }],
+      thermal_captures: [{ id: "tcap-1", session_id: "thermal-1", preview_path: "orgs/x/thermal/a.jpg", storage_path: null }],
     });
 
     const result = await loadPortfolioEvidence(admin, ["p1"]);
@@ -142,5 +143,64 @@ describe("loadPortfolioEvidence — drone is not a client-renderable representat
 
     expect(result.p1.representations).not.toContain("360");
     expect(result.p1.pano360Url).toBeNull();
+  });
+});
+
+describe("loadPortfolioEvidence — thermal availability matches Explore's actual renderability", () => {
+  const SESSION_ROW = { id: "thermal-1", project_id: "p1", updated_at: "2026-01-03T00:00:00.000Z" };
+  const CAPTURE_ROW = { id: "tcap-1", session_id: "thermal-1", preview_path: "orgs/x/thermal/a.jpg", storage_path: null };
+
+  it("does not flag thermal when the only share is revoked", async () => {
+    const admin = mockAdmin({
+      thermal_analysis_sessions: [SESSION_ROW],
+      thermal_analysis_share_tokens: [{ session_id: "thermal-1", is_revoked: true, expires_at: null, layer_config: null }],
+      thermal_captures: [CAPTURE_ROW],
+    });
+    const result = await loadPortfolioEvidence(admin, ["p1"]);
+    expect(result.p1.representations).not.toContain("thermal");
+  });
+
+  it("does not flag thermal when the only share is expired", async () => {
+    const admin = mockAdmin({
+      thermal_analysis_sessions: [SESSION_ROW],
+      thermal_analysis_share_tokens: [
+        { session_id: "thermal-1", is_revoked: false, expires_at: "2020-01-01T00:00:00.000Z", layer_config: null },
+      ],
+      thermal_captures: [CAPTURE_ROW],
+    });
+    const result = await loadPortfolioEvidence(admin, ["p1"]);
+    expect(result.p1.representations).not.toContain("thermal");
+  });
+
+  it("does not flag thermal for a published share with zero captures — the drift this correction fixes", async () => {
+    const admin = mockAdmin({
+      thermal_analysis_sessions: [SESSION_ROW],
+      thermal_analysis_share_tokens: [{ session_id: "thermal-1", is_revoked: false, expires_at: null, layer_config: null }],
+      thermal_captures: [],
+    });
+    const result = await loadPortfolioEvidence(admin, ["p1"]);
+    expect(result.p1.representations).not.toContain("thermal");
+  });
+
+  it("does not flag thermal when every capture is excluded by the share's layer_config", async () => {
+    const admin = mockAdmin({
+      thermal_analysis_sessions: [SESSION_ROW],
+      thermal_analysis_share_tokens: [
+        { session_id: "thermal-1", is_revoked: false, expires_at: null, layer_config: { capture_ids: ["not-this-one"] } },
+      ],
+      thermal_captures: [CAPTURE_ROW],
+    });
+    const result = await loadPortfolioEvidence(admin, ["p1"]);
+    expect(result.p1.representations).not.toContain("thermal");
+  });
+
+  it("flags thermal for a published share with at least one viewable capture", async () => {
+    const admin = mockAdmin({
+      thermal_analysis_sessions: [SESSION_ROW],
+      thermal_analysis_share_tokens: [{ session_id: "thermal-1", is_revoked: false, expires_at: null, layer_config: null }],
+      thermal_captures: [CAPTURE_ROW],
+    });
+    const result = await loadPortfolioEvidence(admin, ["p1"]);
+    expect(result.p1.representations).toContain("thermal");
   });
 });

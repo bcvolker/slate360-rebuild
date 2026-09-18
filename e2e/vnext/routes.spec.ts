@@ -42,6 +42,25 @@ test.describe("vNext route smoke", () => {
     });
   }
 
+  test("unauthenticated Explore deep link with rep/source/item/present preserves the full query in redirectTo", async ({
+    page,
+  }) => {
+    const health = attachRuntimeHealth(page);
+    const deepLink =
+      "/vnext/projects/11111111-1111-4111-8111-111111111111/explore?rep=plan&source=sheet-9&item=item-5&present=1";
+    await page.goto(deepLink, { waitUntil: "domcontentloaded" });
+    const url = new URL(page.url());
+    expect(url.pathname).toBe("/login");
+    const redirectTo = url.searchParams.get("redirectTo");
+    expect(redirectTo).toBe(
+      "/vnext/projects/11111111-1111-4111-8111-111111111111/explore?rep=plan&source=sheet-9&item=item-5&present=1",
+    );
+    // The redirect target must stay an internal /vnext/... path — never an absolute or external URL.
+    expect(redirectTo?.startsWith("/vnext/")).toBe(true);
+    expect(redirectTo).not.toContain("://");
+    health.assertClean();
+  });
+
   test("preview fixtures and production homes remain", async ({ page, request }) => {
     const health = attachRuntimeHealth(page);
     const client = await page.goto("/preview/vnext/client", { waitUntil: "domcontentloaded" });

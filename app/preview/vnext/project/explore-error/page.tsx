@@ -22,6 +22,7 @@ export default function PreviewVnextProjectExploreErrorPage() {
         data={PREVIEW_EXPLORE_ERROR}
         initialPresent={false}
         basePath="/preview/vnext/project/explore-error"
+        item={null}
       />
     </VnextClientShell>
   );

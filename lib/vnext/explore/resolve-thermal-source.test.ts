@@ -55,6 +55,47 @@ describe("resolveThermalSourceData", () => {
       thermal_analysis_share_tokens: [
         { session_id: "session-1", is_revoked: false, expires_at: "2020-01-01T00:00:00.000Z" },
       ],
+      thermal_captures: [{ id: "cap-1", session_id: "session-1", preview_path: "x.jpg", storage_path: null }],
+    });
+    expect(await resolveThermalSourceData(admin, "p1")).toBeNull();
+  });
+
+  it("returns null when the share is published but the session has zero captures", async () => {
+    const admin = mockAdmin({
+      thermal_analysis_sessions: [SESSION],
+      thermal_analysis_share_tokens: [
+        { session_id: "session-1", is_revoked: false, expires_at: null, layer_config: {} },
+      ],
+      thermal_captures: [],
+    });
+    expect(await resolveThermalSourceData(admin, "p1")).toBeNull();
+    expect(loadThermalShareViewerDataMock).not.toHaveBeenCalled();
+  });
+
+  it("returns null when every capture is excluded by the share's layer_config capture_ids", async () => {
+    const admin = mockAdmin({
+      thermal_analysis_sessions: [SESSION],
+      thermal_analysis_share_tokens: [
+        { session_id: "session-1", is_revoked: false, expires_at: null, layer_config: { capture_ids: ["not-this-one"] } },
+      ],
+      thermal_captures: [{ id: "cap-1", session_id: "session-1", preview_path: "x.jpg", storage_path: null }],
+    });
+    expect(await resolveThermalSourceData(admin, "p1")).toBeNull();
+    expect(loadThermalShareViewerDataMock).not.toHaveBeenCalled();
+  });
+
+  it("returns null when the resolved viewer data ends up with zero signable previews, even though the predicate said available", async () => {
+    loadThermalShareViewerDataMock.mockResolvedValueOnce({
+      sessionId: "session-1",
+      sessionName: "North wall",
+      captures: [{ id: "cap-1", filename: "a.jpg", previewUrl: null }],
+    });
+    const admin = mockAdmin({
+      thermal_analysis_sessions: [SESSION],
+      thermal_analysis_share_tokens: [
+        { session_id: "session-1", is_revoked: false, expires_at: null, layer_config: {} },
+      ],
+      thermal_captures: [{ id: "cap-1", session_id: "session-1", preview_path: "x.jpg", storage_path: null }],
     });
     expect(await resolveThermalSourceData(admin, "p1")).toBeNull();
   });
@@ -73,6 +114,7 @@ describe("resolveThermalSourceData", () => {
       thermal_analysis_share_tokens: [
         { session_id: "session-1", is_revoked: false, expires_at: null, branding_snapshot: { a: 1 }, layer_config: { b: 2 } },
       ],
+      thermal_captures: [{ id: "cap-1", session_id: "session-1", preview_path: "x.jpg", storage_path: null }],
     });
 
     const result = await resolveThermalSourceData(admin, "p1");

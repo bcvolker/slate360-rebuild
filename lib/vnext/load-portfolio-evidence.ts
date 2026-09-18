@@ -2,6 +2,7 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveTwinViewerKind } from "@/lib/digital-twin/viewer-format";
+import { isThermalSessionAvailable, type ThermalCaptureLike, type ThermalShareLike } from "./thermal-availability";
 import type { PortfolioEvidence } from "./portfolio-types";
 import { resolveRepresentations } from "./project-hero";
 
@@ -180,23 +181,56 @@ export async function loadPortfolioEvidence(
       .in("project_id", projectIds)
       .is("deleted_at", null),
   );
-  const publishedThermal = new Set<string>();
+  // Batched, not per-session: one shares query and one captures query for every project in this
+  // call, then the shared isThermalSessionAvailable predicate (lib/vnext/thermal-availability.ts)
+  // decides per session — the same predicate resolve-thermal-source.ts uses for Explore, so
+  // Overview and Explore cannot drift on what counts as "Thermal available" again.
+  let thermalShares: ThermalShareLike[] = [];
+  let thermalCaptures: ThermalCaptureLike[] = [];
   if (thermalSessions.length > 0) {
-    const shares = await rows<{ session_id: string; is_revoked: boolean }>(
+    const sessionIds = thermalSessions.map((row) => row.id);
+    const shareRows = await rows<{
+      session_id: string;
+      is_revoked: boolean;
+      expires_at: string | null;
+      layer_config: Record<string, unknown> | null;
+    }>(
       admin
         .from("thermal_analysis_share_tokens")
-        .select("session_id, is_revoked")
-        .in("session_id", thermalSessions.map((row) => row.id)),
+        .select("session_id, is_revoked, expires_at, layer_config")
+        .in("session_id", sessionIds),
     );
-    for (const share of shares) {
-      if (!share.is_revoked) publishedThermal.add(share.session_id);
-    }
+    thermalShares = shareRows.map((row) => ({
+      sessionId: row.session_id,
+      isRevoked: row.is_revoked,
+      expiresAt: row.expires_at,
+      layerConfig: row.layer_config,
+    }));
+
+    const captureRows = await rows<{
+      id: string;
+      session_id: string;
+      preview_path: string | null;
+      storage_path: string | null;
+    }>(
+      admin
+        .from("thermal_captures")
+        .select("id, session_id, preview_path, storage_path")
+        .in("session_id", sessionIds)
+        .is("deleted_at", null),
+    );
+    thermalCaptures = captureRows.map((row) => ({
+      id: row.id,
+      sessionId: row.session_id,
+      previewPath: row.preview_path,
+      storagePath: row.storage_path,
+    }));
   }
   for (const session of thermalSessions) {
     if (!session.project_id) continue;
     const evidence = ensure(byId, session.project_id);
     evidence.timestamps.push(session.updated_at);
-    if (publishedThermal.has(session.id)) addFlag(evidence, "thermal");
+    if (isThermalSessionAvailable(session.id, thermalShares, thermalCaptures)) addFlag(evidence, "thermal");
   }
 
   const result: Record<string, PortfolioEvidence> = {};

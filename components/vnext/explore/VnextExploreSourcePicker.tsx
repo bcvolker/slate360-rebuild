@@ -8,10 +8,19 @@ type Props = {
   sources: VnextExploreSourceSummary[];
   activeSourceId: string | null;
   present: boolean;
+  /** Opaque Slice 5 item context, preserved across source switches — see VnextExploreShell. */
+  item: string | null;
 };
 
 /** Only rendered when a representation has more than one selectable source (photo, sheet, visit). */
-export function VnextExploreSourcePicker({ basePath, representation, sources, activeSourceId, present }: Props) {
+export function VnextExploreSourcePicker({
+  basePath,
+  representation,
+  sources,
+  activeSourceId,
+  present,
+  item,
+}: Props) {
   if (sources.length <= 1) return null;
 
   return (
@@ -26,10 +35,10 @@ export function VnextExploreSourcePicker({ basePath, representation, sources, ac
         return (
           <Link
             key={source.id}
-            href={vnextExploreHref(basePath, { rep: representation, source: source.id, present })}
+            href={vnextExploreHref(basePath, { rep: representation, source: source.id, item, present })}
             aria-current={isActive ? "true" : undefined}
             data-vnext-source-option={source.id}
-            className={`inline-flex min-h-[2.25rem] items-center gap-1.5 border px-3 text-[length:var(--vnext-meta)] no-underline ${
+            className={`inline-flex min-h-[var(--vnext-touch)] items-center gap-1.5 border px-3 text-[length:var(--vnext-meta)] no-underline ${
               isActive
                 ? "border-[var(--vnext-accent)] bg-[var(--vnext-accent-soft)] text-[var(--vnext-ink)]"
                 : "border-[var(--vnext-line)] text-[var(--vnext-ink-muted)]"

@@ -8,13 +8,15 @@ type Props = {
   available: VnextExploreRepresentation[];
   active: VnextExploreRepresentation | null;
   present: boolean;
+  /** Opaque Slice 5 item context, preserved across representation switches — see VnextExploreShell. */
+  item: string | null;
 };
 
 /**
  * A restrained row of choices, not an app-launcher grid — only representations with proven,
  * renderable data ever appear (no Drone, no "Coming soon").
  */
-export function VnextRepresentationSelector({ basePath, available, active, present }: Props) {
+export function VnextRepresentationSelector({ basePath, available, active, present, item }: Props) {
   if (available.length <= 1) return null;
 
   return (
@@ -28,7 +30,7 @@ export function VnextRepresentationSelector({ basePath, available, active, prese
         return (
           <Link
             key={rep}
-            href={vnextExploreHref(basePath, { rep, source: null, present })}
+            href={vnextExploreHref(basePath, { rep, source: null, item, present })}
             aria-current={isActive ? "true" : undefined}
             data-vnext-rep-option={rep}
             className={`flex min-h-[var(--vnext-touch)] items-center border-b-2 px-4 text-[length:var(--vnext-body)] no-underline ${

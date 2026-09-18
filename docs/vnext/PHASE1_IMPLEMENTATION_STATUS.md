@@ -34,7 +34,7 @@ The feature branch is **pushed**. It is not an unpushed `origin/main` clone.
 | 1 | vNext foundation + shells | **APPROVED** |
 | 2 | Client project portfolio | **APPROVED** |
 | 3 | Client project overview | **IMPLEMENTED (visually corrected) — awaiting approval** |
-| 4 | Unified Explore viewer | **IMPLEMENTED — awaiting approval** |
+| 4 | Unified Explore viewer | **IMPLEMENTED + CORRECTED — awaiting approval** |
 | 5 | Items + spatial linking | Not started |
 | 6 | Documents + project search | Not started |
 | 7 | History + Compare | Not started |
@@ -482,7 +482,116 @@ reconstruction changes were built — all out of scope for this slice.
 
 ---
 
+## Slice 4 correction (2026-09-18)
+
+Brian returned Slice 4 **REVISE BEFORE NEXT SLICE**. The overall architecture (shell, adapters,
+representation structure, Drone exclusion, query-driven selection, source picker, presentation
+skeleton, fullscreen hook, Plan viewer) was accepted and preserved unchanged; the following were
+fixed.
+
+**vNext project access now protects Explore media too (the primary blocker).** Explore itself was
+always entering through `getScopedProjectForUser` (org OR creator OR project_members), but three
+media URLs it generated pointed at **legacy** routes protected by a *different, narrower* contract:
+`withAppAuth("punchwalk")` (a standalone-app entitlement Explore has nothing to do with) plus a
+single-org `eq("org_id", orgId)` match. A `project_members` collaborator whose org membership
+doesn't match the project's own org — a legitimate vNext access path — could therefore be refused
+the very media Explore had already decided they could view. Three new vNext-scoped routes replace
+them, all authorized via `withProjectAuth` (the same `getScopedProjectForUser` contract) and then
+re-verifying the requested child row actually belongs to that already-authorized project:
+- `/api/vnext/projects/[projectId]/items/[itemId]/image` (360 photos)
+- `/api/vnext/projects/[projectId]/plan-sheets/[sheetId]/image` (plan sheets)
+- `/api/vnext/projects/[projectId]/twin-models/[modelId]/splat` (Reality same-origin splat proxy —
+  Geometry's presigned GLB URL was already resolved server-side after project-scoped access and
+  needed no route change)
+`lib/vnext/explore/resolve-pano-source.ts` / `resolve-plan-source.ts` / `resolve-twin-source.ts` now
+build URLs against these instead. `lib/projects/access.ts`'s `getScopedProjectForUser` had **zero**
+prior test coverage despite being the load-bearing contract for this and `withProjectAuth`, `withAuth`
+callers app-wide — now covered directly (`lib/vnext/explore/scoped-project-access.test.ts`) plus
+route-level tests proving a cross-org `project_members` collaborator succeeds, a media id belonging
+to a different project is refused (the query is provably scoped by `project_id`, not just `id`), and
+neither route has any `withAppAuth`/`"punchwalk"` dependency
+(`lib/vnext/explore/vnext-media-image-routes.test.ts`, `vnext-twin-splat-route.test.ts`). Legacy
+`/api/site-walk/items/[id]/image`, `/api/site-walk/plan-sheets/[id]/image`, and
+`/api/digital-twin/models/[modelId]/splat` are untouched — nothing about the standalone Punchwalk or
+Digital Twin apps' own entitlement gating was weakened; Explore simply no longer routes through it.
+**Documented rule:** vNext project access and vNext media access must always use the same
+scoped-project contract; a legacy standalone-app entitlement gate must never block viewing of an
+already-authorized vNext project record. (Overview's hero-image URLs on `/vnext/projects/[id]` still
+resolve through the same legacy routes and carry the same latent gap — out of scope for this
+correction per "preserve Overview design," flagged for a future pass.)
+
+**Thermal availability/renderability drift fixed.** `loadPortfolioEvidence` was flagging Thermal
+available whenever any non-revoked share existed — ignoring `expires_at` entirely and never checking
+whether any capture actually remained viewable under the share's `layer_config`. A published share
+with zero viewable captures (all excluded by `capture_ids`, or none with a usable
+`preview_path`/`storage_path`) was wrongly reported available. `resolveThermalSourceData` had the
+expiry check but the same zero-captures gap. Both now defer to one shared predicate,
+`lib/vnext/thermal-availability.ts` (`isThermalSessionAvailable`, 15 direct unit tests): a session is
+available only when it has a currently published (non-revoked, non-expired) share **and** at least
+one usable capture survives that share's layer_config. `load-portfolio-evidence.ts` now batch-fetches
+`thermal_captures` once per call (not per-session) to stay N+1-safe at portfolio scale.
+`resolveThermalSourceData` additionally guards its final output: if the resolved viewer data somehow
+still ends up with zero signable previews, it returns `null` rather than an empty-gallery "available"
+representation.
+
+**`?item=` (Slice 5 context) now survives the whole Explore URL lifecycle.** `vnextExploreHref`
+(`lib/vnext/explore/build-explore-href.ts`) gained an optional, purely opaque `item` param, threaded
+through `VnextExploreShell`/`VnextRepresentationSelector`/`VnextExploreSourcePicker` and both the
+production and preview pages. It is never read, looked up, or rendered as an overlay in this slice —
+only carried through representation switches, source switches, and presentation-mode enter/exit so a
+future Slice 5 can give it meaning without another URL-contract change.
+
+**Full Explore deep link now survives login.** `/vnext/projects/[id]/explore`'s
+`requireVnextSession` call previously used the bare pathname as `redirectTo`, dropping
+`rep`/`source`/`item`/`present` for an unauthenticated visitor. It now builds `redirectTo` via
+`vnextExploreHref` itself — always exactly the authenticated Explore path plus a
+`URLSearchParams`-encoded query, structurally incapable of becoming an external or open-redirect
+target (covered by a new `routes.spec.ts` test asserting the exact preserved query and that the
+result starts with `/vnext/` and contains no `://`).
+
+**Source picker touch targets** raised from `min-h-[2.25rem]` (36px) to `var(--vnext-touch)` (44px),
+covered by `assertNamedTouchTargets` in the 360/source-picker e2e test.
+
+**Real automated fullscreen coverage** added (`explore.spec.ts`): a narrow, deterministic stub of
+`requestFullscreen`/`exitFullscreen`/`fullscreenElement`/`fullscreenchange` (real Fullscreen API
+permission/support is unreliable in headless CI) exercises `use-vnext-fullscreen.ts`'s actual
+integration contract — enter, exit, aria state, no stale presentation/body-scroll side effects.
+
+**Browser-side media failure now has a real, shared treatment.** A new
+`VnextViewerMediaError` ("This view couldn't be loaded." + Retry) is wired into: Plan and Thermal
+(thin vNext viewers, explicit `onError` on the `<img>`; Plan's retry cache-busts its own re-signing
+route URL, a genuine refetch), 360 (`TourPanoViewer` gained an optional, additive `onError` prop
+wired to the library's own `panorama-error` event), and Geometry (`ModelViewerClient`/`<model-viewer>`
+had no error handling at all — caught via a capture-phase listener in `VnextRealityViewer` since the
+native `error` event doesn't bubble; retry is a full reload since the resolved URL is a presigned
+link, not a re-signing route). Reality's splat path already had mature error/retry handling
+(`SplatViewer`'s `ErrorCard`) and was left untouched. Covered by a new e2e test that aborts the Plan
+image request, asserts the shared failure UI appears, then proves Retry actually re-fetches.
+
+**Glassmorphism removed** from `VnextExploreViewerControls` (`backdrop-blur` dropped, opacity raised
+so the dark control surface stays readable without it) — the vNext design rules explicitly prohibit
+glassmorphism.
+
+Files changed: 3 new API routes (`app/api/vnext/projects/[projectId]/{items/[itemId],plan-sheets/[sheetId]}/image`,
+`twin-models/[modelId]/splat`), `lib/vnext/thermal-availability.ts` (new, shared predicate),
+`lib/vnext/explore/{resolve-pano-source,resolve-plan-source,resolve-twin-source,resolve-thermal-source}.ts`,
+`lib/vnext/load-portfolio-evidence.ts`, `lib/vnext/explore/build-explore-href.ts`,
+`components/vnext/explore/{VnextExploreShell,VnextRepresentationSelector,VnextExploreSourcePicker,VnextExploreViewerControls,VnextRealityViewer,VnextPanoViewer,VnextPlanViewer,VnextThermalViewer}.tsx`,
+`components/vnext/explore/VnextViewerMediaError.tsx` (new), `components/tours/TourPanoViewer.tsx`
+(additive `onError` prop), `app/vnext/(client)/projects/[projectId]/explore/page.tsx`,
+`app/preview/vnext/project/explore*/page.tsx`, plus new/updated tests throughout
+`lib/vnext/explore/*.test.ts`, `lib/vnext/thermal-availability.test.ts`,
+`lib/vnext/explore/scoped-project-access.test.ts`, `e2e/vnext/explore.spec.ts`,
+`e2e/vnext/routes.spec.ts`.
+
+No Slice 5 functionality, Items workflow, History/Compare, camera-path editor, Drone viewer,
+billing/subscription UI, middleware change, or reconstruction/model-processing change was introduced.
+Legacy standalone-app (Punchwalk, Digital Twin) entitlement gating is untouched everywhere outside
+Explore's own media resolution.
+
+---
+
 ## Handoff
 
-Slice 4 (unified Explore viewer) completion report is returned in the assistant response. Do not
-begin Slice 5 until Brian explicitly approves this slice.
+Slice 4 (unified Explore viewer, corrected) completion report is returned in the assistant response.
+Do not begin Slice 5 until Brian explicitly approves this corrected slice.

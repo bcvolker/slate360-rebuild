@@ -22,6 +22,7 @@ export default function PreviewVnextProjectExplorePresentPage() {
         data={PREVIEW_EXPLORE_REALITY}
         initialPresent={true}
         basePath="/preview/vnext/project/explore-present"
+        item={null}
       />
     </VnextClientShell>
   );

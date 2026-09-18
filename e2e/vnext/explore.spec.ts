@@ -35,7 +35,9 @@ test.describe("vNext Explore", () => {
 
   test("browser Back and Forward move between representations", async ({ page }) => {
     const health = attachRuntimeHealth(page);
-    await page.goto(EXPLORE, { waitUntil: "domcontentloaded" });
+    // networkidle: goBack/goForward are real browser-history navigations, same hydration-timing
+    // hazard already documented on the presentation-mode tests above.
+    await page.goto(EXPLORE, { waitUntil: "networkidle" });
     await page.locator("[data-vnext-rep-option='360']").click();
     await expect(page.locator("[data-vnext-viewer-stage='360']")).toBeVisible();
 
@@ -48,8 +50,8 @@ test.describe("vNext Explore", () => {
 
   test("refresh preserves the requested representation", async ({ page }) => {
     const health = attachRuntimeHealth(page);
-    await page.goto(`${EXPLORE}?rep=thermal`, { waitUntil: "domcontentloaded" });
-    await page.reload({ waitUntil: "domcontentloaded" });
+    await page.goto(`${EXPLORE}?rep=thermal`, { waitUntil: "networkidle" });
+    await page.reload({ waitUntil: "networkidle" });
     await expect(page.locator("[data-vnext-rep-option='thermal']")).toHaveAttribute("aria-current", "true");
     health.assertClean();
   });
@@ -72,13 +74,41 @@ test.describe("vNext Explore", () => {
     health.assertClean();
   });
 
-  test("source picker switches which 360 photo is shown and updates the URL", async ({ page }) => {
+  test("source picker switches which 360 photo is shown, updates the URL, and meets the 44px touch minimum", async ({
+    page,
+  }) => {
     const health = attachRuntimeHealth(page);
     await page.goto(`${EXPLORE}?rep=360`, { waitUntil: "domcontentloaded" });
     await expect(page.locator("[data-vnext-source-option='pano-1']")).toHaveAttribute("aria-current", "true");
+    await assertNamedTouchTargets(page, "[data-vnext-source-picker]");
     await page.locator("[data-vnext-source-option='pano-2']").click();
     await expect(page).toHaveURL(/rep=360.*source=pano-2|source=pano-2.*rep=360/);
     await expect(page.locator("[data-vnext-source-option='pano-2']")).toHaveAttribute("aria-current", "true");
+    health.assertClean();
+  });
+
+  test("?item= survives representation switching, source switching, and presentation mode", async ({ page }) => {
+    const health = attachRuntimeHealth(page);
+    await page.goto(`${EXPLORE}?rep=360&item=item-42`, { waitUntil: "networkidle" });
+    await expect(page).toHaveURL(/item=item-42/);
+
+    await page.locator("[data-vnext-source-option='pano-2']").click();
+    await expect(page).toHaveURL(/item=item-42/);
+    await expect(page).toHaveURL(/source=pano-2/);
+
+    await page.locator("[data-vnext-rep-option='plan']").click();
+    await expect(page).toHaveURL(/item=item-42/);
+
+    await page.getByRole("button", { name: "Present" }).click();
+    await expect(page).toHaveURL(/item=item-42/);
+    await expect(page).toHaveURL(/present=1/);
+
+    await page.getByRole("button", { name: "Exit presentation" }).click();
+    await expect(page).toHaveURL(/item=item-42/);
+    await expect(page).not.toHaveURL(/present=1/);
+
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(page).toHaveURL(/item=item-42/);
     health.assertClean();
   });
 
@@ -125,6 +155,72 @@ test.describe("vNext Explore", () => {
     // CSS-based toBeVisible() would report it visible regardless — `inert` is the real, testable proxy
     // for "not reachable by keyboard/screen readers while presenting."
     await expect(page.getByRole("navigation", { name: "Project" })).toHaveAttribute("inert", "");
+    health.assertClean();
+  });
+
+  test("fullscreen enter/exit exercises our integration contract cleanly", async ({ page }) => {
+    const health = attachRuntimeHealth(page);
+    // A narrow, deterministic stub of the real Fullscreen API — real browser support for
+    // element.requestFullscreen() is unreliable/permission-gated in headless CI. This still
+    // exercises OUR actual code path (use-vnext-fullscreen.ts calls requestFullscreen/
+    // exitFullscreen and listens for fullscreenchange), just not the browser's native
+    // implementation of fullscreen itself.
+    await page.addInitScript(() => {
+      let fsElement: Element | null = null;
+      Object.defineProperty(document, "fullscreenElement", {
+        get: () => fsElement,
+        configurable: true,
+      });
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (Element.prototype as any).requestFullscreen = function (this: Element) {
+        fsElement = this;
+        document.dispatchEvent(new Event("fullscreenchange"));
+        return Promise.resolve();
+      };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (document as any).exitFullscreen = function () {
+        fsElement = null;
+        document.dispatchEvent(new Event("fullscreenchange"));
+        return Promise.resolve();
+      };
+    });
+
+    await page.goto(EXPLORE, { waitUntil: "networkidle" });
+    const toggle = page.locator("[data-vnext-fullscreen-toggle]");
+    await expect(toggle).toHaveAttribute("aria-label", "Enter fullscreen");
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-pressed", "true");
+    await expect(toggle).toHaveAttribute("aria-label", "Exit fullscreen");
+    expect(await page.evaluate(() => Boolean(document.fullscreenElement))).toBe(true);
+
+    await toggle.click();
+    await expect(toggle).toHaveAttribute("aria-pressed", "false");
+    await expect(toggle).toHaveAttribute("aria-label", "Enter fullscreen");
+    expect(await page.evaluate(() => Boolean(document.fullscreenElement))).toBe(false);
+
+    // No stale side effects: presentation mode is untouched, body isn't scroll-locked.
+    await expect(page.locator("[data-vnext-explore-present='false']")).toBeVisible();
+    expect(await page.evaluate(() => document.body.style.overflow)).not.toBe("hidden");
+    health.assertClean();
+  });
+
+  test("a Plan viewer media load failure shows the shared failure UI with a working Retry", async ({ page }) => {
+    const health = attachRuntimeHealth(page);
+    // Force the real <img> to fail by intercepting its request, proving the browser-side failure
+    // path (not just the server-resolution error state already covered by explore-error). The route
+    // must be registered BEFORE the first navigation — a page.reload() can be served from the
+    // browser's disk cache and never hit this interception at all.
+    await page.route("**/vnext-preview/plan.svg", (route) => route.abort());
+    await page.goto(`${EXPLORE}?rep=plan`, { waitUntil: "networkidle" });
+    await expect(page.locator("[data-vnext-viewer-media-error]")).toBeVisible();
+    await expect(page.getByText("This view couldn't be loaded.")).toBeVisible();
+
+    await page.unroute("**/vnext-preview/plan.svg");
+    await page.getByRole("button", { name: "Retry" }).click();
+    await expect(page.locator("[data-vnext-viewer-media-error]")).toHaveCount(0);
+    await expect(page.locator("[data-vnext-plan-canvas]")).toBeVisible();
     health.assertClean();
   });
 

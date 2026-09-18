@@ -22,9 +22,13 @@ type Props = {
    *  every generated link/replace target is built against it, never a hardcoded production path,
    *  so the exact same shell can run unauthenticated in the e2e preview sandbox. */
   basePath: string;
+  /** Opaque Slice 5 (Items) URL context (?item=). Never read, looked up, or rendered in this
+   *  slice — only carried through every generated link so it survives representation/source
+   *  switches and presentation-mode toggling, ready for Slice 5 to give it meaning. */
+  item: string | null;
 };
 
-export function VnextExploreShell({ data, initialPresent, basePath }: Props) {
+export function VnextExploreShell({ data, initialPresent, basePath, item }: Props) {
   const router = useRouter();
   const [present, setPresent] = useState(initialPresent);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -43,11 +47,12 @@ export function VnextExploreShell({ data, initialPresent, basePath }: Props) {
       vnextExploreHref(basePath, {
         rep: data.activeRepresentation,
         source: data.activeSourceId,
+        item,
         present: next,
       }),
       { scroll: false },
     );
-  }, [present, router, basePath, data.activeRepresentation, data.activeSourceId]);
+  }, [present, router, basePath, data.activeRepresentation, data.activeSourceId, item]);
 
   useEffect(() => {
     if (!present) return;
@@ -125,6 +130,7 @@ export function VnextExploreShell({ data, initialPresent, basePath }: Props) {
               available={data.availableRepresentations}
               active={data.activeRepresentation}
               present={present}
+              item={item}
             />
           ) : null}
 
@@ -135,6 +141,7 @@ export function VnextExploreShell({ data, initialPresent, basePath }: Props) {
               sources={activeSources}
               activeSourceId={data.activeSourceId}
               present={present}
+              item={item}
             />
           ) : null}
 
