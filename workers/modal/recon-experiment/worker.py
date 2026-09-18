@@ -532,6 +532,47 @@ def train_arm_exp5(payload: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+TRAIN_TIMEOUT_EXP6 = 200 * 60  # K6 runs longer (up to 20k+ steps); generous headroom
+
+
+@app.function(
+    image=gpu_image,
+    gpu=GPU_TRAIN,
+    timeout=TRAIN_TIMEOUT_EXP6,
+    memory=MEMORY_MIB,
+    cpu=CPU,
+    volumes={"/vol": ckpt_vol},
+    secrets=[worker_secret] if worker_secret is not None else [],
+    retries=0,
+)
+def train_arm_exp6(payload: dict[str, Any]) -> dict[str, Any]:
+    """Experiment 6: one arm, L40S, max_num_iterations (+ K6's late scale-only prune) is
+    the treatment. Reuses the SAME panorama-grouped-safe pool Experiment 5 staged -- no
+    restaging (see train_arm_exp6.py / exp6.py)."""
+    os.environ.setdefault("OPEN3D_CPU_RENDERING", "true")
+    sys.path.insert(0, "/root/recon-experiment")
+    sys.path.insert(0, "/root/splat-lab")
+    from train_arm_exp6 import run_arm
+
+    vol = Path("/vol")
+    full_views = _ensure_inputs(vol)
+    grouped_views = _ensure_exp5_grouped_inputs(vol)
+    arm = payload["arm"]
+    recipe = payload["recipe"]
+    work = Path("/tmp") / "exp6" / arm["name"]
+    if work.exists():
+        shutil.rmtree(work)
+    poses = Path("/root/recon-experiment") / "visual-poses.json"
+    result = run_arm(work=work, grouped_data_dir=grouped_views, full_transforms_path=full_views / "transforms.json",
+                      poses=poses, arm=arm, recipe=recipe)
+    durable = vol / "experiments" / "room213-exp6" / arm["name"]
+    if durable.exists():
+        shutil.rmtree(durable)
+    shutil.copytree(work, durable)
+    ckpt_vol.commit()
+    return result
+
+
 @app.function(
     image=gpu_image,
     gpu=GPU_TRAIN,
@@ -650,6 +691,30 @@ def exp5_evaluator_sanity_check() -> str:
     return buf.getvalue()
 
 
+@app.function(
+    image=gpu_image,
+    gpu=GPU_TRAIN,
+    timeout=15 * 60,
+    memory=MEMORY_MIB,
+    cpu=CPU,
+    volumes={"/vol": ckpt_vol},
+    retries=0,
+)
+def exp6_scale_evolution() -> str:
+    """Experiment 6 preflight: scale-tail evolution across H5's kept checkpoints,
+    read-only, no training."""
+    sys.path.insert(0, "/root/recon-experiment")
+    sys.path.insert(0, "/root/splat-lab")
+    import io
+    import contextlib
+
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        import exp6_scale_evolution as m
+        m.main()
+    return buf.getvalue()
+
+
 def _committed_recipe(name: str) -> dict[str, Any]:
     """Recipes live in the repo (qa/*.json) so a fresh clone can launch; /experiments is gitignored."""
     for candidate in (ROOT / "qa" / name, ROOT / "experiments" / "room213-densification" / "frozen-recipe.json"):
@@ -717,6 +782,9 @@ def main(phase: str = "exp3"):
             indent=2, default=str,
         ))
         return
+    if phase == "exp6-scale-evolution":
+        print(exp6_scale_evolution.remote())
+        return
     if phase == "exp5-sanity-check":
         print(exp5_evaluator_sanity_check.remote())
         return
@@ -749,8 +817,34 @@ def main(phase: str = "exp3"):
             indent=2, default=str,
         ))
         return
+    if phase == "exp6":
+        import exp6
+
+        doc = _committed_recipe("exp5-frozen-recipe.json")  # same grouped-safe dataset identity as Exp5
+        recipe = doc["recipe"]
+        diff = exp6.preflight_diff(
+            exp6.resolved_arm_config(exp6.ARM_J6, recipe), exp6.resolved_arm_config(exp6.ARM_K6, recipe)
+        )
+        if not diff["ok"]:
+            raise SystemExit(f"PREFLIGHT STOP: arms differ unexpectedly in {diff['differing_keys']}")
+        print("preflight ok; treatment fields:", diff["expected_differing_keys"], "recipe_hash:", doc["recipe_hash"])
+        print("staging frozen views", stage_inputs.remote())
+        j6 = train_arm_exp6.spawn({"arm": exp6.ARM_J6, "recipe": recipe})
+        k6 = train_arm_exp6.spawn({"arm": exp6.ARM_K6, "recipe": recipe})
+        results6: dict[str, Any] = {}
+        for name, handle in (("arm_j6", j6), ("arm_k6", k6)):
+            try:
+                results6[name] = handle.get()
+            except Exception as exc:  # noqa: BLE001
+                results6[name] = {"status": "failed", "error": str(exc)}
+        print(json.dumps(
+            {**results6, "status": "needs_review", "HUMAN_VISUAL_VERDICT": "UNREVIEWED"},
+            indent=2, default=str,
+        ))
+        return
     if phase != "exp3":
         raise SystemExit("phase must be exp2, exp3, exp4, exp4-results, exp5, exp5-grouped-results, "
+                          "exp6, exp6-scale-evolution, "
                           "verify, verify-exp3-inputs, or haze-diagnostic")
     import exp3
 
