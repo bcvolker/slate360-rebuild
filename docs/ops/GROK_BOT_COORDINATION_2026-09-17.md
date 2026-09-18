@@ -36,7 +36,7 @@ While Exp 2 continues, Grok Bot is researching in parallel (docs / literature on
 - gsplat 1.5.3 opacity reset
 - Densify / cull practices
 
-This research is a second-opinion track. It does not change live experiment arms.
+This research is a second-opinion track. It does not change live experiment arms. Curated brief: `docs/ops/RESEARCH_SPLATFACTO_GSPLAT_2026-09-17.md`.
 
 ---
 
