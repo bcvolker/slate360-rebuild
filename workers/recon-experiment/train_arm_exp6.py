@@ -92,6 +92,10 @@ def run_arm(*, work: Path, grouped_data_dir: Path, full_transforms_path: Path, p
         "EXP3_MAX_LIVE_GAUSSIANS": str(exp3.MAX_LIVE_GAUSSIANS),
         "SPLAT_LAB_WRAP_STATUS_PATH": str(work / "wrap-status.json"),
     })
+    # Matched, read-only scale/population snapshots -- identical for BOTH arms, set
+    # unconditionally. Instrumentation, not a treatment; see exp6_instrumentation.py and the
+    # smoke test proving this path is behavior-neutral (exp6_instrumentation_smoke_test.py).
+    env["SPLAT_LAB_EXP6_SCALE_TRACK_STEPS"] = ",".join(str(s) for s in resolved["scale_track_steps"])
     if arm.get("late_prune_step") is not None:
         env["SPLAT_LAB_EXP6_LATE_PRUNE_STEP"] = str(int(arm["late_prune_step"]))
         env["SPLAT_LAB_EXP6_LATE_PRUNE_THRESH"] = str(float(resolved["late_prune_threshold"]))
@@ -100,17 +104,19 @@ def run_arm(*, work: Path, grouped_data_dir: Path, full_transforms_path: Path, p
     (work / "gaussian-count.json").write_text(json.dumps(train.get("history") or [], indent=2) + "\n")
     (work / "refine-log.json").write_text(json.dumps(train["markers"], indent=2) + "\n")
 
-    late_prune_record = None
+    scale_snapshots: list[dict[str, Any]] = []
     train_log = work / "ns-train.log"
     if train_log.is_file():
         for line in train_log.read_text(encoding="utf-8", errors="replace").splitlines():
-            if line.startswith("EXP6_LATE_PRUNE "):
-                late_prune_record = json.loads(line[len("EXP6_LATE_PRUNE "):])
+            if line.startswith("EXP6_SCALE_SNAPSHOT "):
+                scale_snapshots.append(json.loads(line[len("EXP6_SCALE_SNAPSHOT "):]))
+    (work / "scale-snapshots.json").write_text(json.dumps(scale_snapshots, indent=2) + "\n")
+    late_prune_record = next((s for s in scale_snapshots if s.get("phase") == "post_prune"), None)
     (work / "late-prune-record.json").write_text(json.dumps(late_prune_record, indent=2) + "\n")
     if arm.get("late_prune_step") is not None and late_prune_record is None:
-        raise RuntimeError("EXP6: K6 was configured with a late_prune_step but no "
-                            "EXP6_LATE_PRUNE marker was found in the training log -- the "
-                            "patch did not fire; refusing to treat this run as valid")
+        raise RuntimeError("EXP6: L6 was configured with a late_prune_step but no "
+                            "EXP6_SCALE_SNAPSHOT post_prune record was found in the training "
+                            "log -- the patch did not fire; refusing to treat this run as valid")
 
     patch_path = work / "exp3-strategy-patch.json"
     patch = json.loads(patch_path.read_text()) if patch_path.is_file() else None
@@ -165,6 +171,7 @@ def run_arm(*, work: Path, grouped_data_dir: Path, full_transforms_path: Path, p
         "strategy_patch": patch,
         "wrap_status": wrap,
         "late_prune_record": late_prune_record,
+        "scale_snapshots": scale_snapshots,
         "train": {k: train[k] for k in ("exit_code", "elapsed_s", "step", "gaussians", "abort", "cost_usd")},
         "kept_checkpoint_steps": kept_steps,
         "eval_nerfstudio_internal_split": evals,
@@ -187,6 +194,7 @@ def run_arm(*, work: Path, grouped_data_dir: Path, full_transforms_path: Path, p
         "markers": {"patch_applied": patch_ok, "accumulators_cleared": train["markers"].get("cleared"),
                     "guard": train["markers"].get("guard"), "refine_events": len(train["markers"].get("refine") or [])},
         "late_prune_record": late_prune_record,
+        "scale_snapshots": scale_snapshots,
         "kept_checkpoint_steps": kept_steps,
         "eval_nerfstudio_internal_split": evals,
         "opacity_stats": opacity,

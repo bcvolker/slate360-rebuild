@@ -715,6 +715,31 @@ def exp6_scale_evolution() -> str:
     return buf.getvalue()
 
 
+@app.function(
+    image=gpu_image,
+    gpu=GPU_TRAIN,
+    timeout=15 * 60,
+    memory=MEMORY_MIB,
+    cpu=CPU,
+    volumes={"/vol": ckpt_vol},
+    retries=0,
+)
+def exp6_instrumentation_smoke_test() -> str:
+    """Pre-launch verification for Experiment 6: two tiny (50-step) real training runs,
+    with and without the track-only instrumentation, confirming it does not change
+    training behavior. Read-only against the frozen dataset; not part of the deliverable."""
+    sys.path.insert(0, "/root/recon-experiment")
+    sys.path.insert(0, "/root/splat-lab")
+    import io
+    import contextlib
+
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        import exp6_instrumentation_smoke_test as m
+        m.main()
+    return buf.getvalue()
+
+
 def _committed_recipe(name: str) -> dict[str, Any]:
     """Recipes live in the repo (qa/*.json) so a fresh clone can launch; /experiments is gitignored."""
     for candidate in (ROOT / "qa" / name, ROOT / "experiments" / "room213-densification" / "frozen-recipe.json"):
@@ -781,6 +806,9 @@ def main(phase: str = "exp3"):
             {**results4, "status": "needs_review", "HUMAN_VISUAL_VERDICT": "UNREVIEWED"},
             indent=2, default=str,
         ))
+        return
+    if phase == "exp6-instrumentation-smoke-test":
+        print(exp6_instrumentation_smoke_test.remote())
         return
     if phase == "exp6-scale-evolution":
         print(exp6_scale_evolution.remote())

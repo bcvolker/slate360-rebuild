@@ -50,6 +50,10 @@ LATE_PRUNE_STEP = 16_000                      # the standard steps_per_save=500 
                                                # checkpoint-ordering proof this relies on
 LATE_PRUNE_THRESHOLD = 0.08                   # = H5's own cull_scale_thresh; not a new number
 STEPS_PER_SAVE = 500                          # unchanged from H5; hits 16000/16500/.../19500
+SCALE_TRACK_STEPS = (16_000, 18_000, TOTAL_STEPS - 1)  # matched, read-only snapshot steps for
+                                               # BOTH arms -- instrumentation, not a treatment;
+                                               # empirically verified behavior-neutral (see
+                                               # exp6_instrumentation_smoke_test.py)
 
 ARM_K6 = {"name": "ROOM213_K6_EXTENDED_CONTROL", "max_num_iterations": TOTAL_STEPS, "late_prune_step": None}
 ARM_L6 = {"name": "ROOM213_L6_EXTENDED_SCALE_PRUNE", "max_num_iterations": TOTAL_STEPS, "late_prune_step": LATE_PRUNE_STEP}
@@ -78,6 +82,9 @@ def resolved_arm_config(arm: dict[str, Any], recipe: dict[str, Any] | None = Non
         "SPLAT_LAB_EXP6_LATE_PRUNE_STEP; refine_stop_iter/stop_screen_size_at are never read "
         "or modified"
     )
+    # Fixed, identical for BOTH arms -- read-only scale/population snapshots, not a
+    # behavioral difference. See exp6_instrumentation.py.
+    cfg["scale_track_steps"] = list(SCALE_TRACK_STEPS)
     return cfg
 
 
@@ -120,7 +127,8 @@ def informational_diff_h5_vs_k6(cfg_h5: dict[str, Any], cfg_k6: dict[str, Any]) 
     # Fields expected to differ purely because Experiment 6's schema adds concepts H5 never
     # had (late-prune bookkeeping) -- not a behavioral difference, since late_prune_step is
     # None for K6 too. Reported separately from the real behavioral difference (step count).
-    schema_only = {"late_prune_step", "late_prune_threshold", "late_prune_mechanism", "steps_per_save"}
+    schema_only = {"late_prune_step", "late_prune_threshold", "late_prune_mechanism",
+                   "steps_per_save", "scale_track_steps"}
     behavioral = [k for k in differing if k not in schema_only]
     return {
         "differing_keys": differing,

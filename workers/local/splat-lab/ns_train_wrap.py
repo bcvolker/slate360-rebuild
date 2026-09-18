@@ -93,17 +93,21 @@ def _apply_exp3_patch_if_requested() -> None:
 _apply_exp3_patch_if_requested()
 
 
-def _apply_exp6_late_prune_if_requested() -> None:
-    if not os.environ.get("SPLAT_LAB_EXP6_LATE_PRUNE_STEP", "").strip():
+def _apply_exp6_instrumentation_if_requested() -> None:
+    import os
+    from pathlib import Path
+
+    if not (os.environ.get("SPLAT_LAB_EXP6_LATE_PRUNE_STEP", "").strip()
+            or os.environ.get("SPLAT_LAB_EXP6_SCALE_TRACK_STEPS", "").strip()):
         return
-    here = Path(__file__).resolve().parent
+    here = Path(__file__).resolve()
     for candidate in (Path("/root/recon-experiment"), here.parents[2] / "recon-experiment"):
-        if (candidate / "exp6_late_prune_patch.py").is_file() and str(candidate) not in sys.path:
+        if (candidate / "exp6_instrumentation.py").is_file() and str(candidate) not in sys.path:
             sys.path.insert(0, str(candidate))
-    import exp6_late_prune_patch  # noqa: F401 -- applies itself on import, see module docstring
+    import exp6_instrumentation  # noqa: F401 -- applies itself on import, see module docstring
 
 
-_apply_exp6_late_prune_if_requested()
+_apply_exp6_instrumentation_if_requested()
 
 from nerfstudio.scripts.train import entrypoint  # noqa: E402
 
