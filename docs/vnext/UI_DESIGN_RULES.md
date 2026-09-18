@@ -203,6 +203,8 @@ Unexpected `console.error`, `pageerror`, failed requests, and undocumented 4xx/5
 
 **Actions belong with the object they act on. Account is not a dumping ground for project/content management.**
 
+Canonical inventory (planning only): `docs/vnext/ENTITY_ACTION_SETTINGS_MATRIX.md`.
+
 When a later slice builds an entity surface, evaluate only actions the backend actually supports and the current user may perform, such as:
 
 - Rename
@@ -239,7 +241,9 @@ Destructive actions must:
 
 ## Account / Settings (future — do not implement in Slice 1)
 
-Do not invent settings that do not persist. Inventory existing backend support first.
+Do not invent settings that do not persist. Canonical inventory:
+
+`docs/vnext/ENTITY_ACTION_SETTINGS_MATRIX.md`
 
 ### User account (evaluate)
 
@@ -249,6 +253,7 @@ Do not invent settings that do not persist. Inventory existing backend support f
 - session / sign-out
 - notification preferences if supported
 - personal preferences only if genuinely useful
+- profile image only if actually persisted
 
 ### Organization/admin settings (authorized roles only)
 

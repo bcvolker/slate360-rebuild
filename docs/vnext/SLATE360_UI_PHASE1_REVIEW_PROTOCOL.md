@@ -6,7 +6,7 @@
 - exact files changed
 - tests run
 - routes affected
-- screenshots
+- screenshots (repository paths **and**, for visual slices, the rendered images attached in the Cursor response when the interface permits)
 - **Interaction Coverage** (required for any slice that adds or changes a control)
 - known limitations
 - confirmation next slice was not started
@@ -19,6 +19,9 @@ Any slice that creates or modifies links, buttons, dropdowns, overflow menus, di
 
 Canonical suite: `e2e/vnext/` and `lib/vnext/*.test.ts`. Command: `npm run test:vnext`.
 
+Access-contract (mocked server context, no secrets): `lib/vnext/access.test.ts`.  
+Production route-guard: `lib/vnext/route-guard.test.ts`.
+
 Interaction Coverage must list:
 
 - controls added/changed
@@ -29,6 +32,72 @@ Interaction Coverage must list:
 - known untested behavior
 
 Unexpected console errors, page errors, failed requests, and undocumented HTTP 4xx/5xx fail the slice.
+
+Do not implement tests for controls that do not yet exist. When a later slice adds a control, that slice must satisfy the standing regression contract below.
+
+## Standing regression contract
+
+Future vNext tests must progressively cover the following **when the relevant control or route exists** in that slice:
+
+### Navigation and persistence
+- visible links have valid destinations
+- buttons perform their declared action
+- dropdown/overflow menus open and close
+- dialogs/drawers open and close correctly
+- browser Back works
+- browser Forward works
+- refresh preserves persisted state where expected
+- direct deep links work
+- no accidental navigation into legacy product routes (`/dashboard`, `/app`, `/site-walk`, `/twin`, `/thermal-studio`, `/operations-console`, `/portal`, `/tours`, `/slatedrop` as product homes)
+
+### Permissions
+- permission failures are correct (login with exact `redirectTo`, `/pending-verification`, owner `notFound`)
+- unauthorized controls are not rendered
+- disabled controls explain or correctly prevent action
+- authenticated access matrix: beta-approved org user; unauthenticated; authenticated but not beta approved; CEO/`canAccessOperationsConsole`; ordinary member; staff without operations-console access
+
+### Entity actions (when added — see `docs/vnext/ENTITY_ACTION_SETTINGS_MATRIX.md`)
+- destructive actions require appropriate confirmation
+- destructive action result is verified
+- rename/edit changes persist after reload
+- duplicate/copy creates the correct new object
+- move changes the correct parent/location
+- archive/delete/restore semantics are verified (hard vs soft)
+- sharing produces the correct destination/token
+
+### States and errors
+- loading/empty/error states render
+- console errors fail tests
+- uncaught page errors fail tests
+- unexpected request failures fail tests
+- unexpected 4xx/5xx fail tests
+
+### Layout
+- required mobile touch targets remain ≥44px
+- no horizontal overflow
+
+### Slice 1 baseline (already required)
+- unauthenticated `/vnext*` Playwright coverage with preserved `redirectTo`
+- vitest access decisions for the role matrix above (mocked context; no repo secrets)
+- filesystem route-guard over `app/vnext/**/page.tsx`
+
+Preview routes under `/preview/vnext/*` are fixtures only. They must not satisfy or weaken production auth or the route-guard.
+
+## vNext production route-guard
+
+Auth is performed by individual vNext pages, not only a shared layout. `lib/vnext/route-guard.test.ts` inspects production `app/vnext/**/page.tsx` and fails if a newly added user-facing page is publicly accessible.
+
+Approved protection:
+
+- `VnextClientRoutePage`
+- `VnextOwnerRoutePage`
+- `requireVnextSession`
+- `requireVnextOwner`
+- explicitly allowlisted redirect-only `/vnext` (`app/vnext/page.tsx` → `/vnext/projects`)
+
+`/preview/vnext/*` is a separate tree and is not an approved production protection mechanism.
+
+A future agent must not be able to add `app/vnext/.../page.tsx` and leave it public.
 
 ## GitHub review
 Check:
@@ -42,15 +111,25 @@ Check:
 - no new unapproved tabs/cards/metrics
 - permissions/auth retained
 - useful behavior not silently dropped
+- no middleware change unless a later slice explicitly requires it
+- entity actions match `docs/vnext/ENTITY_ACTION_SETTINGS_MATRIX.md` (do not invent backend)
 
-## Visual review
-For UI slices review:
-- 1440 desktop
-- laptop
-- tablet
-- phone
+## Visual review evidence
 
-Check:
+Required screenshot widths:
+
+- 1440
+- 1280
+- 768
+- 390
+
+Commit screenshots to the repository (`docs/vnext/screenshots/...`).
+
+For visual slices, also attach the **real rendered screenshots** directly in the Cursor response when the interface permits, in addition to repository paths.
+
+Screenshots are review evidence. They must show the implemented UI, not mockups or unrelated surfaces.
+
+For UI slices also review:
 - image-first project presentation
 - no giant blank areas
 - no glassmorphism
@@ -83,6 +162,7 @@ Check:
 - representation switching
 - visit switching
 - item/document deep links
+- contextual actions persist and confirm as specified in the regression contract
 
 ## Approval states
 ### APPROVED
@@ -106,7 +186,7 @@ Continue to follow the canonical Phase 1 plan and UI rules.
 At completion, provide:
 - changed files
 - tests
-- screenshots
+- screenshots (git paths + Cursor attachments when permitted)
 - known limitations
 - confirmation you did not begin the subsequent slice.
 

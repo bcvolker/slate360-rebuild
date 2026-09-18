@@ -1,7 +1,7 @@
 # Slate360 Phase 1 — Implementation Status
 
 **Last updated:** 2026-09-17  
-**Current slice:** 1 corrections (revise before next slice) on `feature/ui-vnext-phase1`  
+**Current slice:** 1 final hardening (access tests, route-guard, entity matrix) on `feature/ui-vnext-phase1`  
 **Next slice:** 2 (client project portfolio) — **NOT STARTED**
 
 Canonical plan: `docs/vnext/SLATE360_UI_PHASE1_MASTER_BUILD_PLAN.md`  
@@ -31,7 +31,7 @@ The feature branch is **pushed**. It is not an unpushed `origin/main` clone.
 | Slice | Name | Status |
 |---|---|---|
 | 0 | Repo audit + salvage map + route contract | **APPROVED** |
-| 1 | vNext foundation + shells | **REVISE — corrections awaiting approval** |
+| 1 | vNext foundation + shells | **APPROVED WITH SMALL FIXES — final hardening complete, awaiting explicit next-slice approval** |
 | 2 | Client project portfolio | Not started |
 | 3 | Client project overview | Not started |
 | 4 | Unified Explore viewer | Not started |
@@ -267,13 +267,17 @@ Selective salvage later requires explicit relevance and review.
 
 ## Slice 1 notes
 
-Authenticated vNext lives under `/vnext/*` (session + beta). Owner `/vnext/ops/*` additionally requires `canAccessOperationsConsole`. Visual fixtures live under `/preview/vnext/*` and are not the authorization model.
+Authenticated vNext lives under `/vnext/*` (session + beta). Owner `/vnext/ops/*` additionally requires `canAccessOperationsConsole` (**CEO / `isSlateCeo` today** — staff is not broadened). Visual fixtures live under `/preview/vnext/*` and are not the authorization model.
 
-Design rules: `docs/vnext/UI_DESIGN_RULES.md`.
+Design rules: `docs/vnext/UI_DESIGN_RULES.md`.  
+Entity / settings inventory: `docs/vnext/ENTITY_ACTION_SETTINGS_MATRIX.md` (planning only; no Slice 2 actions built).
 
 Logo: homepage `SlateIcon` + SLATE/360 wordmark. Cobalt remains the interaction accent only.
 
-Interaction suite: `e2e/vnext/` + `lib/vnext/nav.test.ts` (`npm run test:vnext`).
+Interaction suite: `e2e/vnext/` + `lib/vnext/*.test.ts` (`npm run test:vnext`).
+
+Access contract: `lib/vnext/access.ts` + `lib/vnext/access.test.ts` (mocked context; no test secrets).  
+Route-guard: `lib/vnext/route-guard.test.ts` scans `app/vnext/**/page.tsx`. Preview `/preview/vnext/*` does not satisfy it.
 
 Middleware was not modified.
 
@@ -283,4 +287,4 @@ Slice 2 (project portfolio) has **not** started.
 
 ## Handoff
 
-Slice 1 correction report is returned in the Cursor response. Do not begin Slice 2 until Brian explicitly approves Slice 1.
+Slice 1 final hardening report is returned in the Cursor response. Do not begin Slice 2 until Brian explicitly approves Slice 1.
