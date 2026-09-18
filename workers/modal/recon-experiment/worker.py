@@ -349,6 +349,43 @@ def train_arm_exp3(payload: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+HAZE_DIAGNOSTIC_TIMEOUT = 100 * 60
+
+
+@app.function(
+    image=gpu_image,
+    gpu=GPU_TRAIN,
+    timeout=HAZE_DIAGNOSTIC_TIMEOUT,
+    memory=MEMORY_MIB,
+    cpu=CPU,
+    volumes={"/vol": ckpt_vol},
+    secrets=[worker_secret] if worker_secret is not None else [],
+    retries=0,
+)
+def haze_diagnostic() -> dict[str, Any]:
+    """Post-hoc diagnostic only. READ-ONLY against experiments/room213-exp3/<ARM>/ -- never
+    opens Arm C or Arm D's durable checkpoints for writing, never retrains. Writes exclusively
+    to a new, separate volume path: experiments/room213-exp3-cleanup-diagnostic/."""
+    sys.path.insert(0, "/root/recon-experiment")
+    sys.path.insert(0, "/root/splat-lab")
+    from exp3_haze_diagnostic_run import run as run_diagnostic
+
+    vol = Path("/vol")
+    _ensure_inputs(vol)  # read-only: frozen views must already be staged
+    work = Path("/tmp") / "haze-diagnostic"
+    if work.exists():
+        shutil.rmtree(work)
+    result = run_diagnostic(vol=vol, work=work)
+    durable = vol / "experiments" / "room213-exp3-cleanup-diagnostic"
+    if durable.exists():
+        shutil.rmtree(durable)
+    shutil.copytree(work, durable)
+    ckpt_vol.commit()
+    result["status"] = "needs_review"
+    result["HUMAN_VISUAL_VERDICT"] = "UNREVIEWED"
+    return result
+
+
 def _committed_recipe(name: str) -> dict[str, Any]:
     """Recipes live in the repo (qa/*.json) so a fresh clone can launch; /experiments is gitignored."""
     for candidate in (ROOT / "qa" / name, ROOT / "experiments" / "room213-densification" / "frozen-recipe.json"):
@@ -383,8 +420,12 @@ def main(phase: str = "exp3"):
         result = run_verify_inputs_exp3.remote(doc["recipe"])
         print(json.dumps(result, indent=2, default=str))
         return
+    if phase == "haze-diagnostic":
+        result = haze_diagnostic.remote()
+        print(json.dumps(result, indent=2, default=str))
+        return
     if phase != "exp3":
-        raise SystemExit("phase must be exp2, exp3, or verify")
+        raise SystemExit("phase must be exp2, exp3, verify, verify-exp3-inputs, or haze-diagnostic")
     import exp3
 
     doc = _committed_recipe("exp3-frozen-recipe.json")

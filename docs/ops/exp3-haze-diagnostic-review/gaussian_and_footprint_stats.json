@@ -1,0 +1,390 @@
+{
+  "gaussian_quality_stats_arm_d": {
+    "count": 496429,
+    "opacity": {
+      "mean": 0.38858965039253235,
+      "median": 0.21458368003368378,
+      "p05_p25_p50_p75_p95": [
+        0.00514248525723815,
+        0.04412699118256569,
+        0.21458368003368378,
+        0.8057912588119507,
+        0.9871512055397034
+      ]
+    },
+    "scale_max": {
+      "mean": 0.006237570196390152,
+      "median": 0.005265703424811363,
+      "p50_p90_p95_p99_p999": [
+        0.005265703424811363,
+        0.009547336958348751,
+        0.012485798448324203,
+        0.026505963876843452,
+        0.07982464134693146
+      ]
+    },
+    "scale_geomean": {
+      "mean": 0.0030109984800219536,
+      "median": 0.002100437181070447
+    },
+    "anisotropy_max_over_min": {
+      "mean": 5.674472808837891,
+      "median": 5.891195297241211,
+      "p95_p99": [
+        9.51509952545166,
+        9.898614883422852
+      ]
+    },
+    "distance_to_nearest_train_camera": {
+      "mean": 0.20668499171733856,
+      "median": 0.20350326597690582,
+      "p50_p90_p95_p99": [
+        0.20350326597690582,
+        0.32501381635665894,
+        0.3390583097934723,
+        0.3812864422798157
+      ]
+    },
+    "largest_by_max_scale": {
+      "top5pct": {
+        "n": 24821,
+        "fraction": 0.05,
+        "threshold_value": 0.012485981918871403,
+        "mean_opacity_in_group": 0.47705525159835815,
+        "mean_distance_to_nearest_train_camera_in_group": 0.2983630299568176
+      },
+      "top1pct": {
+        "n": 4964,
+        "fraction": 0.01,
+        "threshold_value": 0.026511292904615402,
+        "mean_opacity_in_group": 0.5391913652420044,
+        "mean_distance_to_nearest_train_camera_in_group": 0.4651288092136383
+      },
+      "top0.5pct": {
+        "n": 2482,
+        "fraction": 0.005,
+        "threshold_value": 0.03830364719033241,
+        "mean_opacity_in_group": 0.5932432413101196,
+        "mean_distance_to_nearest_train_camera_in_group": 0.5840379595756531
+      },
+      "top0.1pct": {
+        "n": 496,
+        "fraction": 0.001,
+        "threshold_value": 0.0801236554980278,
+        "mean_opacity_in_group": 0.7334517240524292,
+        "mean_distance_to_nearest_train_camera_in_group": 0.8894490599632263
+      }
+    },
+    "top0.1pct_vs_population": {
+      "population_mean_opacity": 0.38858965039253235,
+      "top0.1pct_mean_opacity": 0.7334517240524292,
+      "population_mean_dist_to_nearest_cam": 0.20668499171733856,
+      "top0.1pct_mean_dist_to_nearest_cam": 0.8894490599632263,
+      "population_median_dist_to_nearest_cam": 0.20350326597690582,
+      "top0.1pct_median_dist_to_nearest_cam": 0.6195085644721985
+    },
+    "joint_histograms": {
+      "opacity_vs_max_scale": {
+        "x": "opacity",
+        "y": "max_scale (log10)",
+        "x_range": [
+          0.0008812038577161729,
+          1.0
+        ],
+        "y_range": [
+          -3.481006622314453,
+          -0.39570140838623047
+        ],
+        "sha256": "3581f84d7662fe67b992794afde2f61a942c084ebbcab49a09f863fc9c298923"
+      },
+      "opacity_vs_distance_to_nearest_camera": {
+        "x": "opacity",
+        "y": "dist_to_nearest_train_cam",
+        "x_range": [
+          0.0008812038577161729,
+          1.0
+        ],
+        "y_range": [
+          0.0030899762641638517,
+          3.5502774715423584
+        ],
+        "sha256": "6d14277da64e03cdae79723d751f9cde777d8362f847f6f6840a9d9d5c176a78"
+      },
+      "max_scale_vs_distance_to_nearest_camera": {
+        "x": "max_scale (log10)",
+        "y": "dist_to_nearest_train_cam",
+        "x_range": [
+          -3.481006622314453,
+          -0.39570140838623047
+        ],
+        "y_range": [
+          0.0030899762641638517,
+          3.5502774715423584
+        ],
+        "sha256": "821113dc180ce12089b4513c289285faac7d2c7c5f49ee6cc4c8d82cc62ec595"
+      }
+    }
+  },
+  "projected_footprint": {
+    "method": "perspective projection of a spherical proxy at each Gaussian's max world-space scale (radius_px = fx * max_scale / camera-space depth); an approximation, not gsplat's exact anisotropic screen covariance (not exposed per-Gaussian by the 1.5.3 Python API) -- used for relative ranking and diagnosis only.",
+    "qa_cameras": {
+      "A_on_path": {
+        "category": "ON_PATH",
+        "n_in_front": 111799,
+        "radius_px_p50_p90_p99_p999": [
+          22.8157951455947,
+          118.65794601079283,
+          1377.982087719503,
+          9709.297318389868
+        ],
+        "n_footprint_over_viewport": 1211,
+        "large_footprint_group": {
+          "threshold_px_p99.5": 2579.502785590746,
+          "n": 559,
+          "mean_opacity": 0.4120829403400421,
+          "mean_opacity_population": 0.3759508430957794
+        }
+      },
+      "B_off_path": {
+        "category": "OFF_PATH",
+        "n_in_front": 1637,
+        "radius_px_p50_p90_p99_p999": [
+          58.88089509008602,
+          418.5425662804191,
+          4975.825979985397,
+          100412.32277003927
+        ],
+        "n_footprint_over_viewport": 61,
+        "large_footprint_group": {
+          "threshold_px_p99.5": 14658.979635899761,
+          "n": 9,
+          "mean_opacity": 0.6277430653572083,
+          "mean_opacity_population": 0.46321579813957214
+        }
+      },
+      "C_dollhouse": {
+        "category": "DOLLHOUSE_GEOMETRY",
+        "n_in_front": 496429,
+        "radius_px_p50_p90_p99_p999": [
+          1.3080226295589579,
+          2.434340201312458,
+          6.679612217627064,
+          20.23313691911688
+        ],
+        "n_footprint_over_viewport": 0,
+        "large_footprint_group": {
+          "threshold_px_p99.5": 9.52378324978607,
+          "n": 2483,
+          "mean_opacity": 0.6017293334007263,
+          "mean_opacity_population": 0.38858965039253235
+        }
+      },
+      "D_overhead": {
+        "category": "PLAN_OVERHEAD",
+        "n_in_front": 496429,
+        "radius_px_p50_p90_p99_p999": [
+          1.075932178749675,
+          1.9464850739444384,
+          5.306269833797909,
+          16.67950641337694
+        ],
+        "n_footprint_over_viewport": 0,
+        "large_footprint_group": {
+          "threshold_px_p99.5": 7.68258829451156,
+          "n": 2483,
+          "mean_opacity": 0.5995481610298157,
+          "mean_opacity_population": 0.38858965039253235
+        }
+      }
+    },
+    "training_camera_sample_n": 20
+  },
+  "projected_footprint_training_camera_sample": {
+    "images/000001_v00.jpg": {
+      "radius_px_p50_p99": [
+        33.84257624053329,
+        1849.4698946580409
+      ],
+      "n_over_viewport": 733
+    },
+    "images/000019_v12.jpg": {
+      "radius_px_p50_p99": [
+        20.74150579809176,
+        1096.5009408828896
+      ],
+      "n_over_viewport": 1546
+    },
+    "images/000038_v08.jpg": {
+      "radius_px_p50_p99": [
+        8.125920582101497,
+        427.7426710378831
+      ],
+      "n_over_viewport": 1180
+    },
+    "images/000057_v04.jpg": {
+      "radius_px_p50_p99": [
+        8.384791488030402,
+        432.47753847447495
+      ],
+      "n_over_viewport": 845
+    },
+    "images/000076_v00.jpg": {
+      "radius_px_p50_p99": [
+        26.126761658821813,
+        1316.5682393716118
+      ],
+      "n_over_viewport": 490
+    },
+    "images/000094_v12.jpg": {
+      "radius_px_p50_p99": [
+        10.479976551745736,
+        592.3267175110742
+      ],
+      "n_over_viewport": 1484
+    },
+    "images/000113_v08.jpg": {
+      "radius_px_p50_p99": [
+        22.318968067665377,
+        1307.8943787223564
+      ],
+      "n_over_viewport": 1042
+    },
+    "images/000132_v04.jpg": {
+      "radius_px_p50_p99": [
+        25.130911465048484,
+        1465.1027648728993
+      ],
+      "n_over_viewport": 666
+    },
+    "images/000151_v00.jpg": {
+      "radius_px_p50_p99": [
+        6.735054850956223,
+        265.09701412634115
+      ],
+      "n_over_viewport": 821
+    },
+    "images/000169_v12.jpg": {
+      "radius_px_p50_p99": [
+        20.902162695272654,
+        1095.075685705658
+      ],
+      "n_over_viewport": 1492
+    },
+    "images/000188_v08.jpg": {
+      "radius_px_p50_p99": [
+        35.34125097881819,
+        2095.7982980183488
+      ],
+      "n_over_viewport": 1406
+    },
+    "images/000207_v04.jpg": {
+      "radius_px_p50_p99": [
+        58.696215120915895,
+        2685.342043335602
+      ],
+      "n_over_viewport": 1053
+    },
+    "images/000226_v00.jpg": {
+      "radius_px_p50_p99": [
+        4.30806759833966,
+        92.05256428821613
+      ],
+      "n_over_viewport": 313
+    },
+    "images/000244_v12.jpg": {
+      "radius_px_p50_p99": [
+        18.158888568694046,
+        1079.2727155902357
+      ],
+      "n_over_viewport": 1714
+    },
+    "images/000263_v08.jpg": {
+      "radius_px_p50_p99": [
+        17.725199271417445,
+        905.0212720562201
+      ],
+      "n_over_viewport": 1447
+    },
+    "images/000282_v04.jpg": {
+      "radius_px_p50_p99": [
+        23.722611610888357,
+        1113.0908240497185
+      ],
+      "n_over_viewport": 926
+    },
+    "images/000301_v00.jpg": {
+      "radius_px_p50_p99": [
+        6.104141946799432,
+        323.2174150267292
+      ],
+      "n_over_viewport": 966
+    },
+    "images/000319_v12.jpg": {
+      "radius_px_p50_p99": [
+        10.1552111050694,
+        555.4208178220056
+      ],
+      "n_over_viewport": 1356
+    },
+    "images/000338_v08.jpg": {
+      "radius_px_p50_p99": [
+        14.486396216753919,
+        925.2259557763452
+      ],
+      "n_over_viewport": 1300
+    },
+    "images/000357_v04.jpg": {
+      "radius_px_p50_p99": [
+        9.052141003881381,
+        451.3506588459861
+      ],
+      "n_over_viewport": 912
+    }
+  },
+  "spatial_outlier_diagnostic": {
+    "method": "scipy.cKDTree, 8-NN mean distance",
+    "n_flagged": 61,
+    "fraction_flagged": 0.00012287759176035244,
+    "sparse_threshold_local_nn": 0.04205797566589937
+  },
+  "stop_screen_size_at_consequence": {
+    "stop_screen_size_at": 4000,
+    "refine_start_iter": 6016,
+    "finding": "stop_screen_size_at (4000) elapses before refine_start_iter (6016), so the screen-size split/cull path in gsplat's DefaultStrategy was never reachable during any of this run's 44 refinement events (all >= step 6300); every grow event was gradient-driven duplication/split only. This setting could not have produced the haze in this run -- not because it is a bad setting in general, but because the two constants as configured never overlap in time."
+  },
+  "source_vs_render_panels": {
+    "worst_held_out_1": {
+      "file_path": "images/000057_v14.jpg",
+      "layout": "SOURCE | ARM C | ARM D | ERROR(abs diff, D vs source)",
+      "sha256": "97e6c09f89279b8bddc220f857023a67ca7f7641b5f7fdab3e069ea1acf9c53a",
+      "psnr_arm_c": 15.566842261413807,
+      "psnr_arm_d": 15.440905299559976,
+      "pitch_up_component": -0.6092068231301859
+    },
+    "worst_held_out_2": {
+      "file_path": "images/000107_v15.jpg",
+      "layout": "SOURCE | ARM C | ARM D | ERROR(abs diff, D vs source)",
+      "sha256": "b5d96f2268135d17573ba7464c1f265e9605706a5f12e34dfbad7dcabc42fa0a",
+      "psnr_arm_c": 16.829568702645098,
+      "psnr_arm_d": 16.640350165583136,
+      "pitch_up_component": -0.454738219351156
+    },
+    "good_held_out_1": {
+      "file_path": "images/000339_v06.jpg",
+      "layout": "SOURCE | ARM C | ARM D | ERROR(abs diff, D vs source)",
+      "sha256": "12ea6882d5cb6bf2a0dfd90cfa79738bd664820a72b9acf98c12d3760e7523e9",
+      "psnr_arm_c": 24.75922039919095,
+      "psnr_arm_d": 25.67927082072635,
+      "pitch_up_component": -0.003451282112993896
+    },
+    "ceiling_or_upward_view": {
+      "file_path": "images/000233_v01.jpg",
+      "layout": "SOURCE | ARM C | ARM D | ERROR(abs diff, D vs source)",
+      "sha256": "fb1000f0bcc8b526ccfbeb0f826c13ccca4f880ca07347414712831fe5a05ef3",
+      "psnr_arm_c": 22.772021646457972,
+      "psnr_arm_d": 23.14835801722996,
+      "pitch_up_component": 0.9953206403767363
+    }
+  },
+  "source_vs_render_scan_note": "simple per-pixel PSNR against the real source JPEG, sampled every 10th eval-split image (61 of 601) -- not exhaustive, and not the official SSIM/LPIPS-bearing ns-eval metric, used here only to rank and select representative views. 'ceiling/window' is a heuristic (largest +Y forward-vector component = most upward-looking view among the sample), not a semantic detector; no window-specific signal exists."
+}

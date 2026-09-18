@@ -1,0 +1,154 @@
+{
+  "qa_camera_geometry": [
+    {
+      "camera_id": "A_on_path",
+      "category": "ON_PATH",
+      "checkpoint_steps_rendered": [
+        8000,
+        15999
+      ],
+      "position": [
+        0.5190693258376984,
+        0.004664089136455742,
+        -0.0062855877637571405
+      ],
+      "nearest_train_frame_index": 3008,
+      "nearest_train_distance": 4.670885906470169e-18,
+      "nearest_train_angular_deg": 0.022379194433006937,
+      "mean_5nn_train_distance": 4.670885906470169e-18,
+      "inside_training_envelope": true,
+      "envelope_bbox_min": [
+        -0.6849515508558309,
+        -0.7111488858392968,
+        -0.029766862562684463
+      ],
+      "envelope_bbox_max": [
+        0.665088837917048,
+        0.9999999100044952,
+        0.021182845356302944
+      ],
+      "envelope_diag": 2.180191534148483,
+      "envelope_margin_used": 0.32702873012227246,
+      "nearest_train_source_view": "images/000189_v00.jpg"
+    },
+    {
+      "camera_id": "B_off_path",
+      "category": "OFF_PATH",
+      "checkpoint_steps_rendered": [
+        8000,
+        15999
+      ],
+      "position": [
+        0.6742601645762112,
+        0.5265258256005656,
+        0.019274673072172732
+      ],
+      "nearest_train_frame_index": 1632,
+      "nearest_train_distance": 0.292399743492554,
+      "nearest_train_angular_deg": 103.9455126349295,
+      "mean_5nn_train_distance": 0.292399743492554,
+      "inside_training_envelope": true,
+      "envelope_bbox_min": [
+        -0.6849515508558309,
+        -0.7111488858392968,
+        -0.029766862562684463
+      ],
+      "envelope_bbox_max": [
+        0.665088837917048,
+        0.9999999100044952,
+        0.021182845356302944
+      ],
+      "envelope_diag": 2.180191534148483,
+      "envelope_margin_used": 0.32702873012227246,
+      "nearest_train_source_view": "images/000103_v00.jpg"
+    },
+    {
+      "camera_id": "C_dollhouse",
+      "category": "DOLLHOUSE_GEOMETRY",
+      "checkpoint_steps_rendered": [
+        8000,
+        15999
+      ],
+      "position": [
+        -1.5597713236667825,
+        0.3667560507601294,
+        1.9822279391186828
+      ],
+      "nearest_train_frame_index": 4976,
+      "nearest_train_distance": 2.149182923034248,
+      "nearest_train_angular_deg": 59.88246616834608,
+      "mean_5nn_train_distance": 2.149182923034248,
+      "inside_training_envelope": false,
+      "envelope_bbox_min": [
+        -0.6849515508558309,
+        -0.7111488858392968,
+        -0.029766862562684463
+      ],
+      "envelope_bbox_max": [
+        0.665088837917048,
+        0.9999999100044952,
+        0.021182845356302944
+      ],
+      "envelope_diag": 2.180191534148483,
+      "envelope_margin_used": 0.32702873012227246,
+      "nearest_train_source_view": "images/000312_v00.jpg"
+    },
+    {
+      "camera_id": "D_overhead",
+      "category": "PLAN_OVERHEAD",
+      "checkpoint_steps_rendered": [
+        8000,
+        15999
+      ],
+      "position": [
+        -0.15059107279745196,
+        -0.10444464971204089,
+        3.0467613130153968
+      ],
+      "nearest_train_frame_index": 5360,
+      "nearest_train_distance": 3.0335688342472196,
+      "nearest_train_angular_deg": 90.74549627707519,
+      "mean_5nn_train_distance": 3.0335688342472196,
+      "inside_training_envelope": false,
+      "envelope_bbox_min": [
+        -0.6849515508558309,
+        -0.7111488858392968,
+        -0.029766862562684463
+      ],
+      "envelope_bbox_max": [
+        0.665088837917048,
+        0.9999999100044952,
+        0.021182845356302944
+      ],
+      "envelope_diag": 2.180191534148483,
+      "envelope_margin_used": 0.32702873012227246,
+      "nearest_train_source_view": "images/000336_v00.jpg"
+    }
+  ],
+  "camera_layout_png_sha256": "dd86364cb1173eb2ae5797e53d289fff9f0206412a3ff655fac3b73cf4b08d51",
+  "split_grouping_audit": {
+    "total_derived_images": 6016,
+    "total_panoramas": 376,
+    "views_per_panorama": 16,
+    "train_images": 5415,
+    "eval_images": 601,
+    "panoramas_with_any_train_view": 376,
+    "panoramas_with_any_eval_view": 376,
+    "panoramas_appearing_in_both_train_and_eval": 376,
+    "fraction_of_eval_panoramas_also_in_train": 1.0,
+    "leakage_present": true,
+    "leakage_description": "The split sorts all 6,016 derived perspective views alphabetically by '{pano}_{view}.jpg' and then takes an evenly-spaced 90% by INDEX in that sorted list, with no panorama-aware grouping. Because each panorama contributes 16 consecutive filenames when sorted, an evenly-spaced 1-in-10 selection lands inside almost every panorama's run of 16, so most panoramas contribute views to both splits: the held-out eval image for a panorama is typically a different yaw/pitch crop taken from the same physical capture point (often within a couple of seconds and centimeters) as one or more training images from that same panorama. This is view-level held-out, not location-level held-out.",
+    "example_shared_panoramas": [
+      "000001",
+      "000002",
+      "000003",
+      "000004",
+      "000005",
+      "000006",
+      "000007",
+      "000008",
+      "000009",
+      "000010"
+    ]
+  }
+}
