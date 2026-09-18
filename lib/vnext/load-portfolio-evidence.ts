@@ -95,36 +95,19 @@ export async function loadPortfolioEvidence(
       .in("project_id", projectIds)
       .is("deleted_at", null),
   );
-  const captureToProject = new Map(captures.map((row) => [row.id, row.project_id]));
   for (const capture of captures) {
     ensure(byId, capture.project_id).timestamps.push(capture.uploaded_at || capture.created_at);
   }
 
-  if (captures.length > 0) {
-    const assets = await rows<{
-      capture_id: string;
-      asset_kind: string;
-      storage_key: string | null;
-    }>(
-      admin
-        .from("digital_twin_capture_assets")
-        .select("capture_id, asset_kind, storage_key, status")
-        .in("capture_id", captures.map((row) => row.id))
-        .is("deleted_at", null),
-    );
-    for (const asset of assets) {
-      const projectId = captureToProject.get(asset.capture_id);
-      if (!projectId || !asset.storage_key) continue;
-      const evidence = ensure(byId, projectId);
-      if (asset.asset_kind === "panorama_360") addFlag(evidence, "360");
-      // Intentionally NOT flagging "drone" here. A vNext client representation means something
-      // the client can actually open and render, not merely a source asset that exists. There is
-      // no proven client-renderable Drone orthomosaic/map viewer for this experience (confirmed in
-      // the Slice 0 route/component salvage audit: "No orthomosaic viewer" — only a Google Maps
-      // location helper). drone_photo/drone_video rows are still ingested and stored unchanged;
-      // this only stops them from being reported as an openable representation.
-    }
-  }
+  // digital_twin_capture_assets (panorama_360 / drone_photo / drone_video) is intentionally not
+  // queried for representation flags here. A vNext client representation means something the
+  // client can actually open and render, not merely a source asset that exists. Confirmed by a
+  // Slice 4 audit: there is no GET/image route anywhere under app/api/digital-twin/** that serves
+  // a capture asset's storage_key — only a PATCH route that re-tags asset_kind. "360" is correctly
+  // flagged below from site_walk_items.photo_360 instead, which has a proven, working image route
+  // (/api/site-walk/items/[id]/image). "drone" has no proven viewer at all (Slice 0 salvage audit:
+  // "No orthomosaic viewer"). The capture_assets rows themselves are untouched — this only stops
+  // them from being reported as an openable representation before a real serving route exists.
 
   const items = await rows<{
     id: string;

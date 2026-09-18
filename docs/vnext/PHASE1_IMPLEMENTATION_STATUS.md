@@ -1,8 +1,8 @@
 # Slate360 Phase 1 — Implementation Status
 
-**Last updated:** 2026-09-17  
-**Current slice:** 3 (client project overview) on `feature/ui-vnext-phase1`  
-**Next slice:** 4 (unified Explore viewer) — **NOT STARTED**
+**Last updated:** 2026-09-18  
+**Current slice:** 4 (unified Explore viewer) on `feature/ui-vnext-phase1`  
+**Next slice:** 5 (Items + spatial linking) — **NOT STARTED**
 
 Canonical plan: `docs/vnext/SLATE360_UI_PHASE1_MASTER_BUILD_PLAN.md`  
 Slice prompts: `docs/vnext/SLATE360_UI_PHASE1_CURSOR_SLICE_PROMPTS.md`  
@@ -34,7 +34,7 @@ The feature branch is **pushed**. It is not an unpushed `origin/main` clone.
 | 1 | vNext foundation + shells | **APPROVED** |
 | 2 | Client project portfolio | **APPROVED** |
 | 3 | Client project overview | **IMPLEMENTED (visually corrected) — awaiting approval** |
-| 4 | Unified Explore viewer | Not started |
+| 4 | Unified Explore viewer | **IMPLEMENTED — awaiting approval** |
 | 5 | Items + spatial linking | Not started |
 | 6 | Documents + project search | Not started |
 | 7 | History + Compare | Not started |
@@ -381,7 +381,108 @@ alone retints every active-nav indicator app-wide to the corrected green.
 
 ---
 
+## Slice 4 notes (2026-09-18)
+
+`/vnext/projects/[projectId]/explore` now renders the real unified client Explore experience,
+replacing the Slice 3 scaffold. Core rule carried over from Slice 3 and applied throughout: a
+representation is only ever shown when the full path — database row → access check → resolver →
+real viewer engine — is proven, never merely because a source table has a matching row.
+
+**Shared source of truth.** `lib/vnext/load-project-explore.ts` (`loadVnextExploreData`) calls the
+exact same `loadPortfolioEvidence` (`lib/vnext/load-portfolio-evidence.ts`) Overview already uses
+for `availableRepresentations`, so Overview and Explore can never disagree about what's "available."
+Building Explore's per-source resolvers surfaced one real gap in that shared contract:
+`digital_twin_capture_assets.panorama_360` was flagging "360" available even though no serving route
+exists for that table anywhere in the app (`app/api/digital-twin/**` has no GET/image route for
+capture assets — confirmed by repo-wide search). Fixed directly in `load-portfolio-evidence.ts`:
+"360" is now flagged only from `site_walk_items` (`item_type = 'photo_360'`, which does have a
+proven route, `/api/site-walk/items/[id]/image`), with tests added proving both the fix and the
+specific regression it prevents.
+
+**Representation resolvers** (`lib/vnext/explore/`, each independently unit-tested against a mocked
+admin client):
+- `resolve-twin-source.ts` — Reality (`splat`) and Geometry (`model`) both resolve through the same
+  `digital_twin_spaces`/`digital_twin_models` filters `load-portfolio-evidence.ts` uses (so
+  availability and resolution never drift), picking the most-recently-updated ready model of the
+  requested kind. Splat URLs are the same-origin authenticated proxy
+  (`/api/digital-twin/models/[id]/splat`, already proven, CORS-free); Geometry URLs are presigned via
+  the existing `resolveDigitalTwinModelUrl`.
+- `resolve-pano-source.ts` / `resolve-plan-source.ts` — 360 and Plan both list every selectable
+  source (`site_walk_items` photos / `site_walk_plan_sheets` sheets) and resolve one to its proven
+  image route (`/api/site-walk/items/[id]/image`, `/api/site-walk/plan-sheets/[id]/image`).
+- `resolve-thermal-source.ts` — finds the most-recently-updated session with a currently published,
+  non-expired share (mirroring the exact "published" check `load-portfolio-evidence.ts` already used
+  for the Overview "thermal" flag, extended to also honor `expires_at`), then calls
+  `loadThermalShareViewerData` directly with the bare session id — no public share token is minted or
+  exposed to the client for this authenticated view.
+- `resolve-active-representation.ts` — the one pure decision function (`resolveActiveRepresentation`,
+  12 unit tests) that turns `(available, requested)` into `(representation, error)`: an explicit,
+  recognized-but-unavailable request resolves to a real fallback representation plus a concise error
+  message; an unrecognized string (including `drone`, which is not in
+  `VNEXT_EXPLORE_REPRESENTATIONS` at all) is treated identically to "no request" — silent fallback,
+  never an acknowledgement that a Drone representation could have existed.
+
+**Viewer adapters** (`components/vnext/explore/`), each a thin wrapper around an already-shipping,
+mature engine — no new rendering engine was built:
+- `VnextRealityViewer.tsx` — `WebglGate` + `TwinModelViewer` (the same format-dispatching component
+  the authenticated Twin detail page uses; splat/model/pano/lidar all already `next/dynamic`
+  `ssr:false` inside it).
+- `VnextPanoViewer.tsx` — `TourPanoViewer` (`@photo-sphere-viewer/core`), the same component Twin's
+  pano fallback already uses, decoupled from the Tours product.
+- `VnextThermalViewer.tsx` — a small purpose-built gallery (image + Prev/Next + thumbnail strip) over
+  the resolver's already-authorized image URLs. `ThermalShareViewer` itself was evaluated but not
+  reused as-is: it expects the full `ThermalShareViewerData` shape (branding, summary metrics, role,
+  per-capture anomalies) for its download/anomaly-badge chrome, which this authenticated,
+  token-free view deliberately doesn't carry. No anomaly-rendering or thermal-analysis logic was
+  reimplemented — only plain image browsing.
+- `VnextPlanViewer.tsx` — new. No existing plan viewer is read-only; both
+  `components/site-walk/PlanViewer.tsx` and `.../capture/PlanViewer.tsx` are pin-authoring surfaces
+  coupled to rasterization-job polling. This is a bare pan/zoom `<img>` viewer (drag, wheel/button
+  zoom, reset) — no pin CRUD, no job polling.
+
+**Shell** (`components/vnext/explore/VnextExploreShell.tsx` + siblings): representation selector
+(`VnextRepresentationSelector`, a restrained tab row — never renders if only one representation
+exists, never renders Drone), source picker (`VnextExploreSourcePicker`, only rendered when a
+representation actually has more than one selectable source), a shared real-Fullscreen-API hook
+(`use-vnext-fullscreen.ts` — the app previously had two independent ad hoc fullscreen
+implementations, `MeshTwinViewer.tsx` and `TwinViewerCanvasShell.tsx`; this is the one shared
+version, modeled on the more robust of the two), a thin presentation-mode skeleton (hides chrome,
+renders as a `fixed inset-0` overlay so it also covers the route layout's persistent project nav —
+not just grows within the page flow — with an always-visible Exit control and Escape-to-exit), and
+concise representation-aware help text behind a native `<details>` disclosure (no JS state needed).
+Loading, empty (`VnextExploreEmptyState`), and error (`VnextExploreErrorState`) states are explicit,
+not implied by a blank viewer.
+
+**URL state contract.** `lib/vnext/explore/build-explore-href.ts` (`vnextExploreHref`) is the one
+place that builds every Explore link, so representation switching, source switching, and
+presentation mode always agree on the same query params (`?rep=`, `?source=`, `?present=1`) and
+never silently drop one of the other two. It takes the page's own base path rather than a project
+id specifically so the exact same shell renders correctly under both the real authenticated route
+(`/vnext/projects/[id]/explore`) and the unauthenticated `/preview/vnext/project/explore` sandbox —
+this vNext e2e suite is unauthenticated-only (see `e2e/vnext/routes.spec.ts`), so representation
+switching / deep-link / Back-Forward / presentation-mode coverage
+(`e2e/vnext/explore.spec.ts`) all runs against that one interactive preview route, which reads its
+own `?rep=`/`?source=`/`?present=` and resolves fixture data through the identical pure
+`resolveActiveRepresentation` decision function the real page uses
+(`lib/vnext/preview-explore-fixtures.ts`, `resolvePreviewExploreData`).
+
+Preview fixtures: `/preview/vnext/project/explore` (interactive — the one above),
+`/preview/vnext/project/explore-{geometry,360,plan,thermal,empty,error,present}` (fixed single-state
+screenshot fixtures). Reality/Geometry fixtures use the real public sample assets already used
+elsewhere in preview/marketing (`public/marketing/sample-twin.spz`, `public/uploads/test-box.glb`) —
+confirmed rendering real Gaussian-splat and GLB content, not placeholders, in an interactive browser
+session with GPU acceleration. 360/Plan/Thermal fixtures use existing `public/vnext-preview/*`
+placeholder SVGs (no real photo/panorama/thermal sample assets exist in the repo); this is a fixture
+limitation only — the resolvers and viewer adapters exercise the real, proven authenticated image
+routes in production.
+
+Middleware, entitlements, billing, and existing database migrations untouched. No Items workflow,
+History/Compare, camera-path editor, Drone viewer, legacy UI redesign, production cutover, or
+reconstruction changes were built — all out of scope for this slice.
+
+---
+
 ## Handoff
 
-Slice 3 (as visually corrected) completion report is returned in the assistant response. Do not
-begin Slice 4 until Brian explicitly approves this corrected Slice 3.
+Slice 4 (unified Explore viewer) completion report is returned in the assistant response. Do not
+begin Slice 5 until Brian explicitly approves this slice.

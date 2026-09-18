@@ -173,7 +173,24 @@ Glassmorphism, dark SaaS chrome, decorative gradients, icon tiles, widget boards
 
 ## Viewer exception
 
-Dark immersive canvases are allowed later **inside** Reality / Geometry / 360 / thermal viewers. They are not the application shell.
+Dark immersive canvases are allowed **inside** Reality / Geometry / 360 / thermal viewers. They are not the application shell. Built in Slice 4
+(`components/vnext/explore/VnextExploreViewerStage.tsx`): the viewer stage background is
+`var(--graphite-canvas)` for those four representations only; Plan stays on the light `--vnext-*`
+surface tokens (it's a document, not an immersive environment). Everything surrounding the stage —
+the representation selector, source picker, header, help — stays on the light vNext system; only the
+stage itself goes dark.
+
+**Representation selector** is a restrained underlined tab row (`VnextRepresentationSelector.tsx`),
+never an app-launcher grid of tiles/cards, and never renders at all when there is only one available
+representation (nothing to choose between). It never renders a Drone entry, not even disabled —
+`VNEXT_EXPLORE_REPRESENTATIONS` (`lib/vnext/explore-types.ts`) omits Drone from its type entirely, so
+this isn't a runtime filter that could be forgotten later.
+
+**Fullscreen.** One shared hook, `components/vnext/explore/use-vnext-fullscreen.ts`
+(`useVnextFullscreen`), backs every vNext fullscreen control. Before Slice 4 the app had two
+independent ad hoc fullscreen implementations (`components/digital-twin/MeshTwinViewer.tsx`,
+`components/digital-twin/TwinViewerCanvasShell.tsx`) that could drift; new vNext viewer surfaces
+should reuse this hook rather than adding a third.
 
 ---
 

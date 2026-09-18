@@ -105,6 +105,9 @@ describe("loadPortfolioEvidence — drone is not a client-renderable representat
         { capture_id: "cap-1", asset_kind: "panorama_360", storage_key: "orgs/x/cap-1/pano.jpg" },
         { capture_id: "cap-1", asset_kind: "drone_photo", storage_key: "orgs/x/cap-1/drone.jpg" },
       ],
+      site_walk_items: [
+        { id: "item-1", project_id: "p1", item_type: "photo_360", s3_key: "orgs/x/item-1/pano.jpg", captured_at: "2026-01-02T12:00:00.000Z" },
+      ],
       site_walk_plan_sheets: [
         { id: "sheet-1", project_id: "p1", thumbnail_s3_key: "orgs/x/plan-thumb.jpg", rasterized_key: null, image_s3_key: null },
       ],
@@ -120,5 +123,24 @@ describe("loadPortfolioEvidence — drone is not a client-renderable representat
     expect(result.p1.representations).not.toContain("drone");
     expect(result.p1.realityPreviewUrl).toBe("/api/digital-twin/models/model-1/preview-image");
     expect(result.p1.planUrl).toBe("/api/site-walk/plan-sheets/sheet-1/image");
+    // The 360 flag/URL must come from the proven site_walk_items path, not the unserveable
+    // digital_twin_capture_assets.panorama_360 row also present in this fixture.
+    expect(result.p1.pano360Url).toBe("/api/site-walk/items/item-1/image");
+  });
+
+  it("does NOT flag '360' merely because a digital_twin_capture_assets panorama_360 row exists — no serving route exists for that table", async () => {
+    const admin = mockAdmin({
+      digital_twin_captures: [
+        { id: "cap-1", project_id: "p1", uploaded_at: "2026-01-01T00:00:00.000Z", created_at: "2026-01-01T00:00:00.000Z" },
+      ],
+      digital_twin_capture_assets: [
+        { capture_id: "cap-1", asset_kind: "panorama_360", storage_key: "orgs/x/cap-1/pano.jpg" },
+      ],
+    });
+
+    const result = await loadPortfolioEvidence(admin, ["p1"]);
+
+    expect(result.p1.representations).not.toContain("360");
+    expect(result.p1.pano360Url).toBeNull();
   });
 });
