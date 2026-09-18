@@ -1,0 +1,40 @@
+{
+  "file_count": {
+    "local": 6016,
+    "volume": 6016,
+    "tar": 6016
+  },
+  "filename_set_equal": {
+    "local_volume": true,
+    "local_tar": true,
+    "volume_tar": true
+  },
+  "missing": {
+    "local": 0,
+    "volume": 0,
+    "tar": 0
+  },
+  "byte_identical_count": {
+    "local_volume": 6016,
+    "local_tar": 6016,
+    "volume_tar": 6016
+  },
+  "byte_different_count": {
+    "local_volume": 0,
+    "local_tar": 0,
+    "volume_tar": 0
+  },
+  "pixel_identical_despite_byte_diff": {
+    "local_volume": 0,
+    "local_tar": 0
+  },
+  "pixel_different_count": {
+    "local_volume": 0,
+    "local_tar": 0
+  },
+  "aggregate_dir_hashes_sha256_dir": {
+    "local": "20daa8e25daa806411f45f24a434f81e16767402b413d436f3c5602735a8a2b6",
+    "volume": "c1e31e57057352423d02a8af11caf956dd2f4950a016e528d604f33ecb36a259",
+    "tar": "9acde6bc7b75be097a1a929fb2ff3ceb2d223cdf33bc782dbab2efca5de62847"
+  }
+}

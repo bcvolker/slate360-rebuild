@@ -23,6 +23,15 @@
   },
   "exp2_recipe_hash": "267bb0b4f11de51b1bcde6ba86060972bccb269f75738e16ff0b88b65e6c8498",
   "experiment_id": "room213-exp3",
+  "hash_correction": {
+    "date": "2026-09-18",
+    "field": "mask_hash",
+    "new_mask_hash": "2f5bc81ddb14a38b39ac2d688bfed1645b4a784b616b4aec071d41afb1cedb3e",
+    "old_mask_hash": "20daa8e25daa806411f45f24a434f81e16767402b413d436f3c5602735a8a2b6",
+    "pose_hash_unaffected": true,
+    "reason": "old hash = path-dependent bookkeeping value (sha256_dir embedded each file's absolute filesystem path before the fix in workers/recon-experiment/hashes.py); new hash = portable canonical content/tree identity (root-relative filenames + content only). DATA BYTES UNCHANGED \u2014 PORTABLE HASH CORRECTION ONLY. See docs/ops/ROOM213_MASK_PROVENANCE_2026-09-17.md and qa/exp3-portable-hash-audit.json.",
+    "seed_hash_unaffected": true
+  },
   "job_id": "cecc2763",
   "points_ply": "/mnt/c/s360/tmp/splat-lab/cecc2763/sfm/points.ply",
   "recipe": {
@@ -30,7 +39,8 @@
     "backend": "modal-L40S",
     "bilateral": true,
     "loss": "l1+ssim",
-    "mask_hash": "20daa8e25daa806411f45f24a434f81e16767402b413d436f3c5602735a8a2b6",
+    "mask_hash": "2f5bc81ddb14a38b39ac2d688bfed1645b4a784b616b4aec071d41afb1cedb3e",
+    "mask_hash_legacy_path_dependent": "20daa8e25daa806411f45f24a434f81e16767402b413d436f3c5602735a8a2b6",
     "max_steps": 16000,
     "optimizer": "splatfacto-adam",
     "output_converter": "ns-export gaussian-splat PLY (no SPZ step)",
@@ -45,7 +55,7 @@
     "use_lidar": false,
     "view_count": 6016
   },
-  "recipe_hash": "653f881fff6bb9bc25d6ecdec235df743d7b5859d0d5fa38b95cf466456e16a1",
+  "recipe_hash": "7e77af47399e6eb8cde7b722304f664ed3e4c8929950bbcbf3bdcc6465639668",
   "supersedes": [
     "ROOM213_EXPERIMENT3_PREFLIGHT.md",
     "stop_screen_size_at=11000 draft",
@@ -53,5 +63,6 @@
   ],
   "transforms": "/mnt/c/s360/tmp/splat-lab/cecc2763/views/transforms.json",
   "views_dir": "/mnt/c/s360/tmp/splat-lab/cecc2763/views",
+  "views_dir_note": "historical documentation only \u2014 not read by the launch runtime, which always resolves inputs from the Modal volume via _ensure_inputs()",
   "visual_poses": "qa/visual-poses.json"
 }

@@ -262,10 +262,59 @@ def dataset_split(transforms_path: Path) -> dict[str, Any]:
     return out
 
 
-def build_exp3_recipe(exp2_recipe_doc: dict[str, Any]) -> dict[str, Any]:
+def portable_input_hashes(views_dir: Path) -> dict[str, str]:
+    """Recompute mask/pose/seed hashes with the portable (root-relative) hasher.
+
+    Only `mask_hash` can actually differ from the source Experiment 2 recipe — it is
+    the only one of the three that was ever directory-based (see
+    docs/ops/ROOM213_MASK_PROVENANCE_2026-09-17.md). `pose_hash`/`seed_hash` are plain
+    single-file hashes (`sha256_file`) and were never path-dependent.
+    """
+    from hashes import sha256_dir, sha256_file
+
+    views_dir = Path(views_dir)
+    return {
+        "mask_hash": sha256_dir(views_dir / "masks", ("*.png",)),
+        "pose_hash": sha256_file(views_dir / "transforms.json"),
+        "seed_hash": sha256_file(views_dir.parent / "sfm" / "points.ply"),
+    }
+
+
+def build_exp3_recipe(exp2_recipe_doc: dict[str, Any], views_dir: Path | None = None) -> dict[str, Any]:
     recipe = dict(exp2_recipe_doc["recipe"])
     recipe["max_steps"] = MAX_STEPS
     recipe["output_converter"] = "ns-export gaussian-splat PLY (no SPZ step)"
+
+    hash_correction = None
+    if views_dir is not None:
+        portable = portable_input_hashes(views_dir)
+        legacy_mask_hash = recipe.get("mask_hash")
+        if portable["pose_hash"] != recipe.get("pose_hash") or portable["seed_hash"] != recipe.get("seed_hash"):
+            raise RuntimeError(
+                "portable pose_hash/seed_hash differ from the Experiment 2 recipe — these are plain "
+                "file hashes and should never differ; this would mean the actual data changed, not "
+                "just the hashing method. Refusing to silently correct. "
+                f"pose: {recipe.get('pose_hash')!r} vs {portable['pose_hash']!r}; "
+                f"seed: {recipe.get('seed_hash')!r} vs {portable['seed_hash']!r}"
+            )
+        recipe["mask_hash"] = portable["mask_hash"]
+        recipe["mask_hash_legacy_path_dependent"] = legacy_mask_hash
+        hash_correction = {
+            "date": "2026-09-18",
+            "field": "mask_hash",
+            "reason": (
+                "old hash = path-dependent bookkeeping value (sha256_dir embedded each file's "
+                "absolute filesystem path before the fix in workers/recon-experiment/hashes.py); "
+                "new hash = portable canonical content/tree identity (root-relative filenames + "
+                "content only). DATA BYTES UNCHANGED — PORTABLE HASH CORRECTION ONLY. See "
+                "docs/ops/ROOM213_MASK_PROVENANCE_2026-09-17.md and qa/exp3-portable-hash-audit.json."
+            ),
+            "old_mask_hash": legacy_mask_hash,
+            "new_mask_hash": portable["mask_hash"],
+            "pose_hash_unaffected": True,
+            "seed_hash_unaffected": True,
+        }
+
     return {
         "experiment_id": EXPERIMENT_ID,
         "job_id": exp2_recipe_doc.get("job_id", "cecc2763"),
@@ -274,7 +323,9 @@ def build_exp3_recipe(exp2_recipe_doc: dict[str, Any]) -> dict[str, Any]:
         "arms": [dict(a) for a in ARMS],
         "recipe": recipe,
         "recipe_hash": sha256_json(recipe),
+        "hash_correction": hash_correction,
         "exp2_recipe_hash": exp2_recipe_doc.get("recipe_hash"),
+        "views_dir_note": "historical documentation only — not read by the launch runtime, which always resolves inputs from the Modal volume via _ensure_inputs()",
         "views_dir": exp2_recipe_doc.get("views_dir"),
         "transforms": exp2_recipe_doc.get("transforms"),
         "points_ply": exp2_recipe_doc.get("points_ply"),
@@ -318,7 +369,11 @@ def preflight_markdown(cfg_c: dict[str, Any], cfg_d: dict[str, Any], diff: dict[
 def run_preflight(exp2_recipe: Path, transforms: Path | None, out: Path) -> dict[str, Any]:
     out.mkdir(parents=True, exist_ok=True)
     exp2_doc = json.loads(Path(exp2_recipe).read_text(encoding="utf-8"))
-    recipe_doc = build_exp3_recipe(exp2_doc)
+    # transforms.json's parent is the views/ directory (masks/, transforms.json live
+    # together); recompute the portable mask_hash from the actual data when available,
+    # rather than trusting the (possibly path-dependent, pre-fix) value on file.
+    views_dir = Path(transforms).parent if transforms else None
+    recipe_doc = build_exp3_recipe(exp2_doc, views_dir=views_dir)
     cfg_c = resolved_arm_config(ARM_C, recipe_doc["recipe"])
     cfg_d = resolved_arm_config(ARM_D, recipe_doc["recipe"])
     diff = preflight_diff(cfg_c, cfg_d)

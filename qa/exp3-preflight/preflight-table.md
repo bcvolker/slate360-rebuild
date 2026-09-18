@@ -37,7 +37,7 @@ Derived schedule (identical in both arms): resets at [3000, 6000, 9000] (value 0
 | `pause_refine_after_reset_effective` | `250` | `250` | yes |
 | `recipe.backend` | `modal-L40S` | `modal-L40S` | yes |
 | `recipe.loss` | `l1+ssim` | `l1+ssim` | yes |
-| `recipe.mask_hash` | `20daa8e25daa806411f45f24a434f81e16767402b413d436f3c5602735a8a2b6` | `20daa8e25daa806411f45f24a434f81e16767402b413d436f3c5602735a8a2b6` | yes |
+| `recipe.mask_hash` | `2f5bc81ddb14a38b39ac2d688bfed1645b4a784b616b4aec071d41afb1cedb3e` | `2f5bc81ddb14a38b39ac2d688bfed1645b4a784b616b4aec071d41afb1cedb3e` | yes |
 | `recipe.optimizer` | `splatfacto-adam` | `splatfacto-adam` | yes |
 | `recipe.pano_count` | `376` | `376` | yes |
 | `recipe.pose_hash` | `f9b1bdb367ec5864f0c21c1cd77fd33b2a8fad6ca4a92a3821571db3ae6fa604` | `f9b1bdb367ec5864f0c21c1cd77fd33b2a8fad6ca4a92a3821571db3ae6fa604` | yes |

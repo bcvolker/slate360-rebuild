@@ -205,6 +205,82 @@ def stage_inputs() -> str:
 
 @app.function(
     image=gpu_image,
+    timeout=20 * 60,
+    memory=8192,
+    cpu=2.0,
+    volumes={"/vol": ckpt_vol},
+    retries=0,
+)
+def verify_canonical_inputs() -> dict[str, Any]:
+    """CPU-only, no GPU, no training: portable-hash the canonical Room 213 inputs.
+
+    Hashes (a) the live extracted volume tree `_ensure_inputs` already returns for
+    training, and (b) a *fresh* extraction of the immutable `inputs/cecc2763.tar` into
+    an ephemeral scratch directory that is never written back to the volume — so this
+    never touches `inputs/cecc2763/` or the tar. Used by the laptop preflight and by
+    the portable-hash three-way audit; see docs/ops/ROOM213_MASK_PROVENANCE_2026-09-17.md.
+    """
+    sys.path.insert(0, "/root/recon-experiment")
+    from hashes import sha256_dir, sha256_file
+
+    vol = Path("/vol")
+    live_views = _ensure_inputs(vol)  # returns the ALREADY-extracted tree; extracts once if absent
+    live = {
+        "mask_hash": sha256_dir(live_views / "masks", ("*.png",)),
+        "pose_hash": sha256_file(live_views / "transforms.json"),
+        "seed_hash": sha256_file(live_views.parent / "sfm" / "points.ply"),
+    }
+
+    tar_path = vol / "inputs" / "cecc2763.tar"
+    scratch = Path("/tmp/verify-canonical-inputs")
+    if scratch.exists():
+        shutil.rmtree(scratch)
+    scratch.mkdir(parents=True)
+    with tarfile.open(tar_path, "r") as tf:
+        tf.extractall(scratch)
+    tar_views = scratch / "views"
+    tar_hashes = {
+        "mask_hash": sha256_dir(tar_views / "masks", ("*.png",)),
+        "pose_hash": sha256_file(tar_views / "transforms.json"),
+        "seed_hash": sha256_file(tar_views.parent / "sfm" / "points.ply"),
+    }
+    shutil.rmtree(scratch)  # ephemeral; the persistent volume tree is untouched
+
+    return {
+        "tar_sha256": sha256_file(tar_path),
+        "tar_bytes": tar_path.stat().st_size,
+        "live_volume_tree": str(live_views),
+        "live_volume_portable_hashes": live,
+        "tar_fresh_extraction_portable_hashes": tar_hashes,
+        "live_equals_tar": live == tar_hashes,
+    }
+
+
+@app.function(
+    image=gpu_image,
+    timeout=10 * 60,
+    memory=8192,
+    cpu=2.0,
+    volumes={"/vol": ckpt_vol},
+    retries=0,
+)
+def run_verify_inputs_exp3(recipe: dict[str, Any]) -> dict[str, Any]:
+    """Literally the train_arm_exp3.verify_inputs() gate Arm C/D run before training,
+    invoked standalone (no GPU, no ns-train) so the portable-hash fix can be proven
+    against Modal without spending a training budget."""
+    sys.path.insert(0, "/root/recon-experiment")
+    from train_arm_exp3 import verify_inputs
+
+    views = _ensure_inputs(Path("/vol"))
+    try:
+        identity = verify_inputs(views, recipe)
+        return {"ok": True, "identity": identity}
+    except RuntimeError as exc:
+        return {"ok": False, "error": str(exc)}
+
+
+@app.function(
+    image=gpu_image,
     gpu=GPU_TRAIN,
     timeout=TRAIN_TIMEOUT,
     memory=MEMORY_MIB,
@@ -298,8 +374,17 @@ def main(phase: str = "exp3"):
         ra, rb = a.get(), b.get()
         print(json.dumps({"arm_a": ra, "arm_b": rb, "status": "needs_review"}, indent=2, default=str))
         return
+    if phase == "verify":
+        result = verify_canonical_inputs.remote()
+        print(json.dumps(result, indent=2, default=str))
+        return
+    if phase == "verify-exp3-inputs":
+        doc = _committed_recipe("exp3-frozen-recipe.json")
+        result = run_verify_inputs_exp3.remote(doc["recipe"])
+        print(json.dumps(result, indent=2, default=str))
+        return
     if phase != "exp3":
-        raise SystemExit("phase must be exp2 or exp3")
+        raise SystemExit("phase must be exp2, exp3, or verify")
     import exp3
 
     doc = _committed_recipe("exp3-frozen-recipe.json")
@@ -313,8 +398,17 @@ def main(phase: str = "exp3"):
     print("staging frozen views", stage_inputs.remote())
     c = train_arm_exp3.spawn({"arm": exp3.ARM_C, "recipe": recipe})
     d = train_arm_exp3.spawn({"arm": exp3.ARM_D, "recipe": recipe})
-    rc, rd = c.get(), d.get()
+    # Collect each arm's result independently: one arm's exception must never cancel
+    # the other's still-running container (an uncaught exception in this entrypoint
+    # would otherwise tear down the whole Modal app, per "Stopping app - uncaught
+    # exception raised locally", killing a healthy sibling arm mid-training).
+    results: dict[str, Any] = {}
+    for name, handle in (("arm_c", c), ("arm_d", d)):
+        try:
+            results[name] = handle.get()
+        except Exception as exc:  # noqa: BLE001
+            results[name] = {"status": "failed", "error": str(exc)}
     print(json.dumps(
-        {"arm_c": rc, "arm_d": rd, "status": "needs_review", "HUMAN_VISUAL_VERDICT": "UNREVIEWED"},
+        {**results, "status": "needs_review", "HUMAN_VISUAL_VERDICT": "UNREVIEWED"},
         indent=2, default=str,
     ))

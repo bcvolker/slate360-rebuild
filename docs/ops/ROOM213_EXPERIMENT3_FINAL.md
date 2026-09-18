@@ -133,8 +133,19 @@ There is no outer wrapper.
 `transforms.json` at start and refuses to train if counts or hashes differ (`input-identity.json`).
 
 Frozen input identity (must match on the volume): pose `f9b1bdb3…6fa604`, seed `5c24bd98…ab4416`,
-masks `20daa8e2…8a2b6`, source `1753a05b…35c99`, QA cameras `ee511246…3fb37a`
-(`qa/exp3-frozen-recipe.json`, recipe hash `653f881fff6bb9bc25d6ecdec235df743d7b5859d0d5fa38b95cf466456e16a1`).
+masks `2f5bc81d…cedb3e` (portable hash, corrected 2026-09-18 — see below), source `1753a05b…35c99`,
+QA cameras `ee511246…3fb37a` (`qa/exp3-frozen-recipe.json`, recipe hash
+`7e77af47399e6eb8cde7b722304f664ed3e4c8929950bbcbf3bdcc6465639668`).
+
+> **Portable-hash correction, 2026-09-18 (data unchanged):** the mask hash originally recorded here
+> (`653f881f…` recipe, mask `20daa8e2…8a2b6`) was a path-dependent bookkeeping artifact —
+> `sha256_dir` embedded each file's absolute filesystem path, so the identical 6,016-mask tree hashed
+> differently on the desktop vs. the Modal volume vs. the immutable tar despite being byte-for-byte
+> and pixel-for-pixel identical everywhere. `workers/recon-experiment/hashes.py` now hashes
+> root-relative paths only; all three copies converge on `2f5bc81d…cedb3e`, confirmed live against
+> Modal (`qa/exp3-portable-hash-audit.json`, `docs/ops/ROOM213_MASK_PROVENANCE_2026-09-17.md`). No
+> mask, pose, seed, or QA-camera byte changed. `recipe.mask_hash_legacy_path_dependent` preserves the
+> old value on record.
 
 ## 5. Checkpoints, evaluation, opacity, visual QA (Phases 6–8)
 

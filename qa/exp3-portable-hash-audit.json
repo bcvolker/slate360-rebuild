@@ -1,0 +1,60 @@
+{
+  "title": "Room 213 Experiment 3 — portable-hash three-way audit",
+  "date": "2026-09-18",
+  "hasher": "workers/recon-experiment/hashes.py sha256_dir/sha256_file (post-fix: root-relative paths, no absolute-path leakage)",
+  "modal_runs": [
+    "https://modal.com/apps/bcvolker/main/ap-zWShJ61pRIdjPEax3ZuvCZ",
+    "https://modal.com/apps/bcvolker/main/ap-6rfFo9DqVGOB4bRspyEOnX"
+  ],
+  "canonical_artifact": {
+    "path": "Modal volume slate360-recon-experiments, inputs/cecc2763.tar",
+    "sha256": "adc72bf7b7b4446a3d39cbd3b7cb62c5769f703747f7fc2347cfd6d969a838b3",
+    "bytes": 1607055360,
+    "decision": "kept as-is (bytes unmodified); recorded as the canonical Experiment 2/3 input artifact. No versioned alias created — the path is already unambiguous (single named file, one job_id) and the content is proven immutable across the only two extractions that have ever existed (the volume's live tree and this audit's fresh extraction)."
+  },
+  "inputs": {
+    "mask_hash": {
+      "desktop": "2f5bc81ddb14a38b39ac2d688bfed1645b4a784b616b4aec071d41afb1cedb3e",
+      "tar_fresh_extraction": "2f5bc81ddb14a38b39ac2d688bfed1645b4a784b616b4aec071d41afb1cedb3e",
+      "modal_live_volume": "2f5bc81ddb14a38b39ac2d688bfed1645b4a784b616b4aec071d41afb1cedb3e",
+      "match": true,
+      "affected_by_bug": true,
+      "old_path_dependent_value_desktop": "20daa8e25daa806411f45f24a434f81e16767402b413d436f3c5602735a8a2b6",
+      "old_path_dependent_value_modal_live": "f38bd55f9a493643630e4e6e6b22b9fd0d7918111132024cf2ea7aa1d1f3e8b5",
+      "note": "sha256_dir over 6016 view-level PNG masks. Pre-fix, embedded each file's absolute path; three different roots produced three different aggregate hashes for byte-identical content (see docs/ops/ROOM213_MASK_PROVENANCE_2026-09-17.md). Post-fix, all three converge."
+    },
+    "pose_hash": {
+      "desktop": "f9b1bdb367ec5864f0c21c1cd77fd33b2a8fad6ca4a92a3821571db3ae6fa604",
+      "tar_fresh_extraction": "f9b1bdb367ec5864f0c21c1cd77fd33b2a8fad6ca4a92a3821571db3ae6fa604",
+      "modal_live_volume": "f9b1bdb367ec5864f0c21c1cd77fd33b2a8fad6ca4a92a3821571db3ae6fa604",
+      "match": true,
+      "affected_by_bug": false,
+      "note": "sha256_file(transforms.json) — a plain single-file content hash, never path-dependent. Unchanged by the fix; always matched."
+    },
+    "seed_hash": {
+      "desktop": "5c24bd98d41607d493a95167512d9489f48783a7dd781f4b31acb80a5bab4416",
+      "tar_fresh_extraction": "5c24bd98d41607d493a95167512d9489f48783a7dd781f4b31acb80a5bab4416",
+      "modal_live_volume": "5c24bd98d41607d493a95167512d9489f48783a7dd781f4b31acb80a5bab4416",
+      "match": true,
+      "affected_by_bug": false,
+      "note": "sha256_file(sfm/points.ply) — plain single-file content hash, never path-dependent. Unchanged by the fix; always matched."
+    },
+    "qa_pose_hash": {
+      "desktop": "ee51124640e16c92ea2c48cf420719b77ab9c8a02ea996dc4ed849045f3fb37a",
+      "tar_fresh_extraction": null,
+      "modal_live_volume": null,
+      "match": null,
+      "affected_by_bug": false,
+      "note": "pose_set_hash(visual-poses.json content dict) via sha256_json — content-only, no directory or filesystem path involved anywhere in its computation. Not directory-backed, so there is no 'volume copy' or 'tar copy' of this value to compare against: qa/visual-poses.json is itself the single committed source of truth, read identically by every Modal function and by the desktop. Included here for completeness per the audit checklist, not because it could plausibly diverge."
+    },
+    "source_hash": {
+      "desktop": "1753a05b9eef0262d075bf9dc81d8ce49e56cdb6ae88fb9a2e713f7b73b35c99",
+      "tar_fresh_extraction": null,
+      "modal_live_volume": null,
+      "match": null,
+      "affected_by_bug": false,
+      "note": "sha256_json over {pose_hash, seed_hash, image_count, image_bytes, image_names} — image_names are bare filenames (Path.name), not full paths. Already portable before this fix; not recomputed remotely because it is derived entirely from the pose_hash/seed_hash/image inventory already verified above, not from a separate directory walk."
+    }
+  },
+  "portable_hash_audit": "PASS"
+}
