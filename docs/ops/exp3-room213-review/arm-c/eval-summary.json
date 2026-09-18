@@ -1,0 +1,50 @@
+{
+  "8000": {
+    "ok": true,
+    "step": 8000,
+    "cmd": [
+      "/usr/local/bin/ns-eval",
+      "--load-config",
+      "/tmp/exp3/ROOM213_ARM_C_NO_GROWTH_CONTROL/train/views/splatfacto/2026-09-18_041534/config.eval.8000.yml",
+      "--output-path",
+      "/tmp/exp3/ROOM213_ARM_C_NO_GROWTH_CONTROL/eval/metrics-8000.json"
+    ],
+    "exit_code": 0,
+    "metrics": {
+      "psnr": 20.53217887878418,
+      "psnr_std": 2.034196138381958,
+      "ssim": 0.8140919804573059,
+      "ssim_std": 0.06336776167154312,
+      "lpips": 0.4728156328201294,
+      "lpips_std": 0.07080034166574478,
+      "num_rays_per_sec": 131636616.0,
+      "fps": 80.34461212158203
+    },
+    "checkpoint": "/tmp/exp3/ROOM213_ARM_C_NO_GROWTH_CONTROL/train/views/splatfacto/2026-09-18_041534/nerfstudio_models/step-000008000.ckpt",
+    "eval_set": "nerfstudio held-out split (train_split_fraction 0.9)"
+  },
+  "15999": {
+    "ok": true,
+    "step": 15999,
+    "cmd": [
+      "/usr/local/bin/ns-eval",
+      "--load-config",
+      "/tmp/exp3/ROOM213_ARM_C_NO_GROWTH_CONTROL/train/views/splatfacto/2026-09-18_041534/config.eval.15999.yml",
+      "--output-path",
+      "/tmp/exp3/ROOM213_ARM_C_NO_GROWTH_CONTROL/eval/metrics-15999.json"
+    ],
+    "exit_code": 0,
+    "metrics": {
+      "psnr": 21.199499130249023,
+      "psnr_std": 2.1879031658172607,
+      "ssim": 0.82306969165802,
+      "ssim_std": 0.06240377202630043,
+      "lpips": 0.4426156282424927,
+      "lpips_std": 0.07255405187606812,
+      "num_rays_per_sec": 132958456.0,
+      "fps": 81.15139770507812
+    },
+    "checkpoint": "/tmp/exp3/ROOM213_ARM_C_NO_GROWTH_CONTROL/train/views/splatfacto/2026-09-18_041534/nerfstudio_models/step-000015999.ckpt",
+    "eval_set": "nerfstudio held-out split (train_split_fraction 0.9)"
+  }
+}

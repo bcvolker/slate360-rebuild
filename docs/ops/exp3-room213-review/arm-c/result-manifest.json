@@ -1,0 +1,366 @@
+{
+  "HUMAN_VISUAL_VERDICT": "UNREVIEWED",
+  "arm": "ROOM213_ARM_C_NO_GROWTH_CONTROL",
+  "changed_variable": "densify_grad_thresh",
+  "cost_usd": 2.9071,
+  "densify_grad_thresh": 1000000000.0,
+  "effective_config_hash": "d10c7d750831300cbd692d0afc42097d777520c4a7aa7e20a1d442ce5cfbef9b",
+  "eval": {
+    "15999": {
+      "checkpoint": "/tmp/exp3/ROOM213_ARM_C_NO_GROWTH_CONTROL/train/views/splatfacto/2026-09-18_041534/nerfstudio_models/step-000015999.ckpt",
+      "cmd": [
+        "/usr/local/bin/ns-eval",
+        "--load-config",
+        "/tmp/exp3/ROOM213_ARM_C_NO_GROWTH_CONTROL/train/views/splatfacto/2026-09-18_041534/config.eval.15999.yml",
+        "--output-path",
+        "/tmp/exp3/ROOM213_ARM_C_NO_GROWTH_CONTROL/eval/metrics-15999.json"
+      ],
+      "eval_set": "nerfstudio held-out split (train_split_fraction 0.9)",
+      "exit_code": 0,
+      "metrics": {
+        "fps": 81.15139770507812,
+        "lpips": 0.4426156282424927,
+        "lpips_std": 0.07255405187606812,
+        "num_rays_per_sec": 132958456.0,
+        "psnr": 21.199499130249023,
+        "psnr_std": 2.1879031658172607,
+        "ssim": 0.82306969165802,
+        "ssim_std": 0.06240377202630043
+      },
+      "ok": true,
+      "step": 15999
+    },
+    "8000": {
+      "checkpoint": "/tmp/exp3/ROOM213_ARM_C_NO_GROWTH_CONTROL/train/views/splatfacto/2026-09-18_041534/nerfstudio_models/step-000008000.ckpt",
+      "cmd": [
+        "/usr/local/bin/ns-eval",
+        "--load-config",
+        "/tmp/exp3/ROOM213_ARM_C_NO_GROWTH_CONTROL/train/views/splatfacto/2026-09-18_041534/config.eval.8000.yml",
+        "--output-path",
+        "/tmp/exp3/ROOM213_ARM_C_NO_GROWTH_CONTROL/eval/metrics-8000.json"
+      ],
+      "eval_set": "nerfstudio held-out split (train_split_fraction 0.9)",
+      "exit_code": 0,
+      "metrics": {
+        "fps": 80.34461212158203,
+        "lpips": 0.4728156328201294,
+        "lpips_std": 0.07080034166574478,
+        "num_rays_per_sec": 131636616.0,
+        "psnr": 20.53217887878418,
+        "psnr_std": 2.034196138381958,
+        "ssim": 0.8140919804573059,
+        "ssim_std": 0.06336776167154312
+      },
+      "ok": true,
+      "step": 8000
+    }
+  },
+  "experiment_id": "room213-exp3",
+  "gpu": "NVIDIA L40S",
+  "harness_valid": true,
+  "human_verdict": "UNREVIEWED",
+  "kept_checkpoint_steps": [
+    500,
+    3000,
+    6000,
+    8000,
+    9000,
+    11000,
+    13000,
+    15999
+  ],
+  "markers": {
+    "accumulators_cleared": "EXP3_REFINEMENT_ACCUMULATORS_CLEARED step=6017 refine_start_iter=6016 cleared=grad2d,count,radii",
+    "guard": null,
+    "patch_applied": true,
+    "refine_events": 44
+  },
+  "opacity_stats": [
+    {
+      "ckpt": "step-000000500.ckpt",
+      "count": 209587,
+      "fraction_above_0.5": 0.13356266915798187,
+      "fraction_below": {
+        "0.001": 0.0,
+        "0.005": 0.020464055240154266,
+        "0.01": 0.07966142892837524,
+        "0.05": 0.3705000877380371,
+        "0.1": 0.5207813382148743
+      },
+      "nonfinite_logits": 0,
+      "quantiles_05_25_50_75_95": [
+        0.007548,
+        0.028152,
+        0.090583,
+        0.28955,
+        0.74206
+      ],
+      "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+      "step": 500
+    },
+    {
+      "ckpt": "step-000003000.ckpt",
+      "count": 209587,
+      "fraction_above_0.5": 0.0,
+      "fraction_below": {
+        "0.001": 0.0,
+        "0.005": 0.1004881039261818,
+        "0.01": 1.0,
+        "0.05": 1.0,
+        "0.1": 1.0
+      },
+      "nonfinite_logits": 0,
+      "quantiles_05_25_50_75_95": [
+        0.003874,
+        0.01,
+        0.01,
+        0.01,
+        0.01
+      ],
+      "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+      "step": 3000
+    },
+    {
+      "ckpt": "step-000006000.ckpt",
+      "count": 209587,
+      "fraction_above_0.5": 0.0,
+      "fraction_below": {
+        "0.001": 0.014337721280753613,
+        "0.005": 0.3246002793312073,
+        "0.01": 1.0,
+        "0.05": 1.0,
+        "0.1": 1.0
+      },
+      "nonfinite_logits": 0,
+      "quantiles_05_25_50_75_95": [
+        0.001697,
+        0.003804,
+        0.01,
+        0.01,
+        0.01
+      ],
+      "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+      "step": 6000
+    },
+    {
+      "ckpt": "step-000008000.ckpt",
+      "count": 119456,
+      "fraction_above_0.5": 0.5007283091545105,
+      "fraction_below": {
+        "0.001": 0.0,
+        "0.005": 0.0,
+        "0.01": 0.01598915085196495,
+        "0.05": 0.12606315314769745,
+        "0.1": 0.21617165207862854
+      },
+      "nonfinite_logits": 0,
+      "quantiles_05_25_50_75_95": [
+        0.020587,
+        0.124214,
+        0.50138,
+        0.873676,
+        0.973498
+      ],
+      "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+      "step": 8000
+    },
+    {
+      "ckpt": "step-000009000.ckpt",
+      "count": 118889,
+      "fraction_above_0.5": 0.0,
+      "fraction_below": {
+        "0.001": 0.0,
+        "0.005": 0.0003532707050908357,
+        "0.01": 1.0,
+        "0.05": 1.0,
+        "0.1": 1.0
+      },
+      "nonfinite_logits": 0,
+      "quantiles_05_25_50_75_95": [
+        0.01,
+        0.01,
+        0.01,
+        0.01,
+        0.01
+      ],
+      "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+      "step": 9000
+    },
+    {
+      "ckpt": "step-000011000.ckpt",
+      "count": 99951,
+      "fraction_above_0.5": 0.5788136124610901,
+      "fraction_below": {
+        "0.001": 0.0,
+        "0.005": 0.0002301127533428371,
+        "0.01": 0.008083960972726345,
+        "0.05": 0.07909876108169556,
+        "0.1": 0.15176436305046082
+      },
+      "nonfinite_logits": 0,
+      "quantiles_05_25_50_75_95": [
+        0.033325,
+        0.200609,
+        0.650525,
+        0.904195,
+        0.975644
+      ],
+      "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+      "step": 11000
+    },
+    {
+      "ckpt": "step-000013000.ckpt",
+      "count": 99951,
+      "fraction_above_0.5": 0.6281977891921997,
+      "fraction_below": {
+        "0.001": 0.0,
+        "0.005": 0.0032415883615612984,
+        "0.01": 0.011465618386864662,
+        "0.05": 0.0760972872376442,
+        "0.1": 0.1407889872789383
+      },
+      "nonfinite_logits": 0,
+      "quantiles_05_25_50_75_95": [
+        0.0334,
+        0.23821,
+        0.752706,
+        0.943771,
+        0.988431
+      ],
+      "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+      "step": 13000
+    },
+    {
+      "ckpt": "step-000015999.ckpt",
+      "count": 99951,
+      "fraction_above_0.5": 0.6694080233573914,
+      "fraction_below": {
+        "0.001": 0.0,
+        "0.005": 0.009434622712433338,
+        "0.01": 0.018278956413269043,
+        "0.05": 0.08091965317726135,
+        "0.1": 0.1363067924976349
+      },
+      "nonfinite_logits": 0,
+      "quantiles_05_25_50_75_95": [
+        0.028906,
+        0.287264,
+        0.844036,
+        0.974573,
+        0.996249
+      ],
+      "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+      "step": 15999
+    }
+  ],
+  "published": false,
+  "renders": {
+    "15999": {
+      "bounds": {
+        "max": [
+          4.103229522705078,
+          2.3376379013061523,
+          0.34498199820518494
+        ],
+        "min": [
+          -1.2184863090515137,
+          -1.0685133934020996,
+          -1.2554892301559448
+        ],
+        "p01": [
+          -0.8660557270050049,
+          -0.7672958970069885,
+          -0.37314096093177795
+        ],
+        "p99": [
+          0.7640056610107422,
+          1.1470998525619507,
+          0.10682602226734161
+        ]
+      },
+      "client_visual_verdict": "UNREVIEWED",
+      "count": 99266,
+      "human_verdict": "UNREVIEWED",
+      "label": "step-15999",
+      "qa_pose_set_hash": "ee51124640e16c92ea2c48cf420719b77ab9c8a02ea996dc4ed849045f3fb37a",
+      "render_hashes": {
+        "A_on_path": "ea6b7ee785ac73f51f990c531c78f44be2a14d448cc383bc422bccbf63bd4890",
+        "B_off_path": "3eacf15924af045d94b2905359e21db91b3af2edf967d6f87a213d133b88e451",
+        "C_dollhouse": "21f6bde63ab3aa0df8d4abf1d9e62e278bb66100a5059423a3979051b33686a4",
+        "D_overhead": "099c6d34590bc96c46cce852c41742acaa8cb05467d10164fb216f721727831f"
+      },
+      "sh_degree": 3
+    },
+    "8000": {
+      "bounds": {
+        "max": [
+          4.157617092132568,
+          2.387086868286133,
+          0.3385814130306244
+        ],
+        "min": [
+          -1.282125473022461,
+          -1.2088091373443604,
+          -1.3261134624481201
+        ],
+        "p01": [
+          -0.8538689017295837,
+          -0.7704422473907471,
+          -0.3719960153102875
+        ],
+        "p99": [
+          0.7688279747962952,
+          1.141286849975586,
+          0.10246314108371735
+        ]
+      },
+      "client_visual_verdict": "UNREVIEWED",
+      "count": 119456,
+      "human_verdict": "UNREVIEWED",
+      "label": "step-8000",
+      "qa_pose_set_hash": "ee51124640e16c92ea2c48cf420719b77ab9c8a02ea996dc4ed849045f3fb37a",
+      "render_hashes": {
+        "A_on_path": "731aaa9294657979005b30e6a6822ecfed9a0175bc8a45cc244a220f1664b1d5",
+        "B_off_path": "9fd7f0d17143202571d405de4e704d7a0998a1cc1f1898a7dad8dc5ef003ba2f",
+        "C_dollhouse": "562a67fc813e2212dfbcff6705a98130223f661a29809f70aab72bb26f79e7e7",
+        "D_overhead": "a91ae2c164980545612017c23410c32c36aa8f0e6e5e3114180d63c1658c81cb"
+      },
+      "sh_degree": 3
+    }
+  },
+  "status": "needs_review",
+  "train": {
+    "abort": null,
+    "cost_usd": 2.9071,
+    "elapsed_s": 3526.326,
+    "exit_code": 0,
+    "gaussians": 99951,
+    "step": 15999,
+    "swept_checkpoints": [
+      "step-000001000.ckpt",
+      "step-000001500.ckpt",
+      "step-000002000.ckpt",
+      "step-000002500.ckpt",
+      "step-000003500.ckpt",
+      "step-000004000.ckpt",
+      "step-000004500.ckpt",
+      "step-000005000.ckpt",
+      "step-000005500.ckpt",
+      "step-000006500.ckpt",
+      "step-000007000.ckpt",
+      "step-000007500.ckpt",
+      "step-000008500.ckpt",
+      "step-000009500.ckpt",
+      "step-000010000.ckpt",
+      "step-000010500.ckpt",
+      "step-000011500.ckpt",
+      "step-000012000.ckpt",
+      "step-000012500.ckpt",
+      "step-000013500.ckpt",
+      "step-000014000.ckpt",
+      "step-000014500.ckpt",
+      "step-000015000.ckpt",
+      "step-000015500.ckpt"
+    ]
+  }
+}
