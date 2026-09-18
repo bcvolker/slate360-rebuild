@@ -1,0 +1,552 @@
+[
+  {
+    "ckpt": "step-000000750.ckpt",
+    "step": 750,
+    "bytes": 1888951398,
+    "gauss": {
+      "_model.gauss_params.features_dc": {
+        "shape": [
+          398446,
+          3
+        ],
+        "sha256": "43b4bda2d1618940836f6a45846a92fca0d6d1875d3c4279d9f0b592f67e657f"
+      },
+      "_model.gauss_params.features_rest": {
+        "shape": [
+          398446,
+          15,
+          3
+        ],
+        "sha256": "3b5211406717b1d0c28a98b0368ea0a5d9becb25d3819d18f5fd65461519085e"
+      },
+      "_model.gauss_params.means": {
+        "shape": [
+          398446,
+          3
+        ],
+        "sha256": "297aadb260e197389bd8fb2f50ae76577f9250428ebbf27e417857849e7f144b"
+      },
+      "_model.gauss_params.opacities": {
+        "shape": [
+          398446,
+          1
+        ],
+        "sha256": "69a2d3deac2faed3461e7dbe27357afb839e8b5f45f69bf43ae243e5f64d04d3"
+      },
+      "_model.gauss_params.quats": {
+        "shape": [
+          398446,
+          4
+        ],
+        "sha256": "93b02b9deaa47573f4eec74543b98c41454f9886e3933132d547a09d72a3336b"
+      },
+      "_model.gauss_params.scales": {
+        "shape": [
+          398446,
+          3
+        ],
+        "sha256": "318a7709393eec2a7dcb0d6dac580262fcf7911173817b19461d64c441118d3f"
+      }
+    }
+  },
+  {
+    "ckpt": "step-000001500.ckpt",
+    "step": 1500,
+    "bytes": 2934472806,
+    "gauss": {
+      "_model.gauss_params.features_dc": {
+        "shape": [
+          1875171,
+          3
+        ],
+        "sha256": "a4389bafc3d0a005c6a0c7ca55ceae70c52d79c9e4c6f7ad382e699445bc64b7"
+      },
+      "_model.gauss_params.features_rest": {
+        "shape": [
+          1875171,
+          15,
+          3
+        ],
+        "sha256": "95433fd8d76197e16aea94ebd195d22ab36d3694ab46c4d22aae811e41ceaeb2"
+      },
+      "_model.gauss_params.means": {
+        "shape": [
+          1875171,
+          3
+        ],
+        "sha256": "b5031829e4d883db60ec974fa393386fcd7670296b35a290b1e273b2e97c815e"
+      },
+      "_model.gauss_params.opacities": {
+        "shape": [
+          1875171,
+          1
+        ],
+        "sha256": "698591be3a8e132049c604453a43d3aadf64978af6771200fab09e79ca6207f0"
+      },
+      "_model.gauss_params.quats": {
+        "shape": [
+          1875171,
+          4
+        ],
+        "sha256": "dc5bfc37b5da68bbccb0548a802a52ce98fe58e38d47bfa38a1e11322c11edc3"
+      },
+      "_model.gauss_params.scales": {
+        "shape": [
+          1875171,
+          3
+        ],
+        "sha256": "ed35344985639f117d3532cd2f12e8949bc3e24f836a533dddb30bb93c2ed106"
+      }
+    }
+  },
+  {
+    "ckpt": "step-000002250.ckpt",
+    "step": 2250,
+    "bytes": 4080426918,
+    "gauss": {
+      "_model.gauss_params.features_dc": {
+        "shape": [
+          3493750,
+          3
+        ],
+        "sha256": "093675fc52f36c764d11b4999a63a099d2d49da409a39c2861f7e236baccbe42"
+      },
+      "_model.gauss_params.features_rest": {
+        "shape": [
+          3493750,
+          15,
+          3
+        ],
+        "sha256": "8dfd9c1a528d56e33116d80efcb4e4589caa4111d7ba49c0245645a3156049d9"
+      },
+      "_model.gauss_params.means": {
+        "shape": [
+          3493750,
+          3
+        ],
+        "sha256": "5e8c58f78f9e421db044325885287742da8a4b4cbfa9848cdc117f30e8c7bac8"
+      },
+      "_model.gauss_params.opacities": {
+        "shape": [
+          3493750,
+          1
+        ],
+        "sha256": "88ed30f1f9298e2dbc922e13b126da380c25bf5767f40147f5f0fae26873382a"
+      },
+      "_model.gauss_params.quats": {
+        "shape": [
+          3493750,
+          4
+        ],
+        "sha256": "b983a978051385764c36a5a445cbddf9598dba22978088d2cfbd38b93e3204af"
+      },
+      "_model.gauss_params.scales": {
+        "shape": [
+          3493750,
+          3
+        ],
+        "sha256": "e18f944c6b7d269148d1f0d6a17266ab7f22a93f0f201019dc9fdff4a91ae42e"
+      }
+    }
+  },
+  {
+    "ckpt": "step-000003000.ckpt",
+    "step": 3000,
+    "bytes": 5284360974,
+    "gauss": {
+      "_model.gauss_params.features_dc": {
+        "shape": [
+          5194222,
+          3
+        ],
+        "sha256": "21a1ad99dc8164a85e8c8a46cddf15e6a81cedb86b3f1d8ac5902e6da822992f"
+      },
+      "_model.gauss_params.features_rest": {
+        "shape": [
+          5194222,
+          15,
+          3
+        ],
+        "sha256": "475db2029b82d82f3be420580a84df44d6217e8c841e132e4d848849f5da80a6"
+      },
+      "_model.gauss_params.means": {
+        "shape": [
+          5194222,
+          3
+        ],
+        "sha256": "15ea45d7491eb22072a94bdeb8a0c26916931c0d546dfa56186771c1467d73a3"
+      },
+      "_model.gauss_params.opacities": {
+        "shape": [
+          5194222,
+          1
+        ],
+        "sha256": "d988bd6709c73aa0cdd6b45dcadda32361239cc7d16f6ec74d7a7b65af69f747"
+      },
+      "_model.gauss_params.quats": {
+        "shape": [
+          5194222,
+          4
+        ],
+        "sha256": "17e08aa10e011c260c1061caba390da8f319da113bee8ef07e9353256e669bc7"
+      },
+      "_model.gauss_params.scales": {
+        "shape": [
+          5194222,
+          3
+        ],
+        "sha256": "4d27c4b2d1555ef8ee5a38f7da8206908e9005c78be551781ba8aacfdc3a763b"
+      }
+    }
+  },
+  {
+    "ckpt": "step-000003750.ckpt",
+    "step": 3750,
+    "bytes": 6376421462,
+    "gauss": {
+      "_model.gauss_params.features_dc": {
+        "shape": [
+          6736680,
+          3
+        ],
+        "sha256": "6a1a30a460433f893c4d3b822500f1b6a385bedf77f25fa9030cd87b5284f07e"
+      },
+      "_model.gauss_params.features_rest": {
+        "shape": [
+          6736680,
+          15,
+          3
+        ],
+        "sha256": "603176a6007ec09e201a6fc804c481746573e386da90e6eb70676c76fac17c38"
+      },
+      "_model.gauss_params.means": {
+        "shape": [
+          6736680,
+          3
+        ],
+        "sha256": "7b62d11f1d4e6add2632e7fefe89cf52c6ebdec008fc04a569ba759a50bb2dd8"
+      },
+      "_model.gauss_params.opacities": {
+        "shape": [
+          6736680,
+          1
+        ],
+        "sha256": "78d68ed7c63cd589692923e894d1fc85233a7977220083f879d870ebedd794e0"
+      },
+      "_model.gauss_params.quats": {
+        "shape": [
+          6736680,
+          4
+        ],
+        "sha256": "6b03ab6a9ab5bb40120328a15f99ed0bb1fa331dffd8cd666dc708b04289efa3"
+      },
+      "_model.gauss_params.scales": {
+        "shape": [
+          6736680,
+          3
+        ],
+        "sha256": "14f7e595b76c612c7f6f2a8618e2bd2353b3c26079fef3447edc2bbb5b277a41"
+      }
+    }
+  },
+  {
+    "ckpt": "step-000004500.ckpt",
+    "step": 4500,
+    "bytes": 6916313238,
+    "gauss": {
+      "_model.gauss_params.features_dc": {
+        "shape": [
+          7499239,
+          3
+        ],
+        "sha256": "2d2a0b1a78c3782b782508a08de2e6e84279e8e864a463bf6c1e19e09350c281"
+      },
+      "_model.gauss_params.features_rest": {
+        "shape": [
+          7499239,
+          15,
+          3
+        ],
+        "sha256": "ba721d7935baef6acfbb33c714e4972e864cdf75ae8306d134c45a0e89a9a954"
+      },
+      "_model.gauss_params.means": {
+        "shape": [
+          7499239,
+          3
+        ],
+        "sha256": "5fe2ef17f1d27be77a44e3a7164121e651cde35d84764857f1a31cfde2d82edb"
+      },
+      "_model.gauss_params.opacities": {
+        "shape": [
+          7499239,
+          1
+        ],
+        "sha256": "052db7b5075af399840c3785cc838bceed6ca0601bd59bb9e6a7f54a962fb5b4"
+      },
+      "_model.gauss_params.quats": {
+        "shape": [
+          7499239,
+          4
+        ],
+        "sha256": "daeda5528b410801878361faa9f809027570a56a2f1cbaa1d2dd9bdb699e2765"
+      },
+      "_model.gauss_params.scales": {
+        "shape": [
+          7499239,
+          3
+        ],
+        "sha256": "71a18f77b6f294ad8ac31544db58a075f75319b6de484fd6a53e333cb0411cad"
+      }
+    }
+  },
+  {
+    "ckpt": "step-000005250.ckpt",
+    "step": 5250,
+    "bytes": 6916313238,
+    "gauss": {
+      "_model.gauss_params.features_dc": {
+        "shape": [
+          7499239,
+          3
+        ],
+        "sha256": "37ad4641b4663fdb05b2339cbaa224617c3ffb40350f6565c4278239bbe0f1da"
+      },
+      "_model.gauss_params.features_rest": {
+        "shape": [
+          7499239,
+          15,
+          3
+        ],
+        "sha256": "4665ded8aa7a81ff27620322b1034d908229dca5bda7b06ee2dca7c9ad0faf3f"
+      },
+      "_model.gauss_params.means": {
+        "shape": [
+          7499239,
+          3
+        ],
+        "sha256": "c8e1514fd397a1fe8684499df412c8a7d91fb5fc14e38056b0f9a43b3ccf6e0c"
+      },
+      "_model.gauss_params.opacities": {
+        "shape": [
+          7499239,
+          1
+        ],
+        "sha256": "f2d2fb260c016a364fcd5618747bf98c8eba6eb5edd5b09982fce7df1140f422"
+      },
+      "_model.gauss_params.quats": {
+        "shape": [
+          7499239,
+          4
+        ],
+        "sha256": "36993ab8370fa314e3cff058f087564d02cc3dd6c0c92b201113a3ed6228c9d3"
+      },
+      "_model.gauss_params.scales": {
+        "shape": [
+          7499239,
+          3
+        ],
+        "sha256": "16671a5c4f41e2e1b26b3bdff882f975c537c35d464a792ddd505f19109b6d03"
+      }
+    }
+  },
+  {
+    "ckpt": "step-000006000.ckpt",
+    "step": 6000,
+    "bytes": 6916313238,
+    "gauss": {
+      "_model.gauss_params.features_dc": {
+        "shape": [
+          7499239,
+          3
+        ],
+        "sha256": "581a3dcfe04e51c7e11d7d0d5c5ad340cfaa17b36b6295a45bca725c1d7e52c6"
+      },
+      "_model.gauss_params.features_rest": {
+        "shape": [
+          7499239,
+          15,
+          3
+        ],
+        "sha256": "878703df11c490005aa9c02871a8b6740a2fd34d8a71a058c23a1098af014d86"
+      },
+      "_model.gauss_params.means": {
+        "shape": [
+          7499239,
+          3
+        ],
+        "sha256": "bf9677908f35490eb75b166122f82b8f5b1560a0f2841ee7a748adf36db12f48"
+      },
+      "_model.gauss_params.opacities": {
+        "shape": [
+          7499239,
+          1
+        ],
+        "sha256": "8345bab68c884e965c4bae0cb7bc3d62d6a9073031beba5de19da24691cc3665"
+      },
+      "_model.gauss_params.quats": {
+        "shape": [
+          7499239,
+          4
+        ],
+        "sha256": "6747954fd3710c70db99df7b23dd1e100392544b381e848a9deaa48cbf7efe8d"
+      },
+      "_model.gauss_params.scales": {
+        "shape": [
+          7499239,
+          3
+        ],
+        "sha256": "29fd27093ffe08223ef1e09a08848e3f6a2d77618f6c0dea5b6a03a86c821dc2"
+      }
+    }
+  },
+  {
+    "ckpt": "step-000006750.ckpt",
+    "step": 6750,
+    "bytes": 6916313238,
+    "gauss": {
+      "_model.gauss_params.features_dc": {
+        "shape": [
+          7499239,
+          3
+        ],
+        "sha256": "16bba02f7c08cd9bc40f9186de2fd3059990e506bee66a8cd7a2bca49bccbc79"
+      },
+      "_model.gauss_params.features_rest": {
+        "shape": [
+          7499239,
+          15,
+          3
+        ],
+        "sha256": "d6b6f2b547cb60c8e308ed9074d1ac6406342c3d4587d9bcfff2138640dffb87"
+      },
+      "_model.gauss_params.means": {
+        "shape": [
+          7499239,
+          3
+        ],
+        "sha256": "ad4983a6763c7e4652aec2047e375a67faf36eb5e149c423122b9b18273081f5"
+      },
+      "_model.gauss_params.opacities": {
+        "shape": [
+          7499239,
+          1
+        ],
+        "sha256": "0e0c363598b9d285bd2cdd986fffdf60bb24c3e972e93ff0a1b96a1bf39690a7"
+      },
+      "_model.gauss_params.quats": {
+        "shape": [
+          7499239,
+          4
+        ],
+        "sha256": "ad1308115b74cf6bbae22c04e9ef7f27549d9166d4ea8ca42feaf9830a698dbd"
+      },
+      "_model.gauss_params.scales": {
+        "shape": [
+          7499239,
+          3
+        ],
+        "sha256": "919c5cf6ba782917695f32b0a0eff3b9e0e26635cec22a5ea2f0274f43976053"
+      }
+    }
+  },
+  {
+    "ckpt": "step-000007500.ckpt",
+    "step": 7500,
+    "bytes": 6916313238,
+    "gauss": {
+      "_model.gauss_params.features_dc": {
+        "shape": [
+          7499239,
+          3
+        ],
+        "sha256": "de623e0c41d9a0b1092e8aeeaf2f6365f6d4e59fe9ac32cba3ede81e5b569ebd"
+      },
+      "_model.gauss_params.features_rest": {
+        "shape": [
+          7499239,
+          15,
+          3
+        ],
+        "sha256": "ad5b038bf13cc4464cb75880db8a84384b105596f2858f8a3371be2070e9df8c"
+      },
+      "_model.gauss_params.means": {
+        "shape": [
+          7499239,
+          3
+        ],
+        "sha256": "6150311003ac86cc54d7806e53ba54b69d5d30f76ee9d614c3b715934cc80ed9"
+      },
+      "_model.gauss_params.opacities": {
+        "shape": [
+          7499239,
+          1
+        ],
+        "sha256": "8057c50b827c10470add376ed635dfb27038afa33b74e45668d2f2b6de20e829"
+      },
+      "_model.gauss_params.quats": {
+        "shape": [
+          7499239,
+          4
+        ],
+        "sha256": "64a4493dd60c4961a75e96f438aa09456bddb1b17a5792d5d52b8de343ca1b0b"
+      },
+      "_model.gauss_params.scales": {
+        "shape": [
+          7499239,
+          3
+        ],
+        "sha256": "9efd5873c45612095553e417f164ea960c40df34e4ddbbcda3c53d5269a74796"
+      }
+    }
+  },
+  {
+    "ckpt": "step-000007999.ckpt",
+    "step": 7999,
+    "bytes": 6916313238,
+    "gauss": {
+      "_model.gauss_params.features_dc": {
+        "shape": [
+          7499239,
+          3
+        ],
+        "sha256": "9efcef38f0ef46fe14aabeafc1cccbddee3d385e8dc1e4cf1b28301b150702a3"
+      },
+      "_model.gauss_params.features_rest": {
+        "shape": [
+          7499239,
+          15,
+          3
+        ],
+        "sha256": "9f0105f25a8f2d6cbd1bac402c554a537a0db239b35bbe21a35dad4af18a45b9"
+      },
+      "_model.gauss_params.means": {
+        "shape": [
+          7499239,
+          3
+        ],
+        "sha256": "b523df194efe6aaae3192ebf181ae564424603d36d2b34d13173fd79544b7d48"
+      },
+      "_model.gauss_params.opacities": {
+        "shape": [
+          7499239,
+          1
+        ],
+        "sha256": "f4b81215c09af26a011cf9dcd4b5f3cb83256b4cd70b0ead0626af4903d83766"
+      },
+      "_model.gauss_params.quats": {
+        "shape": [
+          7499239,
+          4
+        ],
+        "sha256": "6e83479f22367161d2fc6cb11e9ed1c0579eae3fdbef190028be614d4ea84e5d"
+      },
+      "_model.gauss_params.scales": {
+        "shape": [
+          7499239,
+          3
+        ],
+        "sha256": "baa44d20a4f5404c49c3d56ea58527d5d73ff56c4eda3648116858ddef2973a5"
+      }
+    }
+  }
+]

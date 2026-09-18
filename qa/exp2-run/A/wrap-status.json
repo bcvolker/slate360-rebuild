@@ -1,0 +1,6 @@
+{
+  "requested_pause_refine_after_reset": 5515,
+  "effective_pause_refine_after_reset": 250,
+  "pause_clamped": true,
+  "pause_cap": 250
+}

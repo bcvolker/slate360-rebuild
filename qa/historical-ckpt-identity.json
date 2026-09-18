@@ -1,0 +1,708 @@
+{
+  "reports": [
+    {
+      "path": "/home/rian_/splat-ckpts/cecc2763/views/splatfacto/2026-09-16_234807/nerfstudio_models/step-000002250.ckpt",
+      "bytes": 4114716774,
+      "file_sha256_head": "ada423fd6b857feb6dae830cc4145d8a090518e520e02e54a45cc05e549f5eec",
+      "top_keys": [
+        "step",
+        "pipeline",
+        "optimizers",
+        "schedulers",
+        "scalers"
+      ],
+      "step": 2250,
+      "gauss": {
+        "_model.gauss_params.features_dc": {
+          "shape": [
+            3542182,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "587d1eea956d710974e023d43e0223cebf06b8fc6e726f90e56340f90b2047e8",
+          "numel": 10626546,
+          "mean": 0.09152444452047348,
+          "std": 1.1845754384994507
+        },
+        "_model.gauss_params.features_rest": {
+          "shape": [
+            3542182,
+            15,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "3134a17b2dc8eb619f844e8cb27c76f9f21db3f681872b0200892a551c63f5ee",
+          "numel": 159398190,
+          "mean": -7.495323370676488e-05,
+          "std": 0.006610593758523464
+        },
+        "_model.gauss_params.means": {
+          "shape": [
+            3542182,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "b4a4f524c286f1fdb327ae8a2e449d73b005eeca309aded6308af7019ca53a1a",
+          "numel": 10626546,
+          "mean": -0.0038025984540581703,
+          "std": 1.0988376140594482
+        },
+        "_model.gauss_params.opacities": {
+          "shape": [
+            3542182,
+            1
+          ],
+          "dtype": "torch.float32",
+          "sha256": "c7f390802a0143900369749b2152e842011a231dd6efc9b5efd055fa2a15a2a9",
+          "numel": 3542182,
+          "mean": 1.395711064338684,
+          "std": 5.6570844650268555
+        },
+        "_model.gauss_params.quats": {
+          "shape": [
+            3542182,
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "acf482c074ff4787e9d04312f2fdb53a2a8f6148643cf4e336c5e28187f192cb",
+          "numel": 14168728,
+          "mean": -0.005434614140540361,
+          "std": 0.5169680714607239
+        },
+        "_model.gauss_params.scales": {
+          "shape": [
+            3542182,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "89f5a6edcb0aa4f00ffef39ac08406bdf0dec1178733650ad97f724f90a456a8",
+          "numel": 10626546,
+          "mean": -6.359940528869629,
+          "std": 0.9042738676071167
+        },
+        "_model.lpips.net.net.slice1.0.weight": {
+          "shape": [
+            64,
+            3,
+            11,
+            11
+          ],
+          "dtype": "torch.float32",
+          "sha256": "773e4bd41d838a8fcd8640b53a6456b165a65cd3f778e5e3b3aaaddafa4426e1",
+          "numel": 23232,
+          "mean": -7.931621075840667e-05,
+          "std": 0.1169830709695816
+        },
+        "_model.lpips.net.net.slice2.3.weight": {
+          "shape": [
+            192,
+            64,
+            5,
+            5
+          ],
+          "dtype": "torch.float32",
+          "sha256": "1918ec03598fcb19b87db2a9c1c886c4276899082405ae292fc29267beefae4d",
+          "numel": 307200,
+          "mean": -0.003155960002914071,
+          "std": 0.047065142542123795
+        },
+        "_model.lpips.net.net.slice3.6.weight": {
+          "shape": [
+            384,
+            192,
+            3,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "121de1060ad00f9a856e9a5baf828d99accbe38652100afe81c9215b231b3301",
+          "numel": 663552,
+          "mean": -0.0029441663064062595,
+          "std": 0.03503423184156418
+        },
+        "_model.lpips.net.net.slice4.8.weight": {
+          "shape": [
+            256,
+            384,
+            3,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "16adf963706e1a5e40700123791bd333d5b87804b0fd9e31b0cf11dc74e677be",
+          "numel": 884736,
+          "mean": -0.003080519614741206,
+          "std": 0.02761615812778473
+        },
+        "_model.lpips.net.net.slice5.10.weight": {
+          "shape": [
+            256,
+            256,
+            3,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "82669e3c4465e69bdbc5700abeb58bd30f55810b30aadacb45a70df5c2a7792b",
+          "numel": 589824,
+          "mean": -0.004105900414288044,
+          "std": 0.02637910656630993
+        },
+        "_model.bil_grids.grids": {
+          "shape": [
+            5415,
+            12,
+            8,
+            16,
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "dccd8dabfc90f38e79ee373b201a380fc2da8f08eeed659292aab4b41be12931",
+          "numel": 133079040,
+          "mean": 0.24894338846206665,
+          "std": 0.43332600593566895
+        }
+      },
+      "optimizers": {
+        "means": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        },
+        "scales": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        },
+        "quats": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        },
+        "features_dc": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        },
+        "features_rest": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        },
+        "opacities": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        },
+        "bilateral_grid": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/home/rian_/splat-ckpts/cecc2763/views/splatfacto/2026-09-16_235822/nerfstudio_models/step-000006000.ckpt",
+      "bytes": 4114716774,
+      "file_sha256_head": "0677a163e6b15f84e65b6159e937e3e1bdfbc3e8b2ac205d952311f955285f74",
+      "top_keys": [
+        "step",
+        "pipeline",
+        "optimizers",
+        "schedulers",
+        "scalers"
+      ],
+      "step": 6000,
+      "gauss": {
+        "_model.gauss_params.features_dc": {
+          "shape": [
+            3542182,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "587d1eea956d710974e023d43e0223cebf06b8fc6e726f90e56340f90b2047e8",
+          "numel": 10626546,
+          "mean": 0.09152444452047348,
+          "std": 1.1845754384994507
+        },
+        "_model.gauss_params.features_rest": {
+          "shape": [
+            3542182,
+            15,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "3134a17b2dc8eb619f844e8cb27c76f9f21db3f681872b0200892a551c63f5ee",
+          "numel": 159398190,
+          "mean": -7.495323370676488e-05,
+          "std": 0.006610593758523464
+        },
+        "_model.gauss_params.means": {
+          "shape": [
+            3542182,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "b4a4f524c286f1fdb327ae8a2e449d73b005eeca309aded6308af7019ca53a1a",
+          "numel": 10626546,
+          "mean": -0.0038025984540581703,
+          "std": 1.0988376140594482
+        },
+        "_model.gauss_params.opacities": {
+          "shape": [
+            3542182,
+            1
+          ],
+          "dtype": "torch.float32",
+          "sha256": "c7f390802a0143900369749b2152e842011a231dd6efc9b5efd055fa2a15a2a9",
+          "numel": 3542182,
+          "mean": 1.395711064338684,
+          "std": 5.6570844650268555
+        },
+        "_model.gauss_params.quats": {
+          "shape": [
+            3542182,
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "acf482c074ff4787e9d04312f2fdb53a2a8f6148643cf4e336c5e28187f192cb",
+          "numel": 14168728,
+          "mean": -0.005434614140540361,
+          "std": 0.5169680714607239
+        },
+        "_model.gauss_params.scales": {
+          "shape": [
+            3542182,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "89f5a6edcb0aa4f00ffef39ac08406bdf0dec1178733650ad97f724f90a456a8",
+          "numel": 10626546,
+          "mean": -6.359940528869629,
+          "std": 0.9042738676071167
+        },
+        "_model.lpips.net.net.slice1.0.weight": {
+          "shape": [
+            64,
+            3,
+            11,
+            11
+          ],
+          "dtype": "torch.float32",
+          "sha256": "773e4bd41d838a8fcd8640b53a6456b165a65cd3f778e5e3b3aaaddafa4426e1",
+          "numel": 23232,
+          "mean": -7.931621075840667e-05,
+          "std": 0.1169830709695816
+        },
+        "_model.lpips.net.net.slice2.3.weight": {
+          "shape": [
+            192,
+            64,
+            5,
+            5
+          ],
+          "dtype": "torch.float32",
+          "sha256": "1918ec03598fcb19b87db2a9c1c886c4276899082405ae292fc29267beefae4d",
+          "numel": 307200,
+          "mean": -0.003155960002914071,
+          "std": 0.047065142542123795
+        },
+        "_model.lpips.net.net.slice3.6.weight": {
+          "shape": [
+            384,
+            192,
+            3,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "121de1060ad00f9a856e9a5baf828d99accbe38652100afe81c9215b231b3301",
+          "numel": 663552,
+          "mean": -0.0029441663064062595,
+          "std": 0.03503423184156418
+        },
+        "_model.lpips.net.net.slice4.8.weight": {
+          "shape": [
+            256,
+            384,
+            3,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "16adf963706e1a5e40700123791bd333d5b87804b0fd9e31b0cf11dc74e677be",
+          "numel": 884736,
+          "mean": -0.003080519614741206,
+          "std": 0.02761615812778473
+        },
+        "_model.lpips.net.net.slice5.10.weight": {
+          "shape": [
+            256,
+            256,
+            3,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "82669e3c4465e69bdbc5700abeb58bd30f55810b30aadacb45a70df5c2a7792b",
+          "numel": 589824,
+          "mean": -0.004105900414288044,
+          "std": 0.02637910656630993
+        },
+        "_model.bil_grids.grids": {
+          "shape": [
+            5415,
+            12,
+            8,
+            16,
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "cae220a99e650c554cd4d6999a6f43227300624b797ab8f77fe2e13d0ec87824",
+          "numel": 133079040,
+          "mean": 0.2460382729768753,
+          "std": 0.433269202709198
+        }
+      },
+      "optimizers": {
+        "means": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        },
+        "scales": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        },
+        "quats": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        },
+        "features_dc": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        },
+        "features_rest": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        },
+        "opacities": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        },
+        "bilateral_grid": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        }
+      }
+    },
+    {
+      "path": "/home/rian_/splat-ckpts/cecc2763/views/splatfacto/2026-09-17_001408/nerfstudio_models/step-000030000.ckpt",
+      "bytes": 4114716774,
+      "file_sha256_head": "3bc8a979b72b5a51e5bb82fff617e04d011867b29c61fdc12aed1c900ae9d91d",
+      "top_keys": [
+        "step",
+        "pipeline",
+        "optimizers",
+        "schedulers",
+        "scalers"
+      ],
+      "step": 30000,
+      "gauss": {
+        "_model.gauss_params.features_dc": {
+          "shape": [
+            3542182,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "587d1eea956d710974e023d43e0223cebf06b8fc6e726f90e56340f90b2047e8",
+          "numel": 10626546,
+          "mean": 0.09152444452047348,
+          "std": 1.1845754384994507
+        },
+        "_model.gauss_params.features_rest": {
+          "shape": [
+            3542182,
+            15,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "3134a17b2dc8eb619f844e8cb27c76f9f21db3f681872b0200892a551c63f5ee",
+          "numel": 159398190,
+          "mean": -7.495323370676488e-05,
+          "std": 0.006610593758523464
+        },
+        "_model.gauss_params.means": {
+          "shape": [
+            3542182,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "b4a4f524c286f1fdb327ae8a2e449d73b005eeca309aded6308af7019ca53a1a",
+          "numel": 10626546,
+          "mean": -0.0038025984540581703,
+          "std": 1.0988376140594482
+        },
+        "_model.gauss_params.opacities": {
+          "shape": [
+            3542182,
+            1
+          ],
+          "dtype": "torch.float32",
+          "sha256": "c7f390802a0143900369749b2152e842011a231dd6efc9b5efd055fa2a15a2a9",
+          "numel": 3542182,
+          "mean": 1.395711064338684,
+          "std": 5.6570844650268555
+        },
+        "_model.gauss_params.quats": {
+          "shape": [
+            3542182,
+            4
+          ],
+          "dtype": "torch.float32",
+          "sha256": "acf482c074ff4787e9d04312f2fdb53a2a8f6148643cf4e336c5e28187f192cb",
+          "numel": 14168728,
+          "mean": -0.005434614140540361,
+          "std": 0.5169680714607239
+        },
+        "_model.gauss_params.scales": {
+          "shape": [
+            3542182,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "89f5a6edcb0aa4f00ffef39ac08406bdf0dec1178733650ad97f724f90a456a8",
+          "numel": 10626546,
+          "mean": -6.359940528869629,
+          "std": 0.9042738676071167
+        },
+        "_model.lpips.net.net.slice1.0.weight": {
+          "shape": [
+            64,
+            3,
+            11,
+            11
+          ],
+          "dtype": "torch.float32",
+          "sha256": "773e4bd41d838a8fcd8640b53a6456b165a65cd3f778e5e3b3aaaddafa4426e1",
+          "numel": 23232,
+          "mean": -7.931621075840667e-05,
+          "std": 0.1169830709695816
+        },
+        "_model.lpips.net.net.slice2.3.weight": {
+          "shape": [
+            192,
+            64,
+            5,
+            5
+          ],
+          "dtype": "torch.float32",
+          "sha256": "1918ec03598fcb19b87db2a9c1c886c4276899082405ae292fc29267beefae4d",
+          "numel": 307200,
+          "mean": -0.003155960002914071,
+          "std": 0.047065142542123795
+        },
+        "_model.lpips.net.net.slice3.6.weight": {
+          "shape": [
+            384,
+            192,
+            3,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "121de1060ad00f9a856e9a5baf828d99accbe38652100afe81c9215b231b3301",
+          "numel": 663552,
+          "mean": -0.0029441663064062595,
+          "std": 0.03503423184156418
+        },
+        "_model.lpips.net.net.slice4.8.weight": {
+          "shape": [
+            256,
+            384,
+            3,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "16adf963706e1a5e40700123791bd333d5b87804b0fd9e31b0cf11dc74e677be",
+          "numel": 884736,
+          "mean": -0.003080519614741206,
+          "std": 0.02761615812778473
+        },
+        "_model.lpips.net.net.slice5.10.weight": {
+          "shape": [
+            256,
+            256,
+            3,
+            3
+          ],
+          "dtype": "torch.float32",
+          "sha256": "82669e3c4465e69bdbc5700abeb58bd30f55810b30aadacb45a70df5c2a7792b",
+          "numel": 589824,
+          "mean": -0.004105900414288044,
+          "std": 0.02637910656630993
+        },
+        "_model.bil_grids.grids": {
+          "shape": [
+            5415,
+            12,
+            8,
+            16,
+            16
+          ],
+          "dtype": "torch.float32",
+          "sha256": "4dc8853077405288858bea64c3cddb4d3b8d5023146ce650de462903ee734e83",
+          "numel": 133079040,
+          "mean": 0.24093636870384216,
+          "std": 0.4324292540550232
+        }
+      },
+      "optimizers": {
+        "means": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        },
+        "scales": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        },
+        "quats": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        },
+        "features_dc": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        },
+        "features_rest": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        },
+        "opacities": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        },
+        "bilateral_grid": {
+          "n_param_groups": 1,
+          "n_params": 1,
+          "state_keys": [
+            0
+          ]
+        }
+      }
+    }
+  ],
+  "pairs": [
+    {
+      "a": "step-000002250.ckpt",
+      "b": "step-000006000.ckpt",
+      "identical_tensors": [
+        "_model.gauss_params.features_dc",
+        "_model.gauss_params.features_rest",
+        "_model.gauss_params.means",
+        "_model.gauss_params.opacities",
+        "_model.gauss_params.quats",
+        "_model.gauss_params.scales",
+        "_model.lpips.net.net.slice1.0.weight",
+        "_model.lpips.net.net.slice2.3.weight",
+        "_model.lpips.net.net.slice3.6.weight",
+        "_model.lpips.net.net.slice4.8.weight",
+        "_model.lpips.net.net.slice5.10.weight"
+      ],
+      "different_tensors": [
+        "_model.bil_grids.grids"
+      ],
+      "n_identical": 11,
+      "n_different": 1
+    },
+    {
+      "a": "step-000002250.ckpt",
+      "b": "step-000030000.ckpt",
+      "identical_tensors": [
+        "_model.gauss_params.features_dc",
+        "_model.gauss_params.features_rest",
+        "_model.gauss_params.means",
+        "_model.gauss_params.opacities",
+        "_model.gauss_params.quats",
+        "_model.gauss_params.scales",
+        "_model.lpips.net.net.slice1.0.weight",
+        "_model.lpips.net.net.slice2.3.weight",
+        "_model.lpips.net.net.slice3.6.weight",
+        "_model.lpips.net.net.slice4.8.weight",
+        "_model.lpips.net.net.slice5.10.weight"
+      ],
+      "different_tensors": [
+        "_model.bil_grids.grids"
+      ],
+      "n_identical": 11,
+      "n_different": 1
+    },
+    {
+      "a": "step-000006000.ckpt",
+      "b": "step-000030000.ckpt",
+      "identical_tensors": [
+        "_model.gauss_params.features_dc",
+        "_model.gauss_params.features_rest",
+        "_model.gauss_params.means",
+        "_model.gauss_params.opacities",
+        "_model.gauss_params.quats",
+        "_model.gauss_params.scales",
+        "_model.lpips.net.net.slice1.0.weight",
+        "_model.lpips.net.net.slice2.3.weight",
+        "_model.lpips.net.net.slice3.6.weight",
+        "_model.lpips.net.net.slice4.8.weight",
+        "_model.lpips.net.net.slice5.10.weight"
+      ],
+      "different_tensors": [
+        "_model.bil_grids.grids"
+      ],
+      "n_identical": 11,
+      "n_different": 1
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "ok": true,
+  "differing_keys": [
+    "densify_grad_thresh"
+  ],
+  "expected_differing_keys": [
+    "densify_grad_thresh"
+  ],
+  "arm_c": {
+    "name": "ROOM213_ARM_C_NO_GROWTH_CONTROL",
+    "densify_grad_thresh": 1000000000.0
+  },
+  "arm_d": {
+    "name": "ROOM213_ARM_D_DELAYED_GROWTH",
+    "densify_grad_thresh": 0.0008
+  },
+  "field_count": 61
+}

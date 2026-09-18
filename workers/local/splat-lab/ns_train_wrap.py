@@ -38,14 +38,59 @@ def _clamp_densify_pause() -> None:
 
     def wrapped(self, *args, **kwargs):  # noqa: ANN001
         pause = kwargs.get("pause_refine_after_reset")
+        requested = pause if isinstance(pause, (int, float)) else None
         if isinstance(pause, (int, float)) and pause > _PAUSE_CAP:
             kwargs["pause_refine_after_reset"] = _PAUSE_CAP
+        effective = kwargs.get("pause_refine_after_reset", requested)
+        _write_pause_status(requested, effective)
         return orig(self, *args, **kwargs)
 
     DefaultStrategy.__init__ = wrapped  # type: ignore[method-assign]
 
 
+def _write_pause_status(requested, effective) -> None:
+    import json
+    import os
+    from pathlib import Path
+
+    dest = os.environ.get("SPLAT_LAB_WRAP_STATUS_PATH")
+    if not dest:
+        return
+    payload = {
+        "requested_pause_refine_after_reset": requested,
+        "effective_pause_refine_after_reset": effective,
+        "pause_clamped": (
+            requested is not None and effective is not None and int(requested) != int(effective)
+        ),
+        "pause_cap": _PAUSE_CAP,
+    }
+    path = Path(dest)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+
+
 _clamp_densify_pause()
+
+
+def _apply_exp3_patch_if_requested() -> None:
+    """Room 213 Experiment 3 only (SPLAT_LAB_EXP3=1): corrected gsplat 1.5.3 opacity-reset
+    predicate (upstream PR #776 equivalent), warm-up accumulator clear, hard population guard.
+    Lab jobs never set the variable and are unaffected. See recon-experiment/exp3_strategy_patch.py."""
+    import os
+    from pathlib import Path
+
+    if os.environ.get("SPLAT_LAB_EXP3") != "1":
+        return
+    here = Path(__file__).resolve()
+    for candidate in (Path("/root/recon-experiment"), here.parents[2] / "recon-experiment"):
+        if (candidate / "exp3_strategy_patch.py").is_file() and str(candidate) not in sys.path:
+            sys.path.insert(0, str(candidate))
+    import exp3_strategy_patch
+
+    exp3_strategy_patch.apply(status_dir=os.environ.get("EXP3_STATUS_DIR"))
+
+
+_apply_exp3_patch_if_requested()
 
 from nerfstudio.scripts.train import entrypoint  # noqa: E402
 

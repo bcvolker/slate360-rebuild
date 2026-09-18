@@ -1,0 +1,57 @@
+{
+  "arms": [
+    {
+      "densify_grad_thresh": 1000000000.0,
+      "name": "ROOM213_ARM_C_NO_GROWTH_CONTROL"
+    },
+    {
+      "densify_grad_thresh": 0.0008,
+      "name": "ROOM213_ARM_D_DELAYED_GROWTH"
+    }
+  ],
+  "changed_variable": "densify_grad_thresh",
+  "dataset": {
+    "eval_images": 601,
+    "ordered_eval_image_sha256": "2b5422fd94c0cca9f18a3cdbedf8076ee5b930dedefd0de30187424ff8abeb76",
+    "ordered_train_image_sha256": "1bb881c0bd18a735cf7e72a805639de1901b73bf96a63c94cf3a8a1bf53547d6",
+    "sampler": {
+      "semantics": "per-epoch shuffle without replacement (random.Random(train_cameras_sampling_seed=42)); one full image per optimizer step",
+      "type": "nerfstudio FullImageDatamanager train_cameras_sampling_strategy=random"
+    },
+    "total_derived_images": 6016,
+    "train_images": 5415
+  },
+  "exp2_recipe_hash": "267bb0b4f11de51b1bcde6ba86060972bccb269f75738e16ff0b88b65e6c8498",
+  "experiment_id": "room213-exp3",
+  "job_id": "cecc2763",
+  "points_ply": "/mnt/c/s360/tmp/splat-lab/cecc2763/sfm/points.ply",
+  "recipe": {
+    "actual_images_per_optimizer_step": 1,
+    "backend": "modal-L40S",
+    "bilateral": true,
+    "loss": "l1+ssim",
+    "mask_hash": "20daa8e25daa806411f45f24a434f81e16767402b413d436f3c5602735a8a2b6",
+    "max_steps": 16000,
+    "optimizer": "splatfacto-adam",
+    "output_converter": "ns-export gaussian-splat PLY (no SPZ step)",
+    "pano_count": 376,
+    "pose_hash": "f9b1bdb367ec5864f0c21c1cd77fd33b2a8fad6ca4a92a3821571db3ae6fa604",
+    "qa_pose_hash": "ee51124640e16c92ea2c48cf420719b77ab9c8a02ea996dc4ed849045f3fb37a",
+    "resolution": 1280,
+    "rng_seed": 42,
+    "seed_hash": "5c24bd98d41607d493a95167512d9489f48783a7dd781f4b31acb80a5bab4416",
+    "sh_degree": 3,
+    "source_hash": "1753a05b9eef0262d075bf9dc81d8ce49e56cdb6ae88fb9a2e713f7b73b35c99",
+    "use_lidar": false,
+    "view_count": 6016
+  },
+  "recipe_hash": "653f881fff6bb9bc25d6ecdec235df743d7b5859d0d5fa38b95cf466456e16a1",
+  "supersedes": [
+    "ROOM213_EXPERIMENT3_PREFLIGHT.md",
+    "stop_screen_size_at=11000 draft",
+    "2M soft cap draft"
+  ],
+  "transforms": "/mnt/c/s360/tmp/splat-lab/cecc2763/views/transforms.json",
+  "views_dir": "/mnt/c/s360/tmp/splat-lab/cecc2763/views",
+  "visual_poses": "qa/visual-poses.json"
+}

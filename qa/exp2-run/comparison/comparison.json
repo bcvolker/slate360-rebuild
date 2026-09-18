@@ -1,0 +1,21 @@
+{
+  "status": "needs_review",
+  "published": false,
+  "human_verdict": "UNREVIEWED",
+  "ARM_A_CLIENT_VISUAL_VERDICT": "UNREVIEWED",
+  "ARM_B_CLIENT_VISUAL_VERDICT": "UNREVIEWED",
+  "changed_variable": "refine_stop_iter",
+  "layout": "Arm A ROOM213_FROZEN_CONTROL (left) | Arm B ROOM213_GROWTH_TEST (right)",
+  "side_by_side": [
+    "qa/exp2-run/comparison/A_on_path.png",
+    "qa/exp2-run/comparison/B_off_path.png",
+    "qa/exp2-run/comparison/C_dollhouse.png",
+    "qa/exp2-run/comparison/D_overhead.png"
+  ],
+  "modal_run": "https://modal.com/apps/bcvolker/main/ap-F6K6wtSXXOOqjuIEatCXXs",
+  "cost_usd_this_run": 3.4421,
+  "unexpected_variable_drift": [
+    "splat-transform SPZ conversion failed on both arms (exit 1); PLY QA renders exist",
+    "recipe hashes (mask, pose, seed, source, qa_pose) identical across arms"
+  ]
+}

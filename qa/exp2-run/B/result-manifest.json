@@ -1,0 +1,1406 @@
+{
+  "ARM_A_CLIENT_VISUAL_VERDICT": "UNREVIEWED",
+  "ARM_B_CLIENT_VISUAL_VERDICT": "UNREVIEWED",
+  "arm": "ROOM213_GROWTH_TEST",
+  "cost_usd": 1.9917,
+  "effective_config_hash": "cc00ef676204fdde1333b745ba37c0d1b76c55f1884844f183cd12a11d7af04e",
+  "export": {
+    "config_yml": "/tmp/arm/ROOM213_GROWTH_TEST/train/views/splatfacto/2026-09-17_201247/config.yml",
+    "converter": "splat-transform@2.7.1-spz-v3-sog",
+    "ok": true,
+    "ply": "/tmp/arm/ROOM213_GROWTH_TEST/export/output.ply",
+    "ply_sha256": "8d0aa098e19d216d9aaa2479eeedef5d5416df81aae004f0eb30377aeae93605",
+    "splat_transform_exit": 1,
+    "spz": null,
+    "spz_sha256": null
+  },
+  "gpu": "NVIDIA L40S",
+  "hourly_usd": 2.96784,
+  "human_verdict": "UNREVIEWED",
+  "published": false,
+  "qa": {
+    "artifact_count": null,
+    "elapsed_s": null,
+    "human_verdict": "UNREVIEWED"
+  },
+  "refine_stop_iter": 4300,
+  "status": "needs_review",
+  "train": {
+    "abort": null,
+    "cost_usd": 1.9917,
+    "elapsed_s": 2415.958,
+    "exit_code": 0,
+    "gaussians": 7499239,
+    "history": [
+      {
+        "cost_usd": 0.0082,
+        "gaussians": 0,
+        "step": 0,
+        "t": 10.0
+      },
+      {
+        "cost_usd": 0.0168,
+        "gaussians": 0,
+        "step": 0,
+        "t": 20.4
+      },
+      {
+        "cost_usd": 0.0251,
+        "gaussians": 0,
+        "step": 0,
+        "t": 30.4
+      },
+      {
+        "cost_usd": 0.0333,
+        "gaussians": 0,
+        "step": 0,
+        "t": 40.4
+      },
+      {
+        "cost_usd": 0.0416,
+        "gaussians": 0,
+        "step": 0,
+        "t": 50.4
+      },
+      {
+        "cost_usd": 0.0498,
+        "gaussians": 0,
+        "step": 0,
+        "t": 60.5
+      },
+      {
+        "cost_usd": 0.0581,
+        "gaussians": 0,
+        "step": 0,
+        "t": 70.5
+      },
+      {
+        "cost_usd": 0.0663,
+        "gaussians": 209587,
+        "step": 0,
+        "t": 80.5
+      },
+      {
+        "cost_usd": 0.0746,
+        "gaussians": 209587,
+        "step": 0,
+        "t": 90.5
+      },
+      {
+        "cost_usd": 0.0828,
+        "gaussians": 209587,
+        "step": 0,
+        "t": 100.5
+      },
+      {
+        "cost_usd": 0.0911,
+        "gaussians": 209587,
+        "step": 0,
+        "t": 110.5
+      },
+      {
+        "cost_usd": 0.0994,
+        "gaussians": 209587,
+        "step": 0,
+        "t": 120.5
+      },
+      {
+        "cost_usd": 0.1076,
+        "gaussians": 209587,
+        "step": 0,
+        "t": 130.6
+      },
+      {
+        "cost_usd": 0.1159,
+        "gaussians": 209587,
+        "step": 0,
+        "t": 140.6
+      },
+      {
+        "cost_usd": 0.1242,
+        "gaussians": 209587,
+        "step": 0,
+        "t": 150.7
+      },
+      {
+        "cost_usd": 0.1325,
+        "gaussians": 209587,
+        "step": 0,
+        "t": 160.7
+      },
+      {
+        "cost_usd": 0.1408,
+        "gaussians": 209587,
+        "step": 0,
+        "t": 170.8
+      },
+      {
+        "cost_usd": 0.1491,
+        "gaussians": 209587,
+        "step": 0,
+        "t": 180.9
+      },
+      {
+        "cost_usd": 0.1574,
+        "gaussians": 209587,
+        "step": 500,
+        "t": 190.9
+      },
+      {
+        "cost_usd": 0.1657,
+        "gaussians": 209587,
+        "step": 500,
+        "t": 201.0
+      },
+      {
+        "cost_usd": 0.1741,
+        "gaussians": 307941,
+        "step": 500,
+        "t": 211.1
+      },
+      {
+        "cost_usd": 0.1824,
+        "gaussians": 307941,
+        "step": 500,
+        "t": 221.2
+      },
+      {
+        "cost_usd": 0.1907,
+        "gaussians": 307941,
+        "step": 500,
+        "t": 231.3
+      },
+      {
+        "cost_usd": 0.199,
+        "gaussians": 398446,
+        "step": 500,
+        "t": 241.4
+      },
+      {
+        "cost_usd": 0.2074,
+        "gaussians": 398446,
+        "step": 500,
+        "t": 251.6
+      },
+      {
+        "cost_usd": 0.2157,
+        "gaussians": 513345,
+        "step": 500,
+        "t": 261.7
+      },
+      {
+        "cost_usd": 0.2241,
+        "gaussians": 513345,
+        "step": 450,
+        "t": 271.8
+      },
+      {
+        "cost_usd": 0.2325,
+        "gaussians": 662714,
+        "step": 450,
+        "t": 282.0
+      },
+      {
+        "cost_usd": 0.2408,
+        "gaussians": 662714,
+        "step": 450,
+        "t": 292.1
+      },
+      {
+        "cost_usd": 0.2492,
+        "gaussians": 823187,
+        "step": 450,
+        "t": 302.3
+      },
+      {
+        "cost_usd": 0.2576,
+        "gaussians": 823187,
+        "step": 450,
+        "t": 312.4
+      },
+      {
+        "cost_usd": 0.266,
+        "gaussians": 1008011,
+        "step": 450,
+        "t": 322.6
+      },
+      {
+        "cost_usd": 0.2743,
+        "gaussians": 1008011,
+        "step": 450,
+        "t": 332.8
+      },
+      {
+        "cost_usd": 0.2827,
+        "gaussians": 1205301,
+        "step": 950,
+        "t": 343.0
+      },
+      {
+        "cost_usd": 0.2911,
+        "gaussians": 1205301,
+        "step": 950,
+        "t": 353.1
+      },
+      {
+        "cost_usd": 0.2995,
+        "gaussians": 1413836,
+        "step": 950,
+        "t": 363.3
+      },
+      {
+        "cost_usd": 0.3079,
+        "gaussians": 1413836,
+        "step": 950,
+        "t": 373.5
+      },
+      {
+        "cost_usd": 0.3164,
+        "gaussians": 1632494,
+        "step": 950,
+        "t": 383.7
+      },
+      {
+        "cost_usd": 0.3248,
+        "gaussians": 1632494,
+        "step": 950,
+        "t": 394.0
+      },
+      {
+        "cost_usd": 0.3332,
+        "gaussians": 1632494,
+        "step": 950,
+        "t": 404.2
+      },
+      {
+        "cost_usd": 0.3416,
+        "gaussians": 1875171,
+        "step": 950,
+        "t": 414.4
+      },
+      {
+        "cost_usd": 0.3501,
+        "gaussians": 1875171,
+        "step": 1350,
+        "t": 424.6
+      },
+      {
+        "cost_usd": 0.3585,
+        "gaussians": 2109833,
+        "step": 1350,
+        "t": 434.8
+      },
+      {
+        "cost_usd": 0.3669,
+        "gaussians": 2109833,
+        "step": 1350,
+        "t": 445.1
+      },
+      {
+        "cost_usd": 0.3754,
+        "gaussians": 2332103,
+        "step": 1350,
+        "t": 455.3
+      },
+      {
+        "cost_usd": 0.3838,
+        "gaussians": 2332103,
+        "step": 1350,
+        "t": 465.6
+      },
+      {
+        "cost_usd": 0.3923,
+        "gaussians": 2332103,
+        "step": 1350,
+        "t": 475.8
+      },
+      {
+        "cost_usd": 0.4008,
+        "gaussians": 2574374,
+        "step": 1350,
+        "t": 486.1
+      },
+      {
+        "cost_usd": 0.4092,
+        "gaussians": 2574374,
+        "step": 1350,
+        "t": 496.4
+      },
+      {
+        "cost_usd": 0.4177,
+        "gaussians": 2816417,
+        "step": 1800,
+        "t": 506.7
+      },
+      {
+        "cost_usd": 0.4262,
+        "gaussians": 2816417,
+        "step": 1800,
+        "t": 517.0
+      },
+      {
+        "cost_usd": 0.4347,
+        "gaussians": 3043711,
+        "step": 1800,
+        "t": 527.3
+      },
+      {
+        "cost_usd": 0.4432,
+        "gaussians": 3043711,
+        "step": 1800,
+        "t": 537.6
+      },
+      {
+        "cost_usd": 0.4517,
+        "gaussians": 3043711,
+        "step": 1800,
+        "t": 547.9
+      },
+      {
+        "cost_usd": 0.4602,
+        "gaussians": 3265301,
+        "step": 1800,
+        "t": 558.2
+      },
+      {
+        "cost_usd": 0.4687,
+        "gaussians": 3265301,
+        "step": 1800,
+        "t": 568.5
+      },
+      {
+        "cost_usd": 0.4772,
+        "gaussians": 3493750,
+        "step": 1800,
+        "t": 578.8
+      },
+      {
+        "cost_usd": 0.4857,
+        "gaussians": 3493750,
+        "step": 1800,
+        "t": 589.1
+      },
+      {
+        "cost_usd": 0.4942,
+        "gaussians": 3493750,
+        "step": 2200,
+        "t": 599.5
+      },
+      {
+        "cost_usd": 0.5027,
+        "gaussians": 3736697,
+        "step": 2200,
+        "t": 609.8
+      },
+      {
+        "cost_usd": 0.5113,
+        "gaussians": 3736697,
+        "step": 2200,
+        "t": 620.2
+      },
+      {
+        "cost_usd": 0.5198,
+        "gaussians": 3993963,
+        "step": 2200,
+        "t": 630.5
+      },
+      {
+        "cost_usd": 0.5283,
+        "gaussians": 3993963,
+        "step": 2200,
+        "t": 640.9
+      },
+      {
+        "cost_usd": 0.5369,
+        "gaussians": 3993963,
+        "step": 2200,
+        "t": 651.2
+      },
+      {
+        "cost_usd": 0.5454,
+        "gaussians": 4240039,
+        "step": 2200,
+        "t": 661.6
+      },
+      {
+        "cost_usd": 0.554,
+        "gaussians": 4240039,
+        "step": 2200,
+        "t": 672.0
+      },
+      {
+        "cost_usd": 0.5625,
+        "gaussians": 4465446,
+        "step": 2200,
+        "t": 682.3
+      },
+      {
+        "cost_usd": 0.5711,
+        "gaussians": 4465446,
+        "step": 2200,
+        "t": 692.7
+      },
+      {
+        "cost_usd": 0.5796,
+        "gaussians": 4465446,
+        "step": 2650,
+        "t": 703.1
+      },
+      {
+        "cost_usd": 0.5882,
+        "gaussians": 4702054,
+        "step": 2650,
+        "t": 713.5
+      },
+      {
+        "cost_usd": 0.5968,
+        "gaussians": 4702054,
+        "step": 2650,
+        "t": 723.9
+      },
+      {
+        "cost_usd": 0.6053,
+        "gaussians": 4950945,
+        "step": 2650,
+        "t": 734.3
+      },
+      {
+        "cost_usd": 0.6139,
+        "gaussians": 4950945,
+        "step": 2650,
+        "t": 744.7
+      },
+      {
+        "cost_usd": 0.6225,
+        "gaussians": 4950945,
+        "step": 2650,
+        "t": 755.1
+      },
+      {
+        "cost_usd": 0.631,
+        "gaussians": 5194222,
+        "step": 2650,
+        "t": 765.5
+      },
+      {
+        "cost_usd": 0.6396,
+        "gaussians": 5194222,
+        "step": 2650,
+        "t": 775.9
+      },
+      {
+        "cost_usd": 0.6482,
+        "gaussians": 5194222,
+        "step": 2650,
+        "t": 786.3
+      },
+      {
+        "cost_usd": 0.6568,
+        "gaussians": 5194222,
+        "step": 2650,
+        "t": 796.7
+      },
+      {
+        "cost_usd": 0.6654,
+        "gaussians": 5194222,
+        "step": 2600,
+        "t": 807.2
+      },
+      {
+        "cost_usd": 0.674,
+        "gaussians": 5194222,
+        "step": 2600,
+        "t": 817.6
+      },
+      {
+        "cost_usd": 0.6827,
+        "gaussians": 5194222,
+        "step": 2600,
+        "t": 828.1
+      },
+      {
+        "cost_usd": 0.6913,
+        "gaussians": 5194222,
+        "step": 2600,
+        "t": 838.5
+      },
+      {
+        "cost_usd": 0.6999,
+        "gaussians": 5194222,
+        "step": 2600,
+        "t": 849.0
+      },
+      {
+        "cost_usd": 0.7085,
+        "gaussians": 5194222,
+        "step": 2600,
+        "t": 859.4
+      },
+      {
+        "cost_usd": 0.7171,
+        "gaussians": 5194222,
+        "step": 2600,
+        "t": 869.9
+      },
+      {
+        "cost_usd": 0.7257,
+        "gaussians": 5194222,
+        "step": 2600,
+        "t": 880.3
+      },
+      {
+        "cost_usd": 0.7344,
+        "gaussians": 5752754,
+        "step": 2600,
+        "t": 890.8
+      },
+      {
+        "cost_usd": 0.743,
+        "gaussians": 5752754,
+        "step": 2600,
+        "t": 901.3
+      },
+      {
+        "cost_usd": 0.7517,
+        "gaussians": 5752754,
+        "step": 3150,
+        "t": 911.8
+      },
+      {
+        "cost_usd": 0.7603,
+        "gaussians": 5991420,
+        "step": 3150,
+        "t": 922.3
+      },
+      {
+        "cost_usd": 0.769,
+        "gaussians": 5991420,
+        "step": 3150,
+        "t": 932.8
+      },
+      {
+        "cost_usd": 0.7776,
+        "gaussians": 5991420,
+        "step": 3150,
+        "t": 943.3
+      },
+      {
+        "cost_usd": 0.7863,
+        "gaussians": 6243867,
+        "step": 3150,
+        "t": 953.7
+      },
+      {
+        "cost_usd": 0.7949,
+        "gaussians": 6243867,
+        "step": 3150,
+        "t": 964.3
+      },
+      {
+        "cost_usd": 0.8036,
+        "gaussians": 6495546,
+        "step": 3150,
+        "t": 974.8
+      },
+      {
+        "cost_usd": 0.8123,
+        "gaussians": 6495546,
+        "step": 3150,
+        "t": 985.3
+      },
+      {
+        "cost_usd": 0.821,
+        "gaussians": 6495546,
+        "step": 3150,
+        "t": 995.9
+      },
+      {
+        "cost_usd": 0.8297,
+        "gaussians": 6495546,
+        "step": 3150,
+        "t": 1006.4
+      },
+      {
+        "cost_usd": 0.8384,
+        "gaussians": 6736680,
+        "step": 3600,
+        "t": 1016.9
+      },
+      {
+        "cost_usd": 0.847,
+        "gaussians": 6736680,
+        "step": 3600,
+        "t": 1027.5
+      },
+      {
+        "cost_usd": 0.8557,
+        "gaussians": 6736680,
+        "step": 3600,
+        "t": 1038.0
+      },
+      {
+        "cost_usd": 0.8644,
+        "gaussians": 6981891,
+        "step": 3600,
+        "t": 1048.5
+      },
+      {
+        "cost_usd": 0.8731,
+        "gaussians": 6981891,
+        "step": 3600,
+        "t": 1059.1
+      },
+      {
+        "cost_usd": 0.8818,
+        "gaussians": 6981891,
+        "step": 3600,
+        "t": 1069.6
+      },
+      {
+        "cost_usd": 0.8905,
+        "gaussians": 7257041,
+        "step": 3600,
+        "t": 1080.1
+      },
+      {
+        "cost_usd": 0.8992,
+        "gaussians": 7257041,
+        "step": 3600,
+        "t": 1090.7
+      },
+      {
+        "cost_usd": 0.9079,
+        "gaussians": 7257041,
+        "step": 3600,
+        "t": 1101.3
+      },
+      {
+        "cost_usd": 0.9166,
+        "gaussians": 7335654,
+        "step": 3600,
+        "t": 1111.9
+      },
+      {
+        "cost_usd": 0.9254,
+        "gaussians": 7335654,
+        "step": 3600,
+        "t": 1122.5
+      },
+      {
+        "cost_usd": 0.9341,
+        "gaussians": 7335654,
+        "step": 4000,
+        "t": 1133.0
+      },
+      {
+        "cost_usd": 0.9428,
+        "gaussians": 7417720,
+        "step": 4000,
+        "t": 1143.6
+      },
+      {
+        "cost_usd": 0.9516,
+        "gaussians": 7417720,
+        "step": 4000,
+        "t": 1154.2
+      },
+      {
+        "cost_usd": 0.9603,
+        "gaussians": 7417720,
+        "step": 4000,
+        "t": 1164.8
+      },
+      {
+        "cost_usd": 0.969,
+        "gaussians": 7499239,
+        "step": 4000,
+        "t": 1175.4
+      },
+      {
+        "cost_usd": 0.9777,
+        "gaussians": 7499239,
+        "step": 4000,
+        "t": 1186.0
+      },
+      {
+        "cost_usd": 0.9865,
+        "gaussians": 7499239,
+        "step": 4000,
+        "t": 1196.6
+      },
+      {
+        "cost_usd": 0.9953,
+        "gaussians": 7499239,
+        "step": 4000,
+        "t": 1207.2
+      },
+      {
+        "cost_usd": 1.004,
+        "gaussians": 7499239,
+        "step": 4000,
+        "t": 1217.9
+      },
+      {
+        "cost_usd": 1.0128,
+        "gaussians": 7499239,
+        "step": 4000,
+        "t": 1228.5
+      },
+      {
+        "cost_usd": 1.0216,
+        "gaussians": 7499239,
+        "step": 4000,
+        "t": 1239.2
+      },
+      {
+        "cost_usd": 1.0303,
+        "gaussians": 7499239,
+        "step": 4000,
+        "t": 1249.8
+      },
+      {
+        "cost_usd": 1.0391,
+        "gaussians": 7499239,
+        "step": 4000,
+        "t": 1260.5
+      },
+      {
+        "cost_usd": 1.0479,
+        "gaussians": 7499239,
+        "step": 4050,
+        "t": 1271.2
+      },
+      {
+        "cost_usd": 1.0567,
+        "gaussians": 7499239,
+        "step": 4050,
+        "t": 1281.8
+      },
+      {
+        "cost_usd": 1.0655,
+        "gaussians": 7499239,
+        "step": 4050,
+        "t": 1292.5
+      },
+      {
+        "cost_usd": 1.0743,
+        "gaussians": 7499239,
+        "step": 4050,
+        "t": 1303.2
+      },
+      {
+        "cost_usd": 1.0831,
+        "gaussians": 7499239,
+        "step": 4050,
+        "t": 1313.8
+      },
+      {
+        "cost_usd": 1.0919,
+        "gaussians": 7499239,
+        "step": 4050,
+        "t": 1324.5
+      },
+      {
+        "cost_usd": 1.1007,
+        "gaussians": 7499239,
+        "step": 4050,
+        "t": 1335.2
+      },
+      {
+        "cost_usd": 1.1095,
+        "gaussians": 7499239,
+        "step": 4050,
+        "t": 1345.8
+      },
+      {
+        "cost_usd": 1.1183,
+        "gaussians": 7499239,
+        "step": 4050,
+        "t": 1356.5
+      },
+      {
+        "cost_usd": 1.1271,
+        "gaussians": 7499239,
+        "step": 4050,
+        "t": 1367.2
+      },
+      {
+        "cost_usd": 1.1359,
+        "gaussians": 7499239,
+        "step": 4750,
+        "t": 1377.8
+      },
+      {
+        "cost_usd": 1.1447,
+        "gaussians": 7499239,
+        "step": 4750,
+        "t": 1388.5
+      },
+      {
+        "cost_usd": 1.1535,
+        "gaussians": 7499239,
+        "step": 4750,
+        "t": 1399.2
+      },
+      {
+        "cost_usd": 1.1623,
+        "gaussians": 7499239,
+        "step": 4750,
+        "t": 1409.9
+      },
+      {
+        "cost_usd": 1.1711,
+        "gaussians": 7499239,
+        "step": 4750,
+        "t": 1420.6
+      },
+      {
+        "cost_usd": 1.18,
+        "gaussians": 7499239,
+        "step": 4750,
+        "t": 1431.3
+      },
+      {
+        "cost_usd": 1.1888,
+        "gaussians": 7499239,
+        "step": 4750,
+        "t": 1442.1
+      },
+      {
+        "cost_usd": 1.1977,
+        "gaussians": 7499239,
+        "step": 4750,
+        "t": 1452.8
+      },
+      {
+        "cost_usd": 1.2065,
+        "gaussians": 7499239,
+        "step": 4750,
+        "t": 1463.5
+      },
+      {
+        "cost_usd": 1.2153,
+        "gaussians": 7499239,
+        "step": 4750,
+        "t": 1474.2
+      },
+      {
+        "cost_usd": 1.2242,
+        "gaussians": 7499239,
+        "step": 4750,
+        "t": 1484.9
+      },
+      {
+        "cost_usd": 1.233,
+        "gaussians": 7499239,
+        "step": 4750,
+        "t": 1495.7
+      },
+      {
+        "cost_usd": 1.2419,
+        "gaussians": 7499239,
+        "step": 4900,
+        "t": 1506.4
+      },
+      {
+        "cost_usd": 1.2508,
+        "gaussians": 7499239,
+        "step": 4900,
+        "t": 1517.2
+      },
+      {
+        "cost_usd": 1.2596,
+        "gaussians": 7499239,
+        "step": 4900,
+        "t": 1527.9
+      },
+      {
+        "cost_usd": 1.2685,
+        "gaussians": 7499239,
+        "step": 4900,
+        "t": 1538.7
+      },
+      {
+        "cost_usd": 1.2774,
+        "gaussians": 7499239,
+        "step": 4900,
+        "t": 1549.5
+      },
+      {
+        "cost_usd": 1.2863,
+        "gaussians": 7499239,
+        "step": 4900,
+        "t": 1560.3
+      },
+      {
+        "cost_usd": 1.2952,
+        "gaussians": 7499239,
+        "step": 4900,
+        "t": 1571.0
+      },
+      {
+        "cost_usd": 1.304,
+        "gaussians": 7499239,
+        "step": 4900,
+        "t": 1581.8
+      },
+      {
+        "cost_usd": 1.3129,
+        "gaussians": 7499239,
+        "step": 4900,
+        "t": 1592.6
+      },
+      {
+        "cost_usd": 1.3218,
+        "gaussians": 7499239,
+        "step": 4900,
+        "t": 1603.4
+      },
+      {
+        "cost_usd": 1.3307,
+        "gaussians": 7499239,
+        "step": 4900,
+        "t": 1614.1
+      },
+      {
+        "cost_usd": 1.3396,
+        "gaussians": 7499239,
+        "step": 5600,
+        "t": 1624.9
+      },
+      {
+        "cost_usd": 1.3485,
+        "gaussians": 7499239,
+        "step": 5600,
+        "t": 1635.7
+      },
+      {
+        "cost_usd": 1.3574,
+        "gaussians": 7499239,
+        "step": 5600,
+        "t": 1646.5
+      },
+      {
+        "cost_usd": 1.3663,
+        "gaussians": 7499239,
+        "step": 5600,
+        "t": 1657.3
+      },
+      {
+        "cost_usd": 1.3753,
+        "gaussians": 7499239,
+        "step": 5600,
+        "t": 1668.2
+      },
+      {
+        "cost_usd": 1.3842,
+        "gaussians": 7499239,
+        "step": 5600,
+        "t": 1679.0
+      },
+      {
+        "cost_usd": 1.3931,
+        "gaussians": 7499239,
+        "step": 5600,
+        "t": 1689.8
+      },
+      {
+        "cost_usd": 1.402,
+        "gaussians": 7499239,
+        "step": 5600,
+        "t": 1700.7
+      },
+      {
+        "cost_usd": 1.4109,
+        "gaussians": 7499239,
+        "step": 5600,
+        "t": 1711.5
+      },
+      {
+        "cost_usd": 1.4199,
+        "gaussians": 7499239,
+        "step": 5600,
+        "t": 1722.4
+      },
+      {
+        "cost_usd": 1.4289,
+        "gaussians": 7499239,
+        "step": 5600,
+        "t": 1733.3
+      },
+      {
+        "cost_usd": 1.4378,
+        "gaussians": 7499239,
+        "step": 5600,
+        "t": 1744.1
+      },
+      {
+        "cost_usd": 1.4468,
+        "gaussians": 7499239,
+        "step": 5750,
+        "t": 1755.0
+      },
+      {
+        "cost_usd": 1.4557,
+        "gaussians": 7499239,
+        "step": 5750,
+        "t": 1765.8
+      },
+      {
+        "cost_usd": 1.4647,
+        "gaussians": 7499239,
+        "step": 5750,
+        "t": 1776.7
+      },
+      {
+        "cost_usd": 1.4736,
+        "gaussians": 7499239,
+        "step": 5750,
+        "t": 1787.5
+      },
+      {
+        "cost_usd": 1.4826,
+        "gaussians": 7499239,
+        "step": 5750,
+        "t": 1798.4
+      },
+      {
+        "cost_usd": 1.4916,
+        "gaussians": 7499239,
+        "step": 5750,
+        "t": 1809.3
+      },
+      {
+        "cost_usd": 1.5006,
+        "gaussians": 7499239,
+        "step": 5750,
+        "t": 1820.2
+      },
+      {
+        "cost_usd": 1.5096,
+        "gaussians": 7499239,
+        "step": 5750,
+        "t": 1831.1
+      },
+      {
+        "cost_usd": 1.5185,
+        "gaussians": 7499239,
+        "step": 5750,
+        "t": 1842.0
+      },
+      {
+        "cost_usd": 1.5275,
+        "gaussians": 7499239,
+        "step": 5750,
+        "t": 1852.9
+      },
+      {
+        "cost_usd": 1.5365,
+        "gaussians": 7499239,
+        "step": 5750,
+        "t": 1863.8
+      },
+      {
+        "cost_usd": 1.5455,
+        "gaussians": 7499239,
+        "step": 6350,
+        "t": 1874.7
+      },
+      {
+        "cost_usd": 1.5545,
+        "gaussians": 7499239,
+        "step": 6350,
+        "t": 1885.6
+      },
+      {
+        "cost_usd": 1.5635,
+        "gaussians": 7499239,
+        "step": 6350,
+        "t": 1896.5
+      },
+      {
+        "cost_usd": 1.5725,
+        "gaussians": 7499239,
+        "step": 6350,
+        "t": 1907.4
+      },
+      {
+        "cost_usd": 1.5815,
+        "gaussians": 7499239,
+        "step": 6350,
+        "t": 1918.4
+      },
+      {
+        "cost_usd": 1.5905,
+        "gaussians": 7499239,
+        "step": 6350,
+        "t": 1929.3
+      },
+      {
+        "cost_usd": 1.5995,
+        "gaussians": 7499239,
+        "step": 6350,
+        "t": 1940.2
+      },
+      {
+        "cost_usd": 1.6085,
+        "gaussians": 7499239,
+        "step": 6350,
+        "t": 1951.1
+      },
+      {
+        "cost_usd": 1.6176,
+        "gaussians": 7499239,
+        "step": 6350,
+        "t": 1962.1
+      },
+      {
+        "cost_usd": 1.6266,
+        "gaussians": 7499239,
+        "step": 6350,
+        "t": 1973.0
+      },
+      {
+        "cost_usd": 1.6356,
+        "gaussians": 7499239,
+        "step": 6350,
+        "t": 1983.9
+      },
+      {
+        "cost_usd": 1.6446,
+        "gaussians": 7499239,
+        "step": 6600,
+        "t": 1994.9
+      },
+      {
+        "cost_usd": 1.6536,
+        "gaussians": 7499239,
+        "step": 6600,
+        "t": 2005.9
+      },
+      {
+        "cost_usd": 1.6627,
+        "gaussians": 7499239,
+        "step": 6600,
+        "t": 2016.8
+      },
+      {
+        "cost_usd": 1.6717,
+        "gaussians": 7499239,
+        "step": 6600,
+        "t": 2027.8
+      },
+      {
+        "cost_usd": 1.6808,
+        "gaussians": 7499239,
+        "step": 6600,
+        "t": 2038.8
+      },
+      {
+        "cost_usd": 1.6898,
+        "gaussians": 7499239,
+        "step": 6600,
+        "t": 2049.8
+      },
+      {
+        "cost_usd": 1.6989,
+        "gaussians": 7499239,
+        "step": 6600,
+        "t": 2060.8
+      },
+      {
+        "cost_usd": 1.7079,
+        "gaussians": 7499239,
+        "step": 6600,
+        "t": 2071.7
+      },
+      {
+        "cost_usd": 1.717,
+        "gaussians": 7499239,
+        "step": 6600,
+        "t": 2082.8
+      },
+      {
+        "cost_usd": 1.7261,
+        "gaussians": 7499239,
+        "step": 6600,
+        "t": 2093.8
+      },
+      {
+        "cost_usd": 1.7352,
+        "gaussians": 7499239,
+        "step": 6600,
+        "t": 2104.8
+      },
+      {
+        "cost_usd": 1.7443,
+        "gaussians": 7499239,
+        "step": 6600,
+        "t": 2115.8
+      },
+      {
+        "cost_usd": 1.7533,
+        "gaussians": 7499239,
+        "step": 6750,
+        "t": 2126.8
+      },
+      {
+        "cost_usd": 1.7624,
+        "gaussians": 7499239,
+        "step": 6750,
+        "t": 2137.8
+      },
+      {
+        "cost_usd": 1.7714,
+        "gaussians": 7499239,
+        "step": 6750,
+        "t": 2148.8
+      },
+      {
+        "cost_usd": 1.7805,
+        "gaussians": 7499239,
+        "step": 6750,
+        "t": 2159.8
+      },
+      {
+        "cost_usd": 1.7897,
+        "gaussians": 7499239,
+        "step": 6750,
+        "t": 2170.9
+      },
+      {
+        "cost_usd": 1.7988,
+        "gaussians": 7499239,
+        "step": 6750,
+        "t": 2181.9
+      },
+      {
+        "cost_usd": 1.8079,
+        "gaussians": 7499239,
+        "step": 6750,
+        "t": 2193.0
+      },
+      {
+        "cost_usd": 1.817,
+        "gaussians": 7499239,
+        "step": 6750,
+        "t": 2204.0
+      },
+      {
+        "cost_usd": 1.8261,
+        "gaussians": 7499239,
+        "step": 6750,
+        "t": 2215.1
+      },
+      {
+        "cost_usd": 1.8352,
+        "gaussians": 7499239,
+        "step": 6750,
+        "t": 2226.1
+      },
+      {
+        "cost_usd": 1.8443,
+        "gaussians": 7499239,
+        "step": 6750,
+        "t": 2237.2
+      },
+      {
+        "cost_usd": 1.8534,
+        "gaussians": 7499239,
+        "step": 7450,
+        "t": 2248.2
+      },
+      {
+        "cost_usd": 1.8625,
+        "gaussians": 7499239,
+        "step": 7450,
+        "t": 2259.3
+      },
+      {
+        "cost_usd": 1.8717,
+        "gaussians": 7499239,
+        "step": 7450,
+        "t": 2270.3
+      },
+      {
+        "cost_usd": 1.8808,
+        "gaussians": 7499239,
+        "step": 7450,
+        "t": 2281.4
+      },
+      {
+        "cost_usd": 1.8899,
+        "gaussians": 7499239,
+        "step": 7450,
+        "t": 2292.4
+      },
+      {
+        "cost_usd": 1.899,
+        "gaussians": 7499239,
+        "step": 7450,
+        "t": 2303.5
+      },
+      {
+        "cost_usd": 1.9082,
+        "gaussians": 7499239,
+        "step": 7450,
+        "t": 2314.7
+      },
+      {
+        "cost_usd": 1.9174,
+        "gaussians": 7499239,
+        "step": 7450,
+        "t": 2325.8
+      },
+      {
+        "cost_usd": 1.9265,
+        "gaussians": 7499239,
+        "step": 7450,
+        "t": 2336.9
+      },
+      {
+        "cost_usd": 1.9357,
+        "gaussians": 7499239,
+        "step": 7450,
+        "t": 2348.0
+      },
+      {
+        "cost_usd": 1.9449,
+        "gaussians": 7499239,
+        "step": 7450,
+        "t": 2359.1
+      },
+      {
+        "cost_usd": 1.954,
+        "gaussians": 7499239,
+        "step": 7450,
+        "t": 2370.2
+      },
+      {
+        "cost_usd": 1.9632,
+        "gaussians": 7499239,
+        "step": 7600,
+        "t": 2381.3
+      },
+      {
+        "cost_usd": 1.9724,
+        "gaussians": 7499239,
+        "step": 7600,
+        "t": 2392.5
+      },
+      {
+        "cost_usd": 1.9815,
+        "gaussians": 7499239,
+        "step": 7600,
+        "t": 2403.6
+      },
+      {
+        "cost_usd": 1.9907,
+        "gaussians": 7499239,
+        "step": 7999,
+        "t": 2414.7
+      }
+    ],
+    "step": 7999
+  }
+}

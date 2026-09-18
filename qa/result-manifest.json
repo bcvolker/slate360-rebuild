@@ -1,0 +1,26 @@
+{
+  "ARM_A_CLIENT_VISUAL_VERDICT": "UNREVIEWED",
+  "ARM_B_CLIENT_VISUAL_VERDICT": "UNREVIEWED",
+  "arm": null,
+  "artifact_count": {
+    "ply": 3289395,
+    "spz": 3289395
+  },
+  "client_share": null,
+  "dataset": "room213",
+  "device": "cuda",
+  "effective_config_hash": "5be62c177d7de783da6339bc47a811667576d4ae177a25c9832a290fefa155ed",
+  "elapsed_s": 14.172,
+  "experiment_id": "exp1_ply_vs_spz",
+  "hashes": {
+    "A_on_path.png": "af116ed8fcf1d154643b347c6ab6efe38346410c46ede040f0d13d79d2f74bce",
+    "B_off_path.png": "35a85b49b1566880d990687ae54f08f563e28dab1e5f194b5f2cb42ab5c7c256",
+    "C_dollhouse.png": "cf3041b41bae3243f91fea2ce86c879efc5da0600528cf5f9faec7e5d46ccd92",
+    "D_overhead.png": "d79288b8b2b698ee5445996b3cb8e7f1d2a45007e25ff345a33b2b4201b2e148",
+    "ply": "2fbd5cbf680fe1951572464507f177b7a64428684eb577c5382011c7baffebab",
+    "spz": "84616d43771bb0017df34509858add5b33535d2dfba8d6e83ab2fdf498ad9950"
+  },
+  "human_verdict": "UNREVIEWED",
+  "published": false,
+  "status": "needs_review"
+}

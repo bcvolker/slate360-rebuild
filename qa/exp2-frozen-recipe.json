@@ -1,0 +1,30 @@
+{
+  "changed_variable": "refine_stop_iter",
+  "image_bytes": 1562371580,
+  "job_id": "cecc2763",
+  "points_ply": "/mnt/c/s360/tmp/splat-lab/cecc2763/sfm/points.ply",
+  "recipe": {
+    "actual_images_per_optimizer_step": 1,
+    "backend": "modal-L40S",
+    "bilateral": true,
+    "loss": "l1+ssim",
+    "mask_hash": "20daa8e25daa806411f45f24a434f81e16767402b413d436f3c5602735a8a2b6",
+    "max_steps": 8000,
+    "optimizer": "splatfacto-adam",
+    "output_converter": "splat-transform@2.7.1-spz-v3-sog",
+    "pano_count": 376,
+    "pose_hash": "f9b1bdb367ec5864f0c21c1cd77fd33b2a8fad6ca4a92a3821571db3ae6fa604",
+    "qa_pose_hash": "ee51124640e16c92ea2c48cf420719b77ab9c8a02ea996dc4ed849045f3fb37a",
+    "resolution": 1280,
+    "rng_seed": 42,
+    "seed_hash": "5c24bd98d41607d493a95167512d9489f48783a7dd781f4b31acb80a5bab4416",
+    "sh_degree": 3,
+    "source_hash": "1753a05b9eef0262d075bf9dc81d8ce49e56cdb6ae88fb9a2e713f7b73b35c99",
+    "use_lidar": false,
+    "view_count": 6016
+  },
+  "recipe_hash": "267bb0b4f11de51b1bcde6ba86060972bccb269f75738e16ff0b88b65e6c8498",
+  "transforms": "/mnt/c/s360/tmp/splat-lab/cecc2763/views/transforms.json",
+  "views_dir": "/mnt/c/s360/tmp/splat-lab/cecc2763/views",
+  "visual_poses": "/mnt/c/s360-recon-exp/qa/visual-poses.json"
+}

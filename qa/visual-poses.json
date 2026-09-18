@@ -1,0 +1,248 @@
+{
+  "schema": "slate360.visual-poses.v1",
+  "dataset": "room213-cecc2763",
+  "world_convention": "nerfstudio_opengl_c2w_after_dataparser",
+  "camera_axes": "right_up_back",
+  "matrix_layout": "row_major_4x4_world_from_camera",
+  "viewport": {
+    "width": 1280,
+    "height": 1280
+  },
+  "near": 0.01,
+  "far": 100.0,
+  "sh_degree": 3,
+  "render_mode": "RGB",
+  "dataparser": {
+    "transform": [
+      [
+        0.9921420812606812,
+        -0.09222976863384247,
+        0.08454407006502151,
+        0.006354848854243755
+      ],
+      [
+        -0.09222976863384247,
+        -0.08252108097076416,
+        0.9923123717308044,
+        -0.1564876139163971
+      ],
+      [
+        -0.08454407006502151,
+        -0.9923123717308044,
+        -0.09037888050079346,
+        0.012800971046090126
+      ]
+    ],
+    "scale": 0.16944717925638522
+  },
+  "source_transforms": "/mnt/c/s360/tmp/splat-lab/cecc2763/views/transforms.json",
+  "camera_box_diag": 2.180191534148483,
+  "on_path_frame_index": 3008,
+  "poses": [
+    {
+      "id": "A_on_path",
+      "category": "ON_PATH",
+      "world_from_camera": [
+        [
+          0.6536787417820739,
+          -0.049337425847719926,
+          -0.7551621417726215,
+          0.5190693258376984
+        ],
+        [
+          -0.7567453227336778,
+          -0.03421869485371411,
+          -0.6528135258709489,
+          0.004664089136455742
+        ],
+        [
+          0.006367417441183965,
+          0.9981957609187042,
+          -0.059703967982111805,
+          -0.0062855877637571405
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "world_convention": "nerfstudio_opengl_c2w_after_dataparser",
+      "camera_axes": "right_up_back",
+      "matrix_layout": "row_major_4x4_world_from_camera",
+      "projection": "pinhole",
+      "intrinsics": {
+        "fx": 640.0,
+        "fy": 640.0,
+        "cx": 640.0,
+        "cy": 640.0,
+        "width": 1280,
+        "height": 1280
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 1280
+      },
+      "near": 0.01,
+      "far": 100.0,
+      "intended_render_mode": "RGB",
+      "source_view": "images/000189_v00.jpg",
+      "notes": "source-adjacent horizon view from mid-walk panorama"
+    },
+    {
+      "id": "B_off_path",
+      "category": "OFF_PATH",
+      "world_from_camera": [
+        [
+          0.2144298237444605,
+          -0.04933753154180055,
+          -0.9754925210718339,
+          0.6742601645762112
+        ],
+        [
+          -0.9764714870724008,
+          -0.03421871935580916,
+          -0.21291433530460552,
+          0.5265258256005656
+        ],
+        [
+          -0.022875437078529754,
+          0.9981958160710546,
+          -0.05551420675344181,
+          0.019274673072172732
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "world_convention": "nerfstudio_opengl_c2w_after_dataparser",
+      "camera_axes": "right_up_back",
+      "matrix_layout": "row_major_4x4_world_from_camera",
+      "projection": "pinhole",
+      "intrinsics": {
+        "fx": 640.0,
+        "fy": 640.0,
+        "cx": 640.0,
+        "cy": 640.0,
+        "width": 1280,
+        "height": 1280
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 1280
+      },
+      "near": 0.01,
+      "far": 100.0,
+      "intended_render_mode": "RGB",
+      "source_view": "images/000189_v00.jpg",
+      "notes": "same look-at, displaced 0.25\u00d7 camera-box diagonal along floor perpendicular"
+    },
+    {
+      "id": "C_dollhouse",
+      "category": "DOLLHOUSE_GEOMETRY",
+      "world_from_camera": [
+        [
+          -0.28472881635882774,
+          0.7378650081238287,
+          -0.6119515756320182,
+          -1.5597713236667825
+        ],
+        [
+          -0.9574603483956431,
+          -0.25013012732334694,
+          0.14389093318190332,
+          0.3667560507601294
+        ],
+        [
+          -0.0468954409473859,
+          0.6268892638955454,
+          0.7776957428382558,
+          1.9822279391186828
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "world_convention": "nerfstudio_opengl_c2w_after_dataparser",
+      "camera_axes": "right_up_back",
+      "matrix_layout": "row_major_4x4_world_from_camera",
+      "projection": "pinhole",
+      "intrinsics": {
+        "fx": 640.0,
+        "fy": 640.0,
+        "cx": 640.0,
+        "cy": 640.0,
+        "width": 1280,
+        "height": 1280
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 1280
+      },
+      "near": 0.01,
+      "far": 100.0,
+      "intended_render_mode": "RGB",
+      "source_view": null,
+      "notes": "elevated oblique of trained-world camera centroid"
+    },
+    {
+      "id": "D_overhead",
+      "category": "PLAN_OVERHEAD",
+      "world_from_camera": [
+        [
+          -0.2847288163590188,
+          0.9573376203019579,
+          -0.049337428862644035,
+          -0.15059107279745196
+        ],
+        [
+          -0.9574603483962856,
+          -0.2865288153505876,
+          -0.03421869694475891,
+          -0.10444464971204089
+        ],
+        [
+          -0.04689544094741738,
+          0.03749558274937494,
+          0.9981958219167075,
+          3.0467613130153968
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ],
+      "world_convention": "nerfstudio_opengl_c2w_after_dataparser",
+      "camera_axes": "right_up_back",
+      "matrix_layout": "row_major_4x4_world_from_camera",
+      "projection": "pinhole",
+      "intrinsics": {
+        "fx": 640.0,
+        "fy": 640.0,
+        "cx": 640.0,
+        "cy": 640.0,
+        "width": 1280,
+        "height": 1280
+      },
+      "viewport": {
+        "width": 1280,
+        "height": 1280
+      },
+      "near": 0.01,
+      "far": 100.0,
+      "intended_render_mode": "RGB",
+      "source_view": null,
+      "notes": "plan-like view above trained-world centroid"
+    }
+  ],
+  "pose_set_hash": "ee51124640e16c92ea2c48cf420719b77ab9c8a02ea996dc4ed849045f3fb37a"
+}

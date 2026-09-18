@@ -1,0 +1,134 @@
+{
+  "step": 30000,
+  "gauss_param_shapes": {
+    "_model.gauss_params.features_dc": [
+      3542182,
+      3
+    ],
+    "_model.gauss_params.features_rest": [
+      3542182,
+      15,
+      3
+    ],
+    "_model.gauss_params.means": [
+      3542182,
+      3
+    ],
+    "_model.gauss_params.opacities": [
+      3542182,
+      1
+    ],
+    "_model.gauss_params.quats": [
+      3542182,
+      4
+    ],
+    "_model.gauss_params.scales": [
+      3542182,
+      3
+    ]
+  },
+  "optimizers": [
+    {
+      "opt": "means",
+      "n_param_groups": 1,
+      "n_state": 1,
+      "exp_avgs": [
+        {
+          "state_key": "0",
+          "exp_avg": [
+            3542182,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "opt": "scales",
+      "n_param_groups": 1,
+      "n_state": 1,
+      "exp_avgs": [
+        {
+          "state_key": "0",
+          "exp_avg": [
+            3542182,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "opt": "quats",
+      "n_param_groups": 1,
+      "n_state": 1,
+      "exp_avgs": [
+        {
+          "state_key": "0",
+          "exp_avg": [
+            3542182,
+            4
+          ]
+        }
+      ]
+    },
+    {
+      "opt": "features_dc",
+      "n_param_groups": 1,
+      "n_state": 1,
+      "exp_avgs": [
+        {
+          "state_key": "0",
+          "exp_avg": [
+            3542182,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "opt": "features_rest",
+      "n_param_groups": 1,
+      "n_state": 1,
+      "exp_avgs": [
+        {
+          "state_key": "0",
+          "exp_avg": [
+            3542182,
+            15,
+            3
+          ]
+        }
+      ]
+    },
+    {
+      "opt": "opacities",
+      "n_param_groups": 1,
+      "n_state": 1,
+      "exp_avgs": [
+        {
+          "state_key": "0",
+          "exp_avg": [
+            3542182,
+            1
+          ]
+        }
+      ]
+    },
+    {
+      "opt": "bilateral_grid",
+      "n_param_groups": 1,
+      "n_state": 1,
+      "exp_avgs": [
+        {
+          "state_key": "0",
+          "exp_avg": [
+            5415,
+            12,
+            8,
+            16,
+            16
+          ]
+        }
+      ]
+    }
+  ]
+}

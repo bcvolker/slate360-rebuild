@@ -1,0 +1,27 @@
+{
+  "transforms": "/mnt/c/s360/tmp/splat-lab/cecc2763/views/transforms.json",
+  "total_derived_images": 6016,
+  "train_images": 5415,
+  "eval_images": 601,
+  "train_split_fraction": 0.9,
+  "split_rule": "nerfstudio.data.utils.dataparsers_utils.get_train_eval_split_fraction (verified equal to replica)",
+  "ordered_train_image_sha256": "1bb881c0bd18a735cf7e72a805639de1901b73bf96a63c94cf3a8a1bf53547d6",
+  "ordered_eval_image_sha256": "2b5422fd94c0cca9f18a3cdbedf8076ee5b930dedefd0de30187424ff8abeb76",
+  "hash_rule": "sha256 of file_path strings in nerfstudio order joined by \\n",
+  "sampler": {
+    "type": "nerfstudio FullImageDatamanager train_cameras_sampling_strategy=random",
+    "semantics": "per-epoch shuffle without replacement (random.Random(train_cameras_sampling_seed=42)); one full image per optimizer step"
+  },
+  "first_train": [
+    "images/000001_v00.jpg",
+    "images/000001_v01.jpg",
+    "images/000001_v02.jpg"
+  ],
+  "first_eval": [
+    "images/000001_v10.jpg",
+    "images/000002_v04.jpg",
+    "images/000002_v14.jpg"
+  ],
+  "warmup_covers_training_cycles": 1.111,
+  "matches_expected": true
+}

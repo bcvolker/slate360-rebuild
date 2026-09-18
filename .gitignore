@@ -104,3 +104,12 @@ reference/
 # Splat Lab local job workspace: extracted frames, masks, SfM databases, trained
 # models, live-status.json — all local job output, some multi-GB, never for git.
 /tmp/
+
+# Controlled reconstruction experiment outputs (PLY/SPZ/checkpoints/renders)
+/experiments/
+/qa/renders/
+/qa/mask-audit/
+/qa/visual-summary.json
+/qa/visual-summary.*.json
+*.ckpt
+workers/recon-experiment/.cache/

@@ -1,0 +1,5 @@
+{
+  "gsplat": "1.5.3",
+  "cuda_ops": true,
+  "cuda_module": "module"
+}

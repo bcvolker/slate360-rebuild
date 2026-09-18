@@ -1,0 +1,62 @@
+{
+  "title": "Experiment 2 integrity check vs historical resume defect",
+  "timestamp": "2026-09-17T21:05:00Z",
+  "experiment_altered": false,
+  "ab_variable_unchanged": "refine_stop_iter only (500 vs 4300)",
+  "scientific_status": "VALID_RUN_COMPLETE",
+  "modal_run": "ap-F6K6wtSXXOOqjuIEatCXXs",
+  "historical_room213": {
+    "gauss_tensors_bit_identical_across_2250_6000_30000": true,
+    "interpretation": "A. Historical Room failure is broken resume / under-training, not a densify-policy result."
+  },
+  "distinction": {
+    "A_historical_room_failure": "Broken resume / under-training. Historical Room 213 Gaussian tensors froze at step 2250. Not a converged 30k-step model.",
+    "B_controlled_densify_effect": "This run. Arm A refine_stop_iter=500 stayed at seed 209587. Arm B refine_stop_iter=4300 grew to 7499239. Checkpoint gauss_params SHA256 changed at every save on both arms."
+  },
+  "checks": {
+    "1_start_from_step_0_no_resume": {
+      "status": "PASS",
+      "evidence": "Both ns-train.log: No Nerfstudio checkpoint to load, so training from scratch. train-cmd has no --load-dir. loaded_absolute_step=0."
+    },
+    "2_optimizer_bound_to_live_params_after_init": {
+      "status": "PASS_EMPIRICAL",
+      "evidence": "From-scratch path plus every 750-step checkpoint has a different gauss_params SHA256 for means/scales/quats/opacities/features. Historical orphaning would have frozen those hashes."
+    },
+    "3_parameters_change_between_ckpts": {
+      "status": "PASS",
+      "arm_a": "209587 Gaussians; all 6 gauss tensors change 750->1500->...->7999",
+      "arm_b": "count and hashes both change through stop_split_at=4300; after 4500 count frozen at 7499239 but hashes still change through 7999"
+    },
+    "4_arm_b_densifies_count_every_100": {
+      "status": "PASS",
+      "arm_a_count": "209587 entire run (TB n=160)",
+      "arm_b_count": "209587 -> 398446 (step 750) -> 1875171 (1500) -> 3493750 (2250) -> 5194222 (3000) -> 6736680 (3750) -> 7499239 (4500-7999). Logged every 50 steps."
+    },
+    "5_pause_refine_after_reset_250": {
+      "status": "PASS",
+      "evidence": "Both wrap-status.json: requested=5515, effective=250, pause_clamped=true"
+    },
+    "6_gsplat_1_5_3": {
+      "status": "PASS",
+      "evidence": "gsplat-cuda.json both arms: version 1.5.3, cuda_ops true. torch 2.5.1+cu124. No 'CUDA toolkit found' disable line in ns-train.log."
+    },
+    "7_trainer_identity": {
+      "status": "SAME_SPLATFACTO_PATH",
+      "path": "ns_train_wrap.py -> nerfstudio 1.1.5 splatfacto",
+      "not": "standalone gsplat trainer"
+    },
+    "8_early_mid_final_param_hashes": {
+      "status": "PASS",
+      "arm_a_means": {
+        "750": "d8a28c241533a9d6d73318348386173670a3395643a3a2fe9fb1119dd9fd96e4",
+        "3750": "6890294b70e36b0ee09eeb55069025b1079528d05e95573eedc2585b2cba4143",
+        "7999": "5779b9804b87178252656fab98bf8c63ed11a9449f1cd521ca3013b9a772fc3f"
+      },
+      "arm_b_means": {
+        "750": "297aadb260e197389bd8fb2f50ae76577f9250428ebbf27e417857849e7f144b",
+        "3750": "7b62d11f1d4e6add2632e7fefe89cf52c6ebdec008fc04a569ba759a50bb2dd8",
+        "7999": "b523df194efe6aaae3192ebf181ae564424603d36d2b34d13173fd79544b7d48"
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "requested_absolute_max_step": 8000,
+  "loaded_absolute_step": 0,
+  "cli_max_num_iterations": 8000,
+  "max_num_iterations_semantics": "additional_on_resume",
+  "requested_refine_stop_iter": 4300,
+  "effective_refine_stop_iter": 4300,
+  "stop_split_at_absolute": 4300,
+  "stop_split_source": "refine_stop_iter",
+  "actual_images_per_optimizer_step": 1,
+  "actual_images_per_optimizer_step_evidence": "splatfacto FullImageDatamanager samples one full image per optimizer step; _train_cmd does not pass a datamanager batch size; images_per_step is planning-only"
+}
