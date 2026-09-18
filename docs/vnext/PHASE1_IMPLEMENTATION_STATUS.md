@@ -1,8 +1,8 @@
 # Slate360 Phase 1 — Implementation Status
 
 **Last updated:** 2026-09-17  
-**Current slice:** 2 (client project portfolio) on `feature/ui-vnext-phase1`  
-**Next slice:** 3 (client project overview) — **NOT STARTED**
+**Current slice:** 3 (client project overview) on `feature/ui-vnext-phase1`  
+**Next slice:** 4 (unified Explore viewer) — **NOT STARTED**
 
 Canonical plan: `docs/vnext/SLATE360_UI_PHASE1_MASTER_BUILD_PLAN.md`  
 Slice prompts: `docs/vnext/SLATE360_UI_PHASE1_CURSOR_SLICE_PROMPTS.md`  
@@ -32,8 +32,8 @@ The feature branch is **pushed**. It is not an unpushed `origin/main` clone.
 |---|---|---|
 | 0 | Repo audit + salvage map + route contract | **APPROVED** |
 | 1 | vNext foundation + shells | **APPROVED** |
-| 2 | Client project portfolio | **IMPLEMENTED — awaiting approval** |
-| 3 | Client project overview | Not started |
+| 2 | Client project portfolio | **APPROVED** |
+| 3 | Client project overview | **IMPLEMENTED — awaiting approval** |
 | 4 | Unified Explore viewer | Not started |
 | 5 | Items + spatial linking | Not started |
 | 6 | Documents + project search | Not started |
@@ -297,6 +297,49 @@ No contextual project CRUD on the client portfolio. No middleware change.
 
 ---
 
+## Slice 3 notes
+
+`/vnext/projects/[projectId]` now renders the real client Overview, replacing the Slice 2
+scaffold. Project-level navigation (`Overview / Explore / Items / Documents / History`) is a
+presentational layout (`app/vnext/(client)/projects/[projectId]/layout.tsx` +
+`components/vnext/project/VnextProjectNav.tsx`) — it performs no auth or existence checks itself.
+Each of the 5 pages under `[projectId]/**` independently calls `requireVnextSession` with its own
+exact path and repeats the same `isVnextProjectId` / `getScopedProjectForUser`-backed
+`loadClientProjectScaffold` + `decideVnextProjectRecordAccess` check before rendering, matching the
+UI_DESIGN_RULES.md principle that auth lives on pages, not shared layouts. (An earlier draft put a
+`loading.tsx` file and the access check in the layout; both were reverted — see Known Limitations /
+Self-Audit in the Slice 3 completion report for why.)
+
+Overview data: `lib/vnext/load-project-overview.ts` (`loadVnextProjectOverview`). Reuses
+`getScopedProjectForUser` for the project row, `lib/vnext/load-portfolio-evidence.ts`
+(`loadPortfolioEvidence`) unchanged for hero/representations/documented-date, and
+`lib/projects/location.ts` / `lib/slatedrop/storage.ts` (`resolveNamespace`) for location and
+document-folder scoping — no new database query patterns were invented; recent items/documents and
+latest-visit reuse the exact table/column combinations already documented in
+`ENTITY_ACTION_SETTINGS_MATRIX.md` and `load-project-overview-data.ts` (legacy). Latest-visit source
+attribution is a new small pure module, `lib/vnext/overview-visit.ts` (`pickLatestVisit`,
+`formatPlainDate`), covered by its own vitest file.
+
+Deliberately omitted: a merged "recent activity" feed. Section 10 of the slice brief requires
+omitting activity that "cannot be constructed cleanly" — latest visit, recent items, and recent
+documents already answer "what's new" from real data; merging them into one feed would imply a kind
+of change-detection this data doesn't support.
+
+Preview fixtures: `/preview/vnext/project` (well-populated, now the Overview instead of the old
+scaffold), `/preview/vnext/project/{explore,items,documents,history}` (sibling scaffold fixtures so
+the project sub-nav and "View all" links are click-testable without auth),
+`/preview/vnext/project-sparse` (no hero/visit/items/documents, long title),
+`/preview/vnext/project-loading`, `/preview/vnext/project-error`.
+
+`components/vnext/portfolio/VnextProjectScaffold.tsx` and its copy constant were deleted (both of
+its only call sites were replaced in this same slice).
+
+Middleware and entitlements untouched. No Slice 4 (Explore viewer) or Slice 5–8 functionality was
+built; the four non-Overview project routes are scaffolds only.
+
+---
+
 ## Handoff
 
-Slice 2 completion report is returned in the Cursor response. Do not begin Slice 3 until Brian explicitly approves Slice 2.
+Slice 3 completion report is returned in the Cursor response. Do not begin Slice 4 until Brian
+explicitly approves Slice 3.

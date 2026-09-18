@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
-import { VnextProjectScaffold } from "@/components/vnext/portfolio/VnextProjectScaffold";
-import { isVnextProjectId, decideVnextProjectRecordAccess } from "@/lib/vnext/portfolio-access";
-import { loadClientProjectScaffold } from "@/lib/vnext/load-client-portfolio";
+import { VnextProjectOverview } from "@/components/vnext/project/VnextProjectOverview";
+import { isVnextProjectId } from "@/lib/vnext/portfolio-access";
+import { loadVnextProjectOverview } from "@/lib/vnext/load-project-overview";
 import { requireVnextSession } from "@/lib/vnext/require-vnext-session";
 
 type PageProps = {
@@ -19,8 +19,8 @@ export default async function VnextProjectPage({ params }: PageProps) {
   if (!ctx.user) notFound();
   if (!isVnextProjectId(projectId)) notFound();
 
-  const project = await loadClientProjectScaffold(ctx.user.id, projectId);
-  if (!project || decideVnextProjectRecordAccess(project) !== "allow") notFound();
+  const { overview, error } = await loadVnextProjectOverview(ctx.user.id, projectId);
+  if (!overview) notFound();
 
-  return <VnextProjectScaffold name={project.name} />;
+  return <VnextProjectOverview overview={overview} loadError={error} />;
 }

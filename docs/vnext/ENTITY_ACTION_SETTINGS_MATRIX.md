@@ -1,7 +1,7 @@
 # Entity Action / Settings Matrix
 
-**Status:** planning and verification document. Slice 2 updated project image/visit/archive notes. Do not invent backend features.  
-**Last updated:** 2026-09-17 (Slice 2: project image fields, archive hide, visit adapter, client portfolio open-only)  
+**Status:** planning and verification document. Slice 3 added Overview consumers for project, visit, item, and document rows. Do not invent backend features.  
+**Last updated:** 2026-09-17 (Slice 3: Overview read-only summaries for latest visit / recent items / recent documents)  
 **Scope:** Phase 1 vNext. Do not invent backend features. Do not surface SaaS pricing, plans, seat upsells, app marketplace, or subscription controls.
 
 Vocabulary:
@@ -87,7 +87,7 @@ These are **not** the same record. There is no `clients` table.
 | Download | `NEEDS VERIFICATION` — SlateDrop zip exists; not a whole-project export product |
 | Publish / Unpublish / Revoke | `NOT CURRENTLY SUPPORTED` as a project-level publish flag |
 | Delete semantics | **Hard-delete** of the project row after related cleanup |
-| Intended vNext UI | Client portfolio (open only, Slice 2); Overview Slice 3; owner Projects Slice 9 |
+| Intended vNext UI | Client portfolio (open only, Slice 2); Overview (Slice 3, **built** — read-only header/hero/latest-visit/representations/recent-items/recent-documents, no project CRUD surfaced); owner Projects Slice 9 |
 | Planned Phase 1 slice | 2, 3, 9 |
 | Backend exists | `SUPPORTED` for list/rename/edit/confirmed delete |
 | Image fields | `SUPPORTED` `projects.thumbnail_url`. Reality preview: `digital_twin_models.preview_storage_key`. 360 still: `site_walk_items` `photo_360`. Plan: `site_walk_plan_sheets` thumbnail/raster/image keys. Satellite: lat/lng + `/api/static-map`. Drone **hero still** often has no image route (`NOT CURRENTLY SUPPORTED` as a hero URL; drone *representation* can still be true from twin assets) |
@@ -115,7 +115,7 @@ No first-class `visits` table. Adapter over existing records (Decision C).
 | Download | `NEEDS VERIFICATION` per modality |
 | Publish / Unpublish / Revoke | `NEEDS VERIFICATION` for twin/thermal publish; Site Walk session status is not a public publish flag |
 | Delete semantics | Site Walk: **soft archive** default; **hard-delete** when permanent. Twin/thermal: **NEEDS VERIFICATION** |
-| Intended vNext UI | History, Explore, owner Processing / QA |
+| Intended vNext UI | History, Explore, owner Processing / QA; Overview (Slice 3) shows only a single derived "latest visit" (date + plain source label — Site walk visit / Digital twin capture / Thermal session), no visit list or actions |
 | Planned Phase 1 slice | 4, 7, 10 |
 | Backend exists | `PARTIAL` — mature for Site Walk sessions; adapter still required |
 | Later verification | Twin capture/space delete/rename; thermal session lifecycle; unified Visit identity |
@@ -167,7 +167,7 @@ Two related records. Do not collapse them in UI.
 | Download | `PARTIAL` — item image route exists |
 | Publish / Unpublish / Revoke | `NOT APPLICABLE` |
 | Delete semantics | **Soft-delete** via `deleted_at`; related plan pin is reverted to empty |
-| Intended vNext UI | Items surface + Explore overlays |
+| Intended vNext UI | Items surface + Explore overlays; Overview (Slice 3) shows a read-only 5-most-recent list (title, `item_status` label, updated date) with a link to the Items scaffold — no rename/edit/delete surfaced |
 | Planned Phase 1 slice | 5 |
 | Backend exists | `SUPPORTED` for rename/edit/soft-delete |
 | Later verification | Restore; bulk duplicate; twin pins vs Site Walk items |
@@ -206,7 +206,7 @@ Two related records. Do not collapse them in UI.
 | Download | `SUPPORTED` — `/api/slatedrop/download`; zip via `/api/slatedrop/zip` |
 | Publish / Unpublish / Revoke | `PARTIAL` — link create exists; revoke/expiry **NEEDS VERIFICATION** on `slate_drop_links` |
 | Delete semantics | **Soft-delete** (`status='deleted'` + `deleted_at`); S3 retained for 30-day restore. Permanent purge is described as future scheduled cleanup |
-| Intended vNext UI | Documents |
+| Intended vNext UI | Documents; Overview (Slice 3) shows a read-only 5-most-recent list (file name, upload date) reusing the exact `project_folders` + `resolveNamespace` + `slatedrop_uploads` prefix-scoping pattern from the legacy `loadProjectOverviewData`, with a link to the Documents scaffold — no rename/move/delete/share surfaced |
 | Planned Phase 1 slice | 6 |
 | Backend exists | `SUPPORTED` for rename/duplicate/move/soft-delete/restore/download |
 | Later verification | Link revoke; password-gated links in vNext |

@@ -5,6 +5,10 @@ const AUTH_ROUTES = [
   "/vnext",
   "/vnext/projects",
   "/vnext/projects/11111111-1111-4111-8111-111111111111",
+  "/vnext/projects/11111111-1111-4111-8111-111111111111/explore",
+  "/vnext/projects/11111111-1111-4111-8111-111111111111/items",
+  "/vnext/projects/11111111-1111-4111-8111-111111111111/documents",
+  "/vnext/projects/11111111-1111-4111-8111-111111111111/history",
   "/vnext/account",
   "/vnext/ops",
   "/vnext/ops/clients",
@@ -59,6 +63,30 @@ test.describe("vNext route smoke", () => {
     expect(dashboard.status()).not.toBe(404);
     const appHome = await request.get("/app", { maxRedirects: 0 });
     expect(appHome.status()).not.toBe(404);
+    health.assertClean();
+  });
+
+  test("project overview preview fixtures render", async ({ page }) => {
+    const health = attachRuntimeHealth(page);
+    const projectExplore = await page.goto("/preview/vnext/project/explore", { waitUntil: "domcontentloaded" });
+    expect(projectExplore?.status()).toBe(200);
+    const projectItems = await page.goto("/preview/vnext/project/items", { waitUntil: "domcontentloaded" });
+    expect(projectItems?.status()).toBe(200);
+    const projectDocuments = await page.goto("/preview/vnext/project/documents", { waitUntil: "domcontentloaded" });
+    expect(projectDocuments?.status()).toBe(200);
+    const projectHistory = await page.goto("/preview/vnext/project/history", { waitUntil: "domcontentloaded" });
+    expect(projectHistory?.status()).toBe(200);
+    health.assertClean();
+  });
+
+  test("sparse, loading, and error project preview fixtures render", async ({ page }) => {
+    const health = attachRuntimeHealth(page);
+    const projectSparse = await page.goto("/preview/vnext/project-sparse", { waitUntil: "domcontentloaded" });
+    expect(projectSparse?.status()).toBe(200);
+    const projectLoading = await page.goto("/preview/vnext/project-loading", { waitUntil: "domcontentloaded" });
+    expect(projectLoading?.status()).toBe(200);
+    const projectError = await page.goto("/preview/vnext/project-error", { waitUntil: "domcontentloaded" });
+    expect(projectError?.status()).toBe(200);
     health.assertClean();
   });
 });
