@@ -115,7 +115,7 @@ No first-class `visits` table. Adapter over existing records (Decision C).
 | Download | `NEEDS VERIFICATION` per modality |
 | Publish / Unpublish / Revoke | `NEEDS VERIFICATION` for twin/thermal publish; Site Walk session status is not a public publish flag |
 | Delete semantics | Site Walk: **soft archive** default; **hard-delete** when permanent. Twin/thermal: **NEEDS VERIFICATION** |
-| Intended vNext UI | History, Explore, owner Processing / QA; Overview (Slice 3) shows only a single derived "latest visit" (date + plain source label — Site walk visit / Digital twin capture / Thermal session), no visit list or actions |
+| Intended vNext UI | History, Explore, owner Processing / QA; Overview (Slice 3) shows only a single derived "latest visit" (date + plain client-facing source label — "Site visit" / "3D scan" / "Thermal scan"; corrected 2026-09-18 from the original implementation-oriented "Site walk visit" / "Digital twin capture" / "Thermal session"), no visit list or actions |
 | Planned Phase 1 slice | 4, 7, 10 |
 | Backend exists | `PARTIAL` — mature for Site Walk sessions; adapter still required |
 | Later verification | Twin capture/space delete/rename; thermal session lifecycle; unified Visit identity |

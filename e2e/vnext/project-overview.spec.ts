@@ -20,7 +20,7 @@ test.describe("vNext project overview", () => {
       );
       await expect(page.getByRole("link", { name: "Explore project" })).toBeVisible();
       await expect(page.getByText("Latest visit")).toBeVisible();
-      await expect(page.getByText("What you can open")).toBeVisible();
+      await expect(page.getByText("Available", { exact: true })).toBeVisible();
       await expect(page.getByText("Recent items")).toBeVisible();
       await expect(page.getByText("Recent documents")).toBeVisible();
       await assertNoHorizontalOverflow(page);
@@ -30,22 +30,42 @@ test.describe("vNext project overview", () => {
     });
   }
 
-  test("sparse project degrades gracefully with no fabricated content", async ({ page }) => {
+  test("sparse project hides the Explore CTA and shows one truthful notice", async ({ page }) => {
     const health = attachRuntimeHealth(page);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/preview/vnext/project-sparse", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: /West Yard Adaptive Reuse/ })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Explore project" })).toBeVisible();
+    // No usable representation exists for this fixture: the primary Explore CTA must not render
+    // (no enabled, no disabled, no dead link to an empty Explore experience).
+    await expect(page.getByRole("link", { name: "Explore project" })).toHaveCount(0);
+    await expect(page.locator("[data-vnext-explore-cta]")).toHaveCount(0);
     await expect(page.getByText("Latest visit")).toHaveCount(0);
-    await expect(page.getByText("What you can open")).toHaveCount(0);
+    await expect(page.getByText("Available", { exact: true })).toHaveCount(0);
     await expect(page.getByText("Recent items")).toHaveCount(0);
     await expect(page.getByText("Recent documents")).toHaveCount(0);
+    await expect(page.locator("[data-vnext-sparse-notice]")).toBeVisible();
+    await expect(
+      page.getByText("No documented visits or published project records are available yet."),
+    ).toBeVisible();
     await assertNoHorizontalOverflow(page);
     await page.screenshot({ path: `${SCREENSHOT_DIR}/sparse-1440.png`, fullPage: true });
 
     await page.setViewportSize({ width: 390, height: 844 });
     await assertNoHorizontalOverflow(page);
     await page.screenshot({ path: `${SCREENSHOT_DIR}/sparse-390.png`, fullPage: true });
+    health.assertClean();
+  });
+
+  test("Explore CTA renders when a usable representation exists", async ({ page }) => {
+    const health = attachRuntimeHealth(page);
+    await page.setViewportSize({ width: 1280, height: 800 });
+    await page.goto("/preview/vnext/project", { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: "Harbor Street Residence" })).toBeVisible();
+    await expect(page.locator("[data-vnext-explore-cta]")).toBeVisible();
+    await expect(page.getByRole("link", { name: "Explore project" })).toHaveAttribute(
+      "href",
+      /\/explore\/?$/,
+    );
     health.assertClean();
   });
 
@@ -66,6 +86,8 @@ test.describe("vNext project overview", () => {
       page.getByText("This project could not be loaded. Check your connection and try again."),
     ).toBeVisible();
     await expect(page.getByRole("button", { name: "Try again" })).toBeVisible();
+    // The error notice and the sparse-project notice must never double up.
+    await expect(page.locator("[data-vnext-sparse-notice]")).toHaveCount(0);
     await page.screenshot({ path: `${SCREENSHOT_DIR}/error-1280.png`, fullPage: true });
 
     const [response] = await Promise.all([

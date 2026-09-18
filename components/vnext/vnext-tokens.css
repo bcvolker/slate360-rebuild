@@ -1,17 +1,28 @@
 /* Isolated vNext visual system. Do not apply outside [data-s360-vnext]. */
 
 [data-s360-vnext] {
-  --vnext-canvas: #f4f1ea;
-  --vnext-surface: #fbfaf6;
-  --vnext-ink: #1f1e1b;
-  --vnext-ink-secondary: #4b4944;
-  --vnext-ink-muted: #6d6a64;
-  --vnext-line: #ddd8ce;
-  --vnext-accent: #2c5aa0;
-  --vnext-accent-hover: #244b86;
-  /* Homepage wordmark “360” color. Not an interaction accent. */
+  /*
+   * Palette corrected 2026-09-18 after Brian's rendered Slice 3 review: the
+   * original beige/tan canvas + cobalt accent read as off-brand and washed
+   * out. The current marketing homepage (--mkt-*) is now the vNext
+   * visual/brand color reference — canvas/surface/ink/line lift its values
+   * directly, and the interaction accent becomes the homepage's deep green
+   * (--mkt-brand-green) instead of cobalt, so client and owner vNext share
+   * one accent system instead of two competing primaries. The homepage's
+   * LAYOUT (hero sizing, marketing type scale, spacing, motion) is NOT
+   * adopted — this stays working software. See UI_DESIGN_RULES.md.
+   */
+  --vnext-canvas: var(--mkt-canvas, #fafaf8);
+  --vnext-surface: #ffffff;
+  --vnext-ink: var(--mkt-ink, #1a2433);
+  --vnext-ink-secondary: color-mix(in srgb, var(--vnext-ink) 70%, var(--vnext-ink-muted) 30%);
+  --vnext-ink-muted: var(--mkt-ink-muted, #5b6b80);
+  --vnext-line: var(--mkt-line, #e2e4e0);
+  --vnext-accent: var(--mkt-brand-green, #0c7a52);
+  --vnext-accent-hover: color-mix(in srgb, var(--vnext-accent) 85%, black);
+  /* Homepage wordmark “360” color; now the same green as the interaction accent (intentional, see above). */
   --vnext-brand-360: var(--mkt-brand-green);
-  --vnext-accent-soft: color-mix(in srgb, var(--vnext-accent) 12%, var(--vnext-surface));
+  --vnext-accent-soft: color-mix(in srgb, var(--vnext-accent) 8%, var(--vnext-surface));
   --vnext-focus: var(--vnext-accent);
   --vnext-danger: #b42318;
   --vnext-warning: #8a5a10;

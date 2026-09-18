@@ -44,6 +44,12 @@ test.describe("vNext client shell", () => {
 
       await assertNoHorizontalOverflow(page);
       await assertNamedTouchTargets(page, "[data-vnext-shell='client']");
+      if (viewport.name === "1440" || viewport.name === "390") {
+        await page.screenshot({
+          path: `docs/vnext/screenshots/slice-3-correction/client-shell-${viewport.name}.png`,
+          fullPage: true,
+        });
+      }
       health.assertClean();
     });
   }
@@ -112,6 +118,12 @@ test.describe("vNext owner shell", () => {
 
       await assertNoHorizontalOverflow(page);
       await assertNamedTouchTargets(page, "[data-vnext-shell='owner']");
+      if (viewport.name === "1440" || viewport.name === "390") {
+        await page.screenshot({
+          path: `docs/vnext/screenshots/slice-3-correction/owner-shell-${viewport.name}.png`,
+          fullPage: true,
+        });
+      }
       health.assertClean();
     });
   }

@@ -71,13 +71,13 @@ async function loadLatestVisit(admin: ScopedAdmin, projectId: string) {
   const candidates = [
     ...(sessions.data ?? []).map((row) => ({
       iso: row.completed_at || row.started_at || row.updated_at,
-      sourceLabel: "Site walk visit",
+      sourceLabel: "Site visit",
     })),
     ...(captures.data ?? []).map((row) => ({
       iso: row.uploaded_at || row.created_at,
-      sourceLabel: "Digital twin capture",
+      sourceLabel: "3D scan",
     })),
-    ...(thermal.data ?? []).map((row) => ({ iso: row.updated_at, sourceLabel: "Thermal session" })),
+    ...(thermal.data ?? []).map((row) => ({ iso: row.updated_at, sourceLabel: "Thermal scan" })),
   ];
 
   const latest = pickLatestVisit(candidates);

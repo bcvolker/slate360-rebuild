@@ -15,7 +15,7 @@ Chosen source is the **current homepage lockup**, not a historical SVG.
 | Icon | `SlateIcon` in `components/shared/SlateIcon.tsx` — same emblem as `HomeNavLight` / `HomeFooterLight` |
 | Wordmark | Text `SLATE` + `360`, `font-semibold tracking-[0.13em]` |
 | `SLATE` color | `--vnext-ink` |
-| `360` color | `--vnext-brand-360` → `--mkt-brand-green` (`#0C7A52` in `app/globals.css`) |
+| `360` color | `--vnext-brand-360` → `--mkt-brand-green` (`#0C7A52` in `app/globals.css`) — since the 2026-09-18 palette correction below, this is also the vNext interaction accent |
 
 Application wrapper: `components/vnext/VnextLogo.tsx`.
 
@@ -32,35 +32,39 @@ Sizing (application chrome, not marketing):
 - Default (client bar): icon `h-7` (28px), wordmark 15px / 16.5px from `md`.
 - Compact (owner bar, shares space with a section label): icon `h-6` (24px), wordmark 13.5px / 14.5px from `md`.
 
-Do not redraw, add a gradient overlay, or recolor the logo to the cobalt interaction accent. Brand green on “360” is identity; cobalt is for controls.
+Do not redraw or add a gradient overlay to the logo. Brand green on “360” and the vNext interaction accent are now the **same** deep green (see the palette correction below) — that is intentional, not a regression.
 
 ---
 
 ## Color tokens
 
+**Palette corrected 2026-09-18** after Brian reviewed rendered Slice 3 screens and rejected the original beige/tan canvas and cobalt accent as off-brand, washed out, and barren. The decision:
+
+- The **current marketing homepage** (`--mkt-*` tokens in `app/globals.css`) is now the vNext **visual / brand color** reference. vNext canvas, surface, ink, and line tokens lift the homepage's values directly (via `var(--mkt-*, <fallback>)` so vNext tracks the homepage if it ever changes).
+- The homepage's **layout** is explicitly *not* adopted — no marketing hero sizing, oversized spacing, animations, or marketing type scale. vNext stays working software; only the color family moved.
+- The interaction accent changed from cobalt (`#2c5aa0`) to Slate360's deep homepage green (`--mkt-brand-green`, `#0C7A52`). This unifies client and owner vNext onto **one** accent system — there is no longer a cobalt-for-owner / green-for-logo split.
+- Use green sparingly: active navigation, the primary action, useful links, focus rings, small availability markers. Never large green panels/fills.
+
 Defined on `[data-s360-vnext]`:
 
-| Token | Role | Value |
-|---|---|---|
-| `--vnext-canvas` | Application canvas | `#f4f1ea` warm off-white |
-| `--vnext-surface` | Header, sidebar, elevated panels | `#fbfaf6` |
-| `--vnext-ink` | Primary text | `#1f1e1b` graphite |
-| `--vnext-ink-secondary` | Nav default, supporting text | `#4b4944` |
-| `--vnext-ink-muted` | Notes, section labels | `#6d6a64` |
-| `--vnext-line` | Borders / dividers | `#ddd8ce` |
-| `--vnext-accent` | Interaction accent | `#2c5aa0` restrained cobalt |
-| `--vnext-accent-hover` | Accent hover | `#244b86` |
-| `--vnext-accent-soft` | Active nav wash | 12% accent mixed into surface |
-| `--vnext-brand-360` | Logo “360” only | `var(--mkt-brand-green)` |
-| `--vnext-focus` | Focus ring | same as accent |
-| `--vnext-danger` | Destructive | `#b42318` |
-| `--vnext-warning` | Warning (not amber) | `#8a5a10` |
-| `--vnext-success` | Success | `#17663a` |
-| `--vnext-disabled` | Disabled | `#a39f97` |
+| Token | Role | Old value (rejected) | Current value |
+|---|---|---|---|
+| `--vnext-canvas` | Application canvas | `#f4f1ea` warm off-white (read as tan) | `var(--mkt-canvas)` → `#FAFAF8` near-white |
+| `--vnext-surface` | Header, sidebar, elevated panels, cards | `#fbfaf6` (read as cream) | `#FFFFFF` true white |
+| `--vnext-ink` | Primary text | `#1f1e1b` graphite | `var(--mkt-ink)` → `#1A2433` graphite-navy |
+| `--vnext-ink-secondary` | Nav default, supporting text | `#4b4944` | `color-mix(in srgb, var(--vnext-ink) 70%, var(--vnext-ink-muted) 30%)` — derived, stays inside the homepage ink/muted family |
+| `--vnext-ink-muted` | Notes, section labels | `#6d6a64` | `var(--mkt-ink-muted)` → `#5B6B80` |
+| `--vnext-line` | Borders / dividers | `#ddd8ce` | `var(--mkt-line)` → `#E2E4E0` |
+| `--vnext-accent` | Interaction accent | `#2c5aa0` cobalt | `var(--mkt-brand-green)` → `#0C7A52` |
+| `--vnext-accent-hover` | Accent hover | `#244b86` | `color-mix(in srgb, var(--vnext-accent) 85%, black)` |
+| `--vnext-accent-soft` | Active nav wash | 12% accent mixed into surface | 8% accent mixed into surface (green needed a lighter wash than cobalt did to stay restrained on true white) |
+| `--vnext-brand-360` | Logo “360” | `var(--mkt-brand-green)` | unchanged — now equals `--vnext-accent` too (intentional) |
+| `--vnext-focus` | Focus ring | same as accent | same as accent |
+| `--vnext-danger` / `--vnext-warning` / `--vnext-success` / `--vnext-disabled` | Semantic states | unchanged | unchanged — not part of this correction |
 
 Components consume `var(--vnext-*)` only. Do not sprinkle hex in TSX.
 
-Do not use teal `#00E699` as the vNext **interaction** system. The logo emblem may retain its existing `SlateIcon` paints because that is the approved brand asset.
+Do not use teal `#00E699` as the vNext **interaction** system. The logo emblem may retain its existing `SlateIcon` paints because that is the approved brand asset. Do not reintroduce a second, competing primary-interaction color (e.g. blue) alongside the green — one accent, everywhere in vNext.
 
 ---
 
@@ -92,7 +96,7 @@ Do not use teal `#00E699` as the vNext **interaction** system. The logo emblem m
 - Primary interactive controls: `min-height` and `min-width` `2.75rem` (44px).
 - No horizontal page scroll. Root uses `overflow-x-hidden` and `min-w-0`.
 - Safe area: header `padding-top: env(safe-area-inset-top)`; main `padding-bottom: env(safe-area-inset-bottom)`.
-- Focus: 2px cobalt outline, 2px offset.
+- Focus: 2px accent (green) outline, 2px offset.
 
 Breakpoints used:
 
@@ -116,7 +120,7 @@ Top application bar: logo left, **Projects** and **Account** right. No other pri
 - Below `lg`: top bar with compact logo, current section label, and a **Menu** text button opening a labeled dialog drawer. Not a six-icon bottom bar.
 - Logo home destination is `/vnext/ops`.
 
-Active nav: cobalt underline (header) or 2px left bar + soft wash (sidebar/drawer). `aria-current="page"`. Owner Home is exact-match only.
+Active nav: accent (green) underline (header) or 2px left bar + soft wash (sidebar/drawer). `aria-current="page"`. Owner Home is exact-match only.
 
 ### Owner Menu drawer
 
@@ -137,6 +141,19 @@ Production-quality modal, not a decorative overlay:
 Slice 1 remaining scaffold pages stay a title, one muted sentence, and a bounded empty region.
 
 The client project portfolio (`/vnext/projects`) uses a wider measure (`72rem`) so image-first records can sit in one / two / three columns by viewport. It is not a dashboard widget board.
+
+The project Overview (`/vnext/projects/[projectId]`) uses the same `72rem` measure (`.vnext-portfolio`), not the narrower `42rem` scaffold width, so a populated project record can occupy the screen at 1280/1440 instead of stacking narrowly with dead space beside it.
+
+---
+
+## Content density (added after the Slice 3 correction)
+
+A **large purposeless blank field is a visual-quality failure**, exactly like fake content is. Brian's Slice 3 review rejected a barren desktop composition (hero pinned to a narrow column, information trickling down a tall pale field) as strongly as the design rules already reject invented metrics.
+
+- Real content should create density and hierarchy: group related real facts into one bounded surface (a compact two-up "latest visit / available" strip, a two-column recent-items/recent-documents grid) instead of one fact per full-width row separated by large vertical gaps.
+- When there is genuinely little or no real data, say so once, plainly, in a single compact surface (e.g. "No documented visits or published project records are available yet.") — do not leave a large empty canvas and do not invent sample content to fill it.
+- A primary action (like Explore) must only render when it leads somewhere real. Do not show a CTA — enabled or disabled — that has nothing behind it.
+- Audit vertical rhythm for repeated large gaps (e.g. `mt-8` between every section) — prefer a consistent, moderate rhythm (`mt-6`) and let bounded surfaces (thin border + white fill) carry visual weight instead of whitespace.
 
 ---
 

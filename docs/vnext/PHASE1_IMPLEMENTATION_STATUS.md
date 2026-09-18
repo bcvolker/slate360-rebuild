@@ -33,7 +33,7 @@ The feature branch is **pushed**. It is not an unpushed `origin/main` clone.
 | 0 | Repo audit + salvage map + route contract | **APPROVED** |
 | 1 | vNext foundation + shells | **APPROVED** |
 | 2 | Client project portfolio | **APPROVED** |
-| 3 | Client project overview | **IMPLEMENTED — awaiting approval** |
+| 3 | Client project overview | **IMPLEMENTED (visually corrected) — awaiting approval** |
 | 4 | Unified Explore viewer | Not started |
 | 5 | Items + spatial linking | Not started |
 | 6 | Documents + project search | Not started |
@@ -339,7 +339,49 @@ built; the four non-Overview project routes are scaffolds only.
 
 ---
 
+## Slice 3 visual correction (2026-09-18)
+
+Brian reviewed the rendered Slice 3 screens and returned **REVISE BEFORE NEXT SLICE** — visual/UX
+only; the architecture above (access model, loader, routing, exact-redirect auth, project nav IA,
+recent-items/documents summaries, no Slice 4 leakage) was explicitly preserved.
+
+**Palette.** The vNext canvas/surface/ink/line/accent tokens were replaced wholesale — see
+`UI_DESIGN_RULES.md`'s "Color tokens" section for the full old→new table. Summary: the beige/tan
+canvas (`#f4f1ea`/`#fbfaf6`) and cobalt accent (`#2c5aa0`) are gone. The **current marketing
+homepage** (`--mkt-*` tokens) is now the vNext visual/brand color reference — near-white canvas,
+true-white surfaces, homepage graphite-navy ink, homepage's deep green (`--mkt-brand-green`,
+`#0C7A52`) as the **one** interaction accent for both client and owner vNext. The homepage's layout
+was explicitly not adopted. Because this is a shared token file (`components/vnext/vnext-tokens.css`),
+the change applies uniformly to the client shell, owner shell, Slice 2 portfolio, and Slice 3
+Overview with no other code changes required for the color system itself.
+
+**Overview layout.** `components/vnext/project/VnextProjectOverview.tsx` was restructured from a
+narrow-hero-plus-tall-stacked-column layout (which left a large blank field under the hero) into: a
+single bounded hero+identity record (hero fills ~42% of the row via a new `VnextProjectHero`
+`fill` mode, identity fills the rest), a compact two-up "Latest visit / Available" strip with a
+green left-accent marker, and a two-column "Recent items / Recent documents" grid that collapses to
+one full-width column when only one of the two exists (never a lone half-width orphan). The
+container widened from `max-w-64rem` to the same `72rem` (`.vnext-portfolio`) measure the Slice 2
+portfolio already uses, for width/rhythm consistency across vNext client surfaces.
+
+**Sparse-project correctness fix.** The primary Explore CTA now renders only when
+`overview.representations.length > 0` (a real, usable representation exists) — previously it always
+rendered, including for a project with zero documented representations, which was misleading. A
+fully sparse project (no representations, no latest visit, no items, no documents) now shows one
+truthful compact message instead of an otherwise-empty page; this is suppressed when `loadError` is
+set so the error notice and the sparse notice never double up.
+
+**Terminology.** Latest-visit source labels changed from implementation-oriented to plain
+client-facing language: "Site walk visit" → "Site visit", "Digital twin capture" → "3D scan",
+"Thermal session" → "Thermal scan" (`lib/vnext/load-project-overview.ts`).
+
+**Nav visual treatment.** No code change was needed for the project sub-nav or client/owner nav —
+`VnextNavLink` already consumed `var(--vnext-accent)` for active-state styling, so the token swap
+alone retints every active-nav indicator app-wide to the corrected green.
+
+---
+
 ## Handoff
 
-Slice 3 completion report is returned in the Cursor response. Do not begin Slice 4 until Brian
-explicitly approves Slice 3.
+Slice 3 (as visually corrected) completion report is returned in the assistant response. Do not
+begin Slice 4 until Brian explicitly approves this corrected Slice 3.

@@ -15,7 +15,7 @@ export const PREVIEW_OVERVIEW_PROJECT: VnextProjectOverview = {
   documentedLabel: "Last documented Sep 14, 2026",
   latestVisit: {
     occurredAt: "2026-09-14T15:00:00.000Z",
-    sourceLabel: "Site walk visit",
+    sourceLabel: "Site visit",
     dateLabel: "Sep 14, 2026",
   },
   representations: ["reality", "geometry", "plan"],
