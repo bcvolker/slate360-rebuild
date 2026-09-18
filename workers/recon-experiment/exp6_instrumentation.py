@@ -61,7 +61,18 @@ def _apply_exp6_instrumentation_if_requested() -> None:
     track_steps = _parse_steps(track_raw) if track_raw else set()
     prune_step = int(prune_raw) if prune_raw else None
     threshold = float(os.environ.get("SPLAT_LAB_EXP6_LATE_PRUNE_THRESH", "0.08"))
-    status_path = os.environ.get("SPLAT_LAB_WRAP_STATUS_PATH")
+    # Deliberately NOT SPLAT_LAB_WRAP_STATUS_PATH itself: ns_train_wrap.py's
+    # _write_pause_status() writes that path as a single pretty-printed JSON object, and
+    # train_arm_exp6.py's run_arm() parses it with json.loads() expecting exactly one
+    # object. Appending JSON-lines there breaks that parse (EXP6-2026-09-18 incident: both
+    # arms crashed in post-processing with JSONDecodeError after a full ~70min/20k-step
+    # run, losing their checkpoints). A sibling file keeps the same "durable, no post-hoc
+    # GPU dispatch needed" property without colliding with that contract.
+    wrap_status_path = os.environ.get("SPLAT_LAB_WRAP_STATUS_PATH")
+    scale_log_path = None
+    if wrap_status_path:
+        from pathlib import Path as _Path
+        scale_log_path = str(_Path(wrap_status_path).with_name("exp6-scale-snapshots.jsonl"))
 
     import numpy as np
     import torch
@@ -73,10 +84,10 @@ def _apply_exp6_instrumentation_if_requested() -> None:
 
     def _emit(record: dict) -> None:
         print("EXP6_SCALE_SNAPSHOT " + json.dumps(record), flush=True)
-        if status_path:
+        if scale_log_path:
             try:
-                with open(status_path, "a", encoding="utf-8") as f:
-                    f.write(json.dumps({"exp6_scale_snapshot": record}) + "\n")
+                with open(scale_log_path, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(record) + "\n")
             except OSError:
                 pass
 
