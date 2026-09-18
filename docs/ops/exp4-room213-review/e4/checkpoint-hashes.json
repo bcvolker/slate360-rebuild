@@ -1,0 +1,402 @@
+[
+  {
+    "ckpt": "step-000000500.ckpt",
+    "step": 500,
+    "bytes": 1755239202,
+    "gauss": {
+      "features_dc": {
+        "shape": [
+          209587,
+          3
+        ],
+        "sha256": "b7518f0496e4edbbd183e48f1cc694d61f48668406727ca8939ae8bb3c3cd284"
+      },
+      "features_rest": {
+        "shape": [
+          209587,
+          15,
+          3
+        ],
+        "sha256": "5fdd79cb9e6033d0c5ecb87054a382ff647ae1b012c96f5572fc6e2fdd660dbc"
+      },
+      "means": {
+        "shape": [
+          209587,
+          3
+        ],
+        "sha256": "a8fe4bfc7eecfc4f34ca8d486519c33763a4d4eab1499d61208a22c4f2d5a6e0"
+      },
+      "opacities": {
+        "shape": [
+          209587,
+          1
+        ],
+        "sha256": "155611453199e1983277152d5358f615557bd4cf274df22197b840beb4229e5a"
+      },
+      "quats": {
+        "shape": [
+          209587,
+          4
+        ],
+        "sha256": "3f5b5877a644eb4bcd8cf83468789ef32503954adb3a2aa23c085e31759449e0"
+      },
+      "scales": {
+        "shape": [
+          209587,
+          3
+        ],
+        "sha256": "44a9caab255668288d700b2563d22bd6b0f3a5db4853fb8daa235e072016beeb"
+      }
+    }
+  },
+  {
+    "ckpt": "step-000003000.ckpt",
+    "step": 3000,
+    "bytes": 1755239202,
+    "gauss": {
+      "features_dc": {
+        "shape": [
+          209587,
+          3
+        ],
+        "sha256": "39fad38b286b0e338b1839b5bf346a2e7299d6e84cc5bb31a5ef13f4816ce521"
+      },
+      "features_rest": {
+        "shape": [
+          209587,
+          15,
+          3
+        ],
+        "sha256": "ad99ecc8ae9a6eaa4f3635e95532ff5645e8687a30200bfb1d48bd4d098c289f"
+      },
+      "means": {
+        "shape": [
+          209587,
+          3
+        ],
+        "sha256": "62a87746c953fb08df0676e88c6a6125c3d732d4ad894b74729f4c7d54ffc28c"
+      },
+      "opacities": {
+        "shape": [
+          209587,
+          1
+        ],
+        "sha256": "c4d99d540e21021d8ba9eb32d6b64d3538acb03cbf8a091125749cd1753aec94"
+      },
+      "quats": {
+        "shape": [
+          209587,
+          4
+        ],
+        "sha256": "09f057c8bb3a01410ae961662bc17cb54099c3b19ea99c8c597334972dd4bb97"
+      },
+      "scales": {
+        "shape": [
+          209587,
+          3
+        ],
+        "sha256": "29e03ab03501f66963208f20be37919ae6b0bc9fa1595d1ae4baf1a174d3b45c"
+      }
+    }
+  },
+  {
+    "ckpt": "step-000006000.ckpt",
+    "step": 6000,
+    "bytes": 1755239202,
+    "gauss": {
+      "features_dc": {
+        "shape": [
+          209587,
+          3
+        ],
+        "sha256": "42e6d317a0eb495d51a00d0a8fb7bbbc64b8cc6a4ac625932322f192cb504077"
+      },
+      "features_rest": {
+        "shape": [
+          209587,
+          15,
+          3
+        ],
+        "sha256": "2c736f79e05e3d078e73be8a99a3a952e7a778dd793640efb3fe168b41e58ae4"
+      },
+      "means": {
+        "shape": [
+          209587,
+          3
+        ],
+        "sha256": "56c09624b8ac928c07bce6f063dfeb63c374bf2d586fe5c534e35c1d385d102a"
+      },
+      "opacities": {
+        "shape": [
+          209587,
+          1
+        ],
+        "sha256": "e3e5201e99c47fba0df40189fcdd981bb3cb1cf8684ff45d60df279ebb3e2831"
+      },
+      "quats": {
+        "shape": [
+          209587,
+          4
+        ],
+        "sha256": "0a22ec82c8dce4bd522348fb5b944fa6797ca75de869725ebdab0812fa893a88"
+      },
+      "scales": {
+        "shape": [
+          209587,
+          3
+        ],
+        "sha256": "90cc5bc3e8bbdbbc3b75d24cbae9ec56eeb68dede89b5bd7fd4eed4b3df85f1f"
+      }
+    }
+  },
+  {
+    "ckpt": "step-000008000.ckpt",
+    "step": 8000,
+    "bytes": 1876516902,
+    "gauss": {
+      "features_dc": {
+        "shape": [
+          380883,
+          3
+        ],
+        "sha256": "7dfe88ff85d5835c8ad2230829392f4883746f85a686d3d7db919c1772925c9b"
+      },
+      "features_rest": {
+        "shape": [
+          380883,
+          15,
+          3
+        ],
+        "sha256": "e01cb4faca9f1c2775fa5436dd5f1ca80c82e0449d8ef75609208324b9242b34"
+      },
+      "means": {
+        "shape": [
+          380883,
+          3
+        ],
+        "sha256": "4fdceb932ab701989b57d8d8766e708c316b79b9cc6ab31d1ebc69ee34b44ab9"
+      },
+      "opacities": {
+        "shape": [
+          380883,
+          1
+        ],
+        "sha256": "f729bee01bc8ef42f616936371ce8a3e9e8c90291a0a90aecc4ebfb099ee2c1a"
+      },
+      "quats": {
+        "shape": [
+          380883,
+          4
+        ],
+        "sha256": "9dffcf6cac1f5ac6a58ad892c5c8f5977a644eb02be5d1cffc17cbe8076babb1"
+      },
+      "scales": {
+        "shape": [
+          380883,
+          3
+        ],
+        "sha256": "66909f4393853d922d4edbc6f4fbb88b43b1ab5e3f0bc286435d39c3522ebfd0"
+      }
+    }
+  },
+  {
+    "ckpt": "step-000009000.ckpt",
+    "step": 9000,
+    "bytes": 1932634662,
+    "gauss": {
+      "features_dc": {
+        "shape": [
+          460145,
+          3
+        ],
+        "sha256": "37ab1a9a52faa187a4e8c928678e08e02f1af16f4bf53aaebb1e31b9f7c84968"
+      },
+      "features_rest": {
+        "shape": [
+          460145,
+          15,
+          3
+        ],
+        "sha256": "9eaaa46554c99e5dfea3fc34bc83cafc62d08fc1c4665df52113b3a19b40f8af"
+      },
+      "means": {
+        "shape": [
+          460145,
+          3
+        ],
+        "sha256": "ac6c1028f5d2b32f65f4e077eb45895ee8d0003f7ce59366c0cabf6e230f78a2"
+      },
+      "opacities": {
+        "shape": [
+          460145,
+          1
+        ],
+        "sha256": "9b372dbf1e277df0888a4eebf8198e17a4f2ecc9e29b836bd400196a88583006"
+      },
+      "quats": {
+        "shape": [
+          460145,
+          4
+        ],
+        "sha256": "3743adcce935d5715aff05700eb1f1f8865ac6a939f0b769354aeaebc5a394d1"
+      },
+      "scales": {
+        "shape": [
+          460145,
+          3
+        ],
+        "sha256": "ae49f65382085de557a3cd793a82bd840afaf5abf193084a0b6ae7f76bec63dd"
+      }
+    }
+  },
+  {
+    "ckpt": "step-000011000.ckpt",
+    "step": 11000,
+    "bytes": 1957914534,
+    "gauss": {
+      "features_dc": {
+        "shape": [
+          495851,
+          3
+        ],
+        "sha256": "09a21c778c03b76538d7a35975bd02bd210674bc3d3101db80ae0b9d0d214ae2"
+      },
+      "features_rest": {
+        "shape": [
+          495851,
+          15,
+          3
+        ],
+        "sha256": "f634c187cb414a9bf4c8728cfc2f202fa02cb6474c7be5c1ac300684ed7eb7fa"
+      },
+      "means": {
+        "shape": [
+          495851,
+          3
+        ],
+        "sha256": "5348c4446adbbb9a117a14ad2895d8d50aa84f7a044acb38142687c50998c5ce"
+      },
+      "opacities": {
+        "shape": [
+          495851,
+          1
+        ],
+        "sha256": "a5fe8f73cd9f11b21e9f019617f7d02ce5e60d7c860054e80c020e6af930e660"
+      },
+      "quats": {
+        "shape": [
+          495851,
+          4
+        ],
+        "sha256": "3f38cfa98c3c90da9fa11a0634a1d6ef9ed6e7bbc3e3038893e07605e7d5dc1c"
+      },
+      "scales": {
+        "shape": [
+          495851,
+          3
+        ],
+        "sha256": "1b7835722d2a0ef0e80d0f48f6220a9a9ceb2f1d9b91cefe8ad3ab39f20071e9"
+      }
+    }
+  },
+  {
+    "ckpt": "step-000013000.ckpt",
+    "step": 13000,
+    "bytes": 1957914534,
+    "gauss": {
+      "features_dc": {
+        "shape": [
+          495851,
+          3
+        ],
+        "sha256": "079fe620df1d8f8db30210cdbf11a0deede6027165473a29f8d0e09ed32d8f42"
+      },
+      "features_rest": {
+        "shape": [
+          495851,
+          15,
+          3
+        ],
+        "sha256": "ee73d1cf4a50084c84fb43e4d32cbddb0eb554f321bd6de1a74bfb474c14406c"
+      },
+      "means": {
+        "shape": [
+          495851,
+          3
+        ],
+        "sha256": "698ab857bbb11a4d052a85de6a772a555fd4bdd7d111701e129fcebf3b76ccf6"
+      },
+      "opacities": {
+        "shape": [
+          495851,
+          1
+        ],
+        "sha256": "ecd86506de8b90a9f7dee864a7dadf1867ddb6fe8b711a2cc1467c376b9a6bbc"
+      },
+      "quats": {
+        "shape": [
+          495851,
+          4
+        ],
+        "sha256": "6cec365942c1dacc33620131a53760d34e12b7eecbab8c4dbf0b80d65529b695"
+      },
+      "scales": {
+        "shape": [
+          495851,
+          3
+        ],
+        "sha256": "a81b4218e51ef46c2d3bd45b9b79e65821f8c87617c896fc2f30984a2beb7b7c"
+      }
+    }
+  },
+  {
+    "ckpt": "step-000015999.ckpt",
+    "step": 15999,
+    "bytes": 1957914534,
+    "gauss": {
+      "features_dc": {
+        "shape": [
+          495851,
+          3
+        ],
+        "sha256": "eb1ad96a50d7f841a91afc287356faf0bb439982f068e32714fb4366d72ef9ca"
+      },
+      "features_rest": {
+        "shape": [
+          495851,
+          15,
+          3
+        ],
+        "sha256": "8e6889dd9d4c4bf1959d3323c61c159f4c73e228aea6f8836f627e9d3cdcb83e"
+      },
+      "means": {
+        "shape": [
+          495851,
+          3
+        ],
+        "sha256": "5c1fe438aca91e9524d8e97ae4c3524267b769bb085fe362c7ce9cc2e1b78281"
+      },
+      "opacities": {
+        "shape": [
+          495851,
+          1
+        ],
+        "sha256": "eb6269c356209ffd73d3a312002861423daa407e63a4d667d0334d035d20d214"
+      },
+      "quats": {
+        "shape": [
+          495851,
+          4
+        ],
+        "sha256": "822eed82381803b7fd7b9a6276205475357002b255c2189e4c91b68847acb2e9"
+      },
+      "scales": {
+        "shape": [
+          495851,
+          3
+        ],
+        "sha256": "8c726059e4505bfea07a37c86d92cee6039a81492c0774efbdd0bf0c08b8b59b"
+      }
+    }
+  }
+]

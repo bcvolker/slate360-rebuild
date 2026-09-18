@@ -1,0 +1,197 @@
+{
+  "experiment_id": "room213-exp4-results",
+  "step": 15999,
+  "arms": {
+    "d4": {
+      "arm_name": "ROOM213_D4_CONTROL",
+      "checkpoint": "/vol/experiments/room213-exp4/ROOM213_D4_CONTROL/train/views/splatfacto/2026-09-18_073218/nerfstudio_models/step-000015999.ckpt",
+      "gaussian_count": 494503,
+      "scale_stats": {
+        "count_total": 494503,
+        "max_scale_value": 0.5576303601264954,
+        "p99": 0.026016034185886383,
+        "p99.5": 0.038071002811193466,
+        "p99.9": 0.08252857625484467,
+        "p99.99": 0.14224407076835632,
+        "count_above_0.08": 547,
+        "fraction_above_0.08": 0.0011061611355239504,
+        "count_above_0.1": 251,
+        "fraction_above_0.1": 0.0005075803382385951,
+        "count_above_0.15": 41,
+        "fraction_above_0.15": 8.291152935371474e-05
+      },
+      "projected_footprint": {
+        "A_on_path": {
+          "category": "ON_PATH",
+          "n_in_front": 111177,
+          "radius_px_p50_p90_p99_p999": [
+            22.562623766518875,
+            115.15159112833388,
+            1322.5498943832877,
+            10125.164523269956
+          ],
+          "n_footprint_over_viewport": 1151,
+          "large_footprint_group": {
+            "threshold_px_p99.5": 2623.2999210402704,
+            "n": 556,
+            "mean_opacity": 0.3889453411102295,
+            "mean_opacity_population": 0.3765416741371155
+          }
+        },
+        "B_off_path": {
+          "category": "OFF_PATH",
+          "n_in_front": 1452,
+          "radius_px_p50_p90_p99_p999": [
+            73.8712519919454,
+            626.8428113064388,
+            4840.498323154525,
+            16589.49477357772
+          ],
+          "n_footprint_over_viewport": 77,
+          "large_footprint_group": {
+            "threshold_px_p99.5": 9713.678277682704,
+            "n": 8,
+            "mean_opacity": 0.5383273363113403,
+            "mean_opacity_population": 0.47444993257522583
+          }
+        },
+        "C_dollhouse": {
+          "category": "DOLLHOUSE_GEOMETRY",
+          "n_in_front": 494503,
+          "radius_px_p50_p90_p99_p999": [
+            1.3045681997204424,
+            2.4201394119029094,
+            6.608718337843126,
+            21.670397238158376
+          ],
+          "n_footprint_over_viewport": 0,
+          "large_footprint_group": {
+            "threshold_px_p99.5": 9.503302273733627,
+            "n": 2473,
+            "mean_opacity": 0.5991532802581787,
+            "mean_opacity_population": 0.387300580739975
+          }
+        },
+        "D_overhead": {
+          "category": "PLAN_OVERHEAD",
+          "n_in_front": 494503,
+          "radius_px_p50_p90_p99_p999": [
+            1.0734571656821434,
+            1.9373893771452646,
+            5.19719384607733,
+            17.285673209310577
+          ],
+          "n_footprint_over_viewport": 0,
+          "large_footprint_group": {
+            "threshold_px_p99.5": 7.6418996182173755,
+            "n": 2473,
+            "mean_opacity": 0.5971009135246277,
+            "mean_opacity_population": 0.387300580739975
+          }
+        }
+      },
+      "render_hashes": {
+        "A_on_path": "179af8e71fbccd1590d792d7288f48e7a70bb89e77207736bf40aa662bbc6bcd",
+        "B_off_path": "c67072b85390e654c3ede9dc6cad410f7626823cd5a7a7ebfc274a17f5946d2c",
+        "C_dollhouse": "1ccadadf207cb9191427b3a842401aebd9f8f9806b1c9c6299704eae2869ab1b",
+        "D_overhead": "71a14c092cc1428aa8953e1cf9afccb94449a250a3b004186326f4281f320cb1"
+      }
+    },
+    "e4": {
+      "arm_name": "ROOM213_E4_SCALE_CONTROL",
+      "checkpoint": "/vol/experiments/room213-exp4/ROOM213_E4_SCALE_CONTROL/train/views/splatfacto/2026-09-18_073226/nerfstudio_models/step-000015999.ckpt",
+      "gaussian_count": 495851,
+      "scale_stats": {
+        "count_total": 495851,
+        "max_scale_value": 0.3545396327972412,
+        "p99": 0.024358974769711494,
+        "p99.5": 0.031821947544813156,
+        "p99.9": 0.05085015669465065,
+        "p99.99": 0.07962904870510101,
+        "count_above_0.08": 49,
+        "fraction_above_0.08": 9.882000842995174e-05,
+        "count_above_0.1": 24,
+        "fraction_above_0.1": 4.840163678201718e-05,
+        "count_above_0.15": 9,
+        "fraction_above_0.15": 1.8150613793256442e-05
+      },
+      "projected_footprint": {
+        "A_on_path": {
+          "category": "ON_PATH",
+          "n_in_front": 110848,
+          "radius_px_p50_p90_p99_p999": [
+            22.96984228179391,
+            117.45930028383032,
+            1321.0855259128423,
+            10707.58933732678
+          ],
+          "n_footprint_over_viewport": 1148,
+          "large_footprint_group": {
+            "threshold_px_p99.5": 2644.7446242528545,
+            "n": 555,
+            "mean_opacity": 0.4525711238384247,
+            "mean_opacity_population": 0.38151997327804565
+          }
+        },
+        "B_off_path": {
+          "category": "OFF_PATH",
+          "n_in_front": 678,
+          "radius_px_p50_p90_p99_p999": [
+            114.08435268633328,
+            1006.618772933572,
+            8763.225636677435,
+            20149.720207376526
+          ],
+          "n_footprint_over_viewport": 57,
+          "large_footprint_group": {
+            "threshold_px_p99.5": 12252.644115130703,
+            "n": 4,
+            "mean_opacity": 0.30934494733810425,
+            "mean_opacity_population": 0.5671494603157043
+          }
+        },
+        "C_dollhouse": {
+          "category": "DOLLHOUSE_GEOMETRY",
+          "n_in_front": 495851,
+          "radius_px_p50_p90_p99_p999": [
+            1.3113028050932558,
+            2.444669626453762,
+            6.283350321726605,
+            13.416132135901995
+          ],
+          "n_footprint_over_viewport": 0,
+          "large_footprint_group": {
+            "threshold_px_p99.5": 8.179937300296128,
+            "n": 2480,
+            "mean_opacity": 0.6364246606826782,
+            "mean_opacity_population": 0.39228513836860657
+          }
+        },
+        "D_overhead": {
+          "category": "PLAN_OVERHEAD",
+          "n_in_front": 495851,
+          "radius_px_p50_p90_p99_p999": [
+            1.0804434784527701,
+            1.955032421545203,
+            4.919696124335973,
+            10.483255576237003
+          ],
+          "n_footprint_over_viewport": 0,
+          "large_footprint_group": {
+            "threshold_px_p99.5": 6.4183467007344515,
+            "n": 2480,
+            "mean_opacity": 0.6375632286071777,
+            "mean_opacity_population": 0.39228513836860657
+          }
+        }
+      },
+      "render_hashes": {
+        "A_on_path": "e61553222a00b77d68da7b3e3c280910782a3ad3e8955c63ce2c44d9553be7e7",
+        "B_off_path": "7848e74adb8a3d395f08b39aa96fa58b8a0b79b8aba7531d95962d2dcab8fbf2",
+        "C_dollhouse": "993da0db402bc6d8f6aec617a3d207c52234f318d0b51ef65a9b622c433e47aa",
+        "D_overhead": "cffe3b5428ff099ad75766f676b98952737b8109b8e9f174b1f6c05c378fd2a6"
+      }
+    }
+  },
+  "scale_histogram_png_sha256": "16323d190b431e57159cb870b9f4696442375581798cc119f907f3b87f309d6c"
+}

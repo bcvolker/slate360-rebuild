@@ -349,6 +349,46 @@ def train_arm_exp3(payload: dict[str, Any]) -> dict[str, Any]:
     return result
 
 
+TRAIN_TIMEOUT_EXP4 = 170 * 60
+
+
+@app.function(
+    image=gpu_image,
+    gpu=GPU_TRAIN,
+    timeout=TRAIN_TIMEOUT_EXP4,
+    memory=MEMORY_MIB,
+    cpu=CPU,
+    volumes={"/vol": ckpt_vol},
+    secrets=[worker_secret] if worker_secret is not None else [],
+    retries=0,
+)
+def train_arm_exp4(payload: dict[str, Any]) -> dict[str, Any]:
+    """Experiment 4: one arm, L40S, cull_scale_thresh is the only changed variable.
+
+    Same dataset/split, same opacity-reset patch, same guards as Experiment 3 -- see
+    train_arm_exp4.py / exp4.py for what is and is not allowed to differ from Arm D."""
+    os.environ.setdefault("OPEN3D_CPU_RENDERING", "true")
+    sys.path.insert(0, "/root/recon-experiment")
+    sys.path.insert(0, "/root/splat-lab")
+    from train_arm_exp4 import run_arm
+
+    vol = Path("/vol")
+    views = _ensure_inputs(vol)
+    arm = payload["arm"]
+    recipe = payload["recipe"]
+    work = Path("/tmp") / "exp4" / arm["name"]
+    if work.exists():
+        shutil.rmtree(work)
+    poses = Path("/root/recon-experiment") / "visual-poses.json"
+    result = run_arm(work=work, data_dir=views, poses=poses, arm=arm, recipe=recipe)
+    durable = vol / "experiments" / "room213-exp4" / arm["name"]
+    if durable.exists():
+        shutil.rmtree(durable)
+    shutil.copytree(work, durable)
+    ckpt_vol.commit()
+    return result
+
+
 HAZE_DIAGNOSTIC_TIMEOUT = 100 * 60
 
 
@@ -383,6 +423,37 @@ def haze_diagnostic() -> dict[str, Any]:
     ckpt_vol.commit()
     result["status"] = "needs_review"
     result["HUMAN_VISUAL_VERDICT"] = "UNREVIEWED"
+    return result
+
+
+@app.function(
+    image=gpu_image,
+    gpu=GPU_TRAIN,
+    timeout=30 * 60,
+    memory=MEMORY_MIB,
+    cpu=CPU,
+    volumes={"/vol": ckpt_vol},
+    retries=0,
+)
+def exp4_results() -> dict[str, Any]:
+    """Experiment 4 results: exact scale-threshold counts/percentiles, projected footprint,
+    and QA renders computed directly from D4 and E4's own actual step-15999 checkpoints.
+    Read-only against experiments/room213-exp4/<ARM>/; never trains, never writes there.
+    Writes only to a new, separate volume path: experiments/room213-exp4-results/."""
+    sys.path.insert(0, "/root/recon-experiment")
+    sys.path.insert(0, "/root/splat-lab")
+    from exp4_results_gpu import run as run_results
+
+    vol = Path("/vol")
+    work = Path("/tmp") / "exp4-results"
+    if work.exists():
+        shutil.rmtree(work)
+    result = run_results(vol=vol, work=work)
+    durable = vol / "experiments" / "room213-exp4-results"
+    if durable.exists():
+        shutil.rmtree(durable)
+    shutil.copytree(work, durable)
+    ckpt_vol.commit()
     return result
 
 
@@ -424,8 +495,37 @@ def main(phase: str = "exp3"):
         result = haze_diagnostic.remote()
         print(json.dumps(result, indent=2, default=str))
         return
+    if phase == "exp4-results":
+        result = exp4_results.remote()
+        print(json.dumps(result, indent=2, default=str))
+        return
+    if phase == "exp4":
+        import exp4
+
+        doc = _committed_recipe("exp3-frozen-recipe.json")  # same frozen dataset identity as Arm D
+        recipe = doc["recipe"]
+        diff = exp4.preflight_diff(
+            exp4.resolved_arm_config(exp4.ARM_D4, recipe), exp4.resolved_arm_config(exp4.ARM_E4, recipe)
+        )
+        if not diff["ok"] or diff["differing_keys"] != [exp4.CHANGED_VARIABLE]:
+            raise SystemExit(f"PREFLIGHT STOP: arms differ in {diff['differing_keys']}")
+        print("preflight ok; changed variable:", exp4.CHANGED_VARIABLE, "recipe_hash:", doc["recipe_hash"])
+        print("staging frozen views", stage_inputs.remote())
+        d4 = train_arm_exp4.spawn({"arm": exp4.ARM_D4, "recipe": recipe})
+        e4 = train_arm_exp4.spawn({"arm": exp4.ARM_E4, "recipe": recipe})
+        results4: dict[str, Any] = {}
+        for name, handle in (("arm_d4", d4), ("arm_e4", e4)):
+            try:
+                results4[name] = handle.get()
+            except Exception as exc:  # noqa: BLE001
+                results4[name] = {"status": "failed", "error": str(exc)}
+        print(json.dumps(
+            {**results4, "status": "needs_review", "HUMAN_VISUAL_VERDICT": "UNREVIEWED"},
+            indent=2, default=str,
+        ))
+        return
     if phase != "exp3":
-        raise SystemExit("phase must be exp2, exp3, verify, verify-exp3-inputs, or haze-diagnostic")
+        raise SystemExit("phase must be exp2, exp3, exp4, verify, verify-exp3-inputs, or haze-diagnostic")
     import exp3
 
     doc = _committed_recipe("exp3-frozen-recipe.json")

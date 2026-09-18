@@ -1,0 +1,178 @@
+[
+  {
+    "ckpt": "step-000000500.ckpt",
+    "step": 500,
+    "count": 209587,
+    "nonfinite_logits": 0,
+    "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+    "fraction_below": {
+      "0.001": 0.0,
+      "0.005": 0.020487911999225616,
+      "0.01": 0.07951828837394714,
+      "0.05": 0.3703903257846832,
+      "0.1": 0.5211487412452698
+    },
+    "fraction_above_0.5": 0.13377737998962402,
+    "quantiles_05_25_50_75_95": [
+      0.00755,
+      0.028175,
+      0.090571,
+      0.29038,
+      0.742615
+    ]
+  },
+  {
+    "ckpt": "step-000003000.ckpt",
+    "step": 3000,
+    "count": 209587,
+    "nonfinite_logits": 0,
+    "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+    "fraction_below": {
+      "0.001": 0.0,
+      "0.005": 0.1002829372882843,
+      "0.01": 1.0,
+      "0.05": 1.0,
+      "0.1": 1.0
+    },
+    "fraction_above_0.5": 0.0,
+    "quantiles_05_25_50_75_95": [
+      0.003875,
+      0.01,
+      0.01,
+      0.01,
+      0.01
+    ]
+  },
+  {
+    "ckpt": "step-000006000.ckpt",
+    "step": 6000,
+    "count": 209587,
+    "nonfinite_logits": 0,
+    "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+    "fraction_below": {
+      "0.001": 0.013908305205404758,
+      "0.005": 0.32342177629470825,
+      "0.01": 1.0,
+      "0.05": 1.0,
+      "0.1": 1.0
+    },
+    "fraction_above_0.5": 0.0,
+    "quantiles_05_25_50_75_95": [
+      0.001722,
+      0.003809,
+      0.01,
+      0.01,
+      0.01
+    ]
+  },
+  {
+    "ckpt": "step-000008000.ckpt",
+    "step": 8000,
+    "count": 380883,
+    "nonfinite_logits": 0,
+    "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+    "fraction_below": {
+      "0.001": 0.0,
+      "0.005": 0.0,
+      "0.01": 0.019331395626068115,
+      "0.05": 0.16131988167762756,
+      "0.1": 0.2723881006240845
+    },
+    "fraction_above_0.5": 0.44214364886283875,
+    "quantiles_05_25_50_75_95": [
+      0.017506,
+      0.087692,
+      0.366042,
+      0.892294,
+      0.999241
+    ]
+  },
+  {
+    "ckpt": "step-000009000.ckpt",
+    "step": 9000,
+    "count": 460145,
+    "nonfinite_logits": 0,
+    "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+    "fraction_below": {
+      "0.001": 0.0,
+      "0.005": 0.0009453541715629399,
+      "0.01": 1.0,
+      "0.05": 1.0,
+      "0.1": 1.0
+    },
+    "fraction_above_0.5": 0.0,
+    "quantiles_05_25_50_75_95": [
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01
+    ]
+  },
+  {
+    "ckpt": "step-000011000.ckpt",
+    "step": 11000,
+    "count": 495851,
+    "nonfinite_logits": 0,
+    "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+    "fraction_below": {
+      "0.001": 2.0167349248367827e-06,
+      "0.005": 0.0009639992495067418,
+      "0.01": 0.031576018780469894,
+      "0.05": 0.19891458749771118,
+      "0.1": 0.32364964485168457
+    },
+    "fraction_above_0.5": 0.34026551246643066,
+    "quantiles_05_25_50_75_95": [
+      0.013337,
+      0.06756,
+      0.237171,
+      0.690593,
+      0.95742
+    ]
+  },
+  {
+    "ckpt": "step-000013000.ckpt",
+    "step": 13000,
+    "count": 495851,
+    "nonfinite_logits": 0,
+    "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+    "fraction_below": {
+      "0.001": 4.0334698496735655e-06,
+      "0.005": 0.01819699816405773,
+      "0.01": 0.05507097765803337,
+      "0.05": 0.23194265365600586,
+      "0.1": 0.3525514602661133
+    },
+    "fraction_above_0.5": 0.34790289402008057,
+    "quantiles_05_25_50_75_95": [
+      0.009244,
+      0.055957,
+      0.221445,
+      0.734076,
+      0.972128
+    ]
+  },
+  {
+    "ckpt": "step-000015999.ckpt",
+    "step": 15999,
+    "count": 495851,
+    "nonfinite_logits": 0,
+    "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+    "fraction_below": {
+      "0.001": 4.0334698496735655e-06,
+      "0.005": 0.048320967704057693,
+      "0.01": 0.08943815529346466,
+      "0.05": 0.26630982756614685,
+      "0.1": 0.3756229281425476
+    },
+    "fraction_above_0.5": 0.3707908093929291,
+    "quantiles_05_25_50_75_95": [
+      0.005162,
+      0.044741,
+      0.219489,
+      0.814204,
+      0.98747
+    ]
+  }
+]
