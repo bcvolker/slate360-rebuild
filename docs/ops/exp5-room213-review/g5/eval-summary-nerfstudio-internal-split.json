@@ -1,0 +1,50 @@
+{
+  "8000": {
+    "ok": true,
+    "step": 8000,
+    "cmd": [
+      "/usr/local/bin/ns-eval",
+      "--load-config",
+      "/tmp/exp5/ROOM213_G5_CONTROL/train/views-exp5-grouped/splatfacto/2026-09-18_144246/config.eval.8000.yml",
+      "--output-path",
+      "/tmp/exp5/ROOM213_G5_CONTROL/eval/metrics-8000.json"
+    ],
+    "exit_code": 0,
+    "metrics": {
+      "psnr": 20.298839569091797,
+      "psnr_std": 2.01609206199646,
+      "ssim": 0.8107450008392334,
+      "ssim_std": 0.06596682220697403,
+      "lpips": 0.4594069719314575,
+      "lpips_std": 0.07639206200838089,
+      "num_rays_per_sec": 121382832.0,
+      "fps": 74.08619689941406
+    },
+    "checkpoint": "/tmp/exp5/ROOM213_G5_CONTROL/train/views-exp5-grouped/splatfacto/2026-09-18_144246/nerfstudio_models/step-000008000.ckpt",
+    "eval_set": "nerfstudio held-out split (train_split_fraction 0.9)"
+  },
+  "15999": {
+    "ok": true,
+    "step": 15999,
+    "cmd": [
+      "/usr/local/bin/ns-eval",
+      "--load-config",
+      "/tmp/exp5/ROOM213_G5_CONTROL/train/views-exp5-grouped/splatfacto/2026-09-18_144246/config.eval.15999.yml",
+      "--output-path",
+      "/tmp/exp5/ROOM213_G5_CONTROL/eval/metrics-15999.json"
+    ],
+    "exit_code": 0,
+    "metrics": {
+      "psnr": 21.801809310913086,
+      "psnr_std": 2.495466470718384,
+      "ssim": 0.835303008556366,
+      "ssim_std": 0.0633319690823555,
+      "lpips": 0.3782304525375366,
+      "lpips_std": 0.07569214701652527,
+      "num_rays_per_sec": 116503624.0,
+      "fps": 71.10816955566406
+    },
+    "checkpoint": "/tmp/exp5/ROOM213_G5_CONTROL/train/views-exp5-grouped/splatfacto/2026-09-18_144246/nerfstudio_models/step-000015999.ckpt",
+    "eval_set": "nerfstudio held-out split (train_split_fraction 0.9)"
+  }
+}

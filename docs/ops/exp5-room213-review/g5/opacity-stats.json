@@ -1,0 +1,178 @@
+[
+  {
+    "ckpt": "step-000000500.ckpt",
+    "step": 500,
+    "count": 209587,
+    "nonfinite_logits": 0,
+    "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+    "fraction_below": {
+      "0.001": 0.0,
+      "0.005": 0.02382781356573105,
+      "0.01": 0.08504821360111237,
+      "0.05": 0.37810075283050537,
+      "0.1": 0.5280241370201111
+    },
+    "fraction_above_0.5": 0.13473640382289886,
+    "quantiles_05_25_50_75_95": [
+      0.007198,
+      0.02721,
+      0.087664,
+      0.286644,
+      0.748105
+    ]
+  },
+  {
+    "ckpt": "step-000003000.ckpt",
+    "step": 3000,
+    "count": 209587,
+    "nonfinite_logits": 0,
+    "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+    "fraction_below": {
+      "0.001": 0.0,
+      "0.005": 0.10568881034851074,
+      "0.01": 1.0,
+      "0.05": 1.0,
+      "0.1": 1.0
+    },
+    "fraction_above_0.5": 0.0,
+    "quantiles_05_25_50_75_95": [
+      0.003859,
+      0.01,
+      0.01,
+      0.01,
+      0.01
+    ]
+  },
+  {
+    "ckpt": "step-000006000.ckpt",
+    "step": 6000,
+    "count": 209587,
+    "nonfinite_logits": 0,
+    "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+    "fraction_below": {
+      "0.001": 0.020344773307442665,
+      "0.005": 0.32732945680618286,
+      "0.01": 1.0,
+      "0.05": 1.0,
+      "0.1": 1.0
+    },
+    "fraction_above_0.5": 0.0,
+    "quantiles_05_25_50_75_95": [
+      0.001464,
+      0.003811,
+      0.01,
+      0.01,
+      0.01
+    ]
+  },
+  {
+    "ckpt": "step-000008000.ckpt",
+    "step": 8000,
+    "count": 374130,
+    "nonfinite_logits": 0,
+    "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+    "fraction_below": {
+      "0.001": 0.0,
+      "0.005": 0.0,
+      "0.01": 0.019458476454019547,
+      "0.05": 0.15937508642673492,
+      "0.1": 0.2693154811859131
+    },
+    "fraction_above_0.5": 0.4451955258846283,
+    "quantiles_05_25_50_75_95": [
+      0.017576,
+      0.089287,
+      0.371738,
+      0.894366,
+      0.998828
+    ]
+  },
+  {
+    "ckpt": "step-000009000.ckpt",
+    "step": 9000,
+    "count": 457860,
+    "nonfinite_logits": 0,
+    "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+    "fraction_below": {
+      "0.001": 0.0,
+      "0.005": 0.0011247979709878564,
+      "0.01": 1.0,
+      "0.05": 1.0,
+      "0.1": 1.0
+    },
+    "fraction_above_0.5": 0.0,
+    "quantiles_05_25_50_75_95": [
+      0.01,
+      0.01,
+      0.01,
+      0.01,
+      0.01
+    ]
+  },
+  {
+    "ckpt": "step-000011000.ckpt",
+    "step": 11000,
+    "count": 507321,
+    "nonfinite_logits": 0,
+    "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+    "fraction_below": {
+      "0.001": 0.0,
+      "0.005": 0.0011649428633973002,
+      "0.01": 0.03217489644885063,
+      "0.05": 0.2016967535018921,
+      "0.1": 0.32918015122413635
+    },
+    "fraction_above_0.5": 0.3267931044101715,
+    "quantiles_05_25_50_75_95": [
+      0.013164,
+      0.066397,
+      0.225663,
+      0.662672,
+      0.949924
+    ]
+  },
+  {
+    "ckpt": "step-000013000.ckpt",
+    "step": 13000,
+    "count": 507321,
+    "nonfinite_logits": 0,
+    "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+    "fraction_below": {
+      "0.001": 0.0,
+      "0.005": 0.019356580451130867,
+      "0.01": 0.057188645005226135,
+      "0.05": 0.23946969211101532,
+      "0.1": 0.3625199794769287
+    },
+    "fraction_above_0.5": 0.336577832698822,
+    "quantiles_05_25_50_75_95": [
+      0.00897,
+      0.053359,
+      0.207461,
+      0.710508,
+      0.969045
+    ]
+  },
+  {
+    "ckpt": "step-000015999.ckpt",
+    "step": 15999,
+    "count": 507321,
+    "nonfinite_logits": 0,
+    "source": "sigmoid(checkpoint gauss_params.opacities logits)",
+    "fraction_below": {
+      "0.001": 0.0,
+      "0.005": 0.04906164109706879,
+      "0.01": 0.09015002101659775,
+      "0.05": 0.2691905200481415,
+      "0.1": 0.3802562952041626
+    },
+    "fraction_above_0.5": 0.36204493045806885,
+    "quantiles_05_25_50_75_95": [
+      0.005094,
+      0.044026,
+      0.210931,
+      0.795112,
+      0.986344
+    ]
+  }
+]

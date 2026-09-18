@@ -1,0 +1,24 @@
+{
+  "patch": "exp3_strategy_patch",
+  "gsplat_version": "1.5.3",
+  "gsplat_file": "/usr/local/lib/python3.10/site-packages/gsplat/strategy/default.py",
+  "upstream_fix": {
+    "repo": "nerfstudio-project/gsplat",
+    "pr": 776,
+    "title": "Fix bit-wise 'and' preventing opacity reset",
+    "merge_commit": "6e8c837",
+    "merged": "2025-08-22"
+  },
+  "stock_predicate": "if step % self.reset_every == 0 & step > 0:",
+  "fixed_predicate": "if step % self.reset_every == 0 and step > 0:",
+  "stock_predicate_found": true,
+  "patched_predicate_present": true,
+  "stock_probe_reset_called": false,
+  "patched_probe_reset_called": true,
+  "stock_source_sha256": "ddcf89da5a39696538837f799113e797512baf5a87c62723babb3617f7870b8b",
+  "patched_source_sha256": "3cc4202cd94b124d24459f51c753db4c0df61a7ea2cb4c40d2e5b42f98bd09cf",
+  "bound_code_sha256": "b89f03bbcd1183d12d0908241ab2b0fb5acad064d3b54fdf7c832abfd58b37ff",
+  "bound_is_patched": true,
+  "max_live_gaussians": 3500000,
+  "accumulator_clear": "step == refine_start_iter + 1, before _update_state, keys grad2d/count/radii"
+}

@@ -1,0 +1,28 @@
+{
+  "hashes": {
+    "pose_hash": "95f678f14dd4208cda32b0a0eef7273acfd7dfee63c7bdc04c4822ccc80c29b4",
+    "seed_hash": "5c24bd98d41607d493a95167512d9489f48783a7dd781f4b31acb80a5bab4416",
+    "mask_hash": "2f5bc81ddb14a38b39ac2d688bfed1645b4a784b616b4aec071d41afb1cedb3e"
+  },
+  "split": {
+    "total_derived_views": 6016,
+    "withheld_panoramas": 38,
+    "withheld_images": 608,
+    "grouped_safe_pool_panoramas": 338,
+    "grouped_safe_pool_images": 5408,
+    "nerfstudio_internal_train_images": 4868,
+    "nerfstudio_internal_eval_images": 540,
+    "leakage_check": {
+      "withheld_panoramas_in_pool": 0,
+      "ok": true
+    },
+    "staged_grouped_transforms_matches_recomputed_pool": true,
+    "hashes": {
+      "withheld_images_sha256": "a4651d9eab83fd663b9c7188b889f7df72f416a94de06f00892ed6c33474e9d8",
+      "nerfstudio_internal_train_sha256": "0f8f367e6a43001f42fe58199009c9423876869192dfc3e50e5c4c25dbff0949",
+      "nerfstudio_internal_eval_sha256": "bdccc23ccd377f2e659fc83635d05d175cace40c71307a75d45261df5b21b3a5",
+      "grouped_safe_transforms_json_sha256": "95f678f14dd4208cda32b0a0eef7273acfd7dfee63c7bdc04c4822ccc80c29b4"
+    },
+    "matches_expected": true
+  }
+}

@@ -1,0 +1,309 @@
+{
+  "arms": {
+    "g5": {
+      "arm_name": "ROOM213_G5_CONTROL",
+      "grouped_eval_summary": {
+        "arm_name": "ROOM213_G5_CONTROL",
+        "n_withheld_panoramas": 38,
+        "n_withheld_views_scored": 608,
+        "note": "primary observation unit is the panorama (n=38 aggregates below), not the 608 individual crops",
+        "aggregate_over_panoramas": {
+          "psnr_mean": 21.123347690230922,
+          "psnr_median": 21.173169672489166,
+          "psnr_p10": 20.16662952899933,
+          "psnr_worst": 19.055012822151184,
+          "ssim_mean": 0.8157356250050821,
+          "ssim_median": 0.8157430663704872,
+          "ssim_p10": 0.7918512672185898,
+          "ssim_worst": 0.7845195457339287,
+          "lpips_mean": 0.3861966526233836,
+          "lpips_median": 0.39034035988152027,
+          "lpips_p10_best_case_low_is_good": 0.3565221305936575,
+          "lpips_worst_high_is_bad": 0.4263714235275984
+        }
+      },
+      "scale_stats": {
+        "count_total": 507321,
+        "max_scale_value": 1.0181775093078613,
+        "p99": 0.025335900485515594,
+        "p99.5": 0.03701978549361229,
+        "p99.9": 0.08046279847621918,
+        "p99.99": 0.13912709057331085,
+        "count_above_0.08": 510,
+        "fraction_above_0.08": 0.0010052806802793497,
+        "count_above_0.1": 229,
+        "fraction_above_0.1": 0.0004513907368313159,
+        "count_above_0.15": 38,
+        "fraction_above_0.15": 7.490326637375548e-05
+      },
+      "projected_footprint": {
+        "A_on_path": {
+          "category": "ON_PATH",
+          "n_in_front": 114036,
+          "radius_px_p50_p90_p99_p999": [
+            22.25785424646386,
+            116.45228872021133,
+            1321.9701150933315,
+            10626.825969609972
+          ],
+          "n_footprint_over_viewport": 1181,
+          "large_footprint_group": {
+            "threshold_px_p99.5": 2643.284409398687,
+            "n": 571,
+            "mean_opacity": 0.3873990476131439,
+            "mean_opacity_population": 0.3704487681388855
+          }
+        },
+        "B_off_path": {
+          "category": "OFF_PATH",
+          "n_in_front": 1155,
+          "radius_px_p50_p90_p99_p999": [
+            83.18779526472659,
+            624.97213793768,
+            4556.299169411981,
+            17831.559162065252
+          ],
+          "n_footprint_over_viewport": 57,
+          "large_footprint_group": {
+            "threshold_px_p99.5": 9148.34789496505,
+            "n": 6,
+            "mean_opacity": 0.5762690305709839,
+            "mean_opacity_population": 0.4877792298793793
+          }
+        },
+        "C_dollhouse": {
+          "category": "DOLLHOUSE_GEOMETRY",
+          "n_in_front": 507321,
+          "radius_px_p50_p90_p99_p999": [
+            1.2955264802635273,
+            2.39680408993501,
+            6.456324876735512,
+            21.231473986685653
+          ],
+          "n_footprint_over_viewport": 0,
+          "large_footprint_group": {
+            "threshold_px_p99.5": 9.347005469517907,
+            "n": 2537,
+            "mean_opacity": 0.5847839117050171,
+            "mean_opacity_population": 0.3848315477371216
+          }
+        },
+        "D_overhead": {
+          "category": "PLAN_OVERHEAD",
+          "n_in_front": 507321,
+          "radius_px_p50_p90_p99_p999": [
+            1.0691010965683103,
+            1.9220943442563871,
+            5.08346207633173,
+            16.731354520514888
+          ],
+          "n_footprint_over_viewport": 0,
+          "large_footprint_group": {
+            "threshold_px_p99.5": 7.442310627075344,
+            "n": 2537,
+            "mean_opacity": 0.5861352682113647,
+            "mean_opacity_population": 0.3848315477371216
+          }
+        }
+      },
+      "render_hashes": {
+        "A_on_path": "e393547e635061472e751b10e6aa47131a999492fb0e6b471ccbf1d29e0a9330",
+        "B_off_path": "cbcc31edcf29c6e4f28846d728ab706d7cac5ad867a7d4eb33dd192a48159535",
+        "C_dollhouse": "ffec7a1bbbfa7f5911dc8735f06c9eb7c97d09a18e527c3bbabcf7f6d3620658",
+        "D_overhead": "d2f60bee7c145d9ad57e7f674c62321851a415d5c95423a51622808ade6cd830"
+      }
+    },
+    "h5": {
+      "arm_name": "ROOM213_H5_SCALE_CONTROL",
+      "grouped_eval_summary": {
+        "arm_name": "ROOM213_H5_SCALE_CONTROL",
+        "n_withheld_panoramas": 38,
+        "n_withheld_views_scored": 608,
+        "note": "primary observation unit is the panorama (n=38 aggregates below), not the 608 individual crops",
+        "aggregate_over_panoramas": {
+          "psnr_mean": 21.108300580790168,
+          "psnr_median": 21.126044064760208,
+          "psnr_p10": 20.149634218215944,
+          "psnr_worst": 19.02207338809967,
+          "ssim_mean": 0.815602724195311,
+          "ssim_median": 0.8151395991444588,
+          "ssim_p10": 0.7920070599764586,
+          "ssim_worst": 0.7844140604138374,
+          "lpips_mean": 0.3871436823698643,
+          "lpips_median": 0.39225435722619295,
+          "lpips_p10_best_case_low_is_good": 0.35715600810945036,
+          "lpips_worst_high_is_bad": 0.42840573750436306
+        }
+      },
+      "scale_stats": {
+        "count_total": 507199,
+        "max_scale_value": 0.43762722611427307,
+        "p99": 0.024100443348288536,
+        "p99.5": 0.031250014901161194,
+        "p99.9": 0.04991834610700607,
+        "p99.99": 0.07980616390705109,
+        "count_above_0.08": 51,
+        "fraction_above_0.08": 0.00010055224872288786,
+        "count_above_0.1": 18,
+        "fraction_above_0.1": 3.5489028961019243e-05,
+        "count_above_0.15": 5,
+        "fraction_above_0.15": 9.858063600283124e-06
+      },
+      "projected_footprint": {
+        "A_on_path": {
+          "category": "ON_PATH",
+          "n_in_front": 113863,
+          "radius_px_p50_p90_p99_p999": [
+            22.328043167965202,
+            119.5515940422899,
+            1273.1915976437256,
+            10248.184404381238
+          ],
+          "n_footprint_over_viewport": 1134,
+          "large_footprint_group": {
+            "threshold_px_p99.5": 2486.296676081388,
+            "n": 570,
+            "mean_opacity": 0.42271777987480164,
+            "mean_opacity_population": 0.3824900984764099
+          }
+        },
+        "B_off_path": {
+          "category": "OFF_PATH",
+          "n_in_front": 470,
+          "radius_px_p50_p90_p99_p999": [
+            102.8726973046851,
+            788.9132665679692,
+            9473.217955580287,
+            64760.824136310745
+          ],
+          "n_footprint_over_viewport": 30,
+          "large_footprint_group": {
+            "threshold_px_p99.5": 16829.66439748307,
+            "n": 3,
+            "mean_opacity": 0.6633952260017395,
+            "mean_opacity_population": 0.6523588299751282
+          }
+        },
+        "C_dollhouse": {
+          "category": "DOLLHOUSE_GEOMETRY",
+          "n_in_front": 507199,
+          "radius_px_p50_p90_p99_p999": [
+            1.2976486965661604,
+            2.4205598023508363,
+            6.219517177597447,
+            13.299128864907205
+          ],
+          "n_footprint_over_viewport": 0,
+          "large_footprint_group": {
+            "threshold_px_p99.5": 8.10380664062494,
+            "n": 2536,
+            "mean_opacity": 0.6430861353874207,
+            "mean_opacity_population": 0.39233025908470154
+          }
+        },
+        "D_overhead": {
+          "category": "PLAN_OVERHEAD",
+          "n_in_front": 507199,
+          "radius_px_p50_p90_p99_p999": [
+            1.0691236128954553,
+            1.939151913438669,
+            4.853601629571392,
+            10.286556761303505
+          ],
+          "n_footprint_over_viewport": 0,
+          "large_footprint_group": {
+            "threshold_px_p99.5": 6.324262295766636,
+            "n": 2536,
+            "mean_opacity": 0.6432980298995972,
+            "mean_opacity_population": 0.39233025908470154
+          }
+        }
+      },
+      "render_hashes": {
+        "A_on_path": "67e0c562dc3e354ca0c8274dd8baa50f2a63eff3fbcf35e8f393612ec195e800",
+        "B_off_path": "d0423b55fba02f92d6487fc5834ce7b4b144ce80835dee54ecf4645302e6aa3b",
+        "C_dollhouse": "6e4b0928d77f959a6ad2e089f6aeaf68a300ae9d9b399692add2f80fd19839be",
+        "D_overhead": "bfe9fb6b186fafd4885a39565db9475dcc18db9401435fb049e44f811d4ea226"
+      }
+    }
+  },
+  "panels": {
+    "worst": {
+      "panorama": "000325",
+      "file_path": "images/000325_v00.jpg",
+      "sha256": "bec208e8bb0e8b1b05a0997cbdec98d7f4705db7e95fcdb6fb6a0aaa0f894537",
+      "distance_to_nearest_training_panorama": 0.01673755841300768,
+      "h5_aggregate": {
+        "psnr_mean": 19.02207338809967,
+        "ssim_mean": 0.822306152433157,
+        "lpips_mean": 0.3625685013830662
+      }
+    },
+    "p25": {
+      "panorama": "000223",
+      "file_path": "images/000223_v00.jpg",
+      "sha256": "0a092a1b56df3d7dd2468ea95f4970e16fbd4cfdf3e7f0f427cb6e3ac2bf7cbe",
+      "distance_to_nearest_training_panorama": 0.008952455116797499,
+      "h5_aggregate": {
+        "psnr_mean": 20.77037215232849,
+        "ssim_mean": 0.8228472843766212,
+        "lpips_mean": 0.382836414501071
+      }
+    },
+    "median": {
+      "panorama": "000173",
+      "file_path": "images/000173_v00.jpg",
+      "sha256": "80553f7a636972976eb985b42e4c19120e73d75fba555ef9e89efe540a354443",
+      "distance_to_nearest_training_panorama": 0.04176715383425779,
+      "h5_aggregate": {
+        "psnr_mean": 21.133618235588074,
+        "ssim_mean": 0.7895480766892433,
+        "lpips_mean": 0.42564940825104713
+      }
+    },
+    "best": {
+      "panorama": "000264",
+      "file_path": "images/000264_v00.jpg",
+      "sha256": "0f3341b7a203b33897c680626771221c0f5095fa2d97c14aa0b273cbd7e1cad6",
+      "distance_to_nearest_training_panorama": 0.0028015487348313607,
+      "h5_aggregate": {
+        "psnr_mean": 22.429966688156128,
+        "ssim_mean": 0.8326961807906628,
+        "lpips_mean": 0.3477404098957777
+      }
+    },
+    "dist_near": {
+      "panorama": "000376",
+      "file_path": "images/000376_v00.jpg",
+      "sha256": "4cf44841cb46dc04e0535903b7f36dce781a9fef2b4f4ced463ce28491e63fd9",
+      "distance_to_nearest_training_panorama": 0.0020031967403475064,
+      "h5_aggregate": {
+        "psnr_mean": 21.006373286247253,
+        "ssim_mean": 0.8085041716694832,
+        "lpips_mean": 0.39786247164011
+      }
+    },
+    "dist_mid": {
+      "panorama": "000153",
+      "file_path": "images/000153_v00.jpg",
+      "sha256": "b40602564c0d6b1e9210d3bffdb33bc5d7eb288f3b6571fe6fa2522be8b2d0f9",
+      "distance_to_nearest_training_panorama": 0.019363544585330607,
+      "h5_aggregate": {
+        "psnr_mean": 21.290408968925476,
+        "ssim_mean": 0.8150703459978104,
+        "lpips_mean": 0.3709883224219084
+      }
+    },
+    "dist_far": {
+      "panorama": "000294",
+      "file_path": "images/000294_v00.jpg",
+      "sha256": "4a62ef100181820e95bad8747df4e3db2096c062c3a0239d7ecc4d11f53d8009",
+      "distance_to_nearest_training_panorama": 0.0722187066882051,
+      "h5_aggregate": {
+        "psnr_mean": 20.966273427009583,
+        "ssim_mean": 0.8062484972178936,
+        "lpips_mean": 0.42840573750436306
+      }
+    }
+  }
+}
