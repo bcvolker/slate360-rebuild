@@ -4,6 +4,7 @@ import { LEGACY_LANDINGS, attachRuntimeHealth } from "./helpers";
 const AUTH_ROUTES = [
   "/vnext",
   "/vnext/projects",
+  "/vnext/projects/11111111-1111-4111-8111-111111111111",
   "/vnext/account",
   "/vnext/ops",
   "/vnext/ops/clients",
@@ -45,6 +46,14 @@ test.describe("vNext route smoke", () => {
     expect(owner?.status()).toBe(200);
     const ownerMenu = await page.goto("/preview/vnext/owner-menu", { waitUntil: "domcontentloaded" });
     expect(ownerMenu?.status()).toBe(200);
+    const empty = await page.goto("/preview/vnext/portfolio-empty", { waitUntil: "domcontentloaded" });
+    expect(empty?.status()).toBe(200);
+    const errorPage = await page.goto("/preview/vnext/portfolio-error", { waitUntil: "domcontentloaded" });
+    expect(errorPage?.status()).toBe(200);
+    const loading = await page.goto("/preview/vnext/portfolio-loading", { waitUntil: "domcontentloaded" });
+    expect(loading?.status()).toBe(200);
+    const project = await page.goto("/preview/vnext/project", { waitUntil: "domcontentloaded" });
+    expect(project?.status()).toBe(200);
 
     const dashboard = await request.get("/dashboard", { maxRedirects: 0 });
     expect(dashboard.status()).not.toBe(404);

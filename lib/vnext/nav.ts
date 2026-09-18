@@ -58,6 +58,10 @@ export function vnextClientHomeHref(): string {
   return "/vnext/projects";
 }
 
+export function vnextProjectHref(projectId: string): string {
+  return `/vnext/projects/${projectId}`;
+}
+
 export function isSafeVnextNavHref(href: string): boolean {
   if (!href || href !== href.trim()) return false;
   const lower = href.toLowerCase();

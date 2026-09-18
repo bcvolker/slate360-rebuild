@@ -1,8 +1,8 @@
 # Slate360 Phase 1 — Implementation Status
 
 **Last updated:** 2026-09-17  
-**Current slice:** 1 final hardening (access tests, route-guard, entity matrix) on `feature/ui-vnext-phase1`  
-**Next slice:** 2 (client project portfolio) — **NOT STARTED**
+**Current slice:** 2 (client project portfolio) on `feature/ui-vnext-phase1`  
+**Next slice:** 3 (client project overview) — **NOT STARTED**
 
 Canonical plan: `docs/vnext/SLATE360_UI_PHASE1_MASTER_BUILD_PLAN.md`  
 Slice prompts: `docs/vnext/SLATE360_UI_PHASE1_CURSOR_SLICE_PROMPTS.md`  
@@ -31,8 +31,8 @@ The feature branch is **pushed**. It is not an unpushed `origin/main` clone.
 | Slice | Name | Status |
 |---|---|---|
 | 0 | Repo audit + salvage map + route contract | **APPROVED** |
-| 1 | vNext foundation + shells | **APPROVED WITH SMALL FIXES — final hardening complete, awaiting explicit next-slice approval** |
-| 2 | Client project portfolio | Not started |
+| 1 | vNext foundation + shells | **APPROVED** |
+| 2 | Client project portfolio | **IMPLEMENTED — awaiting approval** |
 | 3 | Client project overview | Not started |
 | 4 | Unified Explore viewer | Not started |
 | 5 | Items + spatial linking | Not started |
@@ -270,7 +270,7 @@ Selective salvage later requires explicit relevance and review.
 Authenticated vNext lives under `/vnext/*` (session + beta). Owner `/vnext/ops/*` additionally requires `canAccessOperationsConsole` (**CEO / `isSlateCeo` today** — staff is not broadened). Visual fixtures live under `/preview/vnext/*` and are not the authorization model.
 
 Design rules: `docs/vnext/UI_DESIGN_RULES.md`.  
-Entity / settings inventory: `docs/vnext/ENTITY_ACTION_SETTINGS_MATRIX.md` (planning only; no Slice 2 actions built).
+Entity / settings inventory: `docs/vnext/ENTITY_ACTION_SETTINGS_MATRIX.md`.
 
 Logo: homepage `SlateIcon` + SLATE/360 wordmark. Cobalt remains the interaction accent only.
 
@@ -281,10 +281,22 @@ Route-guard: `lib/vnext/route-guard.test.ts` scans `app/vnext/**/page.tsx`. Prev
 
 Middleware was not modified.
 
-Slice 2 (project portfolio) has **not** started.
+Slice 3 (client project overview) has **not** started.
+
+---
+
+## Slice 2 notes
+
+Authenticated client portfolio: `/vnext/projects`. Opening a project goes to protected `/vnext/projects/[projectId]` (scaffold only; Overview is Slice 3).
+
+Data: `listScopedProjectsForUser` / `getScopedProjectForUser` (org ∪ creator ∪ `project_members`). No fixture data on production `/vnext/projects`.
+
+Hero resolver: `lib/vnext/project-hero.ts`. Preview fixtures: `/preview/vnext/client` plus empty/error/loading/project review routes.
+
+No contextual project CRUD on the client portfolio. No middleware change.
 
 ---
 
 ## Handoff
 
-Slice 1 final hardening report is returned in the Cursor response. Do not begin Slice 2 until Brian explicitly approves Slice 1.
+Slice 2 completion report is returned in the Cursor response. Do not begin Slice 3 until Brian explicitly approves Slice 2.

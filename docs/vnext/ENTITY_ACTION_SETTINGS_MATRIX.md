@@ -1,7 +1,7 @@
 # Entity Action / Settings Matrix
 
-**Status:** planning and verification only. Slice 1 does **not** implement these actions.  
-**Last updated:** 2026-09-17  
+**Status:** planning and verification document. Slice 2 updated project image/visit/archive notes. Do not invent backend features.  
+**Last updated:** 2026-09-17 (Slice 2: project image fields, archive hide, visit adapter, client portfolio open-only)  
 **Scope:** Phase 1 vNext. Do not invent backend features. Do not surface SaaS pricing, plans, seat upsells, app marketplace, or subscription controls.
 
 Vocabulary:
@@ -80,17 +80,19 @@ These are **not** the same record. There is no `clients` table.
 | Edit | `SUPPORTED` — name, description, metadata, status |
 | Duplicate / Copy | `NOT CURRENTLY SUPPORTED` |
 | Move | `NOT APPLICABLE` (org-scoped; no move-between-orgs API found) |
-| Archive | `PARTIAL` — `status` is patchable; archive-as-status **NEEDS VERIFICATION** |
-| Delete | `SUPPORTED` — `DELETE /api/projects/[projectId]` with `confirmText === "DELETE"` and matching `confirmName` |
+| Archive | `PARTIAL` — `status` is patchable; `projects.is_archived` exists. Client portfolio hides archived/`status=archived` rows. Archive-as-product-action **NEEDS VERIFICATION** |
+| Delete | `SUPPORTED` — `DELETE /api/projects/[projectId]` with `confirmText === "DELETE"` and matching `confirmName`. **Not exposed on the Slice 2 client portfolio** |
 | Restore | `NOT CURRENTLY SUPPORTED` |
 | Share / Copy link | `PARTIAL` — project-level share is via nested deliverable/twin/file tokens, not a single project token |
 | Download | `NEEDS VERIFICATION` — SlateDrop zip exists; not a whole-project export product |
 | Publish / Unpublish / Revoke | `NOT CURRENTLY SUPPORTED` as a project-level publish flag |
 | Delete semantics | **Hard-delete** of the project row after related cleanup |
-| Intended vNext UI | Client project management; owner Projects |
+| Intended vNext UI | Client portfolio (open only, Slice 2); Overview Slice 3; owner Projects Slice 9 |
 | Planned Phase 1 slice | 2, 3, 9 |
-| Backend exists | `SUPPORTED` for rename/edit/confirmed delete |
-| Later verification | Whether `status` is the intended archive mechanism; who may delete |
+| Backend exists | `SUPPORTED` for list/rename/edit/confirmed delete |
+| Image fields | `SUPPORTED` `projects.thumbnail_url`. Reality preview: `digital_twin_models.preview_storage_key`. 360 still: `site_walk_items` `photo_360`. Plan: `site_walk_plan_sheets` thumbnail/raster/image keys. Satellite: lat/lng + `/api/static-map`. Drone **hero still** often has no image route (`NOT CURRENTLY SUPPORTED` as a hero URL; drone *representation* can still be true from twin assets) |
+| Latest visit | `PARTIAL` — adapter over session/capture/item/thermal timestamps. No `visits` table. Omit when no dated record exists |
+| Later verification | Who may delete; archive product semantics; drone still URL |
 
 ---
 

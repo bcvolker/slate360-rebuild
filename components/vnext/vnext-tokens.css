@@ -44,7 +44,26 @@
 }
 
 [data-s360-vnext] a:focus-visible,
-[data-s360-vnext] button:focus-visible {
+[data-s360-vnext] button:focus-visible,
+[data-s360-vnext] input:focus-visible {
   outline: 2px solid var(--vnext-focus);
   outline-offset: 2px;
+}
+
+[data-s360-vnext] .vnext-portfolio {
+  max-width: 72rem;
+}
+
+[data-s360-vnext] .vnext-hero {
+  aspect-ratio: 4 / 3;
+  background: color-mix(in srgb, var(--vnext-ink) 7%, var(--vnext-canvas));
+}
+
+[data-s360-vnext] .vnext-search-input {
+  min-height: var(--vnext-touch);
+  border: 1px solid var(--vnext-line);
+  background: var(--vnext-surface);
+  color: var(--vnext-ink);
+  font: inherit;
+  font-size: var(--vnext-body);
 }

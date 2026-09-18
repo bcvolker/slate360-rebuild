@@ -134,7 +134,9 @@ Production-quality modal, not a decorative overlay:
 
 ## Content-width behavior
 
-Slice 1 pages are a title, one muted sentence, and a bounded empty region showing where future content will sit. The region is not a hero and not a dashboard.
+Slice 1 remaining scaffold pages stay a title, one muted sentence, and a bounded empty region.
+
+The client project portfolio (`/vnext/projects`) uses a wider measure (`72rem`) so image-first records can sit in one / two / three columns by viewport. It is not a dashboard widget board.
 
 ---
 
