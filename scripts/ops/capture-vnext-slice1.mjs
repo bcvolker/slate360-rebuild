@@ -18,6 +18,12 @@ const shots = [
   { file: "owner-1280.png", url: "/preview/vnext/owner", width: 1280, height: 800 },
   { file: "owner-768.png", url: "/preview/vnext/owner", width: 768, height: 1024 },
   { file: "owner-390.png", url: "/preview/vnext/owner", width: 390, height: 844 },
+  {
+    file: "owner-drawer-390.png",
+    url: "/preview/vnext/owner-menu",
+    width: 390,
+    height: 844,
+  },
 ];
 
 async function main() {

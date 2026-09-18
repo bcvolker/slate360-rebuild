@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { VnextLogo } from "@/components/vnext/VnextLogo";
 import {
@@ -33,20 +33,31 @@ export function VnextOwnerShell({
   const path = pathname ?? livePath;
   const [menuOpen, setMenuOpen] = useState(initialMenuOpen);
   const titleId = useId();
+  const dialogId = useId();
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const closeMenu = useCallback(() => setMenuOpen(false), []);
 
   useEffect(() => {
     setMenuOpen(initialMenuOpen);
-  }, [initialMenuOpen, path]);
+  }, [initialMenuOpen]);
+
+  useEffect(() => {
+    if (pathname) return;
+    setMenuOpen(false);
+  }, [livePath, pathname]);
 
   return (
     <VnextOwnerChrome
+      lockBackground={menuOpen}
       sidebar={<VnextOwnerSidebar pathname={path} />}
       drawer={
         <VnextOwnerDrawer
           open={menuOpen}
           pathname={path}
-          onClose={() => setMenuOpen(false)}
+          onClose={closeMenu}
           titleId={titleId}
+          dialogId={dialogId}
+          returnFocusRef={menuButtonRef}
         />
       }
       header={
@@ -58,8 +69,12 @@ export function VnextOwnerShell({
             </p>
           </div>
           <button
+            ref={menuButtonRef}
             type="button"
-            className="inline-flex min-h-[var(--vnext-touch)] items-center px-3 text-[length:var(--vnext-nav)] text-[var(--vnext-ink)] lg:hidden"
+            className="inline-flex min-h-[var(--vnext-touch)] min-w-[var(--vnext-touch)] items-center px-3 text-[length:var(--vnext-nav)] text-[var(--vnext-ink)] lg:hidden"
+            aria-expanded={menuOpen}
+            aria-controls={dialogId}
+            aria-haspopup="dialog"
             onClick={() => setMenuOpen(true)}
           >
             Menu

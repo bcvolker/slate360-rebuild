@@ -16,7 +16,10 @@ export function VnextClientShell({ children, pathname }: VnextClientShellProps) 
   const path = pathname ?? livePath;
 
   return (
-    <div className="flex min-h-[100dvh] min-w-0 flex-col bg-[var(--vnext-canvas)]">
+    <div
+      data-vnext-shell="client"
+      className="flex min-h-[100dvh] min-w-0 flex-col bg-[var(--vnext-canvas)]"
+    >
       <header
         className="sticky top-0 z-20 flex min-h-[var(--vnext-header-h)] items-center justify-between gap-4 border-b border-[var(--vnext-line)] bg-[var(--vnext-surface)] px-[var(--vnext-pad-x)] pt-[env(safe-area-inset-top)]"
       >

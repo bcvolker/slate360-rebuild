@@ -9,6 +9,8 @@
   --vnext-line: #ddd8ce;
   --vnext-accent: #2c5aa0;
   --vnext-accent-hover: #244b86;
+  /* Homepage wordmark “360” color. Not an interaction accent. */
+  --vnext-brand-360: var(--mkt-brand-green);
   --vnext-accent-soft: color-mix(in srgb, var(--vnext-accent) 12%, var(--vnext-surface));
   --vnext-focus: var(--vnext-accent);
   --vnext-danger: #b42318;

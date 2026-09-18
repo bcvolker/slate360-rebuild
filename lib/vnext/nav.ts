@@ -23,6 +23,28 @@ export const VNEXT_OWNER_SECONDARY_NAV: readonly VnextNavItem[] = [
   { href: "/vnext/ops/account", label: "Account" },
 ] as const;
 
+export const VNEXT_OWNER_NAV: readonly VnextNavItem[] = [
+  ...VNEXT_OWNER_PRIMARY_NAV,
+  ...VNEXT_OWNER_SECONDARY_NAV,
+] as const;
+
+export const VNEXT_ALL_NAV: readonly VnextNavItem[] = [
+  ...VNEXT_CLIENT_NAV,
+  ...VNEXT_OWNER_NAV,
+] as const;
+
+export const VNEXT_FORBIDDEN_NAV_PREFIXES = [
+  "/dashboard",
+  "/app",
+  "/site-walk",
+  "/twin",
+  "/thermal-studio",
+  "/operations-console",
+  "/portal",
+  "/tours",
+  "/slatedrop",
+] as const;
+
 export function isVnextNavActive(pathname: string, item: VnextNavItem): boolean {
   if (item.exact) return pathname === item.href;
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
@@ -34,4 +56,15 @@ export function vnextOwnerHomeHref(): string {
 
 export function vnextClientHomeHref(): string {
   return "/vnext/projects";
+}
+
+export function isSafeVnextNavHref(href: string): boolean {
+  if (!href || href !== href.trim()) return false;
+  const lower = href.toLowerCase();
+  if (lower.startsWith("javascript:")) return false;
+  if (href.startsWith("#")) return false;
+  if (!href.startsWith("/vnext/")) return false;
+  return !VNEXT_FORBIDDEN_NAV_PREFIXES.some(
+    (prefix) => href === prefix || href.startsWith(`${prefix}/`),
+  );
 }

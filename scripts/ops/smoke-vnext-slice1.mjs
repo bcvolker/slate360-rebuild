@@ -8,17 +8,60 @@
 
 const baseUrl = process.env.API_BASE_URL ?? "http://127.0.0.1:3000";
 
-async function get(path, opts = {}) {
+const AUTH_ROUTES = [
+  "/vnext",
+  "/vnext/projects",
+  "/vnext/account",
+  "/vnext/ops",
+  "/vnext/ops/clients",
+  "/vnext/ops/projects",
+  "/vnext/ops/processing",
+  "/vnext/ops/qa",
+  "/vnext/ops/shares",
+  "/vnext/ops/settings",
+  "/vnext/ops/account",
+];
+
+const LEGACY_LANDINGS = ["/app", "/dashboard", "/site-walk", "/twin", "/thermal-studio", "/slatedrop"];
+
+async function get(path) {
   return fetch(`${baseUrl}${path}`, {
     method: "GET",
     redirect: "manual",
     signal: AbortSignal.timeout(12_000),
-    ...opts,
   });
 }
 
 function isRedirect(status) {
   return status === 302 || status === 303 || status === 307 || status === 308;
+}
+
+function expectedRedirectTo(path) {
+  return path === "/vnext" ? "/vnext/projects" : path;
+}
+
+function leakedLegacy(loc) {
+  const pathname = loc.split("?")[0];
+  return LEGACY_LANDINGS.some((legacy) => pathname === legacy || pathname.startsWith(`${legacy}/`));
+}
+
+async function followAuthRedirect(path) {
+  let current = path;
+  for (let hop = 0; hop < 6; hop += 1) {
+    const response = await get(current);
+    if (!isRedirect(response.status)) {
+      return { response, location: current };
+    }
+    const loc = response.headers.get("location") ?? "";
+    if (leakedLegacy(loc)) {
+      return { response, location: loc, leaked: true };
+    }
+    current = new URL(loc, baseUrl).pathname + new URL(loc, baseUrl).search;
+    if (current.startsWith("/login")) {
+      return { response, location: current };
+    }
+  }
+  return { location: current };
 }
 
 async function main() {
@@ -31,56 +74,41 @@ async function main() {
 
   let failures = 0;
 
-  const previewClient = await get("/preview/vnext/client");
-  if (previewClient.status !== 200) {
-    failures += 1;
-    console.error(`❌ GET /preview/vnext/client expected 200, got ${previewClient.status}`);
-  } else {
-    console.log("✅ GET /preview/vnext/client 200");
+  for (const preview of ["/preview/vnext/client", "/preview/vnext/owner", "/preview/vnext/owner-menu"]) {
+    const response = await get(preview);
+    if (response.status !== 200) {
+      failures += 1;
+      console.error(`❌ GET ${preview} expected 200, got ${response.status}`);
+    } else {
+      console.log(`✅ GET ${preview} 200`);
+    }
   }
 
-  const previewOwner = await get("/preview/vnext/owner");
-  if (previewOwner.status !== 200) {
-    failures += 1;
-    console.error(`❌ GET /preview/vnext/owner expected 200, got ${previewOwner.status}`);
-  } else {
-    console.log("✅ GET /preview/vnext/owner 200");
+  for (const path of AUTH_ROUTES) {
+    const result = await followAuthRedirect(path);
+    const expected = expectedRedirectTo(path);
+    const loc = result.location ?? "";
+    const params = new URL(loc, baseUrl).searchParams;
+    const ok =
+      !result.leaked &&
+      loc.startsWith("/login") &&
+      params.get("redirectTo") === expected;
+    if (!ok) {
+      failures += 1;
+      console.error(`❌ GET ${path} expected login redirectTo=${expected}, got ${loc}`);
+    } else {
+      console.log(`✅ GET ${path} → login redirectTo=${expected}`);
+    }
   }
 
-  const vnextProjects = await get("/vnext/projects");
-  const loc = vnextProjects.headers.get("location") ?? "";
-  if (!isRedirect(vnextProjects.status) || !loc.includes("/login")) {
-    failures += 1;
-    console.error(
-      `❌ GET /vnext/projects expected login redirect, got ${vnextProjects.status} ${loc}`,
-    );
-  } else {
-    console.log(`✅ GET /vnext/projects → login (${vnextProjects.status})`);
-  }
-
-  const vnextOps = await get("/vnext/ops");
-  const opsLoc = vnextOps.headers.get("location") ?? "";
-  if (!isRedirect(vnextOps.status) || !opsLoc.includes("/login")) {
-    failures += 1;
-    console.error(`❌ GET /vnext/ops expected login redirect, got ${vnextOps.status} ${opsLoc}`);
-  } else {
-    console.log(`✅ GET /vnext/ops → login (${vnextOps.status})`);
-  }
-
-  const dashboard = await get("/dashboard");
-  if (dashboard.status === 404) {
-    failures += 1;
-    console.error("❌ GET /dashboard returned 404 — production route must remain");
-  } else {
-    console.log(`✅ GET /dashboard still routed (${dashboard.status})`);
-  }
-
-  const appHome = await get("/app");
-  if (appHome.status === 404) {
-    failures += 1;
-    console.error("❌ GET /app returned 404 — production route must remain");
-  } else {
-    console.log(`✅ GET /app still routed (${appHome.status})`);
+  for (const path of ["/dashboard", "/app"]) {
+    const response = await get(path);
+    if (response.status === 404) {
+      failures += 1;
+      console.error(`❌ GET ${path} returned 404 — production route must remain`);
+    } else {
+      console.log(`✅ GET ${path} still routed (${response.status})`);
+    }
   }
 
   if (failures > 0) {

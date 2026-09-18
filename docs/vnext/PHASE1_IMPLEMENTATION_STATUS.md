@@ -1,7 +1,7 @@
 # Slate360 Phase 1 — Implementation Status
 
 **Last updated:** 2026-09-17  
-**Current slice:** 1 in progress on `feature/ui-vnext-phase1`  
+**Current slice:** 1 corrections (revise before next slice) on `feature/ui-vnext-phase1`  
 **Next slice:** 2 (client project portfolio) — **NOT STARTED**
 
 Canonical plan: `docs/vnext/SLATE360_UI_PHASE1_MASTER_BUILD_PLAN.md`  
@@ -31,7 +31,7 @@ The feature branch is **pushed**. It is not an unpushed `origin/main` clone.
 | Slice | Name | Status |
 |---|---|---|
 | 0 | Repo audit + salvage map + route contract | **APPROVED** |
-| 1 | vNext foundation + shells | **COMPLETE — awaiting approval** |
+| 1 | vNext foundation + shells | **REVISE — corrections awaiting approval** |
 | 2 | Client project portfolio | Not started |
 | 3 | Client project overview | Not started |
 | 4 | Unified Explore viewer | Not started |
@@ -271,6 +271,10 @@ Authenticated vNext lives under `/vnext/*` (session + beta). Owner `/vnext/ops/*
 
 Design rules: `docs/vnext/UI_DESIGN_RULES.md`.
 
+Logo: homepage `SlateIcon` + SLATE/360 wordmark. Cobalt remains the interaction accent only.
+
+Interaction suite: `e2e/vnext/` + `lib/vnext/nav.test.ts` (`npm run test:vnext`).
+
 Middleware was not modified.
 
 Slice 2 (project portfolio) has **not** started.
@@ -279,4 +283,4 @@ Slice 2 (project portfolio) has **not** started.
 
 ## Handoff
 
-Slice 1 completion report is returned in the Cursor response. Do not begin Slice 2 until Brian explicitly approves Slice 1.
+Slice 1 correction report is returned in the Cursor response. Do not begin Slice 2 until Brian explicitly approves Slice 1.

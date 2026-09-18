@@ -7,8 +7,28 @@
 - tests run
 - routes affected
 - screenshots
+- **Interaction Coverage** (required for any slice that adds or changes a control)
 - known limitations
 - confirmation next slice was not started
+
+## Standing interaction QA rule
+
+A control is not complete because it renders.
+
+Any slice that creates or modifies links, buttons, dropdowns, overflow menus, dialogs, drawers, tabs, toggles, forms, search, filters, viewer controls, contextual menus, or rename/edit/delete/copy/share/upload/save/publish actions must add or update automated tests in the same slice.
+
+Canonical suite: `e2e/vnext/` and `lib/vnext/*.test.ts`. Command: `npm run test:vnext`.
+
+Interaction Coverage must list:
+
+- controls added/changed
+- automated test covering each control
+- routes tested
+- auth roles tested where applicable
+- console/page/request errors observed
+- known untested behavior
+
+Unexpected console errors, page errors, failed requests, and undocumented HTTP 4xx/5xx fail the slice.
 
 ## GitHub review
 Check:
