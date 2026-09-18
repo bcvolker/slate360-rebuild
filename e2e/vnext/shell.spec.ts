@@ -9,7 +9,7 @@ import {
   assertNamedTouchTargets,
   assertNoHorizontalOverflow,
   attachRuntimeHealth,
-  openOwnerMenu,
+  openOwnerMenuWithNavLinks,
 } from "./helpers";
 
 test.describe("vNext client shell", () => {
@@ -78,7 +78,7 @@ test.describe("vNext owner shell", () => {
         await expect(menu).toBeVisible();
         await expect(menu).toHaveAttribute("aria-expanded", "false");
         await expect(menu).toHaveAttribute("aria-haspopup", "dialog");
-        await openOwnerMenu(page);
+        await openOwnerMenuWithNavLinks(page, VNEXT_OWNER_NAV.length);
         const dialog = () => page.getByRole("dialog", { name: "Menu" });
 
         for (const item of VNEXT_OWNER_NAV) {

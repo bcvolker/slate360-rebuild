@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { VNEXT_OWNER_NAV } from "../../lib/vnext/nav";
-import { attachRuntimeHealth, openOwnerMenu } from "./helpers";
+import { attachRuntimeHealth, openOwnerMenu, openOwnerMenuWithNavLinks } from "./helpers";
 
 test.describe("vNext owner drawer", () => {
   test.skip(({ isMobile }) => Boolean(isMobile), "vNext suite owns viewports");
@@ -26,8 +26,8 @@ test.describe("vNext owner drawer", () => {
     await expect(page.getByRole("dialog", { name: "Menu" })).toHaveCount(0);
     await expect(menu).toBeFocused();
 
-    await openOwnerMenu(page);
-    await page.getByRole("dialog", { name: "Menu" }).getByRole("link", { name: "Clients" }).click();
+    const { dialog: finalDialog } = await openOwnerMenuWithNavLinks(page, VNEXT_OWNER_NAV.length);
+    await finalDialog.getByRole("link", { name: "Clients" }).click();
     await expect(page.getByRole("dialog", { name: "Menu" })).toHaveCount(0);
     health.assertClean();
   });
@@ -35,8 +35,8 @@ test.describe("vNext owner drawer", () => {
   test("contains keyboard focus while open", async ({ page }) => {
     const health = attachRuntimeHealth(page);
     await page.goto("/preview/vnext/owner", { waitUntil: "load" });
+    await openOwnerMenuWithNavLinks(page, VNEXT_OWNER_NAV.length);
     const dialog = page.getByRole("dialog", { name: "Menu" });
-    await openOwnerMenu(page);
     await expect(dialog).toBeFocused();
 
     await page.keyboard.press("Tab");

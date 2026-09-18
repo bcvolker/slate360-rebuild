@@ -16,6 +16,20 @@ const nextConfig: NextConfig = {
     NEXT_PUBLIC_BUILD_ID: buildId,
     NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA: process.env.VERCEL_GIT_COMMIT_SHA ?? "",
   },
+  // Dev-server only (ignored entirely by `next build`/`next start`): Next's
+  // default on-demand-entries cache evicts a compiled route after 60s of
+  // inactivity, then recompiles it on the next request. The vNext Playwright
+  // suite (`npm run test:vnext`) runs for several minutes across dozens of
+  // routes, so routes prewarmed at suite start were going cold and
+  // recompiling mid-run — and each recompile pushes an HMR build-manifest
+  // update to every other currently-open page, which can trigger an
+  // unrelated page to reload mid-test. Raising these keeps every route
+  // compiled for the suite's full duration. See e2e/vnext/global-setup.ts
+  // and docs/vnext/SLATE360_UI_PHASE1_REVIEW_PROTOCOL.md.
+  onDemandEntries: {
+    maxInactiveAge: 30 * 60 * 1000,
+    pagesBufferLength: 32,
+  },
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
   transpilePackages: ["@sparkjsdev/spark"],

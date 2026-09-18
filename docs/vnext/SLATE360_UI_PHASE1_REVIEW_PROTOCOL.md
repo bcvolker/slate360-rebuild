@@ -35,6 +35,32 @@ Unexpected console errors, page errors, failed requests, and undocumented HTTP 4
 
 Do not implement tests for controls that do not yet exist. When a later slice adds a control, that slice must satisfy the standing regression contract below.
 
+## Test harness stabilization (2026-09-18)
+
+`npm run test:vnext` must pass as a whole suite, not just per-test in isolation — this is the
+permanent regression gate. It runs against `next dev`, and the suite must not fail merely because
+Next development mode is lazily compiling a route on its first request.
+
+Two dev-server-only mechanisms keep this deterministic:
+
+- `e2e/vnext/global-setup.ts` — prewarms every route the suite visits (including auth-redirect
+  targets) via a real page load before any numbered test runs, then re-verifies `/vnext`'s full
+  redirect chain settles stably. Extend its `WARM_ROUTES` list when a new spec visits a route it
+  doesn't already cover.
+- `next.config.ts`'s `onDemandEntries` (`maxInactiveAge`/`pagesBufferLength`) — keeps every warmed
+  route compiled for the suite's full multi-minute duration; Next's 60s default eviction was
+  recompiling routes mid-run, and each recompile could push an HMR reload to an unrelated
+  already-open page. Ignored entirely by `next build`/`next start`.
+
+`attachRuntimeHealth` (`e2e/vnext/helpers.ts`) additionally retries once, with a settle pause, on a
+`goto()` that hits a bare Next dev-server 500 or its own error overlay — both observed as rare,
+transient, non-application dev-mode artifacts on routes global-setup already proved healthy — and
+rolls the failed attempt's own recorded errors back so a fully-recovered page doesn't fail
+`assertClean()` over an attempt the test never actually saw. `ALLOWED_PAGEERROR` narrowly allow-lists
+two confirmed Next-internal messages (an HMR JSON-parse artifact; a stale service-worker
+update-check tied to each dev-server restart's new build id) — not a broad ignore, and any other
+page error still fails the suite.
+
 ## Standing regression contract
 
 Future vNext tests must progressively cover the following **when the relevant control or route exists** in that slice:
