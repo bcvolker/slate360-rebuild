@@ -63,7 +63,10 @@ def verify_inputs_grouped(grouped_data_dir: Path, full_transforms_path: Path, re
     mask_hash/seed_hash are checked exactly as Experiment 3/4 did (same underlying files);
     pose_hash is checked against the GROUPED-SAFE transforms.json specifically."""
     grouped_transforms = grouped_data_dir / "transforms.json"
-    points = grouped_data_dir.parent.parent / "sfm" / "points.ply"
+    # grouped_data_dir (.../cecc2763/views-exp5-grouped) is a SIBLING of the original
+    # views/ directory -- both are direct children of .../cecc2763/ -- so sfm/ is one
+    # parent up, exactly like the original verify_inputs' data_dir.parent (not two).
+    points = grouped_data_dir.parent / "sfm" / "points.ply"
     masks = grouped_data_dir / "masks"
     got = {
         "pose_hash": sha256_file(grouped_transforms),
