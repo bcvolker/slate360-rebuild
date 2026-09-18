@@ -22,6 +22,16 @@ patch. Arm D's own resolved config already carries `cull_scale_thresh=0.15`
 p99.9 max-scale of Arm D's own final population (0.0798), which is why it never fired during
 Experiment 3.
 
+CONFIRMED (2026-09-18, after review): both arms train on the *exact*, unmodified
+Experiment 3 dataset partition -- the same 6,016 derived views, the same 5,415-image train
+set, the same 601-image historical eval set, same order/hashes
+(`dataset_train_order_sha256` / `dataset_eval_order_sha256` below, byte-identical to Arm
+D's). `resolved_arm_config()` gets these fields by importing `exp3.resolved_arm_config`
+directly, so this is guaranteed by construction, not by a separate check. The
+panorama-grouped split (`exp4_panorama_split.py`) is NOT used here -- it is prepared and
+documented for a *future*, separate location-generalization experiment
+(`PREPARED_FOR_FUTURE_LOCATION_GENERALIZATION_VALIDATION`), not this one.
+
 Do not launch from here. Preflight only; a human must approve before any GPU spend.
 """
 from __future__ import annotations

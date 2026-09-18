@@ -1,0 +1,15 @@
+{
+  "checkpoint": "experiments/room213-exp3/ROOM213_ARM_D_DELAYED_GROWTH/train/views/splatfacto/2026-09-18_041550/nerfstudio_models/step-000015999.ckpt",
+  "count_total": 496429,
+  "count_above_0.08": 496,
+  "count_above_0.10": 241,
+  "count_above_0.15": 40,
+  "fraction_above_0.08": 0.0009991358280841771,
+  "fraction_above_0.10": 0.0004854672067909006,
+  "fraction_above_0.15": 8.057547000678849e-05,
+  "max_scale_value": 0.4020671546459198,
+  "p99": 0.026505963876843452,
+  "p99.5": 0.038297928869724274,
+  "p99.9": 0.07982464134693146,
+  "p99.99": 0.14206697046756744
+}
