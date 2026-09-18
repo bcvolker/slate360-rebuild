@@ -818,27 +818,33 @@ def main(phase: str = "exp3"):
         ))
         return
     if phase == "exp6":
+        import exp5
         import exp6
 
         doc = _committed_recipe("exp5-frozen-recipe.json")  # same grouped-safe dataset identity as Exp5
         recipe = doc["recipe"]
-        diff = exp6.preflight_diff(
-            exp6.resolved_arm_config(exp6.ARM_J6, recipe), exp6.resolved_arm_config(exp6.ARM_K6, recipe)
-        )
-        if not diff["ok"]:
-            raise SystemExit(f"PREFLIGHT STOP: arms differ unexpectedly in {diff['differing_keys']}")
-        print("preflight ok; treatment fields:", diff["expected_differing_keys"], "recipe_hash:", doc["recipe_hash"])
+        cfg_k6 = exp6.resolved_arm_config(exp6.ARM_K6, recipe)
+        cfg_l6 = exp6.resolved_arm_config(exp6.ARM_L6, recipe)
+        strict = exp6.preflight_diff_k6_vs_l6(cfg_k6, cfg_l6)
+        if not strict["ok"]:
+            raise SystemExit(f"PREFLIGHT STOP: K6 vs L6 differ unexpectedly in {strict['differing_keys']}")
+        cfg_h5 = exp5.resolved_arm_config(exp5.ARM_H5, recipe)
+        info = exp6.informational_diff_h5_vs_k6(cfg_h5, cfg_k6)
+        print("preflight ok; K6-vs-L6 strict diff:", strict["differing_keys"],
+              "| H5-vs-K6 informational (behavioral only):", info["behavioral_differences"],
+              "| recipe_hash:", doc["recipe_hash"])
         print("staging frozen views", stage_inputs.remote())
-        j6 = train_arm_exp6.spawn({"arm": exp6.ARM_J6, "recipe": recipe})
         k6 = train_arm_exp6.spawn({"arm": exp6.ARM_K6, "recipe": recipe})
+        l6 = train_arm_exp6.spawn({"arm": exp6.ARM_L6, "recipe": recipe})
         results6: dict[str, Any] = {}
-        for name, handle in (("arm_j6", j6), ("arm_k6", k6)):
+        for name, handle in (("arm_k6", k6), ("arm_l6", l6)):
             try:
                 results6[name] = handle.get()
             except Exception as exc:  # noqa: BLE001
                 results6[name] = {"status": "failed", "error": str(exc)}
         print(json.dumps(
-            {**results6, "status": "needs_review", "HUMAN_VISUAL_VERDICT": "UNREVIEWED"},
+            {**results6, "h5_16k_reference": "existing, not relaunched -- see docs/ops/exp5-room213-review/h5/",
+             "status": "needs_review", "HUMAN_VISUAL_VERDICT": "UNREVIEWED"},
             indent=2, default=str,
         ))
         return

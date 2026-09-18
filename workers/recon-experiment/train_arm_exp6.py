@@ -54,11 +54,18 @@ WRAP = LAB / "ns_train_wrap.py"
 
 
 def _keep_steps_for(arm: dict[str, Any]) -> set[int]:
+    """16000, 18000, and the final step (19999 at TOTAL_STEPS=20000) are the required
+    scale-tail tracking points for BOTH arms -- kept unconditionally, not only for L6.
+    16000 doubles as "immediately after the late prune" for L6: nerfstudio's own per-step
+    order is BEFORE_TRAIN_ITERATION callbacks -> train_iteration -> AFTER_TRAIN_ITERATION
+    callbacks (where the late-prune hook fires) -> THEN the steps_per_save check -- so the
+    checkpoint nerfstudio writes for step 16000 already reflects L6's post-prune state (see
+    preflight doc sec 3 for the source citation this relies on). Step 15,999 itself is not
+    reachable under the unchanged 500-step save cadence (not a multiple of 500) and is
+    deliberately not forced here; H5's own real step-15,999 checkpoint
+    (H5_16K_REFERENCE, same recipe) serves as that data point instead -- see preflight doc."""
     total = int(arm["max_num_iterations"])
-    base = {500, 3000, 6000, 8000, 9000, 11000, 13000, total - 1}
-    if arm.get("late_prune_step") is not None:
-        step = int(arm["late_prune_step"])
-        base |= {step - 1, step, min(step + 1000, total - 1)}  # just-before / just-after prune / +1k recovery
+    base = {500, 3000, 6000, 8000, 9000, 11000, 13000, 16000, 18000, total - 1}
     return {s for s in base if 0 <= s < total}
 
 
