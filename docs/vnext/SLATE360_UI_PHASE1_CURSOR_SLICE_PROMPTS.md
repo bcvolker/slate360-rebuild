@@ -52,7 +52,7 @@ Implement parallel light vNext foundation:
 - owner/client shells
 - light warm canvas
 - graphite text
-- restrained cobalt accent
+- restrained cobalt accent *(superseded 2026-09-18 — now Slate360's deep green `#0C7A52`; see `docs/vnext/UI_DESIGN_RULES.md`)*
 - no glassmorphism
 - no dark app shell
 - no decorative icon tiles

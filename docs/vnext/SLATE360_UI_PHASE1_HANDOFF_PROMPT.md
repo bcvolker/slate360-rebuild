@@ -41,7 +41,7 @@ Preserve useful logic. Replace bad presentation.
 Slate360 has moved to a **light, professional, architectural design**:
 - warm white / off-white canvas
 - graphite text
-- restrained cobalt/blue interactive accent
+- restrained cobalt/blue interactive accent *(superseded 2026-09-18 — now Slate360's deep green `#0C7A52`; see `docs/vnext/UI_DESIGN_RULES.md`)*
 - strong real project imagery
 - serif headlines only where appropriate
 - clean sans-serif UI text

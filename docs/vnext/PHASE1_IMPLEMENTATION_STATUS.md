@@ -272,7 +272,7 @@ Authenticated vNext lives under `/vnext/*` (session + beta). Owner `/vnext/ops/*
 Design rules: `docs/vnext/UI_DESIGN_RULES.md`.  
 Entity / settings inventory: `docs/vnext/ENTITY_ACTION_SETTINGS_MATRIX.md`.
 
-Logo: homepage `SlateIcon` + SLATE/360 wordmark. Cobalt remains the interaction accent only.
+Logo: homepage `SlateIcon` + SLATE/360 wordmark. **Superseded by the Slice 3 visual correction below:** at Slice 1 time the interaction accent was cobalt; it is now Slate360's deep green (`#0C7A52`), the same color as the "360" wordmark. There is no current cobalt primary-interaction system anywhere in vNext.
 
 Interaction suite: `e2e/vnext/` + `lib/vnext/*.test.ts` (`npm run test:vnext`).
 

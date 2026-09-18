@@ -90,7 +90,7 @@ These are **not** the same record. There is no `clients` table.
 | Intended vNext UI | Client portfolio (open only, Slice 2); Overview (Slice 3, **built** — read-only header/hero/latest-visit/representations/recent-items/recent-documents, no project CRUD surfaced); owner Projects Slice 9 |
 | Planned Phase 1 slice | 2, 3, 9 |
 | Backend exists | `SUPPORTED` for list/rename/edit/confirmed delete |
-| Image fields | `SUPPORTED` `projects.thumbnail_url`. Reality preview: `digital_twin_models.preview_storage_key`. 360 still: `site_walk_items` `photo_360`. Plan: `site_walk_plan_sheets` thumbnail/raster/image keys. Satellite: lat/lng + `/api/static-map`. Drone **hero still** often has no image route (`NOT CURRENTLY SUPPORTED` as a hero URL; drone *representation* can still be true from twin assets) |
+| Image fields | `SUPPORTED` `projects.thumbnail_url`. Reality preview: `digital_twin_models.preview_storage_key`. 360 still: `site_walk_items` `photo_360`. Plan: `site_walk_plan_sheets` thumbnail/raster/image keys. Satellite: lat/lng + `/api/static-map`. Drone **hero still** `NOT CURRENTLY SUPPORTED` (no image route; `droneUrl` is never populated). **Corrected 2026-09-18:** drone *representation* is never reported as client-renderable either — `drone_photo`/`drone_video` source assets exist (`digital_twin_capture_assets`) but are not flagged into `representations`, because no proven client-renderable Drone viewer exists (confirmed in the Slice 0 salvage audit). Raw drone asset ingest/storage is unaffected |
 | Latest visit | `PARTIAL` — adapter over session/capture/item/thermal timestamps. No `visits` table. Omit when no dated record exists |
 | Later verification | Who may delete; archive product semantics; drone still URL |
 

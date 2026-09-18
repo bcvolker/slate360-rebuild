@@ -210,7 +210,7 @@ Required:
 - light professional shell
 - warm white/off-white canvas
 - graphite ink
-- restrained blue/cobalt accent
+- restrained blue/cobalt accent *(superseded 2026-09-18 — the accent is now Slate360's deep green `#0C7A52`, matching the homepage; see `docs/vnext/UI_DESIGN_RULES.md`)*
 - real project imagery
 - thin neutral dividers
 - clear hierarchy

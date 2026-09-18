@@ -117,9 +117,12 @@ export async function loadPortfolioEvidence(
       if (!projectId || !asset.storage_key) continue;
       const evidence = ensure(byId, projectId);
       if (asset.asset_kind === "panorama_360") addFlag(evidence, "360");
-      if (asset.asset_kind === "drone_photo" || asset.asset_kind === "drone_video") {
-        addFlag(evidence, "drone");
-      }
+      // Intentionally NOT flagging "drone" here. A vNext client representation means something
+      // the client can actually open and render, not merely a source asset that exists. There is
+      // no proven client-renderable Drone orthomosaic/map viewer for this experience (confirmed in
+      // the Slice 0 route/component salvage audit: "No orthomosaic viewer" — only a Google Maps
+      // location helper). drone_photo/drone_video rows are still ingested and stored unchanged;
+      // this only stops them from being reported as an openable representation.
     }
   }
 

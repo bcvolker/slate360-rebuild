@@ -770,7 +770,7 @@ Existing `/operations-console` is not this tree (SaaS ops + Site Walk dumps). Re
 - Thin `/portal/[token]` confirmation card + pricing watermark
 - Coming Soon / In Development authenticated stubs
 - Orphan shared mobile navs and Command Center lists
-- Teal-as-brand for the new portal (keep existing tokens in **legacy** code until cutover; vNext uses restrained cobalt per Phase 1 plan)
+- Teal-as-brand for the new portal (keep existing tokens in **legacy** code until cutover; vNext uses a restrained accent per the Phase 1 plan — *cobalt at Slice 0 time, superseded 2026-09-18 by Slate360's deep green `#0C7A52`; see `docs/vnext/UI_DESIGN_RULES.md`*)
 
 ---
 

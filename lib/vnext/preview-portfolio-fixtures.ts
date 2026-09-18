@@ -62,7 +62,9 @@ export const PREVIEW_PORTFOLIO_RECORDS: PortfolioRecord[] = [
     locationLabel: "Sacramento, CA",
     documentedLabel: "Last documented Jun 8, 2026",
     documentedAt: "2026-06-08T12:00:00.000Z",
-    representations: ["reality", "360", "drone"],
+    // "drone" is intentionally absent: no proven client-renderable Drone viewer exists yet
+    // (see load-portfolio-evidence.ts). Fixtures must not demonstrate a capability that isn't real.
+    representations: ["reality", "360"],
     hero: { kind: "projectImage", url: PROJECT },
   }),
   record({
