@@ -1,0 +1,36 @@
+{
+  "total_panoramas": 376,
+  "views_per_panorama": 16,
+  "total_derived_images": 6016,
+  "grouped_val_fraction_requested": 0.1,
+  "grouped_val_panoramas": 38,
+  "grouped_val_images": 608,
+  "grouped_train_pool_panoramas": 338,
+  "grouped_train_pool_images": 5408,
+  "historical_style_train_images": 4868,
+  "historical_style_eval_images": 540,
+  "no_crop_leakage_check": {
+    "grouped_val_panoramas_appearing_in_training_pool": 0,
+    "ok": true
+  },
+  "hashes": {
+    "grouped_val_images_sha256": "a4651d9eab83fd663b9c7188b889f7df72f416a94de06f00892ed6c33474e9d8",
+    "historical_style_train_sha256": "0f8f367e6a43001f42fe58199009c9423876869192dfc3e50e5c4c25dbff0949",
+    "historical_style_eval_sha256": "bdccc23ccd377f2e659fc83635d05d175cace40c71307a75d45261df5b21b3a5"
+  },
+  "example_grouped_val_panoramas": [
+    "000001",
+    "000011",
+    "000021",
+    "000031",
+    "000041",
+    "000051",
+    "000061",
+    "000071",
+    "000082",
+    "000092"
+  ],
+  "grouped_safe_transforms_json_sha256": "52f622b1815d43e8dface4f11d10f70eb4bb9b0cae74c79fbc84d457f5fa766e",
+  "grouped_safe_transforms_json_frame_count": 5408,
+  "note": "Full per-image file lists omitted here (mechanically reproducible from exp4_panorama_split.py against the frozen transforms.json); this summary plus the two hashes is the audit trail."
+}
