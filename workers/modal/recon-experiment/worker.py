@@ -188,6 +188,41 @@ def _ensure_inputs(vol: Path) -> Path:
     return data / "views"
 
 
+def _ensure_exp5_grouped_inputs(vol: Path) -> Path:
+    """Stage the panorama-grouped-safe views directory, regenerated on the volume from the
+    frozen original transforms.json using exp5.build_grouped_safe_frames -- the single
+    source of truth also used by the preflight verification -- never from a separately
+    uploaded copy that could drift. images/ and masks/ are symlinked to the original views/
+    (same files, no ~1.5 GB duplication); only transforms.json differs (fewer frames)."""
+    sys.path.insert(0, "/root/recon-experiment")
+    import exp5
+    from hashes import sha256_file
+
+    views = _ensure_inputs(vol)  # the original, unmodified 6016-frame tree
+    grouped = views.parent / "views-exp5-grouped"
+    grouped_transforms = grouped / "transforms.json"
+    if grouped_transforms.is_file():
+        got = sha256_file(grouped_transforms)
+        if got == exp5.EXPECTED_GROUPED_SAFE_TRANSFORMS_SHA256:
+            return grouped
+        raise RuntimeError(f"staged grouped transforms.json hash mismatch: {got}")
+
+    grouped.mkdir(parents=True, exist_ok=True)
+    built = exp5.build_grouped_safe_frames(views / "transforms.json")
+    grouped_transforms.write_text(json.dumps(built["grouped_doc"], indent=2) + "\n", encoding="utf-8")
+    got = sha256_file(grouped_transforms)
+    if got != exp5.EXPECTED_GROUPED_SAFE_TRANSFORMS_SHA256:
+        grouped_transforms.unlink()
+        raise RuntimeError(f"freshly staged grouped transforms.json hash {got} != expected "
+                            f"{exp5.EXPECTED_GROUPED_SAFE_TRANSFORMS_SHA256} -- refusing to stage")
+    for name in ("images", "masks"):
+        link = grouped / name
+        if not link.exists():
+            link.symlink_to(views / name)
+    ckpt_vol.commit()
+    return grouped
+
+
 @app.function(
     image=gpu_image,
     timeout=30 * 60,
@@ -457,6 +492,134 @@ def exp4_results() -> dict[str, Any]:
     return result
 
 
+TRAIN_TIMEOUT_EXP5 = 170 * 60
+
+
+@app.function(
+    image=gpu_image,
+    gpu=GPU_TRAIN,
+    timeout=TRAIN_TIMEOUT_EXP5,
+    memory=MEMORY_MIB,
+    cpu=CPU,
+    volumes={"/vol": ckpt_vol},
+    secrets=[worker_secret] if worker_secret is not None else [],
+    retries=0,
+)
+def train_arm_exp5(payload: dict[str, Any]) -> dict[str, Any]:
+    """Experiment 5: one arm, L40S, cull_scale_thresh is the only changed variable, trained
+    on the panorama-grouped-safe pool (see train_arm_exp5.py / exp5.py)."""
+    os.environ.setdefault("OPEN3D_CPU_RENDERING", "true")
+    sys.path.insert(0, "/root/recon-experiment")
+    sys.path.insert(0, "/root/splat-lab")
+    from train_arm_exp5 import run_arm
+
+    vol = Path("/vol")
+    full_views = _ensure_inputs(vol)
+    grouped_views = _ensure_exp5_grouped_inputs(vol)
+    arm = payload["arm"]
+    recipe = payload["recipe"]
+    work = Path("/tmp") / "exp5" / arm["name"]
+    if work.exists():
+        shutil.rmtree(work)
+    poses = Path("/root/recon-experiment") / "visual-poses.json"
+    result = run_arm(work=work, grouped_data_dir=grouped_views, full_transforms_path=full_views / "transforms.json",
+                      poses=poses, arm=arm, recipe=recipe)
+    durable = vol / "experiments" / "room213-exp5" / arm["name"]
+    if durable.exists():
+        shutil.rmtree(durable)
+    shutil.copytree(work, durable)
+    ckpt_vol.commit()
+    return result
+
+
+@app.function(
+    image=gpu_image,
+    gpu=GPU_TRAIN,
+    timeout=60 * 60,
+    memory=MEMORY_MIB,
+    cpu=CPU,
+    volumes={"/vol": ckpt_vol},
+    retries=0,
+)
+def exp5_grouped_results() -> dict[str, Any]:
+    """Experiment 5 grouped-validation results: real PSNR/SSIM/LPIPS on the 38 withheld
+    panoramas for both G5 and H5's actual checkpoints (exp5_grouped_eval.py), plus the same
+    scale-statistics/footprint/QA-render pass Experiment 4 used (exp4_results_gpu.py,
+    pointed at experiments/room213-exp5/<ARM>/ instead of room213-exp4). Read-only against
+    both arms' checkpoints. Writes only to experiments/room213-exp5-results/."""
+    sys.path.insert(0, "/root/recon-experiment")
+    sys.path.insert(0, "/root/splat-lab")
+    import exp5
+    from exp5_grouped_eval import evaluate_grouped, select_panels, render_panel
+    from exp4_results_gpu import _find_ckpt, ckpt_tensors, load_ckpt_state, scale_stats, footprint_report, render_qa_4, scale_histogram_png, to_png
+    from poses import load_poses
+
+    vol = Path("/vol")
+    full_views = _ensure_inputs(vol)
+    work = Path("/tmp") / "exp5-results"
+    if work.exists():
+        shutil.rmtree(work)
+    work.mkdir(parents=True)
+
+    doc = _committed_recipe("exp5-frozen-recipe.json")
+    split = doc["recipe"]["grouped_validation"]
+    dataparser = json.loads((Path("/root/recon-experiment") / "visual-poses.json").read_text())["dataparser"]
+    built = exp5.build_grouped_safe_frames(full_views / "transforms.json")
+    # built["by_pano"] maps panorama id -> list of file_path STRINGS (identity/verification
+    # use); panel rendering needs the FULL frame dict (pose/intrinsics), so build that
+    # separately from the same full transforms.json rather than reusing by_pano's shape.
+    full_doc = json.loads((full_views / "transforms.json").read_text(encoding="utf-8"))
+    frames_by_pano: dict[str, list[dict[str, Any]]] = {}
+    for fr in full_doc["frames"]:
+        frames_by_pano.setdefault(fr["file_path"].split("/")[-1].split("_v")[0], []).append(fr)
+
+    out: dict[str, Any] = {"arms": {}}
+    tensors_by_arm = {}
+    for key, arm_name in (("g5", "ROOM213_G5_CONTROL"), ("h5", "ROOM213_H5_SCALE_CONTROL")):
+        grouped_eval = evaluate_grouped(
+            vol=vol, work=work, arm_name=arm_name, full_transforms_path=full_views / "transforms.json",
+            images_dir=full_views / "images", dataparser=dataparser,
+            withheld_panoramas=built["val_panos"], pool_panoramas=built["train_panos"], ckpt_step=15999,
+        )
+        arm_dir = vol / "experiments" / "room213-exp5" / arm_name
+        ckpt = _find_ckpt(arm_dir / "train", 15999)
+        payload = load_ckpt_state(ckpt)
+        tensors = ckpt_tensors(payload, "cuda")
+        tensors_by_arm[key] = tensors
+        stats, max_scale = scale_stats(tensors)
+        poses_doc = load_poses(Path("/root/recon-experiment/visual-poses.json"))
+        footprint = footprint_report(tensors, poses_doc["poses"], work / key / "footprint")
+        render_hashes = render_qa_4(tensors, poses_doc["poses"], "cuda", work / key / "qa" / "step-15999")
+        out["arms"][key] = {
+            "arm_name": arm_name, "grouped_eval_summary": {k: v for k, v in grouped_eval.items() if k != "per_panorama"},
+            "scale_stats": stats, "projected_footprint": footprint, "render_hashes": render_hashes,
+        }
+
+    panel_meta = {}
+    h5_grouped = json.loads((work / "grouped-eval-ROOM213_H5_SCALE_CONTROL.json").read_text())
+    picks = select_panels(h5_grouped)
+    for tag, pano in picks.items():
+        frs = sorted(frames_by_pano[pano], key=lambda f: f["file_path"])
+        fr = frs[0]  # representative view per panorama (v00)
+        from exp5_grouped_eval import _frame_pose
+        pose = _frame_pose(fr, dataparser)
+        src_path = full_views / "images" / Path(fr["file_path"]).name
+        dest = work / "panels" / f"{tag}_{pano}.png"
+        h = render_panel(tensors_g5=tensors_by_arm["g5"], tensors_h5=tensors_by_arm["h5"], pose=pose, src_path=src_path, dest=dest)
+        panel_meta[tag] = {"panorama": pano, "file_path": fr["file_path"], "sha256": h,
+                            "distance_to_nearest_training_panorama": h5_grouped["per_panorama"][pano]["distance_to_nearest_training_panorama"],
+                            "h5_aggregate": h5_grouped["per_panorama"][pano]["aggregate"]}
+    out["panels"] = panel_meta
+
+    (work / "exp5-results.json").write_text(json.dumps(out, indent=2, default=str) + "\n", encoding="utf-8")
+    durable = vol / "experiments" / "room213-exp5-results"
+    if durable.exists():
+        shutil.rmtree(durable)
+    shutil.copytree(work, durable)
+    ckpt_vol.commit()
+    return out
+
+
 def _committed_recipe(name: str) -> dict[str, Any]:
     """Recipes live in the repo (qa/*.json) so a fresh clone can launch; /experiments is gitignored."""
     for candidate in (ROOT / "qa" / name, ROOT / "experiments" / "room213-densification" / "frozen-recipe.json"):
@@ -524,8 +687,38 @@ def main(phase: str = "exp3"):
             indent=2, default=str,
         ))
         return
+    if phase == "exp5-grouped-results":
+        result = exp5_grouped_results.remote()
+        print(json.dumps(result, indent=2, default=str))
+        return
+    if phase == "exp5":
+        import exp5
+
+        doc = _committed_recipe("exp5-frozen-recipe.json")
+        recipe = doc["recipe"]
+        diff = exp5.preflight_diff(
+            exp5.resolved_arm_config(exp5.ARM_G5, recipe), exp5.resolved_arm_config(exp5.ARM_H5, recipe)
+        )
+        if not diff["ok"] or diff["differing_keys"] != [exp5.CHANGED_VARIABLE]:
+            raise SystemExit(f"PREFLIGHT STOP: arms differ in {diff['differing_keys']}")
+        print("preflight ok; changed variable:", exp5.CHANGED_VARIABLE, "recipe_hash:", doc["recipe_hash"])
+        print("staging frozen views", stage_inputs.remote())
+        g5 = train_arm_exp5.spawn({"arm": exp5.ARM_G5, "recipe": recipe})
+        h5 = train_arm_exp5.spawn({"arm": exp5.ARM_H5, "recipe": recipe})
+        results5: dict[str, Any] = {}
+        for name, handle in (("arm_g5", g5), ("arm_h5", h5)):
+            try:
+                results5[name] = handle.get()
+            except Exception as exc:  # noqa: BLE001
+                results5[name] = {"status": "failed", "error": str(exc)}
+        print(json.dumps(
+            {**results5, "status": "needs_review", "HUMAN_VISUAL_VERDICT": "UNREVIEWED"},
+            indent=2, default=str,
+        ))
+        return
     if phase != "exp3":
-        raise SystemExit("phase must be exp2, exp3, exp4, verify, verify-exp3-inputs, or haze-diagnostic")
+        raise SystemExit("phase must be exp2, exp3, exp4, exp4-results, exp5, exp5-grouped-results, "
+                          "verify, verify-exp3-inputs, or haze-diagnostic")
     import exp3
 
     doc = _committed_recipe("exp3-frozen-recipe.json")

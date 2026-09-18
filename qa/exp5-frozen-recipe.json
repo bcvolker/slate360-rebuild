@@ -1,0 +1,34 @@
+{
+  "recipe": {
+    "actual_images_per_optimizer_step": 1,
+    "backend": "modal-L40S",
+    "bilateral": true,
+    "loss": "l1+ssim",
+    "mask_hash": "2f5bc81ddb14a38b39ac2d688bfed1645b4a784b616b4aec071d41afb1cedb3e",
+    "mask_hash_legacy_path_dependent": "20daa8e25daa806411f45f24a434f81e16767402b413d436f3c5602735a8a2b6",
+    "max_steps": 16000,
+    "optimizer": "splatfacto-adam",
+    "output_converter": "ns-export gaussian-splat PLY (no SPZ step)",
+    "pano_count": 338,
+    "pose_hash": "52f622b1815d43e8dface4f11d10f70eb4bb9b0cae74c79fbc84d457f5fa766e",
+    "qa_pose_hash": "ee51124640e16c92ea2c48cf420719b77ab9c8a02ea996dc4ed849045f3fb37a",
+    "resolution": 1280,
+    "rng_seed": 42,
+    "seed_hash": "5c24bd98d41607d493a95167512d9489f48783a7dd781f4b31acb80a5bab4416",
+    "sh_degree": 3,
+    "source_hash": "1753a05b9eef0262d075bf9dc81d8ce49e56cdb6ae88fb9a2e713f7b73b35c99",
+    "use_lidar": false,
+    "view_count": 5408,
+    "pose_hash_source": "grouped-safe transforms.json (38 panoramas / 608 views removed from the frozen 6016-view manifest); mask_hash/seed_hash/qa_pose_hash unchanged (same source files)",
+    "grouped_validation": {
+      "withheld_panoramas": 38,
+      "withheld_images": 608,
+      "grouped_safe_pool_panoramas": 338,
+      "grouped_safe_pool_images": 5408,
+      "nerfstudio_internal_train_images": 4868,
+      "nerfstudio_internal_eval_images": 540,
+      "leakage_check_ok": true
+    }
+  },
+  "recipe_hash": "c05b8a57d91e0b01a81b6848c1ff85d1bbeeb027bf15ce46d969550e649d643e"
+}
