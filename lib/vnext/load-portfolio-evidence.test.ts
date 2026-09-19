@@ -122,11 +122,17 @@ describe("loadPortfolioEvidence — drone is not a client-renderable representat
       expect.arrayContaining(["reality", "geometry", "360", "plan", "thermal"]),
     );
     expect(result.p1.representations).not.toContain("drone");
-    expect(result.p1.realityPreviewUrl).toBe("/api/digital-twin/models/model-1/preview-image");
-    expect(result.p1.planUrl).toBe("/api/site-walk/plan-sheets/sheet-1/image");
+    // Hero URLs must use the vNext-scoped, project-access-contract routes, never the legacy
+    // punchwalk/digital_twin standalone-app-gated, single-org routes.
+    expect(result.p1.realityPreviewUrl).toBe("/api/vnext/projects/p1/twin-models/model-1/preview-image");
+    expect(result.p1.planUrl).toBe("/api/vnext/projects/p1/plan-sheets/sheet-1/image");
     // The 360 flag/URL must come from the proven site_walk_items path, not the unserveable
     // digital_twin_capture_assets.panorama_360 row also present in this fixture.
-    expect(result.p1.pano360Url).toBe("/api/site-walk/items/item-1/image");
+    expect(result.p1.pano360Url).toBe("/api/vnext/projects/p1/items/item-1/image");
+    for (const url of [result.p1.realityPreviewUrl, result.p1.planUrl, result.p1.pano360Url]) {
+      expect(url).not.toContain("/api/site-walk/");
+      expect(url).not.toContain("/api/digital-twin/models/");
+    }
   });
 
   it("does NOT flag '360' merely because a digital_twin_capture_assets panorama_360 row exists — no serving route exists for that table", async () => {

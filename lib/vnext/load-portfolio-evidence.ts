@@ -77,7 +77,9 @@ export async function loadPortfolioEvidence(
       if (kind === "splat") {
         addFlag(evidence, "reality");
         if (!evidence.realityPreviewUrl && model.preview_storage_key) {
-          evidence.realityPreviewUrl = `/api/digital-twin/models/${model.id}/preview-image`;
+          // vNext-scoped route (project-access contract), not the legacy digital_twin-gated,
+          // single-org route — same rationale as the Explore splat proxy.
+          evidence.realityPreviewUrl = `/api/vnext/projects/${projectId}/twin-models/${model.id}/preview-image`;
         }
       }
       if (kind === "model") addFlag(evidence, "geometry");
@@ -129,7 +131,9 @@ export async function loadPortfolioEvidence(
     if (item.captured_at) evidence.timestamps.push(item.captured_at);
     if (item.item_type === "photo_360" && item.s3_key) {
       addFlag(evidence, "360");
-      if (!evidence.pano360Url) evidence.pano360Url = `/api/site-walk/items/${item.id}/image`;
+      // vNext-scoped route (project-access contract), not the legacy punchwalk-gated,
+      // single-org route — same rationale as the Explore 360 photo route.
+      if (!evidence.pano360Url) evidence.pano360Url = `/api/vnext/projects/${item.project_id}/items/${item.id}/image`;
     }
   }
 
@@ -167,7 +171,9 @@ export async function loadPortfolioEvidence(
     if (!sheet.thumbnail_s3_key && !sheet.rasterized_key && !sheet.image_s3_key) continue;
     const evidence = ensure(byId, sheet.project_id);
     addFlag(evidence, "plan");
-    if (!evidence.planUrl) evidence.planUrl = `/api/site-walk/plan-sheets/${sheet.id}/image`;
+    // vNext-scoped route (project-access contract), not the legacy punchwalk-gated,
+    // single-org route — same rationale as the Explore plan-sheet route.
+    if (!evidence.planUrl) evidence.planUrl = `/api/vnext/projects/${sheet.project_id}/plan-sheets/${sheet.id}/image`;
   }
 
   const thermalSessions = await rows<{
@@ -190,21 +196,25 @@ export async function loadPortfolioEvidence(
   if (thermalSessions.length > 0) {
     const sessionIds = thermalSessions.map((row) => row.id);
     const shareRows = await rows<{
+      id: string;
       session_id: string;
       is_revoked: boolean;
       expires_at: string | null;
       layer_config: Record<string, unknown> | null;
+      branding_snapshot: Record<string, unknown> | null;
     }>(
       admin
         .from("thermal_analysis_share_tokens")
-        .select("session_id, is_revoked, expires_at, layer_config")
+        .select("id, session_id, is_revoked, expires_at, layer_config, branding_snapshot")
         .in("session_id", sessionIds),
     );
     thermalShares = shareRows.map((row) => ({
+      id: row.id,
       sessionId: row.session_id,
       isRevoked: row.is_revoked,
       expiresAt: row.expires_at,
       layerConfig: row.layer_config,
+      brandingSnapshot: row.branding_snapshot,
     }));
 
     const captureRows = await rows<{

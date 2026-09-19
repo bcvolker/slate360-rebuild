@@ -1,7 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { hasViewableCaptureUnderShare, isSharePublished, isThermalSessionAvailable } from "./thermal-availability";
+import {
+  findRenderableThermalShare,
+  hasViewableCaptureUnderShare,
+  isSharePublished,
+  isThermalSessionAvailable,
+} from "./thermal-availability";
 
-const SHARE = { sessionId: "s1", isRevoked: false, expiresAt: null, layerConfig: null };
+const SHARE = {
+  id: "share-1",
+  sessionId: "s1",
+  isRevoked: false,
+  expiresAt: null,
+  layerConfig: null,
+  brandingSnapshot: null,
+};
 const CAPTURE = { id: "c1", sessionId: "s1", previewPath: "x.jpg", storagePath: null };
 
 describe("isSharePublished", () => {
@@ -88,5 +100,81 @@ describe("isThermalSessionAvailable — the shared Overview/Explore predicate", 
     const otherSessionShare = { ...SHARE, sessionId: "s2" };
     const otherSessionCapture = { ...CAPTURE, sessionId: "s2" };
     expect(isThermalSessionAvailable("s1", [otherSessionShare], [otherSessionCapture])).toBe(false);
+  });
+});
+
+describe("findRenderableThermalShare — the exact-share-selection fix", () => {
+  const c1 = { id: "c1", sessionId: "s1", previewPath: "c1.jpg", storagePath: null };
+
+  it("A: picks the qualifying share, not merely the first published one, when an earlier share's own layer_config excludes every capture", () => {
+    const shareA = {
+      id: "share-A",
+      sessionId: "s1",
+      isRevoked: false,
+      expiresAt: null,
+      layerConfig: { capture_ids: ["not-c1"] },
+      brandingSnapshot: { brand: "A" },
+    };
+    const shareB = {
+      id: "share-B",
+      sessionId: "s1",
+      isRevoked: false,
+      expiresAt: null,
+      layerConfig: { capture_ids: ["c1"] },
+      brandingSnapshot: { brand: "B" },
+    };
+
+    expect(isThermalSessionAvailable("s1", [shareA, shareB], [c1])).toBe(true);
+    const chosen = findRenderableThermalShare("s1", [shareA, shareB], [c1]);
+    expect(chosen?.id).toBe("share-B");
+    // The chosen share's layer_config and branding_snapshot must come from the same row — never
+    // shareA's layer_config paired with shareB's branding, or vice versa.
+    expect(chosen?.layerConfig).toEqual(shareB.layerConfig);
+    expect(chosen?.brandingSnapshot).toEqual(shareB.brandingSnapshot);
+  });
+
+  it("B: returns null when multiple published shares exist but none exposes a usable capture", () => {
+    const shareA = { ...SHARE, id: "share-A", layerConfig: { capture_ids: ["nope"] } };
+    const shareB = { ...SHARE, id: "share-B", layerConfig: { capture_ids: ["also-nope"] } };
+    expect(isThermalSessionAvailable("s1", [shareA, shareB], [c1])).toBe(false);
+    expect(findRenderableThermalShare("s1", [shareA, shareB], [c1])).toBeNull();
+  });
+
+  it("C: ignores an expired/revoked share that would otherwise qualify, in favor of a valid one", () => {
+    const expiredButQualifying = {
+      id: "share-expired",
+      sessionId: "s1",
+      isRevoked: false,
+      expiresAt: "2020-01-01T00:00:00.000Z",
+      layerConfig: null,
+      brandingSnapshot: { brand: "expired" },
+    };
+    const revokedButQualifying = {
+      id: "share-revoked",
+      sessionId: "s1",
+      isRevoked: true,
+      expiresAt: null,
+      layerConfig: null,
+      brandingSnapshot: { brand: "revoked" },
+    };
+    const validShare = {
+      id: "share-valid",
+      sessionId: "s1",
+      isRevoked: false,
+      expiresAt: null,
+      layerConfig: null,
+      brandingSnapshot: { brand: "valid" },
+    };
+
+    const chosen = findRenderableThermalShare(
+      "s1",
+      [expiredButQualifying, revokedButQualifying, validShare],
+      [c1],
+    );
+    expect(chosen?.id).toBe("share-valid");
+  });
+
+  it("returns null when the session has no shares at all", () => {
+    expect(findRenderableThermalShare("s1", [], [c1])).toBeNull();
   });
 });

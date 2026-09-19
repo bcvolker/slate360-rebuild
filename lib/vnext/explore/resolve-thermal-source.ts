@@ -2,7 +2,7 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { loadThermalShareViewerData } from "@/lib/thermal/load-share-viewer";
-import { isThermalSessionAvailable, type ThermalCaptureLike, type ThermalShareLike } from "@/lib/vnext/thermal-availability";
+import { findRenderableThermalShare, isThermalSessionAvailable, type ThermalCaptureLike, type ThermalShareLike } from "@/lib/vnext/thermal-availability";
 import type { VnextExploreSourceData } from "@/lib/vnext/explore-types";
 
 type Admin = ReturnType<typeof createAdminClient>;
@@ -31,13 +31,15 @@ export async function resolveThermalSourceData(
 
   const { data: shareRows } = await admin
     .from("thermal_analysis_share_tokens")
-    .select("session_id, is_revoked, expires_at, branding_snapshot, layer_config")
+    .select("id, session_id, is_revoked, expires_at, branding_snapshot, layer_config")
     .in("session_id", sessionIds);
   const shares: ThermalShareLike[] = (shareRows ?? []).map((row) => ({
+    id: row.id as string,
     sessionId: row.session_id as string,
     isRevoked: row.is_revoked as boolean,
     expiresAt: row.expires_at as string | null,
     layerConfig: row.layer_config as Record<string, unknown> | null,
+    brandingSnapshot: row.branding_snapshot as Record<string, unknown> | null,
   }));
 
   const { data: captureRows } = await admin
@@ -57,18 +59,17 @@ export async function resolveThermalSourceData(
     .sort((a, b) => Date.parse(b.updated_at as string) - Date.parse(a.updated_at as string))[0];
   if (!bestSession) return null;
 
-  const now = Date.now();
-  const share = shares.find(
-    (s) =>
-      s.sessionId === bestSession.id &&
-      !s.isRevoked &&
-      (!s.expiresAt || Date.parse(s.expiresAt) >= now),
-  );
-  const rawShare = (shareRows ?? []).find((row) => row.session_id === bestSession.id);
+  // The EXACT qualifying share for this session — not merely "the first non-revoked, non-expired
+  // one" (a session can have multiple shares; a different share could be published but have a
+  // layer_config that excludes every capture). Its layer_config and branding_snapshot are read from
+  // this same row, never paired with a different share's fields.
+  const share = findRenderableThermalShare(bestSession.id as string, shares, captures);
+  if (!share) return null;
+
   const viewerData = await loadThermalShareViewerData(
     bestSession.id as string,
-    (rawShare?.branding_snapshot as Record<string, unknown>) ?? {},
-    share?.layerConfig ?? {},
+    share.brandingSnapshot ?? {},
+    share.layerConfig ?? {},
   );
   if (!viewerData) return null;
 

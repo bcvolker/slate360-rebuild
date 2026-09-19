@@ -1,9 +1,13 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const loadThermalShareViewerDataMock = vi.fn();
 vi.mock("@/lib/thermal/load-share-viewer", () => ({
   loadThermalShareViewerData: (...args: unknown[]) => loadThermalShareViewerDataMock(...args),
 }));
+
+beforeEach(() => {
+  loadThermalShareViewerDataMock.mockClear();
+});
 
 const { resolveThermalSourceData } = await import("./resolve-thermal-source");
 
@@ -98,6 +102,97 @@ describe("resolveThermalSourceData", () => {
       thermal_captures: [{ id: "cap-1", session_id: "session-1", preview_path: "x.jpg", storage_path: null }],
     });
     expect(await resolveThermalSourceData(admin, "p1")).toBeNull();
+  });
+
+  it("A: selects the qualifying share (not merely the first published one) when an earlier share's own layer_config excludes every capture, and pairs its branding/layer_config from the SAME row", async () => {
+    loadThermalShareViewerDataMock.mockResolvedValueOnce({
+      sessionId: "session-1",
+      sessionName: "North wall",
+      captures: [{ id: "cap-1", filename: "a.jpg", previewUrl: "https://signed.example/a.jpg" }],
+    });
+    const admin = mockAdmin({
+      thermal_analysis_sessions: [SESSION],
+      thermal_analysis_share_tokens: [
+        {
+          id: "share-A",
+          session_id: "session-1",
+          is_revoked: false,
+          expires_at: null,
+          branding_snapshot: { brand: "A" },
+          layer_config: { capture_ids: ["not-cap-1"] },
+        },
+        {
+          id: "share-B",
+          session_id: "session-1",
+          is_revoked: false,
+          expires_at: null,
+          branding_snapshot: { brand: "B" },
+          layer_config: { capture_ids: ["cap-1"] },
+        },
+      ],
+      thermal_captures: [{ id: "cap-1", session_id: "session-1", preview_path: "x.jpg", storage_path: null }],
+    });
+
+    const result = await resolveThermalSourceData(admin, "p1");
+
+    expect(loadThermalShareViewerDataMock).toHaveBeenCalledWith(
+      "session-1",
+      { brand: "B" },
+      { capture_ids: ["cap-1"] },
+    );
+    expect(result).toEqual({
+      kind: "thermal",
+      sessionName: "North wall",
+      captures: [{ id: "cap-1", imageUrl: "https://signed.example/a.jpg", label: "a.jpg" }],
+    });
+  });
+
+  it("B: returns null when multiple published shares exist but none exposes a usable capture", async () => {
+    const admin = mockAdmin({
+      thermal_analysis_sessions: [SESSION],
+      thermal_analysis_share_tokens: [
+        { id: "share-A", session_id: "session-1", is_revoked: false, expires_at: null, layer_config: { capture_ids: ["nope"] } },
+        { id: "share-B", session_id: "session-1", is_revoked: false, expires_at: null, layer_config: { capture_ids: ["also-nope"] } },
+      ],
+      thermal_captures: [{ id: "cap-1", session_id: "session-1", preview_path: "x.jpg", storage_path: null }],
+    });
+    expect(await resolveThermalSourceData(admin, "p1")).toBeNull();
+    expect(loadThermalShareViewerDataMock).not.toHaveBeenCalled();
+  });
+
+  it("C: ignores an expired/revoked share that would otherwise qualify, in favor of a valid one", async () => {
+    loadThermalShareViewerDataMock.mockResolvedValueOnce({
+      sessionId: "session-1",
+      sessionName: "North wall",
+      captures: [{ id: "cap-1", filename: "a.jpg", previewUrl: "https://signed.example/a.jpg" }],
+    });
+    const admin = mockAdmin({
+      thermal_analysis_sessions: [SESSION],
+      thermal_analysis_share_tokens: [
+        {
+          id: "share-expired",
+          session_id: "session-1",
+          is_revoked: false,
+          expires_at: "2020-01-01T00:00:00.000Z",
+          branding_snapshot: { brand: "expired" },
+          layer_config: {},
+        },
+        {
+          id: "share-valid",
+          session_id: "session-1",
+          is_revoked: false,
+          expires_at: null,
+          branding_snapshot: { brand: "valid" },
+          layer_config: {},
+        },
+      ],
+      thermal_captures: [{ id: "cap-1", session_id: "session-1", preview_path: "x.jpg", storage_path: null }],
+    });
+
+    const result = await resolveThermalSourceData(admin, "p1");
+
+    expect(loadThermalShareViewerDataMock).toHaveBeenCalledWith("session-1", { brand: "valid" }, {});
+    expect(result).not.toBeNull();
   });
 
   it("calls loadThermalShareViewerData directly with the session id — no public token is minted or exposed", async () => {

@@ -591,7 +591,39 @@ Explore's own media resolution.
 
 ---
 
+## Slice 4 closeout (2026-09-18)
+
+Two narrowly-scoped fixes on top of the Slice 4 correction, both accepted architecture otherwise
+unchanged.
+
+- **Thermal multi-share selection fixed.** `resolve-thermal-source.ts` previously picked the
+  session via the shared `isThermalSessionAvailable` predicate but then selected its share via "the
+  first non-revoked, non-expired one" — not necessarily the SAME share that made the session
+  available, so a session with an earlier-but-non-qualifying share and a later-but-qualifying one
+  could resolve to `null` even though it should render. New `findRenderableThermalShare`
+  (`lib/vnext/thermal-availability.ts`) returns the actual qualifying share row (`id`,
+  `layerConfig`, `brandingSnapshot` all from that same row); both `isThermalSessionAvailable` and
+  `resolveThermalSourceData` now defer to it, so `layer_config` and `branding_snapshot` can never be
+  paired across two different share rows.
+- **vNext portfolio/Overview hero media now uses the same project-access contract as Explore.**
+  `loadPortfolioEvidence()`'s hero URLs previously still pointed at the legacy
+  punchwalk/digital_twin-gated, single-org routes even though Explore's equivalent media had already
+  been moved to project-scoped routes. 360 and Plan heroes now use the same
+  `/api/vnext/projects/[projectId]/{items/[itemId],plan-sheets/[sheetId]}/image` routes Explore
+  already uses; Reality's preview image gets a new sibling route,
+  `/api/vnext/projects/[projectId]/twin-models/[modelId]/preview-image` (`withProjectAuth`, then the
+  model's `digital_twin_spaces.project_id` is re-verified). Legacy hero routes are untouched.
+
+Files: `lib/vnext/thermal-availability.ts`, `lib/vnext/explore/resolve-thermal-source.ts`,
+`lib/vnext/load-portfolio-evidence.ts`, new
+`app/api/vnext/projects/[projectId]/twin-models/[modelId]/preview-image/route.ts`, plus tests in
+`lib/vnext/thermal-availability.test.ts`, `lib/vnext/explore/resolve-thermal-source.test.ts`,
+`lib/vnext/load-portfolio-evidence.test.ts`, and new
+`lib/vnext/explore/vnext-twin-preview-image-route.test.ts`.
+
+---
+
 ## Handoff
 
-Slice 4 (unified Explore viewer, corrected) completion report is returned in the assistant response.
-Do not begin Slice 5 until Brian explicitly approves this corrected slice.
+Slice 4 (unified Explore viewer, corrected + closed out) completion report is returned in the
+assistant response. Do not begin Slice 5 until Brian explicitly approves this slice.

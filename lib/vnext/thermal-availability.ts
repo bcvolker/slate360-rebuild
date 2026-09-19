@@ -1,10 +1,16 @@
 import { filterCapturesByLayerConfig } from "@/lib/thermal/layer-config";
 
 export type ThermalShareLike = {
+  id: string;
   sessionId: string;
   isRevoked: boolean;
   expiresAt: string | null;
   layerConfig: Record<string, unknown> | null;
+  /** Not used by the availability predicate itself — carried here so resolve-thermal-source.ts can
+   *  get layer_config and branding_snapshot from the SAME qualifying row, never paired across two
+   *  different shares. Overview (load-portfolio-evidence.ts) doesn't need this but selects it too,
+   *  since it's the same cheap query either way and keeps one shared shape. */
+  brandingSnapshot: Record<string, unknown> | null;
 };
 
 export type ThermalCaptureLike = {
@@ -37,12 +43,32 @@ export function hasViewableCaptureUnderShare(
 }
 
 /**
+ * Finds the ACTUAL qualifying share for a session — not just whether one exists. A session can
+ * have more than one share token; a session is renderable if ANY of its shares qualifies, but the
+ * specific share chosen must be the SAME row whose own layer_config produced that "yes" — pairing
+ * one share's layer_config with a different share's branding_snapshot (or picking merely the first
+ * non-revoked/non-expired share regardless of whether ITS layer_config leaves anything viewable)
+ * is exactly the bug this function exists to prevent. Both isThermalSessionAvailable (below) and
+ * resolve-thermal-source.ts's actual data resolution defer to this one selection.
+ */
+export function findRenderableThermalShare(
+  sessionId: string,
+  shares: readonly ThermalShareLike[],
+  captures: readonly ThermalCaptureLike[],
+  now = Date.now(),
+): ThermalShareLike | null {
+  const sessionCaptures = captures.filter((c) => c.sessionId === sessionId);
+  const match = shares
+    .filter((share) => share.sessionId === sessionId)
+    .find((share) => isSharePublished(share, now) && hasViewableCaptureUnderShare(sessionCaptures, share.layerConfig));
+  return match ?? null;
+}
+
+/**
  * The single effective Thermal-availability predicate — Overview (load-portfolio-evidence.ts) and
  * Explore (resolve-thermal-source.ts) both defer to this so they cannot drift again. A session is
- * Thermal-available only when it has at least one currently published (non-revoked, non-expired)
- * share AND that share's layer_config leaves at least one genuinely viewable capture — a published
- * session with zero remaining captures (all excluded by layer_config, or none have a usable path)
- * must not be reported as available.
+ * Thermal-available only when at least one of its shares is both currently published (non-revoked,
+ * non-expired) AND that SAME share's layer_config leaves at least one genuinely viewable capture.
  */
 export function isThermalSessionAvailable(
   sessionId: string,
@@ -50,8 +76,5 @@ export function isThermalSessionAvailable(
   captures: readonly ThermalCaptureLike[],
   now = Date.now(),
 ): boolean {
-  const sessionCaptures = captures.filter((c) => c.sessionId === sessionId);
-  return shares
-    .filter((share) => share.sessionId === sessionId)
-    .some((share) => isSharePublished(share, now) && hasViewableCaptureUnderShare(sessionCaptures, share.layerConfig));
+  return findRenderableThermalShare(sessionId, shares, captures, now) !== null;
 }
