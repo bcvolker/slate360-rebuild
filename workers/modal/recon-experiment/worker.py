@@ -740,6 +740,94 @@ def exp6_instrumentation_smoke_test() -> str:
     return buf.getvalue()
 
 
+@app.function(
+    image=gpu_image,
+    timeout=5 * 60,
+    memory=8 * 1024,
+    cpu=2.0,
+    retries=0,
+)
+def nerfstudio_downscale_introspect() -> str:
+    """Read-only introspection (CPU only, no GPU, no data touched): what resize method does
+    nerfstudio 1.1.5's progressive-resolution image caching actually use for the 320/640
+    training-resolution stages? Needed to know whether a local PIL-BILINEAR simulation of
+    those stages (used by the source-detail forensic audit) matches what training actually
+    saw, or whether nerfstudio's own downscale path antialiases differently."""
+    import inspect
+    import numpy as np
+
+    out = []
+    from nerfstudio.data.datasets.base_dataset import InputDataset
+    src = inspect.getsource(InputDataset)
+    import re
+    for m in re.finditer(r"def \w*(get_image|downscale)\w*\([^)]*\):.*?(?=\n    def |\Z)", src, re.S):
+        out.append(m.group(0))
+    out.append("=== grep for resize/INTER/BILINEAR across nerfstudio package ===")
+    import subprocess
+    grep = subprocess.run(
+        ["grep", "-rn", "-E", "cv2\\.resize|INTER_AREA|Image\\.resize|BILINEAR|downscale_factor",
+         "/usr/local/lib/python3.10/site-packages/nerfstudio/data/"],
+        capture_output=True, text=True,
+    )
+    out.append(grep.stdout)
+
+    out.append("=== base_dataset.py context around the BILINEAR resize (is this the LIVE per-step path?) ===")
+    with open("/usr/local/lib/python3.10/site-packages/nerfstudio/data/datasets/base_dataset.py") as f:
+        lines = f.readlines()
+    out.append("".join(lines[max(0, 73 - 25):73 + 10]))
+
+    out.append("=== splatfacto.py: how does num_downscales / resolution_schedule actually resize per-step? ===")
+    grep2 = subprocess.run(
+        ["grep", "-n", "-E", "num_downscales|resolution_schedule|avg_pool|interpolate|downscale|_downscale",
+         "/usr/local/lib/python3.10/site-packages/nerfstudio/models/splatfacto.py"],
+        capture_output=True, text=True,
+    )
+    out.append(grep2.stdout)
+    grep3 = subprocess.run(
+        ["grep", "-rn", "-E", "num_downscales|resolution_schedule|_downscale_if_required|avg_pool",
+         "/usr/local/lib/python3.10/site-packages/nerfstudio/data/datamanagers/full_images_datamanager.py"],
+        capture_output=True, text=True,
+    )
+    out.append(grep3.stdout)
+
+    out.append("=== splatfacto.py: full source of resize_image()/_get_downscale_factor()/_downscale_if_required() -- the LIVE per-step path ===")
+    with open("/usr/local/lib/python3.10/site-packages/nerfstudio/models/splatfacto.py") as f:
+        sp_lines = f.readlines()
+    out.append("".join(sp_lines[100:125]))
+    out.append("---")
+    out.append("".join(sp_lines[470:500]))
+
+    # Run the SAME synthetic period-6px pattern through nerfstudio's actual downscale
+    # function (if identifiable) for a directly comparable number to the local PIL test.
+    try:
+        from nerfstudio.data.utils.data_utils import get_image_mask_tensor_from_path  # noqa: F401
+    except Exception as e:  # noqa: BLE001
+        out.append(f"data_utils import note: {e}")
+
+    size = 1280
+    x = np.arange(size)
+    pattern = (np.sin(2 * np.pi * x / 6.0) > 0).astype(np.uint8) * 255
+    img = np.tile(pattern, (size, 1))
+
+    def lapvar(a):
+        a = a.astype(np.float32)
+        L = (-4 * a + np.roll(a, 1, 0) + np.roll(a, -1, 0) + np.roll(a, 1, 1) + np.roll(a, -1, 1))[2:-2, 2:-2]
+        return float(L.var())
+
+    import cv2
+    for scale, label in ((1, "1280"), (2, "640 cv2.INTER_AREA"), (4, "320 cv2.INTER_AREA"),
+                          (2, "640 cv2.INTER_LINEAR"), (4, "320 cv2.INTER_LINEAR")):
+        if scale == 1:
+            b = img
+        elif "AREA" in label:
+            b = cv2.resize(img, (size // scale, size // scale), interpolation=cv2.INTER_AREA)
+        else:
+            b = cv2.resize(img, (size // scale, size // scale), interpolation=cv2.INTER_LINEAR)
+        out.append(f"{label} lapvar {lapvar(b):.1f} shape {b.shape}")
+
+    return "\n".join(out)
+
+
 def _committed_recipe(name: str) -> dict[str, Any]:
     """Recipes live in the repo (qa/*.json) so a fresh clone can launch; /experiments is gitignored."""
     for candidate in (ROOT / "qa" / name, ROOT / "experiments" / "room213-densification" / "frozen-recipe.json"):
@@ -809,6 +897,9 @@ def main(phase: str = "exp3"):
         return
     if phase == "exp6-instrumentation-smoke-test":
         print(exp6_instrumentation_smoke_test.remote())
+        return
+    if phase == "nerfstudio-downscale-introspect":
+        print(nerfstudio_downscale_introspect.remote())
         return
     if phase == "exp6-scale-evolution":
         print(exp6_scale_evolution.remote())
