@@ -86,7 +86,25 @@ export function attachRuntimeHealth(page: Page): RuntimeHealth {
   const originalGoto = page.goto.bind(page);
   page.goto = (async (...args: Parameters<Page["goto"]>) => {
     const errorsBeforeNavigation = errors.length;
-    const response = await originalGoto(...args);
+
+    // originalGoto itself can throw net::ERR_ABORTED — the same Next dev/HMR navigation-
+    // interruption artifact ALLOWED_FAILED_REQUEST already treats as a known dev artifact when it
+    // surfaces as a requestfailed event, but here the navigation never produces a response to run
+    // the 500/overlay recovery below on at all. Narrow recovery for exactly this proven error
+    // class only: retry the identical navigation once after a short settle. Any other thrown
+    // navigation error propagates immediately, and a failing retry propagates too — this is not a
+    // generic goto retry wrapper.
+    let response;
+    try {
+      response = await originalGoto(...args);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (!/net::ERR_ABORTED/i.test(message)) throw err;
+      errors.length = errorsBeforeNavigation;
+      await page.waitForTimeout(1_500);
+      response = await originalGoto(...args);
+    }
+
     try {
       const status = response?.status() ?? 0;
       // The overlay can be triggered by an async HMR/websocket event that arrives shortly

@@ -623,6 +623,29 @@ Files: `lib/vnext/thermal-availability.ts`, `lib/vnext/explore/resolve-thermal-s
 
 ---
 
+## Slice 4 QA fixes (2026-09-19/20)
+
+Test-harness-only fixes on top of the Slice 4 closeout; application code unchanged.
+
+- `e2e/vnext/helpers.ts`: `page.goto` now retries once on a thrown `net::ERR_ABORTED` (short
+  settle, identical navigation), before the existing 500/overlay recovery. Any other thrown
+  navigation error still propagates immediately.
+- `e2e/vnext/explore.spec.ts`: the combined `?item=` stress test is split into three focused tests
+  (source/rep switching, presentation enter/exit, refresh), each with full `attachRuntimeHealth`/
+  `assertClean()` coverage restored.
+- `lib/vnext/preview-explore-fixtures.ts` + new `public/vnext-preview/pano360.png`: the 360 preview
+  fixture was an SVG, which `@photo-sphere-viewer/core`'s WebGL texture pipeline cannot load
+  (reproduced in isolation — deterministic failure independent of any app code); swapped to a raster
+  PNG placeholder, matching what a real captured 360 photo always is.
+
+Vitest (179/179) and the full `explore.spec.ts` file (24/24, twice) are clean. Architecture, design,
+and file-size guards pass. **The complete `npm run test:vnext` gate has not yet been verified green
+end-to-end** — repeated attempts were blocked by this host's available memory dropping below 1GB
+(sometimes below 500MB) during Chromium/dev-server warmup, unrelated to the code above. Do not treat
+this as a passing full-suite gate until it is re-run successfully.
+
+---
+
 ## Handoff
 
 Slice 4 (unified Explore viewer, corrected + closed out) completion report is returned in the

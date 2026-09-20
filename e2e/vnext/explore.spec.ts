@@ -87,15 +87,15 @@ test.describe("vNext Explore", () => {
     health.assertClean();
   });
 
-  test("?item= survives representation switching, source switching, and presentation mode", async ({ page }) => {
-    // No attachRuntimeHealth/assertClean here: this test does five rapid, real client-side
-    // navigations in a row (source switch, rep switch, present toggle x2, reload) — a stress
-    // pattern no other single test in this file uses — which reproducibly triggers a benign Next
-    // dev-mode service-worker/script-fetch artifact (confirmed by manual reproduction: "An unknown
-    // error occurred when fetching the script", the same family already documented and partially
-    // allowlisted in helpers.ts for its 404-flavored variant, just surfaced here as a raw Event
-    // Playwright can't extract a message from). It's unrelated to the URL-state behavior this test
-    // actually verifies, all of which passes.
+  // Split into three focused tests rather than one five-navigation stress test: the combined
+  // version reproducibly triggered a benign Next dev-mode service-worker/script-fetch artifact
+  // (manually reproduced as "An unknown error occurred when fetching the script" — the same family
+  // already documented and partially allowlisted in helpers.ts for its 404-flavored variant, just
+  // surfaced here as a raw Event Playwright can't extract a message from). Removing the artificial
+  // rapid-navigation stress pattern removes the artifact too, so each test below keeps full
+  // runtime-health coverage instead of suppressing or ignoring it.
+  test("?item= survives source switching and representation switching", async ({ page }) => {
+    const health = attachRuntimeHealth(page);
     await page.goto(`${EXPLORE}?rep=360&item=item-42`, { waitUntil: "networkidle" });
     await expect(page).toHaveURL(/item=item-42/);
 
@@ -105,6 +105,13 @@ test.describe("vNext Explore", () => {
 
     await page.locator("[data-vnext-rep-option='plan']").click();
     await expect(page).toHaveURL(/item=item-42/);
+    health.assertClean();
+  });
+
+  test("?item= survives presentation enter/exit", async ({ page }) => {
+    const health = attachRuntimeHealth(page);
+    await page.goto(`${EXPLORE}?rep=plan&item=item-42`, { waitUntil: "networkidle" });
+    await expect(page).toHaveURL(/item=item-42/);
 
     await page.getByRole("button", { name: "Present" }).click();
     await expect(page).toHaveURL(/item=item-42/);
@@ -113,9 +120,17 @@ test.describe("vNext Explore", () => {
     await page.getByRole("button", { name: "Exit presentation" }).click();
     await expect(page).toHaveURL(/item=item-42/);
     await expect(page).not.toHaveURL(/present=1/);
+    health.assertClean();
+  });
 
-    await page.reload({ waitUntil: "domcontentloaded" });
+  test("?item= survives refresh", async ({ page }) => {
+    const health = attachRuntimeHealth(page);
+    await page.goto(`${EXPLORE}?rep=plan&item=item-42`, { waitUntil: "networkidle" });
     await expect(page).toHaveURL(/item=item-42/);
+
+    await page.reload({ waitUntil: "networkidle" });
+    await expect(page).toHaveURL(/item=item-42/);
+    health.assertClean();
   });
 
   test("presentation mode hides chrome, goes full-bleed, and Exit restores it", async ({ page }) => {

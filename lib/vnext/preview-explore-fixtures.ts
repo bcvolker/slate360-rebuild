@@ -59,7 +59,12 @@ export const PREVIEW_EXPLORE_360: VnextExploreData = {
   ...PREVIEW_EXPLORE_REALITY,
   activeRepresentation: "360",
   activeSourceId: "pano-1",
-  activeSourceData: { kind: "360", imageUrl: "/vnext-preview/pano360.svg", title: "East stair" },
+  // A raster placeholder, not the .svg used elsewhere in this file's fixtures: @photo-sphere-viewer's
+  // WebGL texture pipeline (unlike a plain <img>) cannot use an SVG source here and fails every load
+  // with an unhandled-rejection-worthy raw DOM error event — reproduced and confirmed in isolation
+  // against the real Viewer, independent of this app's own code. A real captured 360 photo is always
+  // a raster JPEG, so this fixture now matches that.
+  activeSourceData: { kind: "360", imageUrl: "/vnext-preview/pano360.png", title: "East stair" },
 };
 
 export const PREVIEW_EXPLORE_PLAN: VnextExploreData = {
@@ -100,9 +105,11 @@ export const PREVIEW_EXPLORE_ERROR: VnextExploreData = {
   activeSourceError: "This representation could not be loaded right now. Try again or switch to another.",
 };
 
+// See the PREVIEW_EXPLORE_360 comment above: a raster placeholder, required by the pano
+// viewer's WebGL texture pipeline.
 const PANO_SOURCES: Record<string, VnextPanoSourceData> = {
-  "pano-1": { kind: "360", imageUrl: "/vnext-preview/pano360.svg", title: "East stair" },
-  "pano-2": { kind: "360", imageUrl: "/vnext-preview/pano360.svg", title: "Front porch" },
+  "pano-1": { kind: "360", imageUrl: "/vnext-preview/pano360.png", title: "East stair" },
+  "pano-2": { kind: "360", imageUrl: "/vnext-preview/pano360.png", title: "Front porch" },
 };
 
 const PLAN_SOURCES: Record<string, VnextPlanSourceData> = {
