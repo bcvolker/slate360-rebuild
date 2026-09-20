@@ -25,10 +25,6 @@ export default function VnextPlanViewer({ data }: { data: VnextPlanSourceData })
     setRetryAttempt((n) => n + 1);
   }, []);
 
-  if (mediaError) {
-    return <VnextViewerMediaError onRetry={retry} />;
-  }
-
   const clampScale = (value: number) => Math.min(MAX_SCALE, Math.max(MIN_SCALE, value));
 
   const zoomBy = useCallback((factor: number) => {
@@ -39,6 +35,13 @@ export default function VnextPlanViewer({ data }: { data: VnextPlanSourceData })
     setScale(1);
     setOffset({ x: 0, y: 0 });
   }, []);
+
+  // Every hook above must run on every render regardless of mediaError — this early return only
+  // skips which JSX gets built, never how many hooks get called (a conditional return placed
+  // BEFORE a hook is the exact "rendered fewer hooks than expected" bug this avoids).
+  if (mediaError) {
+    return <VnextViewerMediaError onRetry={retry} />;
+  }
 
   const onWheel = (event: WheelEvent<HTMLDivElement>) => {
     event.preventDefault();
