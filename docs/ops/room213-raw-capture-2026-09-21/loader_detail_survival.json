@@ -1,0 +1,68 @@
+{
+ "charuco_corners_in_2560_face": 15,
+ "charuco_corner_pitch_px_2560": 64.57335662841797,
+ "checkerboard": {
+  "2560_face": {
+   "dims": [
+    213,
+    307
+   ],
+   "lapvar": 671.4,
+   "hf_ratio": 0.609,
+   "contrast": 54.4,
+   "esf_px": 3.0
+  },
+  "1280_loader(steps3000-5999)": {
+   "dims": [
+    106,
+    153
+   ],
+   "lapvar": 3505.1,
+   "hf_ratio": 0.794,
+   "contrast": 52.7,
+   "esf_px": 3.0
+  },
+  "640_loader(steps0-2999)": {
+   "dims": [
+    53,
+    76
+   ],
+   "lapvar": 10346.6,
+   "hf_ratio": 0.851,
+   "contrast": 47.6,
+   "esf_px": 2.0
+  }
+ },
+ "ceiling": {
+  "2560_face": {
+   "dims": [
+    800,
+    800
+   ],
+   "lapvar": 27.4,
+   "hf_ratio": 0.469,
+   "contrast": 42.5,
+   "esf_px": 2.0
+  },
+  "1280_loader(steps3000-5999)": {
+   "dims": [
+    400,
+    400
+   ],
+   "lapvar": 110.0,
+   "hf_ratio": 0.559,
+   "contrast": 42.4,
+   "esf_px": 8.0
+  },
+  "640_loader(steps0-2999)": {
+   "dims": [
+    200,
+    200
+   ],
+   "lapvar": 281.4,
+   "hf_ratio": 0.566,
+   "contrast": 42.2,
+   "esf_px": 6.0
+  }
+ }
+}

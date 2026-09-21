@@ -1,0 +1,217 @@
+{
+ "source_filename": "VID_20260921_105956_00_020.insv",
+ "source_sha256": "80f40d9a11074a8bda9bb2053485b69d9c1e22b56de2aaf4a31f9f7925d14f0c",
+ "volume_copy": "slate360-recon-experiments:/room213/2026-09-21/raw-capture-test/VID_20260921_105956_00_020.insv (SHA256 verified identical by the cloud preflight)",
+ "serial": "IBMEA24069A4BV",
+ "model": "Insta360 X4",
+ "firmware": "v1.9.21_build5",
+ "capture_mode": "video; 2 x 3840x3840 HEVC single-lens streams (unstitched), 29.97 fps",
+ "decode_method": "Insta360 trailer: last 40 bytes = u32le trailer_size (12081364) + u32le version (3) + 32-byte magic 8db42d694ccc418790edff439fe026bf; metadata record at trailer end; protobuf length-delimited string fields read directly from tag+varint length. No SDK, no inference.",
+ "protobuf_fields": {
+  "1": "serial",
+  "2": "model",
+  "3": "firmware",
+  "22": "'standard'",
+  "53": "circle/offset string (277 B)",
+  "54": "Mei/unified calibration string (336 B)",
+  "55": "copy of 53",
+  "56": "copy of 54"
+ },
+ "raw_strings": {
+  "field53": "2_2899.960_4001.900_3007.050_-0.230_0.359_89.666_0.000000_0.000000_0.000000_1.00000000_-0.21946084_0.36187863_-0.13249248_16000_6000_71_2882.970_12003.730_3004.220_0.097_0.357_90.250_0.001366_0.001355_-0.032259_1.00000000_-0.21340746_0.35219479_-0.12904812_16000_6000_71_132096",
+  "field54": "2_1.948170_4627.110_4626.190_4010.120_3003.090_-0.325_0.211_89.628_0.000000_0.000000_0.000000_0.37879178_1.43848073_-4.27699137_0.00124575_-0.00176244_16000_6000_71_1.948170_4602.810_4602.930_12003.110_3006.370_0.136_0.283_90.296_-0.001115_0.000149_-0.032238_0.37512687_1.36600089_-4.03310871_-0.00114169_0.00024372_16000_6000_71_197632"
+ },
+ "camera_model": "Mei/unified, OpenCV omnidir convention (validated): X_s=X/|X|; m=(x_s/(z_s+xi), y_s/(z_s+xi)); radial k1,k2,k3 + tangential p1,p2 on m; u=fx*m_x+cx, v=fy*m_y+cy",
+ "token_layout_field54": "per lens: xi fx fy cx cy yaw_deg pitch_deg roll_deg tx ty tz k1 k2 k3 p1 p2 canvasW canvasH F ; lens A then lens B; trailing 197632 unknown",
+ "canvas_convention": "16000x6000 canvas, px; lens A x in [0,8000), lens B x in [8000,16000) (cx_B=12003.11); angles deg; translation metres, lens B relative to lens A",
+ "lenses": [
+  {
+   "xi": 1.94817,
+   "fx": 4627.11,
+   "fy": 4626.19,
+   "cx": 4010.12,
+   "cy": 3003.09,
+   "yaw_deg": -0.325,
+   "pitch_deg": 0.211,
+   "roll_deg": 89.628,
+   "t_m": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "k1": 0.37879178,
+   "k2": 1.43848073,
+   "k3": -4.27699137,
+   "p1": 0.00124575,
+   "p2": -0.00176244,
+   "canvas_w": 16000,
+   "canvas_h": 6000,
+   "f_field": 71,
+   "canvas_x_offset": 0
+  },
+  {
+   "xi": 1.94817,
+   "fx": 4602.81,
+   "fy": 4602.93,
+   "cx": 12003.11,
+   "cy": 3006.37,
+   "yaw_deg": 0.136,
+   "pitch_deg": 0.283,
+   "roll_deg": 90.296,
+   "t_m": [
+    -0.001115,
+    0.000149,
+    -0.032238
+   ],
+   "k1": 0.37512687,
+   "k2": 1.36600089,
+   "k3": -4.03310871,
+   "p1": -0.00114169,
+   "p2": 0.00024372,
+   "canvas_w": 16000,
+   "canvas_h": 6000,
+   "f_field": 71,
+   "canvas_x_offset": 8000
+  }
+ ],
+ "circle_field53": [
+  {
+   "r": 2899.96,
+   "cx": 4001.9,
+   "cy": 3007.05,
+   "yaw_deg": -0.23,
+   "pitch_deg": 0.359,
+   "roll_deg": 89.666,
+   "t_m": [
+    0.0,
+    0.0,
+    0.0
+   ],
+   "q_or_extra": [
+    1.0,
+    -0.21946084,
+    0.36187863,
+    -0.13249248
+   ],
+   "canvas_w": 16000,
+   "canvas_h": 6000,
+   "f_field": 71,
+   "canvas_x_offset": 0
+  },
+  {
+   "r": 2882.97,
+   "cx": 12003.73,
+   "cy": 3004.22,
+   "yaw_deg": 0.097,
+   "pitch_deg": 0.357,
+   "roll_deg": 90.25,
+   "t_m": [
+    0.001366,
+    0.001355,
+    -0.032259
+   ],
+   "q_or_extra": [
+    1.0,
+    -0.21340746,
+    0.35219479,
+    -0.12904812
+   ],
+   "canvas_w": 16000,
+   "canvas_h": 6000,
+   "f_field": 71,
+   "canvas_x_offset": 8000
+  }
+ ],
+ "frame_mapping": {
+  "frame": "3840x3840 lens stream",
+  "model": "u_f = s*(u_canvas - 8000*[lens B]) - ox ; v_f = s*v_canvas - oy",
+  "s_ox_oy_from_circle_geometry": {
+   "stream0_as_A": [
+    0.7245617180926632,
+    1028.7235396350288,
+    323.29331439054295
+   ],
+   "stream0_as_B": [
+    0.7288317256162915,
+    1047.1454448017143,
+    334.07084673097506
+   ],
+   "stream1_as_B": [
+    0.7305660482072307,
+    999.1892041887356,
+    350.9811333451264
+   ],
+   "stream1_as_A": [
+    0.7262858798052386,
+    980.7234623925845,
+    340.1779548683428
+   ]
+  },
+  "frame_circle_fits_cx_cy_r": {
+   "0": [
+    1870.9,
+    1855.5,
+    2101.2
+   ],
+   "1": [
+    1925.8,
+    1843.8,
+    2106.2
+   ]
+  },
+  "stream_to_lens_assignment": "UNRESOLVED by the target (identical ChArUco residual either way); circle-scale consistency weakly favours stream0=B, stream1=A"
+ },
+ "validity": {
+  "rho2_max_normalised": 0.3577348637660707,
+  "theta_max_deg_from_axis": 120.9,
+  "note": "unprojection is real only inside rho2_max; F=71 meaning unknown"
+ },
+ "validation": {
+  "charuco_placement1_stream0": {
+   "n_corners": 18,
+   "median_px": 0.58,
+   "rms_px": 0.92,
+   "p95_px": 1.82,
+   "note": "Mei params fixed; board pose solved; crop similarity from circle geometry (a free s is degenerate with board distance at one placement)"
+  },
+  "round_trip_px": {
+   "max": 2752.2304675679657,
+   "mean": 2.232893576532049,
+   "n_valid": 5990,
+   "n": 6400
+  },
+  "straight_line_rms_px_median_by_view": {
+   "stream0_mei_center": 2.2357395920962877,
+   "stream0_mei_up45": 2.199004400010599,
+   "stream0_mei_yaw45": 1.7802258342269592,
+   "stream0_mei_yaw70": 2.1821257562206533,
+   "stream0_mei_diag45": 2.024765065635104,
+   "stream0_mei_down45": 2.0492671679732943,
+   "stream0_equidistant_center": 2.2501142379172334,
+   "stream0_equidistant_up45": 2.103895826729383,
+   "stream0_equidistant_yaw45": 2.508642434043457,
+   "stream0_equidistant_yaw70": 2.395312162711815,
+   "stream0_equidistant_diag45": 2.6542723688639223,
+   "stream0_equidistant_down45": 1.412042093299236,
+   "stream1_mei_center": 3.1200635624833657,
+   "stream1_mei_up45": 1.1839431258300719,
+   "stream1_mei_yaw45": 3.2963876395795664,
+   "stream1_mei_yaw70": 2.745448336089488,
+   "stream1_mei_diag45": 1.503311751438981,
+   "stream1_mei_down45": 2.5754802517949638,
+   "stream1_equidistant_center": 2.675601148449073,
+   "stream1_equidistant_up45": 1.8929487948438761,
+   "stream1_equidistant_yaw45": 2.8214722713869547,
+   "stream1_equidistant_yaw70": 2.604882574793281,
+   "stream1_equidistant_diag45": 2.870564753601269,
+   "stream1_equidistant_down45": 2.159416272767702
+  }
+ },
+ "unknown_or_uncertain": [
+  "stream<->lens A/B assignment",
+  "Euler order/convention of per-lens yaw/pitch/roll (relative rotation NOT taken from the string)",
+  "meaning of F=71 and trailing ids 197632/132096",
+  "field53 tokens 10-13 (possibly a quaternion) unused",
+  "whether firmware applies these params identically at video vs still resolution"
+ ]
+}

@@ -1,0 +1,82 @@
+[
+ {
+  "assignment": "stream0=A,stream1=B",
+  "frame": "vid020_p1_t5.97",
+  "band_matches": 1578,
+  "inliers": 452,
+  "inlier_ratio": 0.2864385297845374,
+  "R_angle_deg": 172.35044446430217,
+  "R_axis": [
+   -0.0030617829473878026,
+   -0.9984847272417234,
+   0.054944289514055694
+  ],
+  "inlier_ray_rms_deg": 0.4374256033353629,
+  "inlier_ray_p95_deg": 0.9004166079585365,
+  "approx_px_rms_at_f_eff": 8.707862800196109,
+  "translation_parallax_floor_deg_at_1p5m_3m": [
+   1.23,
+   0.62
+  ]
+ },
+ {
+  "assignment": "stream0=A,stream1=B",
+  "frame": "vid020_p3_t42.01",
+  "band_matches": 1499,
+  "inliers": 350,
+  "inlier_ratio": 0.2334889926617745,
+  "R_angle_deg": 172.55645963244768,
+  "R_axis": [
+   -0.0035659582642488174,
+   -0.9989008927112616,
+   0.04673639355258802
+  ],
+  "inlier_ray_rms_deg": 0.35161833455880126,
+  "inlier_ray_p95_deg": 0.7523919442558848,
+  "approx_px_rms_at_f_eff": 6.999691357856022,
+  "translation_parallax_floor_deg_at_1p5m_3m": [
+   1.23,
+   0.62
+  ]
+ },
+ {
+  "assignment": "stream0=B,stream1=A",
+  "frame": "vid020_p1_t5.97",
+  "band_matches": 1587,
+  "inliers": 457,
+  "inlier_ratio": 0.28796471329552614,
+  "R_angle_deg": 172.50093280269428,
+  "R_axis": [
+   -0.004337664370680659,
+   -0.998535653233927,
+   0.05392340761211321
+  ],
+  "inlier_ray_rms_deg": 0.4553951544432483,
+  "inlier_ray_p95_deg": 1.0515929770092958,
+  "approx_px_rms_at_f_eff": 9.060051684669512,
+  "translation_parallax_floor_deg_at_1p5m_3m": [
+   1.23,
+   0.62
+  ]
+ },
+ {
+  "assignment": "stream0=B,stream1=A",
+  "frame": "vid020_p3_t42.01",
+  "band_matches": 1502,
+  "inliers": 350,
+  "inlier_ratio": 0.23302263648468707,
+  "R_angle_deg": 172.69346836682573,
+  "R_axis": [
+   -0.00475941039319205,
+   -0.9988946353565148,
+   0.046763826497459644
+  ],
+  "inlier_ray_rms_deg": 0.3482352813244378,
+  "inlier_ray_p95_deg": 0.7220256449600743,
+  "approx_px_rms_at_f_eff": 6.928114224408193,
+  "translation_parallax_floor_deg_at_1p5m_3m": [
+   1.23,
+   0.62
+  ]
+ }
+]
