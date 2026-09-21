@@ -92,6 +92,7 @@ gpu_image = (
         "assert _C is not None, 'gsplat CUDA ops missing'; "
         "print('gsplat CUDA ok')\"",
     )
+    .pip_install("av")  # dual-track .insv demux for the 2026-09-21 raw-rig preflight (CPU stages only)
     .add_local_dir(str(RECON), remote_path="/root/recon-experiment")
     .add_local_dir(str(LAB), remote_path="/root/splat-lab")
 )
@@ -790,6 +791,17 @@ def nerfstudio_downscale_introspect() -> str:
     )
     out.append(grep3.stdout)
 
+    out.append("=== nerfstudio_dataparser.py auto-downscale (MAX_AUTO_RESOLUTION) -- does a 2560 face get silently halved? ===")
+    grep4 = subprocess.run(["grep", "-n", "-E", "MAX_AUTO_RESOLUTION|downscale_factor|max_res", "/usr/local/lib/python3.10/site-packages/nerfstudio/data/dataparsers/nerfstudio_dataparser.py"], capture_output=True, text=True)
+    out.append(grep4.stdout)
+    with open("/usr/local/lib/python3.10/site-packages/nerfstudio/data/dataparsers/nerfstudio_dataparser.py") as f:
+        dl = f.readlines()
+    out.append("".join(dl[466:492]))
+    out.append("=== splatfacto camera optimizer default + method_configs splatfacto datamanager/dataparser settings ===")
+    grep5 = subprocess.run(["grep", "-n", "-E", "camera_optimizer|CameraOptimizerConfig|mode=", "/usr/local/lib/python3.10/site-packages/nerfstudio/models/splatfacto.py"], capture_output=True, text=True)
+    out.append(grep5.stdout)
+    grep6 = subprocess.run(["grep", "-n", "-A12", "method=\"splatfacto\"", "/usr/local/lib/python3.10/site-packages/nerfstudio/configs/method_configs.py"], capture_output=True, text=True)
+    out.append(grep6.stdout[:2500])
     out.append("=== splatfacto.py: full source of resize_image()/_get_downscale_factor()/_downscale_if_required() -- the LIVE per-step path ===")
     with open("/usr/local/lib/python3.10/site-packages/nerfstudio/models/splatfacto.py") as f:
         sp_lines = f.readlines()
@@ -826,6 +838,31 @@ def nerfstudio_downscale_introspect() -> str:
         out.append(f"{label} lapvar {lapvar(b):.1f} shape {b.shape}")
 
     return "\n".join(out)
+
+
+@app.function(
+    image=gpu_image,
+    timeout=6 * 60 * 60,
+    memory=32 * 1024,
+    cpu=8.0,
+    volumes={"/vol": ckpt_vol},
+    retries=0,
+)
+def room213_raw_preflight() -> str:
+    """Room 213 2026-09-21 raw-rig preflight stages 1-4 (verify / demux / ChArUco / splits).
+    CPU only, no GPU, no training, no face generation, no camera-model fit. Reads only the
+    raw-capture-test prefix, writes only room213/2026-09-21/preflight/. Idempotent -- rerun
+    after more source files land on the volume."""
+    sys.path.insert(0, "/root/recon-experiment")
+    import io
+    import contextlib
+
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        import room213_raw_preflight as m
+        m.main()
+    ckpt_vol.commit()
+    return buf.getvalue()
 
 
 def _committed_recipe(name: str) -> dict[str, Any]:
@@ -897,6 +934,9 @@ def main(phase: str = "exp3"):
         return
     if phase == "exp6-instrumentation-smoke-test":
         print(exp6_instrumentation_smoke_test.remote())
+        return
+    if phase == "room213-raw-preflight":
+        print(room213_raw_preflight.remote())
         return
     if phase == "nerfstudio-downscale-introspect":
         print(nerfstudio_downscale_introspect.remote())

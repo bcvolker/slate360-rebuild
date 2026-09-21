@@ -27,6 +27,32 @@
  "holdout": "freeze every 10th keeper (by time order) as external holdout BEFORE SfM; never trained on",
  "trainer": "K6 splatfacto recipe unchanged (exp6.resolved_arm_config) -- only the input observations change",
  "walking_scan_stats": {
+  "VID_20260921_110203_00_021.insv": {
+   "video": "VID_20260921_110203_00_021.insv",
+   "candidates": 822,
+   "keepers": 87,
+   "median_spacing_s": 1.1675000000000182,
+   "motion_per_frame_p10_p50_p90": [
+    1.404042329788208,
+    1.9204962730407713,
+    2.4389520835876466
+   ],
+   "lv_center_lens0_p10_p50_p90": [
+    35.41,
+    87.2,
+    230.27
+   ],
+   "lv_center_lens1_p10_p50_p90": [
+    79.09,
+    106.8,
+    147.98
+   ],
+   "thresholds": {
+    "motion": 2.0007200241088867,
+    "lv0": 71.22000000000001,
+    "lv1": 103.04
+   }
+  },
   "VID_20260921_111410_00_075.insv": {
    "video": "VID_20260921_111410_00_075.insv",
    "candidates": 294,
@@ -54,7 +80,7 @@
    }
   }
  },
- "n_frames": 34,
+ "n_frames": 121,
  "frames": [
   {
    "video": "VID_20260921_105956_00_020.insv",
@@ -94,6 +120,702 @@
     42.0,
     52.5
    ]
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 0.0,
+   "lens0_lv_center": 92.7,
+   "lens1_lv_center": 132.9,
+   "image_motion_per_frame_480": 0.0
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 6.673,
+   "lens0_lv_center": 79.4,
+   "lens1_lv_center": 108.8,
+   "image_motion_per_frame_480": 1.2892144203186036
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 7.341,
+   "lens0_lv_center": 75.2,
+   "lens1_lv_center": 106.1,
+   "image_motion_per_frame_480": 1.6382802963256835
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 19.353,
+   "lens0_lv_center": 97.9,
+   "lens1_lv_center": 163.4,
+   "image_motion_per_frame_480": 1.8957326889038086
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 20.02,
+   "lens0_lv_center": 100.5,
+   "lens1_lv_center": 336.8,
+   "image_motion_per_frame_480": 1.5214609146118163
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 20.687,
+   "lens0_lv_center": 121.0,
+   "lens1_lv_center": 254.7,
+   "image_motion_per_frame_480": 1.726046371459961
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 21.355,
+   "lens0_lv_center": 161.0,
+   "lens1_lv_center": 148.4,
+   "image_motion_per_frame_480": 1.4453250885009765
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 22.022,
+   "lens0_lv_center": 188.0,
+   "lens1_lv_center": 139.9,
+   "image_motion_per_frame_480": 1.4281731605529786
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 23.357,
+   "lens0_lv_center": 166.3,
+   "lens1_lv_center": 163.8,
+   "image_motion_per_frame_480": 1.403365421295166
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 24.024,
+   "lens0_lv_center": 140.9,
+   "lens1_lv_center": 233.5,
+   "image_motion_per_frame_480": 1.6370464324951173
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 24.358,
+   "lens0_lv_center": 141.3,
+   "lens1_lv_center": 279.8,
+   "image_motion_per_frame_480": 1.4363255500793457
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 25.025,
+   "lens0_lv_center": 115.0,
+   "lens1_lv_center": 159.0,
+   "image_motion_per_frame_480": 1.8436731338500976
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 25.692,
+   "lens0_lv_center": 99.0,
+   "lens1_lv_center": 152.2,
+   "image_motion_per_frame_480": 1.8488649368286132
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 26.026,
+   "lens0_lv_center": 93.0,
+   "lens1_lv_center": 145.2,
+   "image_motion_per_frame_480": 1.9929357528686524
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 26.693,
+   "lens0_lv_center": 89.9,
+   "lens1_lv_center": 113.3,
+   "image_motion_per_frame_480": 1.873854637145996
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 27.361,
+   "lens0_lv_center": 90.9,
+   "lens1_lv_center": 113.4,
+   "image_motion_per_frame_480": 1.9710464477539062
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 36.703,
+   "lens0_lv_center": 75.5,
+   "lens1_lv_center": 109.7,
+   "image_motion_per_frame_480": 1.9280916213989259
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 46.713,
+   "lens0_lv_center": 80.6,
+   "lens1_lv_center": 127.8,
+   "image_motion_per_frame_480": 1.841888427734375
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 49.716,
+   "lens0_lv_center": 129.1,
+   "lens1_lv_center": 175.2,
+   "image_motion_per_frame_480": 1.738313865661621
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 50.717,
+   "lens0_lv_center": 84.4,
+   "lens1_lv_center": 194.4,
+   "image_motion_per_frame_480": 1.7839176177978515
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 54.721,
+   "lens0_lv_center": 77.5,
+   "lens1_lv_center": 116.4,
+   "image_motion_per_frame_480": 1.9468944549560547
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 70.07,
+   "lens0_lv_center": 75.2,
+   "lens1_lv_center": 103.4,
+   "image_motion_per_frame_480": 1.8566570281982422
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 76.743,
+   "lens0_lv_center": 85.1,
+   "lens1_lv_center": 107.0,
+   "image_motion_per_frame_480": 1.9087404251098632
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 77.411,
+   "lens0_lv_center": 85.1,
+   "lens1_lv_center": 107.5,
+   "image_motion_per_frame_480": 1.6199474334716797
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 78.078,
+   "lens0_lv_center": 109.6,
+   "lens1_lv_center": 129.7,
+   "image_motion_per_frame_480": 1.9578142166137695
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 79.413,
+   "lens0_lv_center": 125.8,
+   "lens1_lv_center": 107.7,
+   "image_motion_per_frame_480": 1.9697500228881837
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 80.08,
+   "lens0_lv_center": 91.3,
+   "lens1_lv_center": 105.3,
+   "image_motion_per_frame_480": 1.7865598678588868
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 81.748,
+   "lens0_lv_center": 76.1,
+   "lens1_lv_center": 123.8,
+   "image_motion_per_frame_480": 1.880584716796875
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 90.757,
+   "lens0_lv_center": 85.3,
+   "lens1_lv_center": 110.1,
+   "image_motion_per_frame_480": 1.5459465980529785
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 92.092,
+   "lens0_lv_center": 89.4,
+   "lens1_lv_center": 113.5,
+   "image_motion_per_frame_480": 1.672443962097168
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 106.44,
+   "lens0_lv_center": 73.4,
+   "lens1_lv_center": 131.8,
+   "image_motion_per_frame_480": 1.5583841323852539
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 107.107,
+   "lens0_lv_center": 72.0,
+   "lens1_lv_center": 123.6,
+   "image_motion_per_frame_480": 1.7223897933959962
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 108.108,
+   "lens0_lv_center": 75.3,
+   "lens1_lv_center": 127.4,
+   "image_motion_per_frame_480": 1.7902238845825196
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 109.109,
+   "lens0_lv_center": 84.8,
+   "lens1_lv_center": 127.7,
+   "image_motion_per_frame_480": 1.9886613845825196
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 111.445,
+   "lens0_lv_center": 134.9,
+   "lens1_lv_center": 110.2,
+   "image_motion_per_frame_480": 1.6069625854492187
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 113.113,
+   "lens0_lv_center": 156.4,
+   "lens1_lv_center": 108.1,
+   "image_motion_per_frame_480": 1.894219207763672
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 115.449,
+   "lens0_lv_center": 75.6,
+   "lens1_lv_center": 367.8,
+   "image_motion_per_frame_480": 1.9144044876098634
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 120.454,
+   "lens0_lv_center": 147.8,
+   "lens1_lv_center": 114.5,
+   "image_motion_per_frame_480": 1.822322463989258
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 121.121,
+   "lens0_lv_center": 136.3,
+   "lens1_lv_center": 103.1,
+   "image_motion_per_frame_480": 1.8832027435302734
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 121.788,
+   "lens0_lv_center": 108.4,
+   "lens1_lv_center": 114.4,
+   "image_motion_per_frame_480": 1.8424467086791991
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 123.79,
+   "lens0_lv_center": 129.7,
+   "lens1_lv_center": 109.8,
+   "image_motion_per_frame_480": 1.6990594863891602
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 125.459,
+   "lens0_lv_center": 184.5,
+   "lens1_lv_center": 108.7,
+   "image_motion_per_frame_480": 1.9100833892822267
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 126.126,
+   "lens0_lv_center": 174.2,
+   "lens1_lv_center": 111.3,
+   "image_motion_per_frame_480": 1.8030582427978517
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 128.128,
+   "lens0_lv_center": 111.4,
+   "lens1_lv_center": 112.1,
+   "image_motion_per_frame_480": 1.9362890243530273
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 129.796,
+   "lens0_lv_center": 79.3,
+   "lens1_lv_center": 105.1,
+   "image_motion_per_frame_480": 1.9148754119873046
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 134.468,
+   "lens0_lv_center": 124.8,
+   "lens1_lv_center": 109.3,
+   "image_motion_per_frame_480": 1.8783792495727538
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 134.801,
+   "lens0_lv_center": 144.0,
+   "lens1_lv_center": 110.0,
+   "image_motion_per_frame_480": 1.8549266815185548
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 135.469,
+   "lens0_lv_center": 167.3,
+   "lens1_lv_center": 116.4,
+   "image_motion_per_frame_480": 1.9157342910766602
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 138.472,
+   "lens0_lv_center": 137.4,
+   "lens1_lv_center": 120.5,
+   "image_motion_per_frame_480": 1.7621097564697266
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 139.139,
+   "lens0_lv_center": 142.4,
+   "lens1_lv_center": 111.2,
+   "image_motion_per_frame_480": 1.8508329391479492
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 148.148,
+   "lens0_lv_center": 133.3,
+   "lens1_lv_center": 111.9,
+   "image_motion_per_frame_480": 1.9049079895019532
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 149.483,
+   "lens0_lv_center": 157.0,
+   "lens1_lv_center": 104.3,
+   "image_motion_per_frame_480": 1.7131935119628907
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 150.817,
+   "lens0_lv_center": 173.4,
+   "lens1_lv_center": 104.3,
+   "image_motion_per_frame_480": 1.7009170532226563
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 151.485,
+   "lens0_lv_center": 99.2,
+   "lens1_lv_center": 103.2,
+   "image_motion_per_frame_480": 1.9185638427734375
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 154.154,
+   "lens0_lv_center": 185.1,
+   "lens1_lv_center": 103.1,
+   "image_motion_per_frame_480": 1.8906654357910155
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 157.157,
+   "lens0_lv_center": 98.1,
+   "lens1_lv_center": 118.5,
+   "image_motion_per_frame_480": 1.8388328552246094
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 161.161,
+   "lens0_lv_center": 87.0,
+   "lens1_lv_center": 152.8,
+   "image_motion_per_frame_480": 1.8745035171508788
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 161.828,
+   "lens0_lv_center": 78.1,
+   "lens1_lv_center": 148.8,
+   "image_motion_per_frame_480": 1.7355669021606446
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 164.164,
+   "lens0_lv_center": 89.5,
+   "lens1_lv_center": 128.1,
+   "image_motion_per_frame_480": 1.9899839401245116
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 165.499,
+   "lens0_lv_center": 149.2,
+   "lens1_lv_center": 104.4,
+   "image_motion_per_frame_480": 1.8376806259155274
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 166.5,
+   "lens0_lv_center": 190.4,
+   "lens1_lv_center": 104.8,
+   "image_motion_per_frame_480": 1.8187574386596679
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 167.834,
+   "lens0_lv_center": 163.7,
+   "lens1_lv_center": 119.3,
+   "image_motion_per_frame_480": 1.8597105026245118
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 172.839,
+   "lens0_lv_center": 93.8,
+   "lens1_lv_center": 105.6,
+   "image_motion_per_frame_480": 1.4203771591186523
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 173.507,
+   "lens0_lv_center": 94.8,
+   "lens1_lv_center": 108.4,
+   "image_motion_per_frame_480": 1.1558467864990234
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 174.174,
+   "lens0_lv_center": 90.7,
+   "lens1_lv_center": 109.2,
+   "image_motion_per_frame_480": 1.4884939193725586
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 175.175,
+   "lens0_lv_center": 142.2,
+   "lens1_lv_center": 105.8,
+   "image_motion_per_frame_480": 1.2306957244873047
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 175.842,
+   "lens0_lv_center": 157.8,
+   "lens1_lv_center": 108.9,
+   "image_motion_per_frame_480": 1.6712377548217774
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 176.51,
+   "lens0_lv_center": 154.6,
+   "lens1_lv_center": 105.6,
+   "image_motion_per_frame_480": 1.940406608581543
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 177.177,
+   "lens0_lv_center": 145.5,
+   "lens1_lv_center": 117.9,
+   "image_motion_per_frame_480": 1.8616111755371094
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 177.844,
+   "lens0_lv_center": 124.5,
+   "lens1_lv_center": 123.7,
+   "image_motion_per_frame_480": 1.915995216369629
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 178.512,
+   "lens0_lv_center": 144.4,
+   "lens1_lv_center": 130.9,
+   "image_motion_per_frame_480": 1.3823536872863769
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 179.179,
+   "lens0_lv_center": 140.7,
+   "lens1_lv_center": 123.7,
+   "image_motion_per_frame_480": 1.6441289901733398
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 181.181,
+   "lens0_lv_center": 135.1,
+   "lens1_lv_center": 113.0,
+   "image_motion_per_frame_480": 1.8192083358764648
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 182.849,
+   "lens0_lv_center": 83.0,
+   "lens1_lv_center": 112.0,
+   "image_motion_per_frame_480": 1.5198220252990722
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 183.85,
+   "lens0_lv_center": 78.6,
+   "lens1_lv_center": 117.6,
+   "image_motion_per_frame_480": 1.6694087982177734
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 184.518,
+   "lens0_lv_center": 90.4,
+   "lens1_lv_center": 112.3,
+   "image_motion_per_frame_480": 1.8227764129638673
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 184.851,
+   "lens0_lv_center": 107.7,
+   "lens1_lv_center": 129.1,
+   "image_motion_per_frame_480": 1.8765594482421875
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 186.186,
+   "lens0_lv_center": 158.8,
+   "lens1_lv_center": 140.0,
+   "image_motion_per_frame_480": 0.5455559730529785
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 187.521,
+   "lens0_lv_center": 88.9,
+   "lens1_lv_center": 131.2,
+   "image_motion_per_frame_480": 1.5978415489196778
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 223.223,
+   "lens0_lv_center": 293.0,
+   "lens1_lv_center": 117.7,
+   "image_motion_per_frame_480": 1.7894210815429688
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 224.558,
+   "lens0_lv_center": 335.9,
+   "lens1_lv_center": 106.8,
+   "image_motion_per_frame_480": 1.9181732177734374
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 257.591,
+   "lens0_lv_center": 96.7,
+   "lens1_lv_center": 106.2,
+   "image_motion_per_frame_480": 1.9372240066528321
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 260.594,
+   "lens0_lv_center": 250.4,
+   "lens1_lv_center": 112.8,
+   "image_motion_per_frame_480": 1.8396844863891602
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 261.595,
+   "lens0_lv_center": 234.5,
+   "lens1_lv_center": 106.1,
+   "image_motion_per_frame_480": 1.9201805114746093
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 271.938,
+   "lens0_lv_center": 114.0,
+   "lens1_lv_center": 252.2,
+   "image_motion_per_frame_480": 1.704012107849121
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 272.272,
+   "lens0_lv_center": 83.2,
+   "lens1_lv_center": 185.4,
+   "image_motion_per_frame_480": 1.623526382446289
+  },
+  {
+   "video": "VID_20260921_110203_00_021.insv",
+   "role": "walking_keyframe",
+   "t": 273.273,
+   "lens0_lv_center": 76.1,
+   "lens1_lv_center": 184.7,
+   "image_motion_per_frame_480": 1.502743911743164
   },
   {
    "video": "VID_20260921_111410_00_075.insv",
@@ -343,5 +1065,9 @@
    "lens1_lv_center": 144.1,
    "image_motion_per_frame_480": 1.7464853286743165
   }
- ]
+ ],
+ "sync": {
+  "method": "PyAV packet pts per lens stream",
+  "result": "identical pts on both lens tracks, 1001/30000 s cadence, 0 dropped frames (VID_020, VID_075)"
+ }
 }
