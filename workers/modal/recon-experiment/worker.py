@@ -92,7 +92,7 @@ gpu_image = (
         "assert _C is not None, 'gsplat CUDA ops missing'; "
         "print('gsplat CUDA ok')\"",
     )
-    .pip_install("av")  # dual-track .insv demux for the 2026-09-21 raw-rig preflight (CPU stages only)
+    .pip_install("av", "pycolmap")  # dual-track .insv demux + rig SfM for the 2026-09-21 raw-rig preflight (CPU stages)
     .add_local_dir(str(RECON), remote_path="/root/recon-experiment")
     .add_local_dir(str(LAB), remote_path="/root/splat-lab")
 )
@@ -865,6 +865,64 @@ def room213_raw_preflight() -> str:
     return buf.getvalue()
 
 
+@app.function(
+    image=gpu_image,
+    timeout=2 * 60 * 60,
+    memory=16 * 1024,
+    cpu=4.0,
+    volumes={"/vol": ckpt_vol},
+    retries=0,
+)
+def room213_reassemble(payload: dict[str, Any]) -> dict[str, Any]:
+    """Concatenate chunked uploads (name.partNNN) on the volume into the original file and
+    verify SHA256 against the expected digest. Parts are removed only after a match."""
+    import hashlib
+    vol = Path("/vol"); d = vol / "room213" / "2026-09-21" / "raw-capture-test"; parts_dir = d / "parts"
+    name = payload["name"]; expected = payload["sha256"]
+    parts = sorted(parts_dir.glob(name + ".part*"))
+    out = d / name; h = hashlib.sha256()
+    with open(out, "wb") as w:
+        for p in parts:
+            with open(p, "rb") as r:
+                for chunk in iter(lambda: r.read(64 * 1024 * 1024), b""):
+                    w.write(chunk); h.update(chunk)
+    ok = h.hexdigest() == expected
+    if ok:
+        for p in parts:
+            p.unlink()
+    else:
+        out.unlink(missing_ok=True)
+    ckpt_vol.commit()
+    return {"name": name, "n_parts": len(parts), "size": out.stat().st_size if ok else None, "sha256_ok": ok, "got": h.hexdigest()}
+
+
+@app.function(
+    image=gpu_image,
+    gpu="A10G",
+    timeout=6 * 60 * 60,
+    memory=48 * 1024,
+    cpu=8.0,
+    volumes={"/vol": ckpt_vol},
+    secrets=[worker_secret] if worker_secret is not None else [],
+    retries=0,
+)
+def room213_raw_build() -> str:
+    """Room 213 raw-rig dataset build (stages 5-9): person masks (torchvision Mask R-CNN,
+    GPU), 2560 Mei faces, constrained rig SfM/BA (pycolmap; factory intrinsics + 32.26 mm
+    fixed, inter-lens rotation the only rig parameter, no per-face optimisation), holdouts,
+    metric-scale + LiDAR checks, loader detail survival. NO Gaussian training."""
+    sys.path.insert(0, "/root/recon-experiment")
+    import io
+    import contextlib
+
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        import room213_raw_build as m
+        m.main()
+    ckpt_vol.commit()
+    return buf.getvalue()
+
+
 def _committed_recipe(name: str) -> dict[str, Any]:
     """Recipes live in the repo (qa/*.json) so a fresh clone can launch; /experiments is gitignored."""
     for candidate in (ROOT / "qa" / name, ROOT / "experiments" / "room213-densification" / "frozen-recipe.json"):
@@ -934,6 +992,13 @@ def main(phase: str = "exp3"):
         return
     if phase == "exp6-instrumentation-smoke-test":
         print(exp6_instrumentation_smoke_test.remote())
+        return
+    if phase == "room213-reassemble":
+        import json as _j
+        print(_j.dumps(room213_reassemble.remote(_j.loads(os.environ["ROOM213_REASSEMBLE"])), indent=1))
+        return
+    if phase == "room213-raw-build":
+        print(room213_raw_build.remote())
         return
     if phase == "room213-raw-preflight":
         print(room213_raw_preflight.remote())
