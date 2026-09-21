@@ -1,0 +1,524 @@
+{
+ "rois": [
+  {
+   "render_id": "A_022_y0_p0",
+   "feature": "checkerboard",
+   "source": "A_still",
+   "bbox": [
+    620,
+    660,
+    820,
+    900
+   ],
+   "lens_position": "center",
+   "checker": true
+  },
+  {
+   "render_id": "B_p1_L0_y0_p0",
+   "feature": "checkerboard",
+   "source": "B_static",
+   "bbox": [
+    540,
+    500,
+    760,
+    720
+   ],
+   "lens_position": "center",
+   "checker": true
+  },
+  {
+   "render_id": "B_w96.76_L0_y0_p0",
+   "feature": "checkerboard",
+   "source": "B_walk",
+   "bbox": [
+    540,
+    440,
+    720,
+    640
+   ],
+   "lens_position": "center",
+   "checker": true
+  },
+  {
+   "render_id": "A_022_y0_p45",
+   "feature": "ceiling_grid",
+   "source": "A_still",
+   "bbox": [
+    520,
+    60,
+    780,
+    420
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "B_p1_L0_y0_p45",
+   "feature": "ceiling_grid",
+   "source": "B_static",
+   "bbox": [
+    520,
+    40,
+    780,
+    400
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "B_p1_L1_y0_p45",
+   "feature": "ceiling_grid",
+   "source": "B_static",
+   "bbox": [
+    560,
+    300,
+    860,
+    600
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "B_w67.40_L0_y0_p45",
+   "feature": "ceiling_grid",
+   "source": "B_walk",
+   "bbox": [
+    500,
+    120,
+    800,
+    420
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "C_000173_v00",
+   "feature": "ceiling_grid",
+   "source": "C_hist",
+   "bbox": [
+    600,
+    80,
+    900,
+    320
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "C_000325_v00",
+   "feature": "ceiling_grid",
+   "source": "C_hist",
+   "bbox": [
+    550,
+    20,
+    900,
+    250
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "A_022_y0_p-45",
+   "feature": "chair_mesh",
+   "source": "A_still",
+   "bbox": [
+    300,
+    780,
+    520,
+    1000
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "B_p1_L0_y0_p-45",
+   "feature": "chair_mesh",
+   "source": "B_static",
+   "bbox": [
+    720,
+    760,
+    940,
+    980
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "B_p3_L0_y0_p0",
+   "feature": "chair_mesh",
+   "source": "B_static",
+   "bbox": [
+    380,
+    860,
+    600,
+    1060
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "B_w67.40_L0_y0_p0",
+   "feature": "chair_mesh",
+   "source": "B_walk",
+   "bbox": [
+    300,
+    720,
+    500,
+    900
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "C_000264_v00",
+   "feature": "chair_mesh",
+   "source": "C_hist",
+   "bbox": [
+    575,
+    845,
+    745,
+    1030
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "C_000173_v06",
+   "feature": "chair_mesh",
+   "source": "C_hist",
+   "bbox": [
+    370,
+    900,
+    620,
+    1150
+   ],
+   "lens_position": "rim",
+   "checker": false
+  },
+  {
+   "render_id": "B_p1_L0_y-45_p0",
+   "feature": "door_hardware",
+   "source": "B_static",
+   "bbox": [
+    200,
+    560,
+    340,
+    760
+   ],
+   "lens_position": "rim",
+   "checker": false
+  },
+  {
+   "render_id": "B_p3_L0_y-45_p0",
+   "feature": "door_hardware",
+   "source": "B_static",
+   "bbox": [
+    100,
+    560,
+    260,
+    760
+   ],
+   "lens_position": "rim",
+   "checker": false
+  },
+  {
+   "render_id": "B_p1_L1_y40_p0",
+   "feature": "door_hardware",
+   "source": "B_static",
+   "bbox": [
+    820,
+    600,
+    1000,
+    800
+   ],
+   "lens_position": "rim",
+   "checker": false
+  },
+  {
+   "render_id": "A_022_y240_p0",
+   "feature": "door_hardware",
+   "source": "A_still",
+   "bbox": [
+    680,
+    600,
+    820,
+    800
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "C_000264_v00",
+   "feature": "door_hardware",
+   "source": "C_hist",
+   "bbox": [
+    350,
+    800,
+    440,
+    920
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "C_000173_v02",
+   "feature": "door_hardware",
+   "source": "C_hist",
+   "bbox": [
+    30,
+    600,
+    180,
+    780
+   ],
+   "lens_position": "seam",
+   "checker": false
+  },
+  {
+   "render_id": "B_w67.40_L0_y0_p0",
+   "feature": "window_frame",
+   "source": "B_walk",
+   "bbox": [
+    60,
+    140,
+    1000,
+    480
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "B_w96.76_L1_y-40_p0",
+   "feature": "window_frame",
+   "source": "B_walk",
+   "bbox": [
+    40,
+    700,
+    1200,
+    900
+   ],
+   "lens_position": "rim",
+   "checker": false
+  },
+  {
+   "render_id": "A_022_y120_p0",
+   "feature": "window_frame",
+   "source": "A_still",
+   "bbox": [
+    200,
+    540,
+    1200,
+    700
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "C_000173_v06",
+   "feature": "window_frame",
+   "source": "C_hist",
+   "bbox": [
+    650,
+    500,
+    1280,
+    950
+   ],
+   "lens_position": "seam",
+   "checker": false
+  },
+  {
+   "render_id": "C_000325_v00",
+   "feature": "window_frame",
+   "source": "C_hist",
+   "bbox": [
+    0,
+    540,
+    650,
+    950
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "B_p1_L0_y-45_p0",
+   "feature": "signage_text",
+   "source": "B_static",
+   "bbox": [
+    300,
+    560,
+    400,
+    640
+   ],
+   "lens_position": "rim",
+   "checker": false
+  },
+  {
+   "render_id": "B_p3_L0_y-45_p0",
+   "feature": "signage_text",
+   "source": "B_static",
+   "bbox": [
+    740,
+    600,
+    840,
+    680
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "A_022_y240_p0",
+   "feature": "signage_text",
+   "source": "A_still",
+   "bbox": [
+    620,
+    640,
+    720,
+    720
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "C_000264_v00",
+   "feature": "signage_text",
+   "source": "C_hist",
+   "bbox": [
+    455,
+    585,
+    540,
+    650
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "A_022_y0_p0",
+   "feature": "object_edge",
+   "source": "A_still",
+   "bbox": [
+    240,
+    1120,
+    340,
+    1260
+   ],
+   "lens_position": "rim",
+   "checker": false
+  },
+  {
+   "render_id": "B_p1_L0_y0_p0",
+   "feature": "object_edge",
+   "source": "B_static",
+   "bbox": [
+    130,
+    1000,
+    230,
+    1160
+   ],
+   "lens_position": "rim",
+   "checker": false
+  },
+  {
+   "render_id": "B_w96.76_L0_y0_p0",
+   "feature": "object_edge",
+   "source": "B_walk",
+   "bbox": [
+    260,
+    800,
+    360,
+    940
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "C_000325_v00",
+   "feature": "object_edge",
+   "source": "C_hist",
+   "bbox": [
+    390,
+    760,
+    530,
+    880
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "C_000173_v00",
+   "feature": "object_edge",
+   "source": "C_hist",
+   "bbox": [
+    800,
+    850,
+    1050,
+    1180
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "B_p1_L0_y0_p-45",
+   "feature": "carpet",
+   "source": "B_static",
+   "bbox": [
+    900,
+    900,
+    1250,
+    1250
+   ],
+   "lens_position": "rim",
+   "checker": false
+  },
+  {
+   "render_id": "A_022_y0_p-45",
+   "feature": "carpet",
+   "source": "A_still",
+   "bbox": [
+    560,
+    980,
+    900,
+    1250
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "B_w67.40_L0_y0_p0",
+   "feature": "carpet",
+   "source": "B_walk",
+   "bbox": [
+    600,
+    760,
+    900,
+    1100
+   ],
+   "lens_position": "center",
+   "checker": false
+  },
+  {
+   "render_id": "C_000173_v00",
+   "feature": "carpet",
+   "source": "C_hist",
+   "bbox": [
+    900,
+    1000,
+    1280,
+    1280
+   ],
+   "lens_position": "rim",
+   "checker": false
+  },
+  {
+   "render_id": "C_000264_v00",
+   "feature": "carpet",
+   "source": "C_hist",
+   "bbox": [
+    900,
+    950,
+    1280,
+    1200
+   ],
+   "lens_position": "rim",
+   "checker": false
+  }
+ ]
+}

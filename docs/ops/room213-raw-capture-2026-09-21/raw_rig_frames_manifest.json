@@ -1,0 +1,347 @@
+{
+ "dataset": "room213-2026-09-21 raw dual-lens rig candidate frames",
+ "lens_model": {
+  "type": "equidistant (provisional)",
+  "f_px_per_rad": 1200,
+  "uncertainty": "+-10%; to be refined by SfM OPENCV_FISHEYE self-calibration",
+  "circle_center_lens0": [
+   1899,
+   1889
+  ],
+  "circle_center_lens1": [
+   1921,
+   1876
+  ],
+  "frame_px": [
+   3840,
+   3840
+  ]
+ },
+ "rig": {
+  "cameras": 2,
+  "relative_rotation_deg": "~180 yaw (back-to-back), fixed",
+  "baseline_m": "~0.02-0.03 (X4 body), fixed",
+  "model": "COLMAP rig, per-frame fixed sensor_from_rig"
+ },
+ "masks": "people mask required (operator visible in lens 1 nearly every frame) + nadir/pole band; reuse pipeline people-mask stage",
+ "holdout": "freeze every 10th keeper (by time order) as external holdout BEFORE SfM; never trained on",
+ "trainer": "K6 splatfacto recipe unchanged (exp6.resolved_arm_config) -- only the input observations change",
+ "walking_scan_stats": {
+  "VID_20260921_111410_00_075.insv": {
+   "video": "VID_20260921_111410_00_075.insv",
+   "candidates": 294,
+   "keepers": 31,
+   "median_spacing_s": 1.3349999999999955,
+   "motion_per_frame_p10_p50_p90": [
+    1.433174982070923,
+    1.7509071350097658,
+    2.2115391159057616
+   ],
+   "lv_center_lens0_p10_p50_p90": [
+    63.28,
+    98.8,
+    167.63
+   ],
+   "lv_center_lens1_p10_p50_p90": [
+    85.09,
+    104.0,
+    123.34
+   ],
+   "thresholds": {
+    "motion": 1.8502562713623047,
+    "lv0": 91.08,
+    "lv1": 101.32
+   }
+  }
+ },
+ "n_frames": 34,
+ "frames": [
+  {
+   "video": "VID_20260921_105956_00_020.insv",
+   "role": "tripod_static",
+   "placement": 1,
+   "t": 5.973,
+   "lens0_lv_center": 154.6,
+   "lens1_lv_center": 224.9,
+   "image_motion_480": 2.047,
+   "stable_window": [
+    3.0,
+    17.0
+   ]
+  },
+  {
+   "video": "VID_20260921_105956_00_020.insv",
+   "role": "tripod_static",
+   "placement": 2,
+   "t": 23.023,
+   "lens0_lv_center": 65.4,
+   "lens1_lv_center": 175.1,
+   "image_motion_480": null,
+   "stable_window": [
+    23.0,
+    35.5
+   ]
+  },
+  {
+   "video": "VID_20260921_105956_00_020.insv",
+   "role": "tripod_static",
+   "placement": 3,
+   "t": 42.009,
+   "lens0_lv_center": 112.3,
+   "lens1_lv_center": 153.6,
+   "image_motion_480": null,
+   "stable_window": [
+    42.0,
+    52.5
+   ]
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 0.0,
+   "lens0_lv_center": 115.6,
+   "lens1_lv_center": 130.8,
+   "image_motion_per_frame_480": 0.0
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 14.681,
+   "lens0_lv_center": 125.9,
+   "lens1_lv_center": 113.7,
+   "image_motion_per_frame_480": 1.7984001159667968
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 15.349,
+   "lens0_lv_center": 111.0,
+   "lens1_lv_center": 111.5,
+   "image_motion_per_frame_480": 1.7958208084106446
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 16.683,
+   "lens0_lv_center": 94.1,
+   "lens1_lv_center": 101.7,
+   "image_motion_per_frame_480": 1.3972969055175781
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 17.351,
+   "lens0_lv_center": 104.5,
+   "lens1_lv_center": 101.8,
+   "image_motion_per_frame_480": 1.6465194702148438
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 18.352,
+   "lens0_lv_center": 114.4,
+   "lens1_lv_center": 101.8,
+   "image_motion_per_frame_480": 1.827165412902832
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 21.355,
+   "lens0_lv_center": 127.8,
+   "lens1_lv_center": 102.0,
+   "image_motion_per_frame_480": 1.7178476333618165
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 22.022,
+   "lens0_lv_center": 127.4,
+   "lens1_lv_center": 111.7,
+   "image_motion_per_frame_480": 1.6526309967041015
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 22.689,
+   "lens0_lv_center": 121.5,
+   "lens1_lv_center": 102.3,
+   "image_motion_per_frame_480": 1.6849231719970703
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 24.358,
+   "lens0_lv_center": 110.2,
+   "lens1_lv_center": 111.9,
+   "image_motion_per_frame_480": 1.7725446701049805
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 30.03,
+   "lens0_lv_center": 91.4,
+   "lens1_lv_center": 123.9,
+   "image_motion_per_frame_480": 1.7467157363891601
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 31.365,
+   "lens0_lv_center": 99.6,
+   "lens1_lv_center": 110.7,
+   "image_motion_per_frame_480": 1.7661584854125976
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 33.367,
+   "lens0_lv_center": 92.6,
+   "lens1_lv_center": 103.7,
+   "image_motion_per_frame_480": 1.6925508499145507
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 37.371,
+   "lens0_lv_center": 92.2,
+   "lens1_lv_center": 123.2,
+   "image_motion_per_frame_480": 1.6416193008422852
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 38.038,
+   "lens0_lv_center": 99.0,
+   "lens1_lv_center": 105.4,
+   "image_motion_per_frame_480": 1.6565633773803712
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 38.705,
+   "lens0_lv_center": 92.2,
+   "lens1_lv_center": 108.4,
+   "image_motion_per_frame_480": 1.6477344512939454
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 39.706,
+   "lens0_lv_center": 114.7,
+   "lens1_lv_center": 108.6,
+   "image_motion_per_frame_480": 1.7068798065185546
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 59.393,
+   "lens0_lv_center": 100.7,
+   "lens1_lv_center": 108.6,
+   "image_motion_per_frame_480": 1.4139005661010742
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 62.729,
+   "lens0_lv_center": 124.6,
+   "lens1_lv_center": 103.0,
+   "image_motion_per_frame_480": 1.690627670288086
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 64.064,
+   "lens0_lv_center": 183.1,
+   "lens1_lv_center": 107.9,
+   "image_motion_per_frame_480": 1.7883377075195312
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 66.066,
+   "lens0_lv_center": 122.9,
+   "lens1_lv_center": 119.5,
+   "image_motion_per_frame_480": 1.7587751388549804
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 67.401,
+   "lens0_lv_center": 192.2,
+   "lens1_lv_center": 164.7,
+   "image_motion_per_frame_480": 1.7469274520874023
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 68.068,
+   "lens0_lv_center": 153.0,
+   "lens1_lv_center": 140.2,
+   "image_motion_per_frame_480": 1.8144136428833009
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 69.403,
+   "lens0_lv_center": 181.8,
+   "lens1_lv_center": 102.5,
+   "image_motion_per_frame_480": 1.564925765991211
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 72.739,
+   "lens0_lv_center": 187.1,
+   "lens1_lv_center": 103.7,
+   "image_motion_per_frame_480": 1.5004071235656737
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 79.413,
+   "lens0_lv_center": 124.3,
+   "lens1_lv_center": 134.9,
+   "image_motion_per_frame_480": 1.677060317993164
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 80.08,
+   "lens0_lv_center": 117.8,
+   "lens1_lv_center": 127.4,
+   "image_motion_per_frame_480": 1.3993099212646485
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 81.081,
+   "lens0_lv_center": 119.0,
+   "lens1_lv_center": 101.9,
+   "image_motion_per_frame_480": 1.625941848754883
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 91.091,
+   "lens0_lv_center": 102.1,
+   "lens1_lv_center": 106.3,
+   "image_motion_per_frame_480": 1.8241987228393555
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 96.096,
+   "lens0_lv_center": 136.6,
+   "lens1_lv_center": 145.7,
+   "image_motion_per_frame_480": 1.8440181732177734
+  },
+  {
+   "video": "VID_20260921_111410_00_075.insv",
+   "role": "walking_keyframe",
+   "t": 96.763,
+   "lens0_lv_center": 171.1,
+   "lens1_lv_center": 144.1,
+   "image_motion_per_frame_480": 1.7464853286743165
+  }
+ ]
+}

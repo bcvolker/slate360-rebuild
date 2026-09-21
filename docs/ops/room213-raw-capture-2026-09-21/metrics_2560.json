@@ -1,0 +1,37 @@
+{
+ "ceiling_A": {
+  "esf": 3.0,
+  "contrast": 22.1,
+  "michelson": 0.494,
+  "lapvar": 11.5,
+  "hf": 0.526
+ },
+ "ceiling_Bstatic": {
+  "esf": 10.0,
+  "contrast": 35.3,
+  "michelson": 0.55,
+  "lapvar": 27.4,
+  "hf": 0.508
+ },
+ "checker_A": {
+  "esf": 4.0,
+  "contrast": 52.5,
+  "michelson": 0.754,
+  "lapvar": 196.7,
+  "hf": 0.481
+ },
+ "checker_Bstatic": {
+  "esf": 1.0,
+  "contrast": 46.5,
+  "michelson": 0.593,
+  "lapvar": 385.8,
+  "hf": 0.571
+ },
+ "checker_Bwalk": {
+  "esf": 1.0,
+  "contrast": 50.3,
+  "michelson": 0.624,
+  "lapvar": 567.2,
+  "hf": 0.608
+ }
+}
