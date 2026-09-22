@@ -902,11 +902,11 @@ def room213_reassemble(payload: dict[str, Any]) -> dict[str, Any]:
     # on the volume (stage skips existing outputs). Two A10G runs (19:57, 20:24) were cancelled
     # by capacity reclaim mid-stage; faces/SfM/scale/loader are CPU work anyway.
     timeout=8 * 60 * 60,
-    memory=48 * 1024,
-    cpu=16.0,
+    memory=64 * 1024,
+    cpu=32.0,
     volumes={"/vol": ckpt_vol},
     secrets=[worker_secret] if worker_secret is not None else [],
-    retries=1,
+    retries=0,  # the watchdog owns relaunch policy (infra vs code classification, max 3)
 )
 def room213_raw_build() -> str:
     """Room 213 raw-rig dataset build (stages 5-9): person masks (torchvision Mask R-CNN,
@@ -945,6 +945,153 @@ def room213_raw_pipeline() -> str:
         return pre + chr(10) + "BUILD SKIPPED: video verify failed for %s" % bad_vid
     build = room213_raw_build.remote()
     return pre + chr(10) + "===== BUILD =====" + chr(10) + build
+
+
+R213 = Path("/vol/room213/2026-09-21")
+INFRA_PATTERNS = ("cancel", "preempt", "ClientClosed", "Runner terminated", "timed out", "Timeout", "connection", "Connection",
+                  "Internal", "unavailable", "capacity", "grpc", "GRPC", "heartbeat", "OOM", "out of memory", "Killed")
+
+
+def _wd_load() -> dict[str, Any]:
+    p = R213 / "watchdog.json"
+    return json.loads(p.read_text()) if p.is_file() else {"relaunches": {}, "events": []}
+
+
+def _wd_save(state: dict[str, Any]) -> None:
+    (R213 / "watchdog.json").write_text(json.dumps(state, indent=1))
+    ckpt_vol.commit()
+
+
+def _wd_event(state: dict[str, Any], msg: str) -> None:
+    from datetime import datetime, timezone
+    state["events"].append({"t": datetime.now(timezone.utc).isoformat(), "msg": msg})
+    state["events"] = state["events"][-200:]
+    print("WATCHDOG", msg, flush=True)
+
+
+def _call_state(call_id):
+    """running | done | failed(+message) | none for a spawned FunctionCall."""
+    if not call_id:
+        return "none", None
+    try:
+        fc = modal.FunctionCall.from_id(call_id)
+        fc.get(timeout=0)
+        return "done", None
+    except TimeoutError:
+        return "running", None
+    except Exception as e:  # noqa: BLE001
+        return "failed", f"{type(e).__name__}: {str(e)[:400]}"
+
+
+def _classify(msg: str) -> str:
+    return "infra" if any(p in msg for p in INFRA_PATTERNS) else "code"
+
+
+@app.function(
+    image=gpu_image,
+    schedule=modal.Period(minutes=10),
+    timeout=10 * 60,
+    memory=2 * 1024,
+    cpu=1.0,
+    volumes={"/vol": ckpt_vol},
+    retries=0,
+)
+def room213_watchdog() -> dict[str, Any]:
+    """Every 10 min (deployed): keep the Room 213 raw-rig build alive, relaunch on infrastructure
+    failures (max 3 per identical failure), halt on a repeated deterministic error, and -- only
+    when build/verdict.json says TRAINING READY and AUTO_TRAIN_AUTHORIZED exists -- launch the
+    single authorized Stage-1 training run once, resuming it from a verified checkpoint on
+    infrastructure loss. All state lives on the volume."""
+    from datetime import datetime, timezone
+    ckpt_vol.reload()
+    st = _wd_load()
+    if st.get("halted"):
+        return {"halted": st["halted"]}
+    status = json.loads((R213 / "status.json").read_text()) if (R213 / "status.json").is_file() else {}
+    verdict_p = R213 / "build" / "verdict.json"
+    build_done = verdict_p.is_file() and (R213 / "build" / "stage_done" / "sfm.json").is_file()
+
+    def relaunch(kind, fn, key, msg):
+        cls = _classify(msg)
+        sig = f"{kind}:{cls}:{msg[:80]}"
+        n = st["relaunches"].get(sig, 0)
+        if cls == "code" and n >= 1:
+            st["halted"] = f"{kind} failed twice with the same code/data error: {msg}"
+            _wd_event(st, st["halted"]); return
+        if n >= 3:
+            st["halted"] = f"{kind} exceeded 3 relaunches for: {msg}"
+            _wd_event(st, st["halted"]); return
+        st["relaunches"][sig] = n + 1
+        call = fn.spawn(); st[key] = call.object_id
+        _wd_event(st, f"{kind} relaunched ({cls} #{n + 1}) as {call.object_id} after: {msg}")
+
+    if not build_done:
+        state, msg = _call_state(st.get("build_call_id"))
+        if state == "running" and status.get("timestamp_utc"):
+            age = (datetime.now(timezone.utc) - datetime.fromisoformat(status["timestamp_utc"])).total_seconds()
+            # mapping/rig stages cannot report progress mid-call; everything else heartbeats every 5 min
+            if age > 40 * 60 and status.get("stage") not in ("sfm_map", "sfm_rig"):
+                _wd_event(st, f"build heartbeat stale {int(age)}s in stage {status.get('stage')} -- cancelling for relaunch")
+                try:
+                    modal.FunctionCall.from_id(st["build_call_id"]).cancel()
+                except Exception as e:  # noqa: BLE001
+                    _wd_event(st, f"cancel failed: {e}")
+                state, msg = "failed", "heartbeat stale (treated as infrastructure hang)"
+        if state == "none":
+            call = room213_raw_build.spawn(); st["build_call_id"] = call.object_id
+            _wd_event(st, f"build launched as {call.object_id}")
+        elif state == "failed":
+            relaunch("build", room213_raw_build, "build_call_id", msg or "unknown")
+        elif state == "done":
+            _wd_event(st, "build call finished without verdict/sfm marker -- relaunching (code-failure candidate)")
+            relaunch("build", room213_raw_build, "build_call_id", "finished without verdict")
+        _wd_save(st); return {"build": state, "status": status.get("stage")}
+
+    verdict = json.loads(verdict_p.read_text())
+    if verdict.get("dataset") != "TRAINING READY":
+        if not st.get("blocked_reported"):
+            _wd_event(st, f"build BLOCKED: {verdict.get('blocking_issue')} -- no training"); st["blocked_reported"] = True
+        _wd_save(st); return {"build": "done", "verdict": verdict.get("dataset")}
+    if not (R213 / "AUTO_TRAIN_AUTHORIZED").is_file():
+        _wd_save(st); return {"build": "done", "verdict": "TRAINING READY", "training": "not authorized (no AUTO_TRAIN_AUTHORIZED file)"}
+    if st.get("train_done"):
+        _wd_save(st); return {"training": "done"}
+    tstate, tmsg = _call_state(st.get("train_call_id"))
+    if tstate == "none":
+        call = room213_stage1_train.spawn(); st["train_call_id"] = call.object_id
+        _wd_event(st, f"STAGE-1 training launched as {call.object_id}")
+    elif tstate == "failed":
+        relaunch("train", room213_stage1_train, "train_call_id", tmsg or "unknown")
+    elif tstate == "done":
+        st["train_done"] = True; _wd_event(st, "STAGE-1 training + eval finished")
+    _wd_save(st); return {"training": tstate}
+
+
+@app.function(
+    image=gpu_image,
+    gpu=GPU_TRAIN,
+    timeout=230 * 60,
+    memory=MEMORY_MIB,
+    cpu=CPU,
+    volumes={"/vol": ckpt_vol},
+    secrets=[worker_secret] if worker_secret is not None else [],
+    retries=0,
+)
+def room213_stage1_train() -> str:
+    """The single authorized Stage-1 run: K6 Splatfacto recipe on the frozen raw-rig dataset
+    (2560 faces, rig-constrained poses, masks, frozen holdout). Only additions to the K6 argv:
+    `nerfstudio-data --downscale-factor 1 --eval-mode filename` (required to load this input as
+    built). Checkpoints on the volume; resumes from the latest verified checkpoint. Followed by
+    the frozen evaluation (holdout metrics, holdout renders, feature crops vs GT and vs K6)."""
+    sys.path.insert(0, "/root/recon-experiment"); sys.path.insert(0, "/root/splat-lab")
+    import io
+    import contextlib
+    buf = io.StringIO()
+    with contextlib.redirect_stdout(buf):
+        import room213_stage1 as m
+        m.main()
+    ckpt_vol.commit()
+    return buf.getvalue()
 
 
 def _committed_recipe(name: str) -> dict[str, Any]:
@@ -1020,6 +1167,12 @@ def main(phase: str = "exp3"):
     if phase == "room213-reassemble":
         import json as _j
         print(_j.dumps(room213_reassemble.remote(_j.loads(os.environ["ROOM213_REASSEMBLE"])), indent=1))
+        return
+    if phase == "room213-watchdog":
+        print(json.dumps(room213_watchdog.remote(), indent=1))
+        return
+    if phase == "room213-stage1-train":
+        print(room213_stage1_train.remote())
         return
     if phase == "room213-raw-pipeline":
         print(room213_raw_pipeline.remote())
