@@ -59,6 +59,11 @@ FACE_IDX = {n: i for i, (n, _, _) in enumerate(B.FACES)}
 # scene-based tripod estimates (mean of the two tripod frames per assignment), R_10: lens-0 rays -> lens-1 rays
 SCENE_R10 = {"H1_stream0=A": (172.45, [-0.0033, -0.9987, 0.0508]), "H2_stream0=B": (172.60, [-0.0045, -0.9987, 0.0503])}
 DRY = os.environ.get("RIG_BA_DRY") == "1"
+HYPS = [h for h in os.environ.get("RIG_BA_HYPS", "").split(",") if h] or list(SCENE_R10)   # v3: H1 only (supported assignment)
+KP_OVERRIDE = os.environ.get("RIG_BA_KP_OVERRIDE")   # v3: corrected face-pixel keypoints from room213_map_fit (same images/matches/tracks)
+_KP = None
+if KP_OVERRIDE:
+    _KP = dict(np.load(KP_OVERRIDE))
 
 
 def log(*a):
@@ -164,8 +169,10 @@ def build_rig_reconstruction(rec_free, meta_by_name, hyp, calib, R10, s0, pyc):
     for im in rec_free.images.values():
         if im.image_id not in img_frame: continue
         m = meta_by_name[im.name]
-        new = pyc.Image(name=im.name, keypoints=np.array([np.asarray(p.xy) for p in im.points2D], dtype=np.float64).reshape(-1, 2),
-                        camera_id=cams[(m["stream"], m["face_name"])].camera_id, image_id=im.image_id)
+        kp = np.array([np.asarray(p.xy) for p in im.points2D], dtype=np.float64).reshape(-1, 2)
+        if _KP is not None:
+            kp_new = _KP[str(im.image_id)]; assert kp_new.shape == kp.shape, (im.image_id, kp_new.shape, kp.shape); kp = kp_new
+        new = pyc.Image(name=im.name, keypoints=kp, camera_id=cams[(m["stream"], m["face_name"])].camera_id, image_id=im.image_id)
         new.frame_id = img_frame[im.image_id]
         rec.add_image(new)
     for fid_ in frame_of_exp.values():
@@ -442,7 +449,7 @@ def main():
     del free
     status(stage="rig_ba_start", hypotheses=list(SCENE_R10))
     results = {}
-    for hyp in SCENE_R10:
+    for hyp in HYPS:
         done = RB / hyp / "rig_ba_report.json"; pf = RB / hyp / "rig_face_poses.json"
         if done.is_file() and pf.is_file() and not DRY:      # resumable: a pre-empted container must not redo a finished hypothesis
             rep_ = json.load(open(done)); poses_ = {k: (np.array(v["R_wc"]), np.array(v["C"])) for k, v in json.load(open(pf)).items()}

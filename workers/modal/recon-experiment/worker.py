@@ -1139,7 +1139,23 @@ def room213_watchdog() -> dict[str, Any]:
     secrets=[worker_secret] if worker_secret is not None else [],
     retries=0,
 )
-def room213_rig_ba(dry: bool = False) -> str:
+def room213_map_fit() -> str:
+    """Authorised single mapping correction (2026-09-22): audit the factory-Mei -> 3840 stream similarity,
+    fit only (s, ox, oy) per lens on a calibration subset of the rig_ba_v2 H1 solution, validate on the
+    untouched subset, and write corrected keypoints (same images/matches/tracks) for ONE rerun of the same
+    rigid-rig reconstruction (room213_rig_ba with RIG_BA_KP_OVERRIDE, outdir rig_ba_v3, H1 only)."""
+    sys.path.insert(0, "/root/recon-experiment"); sys.path.insert(0, "/root/splat-lab")
+    import importlib
+    import room213_map_fit as m
+    m = importlib.reload(m)
+    try:
+        m.main()
+    finally:
+        ckpt_vol.commit()
+    return "map fit done"
+
+
+def room213_rig_ba(dry: bool = False, outdir: str | None = None, hyps: str | None = None, kp_override: str | None = None) -> str:
     """Authorised single correction (2026-09-22): joint rigid-rig bundle adjustment of the existing
     free reconstruction (build/sfm/best) -- see room213_rig_ba.py for the exact rig structure. Runs
     both stream<->lens hypotheses with the identical frozen configuration, selects on geometry,
@@ -1149,6 +1165,9 @@ def room213_rig_ba(dry: bool = False) -> str:
     touch no verdict/dataset."""
     sys.path.insert(0, "/root/recon-experiment"); sys.path.insert(0, "/root/splat-lab")
     os.environ["RIG_BA_DRY"] = "1" if dry else "0"
+    for key, val in (("RIG_BA_OUTDIR", outdir), ("RIG_BA_HYPS", hyps), ("RIG_BA_KP_OVERRIDE", kp_override)):
+        if val: os.environ[key] = val
+        else: os.environ.pop(key, None)
     import importlib
     import room213_rig_ba as m
     m = importlib.reload(m)  # a warm container must not reuse a stale import

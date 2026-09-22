@@ -62,9 +62,10 @@ def diag(hyp: str, outdir: str = "rig_ba_v2") -> dict:
         cx, cy, cr = B.FRAME_CIRCLE[s]; srad = np.hypot(p_f[:, 0] - cx, p_f[:, 1] - cy)
         depth = np.where(np.isnan(z), -1.0, Xc[:, 2])
         for k in range(len(e)):
-            rows.append((e[k], s, FACE_IDX[fn], im.frame_id, xy[k, 0], xy[k, 1], u[k], v[k], srad[k], p_f[k, 1], depth[k], im.image_id, idx[k][0]))
-    A = np.array([r[:11] for r in rows], dtype=np.float64); ids = [(r[11], r[12]) for r in rows]
-    e, lens, face, frame, x, y, pu, pv, srad, srow, depth = A.T
+            rows.append((e[k], s, FACE_IDX[fn], im.frame_id, xy[k, 0], xy[k, 1], u[k], v[k], srad[k], p_f[k, 1], depth[k], idx[k][1], im.image_id, idx[k][0]))
+    A = np.array([r[:12] for r in rows], dtype=np.float64); ids = [(r[12], r[13]) for r in rows]
+    e, lens, face, frame, x, y, pu, pv, srad, srow, depth, pid = A.T
+    cal = (pid.astype(np.int64) % 2 == 0)   # same deterministic split as room213_map_fit: even point ids = calibration, odd = validation
     frad = np.hypot(x - B.FACE / 2, y - B.FACE / 2)
     walk = np.array([walk_of[int(f)] for f in frame]); spd = np.array([speed.get(int(f)) if speed.get(int(f)) is not None else np.nan for f in frame])
     def dist(mask):
@@ -72,6 +73,10 @@ def diag(hyp: str, outdir: str = "rig_ba_v2") -> dict:
     out = {"hypothesis": hyp, "n_obs": int(len(e)), "overall": dist(np.ones(len(e), bool))}
     out["by_sensor_radius_px"] = {f"{a}-{b}": {"all": dist((srad >= a) & (srad < b)), "lens0": dist((srad >= a) & (srad < b) & (lens == 0)), "lens1": dist((srad >= a) & (srad < b) & (lens == 1))}
                                   for a, b in ((0, 800), (800, 1300), (1300, 1700), (1700, 1950), (1950, 2200))}
+    out["by_sensor_radius_x_split"] = {split: {f"{a}-{b}": {"lens0": dist((srad >= a) & (srad < b) & (lens == 0) & mk), "lens1": dist((srad >= a) & (srad < b) & (lens == 1) & mk)}
+                                               for a, b in ((0, 800), (800, 1300), (1300, 1700), (1700, 1950), (1950, 2200))}
+                                       for split, mk in (("calibration_even_ids", cal), ("validation_odd_ids", ~cal))}
+    out["overall_by_split"] = {"calibration": dist(cal), "validation": dist(~cal)}
     out["by_sensor_row_px"] = {f"{a}-{b}": {"lens0": dist((srow >= a) & (srow < b) & (lens == 0)), "lens1": dist((srow >= a) & (srow < b) & (lens == 1))} for a, b in ((0, 768), (768, 1536), (1536, 2304), (2304, 3072), (3072, 3840))}
     out["by_face_radius_px"] = {f"{a}-{b}": dist((frad >= a) & (frad < b)) for a, b in ((0, 400), (400, 800), (800, 1280), (1280, 1900))}
     out["by_depth_m"] = {f"{a}-{b}": {"all": dist((depth >= a) & (depth < b)), "lens0": dist((depth >= a) & (depth < b) & (lens == 0)), "lens1": dist((depth >= a) & (depth < b) & (lens == 1))}
