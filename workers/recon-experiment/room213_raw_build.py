@@ -301,6 +301,15 @@ def stage_loader(meta):
 
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
+    # Run the preflight stages IN-PROCESS first (verify/demux/ChArUco/splits). No nested
+    # Modal .remote() calls: in detached mode only the last function triggered from the local
+    # client survives a disconnect, and a nested call dies with ClientClosed (seen 17:35).
+    import room213_raw_preflight as pre
+    v = pre.stage_verify()
+    bad_vid = [m for m in v["missing"] if m.startswith("VID_")] + [b["filename"] for b in v["present_bad"] if b["filename"].startswith("VID_")]
+    if bad_vid:
+        log("BUILD SKIPPED: video verify failed for", bad_vid); return
+    d = pre.stage_demux(v); c = pre.stage_charuco(d); pre.stage_splits(c)
     demux = json.load(open(PRE / "demux.json")); charuco = json.load(open(PRE / "charuco_detections.json"))
     lenses, calib = load_calib()
     log("BUILD start: exposures", len({(d['video'], d['t']) for d in demux}), "frames", len(demux))
