@@ -646,6 +646,23 @@ this as a passing full-suite gate until it is re-run successfully.
 
 ---
 
+## QA infrastructure (2026-09-21)
+
+`npm run test:vnext` now runs Vitest, then `next build`, then Playwright against `next start`
+on `127.0.0.1:3110`. The vNext browser suite no longer uses `next dev`. Dev-only route prewarm,
+`onDemandEntries` tuning, `page.goto` recovery, and HMR allowlists were removed. See
+`docs/vnext/SLATE360_UI_PHASE1_REVIEW_PROTOCOL.md` for the run sequence.
+
+Canonical `npm run test:vnext` on 2026-09-21, exit code 0:
+
+- Vitest: 21 files, 179/179 passed
+- Playwright (`next start` on `127.0.0.1:3110`): 75/75 passed (1.2m)
+- Free physical memory before that invocation: 3.2 GB
+
+Slice 5 was not started.
+
+---
+
 ## Handoff
 
 Slice 4 (unified Explore viewer, corrected + closed out) completion report is returned in the

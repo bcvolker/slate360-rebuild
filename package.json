@@ -31,7 +31,7 @@
     "audit:sitewalk-release": "node scripts/audit-sitewalk-release-surface.mjs",
     "audit:screenshots": "node scripts/ops/screenshot-sweep.mjs",
     "market:burst:test": "node scripts/market-burst-test.mjs",
-    "test:vnext": "vitest run lib/vnext && playwright test e2e/vnext --project=desktop-chromium --workers=1",
+    "test:vnext": "vitest run lib/vnext && node scripts/ops/run-vnext-playwright.mjs",
     "test:e2e": "playwright test",
     "test:e2e:mobile": "node scripts/mobile-smoke-http.mjs",
     "test:e2e:mobile:playwright": "playwright test e2e/mobile-smoke.spec.ts",

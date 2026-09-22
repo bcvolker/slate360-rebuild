@@ -5,17 +5,8 @@ const skipWebServer = process.env.PLAYWRIGHT_SKIP_WEBSERVER === "1";
 
 export default defineConfig({
   testDir: "./e2e",
-  // Warms every vNext preview route once before the suite runs, so no test's
-  // first hit to a route races Next dev's on-demand compilation. See
-  // e2e/vnext/global-setup.ts and docs/vnext/SLATE360_UI_PHASE1_REVIEW_PROTOCOL.md.
-  globalSetup: "./e2e/vnext/global-setup.ts",
   fullyParallel: true,
   timeout: 60_000,
-  // A modest, centralized raise (from 10s), not a substitute for the route-warming/onDemandEntries
-  // fixes above — dev-server response latency under this suite's own load has been directly
-  // measured up to several seconds even for an already-compiled route. This absorbs that variance
-  // without masking a genuinely broken assertion; it is one number changed once, not a sleep added
-  // per test.
   expect: {
     timeout: 15_000,
   },
@@ -27,6 +18,8 @@ export default defineConfig({
     screenshot: "only-on-failure",
     video: "retain-on-failure",
   },
+  // Other e2e suites still use the dev server. The vNext regression gate does not:
+  // `npm run test:vnext` uses playwright.vnext.config.ts and `next start`.
   webServer: skipWebServer
     ? undefined
     : {

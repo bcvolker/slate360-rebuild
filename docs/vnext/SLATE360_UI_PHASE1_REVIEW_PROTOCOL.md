@@ -35,31 +35,56 @@ Unexpected console errors, page errors, failed requests, and undocumented HTTP 4
 
 Do not implement tests for controls that do not yet exist. When a later slice adds a control, that slice must satisfy the standing regression contract below.
 
-## Test harness stabilization (2026-09-18)
+## Test harness (production server)
 
-`npm run test:vnext` must pass as a whole suite, not just per-test in isolation — this is the
-permanent regression gate. It runs against `next dev`, and the suite must not fail merely because
-Next development mode is lazily compiling a route on its first request.
+`npm run test:vnext` is the regression gate. It runs Vitest, then a production build, then
+Playwright against `next start`. It does not use `next dev`.
 
-Two dev-server-only mechanisms keep this deterministic:
+Dev mode was unreliable for this suite: the first request to a route compiled it on demand, and
+each compile updated a shared HMR manifest that could reload other open pages. That showed up as
+`global-setup` receiving no response, navigations aborted with `net::ERR_ABORTED`, and dialogs
+closing because the page had reloaded. Those failures were the dev server, not the vNext UI.
 
-- `e2e/vnext/global-setup.ts` — prewarms every route the suite visits (including auth-redirect
-  targets) via a real page load before any numbered test runs, then re-verifies `/vnext`'s full
-  redirect chain settles stably. Extend its `WARM_ROUTES` list when a new spec visits a route it
-  doesn't already cover.
-- `next.config.ts`'s `onDemandEntries` (`maxInactiveAge`/`pagesBufferLength`) — keeps every warmed
-  route compiled for the suite's full multi-minute duration; Next's 60s default eviction was
-  recompiling routes mid-run, and each recompile could push an HMR reload to an unrelated
-  already-open page. Ignored entirely by `next build`/`next start`.
+Canonical command:
 
-`attachRuntimeHealth` (`e2e/vnext/helpers.ts`) additionally retries once, with a settle pause, on a
-`goto()` that hits a bare Next dev-server 500 or its own error overlay — both observed as rare,
-transient, non-application dev-mode artifacts on routes global-setup already proved healthy — and
-rolls the failed attempt's own recorded errors back so a fully-recovered page doesn't fail
-`assertClean()` over an attempt the test never actually saw. `ALLOWED_PAGEERROR` narrowly allow-lists
-two confirmed Next-internal messages (an HMR JSON-parse artifact; a stale service-worker
-update-check tied to each dev-server restart's new build id) — not a broad ignore, and any other
-page error still fails the suite.
+```bash
+npm run test:vnext
+```
+
+What it does:
+
+1. `vitest run lib/vnext`
+2. `node scripts/ops/next-production-build.mjs` (`next build`)
+3. `next start` on `127.0.0.1:3110` (`VNEXT_TEST_PORT` overrides the port)
+4. Playwright via `playwright.vnext.config.ts`, project `desktop-chromium`, one worker
+5. Stops only the `next start` process this command spawned
+
+The runner refuses to start if the port is already taken. It does not kill unrelated Node or
+Cursor processes. `VNEXT_SKIP_BUILD=1` reuses an existing `.next` output for a targeted rerun;
+the canonical command does not set it.
+
+`e2e/vnext/global-setup.ts` loads one preview route and saves the `slate360-last-build`
+localStorage key into `e2e/vnext/.runtime/` (gitignored). That matches the steady state after
+`SWRegistrar`'s one-time deploy reload, so each fresh Playwright context does not reload mid-test.
+Service workers stay enabled. Blocking registration makes Serwist's production client throw
+`Cannot read properties of undefined (reading 'waiting')`, which is a harness artifact, not a
+vNext defect. Page errors, console errors, and unexpected HTTP failures still fail the suite.
+
+Other Playwright suites keep the shared `playwright.config.ts` dev server on port 3100. They are
+not the vNext gate.
+
+Removed once production mode made them obsolete:
+
+- route prewarm list and the post-warm settle pause in `global-setup.ts`
+- `next.config.ts` `onDemandEntries` buffer raised for this suite
+- `page.goto` retry on dev 500s, the Next error overlay, and thrown `net::ERR_ABORTED`
+- HMR / dev-manifest allowlists (`webpack-hmr`, `__nextjs_original-stack-frames`, `/_next/static/`
+  HTTP failures, HMR JSON parse errors, stale service-worker update errors)
+- owner-menu helper that reopened the drawer after an HMR reload
+
+`net::ERR_ABORTED` on a *side request* is still ignored. A successful navigation cancels the
+previous document's in-flight requests, and Chromium reports that cancellation this way. A
+navigation that itself fails is not retried.
 
 ## Standing regression contract
 
