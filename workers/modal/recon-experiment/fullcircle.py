@@ -529,7 +529,10 @@ def fc_train(downsample: int = 1, iterations: int = 30000) -> dict[str, Any]:
            f"path={DATA}", f"out_dir={run_dir}", "experiment_name=room213_native",
            f"dataset.downsample_factor={downsample}", "dataset.test_frame_suffix=_test",
            f"border_mask_train={FC}/mask_border.png", f"border_mask_test={FC}/mask_border.png",
-           f"n_iterations={iterations}"]
+           f"n_iterations={iterations}",
+           # resumable checkpoints: `checkpoint.iterations` is only read by save_checkpoint(), which
+           # serialises state -- extending the list changes nothing about training itself.
+           "checkpoint.iterations=[7000,15000,20000,25000,30000]"]
     json.dump({"cmd": cmd, "downsample": downsample, "iterations": iterations}, open(f"{FC}/train_cmd.json", "w"), indent=1)
     t0 = time.time(); stop = threading.Event(); peak = [0]
 
@@ -537,6 +540,9 @@ def fc_train(downsample: int = 1, iterations: int = 30000) -> dict[str, Any]:
         while not stop.wait(60):
             try:
                 tail = open(log_path, errors="replace").read()[-3000:]
+                # surface densification activity in the heartbeat so growth can be watched live
+                stats = [l.strip()[-70:] for l in tail.splitlines() if "Cloned" in l or "Splitted" in l][-2:]
+                _status(densify_recent=stats)
                 r = subprocess.run(["nvidia-smi", "--query-gpu=memory.used", "--format=csv,noheader,nounits"],
                                    capture_output=True, text=True, timeout=10)
                 peak[0] = max(peak[0], int(r.stdout.strip().split("\n")[0]))
