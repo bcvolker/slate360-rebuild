@@ -178,6 +178,17 @@ Items is a project record index. Legacy Site Walk screens establish which facts 
 
 ---
 
+## Documents (Slice 6)
+
+Documents is a project file index, not a file manager. The client's job is to find a published document and open it.
+
+- One list of rows: name, type, folder, date, and Open or Download. No file-type tiles, folder grids, storage meters, or upload zones.
+- Search on this page looks across published documents, items, and renderable plan sheets. A result is a line of text with its kind in the context line, then a link to the real record.
+- Folders are a filter when the project has more than one client folder. They are not a tree.
+- Do not show capture, reconstruction, or operator commercial files just because they are stored on the project.
+
+---
+
 ## Prohibited patterns
 
 Glassmorphism, dark SaaS chrome, decorative gradients, icon tiles, widget boards, fake analytics/KPIs, giant headings, giant blank heroes, nested cards, upgrade/billing/seats/plan labels, Coming Soon product modules, Command Center, Studio proliferation, teal **interaction** accents, marketing slogans in the app.

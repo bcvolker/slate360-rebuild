@@ -17,8 +17,6 @@ export const VNEXT_PORTFOLIO_SEARCH_LABEL = "Search projects";
 
 export const VNEXT_EXPLORE_SCAFFOLD_NOTE =
   "The unified spatial Explore viewer is not part of this slice.";
-export const VNEXT_DOCUMENTS_SCAFFOLD_NOTE =
-  "The full Documents experience is not part of this slice.";
 export const VNEXT_HISTORY_SCAFFOLD_NOTE =
   "The visit timeline and compare experience is not part of this slice.";
 export const VNEXT_LOGO_REASON =

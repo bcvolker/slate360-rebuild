@@ -1,8 +1,8 @@
 # Slate360 Phase 1 — Implementation Status
 
 **Last updated:** 2026-09-21  
-**Current slice:** 5 (Items + spatial linking) — implemented, awaiting approval  
-**Next slice:** 6 (Documents + project search) — **NOT STARTED**
+**Current slice:** 6 (Documents + project search) — implemented, awaiting approval  
+**Next slice:** 7 (History + Compare) — **NOT STARTED**
 
 Canonical plan: `docs/vnext/SLATE360_UI_PHASE1_MASTER_BUILD_PLAN.md`  
 Slice prompts: `docs/vnext/SLATE360_UI_PHASE1_CURSOR_SLICE_PROMPTS.md`  
@@ -35,8 +35,8 @@ The feature branch is **pushed**. It is not an unpushed `origin/main` clone.
 | 2 | Client project portfolio | **APPROVED** |
 | 3 | Client project overview | **APPROVED** |
 | 4 | Unified Explore viewer | **APPROVED** |
-| 5 | Items + spatial linking | **IMPLEMENTED — awaiting approval** |
-| 6 | Documents + project search | Not started |
+| 5 | Items + spatial linking | **APPROVED** |
+| 6 | Documents + project search | **IMPLEMENTED — awaiting approval** |
 | 7 | History + Compare | Not started |
 | 8 | Presentation / social clip foundation | Not started |
 | 9 | Owner Home + Clients + Projects | Not started |
@@ -665,7 +665,7 @@ Slice 5 was not started.
 
 ## Handoff
 
-Slice 5 (Items + spatial linking) is implemented and waiting for review. Do not begin Slice 6 until Brian explicitly approves this slice.
+Slice 6 (Documents + project search) is implemented and waiting for review. Do not begin Slice 7 until Brian explicitly approves this slice.
 
 ## Slice 5 notes (2026-09-21)
 
@@ -693,4 +693,26 @@ Client Items is a project record index, not a restyle of Site Walk and not a tas
 **Not started.** Documents, History/Compare, owner authoring, Drone, reconstruction, middleware, billing.
 
 Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 24 files / 202 tests passed, production build, Playwright 90 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. Scoped typecheck of the changed graph still reports the pre-existing `splat-viewer-scene.tsx` JSX intrinsic errors pulled in by the Slice 4 Reality viewer. Those files were not edited.
+
+## Slice 6 notes (2026-09-21)
+
+Client Documents is a project file index. Search on that page also finds items and renderable plan sheets. It is not a file manager.
+
+**Source of truth.** `slatedrop_uploads` rows with `status='active'` whose `project_folders` row belongs to the project and is a client document folder. `unified_files` is not read. No new table.
+
+**Client-visible folders.** Drawings, permits, specs, plans, deliverables, reports, records, safety, closeout, submittals, correspondence, and the matching `folder_type` values. Legacy rows with no type are included only when the folder name is one of those labels.
+
+**Hidden.** Photos, notes, voice memos, site-walk data, clips, LiDAR, models, source assets, tour scenes, contracts, insurance, budget, schedule, daily logs, RFIs, team uploads, and deliverable sentinel links (`deliverable://`, `twin-deliverable://`). Those sentinels open legacy app routes, so they are not client documents.
+
+**Open / download.** PDF and common images can open in the browser. Every client file can download. Both go through `/api/vnext/projects/[projectId]/documents/[documentId]/file`, which checks project access and folder visibility, then redirects to a signed URL. The client payload does not include storage keys.
+
+**Related item.** Shown when `site_walk_deliverable_assets.file_id` matches the file and `source_item_id` is a non-deleted item in the same project. There is no file-to-plan foreign key. Plan sheets are search results that open Explore, not document rows.
+
+**Search.** The Documents search field. Empty query shows documents. A query searches document names, filenames, folders, item title/description/location/trade/category/tags, and renderable plan sheet names and numbers. Result kinds are Document, Item, and Plan, written into the context line. No vector search and no answers.
+
+**Access.** Same as Slice 5: authenticated user plus `getScopedProjectForUser`. Legacy `/api/slatedrop/download` still scopes by the viewer's org and was not widened.
+
+**Not started.** History, Compare, owner upload, sharing controls, reconstruction, middleware, billing.
+
+Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 26 files / 214 tests passed, production build, Playwright 99 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. A direct typecheck of the Slice 6 files passed. `npm run typecheck:changed` against `main` still exits 2 only on the three pre-existing `splat-viewer-scene.tsx` `sparkRenderer` / `splatMesh` errors. Those lines were not edited.
 

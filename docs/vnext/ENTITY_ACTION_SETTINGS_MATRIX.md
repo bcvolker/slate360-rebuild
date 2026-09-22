@@ -231,6 +231,26 @@ Verified against the Phase 1 client route. This does not change the legacy Site 
 | Backend exists | `SUPPORTED` for rename/duplicate/move/soft-delete/restore/download |
 | Later verification | Link revoke; password-gated links in vNext |
 
+### 6b. vNext client Documents (Slice 6)
+
+Verified against the Phase 1 client route. This does not change the legacy SlateDrop capabilities in section 6.
+
+| Field | Value |
+|---|---|
+| Backend / data model | Adapter over `project_folders` + `slatedrop_uploads`. `unified_files` is not the source. No new table |
+| Permission source | vNext project access (`getScopedProjectForUser`: org, creator, or `project_members`). A SlateDrop or Punchwalk entitlement is not required |
+| Read | `SUPPORTED` for `status='active'` files whose folder belongs to the project and is a client document folder |
+| Hidden from the client | Capture folders (photos, notes, voice, data), reconstruction inputs (clips, LiDAR, models, source assets, tour scenes), commercial/operator folders (contracts, insurance, budget, schedule, daily logs, RFIs, team uploads), deliverable sentinel links, storage keys |
+| Open | `SUPPORTED` for PDF and common images, via a project-scoped file route that redirects to a signed URL |
+| Download | `SUPPORTED` for the same client files. Other types are download-only |
+| Rename / move / delete / upload / share | `HIDDEN` on the client route |
+| Folder tree | `NOT IN THIS SLICE` — folder is a label and, when more than one exists, a filter |
+| Document → item | `SUPPORTED` when `site_walk_deliverable_assets.file_id` points at the file and `source_item_id` is a live item in the same project |
+| Document → plan | `NOT CURRENTLY SUPPORTED` — plan sheets are Explore sources and appear in project search, not as file rows |
+| Project search | Documents, items, and renderable plan sheets. No embeddings |
+| Intended vNext UI | `/vnext/projects/[projectId]/documents` and `/documents/[documentId]` |
+| Planned Phase 1 slice | 6, built |
+
 ---
 
 ## 7. Folder
