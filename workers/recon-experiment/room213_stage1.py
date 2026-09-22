@@ -21,6 +21,7 @@ import subprocess
 import sys
 import threading
 import time
+import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 
@@ -50,12 +51,24 @@ def write_status(**kw):
     STATUS.write_text(json.dumps(base, indent=1))
 
 
+def checkpoint_is_valid(path: Path) -> bool:
+    """A resume source must be a readable nerfstudio zip checkpoint, not a partial write."""
+    try:
+        if path.stat().st_size <= 1_000_000 or not zipfile.is_zipfile(path):
+            return False
+        with zipfile.ZipFile(path) as archive:
+            return archive.testzip() is None
+    except (OSError, zipfile.BadZipFile):
+        return False
+
+
 def latest_checkpoint() -> tuple[Path | None, int]:
     best = (None, -1)
-    for p in TRAIN.rglob("step-*.ckpt"):
-        s = ckpt_step(p)
-        if s is not None and s > best[1] and p.stat().st_size > 1_000_000:
-            best = (p, s)
+    for path in TRAIN.rglob("step-*.ckpt"):
+        step = ckpt_step(path)
+        if step is None or step <= best[1] or not checkpoint_is_valid(path):
+            continue
+        best = (path, step)
     return best
 
 
