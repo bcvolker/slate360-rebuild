@@ -48,6 +48,12 @@ fc_image = (
         "cd /workspace/fullcircle && CUDA_VERSION=12.8.1 bash install_env.sh fullcircle 2>&1 | tail -40",
         gpu="L40S",   # the extension builds query torch.cuda during setup
     )
+    # threedgrut/datasets/dataset_colmap.py imports `ncore.sensors` and `ncore.data`, but the released
+    # setup.py declares install_requires=[] and install_env.sh never installs it (same gap upstream in
+    # nv-tlabs/3dgrut). nvidia-ncore is NVIDIA's own Apache-2.0 package (github.com/NVIDIA/ncore).
+    # `simplejpeg`/`scipy` are likewise imported (datasetNcore.py) but undeclared; threedgrut/datasets/__init__.py
+    # imports every dataset module eagerly, so they are needed even though we only use ColmapDataset.
+    .run_commands("/opt/conda/envs/fullcircle/bin/pip install nvidia-ncore simplejpeg scipy")
     .pip_install("pycolmap==4.2.0", "numpy<2", "opencv-python-headless<4.11")   # our Phase-1 driver only
 )
 
