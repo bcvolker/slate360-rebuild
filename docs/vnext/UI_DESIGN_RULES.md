@@ -312,6 +312,8 @@ Presentation mode hides project navigation, the representation row, the source r
 
 A Reality camera path is the current path for that one model. Playback lives with Explore, so it keeps running when presentation hides the saved-view list. Presentation shows Play, Pause, and Restart only when that model has a path. There is no timeline editor.
 
+Owner Home is a work list, not a dashboard. It shows explicit failures and recent projects. A service that was not included is omitted. It is not shown as missing. The project page separates Included, ready internally, and client visible, and edits inclusion through the existing project scope route.
+
 Destructive actions must:
 
 - be visually differentiated without flooding the UI with red

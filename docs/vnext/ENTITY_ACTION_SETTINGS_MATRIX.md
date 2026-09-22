@@ -518,3 +518,19 @@ When a later slice adds entity UI:
 7. Update this file if verification changes a status.
 
 No Slice 2+ controls are implemented by this document.
+
+## 11. Owner workspace (Slice 9)
+
+Verified against the current schema. No new client table.
+
+| Surface | What Slice 9 does | What it does not do |
+|---|---|---|
+| Home `/vnext/ops` | Lists explicit failed captures, failed plan preparation, and failed thermal sessions. Recent projects come from the owner's accessible projects | KPI tiles, question queue, QA queue, share manager |
+| Clients `/vnext/ops/clients` | Groups `projects.client_name` by trimmed case-folded text. Detail is the matching projects | CRM, fuzzy merge, `org_contacts` as the list source |
+| Projects `/vnext/ops/projects` | Search, client filter, attention filter. Row shows included services and client-visible services | Completion percent, storage, subscription language |
+| Project scope `/vnext/ops/projects/[projectId]` | Reads and writes `project_client_capabilities` through `PUT /api/vnext/projects/[projectId]/scope`. Write still requires `userCanManageVnextProject` | A second visibility resolver |
+
+Deferred attention: client questions (`site_walk_comments` has no client-versus-operator reply state), ready-for-QA (`review_status` defaults to pending and has no product writer), publish/revoke, and share expiry. Those belong to Slices 10 and 11.
+
+A service with `included = false` is omitted from the project summary. It is not an attention row.
+

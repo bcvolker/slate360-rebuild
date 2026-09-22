@@ -1,8 +1,9 @@
-import { VNEXT_OWNER_NOTE } from "@/lib/vnext/copy";
-import { VnextOwnerRoutePage } from "@/lib/vnext/route-page";
+import { VnextOpsHomePage } from "@/lib/vnext/owner/owner-pages";
+import { requireVnextOwner } from "@/lib/vnext/require-vnext-session";
 
 export const metadata = { title: "Home — Slate360" };
 
-export default function VnextOpsHomePage() {
-  return <VnextOwnerRoutePage path="/vnext/ops" title="Home" note={VNEXT_OWNER_NOTE} />;
+export default async function VnextOpsHomeRoute() {
+  await requireVnextOwner("/vnext/ops");
+  return VnextOpsHomePage();
 }

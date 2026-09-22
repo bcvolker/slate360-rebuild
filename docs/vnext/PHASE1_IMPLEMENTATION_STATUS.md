@@ -1,8 +1,8 @@
 # Slate360 Phase 1 — Implementation Status
 
 **Last updated:** 2026-09-22  
-**Current slice:** 8 (Presentation / saved views / evidence links) — implemented, awaiting approval  
-**Next slice:** 9 (Owner Home / Clients / Projects) — **NOT STARTED**
+**Current slice:** 9 (Owner Home / Clients / Projects) — implemented, awaiting approval  
+**Next slice:** 10 (Processing / QA / Publish) — **NOT STARTED**
 
 Canonical plan: `docs/vnext/SLATE360_UI_PHASE1_MASTER_BUILD_PLAN.md`  
 Slice prompts: `docs/vnext/SLATE360_UI_PHASE1_CURSOR_SLICE_PROMPTS.md`  
@@ -40,9 +40,9 @@ The feature branch is **pushed**. It is not an unpushed `origin/main` clone.
 | 6A | Project plans foundation | **APPROVED** |
 | 7 | History + Compare | **APPROVED** |
 | 7A | Client deliverable scope + visibility | **APPROVED** |
-| 8 | Presentation / saved views / evidence links | **IMPLEMENTED — awaiting approval** |
-| 9 | Owner Home + Clients + Projects | **NOT STARTED** |
-| 10 | Processing + QA & Publish | Not started |
+| 8 | Presentation / saved views / evidence links | **APPROVED** |
+| 9 | Owner Home + Clients + Projects | **IMPLEMENTED — awaiting approval** |
+| 10 | Processing + QA & Publish | **NOT STARTED** |
 | 11 | Sharing + permissions + polish | Not started |
 | 12 | Cutover + cleanup | Not started |
 
@@ -798,10 +798,23 @@ Reality can save and restore a splat camera pose when the viewer returns one. Ge
 
 Playback state lives on the Explore shell, not inside the Views panel. Entering presentation hides authoring and keeps the running path on the same model, from the same elapsed time. Presentation shows Play, Pause, and Restart only when that Reality model has a path.
 
-Slice 9 was not started. No public share, owner home, processing queue, AI, VR, or design studio.
+Slice 9 was not part of that commit. No public share, processing queue, AI, VR, or design studio.
 
 Migration `20260922180000_project_saved_views.sql` was applied to linked project `hadnfcenpcfaeclczsmm` and recorded in migration history. The two Slice 7A versions were not rerun. Older migration-history drift was not repaired.
 
 Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 33 files / 267 tests passed, production build, Playwright 144 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. `npm run typecheck:changed` against `main` exits 2 only on the existing `splat-viewer-scene.tsx` lines 197–199.
+
+## Slice 9 notes (2026-09-22)
+
+Owner Home, Clients, and Projects replace the scaffolds at `/vnext/ops`, `/vnext/ops/clients`, and `/vnext/ops/projects`. The owner gate is unchanged: `canAccessOperationsConsole` (CEO today).
+
+Home attention is only an explicit failed job: `digital_twin_captures.capture_status = failed`, `site_walk_plan_sets.processing_status = failed`, or `thermal_analysis_sessions.status = failed`. A service that was not included is not a problem. `review_status` stays unused because it defaults to pending and the product never clears it. Client questions, share management, QA, and publish stay deferred to later slices.
+
+Clients are grouped from `projects.client_name` by trimmed, case-folded text. "ABC Construction" and "ABC Construction LLC" stay separate. There is no new client table. A client page is that filtered project list.
+
+A project row shows included services and the subset the client can see. The owner project page edits `project_client_capabilities` through the existing scope route. Client surfaces still use the same resolver. Slice 10 was not started.
+
+Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 35 files / 275 tests passed, production build, Playwright 150 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. `npm run typecheck:changed` against `main` exits 2 only on the existing `splat-viewer-scene.tsx` lines 197–199.
+
 
 

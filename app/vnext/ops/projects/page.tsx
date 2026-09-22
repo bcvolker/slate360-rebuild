@@ -1,8 +1,14 @@
-import { VNEXT_OWNER_NOTE } from "@/lib/vnext/copy";
-import { VnextOwnerRoutePage } from "@/lib/vnext/route-page";
+import { VnextOpsProjectsPage } from "@/lib/vnext/owner/owner-pages";
+import { requireVnextOwner } from "@/lib/vnext/require-vnext-session";
 
 export const metadata = { title: "Projects — Slate360" };
 
-export default function VnextOpsProjectsPage() {
-  return <VnextOwnerRoutePage path="/vnext/ops/projects" title="Projects" note={VNEXT_OWNER_NOTE} />;
+export default async function VnextOpsProjectsRoute({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; client?: string; attention?: string }>;
+}) {
+  const query = await searchParams;
+  await requireVnextOwner("/vnext/ops/projects");
+  return VnextOpsProjectsPage(query);
 }
