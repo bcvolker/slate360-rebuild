@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent, type Wheel
 import { Minus, Plus, RotateCcw } from "lucide-react";
 import type { VnextPlanSourceData } from "@/lib/vnext/explore-types";
 import type { VnextPlanMarker } from "@/lib/vnext/items/item-types";
+import { registerLiveView } from "@/lib/vnext/views/live-view";
+import type { SavedPlanState } from "@/lib/vnext/views/saved-view-types";
 import { VnextViewerMediaError } from "./VnextViewerMediaError";
 
 const MIN_SCALE = 1;
@@ -16,12 +18,14 @@ const MAX_SCALE = 6;
 export default function VnextPlanViewer({
   data,
   marker = null,
+  initialView = null,
 }: {
   data: VnextPlanSourceData;
   marker?: VnextPlanMarker | null;
+  initialView?: SavedPlanState | null;
 }) {
-  const [scale, setScale] = useState(1);
-  const [offset, setOffset] = useState({ x: 0, y: 0 });
+  const [scale, setScale] = useState(initialView?.scale ?? 1);
+  const [offset, setOffset] = useState({ x: initialView?.x ?? 0, y: initialView?.y ?? 0 });
   const [mediaError, setMediaError] = useState(false);
   const [retryAttempt, setRetryAttempt] = useState(0);
   const [imageReady, setImageReady] = useState(false);
@@ -68,6 +72,10 @@ export default function VnextPlanViewer({
     setOffset({ x: 0, y: 0 });
   }, []);
 
+  useEffect(() => {
+    return registerLiveView(() => ({ kind: "plan", scale, x: offset.x, y: offset.y }));
+  }, [scale, offset.x, offset.y]);
+
   // Every hook above must run on every render regardless of mediaError — this early return only
   // skips which JSX gets built, never how many hooks get called (a conditional return placed
   // BEFORE a hook is the exact "rendered fewer hooks than expected" bug this avoids).
@@ -108,6 +116,7 @@ export default function VnextPlanViewer({
         onPointerLeave={onPointerUp}
         onDoubleClick={reset}
         data-vnext-plan-canvas="true"
+        data-vnext-plan-scale={scale}
       >
         <div
           ref={frameRef}

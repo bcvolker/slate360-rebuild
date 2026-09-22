@@ -306,6 +306,12 @@ Placement:
 - share actions → Shares
 - saved camera view/path actions → Presentation/Explore
 
+Saved views are evidence links, not camera bookmarks. The list lives in Explore. It shows a title and, when the view is historical, the date. Opening one restores that representation, that source, and that date. A missing or no-longer-included source stays unavailable. It does not open a newer model.
+
+Presentation mode hides project navigation, the representation row, the source row, and the saved-view list. The date stays on screen when the view is historical. Exit is a visible control, and Escape leaves presentation mode. Framing guides are 16:9, 9:16, and 1:1. They frame the viewer. They do not resize it.
+
+A Reality camera path is the current path for that one model. Play, pause, and restart sit with the saved views. There is no timeline editor.
+
 Destructive actions must:
 
 - be visually differentiated without flooding the UI with red

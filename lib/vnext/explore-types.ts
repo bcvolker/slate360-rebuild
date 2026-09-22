@@ -20,6 +20,7 @@ export type VnextExploreSourceSummary = {
 
 export type VnextRealitySourceData = {
   kind: "reality";
+  modelId?: string;
   viewerKind: "splat" | "model";
   modelUrl: string;
   modelTitle: string;

@@ -5,61 +5,82 @@ import { vnextExploreHref } from "@/lib/vnext/explore/build-explore-href";
 import { loadVnextExploreData } from "@/lib/vnext/load-project-explore";
 import { isVnextProjectId } from "@/lib/vnext/portfolio-access";
 import { requireVnextSession } from "@/lib/vnext/require-vnext-session";
+import { getScopedProjectForUser } from "@/lib/projects/access";
+import { userCanManageVnextProject } from "@/lib/vnext/plans/manage-access";
+import { readSavedViews } from "@/lib/vnext/views/read-saved-views";
+import type { SavedViewAspect } from "@/lib/vnext/views/saved-view-types";
+import type { VnextExploreData } from "@/lib/vnext/explore-types";
 
 type PageProps = {
   params: Promise<{ projectId: string }>;
-  searchParams: Promise<{ rep?: string; source?: string; item?: string; present?: string }>;
+  searchParams: Promise<{ rep?: string; source?: string; item?: string; present?: string; view?: string; guide?: string }>;
 };
 
-export const metadata = {
-  title: "Explore — Slate360",
-};
+const GUIDES = new Set<SavedViewAspect>(["16:9", "9:16", "1:1"]);
+
+export const metadata = { title: "Explore — Slate360" };
 
 export default async function VnextProjectExplorePage({ params, searchParams }: PageProps) {
   const { projectId } = await params;
   const query = await searchParams;
   const path = `/vnext/projects/${projectId}/explore`;
-
   const requestedRep = query.rep?.trim() || null;
   const requestedSourceId = query.source?.trim() || null;
   const requestedItem = query.item?.trim() || null;
+  const requestedView = query.view?.trim() || null;
   const present = query.present === "1";
+  const guide = query.guide && GUIDES.has(query.guide as SavedViewAspect) ? (query.guide as SavedViewAspect) : null;
 
-  // The login redirectTo must preserve the full Explore URL state (rep/source/item/present), not
-  // just the bare path, so a deep link an unauthenticated visitor followed still lands where they
-  // meant to go after signing in. Built via vnextExploreHref (never raw request input), so the
-  // result is always exactly this authenticated /vnext/projects/[id]/explore path plus a
-  // URLSearchParams-encoded query — never an external or open redirect target.
   const redirectTo = vnextExploreHref(path, {
     rep: requestedRep,
     source: requestedSourceId,
     item: requestedItem,
+    view: requestedView,
+    guide,
     present,
   });
   const ctx = await requireVnextSession(redirectTo);
   if (!ctx.user) notFound();
   if (!isVnextProjectId(projectId)) notFound();
 
-  const data = await loadVnextExploreData(ctx.user.id, projectId, requestedRep, requestedSourceId);
+  const scoped = await getScopedProjectForUser(ctx.user.id, projectId, "id, org_id");
+  const listed = scoped.project ? await readSavedViews(scoped.admin, projectId) : { views: [], failed: false };
+  const opened = requestedView ? listed.views.find((view) => view.id === requestedView) ?? null : null;
+  const data = await loadVnextExploreData(
+    ctx.user.id,
+    projectId,
+    opened ? opened.representation : requestedView ? null : requestedRep,
+    opened ? opened.sourceId : requestedView ? null : requestedSourceId,
+  );
   if (!data) notFound();
 
-  const itemFocus = requestedItem
-    ? await loadExploreItemFocus(
-        ctx.user.id,
-        projectId,
-        requestedItem,
-        data.activeRepresentation,
-        data.activeSourceId,
-      )
+  const resolved = Boolean(opened && data.activeRepresentation === opened.representation && data.activeSourceId === opened.sourceId && data.activeSourceData);
+  const unavailable = Boolean(requestedView) && !resolved;
+  const shown: VnextExploreData = unavailable
+    ? { ...data, activeRepresentation: null, activeSourceId: null, activeSourceData: null, activeSourceError: null }
+    : data;
+  const itemId = opened && resolved ? opened.itemId : unavailable ? null : requestedItem;
+  const itemFocus = itemId
+    ? await loadExploreItemFocus(ctx.user.id, projectId, itemId, shown.activeRepresentation, shown.activeSourceId)
     : null;
+  const orgId = (scoped.project as { org_id?: string | null } | null)?.org_id ?? scoped.orgId ?? null;
+  const canWrite = scoped.project ? await userCanManageVnextProject(scoped.admin, ctx.user.id, projectId, orgId) : false;
 
   return (
     <VnextExploreShell
-      data={data}
+      data={shown}
       initialPresent={present}
       basePath={path}
-      item={requestedItem}
+      item={itemId}
       itemFocus={itemFocus}
+      views={listed.views}
+      viewsFailed={listed.failed}
+      canWrite={canWrite}
+      openedView={resolved ? opened : null}
+      viewId={requestedView}
+      viewUnavailable={unavailable}
+      guide={opened?.aspect ?? guide}
+      persistViews="api"
     />
   );
 }

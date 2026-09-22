@@ -1,8 +1,8 @@
 # Slate360 Phase 1 — Implementation Status
 
 **Last updated:** 2026-09-22  
-**Current slice:** 7A (Client deliverable scope) — implemented, awaiting approval  
-**Next slice:** 8 (Presentation) — **NOT STARTED**
+**Current slice:** 8 (Presentation / saved views / evidence links) — implemented, awaiting approval  
+**Next slice:** 9 (Owner Home / Clients / Projects) — **NOT STARTED**
 
 Canonical plan: `docs/vnext/SLATE360_UI_PHASE1_MASTER_BUILD_PLAN.md`  
 Slice prompts: `docs/vnext/SLATE360_UI_PHASE1_CURSOR_SLICE_PROMPTS.md`  
@@ -39,9 +39,9 @@ The feature branch is **pushed**. It is not an unpushed `origin/main` clone.
 | 6 | Documents + project search | **APPROVED** |
 | 6A | Project plans foundation | **APPROVED** |
 | 7 | History + Compare | **APPROVED** |
-| 7A | Client deliverable scope + visibility | **IMPLEMENTED — awaiting approval** |
-| 8 | Presentation / social clip foundation | **NOT STARTED** |
-| 9 | Owner Home + Clients + Projects | Not started |
+| 7A | Client deliverable scope + visibility | **APPROVED** |
+| 8 | Presentation / saved views / evidence links | **IMPLEMENTED — awaiting approval** |
+| 9 | Owner Home + Clients + Projects | **NOT STARTED** |
 | 10 | Processing + QA & Publish | Not started |
 | 11 | Sharing + permissions + polish | Not started |
 | 12 | Cutover + cleanup | Not started |
@@ -785,4 +785,21 @@ Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 31 files / 250
 Closeout applied `20260922120000_project_client_capabilities.sql` and `20260922133000_replace_project_client_scope.sql` to the linked Supabase project `hadnfcenpcfaeclczsmm` from `C:\s360`. The table, check constraint, RLS policies, and project seed trigger are present. All 8 existing projects have nine capability rows. A rolled-back insert seeded portal sections on and services off. `replace_project_client_scope` upserts the nine ids in one transaction. Thermal backfill uses the same `capture_ids` rule as runtime. This database has no thermal sessions, so Thermal is included for none of the live projects.
 
 Closeout `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 31 files / 252 tests passed, production build, Playwright 122 passed. Guards passed. `npm run typecheck:changed` against `main` exits 2 only on the existing `splat-viewer-scene.tsx` lines 197–199.
+
+## Slice 8 notes (2026-09-22)
+
+A saved view is an evidence link. It records the project, representation, exact source, and any visit, date, item, sheet, or view state the current viewer can actually reproduce. It is not a camera bookmark. `digital_twin_viewpoints` was not reused: it requires a space, stores a left and right camera, and only allows orbit, book spread, section, and compare. Plan, 360, and Thermal do not fit that table. The new table is `project_saved_views`.
+
+The deep link is `/vnext/projects/[projectId]/explore?view=[savedViewId]`. The row decides what opens. A missing source, or a capability that is no longer included, shows "This saved view is not available." It does not open a newer model and it does not name the hidden service. The row is kept. See `docs/vnext/SAVED_VIEW_EVIDENCE_LINK.md`.
+
+Writes are project-shared and limited to owner, admin, member, and manager. A client with project access can open a view whose capability is still included. There is no personal library and no public token.
+
+Reality can save and restore a splat camera pose when the viewer returns one. Geometry saves the model only. The model viewer does not expose a pose. 360 saves yaw and pitch from Photo Sphere Viewer. It does not save zoom. Plan saves the sheet plus pan and zoom. Thermal saves the session and the selected capture. There is no thermal camera. A camera path remains one `camera_path` blob on that splat model. It is not copied to another model. Auto-orbit is not available: the vNext viewer has no orbit control to drive. Browser recording and server video export are deferred.
+
+Slice 9 was not started. No public share, owner home, processing queue, AI, VR, or design studio.
+
+Migration `20260922180000_project_saved_views.sql` was applied to linked project `hadnfcenpcfaeclczsmm` and recorded in migration history. The two Slice 7A versions were not rerun. Older migration-history drift was not repaired.
+
+Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 33 files / 267 tests passed, production build, Playwright 134 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. `npm run typecheck:changed` against `main` exits 2 only on the existing `splat-viewer-scene.tsx` lines 197–199.
+
 

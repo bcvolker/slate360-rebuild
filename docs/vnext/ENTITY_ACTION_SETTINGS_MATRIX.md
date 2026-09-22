@@ -362,27 +362,27 @@ Production token URLs must remain stable (Decision K).
 
 ---
 
-## 9. Saved camera view
+## 9. Saved evidence view
 
 | Field | Value |
 |---|---|
-| Backend / data model | `digital_twin_viewpoints` (kinds: orbit / book_spread / section / compare) |
-| Permission source | Schema is org/space scoped; **no product API consumer found** |
-| Rename | `NOT CURRENTLY SUPPORTED` (schema has `title`; no route) |
-| Edit | `NOT CURRENTLY SUPPORTED` |
+| Backend / data model | `project_saved_views`. `digital_twin_viewpoints` stays twin-only (space, left/right cameras, kinds orbit / book_spread / section / compare) and is not the store for Plan, 360, or Thermal |
+| Permission source | Read: project access, then the client capability must still be included. Write: `userCanManageVnextProject` (owner, admin, member, manager). Collaborators and viewers do not create project-shared views |
+| Rename | `SUPPORTED` — title only, same write role |
+| Edit | `PARTIAL` — create captures the current source and whatever view state that viewer exposes. There is no separate pose editor |
 | Duplicate / Copy | `NOT CURRENTLY SUPPORTED` |
 | Move | `NOT APPLICABLE` |
 | Archive | `NOT CURRENTLY SUPPORTED` |
-| Delete | `NOT CURRENTLY SUPPORTED` |
+| Delete | `SUPPORTED` — confirmed delete by a manager. Turning a capability off does not delete the row |
 | Restore | `NOT APPLICABLE` |
-| Share / Copy link | `NOT CURRENTLY SUPPORTED` |
+| Share / Copy link | `PARTIAL` — authenticated deep link `?view=` only. No public token in this slice |
 | Download | `NOT APPLICABLE` |
-| Publish / Unpublish / Revoke | `NOT APPLICABLE` |
-| Delete semantics | `NOT APPLICABLE` until an API exists |
-| Intended vNext UI | Presentation / Explore |
-| Planned Phase 1 slice | 8 |
-| Backend exists | Schema only — **KEEP schema**, do not invent a video editor |
-| Later verification | Whether Slice 8 should add APIs or stay runtime-only |
+| Publish / Unpublish / Revoke | `NOT APPLICABLE` — visibility follows project capability and source renderability |
+| Delete semantics | Row delete. Hidden is not deleted |
+| Intended vNext UI | Explore → Views. Not a project tab |
+| Planned Phase 1 slice | 8 — implemented |
+| Backend exists | `SUPPORTED` — `GET/POST /api/vnext/projects/[projectId]/saved-views`, `PATCH/DELETE .../[viewId]` |
+| Later verification | Public share tokens are Slice 11 |
 
 ---
 
@@ -390,23 +390,23 @@ Production token URLs must remain stable (Decision K).
 
 | Field | Value |
 |---|---|
-| Backend / data model | `digital_twin_models.camera_path` jsonb |
-| Permission source | Twin model scope (`getScopedTwinModel`) |
-| Rename | `NOT CURRENTLY SUPPORTED` as a named library item (path is JSON on the model) |
-| Edit | `SUPPORTED` — `GET/PATCH /api/digital-twin/models/[modelId]/camera-path` |
-| Duplicate / Copy | `NOT CURRENTLY SUPPORTED` as a second saved path |
-| Move | `NOT APPLICABLE` |
+| Backend / data model | `digital_twin_models.camera_path` jsonb. One current path for that model. Not a named library |
+| Permission source | vNext project route. The model must be a ready splat in a space on that project, and Reality must be included. Write: `userCanManageVnextProject`. The legacy `withAppAuth("digital_twin")` route is not the vNext surface |
+| Rename | `NOT CURRENTLY SUPPORTED` — the path is not a named library item |
+| Edit | `SUPPORTED` — `GET/PATCH /api/vnext/projects/[projectId]/models/[modelId]/camera-path` |
+| Duplicate / Copy | `NOT CURRENTLY SUPPORTED` |
+| Move | `NOT APPLICABLE` — a path is not copied onto another model |
 | Archive | `NOT CURRENTLY SUPPORTED` |
-| Delete | `PARTIAL` — clearing JSON **NEEDS VERIFICATION**; no dedicated delete route |
+| Delete | `PARTIAL` — saving an empty keyframe list clears it. No separate delete route |
 | Restore | `NOT CURRENTLY SUPPORTED` |
-| Share / Copy link | `PARTIAL` — playback can ride twin share; not a path-only token |
-| Download | `NOT CURRENTLY SUPPORTED` (no server MP4 export) |
+| Share / Copy link | `NOT CURRENTLY SUPPORTED` |
+| Download | `NOT CURRENTLY SUPPORTED` |
 | Publish / Unpublish / Revoke | `NOT APPLICABLE` |
-| Delete semantics | `NEEDS VERIFICATION` |
-| Intended vNext UI | Presentation / Explore |
-| Planned Phase 1 slice | 8 |
-| Backend exists | `SUPPORTED` for get/patch authoring |
-| Later verification | Multiple named paths vs one jsonb blob; export |
+| Delete semantics | The blob stays on the model row until replaced |
+| Intended vNext UI | Explore → Views, Reality only |
+| Planned Phase 1 slice | 8 — implemented |
+| Backend exists | `SUPPORTED` for one path per splat model |
+| Later verification | Named path libraries and server video export are later work |
 
 ---
 

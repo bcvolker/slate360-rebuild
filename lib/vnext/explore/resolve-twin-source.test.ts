@@ -40,6 +40,7 @@ describe("resolveTwinSourceData", () => {
     expect(result).toEqual({
       kind: "reality",
       viewerKind: "splat",
+      modelId: "model-1",
       modelUrl: "/api/vnext/projects/p1/twin-models/model-1/splat",
       modelTitle: "Front yard",
     });

@@ -116,6 +116,7 @@ export async function resolveTwinSourceData(
       // own comment.
       modelUrl: `/api/vnext/projects/${projectId}/twin-models/${model.id}/splat`,
       modelTitle,
+      modelId: model.id,
     };
   }
   return {

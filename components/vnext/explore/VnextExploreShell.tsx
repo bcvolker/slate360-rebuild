@@ -12,10 +12,16 @@ import { VnextExploreItemContext } from "./VnextExploreItemContext";
 import { VnextExploreViewerControls } from "./VnextExploreViewerControls";
 import { VnextExploreEmptyState } from "./VnextExploreEmptyState";
 import { VnextExploreErrorState } from "./VnextExploreErrorState";
+import { VnextSavedViewsPanel } from "./VnextSavedViewsPanel";
+import { VnextAspectGuide } from "./VnextAspectGuide";
+import { VnextViewContext } from "./VnextViewContext";
 import { VNEXT_EXPLORE_HELP } from "./vnext-explore-help-copy";
 import { vnextExploreHref } from "@/lib/vnext/explore/build-explore-href";
 import type { VnextExploreData } from "@/lib/vnext/explore-types";
 import type { VnextExploreItemFocus } from "@/lib/vnext/items/item-types";
+import type { TwinCameraPath } from "@/lib/digital-twin/camera-path-types";
+import type { SplatViewerHandle } from "@/components/digital-twin/splat-viewer-constants";
+import type { SavedViewAspect, VnextSavedView } from "@/lib/vnext/views/saved-view-types";
 
 type Props = {
   data: VnextExploreData;
@@ -28,13 +34,47 @@ type Props = {
   item: string | null;
   /** Resolved client record for ?item=, when it belongs to this project. */
   itemFocus?: VnextExploreItemFocus | null;
+  views?: VnextSavedView[];
+  viewsFailed?: boolean;
+  canWrite?: boolean;
+  openedView?: VnextSavedView | null;
+  viewId?: string | null;
+  viewUnavailable?: boolean;
+  guide?: SavedViewAspect | null;
+  persistViews?: "local" | "api";
+  onViews?: (views: VnextSavedView[]) => void;
+  pathModelId?: string | null;
+  initialPath?: TwinCameraPath | null;
 };
 
-export function VnextExploreShell({ data, initialPresent, basePath, item, itemFocus = null }: Props) {
+export function VnextExploreShell({
+  data,
+  initialPresent,
+  basePath,
+  item,
+  itemFocus = null,
+  views = [],
+  viewsFailed = false,
+  canWrite = false,
+  openedView = null,
+  viewId = null,
+  viewUnavailable = false,
+  guide: initialGuide = null,
+  persistViews = "api",
+  onViews,
+  pathModelId = null,
+  initialPath = null,
+}: Props) {
   const router = useRouter();
   const [present, setPresent] = useState(initialPresent);
+  const [guide, setGuide] = useState(initialGuide);
   const stageRef = useRef<HTMLDivElement>(null);
+  const splatRef = useRef<SplatViewerHandle | null>(null);
   const { isFullscreen, toggleFullscreen } = useVnextFullscreen(stageRef);
+  const setSplatHandle = useCallback((handle: SplatViewerHandle | null) => {
+    splatRef.current = handle;
+  }, []);
+  const getSplatHandle = useCallback(() => splatRef.current, []);
 
   // Keep in sync with the server-resolved value across Back/Forward — a mere query change
   // does not remount this client component, so a plain useState(initialPresent) alone can go stale.
@@ -42,19 +82,28 @@ export function VnextExploreShell({ data, initialPresent, basePath, item, itemFo
     setPresent(initialPresent);
   }, [initialPresent]);
 
-  const togglePresent = useCallback(() => {
-    const next = !present;
-    setPresent(next);
-    router.replace(
+  useEffect(() => {
+    setGuide(initialGuide);
+  }, [initialGuide]);
+
+  const hrefState = useCallback(
+    (next: { present?: boolean; guide?: SavedViewAspect | null }) =>
       vnextExploreHref(basePath, {
         rep: data.activeRepresentation,
         source: data.activeSourceId,
         item,
-        present: next,
+        view: viewId,
+        guide: next.guide === undefined ? guide : next.guide,
+        present: next.present ?? present,
       }),
-      { scroll: false },
-    );
-  }, [present, router, basePath, data.activeRepresentation, data.activeSourceId, item]);
+    [basePath, data.activeRepresentation, data.activeSourceId, guide, item, present, viewId],
+  );
+
+  const togglePresent = useCallback(() => {
+    const next = !present;
+    setPresent(next);
+    router.replace(hrefState({ present: next }), { scroll: false });
+  }, [present, router, hrefState]);
 
   useEffect(() => {
     if (!present) return;
@@ -94,6 +143,7 @@ export function VnextExploreShell({ data, initialPresent, basePath, item, itemFo
       }
       data-vnext-explore={data.projectId}
       data-vnext-explore-present={present ? "true" : "false"}
+      data-vnext-active-source={data.activeSourceId ?? ""}
     >
       {!present ? (
         <div className="mb-3 flex items-center justify-between gap-3">
@@ -149,18 +199,48 @@ export function VnextExploreShell({ data, initialPresent, basePath, item, itemFo
 
           {!present && itemFocus ? <VnextExploreItemContext focus={itemFocus} /> : null}
 
+          {!present ? (
+            <VnextSavedViewsPanel
+              projectId={data.projectId}
+              basePath={basePath}
+              views={views}
+              canWrite={canWrite}
+              failed={viewsFailed}
+              representation={data.activeRepresentation}
+              sourceId={data.activeSourceId ?? (data.activeSourceData?.kind === "reality" ? data.activeSourceData.modelId ?? null : null)}
+              itemId={item}
+              aspect={guide}
+              onAspect={(next) => {
+                setGuide(next);
+                router.replace(hrefState({ guide: next }), { scroll: false });
+              }}
+              onViews={onViews ?? (() => undefined)}
+              persist={persistViews}
+              pathModelId={pathModelId}
+              initialPath={initialPath}
+              getHandle={getSplatHandle}
+            />
+          ) : null}
+
           <div
             ref={stageRef}
-            className={`relative w-full overflow-hidden ${present ? "min-h-0 flex-1" : "mt-3 h-[60vh] min-h-[360px]"}`}
+            className={`group relative w-full overflow-hidden ${present ? "min-h-0 flex-1" : "mt-3 h-[60vh] min-h-[360px]"}`}
             data-vnext-explore-stage="true"
+            data-vnext-saved-view-unavailable={viewUnavailable ? "true" : "false"}
           >
-            {data.activeRepresentation && data.activeSourceData ? (
+            {viewUnavailable ? (
+              <VnextExploreErrorState message="This saved view is not available." />
+            ) : data.activeRepresentation && data.activeSourceData ? (
               <>
                 <VnextExploreViewerStage
                   representation={data.activeRepresentation}
                   data={data.activeSourceData}
                   planMarker={itemFocus?.planMarker ?? null}
+                  restore={openedView?.viewState ?? null}
+                  onSplatHandle={setSplatHandle}
                 />
+                {openedView?.occurredAt ? <VnextViewContext view={openedView} /> : null}
+                {guide ? <VnextAspectGuide aspect={guide} /> : null}
                 <VnextExploreViewerControls
                   isFullscreen={isFullscreen}
                   onToggleFullscreen={toggleFullscreen}

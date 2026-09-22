@@ -40,6 +40,7 @@ export const PREVIEW_EXPLORE_REALITY: VnextExploreData = {
   activeSourceData: {
     kind: "reality",
     viewerKind: "splat",
+    modelId: "preview-reality",
     modelUrl: "/marketing/sample-twin.spz",
     modelTitle: "Harbor Street — Reality capture",
   },
@@ -49,6 +50,7 @@ export const PREVIEW_EXPLORE_REALITY: VnextExploreData = {
 export const PREVIEW_EXPLORE_GEOMETRY: VnextExploreData = {
   ...PREVIEW_EXPLORE_REALITY,
   activeRepresentation: "geometry",
+  activeSourceId: "geom-1",
   activeSourceData: {
     kind: "geometry",
     viewerKind: "model",
@@ -79,6 +81,7 @@ export const PREVIEW_EXPLORE_PLAN: VnextExploreData = {
 export const PREVIEW_EXPLORE_THERMAL: VnextExploreData = {
   ...PREVIEW_EXPLORE_REALITY,
   activeRepresentation: "thermal",
+  activeSourceId: "thermal-session",
   activeSourceData: {
     kind: "thermal",
     sessionName: "North wall inspection",

@@ -1,14 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { VnextThermalSourceData } from "@/lib/vnext/explore-types";
+import { registerLiveView } from "@/lib/vnext/views/live-view";
 import { VnextViewerMediaError } from "./VnextViewerMediaError";
 
-export default function VnextThermalViewer({ data }: { data: VnextThermalSourceData }) {
-  const [index, setIndex] = useState(0);
+export default function VnextThermalViewer({
+  data,
+  captureId = null,
+}: {
+  data: VnextThermalSourceData;
+  captureId?: string | null;
+}) {
+  const initial = Math.max(0, data.captures.findIndex((capture) => capture.id === captureId));
+  const [index, setIndex] = useState(initial === -1 ? 0 : initial);
   const [errorCaptureId, setErrorCaptureId] = useState<string | null>(null);
   const captures = data.captures;
   const current = captures[Math.min(index, Math.max(0, captures.length - 1))];
+
+  useEffect(() => {
+    return registerLiveView(() => (current ? { kind: "thermal", captureId: current.id } : null));
+  }, [current]);
 
   if (captures.length === 0) {
     return (
@@ -19,7 +31,7 @@ export default function VnextThermalViewer({ data }: { data: VnextThermalSourceD
   }
 
   return (
-    <div className="flex h-full w-full flex-col bg-[var(--graphite-canvas)]">
+    <div className="flex h-full w-full flex-col bg-[var(--graphite-canvas)]" data-vnext-thermal-capture={current?.id ?? ""}>
       <div className="relative flex-1 overflow-hidden">
         {current && errorCaptureId === current.id ? (
           // Thermal capture URLs are presigned S3 links, not a re-signing proxy — a genuine retry

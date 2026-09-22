@@ -8,6 +8,12 @@ describe("vnextExploreHref", () => {
     expect(vnextExploreHref(BASE, { rep: null })).toBe(BASE);
   });
 
+  it("keeps a saved view id on the explore URL", () => {
+    expect(vnextExploreHref(BASE, { rep: "reality", source: "model-sep18", view: "sv-history", guide: "9:16" })).toBe(
+      `${BASE}?rep=reality&source=model-sep18&view=sv-history&guide=9%3A16`,
+    );
+  });
+
   it("includes rep, source, and present when set", () => {
     expect(vnextExploreHref(BASE, { rep: "360", source: "photo-1", present: true })).toBe(
       `${BASE}?rep=360&source=photo-1&present=1`,
