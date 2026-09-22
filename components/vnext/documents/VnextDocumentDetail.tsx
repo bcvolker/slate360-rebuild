@@ -52,6 +52,14 @@ export function VnextDocumentDetail({ document, documentsHref }: Props) {
               </a>
             ) : null}
           </div>
+          {document.sheetsHref ? (
+            <Link
+              href={document.sheetsHref}
+              className="inline-flex min-h-[var(--vnext-touch)] min-w-[var(--vnext-touch)] items-center text-[length:var(--vnext-meta)] text-[var(--vnext-accent)] no-underline"
+            >
+              View sheets
+            </Link>
+          ) : null}
           {document.related ? (
             <Link
               href={document.related.href}

@@ -2,24 +2,45 @@ import "server-only";
 
 import { getScopedProjectForUser } from "@/lib/projects/access";
 import { vnextProjectHref } from "@/lib/vnext/nav";
+import { userCanManageVnextProject } from "@/lib/vnext/plans/manage-access";
+import { readProjectPlans } from "@/lib/vnext/plans/read-project-plans";
+import { withPlanSheetLinks } from "@/lib/vnext/plans/assemble-plans";
+import type { VnextProjectPlanSet } from "@/lib/vnext/plans/plan-types";
 import type { VnextClientDocument, VnextDocumentFolder, VnextSearchHit } from "./document-types";
 import { readClientDocumentFile, readProjectDocuments } from "./read-project-documents";
 
 export type DocumentsPageResult =
   | { access: "denied" }
-  | { access: "ok"; documents: VnextClientDocument[]; hits: VnextSearchHit[]; folders: VnextDocumentFolder[]; error: string | null };
+  | {
+      access: "ok";
+      documents: VnextClientDocument[];
+      hits: VnextSearchHit[];
+      folders: VnextDocumentFolder[];
+      planSets: VnextProjectPlanSet[];
+      canUploadPlans: boolean;
+      error: string | null;
+    };
 
 export async function loadVnextProjectDocuments(userId: string, projectId: string): Promise<DocumentsPageResult> {
-  const { admin, project } = await getScopedProjectForUser(userId, projectId, "id");
+  const { admin, project } = await getScopedProjectForUser(userId, projectId, "id, org_id");
   if (!project) return { access: "denied" };
   const base = vnextProjectHref(projectId);
+  const documentsBase = `${base}/documents`;
   const read = await readProjectDocuments(admin, projectId, {
-    documentsBase: `${base}/documents`,
+    documentsBase,
     itemsBase: `${base}/items`,
     exploreBase: `${base}/explore`,
   });
-  const folders = folderChoices(read.documents);
-  return { access: "ok", documents: read.documents, hits: read.hits, folders, error: read.error };
+  const planSets = await readProjectPlans(admin, projectId, {
+    documents: read.documents,
+    documentsBase,
+    exploreBase: `${base}/explore`,
+  }).catch(() => [] as VnextProjectPlanSet[]);
+  const documents = withPlanSheetLinks(read.documents, planSets, documentsBase);
+  const orgId = (project as { org_id?: string | null }).org_id ?? null;
+  const canUploadPlans = await userCanManageVnextProject(admin, userId, projectId, orgId).catch(() => false);
+  const folders = folderChoices(documents);
+  return { access: "ok", documents, hits: read.hits, folders, planSets, canUploadPlans, error: read.error };
 }
 
 export type DocumentDetailResult =

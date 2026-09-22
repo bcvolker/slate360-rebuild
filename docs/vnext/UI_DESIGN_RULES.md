@@ -189,6 +189,14 @@ Documents is a project file index, not a file manager. The client's job is to fi
 
 ---
 
+## Project plans (Slice 6A)
+
+Project plans stay on Documents. They are not a new navigation item and not a file manager.
+
+- A plan set is a heading. Sheets are rows. A renderable sheet opens Explore. A sheet that is still processing, or that failed, is a status line.
+- Show a revision label only when the plan set has one.
+- Upload plans is one button, shown only to someone allowed to manage the project. It is not a drop zone and not a storage dashboard.
+
 ## Prohibited patterns
 
 Glassmorphism, dark SaaS chrome, decorative gradients, icon tiles, widget boards, fake analytics/KPIs, giant headings, giant blank heroes, nested cards, upgrade/billing/seats/plan labels, Coming Soon product modules, Command Center, Studio proliferation, teal **interaction** accents, marketing slogans in the app.

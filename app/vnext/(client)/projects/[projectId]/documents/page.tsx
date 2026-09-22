@@ -28,6 +28,9 @@ export default async function VnextProjectDocumentsPage({ params }: PageProps) {
       hits={result.hits}
       folders={result.folders}
       documentsBase={path}
+      planSets={result.planSets}
+      canUploadPlans={result.canUploadPlans}
+      projectId={projectId}
       error={result.error}
     />
   );

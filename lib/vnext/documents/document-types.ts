@@ -15,6 +15,8 @@ export type VnextClientDocument = {
   /** Inline image for the detail page. Null when the file is not an image. */
   previewHref: string | null;
   related: { title: string; href: string } | null;
+  /** Present when this file is the source PDF of a project plan set. */
+  sheetsHref?: string | null;
 };
 
 export type VnextSearchKind = "document" | "item" | "plan";

@@ -1,5 +1,7 @@
 import type { VnextClientDocument, VnextDocumentFolder, VnextSearchHit } from "./documents/document-types";
 import { buildProjectSearchHits } from "./documents/project-search";
+import { vnextExploreHref } from "./explore/build-explore-href";
+import type { VnextProjectPlanSet } from "./plans/plan-types";
 
 const BASE = "/preview/vnext/project";
 
@@ -23,6 +25,7 @@ const drawing: VnextClientDocument = {
   downloadHref: "/mock/sitewalk.jpg",
   previewHref: null,
   related: { title: "Water stain at east corridor", href: `${PREVIEW_ITEMS_BASE}/item-plan` },
+  sheetsHref: "/preview/vnext/project/documents-plans#plan-arch",
 };
 
 const photo: VnextClientDocument = {
@@ -95,6 +98,33 @@ export const PREVIEW_DOCUMENT_HITS: VnextSearchHit[] = buildProjectSearchHits({
     },
   ],
 });
+
+export const PREVIEW_PLAN_SETS: VnextProjectPlanSet[] = [
+  {
+    id: "plan-arch",
+    title: "Construction Drawings",
+    revisionLabel: "Rev 2",
+    source: {
+      documentId: "doc-ceiling",
+      title: "Level 2 reflected ceiling",
+      href: `${PREVIEW_DOCUMENTS_BASE}/doc-ceiling`,
+    },
+    sheets: [
+      {
+        id: "sheet-a101",
+        label: "A1.01 Site plan",
+        exploreHref: vnextExploreHref(PREVIEW_EXPLORE_BASE, { rep: "plan", source: "sheet-a101" }),
+        statusLabel: null,
+      },
+      {
+        id: "sheet-wait",
+        label: "A2.01 Floor plan",
+        exploreHref: null,
+        statusLabel: "Processing",
+      },
+    ],
+  },
+];
 
 export function previewDocument(id: string): VnextClientDocument | null {
   return PREVIEW_DOCUMENTS.find((document) => document.id === id) ?? null;

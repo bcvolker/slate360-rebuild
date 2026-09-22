@@ -246,10 +246,26 @@ Verified against the Phase 1 client route. This does not change the legacy Slate
 | Rename / move / delete / upload / share | `HIDDEN` on the client route |
 | Folder tree | `NOT IN THIS SLICE` — folder is a label and, when more than one exists, a filter |
 | Document → item | `SUPPORTED` when `site_walk_deliverable_assets.file_id` points at the file and `source_item_id` is a live item in the same project |
-| Document → plan | `NOT CURRENTLY SUPPORTED` — plan sheets are Explore sources and appear in project search, not as file rows |
+| Document → plan | `SUPPORTED` when `site_walk_plan_sets.source_file_id` is that file (Slice 6A). A shared name is not a link. Slice 6 had not found this foreign key |
 | Project search | Documents, items, and renderable plan sheets. No embeddings |
 | Intended vNext UI | `/vnext/projects/[projectId]/documents` and `/documents/[documentId]` |
 | Planned Phase 1 slice | 6, built |
+
+---
+
+### 6c. vNext project plans (Slice 6A)
+
+| Field | Value |
+|---|---|
+| Backend / data model | `site_walk_plan_sets` and `site_walk_plan_sheets`, both `project_id` required. Sessions reference sheets through `site_walk_session_plan_sheets`. Pins reference `plan_sheet_id` |
+| Visit ownership | A visit does not own the plan file. Two sessions can reference the same sheet |
+| Revisions | Set-level `revision_number`, `revision_label`, `supersedes_plan_set_id`, `is_current_revision`. Displayed when present. New uploads do not auto-supersede |
+| Source document | `source_file_id` → `slatedrop_uploads`, shown only when that file is a client document |
+| Read | vNext project access. Renderable sheets open Explore. Processing and failed sheets do not |
+| Write / upload | `user_can_manage_project` roles only: owner, admin, member, manager. Collaborator and viewer cannot upload. PDF into an existing drawings or plans folder, then `plan.rasterize` |
+| Legacy route | `/api/site-walk/plan-sets` remains Punchwalk-gated and was not widened |
+| Intended vNext UI | Documents → Project plans. No new nav tab |
+| Planned Phase 1 slice | 6A, built |
 
 ---
 

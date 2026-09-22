@@ -1,7 +1,7 @@
 # Slate360 Phase 1 — Implementation Status
 
 **Last updated:** 2026-09-21  
-**Current slice:** 6 (Documents + project search) — implemented, awaiting approval  
+**Current slice:** 6A (Project plans foundation) — implemented, awaiting approval  
 **Next slice:** 7 (History + Compare) — **NOT STARTED**
 
 Canonical plan: `docs/vnext/SLATE360_UI_PHASE1_MASTER_BUILD_PLAN.md`  
@@ -36,7 +36,8 @@ The feature branch is **pushed**. It is not an unpushed `origin/main` clone.
 | 3 | Client project overview | **APPROVED** |
 | 4 | Unified Explore viewer | **APPROVED** |
 | 5 | Items + spatial linking | **APPROVED** |
-| 6 | Documents + project search | **IMPLEMENTED — awaiting approval** |
+| 6 | Documents + project search | **APPROVED** |
+| 6A | Project plans foundation | **IMPLEMENTED — awaiting approval** |
 | 7 | History + Compare | Not started |
 | 8 | Presentation / social clip foundation | Not started |
 | 9 | Owner Home + Clients + Projects | Not started |
@@ -715,4 +716,24 @@ Client Documents is a project file index. Search on that page also finds items a
 **Not started.** History, Compare, owner upload, sharing controls, reconstruction, middleware, billing.
 
 Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 26 files / 214 tests passed, production build, Playwright 99 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. A direct typecheck of the Slice 6 files passed. `npm run typecheck:changed` against `main` still exits 2 only on the three pre-existing `splat-viewer-scene.tsx` `sparkRenderer` / `splatMesh` errors. Those lines were not edited.
+
+## Slice 6A notes (2026-09-21)
+
+Project plans are a project asset. A visit may reference a sheet. It does not own the only copy. Slice 7 was not started.
+
+**Source of truth.** `site_walk_plan_sets` (project_id, no session) and `site_walk_plan_sheets` (project_id + plan_set_id). Legacy `site_walk_plans.session_id` is required and is not the client model. `site_walk_session_plan_sheets` attaches an existing sheet to a session. `site_walk_pins.plan_sheet_id` plus `x_pct` / `y_pct` is a position on that sheet. `visitPlanAnchors` is the adapter History can call later. No new table and no migration.
+
+**Revisions.** Plan sets already have `revision_number`, `revision_label`, `is_current_revision`, and `supersedes_plan_set_id`. The client shows the label, or `Rev N` when the number is greater than 1. A new upload does not automatically supersede the previous set. Sheet-level Rev 0 / Rev 1 / Rev 2 is not a separate row. Drawing revision is not a visit date.
+
+**Source document.** `site_walk_plan_sets.source_file_id` references `slatedrop_uploads`. When that file is already a client document, the plan set links to it and the document links back with View sheets. A matching filename is not a relationship.
+
+**Explore.** A sheet is an Explore Plan source only when it belongs to the project and has a thumbnail, raster, or image key. Processing and failed sheets stay on the plan list with a status line and no Explore link. Existing Explore resolution was not changed.
+
+**Upload.** `user_can_manage_project` is the write rule: organization or project role `owner`, `admin`, `member`, or `manager`. `collaborator` and `viewer` can read and cannot upload. Upload is PDF only, at most 50 MB, into an existing drawings or plans folder, then the existing `plan.rasterize` task. No visit is created. No Punchwalk entitlement. Readers do not see Upload plans.
+
+**Not started.** History, Compare, automatic revision chains, drawing markup, Design mode, an assistant, Blender, reconstruction, middleware, billing.
+
+Future captured-versus-proposed boundary: `docs/vnext/CAPTURED_AND_PROPOSED.md`. No design surface was added.
+
+Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 28 files / 228 tests passed, production build, Playwright 105 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. Scoped typecheck of the Slice 6A files passed. `npm run typecheck:changed` against `main` still exits 2 only on the three pre-existing `splat-viewer-scene.tsx` `sparkRenderer` / `splatMesh` errors. Those lines were not edited.
 

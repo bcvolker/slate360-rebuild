@@ -11,12 +11,17 @@ import {
 } from "@/lib/vnext/documents/document-language";
 import type { VnextClientDocument, VnextDocumentFolder, VnextSearchHit, VnextSearchKind } from "@/lib/vnext/documents/document-types";
 import { filterSearchHits, searchKindsPresent } from "@/lib/vnext/documents/project-search";
+import type { VnextProjectPlanSet } from "@/lib/vnext/plans/plan-types";
+import { VnextProjectPlans } from "./VnextProjectPlans";
 
 type Props = {
   documents: VnextClientDocument[];
   hits: VnextSearchHit[];
   folders: VnextDocumentFolder[];
   documentsBase: string;
+  planSets?: VnextProjectPlanSet[];
+  canUploadPlans?: boolean;
+  projectId?: string | null;
   error?: string | null;
 };
 
@@ -34,7 +39,16 @@ export function VnextDocumentsBrowser(props: Props) {
   );
 }
 
-function DocumentsBrowserInner({ documents, hits, folders, documentsBase, error = null }: Props) {
+function DocumentsBrowserInner({
+  documents,
+  hits,
+  folders,
+  documentsBase,
+  planSets = [],
+  canUploadPlans = false,
+  projectId = null,
+  error = null,
+}: Props) {
   const router = useRouter();
   const pathname = usePathname() ?? documentsBase;
   const searchParams = useSearchParams();
@@ -129,7 +143,7 @@ function DocumentsBrowserInner({ documents, hits, folders, documentsBase, error 
         </form>
       ) : null}
 
-      {!error && !searching && documents.length === 0 ? (
+      {!error && !searching && documents.length === 0 && planSets.length === 0 && !canUploadPlans ? (
         <p className="m-0 mt-4 border border-[var(--vnext-line)] bg-[var(--vnext-surface)] px-4 py-5 text-[length:var(--vnext-body)] text-[var(--vnext-ink-secondary)]">
           {DOCUMENTS_EMPTY_COPY}
         </p>
@@ -137,6 +151,10 @@ function DocumentsBrowserInner({ documents, hits, folders, documentsBase, error 
 
       {!error && !searching && documents.length > 0 ? (
         <DocumentList documents={visibleDocs} documentsBase={documentsBase} empty={visibleDocs.length === 0} />
+      ) : null}
+
+      {!error && !searching && folder === "all" ? (
+        <VnextProjectPlans planSets={planSets} canUpload={canUploadPlans} projectId={projectId} />
       ) : null}
 
       {!error && searching ? <SearchList results={results} /> : null}
