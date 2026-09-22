@@ -898,14 +898,14 @@ def room213_reassemble(payload: dict[str, Any]) -> dict[str, Any]:
 
 @app.function(
     image=gpu_image,
-    gpu="A10G",
-    timeout=6 * 60 * 60,
+    # CPU only: the GPU was needed solely for the Mask R-CNN person masks, which are already
+    # on the volume (stage skips existing outputs). Two A10G runs (19:57, 20:24) were cancelled
+    # by capacity reclaim mid-stage; faces/SfM/scale/loader are CPU work anyway.
+    timeout=8 * 60 * 60,
     memory=48 * 1024,
-    cpu=8.0,
+    cpu=16.0,
     volumes={"/vol": ckpt_vol},
     secrets=[worker_secret] if worker_secret is not None else [],
-    # One retry: the 2026-09-21 19:57 run was cancelled mid-stage by the platform (A10G
-    # capacity reclaim), not by a stage error. Every stage skips outputs that already exist.
     retries=1,
 )
 def room213_raw_build() -> str:
