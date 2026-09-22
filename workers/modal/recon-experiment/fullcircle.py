@@ -60,6 +60,24 @@ fc_image = (
     # so we install COLMAP 3.12.6 (cuda_126) in its own env and run scripts/run_colmap.sh verbatim.
     .run_commands("conda create -n colmap312 -y -c conda-forge 'colmap=3.12.6=cuda*' && "
                   "/opt/conda/envs/colmap312/bin/colmap -h 2>&1 | head -3")
+    # MINIMAL WIRING FIX (proven defect, 2026-09-22): the trainer calls the PUBLIC hooks
+    # post_backward / post_optimizer_step, but GSStrategy implements them as _post_backward /
+    # _post_optimizer_step, so BaseStrategy's no-op stubs win and densify/prune/gradient-accumulation
+    # are dead code (runtime-confirmed: 2000 calls to the public hooks, 0 to the underscored ones,
+    # gradient buffer identically 0.0). MCMCStrategy names its hook correctly, which is why it works.
+    # Two module-level aliases dispatch the existing implementations. No threshold, schedule,
+    # clone/split logic, opacity reset, optimizer or SH setting is altered.
+    .run_commands(
+        "printf '\\n\\n# --- minimal wiring fix: dispatch the existing GSStrategy hooks (see fullcircle.py) ---\\n"
+        "GSStrategy.post_backward = GSStrategy._post_backward\\n"
+        "GSStrategy.post_optimizer_step = GSStrategy._post_optimizer_step\\n' "
+        ">> /workspace/fullcircle/threedgrut/strategy/gs.py && "
+        "tail -4 /workspace/fullcircle/threedgrut/strategy/gs.py && "
+        "/opt/conda/envs/fullcircle/bin/python -c \""
+        "import sys; sys.path.insert(0,'/workspace/fullcircle');"
+        "from threedgrut.strategy.gs import GSStrategy as G;"
+        "assert 'post_optimizer_step' in G.__dict__ and 'post_backward' in G.__dict__;"
+        "print('WIRING FIX OK:', G.post_optimizer_step.__qualname__, G.post_backward.__qualname__)\"")
     .pip_install("pycolmap==4.2.0", "numpy<2", "opencv-python-headless<4.11")   # our Phase-1 driver only
 )
 
@@ -713,8 +731,112 @@ def fc_analyze_dump(step: str = "025000") -> dict[str, Any]:
     return out
 
 
+@app.function(image=fc_image, gpu="L40S", timeout=2 * 60 * 60, cpu=16.0, memory=64 * 1024, volumes={"/vol": vol})
+def fc_densify_diag(iterations: int = 3000) -> dict[str, Any]:
+    """Densification diagnostic. Same dataset, cameras, masks, resolution and config as the 30k run -- ONLY
+    n_iterations changes. Instrumentation is counters wrapped around the strategy hooks; no quality setting,
+    threshold, colour path or schedule is touched."""
+    import subprocess
+    probe = "/workspace/fullcircle/diag_densify.py"
+    open(probe, "w").write('''
+import atexit, json, sys, runpy, torch
+import threedgrut.strategy.base as B
+import threedgrut.strategy.gs as G
+
+OUT = "%s/densify_diag.json"
+import collections
+C = collections.defaultdict(int)
+SNAP, GRAD = [], []
+
+def wrap(cls, name, label=None):
+    if name not in cls.__dict__:
+        return
+    label = label or name
+    orig = cls.__dict__[name]
+    def f(self, *a, **k):
+        C[label] += 1
+        # record particle count and the live gradient buffer at each optimizer-step hook
+        if name == "post_optimizer_step":
+            step = a[0] if a else k.get("step", -1)
+            try:
+                n = int(self.model.num_gaussians)
+            except Exception:
+                n = -1
+            if step in (1, 250, 500, 750, 1000, 1250, 1500, 1750, 2000) or step %% 500 == 0:
+                acc = getattr(self, "densify_grad_norm_accum", None)
+                den = getattr(self, "densify_grad_norm_denom", None)
+                g = {}
+                if acc is not None and acc.numel():
+                    gn = (acc / den.clamp(min=1)).squeeze()
+                    gn = gn[~gn.isnan()]
+                    if gn.numel():
+                        q = torch.quantile(gn.float(), torch.tensor([0.5, 0.9, 0.99, 1.0], device=gn.device))
+                        g = {"grad_p50": float(q[0]), "grad_p90": float(q[1]), "grad_p99": float(q[2]),
+                             "grad_max": float(q[3]), "n_buffer": int(gn.numel()),
+                             "n_above_clone_thr": int((gn >= self.clone_grad_threshold).sum()),
+                             "clone_thr": float(self.clone_grad_threshold)}
+                SNAP.append({"step": int(step), "num_gaussians": n, **g})
+        return orig(self, *a, **k)
+    setattr(cls, name, f)
+
+for n in ("pre_backward", "post_backward", "post_optimizer_step"):
+    wrap(B.BaseStrategy, n, "Base." + n)
+for n in ("post_backward", "post_optimizer_step", "_post_backward", "_post_optimizer_step",
+          "densify_gaussians", "clone_gaussians", "split_gaussians", "prune_gaussians_opacity",
+          "update_gradient_buffer", "reset_density", "decay_density", "prune_gaussians_scale"):
+    wrap(G.GSStrategy, n, "GS." + n)
+
+def dump():
+    json.dump({"hook_call_counts": dict(C), "snapshots": SNAP,
+               "gs_defines_public_post_optimizer_step": "post_optimizer_step" in G.GSStrategy.__dict__,
+               "gs_defines_underscore": "_post_optimizer_step" in G.GSStrategy.__dict__,
+               "base_public_is_noop": B.BaseStrategy.post_optimizer_step.__qualname__},
+              open(OUT, "w"), indent=1)
+atexit.register(dump)
+
+sys.argv = ["train.py"] + sys.argv[1:]
+runpy.run_path("/workspace/fullcircle/train.py", run_name="__main__")
+''' % FC)
+    cmd = [PY, probe, "--config-name", "apps/colmap_3dgrt.yaml",
+           f"path={DATA}", "out_dir=/tmp/densify_diag", "experiment_name=densify_diag",
+           "dataset.downsample_factor=1", "dataset.test_frame_suffix=_test",
+           f"border_mask_train={FC}/mask_border.png", f"border_mask_test={FC}/mask_border.png",
+           f"n_iterations={iterations}", "test_last=false", "compute_extra_metrics=false"]
+    import threading
+    import time
+    peak = [0]; stop = threading.Event()
+
+    def poll():
+        while not stop.wait(3):
+            try:
+                q = subprocess.run(["nvidia-smi", "--query-gpu=memory.used", "--format=csv,noheader,nounits"],
+                                   capture_output=True, text=True, timeout=10)
+                peak[0] = max(peak[0], int(q.stdout.strip().split("\n")[0]))
+            except Exception:  # noqa: BLE001
+                pass
+    threading.Thread(target=poll, daemon=True).start()
+    t0 = time.time()
+    r = subprocess.run(cmd, capture_output=True, text=True, cwd="/workspace/fullcircle")
+    stop.set(); el = time.time() - t0
+    log = r.stdout[-40000:] + "\n" + r.stderr[-40000:]
+    open(f"{FC}/densify_diag.log", "w").write(log)
+    res: dict[str, Any] = {"exit": r.returncode, "elapsed_s": round(el, 1),
+                           "it_per_s": round(iterations / el, 3) if el else None, "peak_gpu_mib": peak[0]}
+    try:
+        res.update(json.loads(open(f"{FC}/densify_diag.json").read()))
+    except Exception as e:  # noqa: BLE001
+        res["read_error"] = str(e)
+    # the released code prints "Cloned N / M" / "Splitted N / M" when print_stats is on
+    res["stat_lines"] = [l.strip() for l in log.splitlines() if "Cloned" in l or "Splitted" in l or "Pruned" in l][:20]
+    json.dump(res, open(f"{FC}/densify_diag_result.json", "w"), indent=1)
+    vol.commit()
+    return res
+
+
 @app.local_entrypoint()
 def main(phase: str = "smoke", force: bool = False, iters: int = 150, downsample: int = 1, iterations: int = 30000, step: str = "025000"):
+    if phase == "densify_diag":
+        print(json.dumps(fc_densify_diag.remote(iterations), indent=1)); return
     if phase == "analyze_dump":
         print(json.dumps(fc_analyze_dump.remote(step), indent=1)); return
     if phase == "final":
