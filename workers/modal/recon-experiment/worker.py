@@ -1006,6 +1006,13 @@ def _classify(msg: str) -> str:
     return "infra" if any(p in msg for p in INFRA_PATTERNS) else "code"
 
 
+def _spawn(name: str):
+    """Spawn a sibling function by its deployed name. The module-level object's .spawn() hung
+    indefinitely inside the watchdog container on 2026-09-22 (two consecutive ticks timed out at
+    600 s before any event was written), while Function.from_name resolves in ~0.1 s there."""
+    return modal.Function.from_name(APP_NAME, name).spawn()
+
+
 def _detached_cpu_build_running() -> tuple[bool, bool]:
     """(alive, check_ok). A detached recon-experiment app with tasks is the current CPU build."""
     import asyncio
@@ -1068,7 +1075,7 @@ def room213_watchdog() -> dict[str, Any]:
             st["halted"] = f"{kind} exceeded 3 relaunches for: {msg}"
             _wd_event(st, st["halted"]); return
         st["relaunches"][sig] = n + 1
-        call = fn.spawn(); st[key] = call.object_id
+        call = _spawn(fn); st[key] = call.object_id
         _wd_event(st, f"{kind} relaunched ({cls} #{n + 1}) as {call.object_id} after: {msg}")
 
     if not build_done:
@@ -1093,14 +1100,14 @@ def room213_watchdog() -> dict[str, Any]:
                 st["external_build_seen"] = True
                 _wd_event(st, "detached CPU build still running; not launching another")
             elif st.get("external_build_seen") or not st.get("replacement_spawned"):
-                call = room213_raw_build.spawn(); st["build_call_id"] = call.object_id
+                call = _spawn("room213_raw_build"); st["build_call_id"] = call.object_id
                 st["replacement_spawned"] = True
                 _wd_event(st, f"build launched as {call.object_id}")
         elif state == "failed":
-            relaunch("build", room213_raw_build, "build_call_id", msg or "unknown")
+            relaunch("build", "room213_raw_build", "build_call_id", msg or "unknown")
         elif state == "done":
             _wd_event(st, "build call finished without verdict/sfm marker -- relaunching (code-failure candidate)")
-            relaunch("build", room213_raw_build, "build_call_id", "finished without verdict")
+            relaunch("build", "room213_raw_build", "build_call_id", "finished without verdict")
         _wd_save(st); return {"build": state, "status": status.get("stage")}
 
     verdict = json.loads(verdict_p.read_text())
@@ -1114,10 +1121,10 @@ def room213_watchdog() -> dict[str, Any]:
         _wd_save(st); return {"training": "done"}
     tstate, tmsg = _call_state(st.get("train_call_id"))
     if tstate == "none":
-        call = room213_stage1_train.spawn(); st["train_call_id"] = call.object_id
+        call = _spawn("room213_stage1_train"); st["train_call_id"] = call.object_id
         _wd_event(st, f"STAGE-1 training launched as {call.object_id}")
     elif tstate == "failed":
-        relaunch("train", room213_stage1_train, "train_call_id", tmsg or "unknown")
+        relaunch("train", "room213_stage1_train", "train_call_id", tmsg or "unknown")
     elif tstate == "done":
         st["train_done"] = True; _wd_event(st, "STAGE-1 training + eval finished")
     _wd_save(st); return {"training": tstate}
