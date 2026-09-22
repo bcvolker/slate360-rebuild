@@ -22,7 +22,11 @@ const BASE_PATH = "/preview/vnext/project/explore";
  */
 export default function PreviewVnextProjectExplorePage() {
   const searchParams = useSearchParams();
-  const data = resolvePreviewExploreData(searchParams?.get("rep") ?? null, searchParams?.get("source") ?? null);
+  const data = resolvePreviewExploreData(
+    searchParams?.get("rep") ?? null,
+    searchParams?.get("source") ?? null,
+    searchParams?.get("scope"),
+  );
   const present = searchParams?.get("present") === "1";
   const item = searchParams?.get("item") ?? null;
   const itemFocus = resolvePreviewItemFocus(item, data.activeRepresentation, data.activeSourceId);

@@ -14,6 +14,8 @@ import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { withProjectAuth } from "@/lib/server/api-auth";
 import { notFound, serverError } from "@/lib/server/api-response";
 import { isBakeFresh, parseBakedExport } from "@/lib/digital-twin/bake-hash";
+import { resolveTwinViewerKind } from "@/lib/digital-twin/viewer-format";
+import { projectIncludesCapability } from "@/lib/vnext/scope/read-project-scope";
 import { BUCKET, s3 } from "@/lib/s3";
 
 export const runtime = "nodejs";
@@ -36,6 +38,9 @@ export function GET(req: NextRequest, ctx: Params) {
 
     if (error) return serverError(error.message);
     if (!model?.storage_key) return notFound("Model not found");
+    const kind = resolveTwinViewerKind("", model.storage_key);
+    const capability = kind === "model" ? "geometry" : kind === "splat" ? "reality" : null;
+    if (!capability || !(await projectIncludesCapability(admin, projectId, capability))) return notFound();
 
     let key = model.storage_key;
     let bakeState: "baked" | "stale" | "none" = "none";

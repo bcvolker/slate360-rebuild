@@ -12,6 +12,7 @@ type Props = {
   visits: VnextVisit[];
   historyBase: string;
   error?: string | null;
+  allowCompare?: boolean;
 };
 
 const ACTION =
@@ -33,7 +34,7 @@ export function VnextHistoryBrowser(props: Props) {
   );
 }
 
-function HistoryInner({ visits, historyBase, error = null }: Props) {
+function HistoryInner({ visits, historyBase, error = null, allowCompare = true }: Props) {
   const router = useRouter();
   const pathname = usePathname() ?? historyBase;
   const searchParams = useSearchParams();
@@ -102,7 +103,7 @@ function HistoryInner({ visits, historyBase, error = null }: Props) {
           ))}
         </div>
       ) : null}
-      {pair && compareHref ? (
+      {allowCompare && pair && compareHref ? (
         <p className="m-0 mt-4 text-[length:var(--vnext-body)] text-[var(--vnext-ink)]">
           Earlier {pair.earlier.dateLabel} · Later {pair.later.dateLabel}{" "}
           <Link href={compareHref} className={ACTION}>
@@ -130,9 +131,11 @@ function HistoryInner({ visits, historyBase, error = null }: Props) {
                   </span>
                 </Link>
                 <span className="flex shrink-0 items-center gap-4">
-                  <button type="button" className={ACTION} onClick={() => toggle(visit.id)}>
-                    {picked.includes(visit.id) ? "Selected" : "Select for compare"}
-                  </button>
+                  {allowCompare ? (
+                    <button type="button" className={ACTION} onClick={() => toggle(visit.id)}>
+                      {picked.includes(visit.id) ? "Selected" : "Select for compare"}
+                    </button>
+                  ) : null}
                   <Link href={`${historyBase}/${visit.id}`} className={ACTION}>
                     Open visit
                   </Link>

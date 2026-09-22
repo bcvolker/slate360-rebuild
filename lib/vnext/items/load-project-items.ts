@@ -6,14 +6,19 @@ import { readItemQuestions } from "./item-questions";
 import { readProjectItem, readProjectItems } from "./read-project-items";
 import { buildExploreItemFocus } from "./derive-locators";
 import type { VnextClientItem, VnextExploreItemFocus, VnextItemQuestion } from "./item-types";
+import { canClientSeeCapability } from "@/lib/vnext/scope/resolve-client-scope";
+import { readClientScope } from "@/lib/vnext/scope/read-project-scope";
 
 export type ItemsPageResult =
   | { access: "denied" }
+  | { access: "hidden" }
   | { access: "ok"; items: VnextClientItem[]; error: string | null };
 
 export async function loadVnextProjectItems(userId: string, projectId: string): Promise<ItemsPageResult> {
   const { admin, project } = await getScopedProjectForUser(userId, projectId, "id");
   if (!project) return { access: "denied" };
+  const scope = await readClientScope(admin, projectId);
+  if (!canClientSeeCapability(scope, "items")) return { access: "hidden" };
   const read = await readProjectItems(admin, projectId);
   if (!read.ok) return { access: "ok", items: [], error: read.error };
   return { access: "ok", items: read.items, error: null };
@@ -32,6 +37,8 @@ export async function loadVnextItemDetail(
 ): Promise<ItemDetailResult> {
   const { admin, project } = await getScopedProjectForUser(userId, projectId, "id");
   if (!project) return { access: "denied" };
+  const scope = await readClientScope(admin, projectId);
+  if (!canClientSeeCapability(scope, "items")) return { access: "missing" };
   const read = await readProjectItem(admin, projectId, itemId);
   if (!read.ok) return { access: "error", message: read.error };
   if (!read.item) return { access: "missing" };

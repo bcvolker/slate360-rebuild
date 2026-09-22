@@ -11,6 +11,8 @@ import {
 import { resolveThermalSourceData } from "@/lib/vnext/explore/resolve-thermal-source";
 import { resolveTwinSourceData } from "@/lib/vnext/explore/resolve-twin-source";
 import { vnextProjectHref } from "@/lib/vnext/nav";
+import { canClientSeeRepresentation } from "@/lib/vnext/scope/filter-client-surface";
+import { readClientScope } from "@/lib/vnext/scope/read-project-scope";
 import {
   VNEXT_EXPLORE_REPRESENTATIONS,
   type VnextExploreData,
@@ -44,7 +46,11 @@ export async function loadVnextExploreData(
     sourcesByRepresentation["plan"] = await loadPlanSources(admin, row.id);
   }
 
-  const requested = normalizeExploreRep(requestedRep);
+  const scope = await readClientScope(admin, row.id);
+  const requestedRaw = normalizeExploreRep(requestedRep);
+  const requestedAllowed = Boolean(requestedRaw && canClientSeeRepresentation(scope, requestedRaw));
+  const requested = requestedAllowed ? requestedRaw : null;
+  const sourceId = requestedAllowed ? requestedSourceId : null;
   const decision = resolveActiveRepresentation(availableRepresentations, requested);
   const activeRepresentation = decision.representation;
   let activeSourceError = decision.unavailableError;
@@ -55,24 +61,24 @@ export async function loadVnextExploreData(
   if (activeRepresentation) {
     try {
       if (activeRepresentation === "reality") {
-        const reality = await resolveTwinSourceData(admin, row.id, "splat", "Reality", requestedSourceId);
+        const reality = await resolveTwinSourceData(admin, row.id, "splat", "Reality", sourceId);
         activeSourceData = reality;
-        activeSourceId = reality ? requestedSourceId : null;
+        activeSourceId = reality ? sourceId : null;
       } else if (activeRepresentation === "geometry") {
-        const geometry = await resolveTwinSourceData(admin, row.id, "model", "Geometry", requestedSourceId);
+        const geometry = await resolveTwinSourceData(admin, row.id, "model", "Geometry", sourceId);
         activeSourceData = geometry;
-        activeSourceId = geometry ? requestedSourceId : null;
+        activeSourceId = geometry ? sourceId : null;
       } else if (activeRepresentation === "360") {
-        const resolved = await resolvePanoSourceData(admin, row.id, requestedSourceId);
+        const resolved = await resolvePanoSourceData(admin, row.id, sourceId);
         activeSourceId = resolved?.sourceId ?? null;
         activeSourceData = resolved?.data ?? null;
       } else if (activeRepresentation === "plan") {
-        const resolved = await resolvePlanSourceData(admin, row.id, requestedSourceId);
+        const resolved = await resolvePlanSourceData(admin, row.id, sourceId);
         activeSourceId = resolved?.sourceId ?? null;
         activeSourceData = resolved?.data ?? null;
       } else if (activeRepresentation === "thermal") {
-        activeSourceData = await resolveThermalSourceData(admin, row.id, requestedSourceId);
-        activeSourceId = activeSourceData ? requestedSourceId : null;
+        activeSourceData = await resolveThermalSourceData(admin, row.id, sourceId);
+        activeSourceId = activeSourceData ? sourceId : null;
       }
     } catch {
       activeSourceData = null;

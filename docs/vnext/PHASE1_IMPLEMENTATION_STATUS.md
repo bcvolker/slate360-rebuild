@@ -1,7 +1,7 @@
 # Slate360 Phase 1 — Implementation Status
 
-**Last updated:** 2026-09-21  
-**Current slice:** 7 (History + Compare) — implemented, awaiting approval  
+**Last updated:** 2026-09-22  
+**Current slice:** 7A (Client deliverable scope) — implemented, awaiting approval  
 **Next slice:** 8 (Presentation) — **NOT STARTED**
 
 Canonical plan: `docs/vnext/SLATE360_UI_PHASE1_MASTER_BUILD_PLAN.md`  
@@ -38,8 +38,9 @@ The feature branch is **pushed**. It is not an unpushed `origin/main` clone.
 | 5 | Items + spatial linking | **APPROVED** |
 | 6 | Documents + project search | **APPROVED** |
 | 6A | Project plans foundation | **APPROVED** |
-| 7 | History + Compare | **IMPLEMENTED — awaiting approval** |
-| 8 | Presentation / social clip foundation | Not started |
+| 7 | History + Compare | **APPROVED** |
+| 7A | Client deliverable scope + visibility | **IMPLEMENTED — awaiting approval** |
+| 8 | Presentation / social clip foundation | **NOT STARTED** |
 | 9 | Owner Home + Clients + Projects | Not started |
 | 10 | Processing + QA & Publish | Not started |
 | 11 | Sharing + permissions + polish | Not started |
@@ -768,4 +769,16 @@ Drone, pano, lidar, and ply twin formats are not history rows. `digital_twin_cap
 **Routes.** `/vnext/projects/[projectId]/history`, `/history/[visitId]`, `/history/compare`. Filters `kind=` and compare selection `pick=` stay on the history URL. No `loading.tsx` on these routes.
 
 Canonical `npm run test:vnext` on 2026-09-21, exit code 0: Vitest 30 files / 240 tests passed, production build, Playwright 118 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. Scoped typecheck of the Slice 7 history files passed. `npm run typecheck:changed` against `main` still exits 2 only on the three pre-existing `splat-viewer-scene.tsx` `sparkRenderer` / `splatMesh` errors. Those lines were not edited.
+
+## Slice 7A notes (2026-09-22)
+
+A client sees a service only when the project includes it, the source is published where that state exists, and the app can render it. Inclusion is per project. It is not an org entitlement. The canonical rule is `docs/vnext/PROJECT_CLIENT_DELIVERY_SCOPE.md`.
+
+`project_client_capabilities` stores the nine ids. No rows means portal sections on and services off. A new project is seeded that way. Existing projects are backfilled from sources the client could already open. A ready internal file does not turn a service on by itself.
+
+Overview, Explore, Items, Documents, search, plans, History, Compare, and project navigation read one resolver. A disabled thermal share does not become a history row, a compare choice, a search hit, or an Explore option. The URL does not say the service exists. Media routes for a disabled Reality, Geometry, 360, or Plan model return not found.
+
+Slice 8 was not started. There is no owner QA screen, no subscription language, and no locked-service card.
+
+Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 31 files / 250 tests passed, production build, Playwright 122 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. Scoped typecheck of the Slice 7A files passed. `npm run typecheck:changed` against `main` is reported with the commit. The migration file is in the repo. This worktree is not linked to Supabase, so the SQL has not been applied yet. Until it is, a project with no capability rows keeps portal sections and hides services.
 

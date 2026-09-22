@@ -2,6 +2,8 @@ import {
   normalizeExploreRep,
   resolveActiveRepresentation,
 } from "./explore/resolve-active-representation";
+import { canClientSeeRepresentation } from "./scope/filter-client-surface";
+import { previewScope } from "./scope/preview-profiles";
 import type {
   VnextExploreData,
   VnextExploreRepresentation,
@@ -126,20 +128,29 @@ const PREVIEW_AVAILABLE: VnextExploreRepresentation[] = ["reality", "geometry", 
  * is provably identical between the sandbox e2e tests exercise and the authenticated production
  * page, without needing a logged-in session (this vNext e2e suite is unauthenticated-only).
  */
-export function resolvePreviewExploreData(repParam: string | null, sourceParam: string | null): VnextExploreData {
-  const requested = normalizeExploreRep(repParam);
-  const decision = resolveActiveRepresentation(PREVIEW_AVAILABLE, requested);
+export function resolvePreviewExploreData(
+  repParam: string | null,
+  sourceParam: string | null,
+  scopeId?: string | null,
+): VnextExploreData {
+  const scope = previewScope(scopeId);
+  const available = scope ? PREVIEW_AVAILABLE.filter((rep) => canClientSeeRepresentation(scope, rep)) : PREVIEW_AVAILABLE;
+  const requestedRaw = normalizeExploreRep(repParam);
+  const requested = scope && requestedRaw && !canClientSeeRepresentation(scope, requestedRaw) ? null : requestedRaw;
+  const decision = resolveActiveRepresentation(available, requested);
   const rep = decision.representation;
+  const scoped = (data: VnextExploreData): VnextExploreData =>
+    scope ? { ...data, availableRepresentations: available } : data;
 
-  if (rep === "geometry") return PREVIEW_EXPLORE_GEOMETRY;
+  if (rep === "geometry") return scoped(PREVIEW_EXPLORE_GEOMETRY);
   if (rep === "360") {
     const sourceId = sourceParam && PANO_SOURCES[sourceParam] ? sourceParam : "pano-1";
-    return { ...PREVIEW_EXPLORE_360, activeSourceId: sourceId, activeSourceData: PANO_SOURCES[sourceId] };
+    return scoped({ ...PREVIEW_EXPLORE_360, activeSourceId: sourceId, activeSourceData: PANO_SOURCES[sourceId] });
   }
   if (rep === "plan") {
     const sourceId = sourceParam && PLAN_SOURCES[sourceParam] ? sourceParam : "sheet-1";
-    return { ...PREVIEW_EXPLORE_PLAN, activeSourceId: sourceId, activeSourceData: PLAN_SOURCES[sourceId] };
+    return scoped({ ...PREVIEW_EXPLORE_PLAN, activeSourceId: sourceId, activeSourceData: PLAN_SOURCES[sourceId] });
   }
-  if (rep === "thermal") return PREVIEW_EXPLORE_THERMAL;
-  return { ...PREVIEW_EXPLORE_REALITY, activeSourceError: decision.unavailableError };
+  if (rep === "thermal") return scoped(PREVIEW_EXPLORE_THERMAL);
+  return scoped({ ...PREVIEW_EXPLORE_REALITY, activeSourceError: decision.unavailableError });
 }

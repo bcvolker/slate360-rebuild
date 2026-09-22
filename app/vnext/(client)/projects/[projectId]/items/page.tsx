@@ -22,7 +22,7 @@ export default async function VnextProjectItemsPage({ params }: PageProps) {
   if (!isVnextProjectId(projectId)) notFound();
 
   const result = await loadVnextProjectItems(ctx.user.id, projectId);
-  if (result.access === "denied") notFound();
+  if (result.access !== "ok") notFound();
   if (result.error) {
     return (
       <div className="vnext-portfolio mx-auto w-full px-[var(--vnext-pad-x)] py-[var(--vnext-pad-y)]">

@@ -38,8 +38,10 @@ vi.mock("@/lib/supabase/admin", () => ({
         or: () => node,
         limit: () => node,
         is: () => node,
+        in: () => node,
         single: async () => result,
         maybeSingle: async () => result,
+        then: (resolve: (value: ScriptedResult) => void) => resolve(result),
       };
       return node;
     };
@@ -91,7 +93,13 @@ describe("vNext-scoped items/image route", () => {
       { data: AUTHORIZED_PROJECT, error: null },
     ];
     membershipScript = { project_id: "p1" };
-    mediaTableScript = { site_walk_items: { data: { s3_key: "orgs/x/a.jpg", item_type: "photo_360", title: "East stair" }, error: null } };
+    mediaTableScript = {
+      site_walk_items: { data: { s3_key: "orgs/x/a.jpg", item_type: "photo_360", title: "East stair" }, error: null },
+      project_client_capabilities: {
+        data: [{ project_id: "p1", capability_id: "pano360", included: true }],
+        error: null,
+      },
+    };
 
     const res = await itemsGET(req("http://localhost/api/vnext/projects/p1/items/item-1/image"), {
       params: Promise.resolve({ projectId: "p1", itemId: "item-1" }),
@@ -158,6 +166,10 @@ describe("vNext-scoped plan-sheets/image route", () => {
         data: { sheet_name: "A1.0", image_s3_key: "orgs/x/a1.jpg", thumbnail_s3_key: null, rasterized_key: null },
         error: null,
       },
+      project_client_capabilities: {
+        data: [{ project_id: "p1", capability_id: "plans", included: true }],
+        error: null,
+      },
     };
 
     const res = await sheetsGET(req("http://localhost/api/vnext/projects/p1/plan-sheets/sheet-1/image"), {
@@ -173,7 +185,13 @@ describe("vNext-scoped plan-sheets/image route", () => {
     orgScript = { org_id: "org-owner" };
     projectsScript = [{ data: AUTHORIZED_PROJECT, error: null }];
     membershipScript = null;
-    mediaTableScript = { site_walk_plan_sheets: { data: null, error: null } };
+    mediaTableScript = {
+      site_walk_plan_sheets: { data: null, error: null },
+      project_client_capabilities: {
+        data: [{ project_id: "p1", capability_id: "plans", included: true }],
+        error: null,
+      },
+    };
 
     const res = await sheetsGET(req("http://localhost/api/vnext/projects/p1/plan-sheets/other-project-sheet/image"), {
       params: Promise.resolve({ projectId: "p1", sheetId: "other-project-sheet" }),

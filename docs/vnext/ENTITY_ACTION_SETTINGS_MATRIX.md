@@ -290,6 +290,25 @@ Verified against the Phase 1 client route. This does not change the legacy Slate
 
 ---
 
+### 6e. Project client delivery scope (Slice 7A)
+
+| Field | Value |
+|---|---|
+| Backend / data model | `project_client_capabilities`. One row per project and capability id. Not `projects.settings`, not `org_feature_flags` |
+| Included | The service or portal section is part of this project's delivery. Authoritative when any row exists |
+| Published | Separate. Thermal uses the live share. Reality, Geometry, 360, and Plans temporarily treat the current renderable source as published until Slice 10 |
+| Renderable | A working viewer or file. Included without a renderable source stays hidden |
+| Client rule | Project access AND included AND published where applicable AND renderable. Otherwise the client sees nothing about that capability |
+| Unconfigured | Portal sections on. Services off |
+| New project | Seed trigger: portal on, services off |
+| Existing project | Backfill from already client-visible sources only |
+| Read | Project access. The server adapter applies the filter. Hidden services are not queried into History or search hits |
+| Write | `PUT /api/vnext/projects/[projectId]/scope`. `user_can_manage_project` only. Unknown ids dropped. No prices |
+| Intended vNext UI | The same client pages, with tabs and records removed when the capability is off. Owner checklist is Slice 9/10 |
+| Planned Phase 1 slice | 7A, built. Canonical doc: `docs/vnext/PROJECT_CLIENT_DELIVERY_SCOPE.md` |
+
+---
+
 ## 7. Folder
 
 | Field | Value |

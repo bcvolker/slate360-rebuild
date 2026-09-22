@@ -17,6 +17,7 @@ let orgScript: { org_id: string } | null;
 let projectsScript: ScriptedResult[];
 let membershipScript: { project_id: string } | null;
 let modelScript: ScriptedResult;
+let capabilityScript: ScriptedResult;
 const recordedEq: Array<[string, string, unknown]> = [];
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -36,8 +37,10 @@ vi.mock("@/lib/supabase/admin", () => ({
         or: () => node,
         limit: () => node,
         is: () => node,
+        in: () => node,
         single: async () => result,
         maybeSingle: async () => result,
+        then: (resolve: (value: ScriptedResult) => void) => resolve(result),
       };
       return node;
     };
@@ -51,6 +54,7 @@ vi.mock("@/lib/supabase/admin", () => ({
           return chain(table, result);
         }
         if (table === "digital_twin_models") return chain(table, modelScript);
+        if (table === "project_client_capabilities") return chain(table, capabilityScript);
         throw new Error(`unexpected table ${table}`);
       },
     };
@@ -66,6 +70,14 @@ const { GET: previewGET } = await import(
 );
 
 const AUTHORIZED_PROJECT = { id: "p1", org_id: "org-owner", name: "P1" };
+const INCLUDED_SCOPE = {
+  data: ["reality", "geometry", "pano360", "plans"].map((capability_id) => ({
+    project_id: "p1",
+    capability_id,
+    included: true,
+  })),
+  error: null,
+};
 
 function req(url: string) {
   return new NextRequest(new URL(url, "http://localhost"));
@@ -81,7 +93,8 @@ describe("vNext-scoped twin-models/preview-image route", () => {
     orgScript = { org_id: "org-owner" };
     projectsScript = [{ data: AUTHORIZED_PROJECT, error: null }];
     membershipScript = null;
-    modelScript = { data: { preview_storage_key: "orgs/x/preview.jpg" }, error: null };
+    modelScript = { data: { preview_storage_key: "orgs/x/preview.jpg", model_format: "spz", storage_key: "orgs/x/model.spz" }, error: null };
+    capabilityScript = INCLUDED_SCOPE;
 
     const res = await previewGET(req("http://localhost/api/vnext/projects/p1/twin-models/model-1/preview-image"), {
       params: Promise.resolve({ projectId: "p1", modelId: "model-1" }),
@@ -96,7 +109,8 @@ describe("vNext-scoped twin-models/preview-image route", () => {
     orgScript = null;
     projectsScript = [{ data: AUTHORIZED_PROJECT, error: null }];
     membershipScript = null;
-    modelScript = { data: { preview_storage_key: "orgs/x/preview.jpg" }, error: null };
+    modelScript = { data: { preview_storage_key: "orgs/x/preview.jpg", model_format: "spz", storage_key: "orgs/x/model.spz" }, error: null };
+    capabilityScript = INCLUDED_SCOPE;
 
     const res = await previewGET(req("http://localhost/api/vnext/projects/p1/twin-models/model-1/preview-image"), {
       params: Promise.resolve({ projectId: "p1", modelId: "model-1" }),
@@ -113,7 +127,8 @@ describe("vNext-scoped twin-models/preview-image route", () => {
       { data: AUTHORIZED_PROJECT, error: null },
     ];
     membershipScript = { project_id: "p1" };
-    modelScript = { data: { preview_storage_key: "orgs/x/preview.jpg" }, error: null };
+    modelScript = { data: { preview_storage_key: "orgs/x/preview.jpg", model_format: "spz", storage_key: "orgs/x/model.spz" }, error: null };
+    capabilityScript = INCLUDED_SCOPE;
 
     const res = await previewGET(req("http://localhost/api/vnext/projects/p1/twin-models/model-1/preview-image"), {
       params: Promise.resolve({ projectId: "p1", modelId: "model-1" }),
@@ -121,6 +136,25 @@ describe("vNext-scoped twin-models/preview-image route", () => {
 
     expect(res.status).toBe(307);
     expect(recordedEq).toContainEqual(["digital_twin_models", "digital_twin_spaces.project_id", "p1"]);
+  });
+
+  it("does not serve a ready preview when Reality is not included", async () => {
+    sessionUser = { id: "user-1" };
+    orgScript = { org_id: "org-owner" };
+    projectsScript = [{ data: AUTHORIZED_PROJECT, error: null }];
+    membershipScript = null;
+    modelScript = { data: { preview_storage_key: "orgs/x/preview.jpg", model_format: "spz", storage_key: "orgs/x/model.spz" }, error: null };
+    capabilityScript = {
+      data: [{ project_id: "p1", capability_id: "reality", included: false }],
+      error: null,
+    };
+
+    const res = await previewGET(req("http://localhost/api/vnext/projects/p1/twin-models/model-1/preview-image"), {
+      params: Promise.resolve({ projectId: "p1", modelId: "model-1" }),
+    });
+
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({ error: "Not found" });
   });
 
   it("refuses an unauthorized user before ever querying the model table", async () => {

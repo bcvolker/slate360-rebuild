@@ -17,6 +17,7 @@ let orgScript: { org_id: string } | null;
 let projectsScript: ScriptedResult[];
 let membershipScript: { project_id: string } | null;
 let modelScript: ScriptedResult;
+let capabilityScript: ScriptedResult;
 const recordedEq: Array<[string, string, unknown]> = [];
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -36,8 +37,10 @@ vi.mock("@/lib/supabase/admin", () => ({
         or: () => node,
         limit: () => node,
         is: () => node,
+        in: () => node,
         single: async () => result,
         maybeSingle: async () => result,
+        then: (resolve: (value: ScriptedResult) => void) => resolve(result),
       };
       return node;
     };
@@ -51,6 +54,7 @@ vi.mock("@/lib/supabase/admin", () => ({
           return chain(table, result);
         }
         if (table === "digital_twin_models") return chain(table, modelScript);
+        if (table === "project_client_capabilities") return chain(table, capabilityScript);
         throw new Error(`unexpected table ${table}`);
       },
     };
@@ -92,6 +96,10 @@ describe("vNext-scoped twin-models/splat route", () => {
     ];
     membershipScript = { project_id: "p1" };
     modelScript = { data: { storage_key: "orgs/x/model.spz", edit_list: [], baked_export: null }, error: null };
+    capabilityScript = {
+      data: [{ project_id: "p1", capability_id: "reality", included: true }],
+      error: null,
+    };
 
     const res = await splatGET(req("http://localhost/api/vnext/projects/p1/twin-models/model-1/splat"), {
       params: Promise.resolve({ projectId: "p1", modelId: "model-1" }),

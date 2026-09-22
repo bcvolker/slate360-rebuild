@@ -20,7 +20,7 @@ export default async function VnextProjectDocumentsPage({ params }: PageProps) {
   if (!isVnextProjectId(projectId)) notFound();
 
   const result = await loadVnextProjectDocuments(ctx.user.id, projectId);
-  if (result.access === "denied") notFound();
+  if (result.access !== "ok") notFound();
 
   return (
     <VnextDocumentsBrowser

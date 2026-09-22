@@ -16,7 +16,7 @@ export default async function VnextHistoryVisitPage({ params }: PageProps) {
   if (!ctx.user) notFound();
   if (!isVnextProjectId(projectId)) notFound();
   const result = await loadVnextProjectHistory(ctx.user.id, projectId);
-  if (result.access === "denied") notFound();
+  if (result.access !== "ok") notFound();
   if (result.error) {
     return (
       <div className="vnext-portfolio mx-auto w-full px-[var(--vnext-pad-x)] py-[var(--vnext-pad-y)]">

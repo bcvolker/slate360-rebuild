@@ -5,6 +5,9 @@ import { resolveTwinViewerKind } from "@/lib/digital-twin/viewer-format";
 import { isThermalSessionAvailable, type ThermalCaptureLike, type ThermalShareLike } from "./thermal-availability";
 import type { PortfolioEvidence } from "./portfolio-types";
 import { resolveRepresentations } from "./project-hero";
+import { applyScopeToEvidence } from "./scope/filter-client-surface";
+import { canClientSeeCapability } from "./scope/resolve-client-scope";
+import { readClientScopes } from "./scope/read-project-scope";
 
 type Admin = ReturnType<typeof createAdminClient>;
 
@@ -236,9 +239,12 @@ export async function loadPortfolioEvidence(
       storagePath: row.storage_path,
     }));
   }
+  const scopes = await readClientScopes(admin, projectIds);
   for (const session of thermalSessions) {
     if (!session.project_id) continue;
     const evidence = ensure(byId, session.project_id);
+    const scope = scopes.get(session.project_id);
+    if (!scope || !canClientSeeCapability(scope, "thermal")) continue;
     evidence.timestamps.push(session.updated_at);
     if (isThermalSessionAvailable(session.id, thermalShares, thermalCaptures)) addFlag(evidence, "thermal");
   }
@@ -248,7 +254,7 @@ export async function loadPortfolioEvidence(
     evidence.representations = resolveRepresentations(
       Object.fromEntries(evidence.representations.map((id) => [id, true])),
     );
-    result[projectId] = evidence;
+    result[projectId] = applyScopeToEvidence(evidence, scopes.get(projectId)!);
   }
   return result;
 }

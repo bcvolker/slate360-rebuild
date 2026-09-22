@@ -15,6 +15,13 @@ export default async function VnextProjectHistoryPage({ params }: PageProps) {
   if (!ctx.user) notFound();
   if (!isVnextProjectId(projectId)) notFound();
   const result = await loadVnextProjectHistory(ctx.user.id, projectId);
-  if (result.access === "denied") notFound();
-  return <VnextHistoryBrowser visits={result.visits} historyBase={path} error={result.error} />;
+  if (result.access !== "ok") notFound();
+  return (
+    <VnextHistoryBrowser
+      visits={result.visits}
+      historyBase={path}
+      error={result.error}
+      allowCompare={result.canCompare}
+    />
+  );
 }

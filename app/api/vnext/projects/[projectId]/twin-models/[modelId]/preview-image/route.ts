@@ -15,6 +15,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { withProjectAuth } from "@/lib/server/api-auth";
 import { notFound, serverError } from "@/lib/server/api-response";
 import { resolveDigitalTwinModelUrl } from "@/lib/digital-twin/resolve-model-url";
+import { resolveTwinViewerKind } from "@/lib/digital-twin/viewer-format";
+import { projectIncludesCapability } from "@/lib/vnext/scope/read-project-scope";
 
 type Params = { params: Promise<{ projectId: string; modelId: string }> };
 
@@ -24,7 +26,7 @@ export function GET(req: NextRequest, ctx: Params) {
 
     const { data: model, error } = await admin
       .from("digital_twin_models")
-      .select("preview_storage_key, digital_twin_spaces!inner(project_id)")
+      .select("preview_storage_key, model_format, storage_key, digital_twin_spaces!inner(project_id)")
       .eq("id", modelId)
       .is("deleted_at", null)
       .eq("digital_twin_spaces.project_id", projectId)
@@ -33,6 +35,9 @@ export function GET(req: NextRequest, ctx: Params) {
     if (error) return serverError(error.message);
     const previewKey = model?.preview_storage_key as string | null | undefined;
     if (!previewKey) return notFound("No preview image for this model");
+    const kind = resolveTwinViewerKind(String(model?.model_format ?? ""), String(model?.storage_key ?? ""));
+    const capability = kind === "splat" ? "reality" : kind === "model" ? "geometry" : null;
+    if (!capability || !(await projectIncludesCapability(admin, projectId, capability))) return notFound();
 
     try {
       const url = await resolveDigitalTwinModelUrl(previewKey);

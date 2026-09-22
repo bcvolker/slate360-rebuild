@@ -7,6 +7,9 @@ import { loadPortfolioEvidence } from "@/lib/vnext/load-portfolio-evidence";
 import { vnextProjectHref } from "@/lib/vnext/nav";
 import { formatPlainDate, pickLatestVisit } from "@/lib/vnext/overview-visit";
 import { formatDocumentedDate, pickLatestIso, resolveProjectHero, satelliteMapUrl } from "@/lib/vnext/project-hero";
+import { canClientSeeCapability } from "@/lib/vnext/scope/resolve-client-scope";
+import { readClientScope } from "@/lib/vnext/scope/read-project-scope";
+import type { ClientProjectScope } from "@/lib/vnext/scope/resolve-client-scope";
 import type { VnextProjectOverview, VnextRecentDocument, VnextRecentItem } from "@/lib/vnext/overview-types";
 
 const LOAD_ERROR = "This project could not be loaded. Check your connection and try again.";
@@ -49,7 +52,7 @@ function formatItemStatus(status: string): string {
     .join(" ");
 }
 
-async function loadLatestVisit(admin: ScopedAdmin, projectId: string) {
+async function loadLatestVisit(admin: ScopedAdmin, projectId: string, scope: ClientProjectScope) {
   const [sessions, captures, thermal] = await Promise.all([
     admin
       .from("site_walk_sessions")
@@ -69,15 +72,21 @@ async function loadLatestVisit(admin: ScopedAdmin, projectId: string) {
   ]);
 
   const candidates = [
-    ...(sessions.data ?? []).map((row) => ({
+    ...(canClientSeeCapability(scope, "history") || canClientSeeCapability(scope, "items")
+      ? (sessions.data ?? []).map((row) => ({
       iso: row.completed_at || row.started_at || row.updated_at,
       sourceLabel: "Site visit",
-    })),
-    ...(captures.data ?? []).map((row) => ({
-      iso: row.uploaded_at || row.created_at,
-      sourceLabel: "3D scan",
-    })),
-    ...(thermal.data ?? []).map((row) => ({ iso: row.updated_at, sourceLabel: "Thermal scan" })),
+    }))
+      : []),
+    ...(canClientSeeCapability(scope, "reality") || canClientSeeCapability(scope, "geometry")
+      ? (captures.data ?? []).map((row) => ({
+          iso: row.uploaded_at || row.created_at,
+          sourceLabel: "3D scan",
+        }))
+      : []),
+    ...(canClientSeeCapability(scope, "thermal")
+      ? (thermal.data ?? []).map((row) => ({ iso: row.updated_at, sourceLabel: "Thermal scan" }))
+      : []),
   ];
 
   const latest = pickLatestVisit(candidates);
@@ -192,11 +201,14 @@ export async function loadVnextProjectOverview(
   };
 
   try {
+    const scope = await readClientScope(admin, row.id);
     const [evidenceById, latestVisit, recentItems, recentDocuments] = await Promise.all([
       loadPortfolioEvidence(admin, [row.id]),
-      loadLatestVisit(admin, row.id),
-      loadRecentItems(admin, row.id),
-      loadRecentDocuments(admin, orgId, userId, row.id),
+      loadLatestVisit(admin, row.id, scope),
+      canClientSeeCapability(scope, "items") ? loadRecentItems(admin, row.id) : Promise.resolve([]),
+      canClientSeeCapability(scope, "documents")
+        ? loadRecentDocuments(admin, orgId, userId, row.id)
+        : Promise.resolve([]),
     ]);
     const evidence = evidenceById[row.id];
     const documentedAt = pickLatestIso(evidence?.timestamps ?? []);

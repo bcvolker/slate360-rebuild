@@ -18,6 +18,10 @@ function chain(data: unknown[]) {
   return builder;
 }
 
+const INCLUDED = ["reality", "geometry", "pano360", "plans", "thermal", "items", "documents", "history", "compare"].map(
+  (capability_id) => ({ project_id: "p1", capability_id, included: true }),
+);
+
 type Tables = Record<string, unknown[]>;
 
 function mockAdmin(tables: Tables) {
@@ -114,6 +118,7 @@ describe("loadPortfolioEvidence — drone is not a client-renderable representat
       thermal_analysis_sessions: [{ id: "thermal-1", project_id: "p1", updated_at: "2026-01-03T00:00:00.000Z" }],
       thermal_analysis_share_tokens: [{ session_id: "thermal-1", is_revoked: false, expires_at: null, layer_config: null }],
       thermal_captures: [{ id: "tcap-1", session_id: "thermal-1", preview_path: "orgs/x/thermal/a.jpg", storage_path: null }],
+      project_client_capabilities: INCLUDED,
     });
 
     const result = await loadPortfolioEvidence(admin, ["p1"]);
@@ -183,6 +188,7 @@ describe("loadPortfolioEvidence — thermal availability matches Explore's actua
       thermal_analysis_sessions: [SESSION_ROW],
       thermal_analysis_share_tokens: [{ session_id: "thermal-1", is_revoked: false, expires_at: null, layer_config: null }],
       thermal_captures: [],
+      project_client_capabilities: INCLUDED,
     });
     const result = await loadPortfolioEvidence(admin, ["p1"]);
     expect(result.p1.representations).not.toContain("thermal");
@@ -205,8 +211,23 @@ describe("loadPortfolioEvidence — thermal availability matches Explore's actua
       thermal_analysis_sessions: [SESSION_ROW],
       thermal_analysis_share_tokens: [{ session_id: "thermal-1", is_revoked: false, expires_at: null, layer_config: null }],
       thermal_captures: [CAPTURE_ROW],
+      project_client_capabilities: INCLUDED,
     });
     const result = await loadPortfolioEvidence(admin, ["p1"]);
     expect(result.p1.representations).toContain("thermal");
+  });
+
+  it("hides a published thermal share when thermal is not included for the project", async () => {
+    const admin = mockAdmin({
+      thermal_analysis_sessions: [SESSION_ROW],
+      thermal_analysis_share_tokens: [{ session_id: "thermal-1", is_revoked: false, expires_at: null, layer_config: null }],
+      thermal_captures: [CAPTURE_ROW],
+      project_client_capabilities: INCLUDED.map((row) =>
+        row.capability_id === "thermal" ? { ...row, included: false } : row,
+      ),
+    });
+    const result = await loadPortfolioEvidence(admin, ["p1"]);
+    expect(result.p1.representations).not.toContain("thermal");
+    expect(result.p1.timestamps).not.toContain(SESSION_ROW.updated_at);
   });
 });

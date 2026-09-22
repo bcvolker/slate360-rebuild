@@ -26,7 +26,7 @@ export default async function VnextHistoryComparePage({ params, searchParams }: 
   if (!ctx.user) notFound();
   if (!isVnextProjectId(projectId)) notFound();
   const result = await loadVnextProjectHistory(ctx.user.id, projectId);
-  if (result.access === "denied") notFound();
+  if (result.access !== "ok" || !result.canCompare) notFound();
   if (result.error) {
     return (
       <div className="vnext-portfolio mx-auto w-full px-[var(--vnext-pad-x)] py-[var(--vnext-pad-y)]">
@@ -39,7 +39,7 @@ export default async function VnextHistoryComparePage({ params, searchParams }: 
   if (!earlier || !later || earlier.id === later.id) notFound();
   const reps = comparableReps(earlier, later);
   const requested = query.rep as VnextCompareRep | undefined;
-  const rep = requested ?? reps[0] ?? null;
+  const rep = requested && reps.includes(requested) ? requested : (reps[0] ?? null);
   return (
     <VnextHistoryCompare
       earlier={earlier}

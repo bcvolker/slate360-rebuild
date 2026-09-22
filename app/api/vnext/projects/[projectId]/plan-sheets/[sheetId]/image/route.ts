@@ -11,12 +11,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { withProjectAuth } from "@/lib/server/api-auth";
 import { notFound, serverError } from "@/lib/server/api-response";
 import { BUCKET, s3 } from "@/lib/s3";
+import { projectIncludesCapability } from "@/lib/vnext/scope/read-project-scope";
 
 type Params = { params: Promise<{ projectId: string; sheetId: string }> };
 
 export function GET(req: NextRequest, ctx: Params) {
   return withProjectAuth(req, ctx, async ({ admin, projectId }) => {
     const { sheetId } = await ctx.params;
+    if (!(await projectIncludesCapability(admin, projectId, "plans"))) return notFound();
 
     const { data: sheet, error } = await admin
       .from("site_walk_plan_sheets")

@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { VnextProjectNav } from "@/components/vnext/project/VnextProjectNav";
+import { VnextScopedProjectNav } from "@/components/vnext/project/VnextScopedProjectNav";
 
 type LayoutProps = {
   children: ReactNode;
@@ -17,7 +17,7 @@ export default async function VnextProjectLayout({ children, params }: LayoutPro
   const { projectId } = await params;
   return (
     <div className="min-w-0">
-      <VnextProjectNav projectId={projectId} />
+      <VnextScopedProjectNav projectId={projectId} />
       {children}
     </div>
   );
