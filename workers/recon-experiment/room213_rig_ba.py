@@ -366,7 +366,7 @@ def run_hypothesis(hyp, calib, meta_by_name, pyc):
         walks.setdefault(w, []).append(-np.asarray(f.rig_from_world.rotation.matrix()).T @ np.asarray(f.rig_from_world.translation))
     walks = {w: {"n_exposures": len(v), "extent_m": (np.max(v, 0) - np.min(v, 0)).tolist()} for w, v in walks.items()}
     # per-frame residual medians by walk and lens (tripod walk 020 vs moving walks 021/075)
-    frame_walk = {fid_: exp_of_frame[fid_].split("_00_")[1].split(".insv")[0] for fid_ in exp_of_frame.values()}
+    frame_walk = {fid_: exp_of_frame[fid_].split("_00_")[1].split(".insv")[0] for fid_ in exp_of_frame}
     per_walk_res = {}
     for w in walks:
         for lens_ in (0, 1):
