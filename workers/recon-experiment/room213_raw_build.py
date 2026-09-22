@@ -246,7 +246,7 @@ def stage_sfm(meta, calib, st: Status):
         except AttributeError: pass
         pycolmap.extract_features(str(db), str(img_dir), image_names=names, camera_mode=pycolmap.CameraMode.SINGLE, reader_options=reader, extraction_options=ext, device=pycolmap.Device.auto)
         st.done("sfm_extract_v2")
-    if not stage_is_done("sfm_match_v2"):
+    if not stage_is_done("sfm_match_v3"):
         overlap = 80
         st.set_stage("sfm_match", pairs_expected=len(names) * overlap if len(names) > 400 else len(names) * (len(names) - 1) // 2)
         if len(names) <= 400:
@@ -255,6 +255,12 @@ def stage_sfm(meta, calib, st: Status):
             # pycolmap 4.2 renamed *MatchingOptions -> *PairingOptions and the kwarg to pairing_options
             cls = getattr(pycolmap, "SequentialPairingOptions", None) or getattr(pycolmap, "SequentialMatchingOptions")
             so = cls(); so.overlap = overlap; so.loop_detection = False
+            # v3: COLMAP's sequential matcher defaults quadratic_overlap=True (offsets 1,2,4,8,...,64). With
+            # 10 faces per exposure the same-direction face of the NEXT exposure is at offset +10, so v2 never
+            # paired it (0 verified cross-exposure same-face pairs -> 43/1210 registered). Linear window:
+            # every offset 1..80 = 8 exposures each way, both lenses, all faces. Pairs already in the
+            # database (v2) are skipped by COLMAP, so the extraction database is reused unchanged.
+            so.quadratic_overlap = False
             for kw in ("pairing_options", "matching_options"):
                 try:
                     pycolmap.match_sequential(str(db), **{kw: so}); break
@@ -262,7 +268,25 @@ def stage_sfm(meta, calib, st: Status):
                     continue
             else:
                 pycolmap.match_sequential(str(db), so)
-        st.done("sfm_match_v2")
+        st.done("sfm_match_v3")
+    if not stage_is_done("sfm_match_vocab_v1") and len(names) > 400:
+        # One vocab-tree pass so the separate walks (VID_021 = 87 exposures, VID_075 = 31, VID_020 = 3) share
+        # verified pairs: every face NOT in the largest walk queries a retrieval index built over ALL faces
+        # (COLMAP's pretrained SIFT tree, faiss format, cached on the volume; sha256 921e894b...). Pairs
+        # already matched sequentially are skipped by COLMAP.
+        import urllib.request
+        vt = sdir / "vocab_tree_faiss_flickr100K_words32K.bin"
+        if not vt.is_file() or vt.stat().st_size < 9_000_000:
+            urllib.request.urlretrieve("https://github.com/colmap/colmap/releases/download/3.11.1/vocab_tree_faiss_flickr100K_words32K.bin", vt)
+        per_video = {}
+        for m in meta: per_video.setdefault(m["video"], []).append(m["colmap_name"])
+        main_video = max(per_video, key=lambda v: len(per_video[v]))
+        query = sorted(n for v, ns in per_video.items() if v != main_video for n in ns)
+        qpath = sdir / "vocab_query_list.txt"; qpath.write_text("\n".join(query) + "\n")
+        st.set_stage("sfm_match_vocab", main_video=main_video, query_videos=sorted(v for v in per_video if v != main_video), n_query=len(query), num_images=50)
+        vo = pycolmap.VocabTreePairingOptions(); vo.vocab_tree_path = str(vt); vo.match_list_path = str(qpath); vo.num_images = 50
+        pycolmap.match_vocabtree(str(db), pairing_options=vo)
+        st.done("sfm_match_vocab_v1")
     st.set_stage("sfm_map", n_images=len(names))
     for p in sdir.glob("[0-9]*"):
         if p.is_dir():
