@@ -904,7 +904,9 @@ def room213_reassemble(payload: dict[str, Any]) -> dict[str, Any]:
     cpu=8.0,
     volumes={"/vol": ckpt_vol},
     secrets=[worker_secret] if worker_secret is not None else [],
-    retries=0,
+    # One retry: the 2026-09-21 19:57 run was cancelled mid-stage by the platform (A10G
+    # capacity reclaim), not by a stage error. Every stage skips outputs that already exist.
+    retries=1,
 )
 def room213_raw_build() -> str:
     """Room 213 raw-rig dataset build (stages 5-9): person masks (torchvision Mask R-CNN,
