@@ -6,7 +6,7 @@ import type { VnextExploreSourceData, VnextExploreSourceSummary } from "@/lib/vn
 
 type Admin = ReturnType<typeof createAdminClient>;
 
-function hasImage(row: {
+export function planSheetHasImage(row: {
   thumbnail_s3_key: unknown;
   rasterized_key: unknown;
   image_s3_key: unknown;
@@ -25,7 +25,7 @@ export async function loadPlanSources(admin: Admin, projectId: string): Promise<
     .eq("project_id", projectId)
     .order("sort_order", { ascending: true });
 
-  return (data ?? []).filter(hasImage).map((row) => ({
+  return (data ?? []).filter(planSheetHasImage).map((row) => ({
     id: row.id,
     label: sheetLabel(row),
     dateLabel: formatPlainDate(row.updated_at as string | null),
@@ -44,7 +44,7 @@ export async function resolvePlanSourceData(
   query = sourceId ? query.eq("id", sourceId) : query.order("sort_order", { ascending: true }).limit(1);
 
   const { data } = await query;
-  const sheet = (data ?? []).filter(hasImage)[0];
+  const sheet = (data ?? []).filter(planSheetHasImage)[0];
   if (!sheet) return null;
   return {
     sourceId: sheet.id,

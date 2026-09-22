@@ -19,7 +19,7 @@ export function VnextProjectNav({ projectId, pathname, items: itemsOverride }: P
   return (
     <nav
       aria-label="Project"
-      className="flex min-w-0 items-stretch overflow-x-auto border-b border-[var(--vnext-line)] bg-[var(--vnext-surface)] px-[var(--vnext-pad-x)]"
+      className="flex min-w-0 items-stretch overflow-x-auto border-b border-[var(--vnext-line)] bg-[var(--vnext-surface)] px-3 sm:px-[var(--vnext-pad-x)]"
     >
       {items.map((item) => (
         <VnextNavLink key={item.href} item={item} pathname={path} variant="header" />

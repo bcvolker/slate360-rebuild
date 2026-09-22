@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { VnextExploreShell } from "@/components/vnext/explore/VnextExploreShell";
+import { loadExploreItemFocus } from "@/lib/vnext/items/load-project-items";
 import { vnextExploreHref } from "@/lib/vnext/explore/build-explore-href";
 import { loadVnextExploreData } from "@/lib/vnext/load-project-explore";
 import { isVnextProjectId } from "@/lib/vnext/portfolio-access";
@@ -42,7 +43,23 @@ export default async function VnextProjectExplorePage({ params, searchParams }: 
   const data = await loadVnextExploreData(ctx.user.id, projectId, requestedRep, requestedSourceId);
   if (!data) notFound();
 
+  const itemFocus = requestedItem
+    ? await loadExploreItemFocus(
+        ctx.user.id,
+        projectId,
+        requestedItem,
+        data.activeRepresentation,
+        data.activeSourceId,
+      )
+    : null;
+
   return (
-    <VnextExploreShell data={data} initialPresent={present} basePath={path} item={requestedItem} />
+    <VnextExploreShell
+      data={data}
+      initialPresent={present}
+      basePath={path}
+      item={requestedItem}
+      itemFocus={itemFocus}
+    />
   );
 }

@@ -1,7 +1,7 @@
 # Entity Action / Settings Matrix
 
-**Status:** planning and verification document. Slice 3 added Overview consumers for project, visit, item, and document rows. Do not invent backend features.  
-**Last updated:** 2026-09-17 (Slice 3: Overview read-only summaries for latest visit / recent items / recent documents)  
+**Status:** planning and verification document. Slice 5 added the client Items read/question/plan-marker contract in section 5c. Do not invent backend features.  
+**Last updated:** 2026-09-21 (Slice 5: client Items consumption, questions, plan locator)  
 **Scope:** Phase 1 vNext. Do not invent backend features. Do not surface SaaS pricing, plans, seat upsells, app marketplace, or subscription controls.
 
 Vocabulary:
@@ -186,6 +186,26 @@ Two related records. Do not collapse them in UI.
 | Planned Phase 1 slice | 5, 11 |
 | Backend exists | `PARTIAL` |
 | Later verification | Full question CRUD verbs before building overflow actions |
+
+### 5c. vNext client Items (Slice 5)
+
+Verified against the Phase 1 client route. This does not change the legacy Site Walk capabilities in 5a.
+
+| Field | Value |
+|---|---|
+| Backend / data model | Adapter over `site_walk_items`, `site_walk_comments`, `site_walk_pins`, `site_walk_sessions`. No new table |
+| Permission source | vNext project access (`getScopedProjectForUser`: org, creator, or `project_members`). Punchwalk entitlement is not required |
+| Read item | `SUPPORTED` for non-deleted items whose `project_id` matches the authorized project |
+| Ask a question | `SUPPORTED` — inserts `site_walk_comments` only after item and session both belong to that project |
+| Rename / Edit / Delete / status / priority / assign / pin move | `HIDDEN` on the client route. Legacy routes still support several of these for the standalone app; they are not exposed here |
+| Comment delete / escalate | `HIDDEN` |
+| Share / Copy link | `NOT IN THIS SLICE` |
+| Plan location | `SUPPORTED` when `site_walk_pins.plan_sheet_id` points at a renderable sheet in the same project. Read-only marker in Explore |
+| Reality / Geometry XYZ | `NOT CURRENTLY SUPPORTED` — `digital_twin_pins` is not linked to `site_walk_items` |
+| 360 look-at | `NOT CURRENTLY SUPPORTED` — no item yaw/pitch. A `photo_360` item can open its own panorama |
+| Geo viewer | `NOT IN THIS SLICE` — coordinates stay on the locator; the label is what the client sees |
+| Intended vNext UI | `/vnext/projects/[projectId]/items` and `/items/[itemId]` |
+| Planned Phase 1 slice | 5, built |
 
 ---
 

@@ -165,6 +165,19 @@ A **large purposeless blank field is a visual-quality failure**, exactly like fa
 
 ---
 
+## Items (Slice 5)
+
+Items is a project record index. Legacy Site Walk screens establish which facts exist. They do not establish the layout.
+
+- One list of rows: image when it is a real photo, title, place, documented date, status as words. One "View in project" link when a proven locator exists.
+- Status is text plus a small color mark. It is not a pill, and color is not the only signal.
+- Do not render every stored field. Trade, category, and high/critical priority appear on the detail record only when they have a value. Tags are for search, not chips.
+- Questions use "Ask a question". Do not say RFI, escalate, Field, or Office.
+- A plan pin is a single read-only mark on the sheet. Do not import pin-authoring chrome.
+- If the only known context is a date or a place name, say that. Do not draw a marker or aim a camera.
+
+---
+
 ## Prohibited patterns
 
 Glassmorphism, dark SaaS chrome, decorative gradients, icon tiles, widget boards, fake analytics/KPIs, giant headings, giant blank heroes, nested cards, upgrade/billing/seats/plan labels, Coming Soon product modules, Command Center, Studio proliferation, teal **interaction** accents, marketing slogans in the app.

@@ -1,8 +1,9 @@
 import { notFound } from "next/navigation";
-import { VnextPageScaffold } from "@/components/vnext/VnextPageScaffold";
-import { VNEXT_ITEMS_SCAFFOLD_NOTE } from "@/lib/vnext/copy";
-import { loadClientProjectScaffold } from "@/lib/vnext/load-client-portfolio";
-import { decideVnextProjectRecordAccess, isVnextProjectId } from "@/lib/vnext/portfolio-access";
+import { VnextItemsBrowser } from "@/components/vnext/items/VnextItemsBrowser";
+import { VnextOverviewErrorNotice } from "@/components/vnext/project/VnextOverviewErrorNotice";
+import { loadVnextProjectItems } from "@/lib/vnext/items/load-project-items";
+import { isVnextProjectId } from "@/lib/vnext/portfolio-access";
+import { vnextProjectHref } from "@/lib/vnext/nav";
 import { requireVnextSession } from "@/lib/vnext/require-vnext-session";
 
 type PageProps = {
@@ -20,8 +21,24 @@ export default async function VnextProjectItemsPage({ params }: PageProps) {
   if (!ctx.user) notFound();
   if (!isVnextProjectId(projectId)) notFound();
 
-  const project = await loadClientProjectScaffold(ctx.user.id, projectId);
-  if (!project || decideVnextProjectRecordAccess(project) !== "allow") notFound();
+  const result = await loadVnextProjectItems(ctx.user.id, projectId);
+  if (result.access === "denied") notFound();
+  if (result.error) {
+    return (
+      <div className="vnext-portfolio mx-auto w-full px-[var(--vnext-pad-x)] py-[var(--vnext-pad-y)]">
+        <h1 className="m-0 text-[length:var(--vnext-title)] font-semibold tracking-tight text-[var(--vnext-ink)]">
+          Items
+        </h1>
+        <VnextOverviewErrorNotice message={result.error} />
+      </div>
+    );
+  }
 
-  return <VnextPageScaffold title="Items" note={VNEXT_ITEMS_SCAFFOLD_NOTE} />;
+  return (
+    <VnextItemsBrowser
+      items={result.items}
+      itemsBase={path}
+      exploreBase={`${vnextProjectHref(projectId)}/explore`}
+    />
+  );
 }

@@ -56,7 +56,9 @@
 
 [data-s360-vnext] a:focus-visible,
 [data-s360-vnext] button:focus-visible,
-[data-s360-vnext] input:focus-visible {
+[data-s360-vnext] input:focus-visible,
+[data-s360-vnext] select:focus-visible,
+[data-s360-vnext] textarea:focus-visible {
   outline: 2px solid var(--vnext-focus);
   outline-offset: 2px;
 }

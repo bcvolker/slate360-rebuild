@@ -8,12 +8,14 @@ import { useVnextFullscreen } from "./use-vnext-fullscreen";
 import { VnextRepresentationSelector } from "./VnextRepresentationSelector";
 import { VnextExploreSourcePicker } from "./VnextExploreSourcePicker";
 import { VnextExploreViewerStage } from "./VnextExploreViewerStage";
+import { VnextExploreItemContext } from "./VnextExploreItemContext";
 import { VnextExploreViewerControls } from "./VnextExploreViewerControls";
 import { VnextExploreEmptyState } from "./VnextExploreEmptyState";
 import { VnextExploreErrorState } from "./VnextExploreErrorState";
 import { VNEXT_EXPLORE_HELP } from "./vnext-explore-help-copy";
 import { vnextExploreHref } from "@/lib/vnext/explore/build-explore-href";
 import type { VnextExploreData } from "@/lib/vnext/explore-types";
+import type { VnextExploreItemFocus } from "@/lib/vnext/items/item-types";
 
 type Props = {
   data: VnextExploreData;
@@ -22,13 +24,13 @@ type Props = {
    *  every generated link/replace target is built against it, never a hardcoded production path,
    *  so the exact same shell can run unauthenticated in the e2e preview sandbox. */
   basePath: string;
-  /** Opaque Slice 5 (Items) URL context (?item=). Never read, looked up, or rendered in this
-   *  slice — only carried through every generated link so it survives representation/source
-   *  switches and presentation-mode toggling, ready for Slice 5 to give it meaning. */
+  /** Item id from ?item=. Preserved across representation, source, and presentation changes. */
   item: string | null;
+  /** Resolved client record for ?item=, when it belongs to this project. */
+  itemFocus?: VnextExploreItemFocus | null;
 };
 
-export function VnextExploreShell({ data, initialPresent, basePath, item }: Props) {
+export function VnextExploreShell({ data, initialPresent, basePath, item, itemFocus = null }: Props) {
   const router = useRouter();
   const [present, setPresent] = useState(initialPresent);
   const stageRef = useRef<HTMLDivElement>(null);
@@ -145,6 +147,8 @@ export function VnextExploreShell({ data, initialPresent, basePath, item }: Prop
             />
           ) : null}
 
+          {!present && itemFocus ? <VnextExploreItemContext focus={itemFocus} /> : null}
+
           <div
             ref={stageRef}
             className={`relative w-full overflow-hidden ${present ? "min-h-0 flex-1" : "mt-3 h-[60vh] min-h-[360px]"}`}
@@ -152,7 +156,11 @@ export function VnextExploreShell({ data, initialPresent, basePath, item }: Prop
           >
             {data.activeRepresentation && data.activeSourceData ? (
               <>
-                <VnextExploreViewerStage representation={data.activeRepresentation} data={data.activeSourceData} />
+                <VnextExploreViewerStage
+                  representation={data.activeRepresentation}
+                  data={data.activeSourceData}
+                  planMarker={itemFocus?.planMarker ?? null}
+                />
                 <VnextExploreViewerControls
                   isFullscreen={isFullscreen}
                   onToggleFullscreen={toggleFullscreen}

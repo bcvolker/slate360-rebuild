@@ -41,7 +41,7 @@ export function VnextNavLink({
       href={item.href}
       aria-current={active ? "page" : undefined}
       onClick={onNavigate}
-      className={`${shared} px-3 ${
+      className={`${shared} px-2 sm:px-3 ${
         active
           ? "border-b-2 border-[var(--vnext-accent)] font-medium text-[var(--vnext-ink)]"
           : "border-b-2 border-transparent text-[var(--vnext-ink-secondary)] hover:text-[var(--vnext-ink)]"

@@ -1,8 +1,8 @@
 # Slate360 Phase 1 — Implementation Status
 
-**Last updated:** 2026-09-18  
-**Current slice:** 4 (unified Explore viewer) on `feature/ui-vnext-phase1`  
-**Next slice:** 5 (Items + spatial linking) — **NOT STARTED**
+**Last updated:** 2026-09-21  
+**Current slice:** 5 (Items + spatial linking) — implemented, awaiting approval  
+**Next slice:** 6 (Documents + project search) — **NOT STARTED**
 
 Canonical plan: `docs/vnext/SLATE360_UI_PHASE1_MASTER_BUILD_PLAN.md`  
 Slice prompts: `docs/vnext/SLATE360_UI_PHASE1_CURSOR_SLICE_PROMPTS.md`  
@@ -33,9 +33,9 @@ The feature branch is **pushed**. It is not an unpushed `origin/main` clone.
 | 0 | Repo audit + salvage map + route contract | **APPROVED** |
 | 1 | vNext foundation + shells | **APPROVED** |
 | 2 | Client project portfolio | **APPROVED** |
-| 3 | Client project overview | **IMPLEMENTED (visually corrected) — awaiting approval** |
-| 4 | Unified Explore viewer | **IMPLEMENTED + CORRECTED — awaiting approval** |
-| 5 | Items + spatial linking | Not started |
+| 3 | Client project overview | **APPROVED** |
+| 4 | Unified Explore viewer | **APPROVED** |
+| 5 | Items + spatial linking | **IMPLEMENTED — awaiting approval** |
 | 6 | Documents + project search | Not started |
 | 7 | History + Compare | Not started |
 | 8 | Presentation / social clip foundation | Not started |
@@ -665,5 +665,32 @@ Slice 5 was not started.
 
 ## Handoff
 
-Slice 4 (unified Explore viewer, corrected + closed out) completion report is returned in the
-assistant response. Do not begin Slice 5 until Brian explicitly approves this slice.
+Slice 5 (Items + spatial linking) is implemented and waiting for review. Do not begin Slice 6 until Brian explicitly approves this slice.
+
+## Slice 5 notes (2026-09-21)
+
+Client Items is a project record index, not a restyle of Site Walk and not a task board.
+
+**Source of truth.** `site_walk_items` (non-deleted, `project_id` scoped), with `site_walk_comments` for questions, `site_walk_pins` for plan position, and `site_walk_sessions` for visit/date context. The client type is `VnextClientItem` (`lib/vnext/items/item-types.ts`). UI never reads raw table rows.
+
+**Client-safe fields.** Title, description, plain status label, documented date, location label, trade, category, high/critical priority only, a real image when `item_type` is `photo` or `photo_360` and `s3_key` exists, question count, a related-record link when `before_item_id` resolves inside the same project, and locators. Tags are searchable and not shown as chips.
+
+**Intentionally hidden.** Workflow type, assignment, due date, cost, markup, sync/hash/device fields, storage keys, org ids, emails, Field/Office, escalation, pin editing, and status changes. Medium/low priority is omitted because it is the ordinary default.
+
+**Questions.** `POST/GET /api/vnext/projects/[projectId]/items/[itemId]/questions` writes `site_walk_comments` after proving the item and its session both belong to the project. Language is "Ask a question". No delete, no escalate, no RFI object. Author label uses `profiles.display_name` or first+last, otherwise "Project team". Email is never selected.
+
+**Access.** Same contract as Slice 4 media: authenticated user plus `getScopedProjectForUser` (organization, creator, or `project_members`). Punchwalk entitlement is not consulted. An item, pin, or comment id from another project 404s. Legacy `/api/site-walk/comments` still uses `withAppAuth("punchwalk")`.
+
+**Locators actually derived** (`deriveItemLocators`):
+- Plan — YES. `site_walk_pins.plan_sheet_id` + `x_pct`/`y_pct` when the sheet is a renderable Explore source in the same project. Deep link: `vnextExploreHref` with `rep=plan`, `source=<sheet id>`, `item=<item id>`. Explore draws one read-only marker. Wrong sheet or another representation does not invent a marker.
+- 360 — PARTIAL. Only when the item itself is `photo_360` with an image. Opens that panorama (`precise: false`). No yaw/pitch exists in the schema, so the UI says direction was not recorded.
+- Geo — YES as data, NO as a viewer. Latitude/longitude stay on the locator. The page shows `location_label` only.
+- Visit/date — YES as context from the item's session when that session's `project_id` matches. Displayed as "Documented {date}". Not called a spatial position.
+- Reality / Geometry XYZ — NO. `digital_twin_pins` has space/model/`position`/`normal` and metadata for mesh anchors. It has no foreign key to `site_walk_items`. No relationship was invented and no migration was added.
+
+**Routes.** `/vnext/projects/[projectId]/items`, `/vnext/projects/[projectId]/items/[itemId]`, and the three project-scoped item APIs above (list, detail, questions), plus the existing item image route. Explore `?item=` is now resolved to a context strip and, for a matching plan pin, a marker.
+
+**Not started.** Documents, History/Compare, owner authoring, Drone, reconstruction, middleware, billing.
+
+Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 24 files / 202 tests passed, production build, Playwright 90 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. Scoped typecheck of the changed graph still reports the pre-existing `splat-viewer-scene.tsx` JSX intrinsic errors pulled in by the Slice 4 Reality viewer. Those files were not edited.
+

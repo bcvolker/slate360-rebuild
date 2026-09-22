@@ -1,27 +1,59 @@
 "use client";
 
-import { useCallback, useRef, useState, type PointerEvent, type WheelEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type PointerEvent, type WheelEvent } from "react";
 import { Minus, Plus, RotateCcw } from "lucide-react";
 import type { VnextPlanSourceData } from "@/lib/vnext/explore-types";
+import type { VnextPlanMarker } from "@/lib/vnext/items/item-types";
 import { VnextViewerMediaError } from "./VnextViewerMediaError";
 
 const MIN_SCALE = 1;
 const MAX_SCALE = 6;
 
 /**
- * No existing plan viewer is read-only — the app's PlanViewer components are all
- * pin-authoring surfaces coupled to rasterization jobs. This is a bare, purpose-built
- * pan/zoom image viewer: no pin CRUD, no job polling, just the sheet image.
+ * Read-only pan/zoom sheet. A selected item may place one marker at a known
+ * x/y percent. There is no pin create, drag, or delete.
  */
-export default function VnextPlanViewer({ data }: { data: VnextPlanSourceData }) {
+export default function VnextPlanViewer({
+  data,
+  marker = null,
+}: {
+  data: VnextPlanSourceData;
+  marker?: VnextPlanMarker | null;
+}) {
   const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [mediaError, setMediaError] = useState(false);
   const [retryAttempt, setRetryAttempt] = useState(0);
+  const [imageReady, setImageReady] = useState(false);
+  const [fitted, setFitted] = useState<{ w: number; h: number } | null>(null);
   const dragRef = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+
+  const fitImage = useCallback(() => {
+    const frame = frameRef.current;
+    const img = imgRef.current;
+    if (!frame || !img) return;
+    const naturalWidth = img.naturalWidth;
+    const naturalHeight = img.naturalHeight;
+    if (!naturalWidth || !naturalHeight || !frame.clientWidth || !frame.clientHeight) return;
+    const next = Math.min(frame.clientWidth / naturalWidth, frame.clientHeight / naturalHeight);
+    setFitted({ w: naturalWidth * next, h: naturalHeight * next });
+  }, []);
+
+  useEffect(() => {
+    const frame = frameRef.current;
+    if (!frame || !imageReady) return;
+    fitImage();
+    const observer = new ResizeObserver(() => fitImage());
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, [fitImage, imageReady]);
 
   const retry = useCallback(() => {
     setMediaError(false);
+    setImageReady(false);
+    setFitted(null);
     setRetryAttempt((n) => n + 1);
   }, []);
 
@@ -78,6 +110,7 @@ export default function VnextPlanViewer({ data }: { data: VnextPlanSourceData })
         data-vnext-plan-canvas="true"
       >
         <div
+          ref={frameRef}
           className="flex h-full w-full items-center justify-center"
           style={{
             transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
@@ -86,14 +119,35 @@ export default function VnextPlanViewer({ data }: { data: VnextPlanSourceData })
           }}
         >
           {/* Plan sheet raster — intentionally a plain img, not a canvas/tile engine. */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={retryAttempt > 0 ? `${data.imageUrl}?retry=${retryAttempt}` : data.imageUrl}
-            alt={data.sheetName}
-            className="max-h-full max-w-full object-contain"
-            draggable={false}
-            onError={() => setMediaError(true)}
-          />
+          <div
+            className="relative max-h-full max-w-full"
+            style={fitted ? { width: fitted.w, height: fitted.h } : undefined}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              ref={imgRef}
+              src={retryAttempt > 0 ? `${data.imageUrl}?retry=${retryAttempt}` : data.imageUrl}
+              alt={data.sheetName}
+              className={fitted ? "h-full w-full object-contain" : "block max-h-full max-w-full object-contain"}
+              draggable={false}
+              onLoad={() => {
+                setImageReady(true);
+                fitImage();
+              }}
+              onError={() => setMediaError(true)}
+            />
+            {marker && fitted ? (
+              <span
+                data-vnext-plan-marker="true"
+                data-x-pct={String(marker.xPct)}
+                data-y-pct={String(marker.yPct)}
+                role="img"
+                aria-label={marker.label}
+                className="pointer-events-none absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 border-2 border-[var(--vnext-accent)] bg-[var(--vnext-surface)]"
+                style={{ left: `${marker.xPct}%`, top: `${marker.yPct}%` }}
+              />
+            ) : null}
+          </div>
         </div>
       </div>
 

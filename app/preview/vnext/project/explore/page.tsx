@@ -5,6 +5,7 @@ import { VnextClientShell } from "@/components/vnext/VnextClientShell";
 import { VnextExploreShell } from "@/components/vnext/explore/VnextExploreShell";
 import { VnextProjectNav } from "@/components/vnext/project/VnextProjectNav";
 import { resolvePreviewExploreData } from "@/lib/vnext/preview-explore-fixtures";
+import { resolvePreviewItemFocus } from "@/lib/vnext/preview-items-fixtures";
 import {
   PREVIEW_OVERVIEW_NAV_PATH,
   PREVIEW_OVERVIEW_PROJECT,
@@ -21,9 +22,10 @@ const BASE_PATH = "/preview/vnext/project/explore";
  */
 export default function PreviewVnextProjectExplorePage() {
   const searchParams = useSearchParams();
-  const data = resolvePreviewExploreData(searchParams.get("rep"), searchParams.get("source"));
-  const present = searchParams.get("present") === "1";
-  const item = searchParams.get("item");
+  const data = resolvePreviewExploreData(searchParams?.get("rep") ?? null, searchParams?.get("source") ?? null);
+  const present = searchParams?.get("present") === "1";
+  const item = searchParams?.get("item") ?? null;
+  const itemFocus = resolvePreviewItemFocus(item, data.activeRepresentation, data.activeSourceId);
 
   return (
     <VnextClientShell pathname={PREVIEW_OVERVIEW_NAV_PATH}>
@@ -32,7 +34,13 @@ export default function PreviewVnextProjectExplorePage() {
         pathname={PREVIEW_PROJECT_NAV_ITEMS[1].href}
         items={PREVIEW_PROJECT_NAV_ITEMS}
       />
-      <VnextExploreShell data={data} initialPresent={present} basePath={BASE_PATH} item={item} />
+      <VnextExploreShell
+        data={data}
+        initialPresent={present}
+        basePath={BASE_PATH}
+        item={item}
+        itemFocus={itemFocus}
+      />
     </VnextClientShell>
   );
 }
