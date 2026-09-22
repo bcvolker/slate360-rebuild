@@ -53,6 +53,37 @@ create policy project_client_capabilities_write
     )
   );
 
+-- Matches filterCapturesByLayerConfig in lib/thermal/layer-config.ts.
+-- An empty or non-array capture_ids list leaves every capture allowed.
+-- A list of ids keeps only those captures. A non-empty list with no strings
+-- leaves every capture allowed, same as the runtime helper.
+create or replace function public.thermal_capture_allowed_by_share_layer(
+  p_capture_id uuid,
+  p_layer_config jsonb
+) returns boolean
+language sql
+immutable
+set search_path = public
+as $$
+  select
+    p_layer_config is null
+    or jsonb_typeof(p_layer_config->'capture_ids') is distinct from 'array'
+    or jsonb_array_length(p_layer_config->'capture_ids') = 0
+    or not exists (
+      select 1
+      from jsonb_array_elements(p_layer_config->'capture_ids') elem
+      where jsonb_typeof(elem) = 'string'
+    )
+    or exists (
+      select 1
+      from jsonb_array_elements(p_layer_config->'capture_ids') elem
+      where jsonb_typeof(elem) = 'string'
+        and elem #>> '{}' = p_capture_id::text
+    );
+$$;
+
+revoke all on function public.thermal_capture_allowed_by_share_layer(uuid, jsonb) from public;
+
 -- Existing projects keep portal sections, and keep a service only when a
 -- client-visible source already exists. Raw internal data is not enough.
 insert into public.project_client_capabilities (project_id, capability_id, included)
@@ -112,6 +143,7 @@ select p.id, cap.id,
         and t.is_revoked = false
         and (t.expires_at is null or t.expires_at > now())
         and (c.preview_path is not null or c.storage_path is not null)
+        and public.thermal_capture_allowed_by_share_layer(c.id, t.layer_config)
     )
     else false
   end

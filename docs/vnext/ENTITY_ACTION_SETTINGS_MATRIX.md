@@ -303,7 +303,7 @@ Verified against the Phase 1 client route. This does not change the legacy Slate
 | New project | Seed trigger: portal on, services off |
 | Existing project | Backfill from already client-visible sources only |
 | Read | Project access. The server adapter applies the filter. Hidden services are not queried into History or search hits |
-| Write | `PUT /api/vnext/projects/[projectId]/scope`. `user_can_manage_project` only. Unknown ids dropped. No prices |
+| Write | `PUT /api/vnext/projects/[projectId]/scope` calls `replace_project_client_scope`, one upsert of all nine ids. `user_can_manage_project` only. Unknown ids dropped. No prices |
 | Intended vNext UI | The same client pages, with tabs and records removed when the capability is off. Owner checklist is Slice 9/10 |
 | Planned Phase 1 slice | 7A, built. Canonical doc: `docs/vnext/PROJECT_CLIENT_DELIVERY_SCOPE.md` |
 

@@ -57,9 +57,9 @@ Table: `project_client_capabilities` (`project_id`, `capability_id`, `included`)
 | New project | Trigger seeds portal sections on and services off. |
 | Existing projects | One-time backfill. Portal sections on. A service is on only when a client-visible source already exists. |
 
-The backfill for thermal does not read `layer_config`. Runtime still uses `isThermalSessionAvailable`, so an excluded capture is not rendered. Slice 10 can tighten the backfill.
+Thermal backfill uses `thermal_capture_allowed_by_share_layer`, the SQL form of `filterCapturesByLayerConfig`. A share whose `capture_ids` list hides every usable capture does not turn Thermal on. Runtime still uses `isThermalSessionAvailable`, so an included project with nothing viewable stays hidden.
 
-Replacing scope deletes the project's rows and inserts the full set. If the insert fails after the delete, the project looks unconfigured: services hidden, portal sections on. That hides a service. It does not reveal one.
+Replacing scope calls `replace_project_client_scope`. That function upserts all nine ids in one transaction. It does not delete the rows first. A failed call leaves the previous set in place. The app still checks `user_can_manage_project` before the call, and the function checks it again.
 
 ## Publication stand-in
 
@@ -71,7 +71,7 @@ Slice 10 replaces these with an explicit publish action. Until then, the central
 | Geometry | Same, for a ready glb/gltf | Ready mesh in a live space. Same temporary stand-in. |
 | 360 | Row, or backfill when a non-deleted `photo_360` has `s3_key` | That photo. There is no separate publish flag. |
 | Plans | Row, or backfill when a sheet has a thumbnail, raster, or image key | That sheet image. Processing sheets without an image stay out. |
-| Thermal | Row, or backfill approximating a live share | `isThermalSessionAvailable`: share not revoked or expired, and a viewable capture remains. This is a real publish state. |
+| Thermal | Row, or backfill from a live share whose `layer_config` still leaves a viewable capture | `isThermalSessionAvailable`. Same publish rule as the backfill. |
 | Items | Portal default on | Non-deleted project items. |
 | Documents | Portal default on | Active files in a client folder. |
 | History | Portal default on | The Slice 7 record rules, then drop any visit whose representation is not included. |

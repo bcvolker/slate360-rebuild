@@ -14,9 +14,8 @@ export function normalizeIncludedIds(values: readonly string[]): ClientCapabilit
 }
 
 /**
- * Replaces the project's delivery scope. Every known capability is stored, so a
- * project with services turned off is still configured and does not fall back
- * to the unconfigured portal default.
+ * Replaces the project's delivery scope in one database function.
+ * All nine ids are upserted. Rows are not deleted first.
  */
 export async function replaceProjectClientScope(
   admin: Admin,
@@ -27,17 +26,12 @@ export async function replaceProjectClientScope(
 ): Promise<"ok" | "denied" | "error"> {
   const allowed = await userCanManageVnextProject(admin, userId, projectId, projectOrgId);
   if (!allowed) return "denied";
-  const included = new Set(normalizeIncludedIds(requested));
-  const table = admin.from("project_client_capabilities");
-  const removed = await table.delete().eq("project_id", projectId);
-  if (removed.error) return "error";
-  const inserted = await table.insert(
-    CLIENT_CAPABILITY_IDS.map((capabilityId) => ({
-      project_id: projectId,
-      capability_id: capabilityId,
-      included: included.has(capabilityId),
-      updated_by: userId,
-    })),
-  );
-  return inserted.error ? "error" : "ok";
+  const { error } = await admin.rpc("replace_project_client_scope", {
+    p_project_id: projectId,
+    p_included: normalizeIncludedIds(requested),
+    p_actor: userId,
+  });
+  if (!error) return "ok";
+  if (error.code === "42501") return "denied";
+  return "error";
 }

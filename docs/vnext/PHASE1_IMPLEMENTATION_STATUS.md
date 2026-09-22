@@ -780,5 +780,9 @@ Overview, Explore, Items, Documents, search, plans, History, Compare, and projec
 
 Slice 8 was not started. There is no owner QA screen, no subscription language, and no locked-service card.
 
-Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 31 files / 250 tests passed, production build, Playwright 122 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. Scoped typecheck of the Slice 7A files passed. `npm run typecheck:changed` against `main` is reported with the commit. The migration file is in the repo. This worktree is not linked to Supabase, so the SQL has not been applied yet. Until it is, a project with no capability rows keeps portal sections and hides services.
+Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 31 files / 250 tests passed, production build, Playwright 122 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. Scoped typecheck of the Slice 7A files passed. `npm run typecheck:changed` against `main` is reported with the commit.
+
+Closeout applied `20260922120000_project_client_capabilities.sql` and `20260922133000_replace_project_client_scope.sql` to the linked Supabase project `hadnfcenpcfaeclczsmm` from `C:\s360`. The table, check constraint, RLS policies, and project seed trigger are present. All 8 existing projects have nine capability rows. A rolled-back insert seeded portal sections on and services off. `replace_project_client_scope` upserts the nine ids in one transaction. Thermal backfill uses the same `capture_ids` rule as runtime. This database has no thermal sessions, so Thermal is included for none of the live projects.
+
+Closeout `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 31 files / 252 tests passed, production build, Playwright 122 passed. Guards passed. `npm run typecheck:changed` against `main` exits 2 only on the existing `splat-viewer-scene.tsx` lines 197–199.
 

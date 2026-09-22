@@ -7,6 +7,7 @@ import {
   filterVisitsForScope,
   projectNavForScope,
 } from "./filter-client-surface";
+import { CLIENT_CAPABILITY_IDS } from "./capabilities";
 import { resolveClientProjectScope, scopeFromIncluded, unconfiguredClientScope } from "./resolve-client-scope";
 import { replaceProjectClientScope } from "./write-project-scope";
 import type { PortfolioEvidence } from "@/lib/vnext/portfolio-types";
@@ -109,33 +110,58 @@ describe("project client scope", () => {
 });
 
 describe("project scope writes", () => {
-  it("lets an org manager replace scope and stores every capability", async () => {
-    const inserted: unknown[] = [];
-    const admin = writer({ orgRole: "owner", memberRole: "viewer" }, inserted);
+  it("replaces every capability in one call and ignores unknown ids", async () => {
+    const state = scopeState();
+    const admin = writer({ orgRole: "owner", memberRole: "viewer" }, state);
     const result = await replaceProjectClientScope(admin, "user-1", "p1", "org-a", ["reality", "drone", "plans"]);
     expect(result).toBe("ok");
-    expect(inserted).toHaveLength(9);
-    expect(inserted).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ capability_id: "reality", included: true }),
-        expect.objectContaining({ capability_id: "thermal", included: false }),
-        expect.objectContaining({ capability_id: "plans", included: true }),
-      ]),
-    );
-    expect(JSON.stringify(inserted)).not.toContain("drone");
+    expect(state.calls).toEqual([
+      {
+        name: "replace_project_client_scope",
+        args: { p_project_id: "p1", p_included: ["reality", "plans"], p_actor: "user-1" },
+      },
+    ]);
+    expect(state.stored).toHaveLength(9);
+    expect(state.stored.find((row) => row.capability_id === "reality")?.included).toBe(true);
+    expect(state.stored.find((row) => row.capability_id === "plans")?.included).toBe(true);
+    expect(state.stored.find((row) => row.capability_id === "thermal")?.included).toBe(false);
+    expect(state.stored.map((row) => row.capability_id)).toEqual([...CLIENT_CAPABILITY_IDS]);
   });
 
-  it("refuses a collaborator and an unrelated writer", async () => {
-    const inserted: unknown[] = [];
+  it("turns an included service off and an excluded service on without dropping rows", async () => {
+    const state = scopeState();
+    const admin = writer({ orgRole: "manager", memberRole: null }, state);
+    await replaceProjectClientScope(admin, "user-1", "p1", "org-a", ["reality", "thermal"]);
+    await replaceProjectClientScope(admin, "user-1", "p1", "org-a", ["thermal"]);
+    expect(state.stored).toHaveLength(9);
+    expect(state.stored.find((row) => row.capability_id === "reality")?.included).toBe(false);
+    expect(state.stored.find((row) => row.capability_id === "thermal")?.included).toBe(true);
+    expect(state.deletes).toBe(0);
+  });
+
+  it("leaves the stored set unchanged when the database function fails", async () => {
+    const state = scopeState();
+    state.stored = CLIENT_CAPABILITY_IDS.map((capability_id) => ({ capability_id, included: capability_id === "reality" }));
+    state.rpcError = { message: "write failed" };
+    const before = state.stored.map((row) => ({ ...row }));
+    const admin = writer({ orgRole: "owner", memberRole: null }, state);
+    const result = await replaceProjectClientScope(admin, "user-1", "p1", "org-a", ["thermal"]);
+    expect(result).toBe("error");
+    expect(state.stored).toEqual(before);
+    expect(state.deletes).toBe(0);
+  });
+
+  it("refuses a collaborator and a viewer before any write", async () => {
+    const state = scopeState();
     const collaborator = await replaceProjectClientScope(
-      writer({ orgRole: null, memberRole: "collaborator" }, inserted),
+      writer({ orgRole: null, memberRole: "collaborator" }, state),
       "user-1",
       "p1",
       "org-a",
       ["thermal"],
     );
     const viewer = await replaceProjectClientScope(
-      writer({ orgRole: null, memberRole: "viewer" }, inserted),
+      writer({ orgRole: null, memberRole: "viewer" }, state),
       "user-2",
       "p1",
       "org-a",
@@ -143,13 +169,25 @@ describe("project scope writes", () => {
     );
     expect(collaborator).toBe("denied");
     expect(viewer).toBe("denied");
-    expect(inserted).toEqual([]);
+    expect(state.calls).toEqual([]);
+    expect(state.stored).toEqual([]);
   });
 });
 
+type StoredCapability = { capability_id: string; included: boolean };
+
+function scopeState() {
+  return {
+    stored: [] as StoredCapability[],
+    calls: [] as Array<{ name: string; args: { p_project_id: string; p_included: string[]; p_actor: string } }>,
+    deletes: 0,
+    rpcError: null as { message: string; code?: string } | null,
+  };
+}
+
 function writer(
   roles: { orgRole: string | null; memberRole: string | null },
-  inserted: unknown[],
+  state: ReturnType<typeof scopeState>,
 ) {
   return {
     from(table: string) {
@@ -165,13 +203,25 @@ function writer(
         select: () => node,
         eq: () => node,
         maybeSingle: async () => ({ data, error: null }),
-        delete: () => ({ eq: async () => ({ error: null }) }),
-        insert: async (rows: unknown[]) => {
-          inserted.push(...rows);
-          return { error: null };
+        delete: () => {
+          state.deletes += 1;
+          return { eq: async () => ({ error: null }) };
         },
       };
       return node;
+    },
+    async rpc(
+      name: string,
+      args: { p_project_id: string; p_included: string[]; p_actor: string },
+    ) {
+      state.calls.push({ name, args });
+      if (state.rpcError) return { error: state.rpcError };
+      const included = new Set(args.p_included);
+      state.stored = CLIENT_CAPABILITY_IDS.map((capability_id) => ({
+        capability_id,
+        included: included.has(capability_id),
+      }));
+      return { error: null };
     },
   };
 }
