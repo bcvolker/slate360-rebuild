@@ -1132,6 +1132,37 @@ def room213_watchdog() -> dict[str, Any]:
 
 @app.function(
     image=gpu_image,
+    timeout=5 * 60 * 60,
+    memory=64 * 1024,
+    cpu=32.0,
+    volumes={"/vol": ckpt_vol},
+    secrets=[worker_secret] if worker_secret is not None else [],
+    retries=0,
+)
+def room213_rig_ba(dry: bool = False) -> str:
+    """Authorised single correction (2026-09-22): joint rigid-rig bundle adjustment of the existing
+    free reconstruction (build/sfm/best) -- see room213_rig_ba.py for the exact rig structure. Runs
+    both stream<->lens hypotheses with the identical frozen configuration, selects on geometry,
+    re-exports the dataset with rig poses and re-evaluates the UNCHANGED frozen gates. If the verdict
+    is TRAINING READY the watchdog launches the already-authorised Stage-1 run on its next tick.
+    dry=True: build the rig reconstruction, check consistency, 5-iteration BA, write rig_ba/dry_run.json,
+    touch no verdict/dataset."""
+    sys.path.insert(0, "/root/recon-experiment"); sys.path.insert(0, "/root/splat-lab")
+    os.environ["RIG_BA_DRY"] = "1" if dry else "0"
+    import importlib
+    import room213_rig_ba as m
+    m = importlib.reload(m)  # a warm container must not reuse a stale import
+    stop = threading.Event()
+    threading.Thread(target=_commit_every, args=(stop, 300), daemon=True).start()
+    try:
+        m.main()
+    finally:
+        stop.set(); ckpt_vol.commit()
+    return "rig ba done"
+
+
+@app.function(
+    image=gpu_image,
     gpu=GPU_TRAIN,
     timeout=230 * 60,
     memory=MEMORY_MIB,
@@ -1241,6 +1272,12 @@ def main(phase: str = "exp3"):
         return
     if phase == "room213-stage1-train":
         print(room213_stage1_train.remote())
+        return
+    if phase == "room213-rig-ba":
+        print(room213_rig_ba.remote())
+        return
+    if phase == "room213-rig-ba-dry":
+        print(room213_rig_ba.remote(dry=True))
         return
     if phase == "room213-raw-pipeline":
         print(room213_raw_pipeline.remote())
