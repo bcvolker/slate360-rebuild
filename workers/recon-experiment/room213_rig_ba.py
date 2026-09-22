@@ -338,7 +338,7 @@ def run_hypothesis(hyp, calib, meta_by_name, pyc):
             info_e = run_ba(r, pyc, 300, gauge_frame, ftol=1e-5)   # to convergence (ftol) -- a noisy inner solve makes the outer objective noisy
             e, _, _, _ = residuals(r, meta_by_name); c = huber_mean(e)
             evals.append({"delta_deg": (np.degrees(delta)).tolist(), "huber_mean": c, "median_px": float(np.median(e)), "p95_px": float(np.percentile(e, 95)), "ba": info_e})
-            status(stage=f"rig_ba_{hyp}_outer", n_evals=len(evals), best_huber=min(v["huber_mean"] for v in evals), last_median_px=float(np.median(e)))
+            status(stage=f"rig_ba_{hyp}_outer", n_evals=len(evals), best_huber=min(v["huber_mean"] for v in evals if v["huber_mean"] is not None), last_median_px=float(np.median(e)))
             log(f"  eval {len(evals)}: delta {np.degrees(delta).round(3)} huber {c:.4f} median {np.median(e):.3f}")
             return c
         step = math.radians(3.0)
