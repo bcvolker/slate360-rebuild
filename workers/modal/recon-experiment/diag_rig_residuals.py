@@ -60,10 +60,11 @@ def diag(hyp: str, outdir: str = "rig_ba_v2") -> dict:
         d = np.stack([(xy[:, 0] - B.FACE / 2 + 0.5) / B.FL, (xy[:, 1] - B.FACE / 2 + 0.5) / B.FL, np.ones(len(xy))], 1); d /= np.linalg.norm(d, axis=1, keepdims=True)
         dl = d @ face_rot[fn].T; p_f, valid = lenses[s].project_frame(dl)
         cx, cy, cr = B.FRAME_CIRCLE[s]; srad = np.hypot(p_f[:, 0] - cx, p_f[:, 1] - cy)
+        depth = np.where(np.isnan(z), -1.0, Xc[:, 2])
         for k in range(len(e)):
-            rows.append((e[k], s, FACE_IDX[fn], im.frame_id, xy[k, 0], xy[k, 1], u[k], v[k], srad[k], p_f[k, 1], im.image_id, idx[k][0]))
-    A = np.array([r[:10] for r in rows], dtype=np.float64); ids = [(r[10], r[11]) for r in rows]
-    e, lens, face, frame, x, y, pu, pv, srad, srow = A.T
+            rows.append((e[k], s, FACE_IDX[fn], im.frame_id, xy[k, 0], xy[k, 1], u[k], v[k], srad[k], p_f[k, 1], depth[k], im.image_id, idx[k][0]))
+    A = np.array([r[:11] for r in rows], dtype=np.float64); ids = [(r[11], r[12]) for r in rows]
+    e, lens, face, frame, x, y, pu, pv, srad, srow, depth = A.T
     frad = np.hypot(x - B.FACE / 2, y - B.FACE / 2)
     walk = np.array([walk_of[int(f)] for f in frame]); spd = np.array([speed.get(int(f)) if speed.get(int(f)) is not None else np.nan for f in frame])
     def dist(mask):
@@ -73,6 +74,10 @@ def diag(hyp: str, outdir: str = "rig_ba_v2") -> dict:
                                   for a, b in ((0, 800), (800, 1300), (1300, 1700), (1700, 1950), (1950, 2200))}
     out["by_sensor_row_px"] = {f"{a}-{b}": {"lens0": dist((srow >= a) & (srow < b) & (lens == 0)), "lens1": dist((srow >= a) & (srow < b) & (lens == 1))} for a, b in ((0, 768), (768, 1536), (1536, 2304), (2304, 3072), (3072, 3840))}
     out["by_face_radius_px"] = {f"{a}-{b}": dist((frad >= a) & (frad < b)) for a, b in ((0, 400), (400, 800), (800, 1280), (1280, 1900))}
+    out["by_depth_m"] = {f"{a}-{b}": {"all": dist((depth >= a) & (depth < b)), "lens0": dist((depth >= a) & (depth < b) & (lens == 0)), "lens1": dist((depth >= a) & (depth < b) & (lens == 1))}
+                         for a, b in ((0, 1), (1, 2), (2, 3), (3, 5), (5, 8), (8, 1e9))}
+    out["by_depth_x_face_radius"] = {f"d{a}-{b}_r{c}-{d_}": dist((depth >= a) & (depth < b) & (frad >= c) & (frad < d_)) for a, b in ((0, 2), (2, 5), (5, 1e9)) for c, d_ in ((0, 600), (600, 1280), (1280, 1900))}
+    out["residual_in_mm_at_depth"] = {"median_mm": float(np.median(e[(depth > 0) & (e < 1e4)] * depth[(depth > 0) & (e < 1e4)] / B.FL * 1000)), "p95_mm": float(np.percentile(e[(depth > 0) & (e < 1e4)] * depth[(depth > 0) & (e < 1e4)] / B.FL * 1000, 95))}
     out["by_walk_x_lens"] = {f"{w}_lens{ln}": dist((walk == w) & (lens == ln)) for w in sorted(set(walk)) for ln in (0, 1)}
     out["by_face_x_lens"] = {f"{n}_lens{ln}": dist((face == i) & (lens == ln)) for n, i in FACE_IDX.items() for ln in (0, 1)}
     # motion: per-exposure median residual vs rig speed
