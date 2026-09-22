@@ -215,8 +215,10 @@ def residuals(rec, meta_by_name):
     return np.concatenate(errs), np.concatenate(lens), np.concatenate(frames), np.concatenate(faces)
 
 
-def huber_mean(e, delta=4.0):
-    a = np.abs(e); return float(np.mean(np.where(a <= delta, 0.5 * a * a, delta * (a - 0.5 * delta))))
+def huber_mean(e, delta=4.0, clip=50.0):
+    """Outer-loop objective: Huber(4 px) mean with residuals clipped at 50 px so the gross tail
+    (behind-camera sentinels, unreconciled outliers) cannot dominate the rotation search."""
+    a = np.minimum(np.abs(e), clip); return float(np.mean(np.where(a <= delta, 0.5 * a * a, delta * (a - 0.5 * delta))))
 
 
 def per_frame_residual_rotation(rec, meta_by_name, lens_sel):
@@ -323,7 +325,7 @@ def run_hypothesis(hyp, calib, meta_by_name, pyc):
             r = pyc.Reconstruction(str(base_dir))
             Rd = rotvec_to_R(delta) @ R10
             set_lens1_rotation(r, Rd, t10 if hyp.startswith("H1") else (-Rd @ np.array(calib["lenses"][1]["t_m"])), pyc)
-            run_ba(r, pyc, 40, gauge_frame)
+            run_ba(r, pyc, 100, gauge_frame)   # to convergence: a noisy inner solve makes the outer objective noisy
             e, _, _, _ = residuals(r, meta_by_name); c = huber_mean(e)
             evals.append({"delta_deg": (np.degrees(delta)).tolist(), "huber_mean": c, "median_px": float(np.median(e)), "p95_px": float(np.percentile(e, 95))})
             status(stage=f"rig_ba_{hyp}_outer", n_evals=len(evals), best_huber=min(v["huber_mean"] for v in evals), last_median_px=float(np.median(e)))
@@ -351,6 +353,15 @@ def run_hypothesis(hyp, calib, meta_by_name, pyc):
         w = exp_of_frame[f.frame_id].split("_00_")[1].split(".insv")[0]
         walks.setdefault(w, []).append(-np.asarray(f.rig_from_world.rotation.matrix()).T @ np.asarray(f.rig_from_world.translation))
     walks = {w: {"n_exposures": len(v), "extent_m": (np.max(v, 0) - np.min(v, 0)).tolist()} for w, v in walks.items()}
+    # per-frame residual medians by walk and lens (tripod walk 020 vs moving walks 021/075)
+    frame_walk = {fid_: exp_of_frame[fid_].split("_00_")[1].split(".insv")[0] for fid_ in exp_of_frame.values()}
+    per_walk_res = {}
+    for w in walks:
+        for lens_ in (0, 1):
+            meds = [float(np.median(e[(fr == fid_) & (l == lens_)])) for fid_ in frame_walk if frame_walk[fid_] == w and np.any((fr == fid_) & (l == lens_))]
+            per_walk_res[f"{w}_lens{lens_}"] = {"n_frames": len(meds), "median_of_frame_medians_px": float(np.median(meds)) if meds else None, "p90_of_frame_medians_px": float(np.percentile(meds, 90)) if meds else None}
+    for w in walks: walks[w]["residuals"] = {k: v for k, v in per_walk_res.items() if k.startswith(w)}
+    n_behind = int(np.sum(e >= 1e4)); n_gt50 = int(np.sum(e > 50))
     p1_best = -R_best.T @ t_best
     rep = {"hypothesis": hyp, "rig_structure": "10 PINHOLE sensors (5 per lens), ref = lens0/f, sensor_from_rig constant in BA (lens0: face rotations, zero translation; lens1: face rotations * [R_10 | t_10 factory 32.26 mm]); one Frame per exposure; refine rig_from_world + points only; intrinsics constant; gauge = frame 1 constant; R_10 by outer Nelder-Mead over the rigid inner BA",
            "scale_prior": prior, "initial_R10_deg_axis": [ang_i, axis_i], "final_R10_deg_axis": [ang_b, axis_b], "outer_delta_deg": np.degrees(delta_best).tolist(),
@@ -365,7 +376,8 @@ def run_hypothesis(hyp, calib, meta_by_name, pyc):
            "physical_centre_spread_mm": {"lens0": 0.0, "lens1": 0.0, "note": "zero by construction: faces of a lens share one centre in the rig"},
            "extent": ext, "per_walk": walks,
            "scale": {"ba_m_per_unit_relative_to_free_solve": float(s0 * (ext["track_extent_m_xyz"][0] / max(1e-9, ext_before["track_extent_m_xyz"][0]))), "prior_s0": s0, "free_solve_baseline_derived_invalid": 0.0940},
-           "n_points": rec.num_points3D(), "mean_track_length": float(rec.compute_mean_track_length())}
+           "n_points": rec.num_points3D(), "mean_track_length": float(rec.compute_mean_track_length()),
+           "observations": {"total": int(len(e)), "rejected_or_filtered": 0, "behind_camera": n_behind, "residual_gt_50px": n_gt50, "note": "no observation filtering; every free-solve observation is scored"}}
     json.dump(rep, open(hdir / "rig_ba_report.json", "w"), indent=1)
     # rig-derived poses for ALL faces of registered exposures (world_from_face, centre) in metres
     poses = {}
