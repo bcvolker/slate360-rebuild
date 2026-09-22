@@ -498,8 +498,55 @@ def fc_probe(iters: int = 150) -> dict[str, Any]:
     return res
 
 
+@app.function(image=fc_image, gpu="L40S", timeout=8 * 60 * 60, cpu=16.0, memory=64 * 1024, volumes={"/vol": vol})
+def fc_train(downsample: int = 1, iterations: int = 30000) -> dict[str, Any]:
+    """Phase 3c: THE single 3DGRT run. Released configs/apps/colmap_3dgrt.yaml, unchanged except our paths,
+    masks, holdout split and the probe-chosen resolution."""
+    import subprocess
+    import threading
+    import time
+    run_dir = f"{FC}/runs"
+    log_path = f"{FC}/train.log"
+    cmd = [PY, "train.py", "--config-name", "apps/colmap_3dgrt.yaml",
+           f"path={DATA}", f"out_dir={run_dir}", "experiment_name=room213_native",
+           f"dataset.downsample_factor={downsample}", "dataset.test_frame_suffix=_test",
+           f"border_mask_train={FC}/mask_border.png", f"border_mask_test={FC}/mask_border.png",
+           f"n_iterations={iterations}"]
+    json.dump({"cmd": cmd, "downsample": downsample, "iterations": iterations}, open(f"{FC}/train_cmd.json", "w"), indent=1)
+    t0 = time.time(); stop = threading.Event(); peak = [0]
+
+    def monitor():
+        while not stop.wait(60):
+            try:
+                tail = open(log_path, errors="replace").read()[-3000:]
+                r = subprocess.run(["nvidia-smi", "--query-gpu=memory.used", "--format=csv,noheader,nounits"],
+                                   capture_output=True, text=True, timeout=10)
+                peak[0] = max(peak[0], int(r.stdout.strip().split("\n")[0]))
+                _status(stage="fc_train", elapsed_s=round(time.time() - t0), peak_gpu_mib=peak[0],
+                        downsample=downsample, iterations=iterations, log_tail=tail[-400:])
+                vol.commit()
+            except Exception:  # noqa: BLE001
+                pass
+    threading.Thread(target=monitor, daemon=True).start()
+    with open(log_path, "w") as lf:
+        r = subprocess.run(cmd, stdout=lf, stderr=subprocess.STDOUT, cwd="/workspace/fullcircle")
+    stop.set(); el = time.time() - t0
+    from pathlib import Path
+    arts = sorted(str(p)[len(FC) + 1:] for p in Path(run_dir).rglob("*") if p.suffix in (".pt", ".ply", ".json", ".yaml"))
+    out = {"exit_code": r.returncode, "elapsed_s": round(el), "it_per_s": round(iterations / el, 3) if el else None,
+           "peak_gpu_mib": peak[0], "downsample": downsample, "resolution": 3840 // downsample,
+           "iterations": iterations, "artifacts": arts[:40],
+           "log_tail": open(log_path, errors="replace").read()[-2500:]}
+    json.dump(out, open(f"{FC}/train_result.json", "w"), indent=1)
+    _status(stage="fc_train_done", exit_code=r.returncode, elapsed_s=round(el))
+    vol.commit()
+    return out
+
+
 @app.local_entrypoint()
-def main(phase: str = "smoke", force: bool = False, iters: int = 150):
+def main(phase: str = "smoke", force: bool = False, iters: int = 150, downsample: int = 1, iterations: int = 30000):
+    if phase == "train":
+        print(json.dumps(fc_train.remote(downsample, iterations), indent=1)); return
     if phase == "verify":
         print(json.dumps(fc_verify_masks.remote(), indent=1)); return
     if phase == "stage_train":
