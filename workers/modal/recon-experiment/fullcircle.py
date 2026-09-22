@@ -543,8 +543,109 @@ def fc_train(downsample: int = 1, iterations: int = 30000) -> dict[str, Any]:
     return out
 
 
+@app.function(image=fc_image, gpu="L40S", timeout=3 * 60 * 60, cpu=16.0, memory=64 * 1024, volumes={"/vol": vol})
+def fc_final_analysis() -> dict[str, Any]:
+    """Phase 4a: render every frame from the final checkpoint, then analyse the SAME physical view that was
+    dumped at step 15k -- region by region, never from global brightness alone."""
+    import subprocess
+    import numpy as np
+    import cv2
+    from pathlib import Path
+
+    run = sorted(Path(f"{FC}/runs/room213_native").iterdir())[-1]
+    ckpt = run / "ckpt_last.pt"
+    out: dict[str, Any] = {"run_dir": str(run), "ckpt_exists": ckpt.is_file()}
+    rdir = f"{FC}/final_renders"
+    if not Path(f"{rdir}/.done").exists():
+        r = subprocess.run([PY, "render.py", "--checkpoint", str(ckpt), "--path", DATA, "--out-dir", rdir],
+                           capture_output=True, text=True, cwd="/workspace/fullcircle")
+        open(f"{FC}/render_all.log", "w").write(r.stdout[-8000:] + "\n" + r.stderr[-8000:])
+        out["render_exit"] = r.returncode
+        if r.returncode == 0:
+            Path(f"{rdir}/.done").touch()
+    out["render_tree"] = sorted(str(p)[len(rdir) + 1:] for p in Path(rdir).rglob("*") if p.is_file())[:60]
+
+    # ---- identify the frame that was dumped at step 15000 by matching its GT against the staged images
+    gt15 = cv2.imread(f"{run}/training_images/gt/gt_step_015000.png")
+    tgt = cv2.resize(gt15, (128, 128)).astype(np.float32)
+    best = (1e18, None)
+    for cam in ("camera1", "camera2"):
+        for p in sorted(Path(f"{DATA}/images/{cam}").glob("*.png")):
+            im = cv2.imread(str(p))
+            if im is None:
+                continue
+            d = float(np.abs(cv2.resize(im, (128, 128)).astype(np.float32) - tgt).mean())
+            if d < best[0]:
+                best = (d, f"{cam}/{p.name}")
+    out["step15k_view"] = {"matched_image": best[1], "mean_abs_diff": round(best[0], 3)}
+    name = best[1]
+    gt = cv2.imread(f"{DATA}/images/{name}")
+    cand = [p for p in Path(rdir).rglob("*.png") if Path(name).stem in p.name and "gt" not in p.parent.name.lower()]
+    out["final_render_candidates"] = [str(p)[len(rdir) + 1:] for p in cand][:6]
+    if not cand:
+        json.dump(out, open(f"{FC}/final_analysis.json", "w"), indent=1); vol.commit(); return out
+    ren = cv2.imread(str(cand[0]))
+    if ren.shape != gt.shape:
+        ren = cv2.resize(ren, (gt.shape[1], gt.shape[0]))
+    border = cv2.imread(f"{FC}/mask_border.png", 0) > 0
+    trmask = cv2.imread(f"{DATA}/masks/masks-5/{Path(name).parent.name}/{Path(name).stem}_mask.png", 0)
+    excl = trmask > 127                                    # capturer/rim, excluded from supervision
+    h, w = gt.shape[:2]
+    xx = np.arange(w)[None, :].repeat(h, 0); yy = np.arange(h)[:, None].repeat(w, 1)
+    rad = np.hypot(xx - w / 2, yy - h / 2)
+    regions = {"left_hazy": border & ~excl & (xx < w / 2), "right_tables_chairs": border & ~excl & (xx >= w / 2)}
+    dist_to_excl = cv2.distanceTransform((~excl).astype(np.uint8), cv2.DIST_L2, 3)
+
+    def analyse(m):
+        g = gt[m].astype(np.float32); rr = ren[m].astype(np.float32)
+        lg = cv2.cvtColor(gt, cv2.COLOR_BGR2GRAY).astype(np.float32); lr = cv2.cvtColor(ren, cv2.COLOR_BGR2GRAY).astype(np.float32)
+        sg = cv2.cvtColor(gt, cv2.COLOR_BGR2HSV)[:, :, 1].astype(np.float32); sr = cv2.cvtColor(ren, cv2.COLOR_BGR2HSV)[:, :, 1].astype(np.float32)
+        def grad(img):
+            gx = cv2.Sobel(img, cv2.CV_32F, 1, 0, ksize=3); gy = cv2.Sobel(img, cv2.CV_32F, 0, 1, ksize=3)
+            return np.hypot(gx, gy)
+        gg, gr = grad(lg), grad(lr)
+        def pct(a): return [round(float(np.percentile(a, q)), 1) for q in (1, 5, 25, 50, 75, 95, 99)]
+        return {"n_px": int(m.sum()),
+                "luminance_percentiles_gt": pct(lg[m]), "luminance_percentiles_render": pct(lr[m]),
+                "rms_contrast_gt": round(float(lg[m].std()), 2), "rms_contrast_render": round(float(lr[m].std()), 2),
+                "edge_gradient_mean_gt": round(float(gg[m].mean()), 2), "edge_gradient_mean_render": round(float(gr[m].mean()), 2),
+                "edge_ratio_render_over_gt": round(float(gr[m].mean() / max(gg[m].mean(), 1e-6)), 3),
+                "saturation_mean_gt": round(float(sg[m].mean()), 2), "saturation_mean_render": round(float(sr[m].mean()), 2),
+                "mae_rgb": round(float(np.abs(g - rr).mean()), 2),
+                "render_minus_gt_mean": round(float((lr[m] - lg[m]).mean()), 2),
+                "dark_pixels_gt_lt60_frac": round(float((lg[m] < 60).mean()), 4),
+                "dark_pixels_render_lt60_frac": round(float((lr[m] < 60).mean()), 4),
+                "veil_frac_gtdark_renderbright": round(float(((lg[m] < 60) & (lr[m] > 100)).mean()), 4),
+                "mean_radius_px": round(float(rad[m].mean()), 1),
+                "mean_dist_to_excluded_px": round(float(dist_to_excl[m].mean()), 1)}
+
+    out["matched_view_regions"] = {k: analyse(v) for k, v in regions.items()}
+    # where are the worst pixels? radius + distance to excluded regions
+    lg = cv2.cvtColor(gt, cv2.COLOR_BGR2GRAY).astype(np.float32); lr = cv2.cvtColor(ren, cv2.COLOR_BGR2GRAY).astype(np.float32)
+    err = np.abs(lr - lg); valid = border & ~excl
+    thr = float(np.percentile(err[valid], 90)); worst = valid & (err >= thr)
+    out["worst_decile"] = {"threshold_abs_luma": round(thr, 1),
+                           "mean_radius_px": round(float(rad[worst].mean()), 1), "all_valid_mean_radius_px": round(float(rad[valid].mean()), 1),
+                           "mean_dist_to_excluded_px": round(float(dist_to_excl[worst].mean()), 1),
+                           "all_valid_mean_dist_to_excluded_px": round(float(dist_to_excl[valid].mean()), 1),
+                           "frac_in_left_half": round(float((worst & (xx < w / 2)).sum() / max(worst.sum(), 1)), 3)}
+    # side-by-side sheet, plus a heat map of the signed error
+    sbs = np.hstack([cv2.resize(gt, (760, 760)), cv2.resize(ren, (760, 760))])
+    heat = cv2.applyColorMap(np.clip((lr - lg) * 1.6 + 128, 0, 255).astype(np.uint8), cv2.COLORMAP_COOLWARM if hasattr(cv2, "COLORMAP_COOLWARM") else cv2.COLORMAP_JET)
+    heat[~valid] = 0
+    sheet = np.hstack([sbs, cv2.resize(heat, (760, 760))])
+    for i, lab in enumerate(["GT (native fisheye)", "final 3DGRT render", "render - GT (blue=dark, red=bright)"]):
+        cv2.putText(sheet, lab, (20 + 760 * i, 34), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 255), 2)
+    cv2.imwrite(f"{FC}/matched_view_final.png", sheet)
+    json.dump(out, open(f"{FC}/final_analysis.json", "w"), indent=1)
+    vol.commit()
+    return out
+
+
 @app.local_entrypoint()
 def main(phase: str = "smoke", force: bool = False, iters: int = 150, downsample: int = 1, iterations: int = 30000):
+    if phase == "final":
+        print(json.dumps(fc_final_analysis.remote(), indent=1)); return
     if phase == "train":
         print(json.dumps(fc_train.remote(downsample, iterations), indent=1)); return
     if phase == "verify":
