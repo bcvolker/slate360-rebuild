@@ -243,9 +243,16 @@ def stage_sfm(meta, calib, st: Status):
         if len(names) <= 400:
             pycolmap.match_exhaustive(str(db))
         else:
-            so = pycolmap.SequentialMatchingOptions(); so.overlap = overlap; so.loop_detection = False
-            try: pycolmap.match_sequential(str(db), matching_options=so)
-            except TypeError: pycolmap.match_sequential(str(db), so)
+            # pycolmap 4.2 renamed *MatchingOptions -> *PairingOptions and the kwarg to pairing_options
+            cls = getattr(pycolmap, "SequentialPairingOptions", None) or getattr(pycolmap, "SequentialMatchingOptions")
+            so = cls(); so.overlap = overlap; so.loop_detection = False
+            for kw in ("pairing_options", "matching_options"):
+                try:
+                    pycolmap.match_sequential(str(db), **{kw: so}); break
+                except TypeError:
+                    continue
+            else:
+                pycolmap.match_sequential(str(db), so)
         st.done("sfm_match")
     st.set_stage("sfm_map", n_images=len(names))
     for p in sdir.glob("[0-9]*"):
