@@ -337,8 +337,175 @@ def fc_validate() -> dict[str, Any]:
     return out
 
 
+@app.function(image=fc_image, gpu="L40S", timeout=2 * 60 * 60, cpu=16.0, memory=64 * 1024, volumes={"/vol": vol})
+def fc_stage_train_inputs() -> dict[str, Any]:
+    """Phase 3a: put the reconstruction and masks into the exact layout the FullCircle trainer expects.
+    Three facts read out of the released code first (see the Phase 1/2 doc):
+      * the loader reads `sparse/0`, but our best component is whichever the mapper numbered it;
+      * training masks live at masks{_N}/masks-5{_N}/<cam>/<stem>_mask.png and are INVERTED relative to
+        ours (trainer.py:530 keeps `1 - mask`), so person/rim must be 255;
+      * .png inputs are never auto-downsampled, so images_N/ and masks_N/ must be pre-built."""
+    import shutil
+    import numpy as np
+    import cv2
+    from pathlib import Path
+
+    p1 = json.loads(open(f"{FC}/phase1_colmap.json").read())
+    best = p1["best_component"]
+    out: dict[str, Any] = {"best_component_from_mapper": best}
+    sp = Path(f"{DATA}/sparse")
+    if best != 0:
+        if (sp / "0").exists() and not (sp / "degenerate_0").exists():
+            (sp / "0").rename(sp / "degenerate_0")
+        if (sp / str(best)).exists():
+            (sp / str(best)).rename(sp / "0")
+        out["sparse_restructured"] = f"component {best} -> sparse/0; old sparse/0 -> sparse/degenerate_0"
+    out["sparse0_files"] = sorted(p.name for p in (sp / "0").iterdir())
+
+    # border mask: one file for both lenses, so the largest circle centred at the principal point (1920,1920)
+    # that fits inside BOTH fitted lens circles, times 0.98
+    r_common = min(FRAME_CIRCLE[l][2] - float(np.hypot(FRAME_CIRCLE[l][0] - 1920.0, FRAME_CIRCLE[l][1] - 1920.0))
+                   for l in (0, 1))
+    r_use = r_common * BORDER_FRAC
+    yy, xx = np.mgrid[0:3840, 0:3840]
+    bm = (((xx - 1920.0) ** 2 + (yy - 1920.0) ** 2) <= r_use ** 2).astype(np.uint8) * 255
+    cv2.imwrite(f"{FC}/mask_border.png", bm)
+    out["border_mask"] = {"centre": [1920, 1920], "radius_px": round(r_use, 1), "valid_frac": float((bm > 0).mean())}
+
+    # training masks: INVERSE of the colmap masks (255 = capturer/rim = exclude)
+    made = {"1": 0, "2": 0}
+    for factor in (1, 2):
+        sfx = "" if factor == 1 else f"_{factor}"
+        for cam in ("camera1", "camera2"):
+            src_dir = Path(f"{DATA}/masks-colmap/{cam}")
+            dst_dir = Path(f"{DATA}/masks{sfx}/masks-5{sfx}/{cam}"); dst_dir.mkdir(parents=True, exist_ok=True)
+            img_dst = Path(f"{DATA}/images{sfx}/{cam}")
+            if factor > 1:
+                img_dst.mkdir(parents=True, exist_ok=True)
+            for src in sorted(src_dir.glob("*.png.png")):
+                stem = src.name[:-8]                       # frame_00000.png.png -> frame_00000
+                dst = dst_dir / f"{stem}_mask.png"
+                if not dst.exists():
+                    m = cv2.imread(str(src), 0)
+                    inv = 255 - m                          # 255 where the trainer must EXCLUDE
+                    if factor > 1:
+                        inv = cv2.resize(inv, (3840 // factor, 3840 // factor), interpolation=cv2.INTER_NEAREST)
+                    cv2.imwrite(str(dst), inv); made[str(factor)] += 1
+                if factor > 1:
+                    di = img_dst / f"{stem}.png"
+                    if not di.exists():
+                        im = cv2.imread(f"{DATA}/images/{cam}/{stem}.png")
+                        cv2.imwrite(str(di), cv2.resize(im, (3840 // factor, 3840 // factor), interpolation=cv2.INTER_AREA))
+    out["masks_written"] = made
+    # sanity: the trainer keeps (1 - mask); confirm a known person pixel is now excluded
+    chk = cv2.imread(sorted(Path(f"{DATA}/masks/masks-5/camera1").glob("*_mask.png"))[0].as_posix(), 0)
+    out["train_mask_sanity"] = {"frac_excluded_255": float((chk > 127).mean()),
+                                "note": "must be small-ish (person + rim); if it were ~0.9 the polarity is wrong"}
+    vol.commit()
+    return out
+
+
+@app.function(image=fc_image, timeout=30 * 60, cpu=8.0, memory=32 * 1024, volumes={"/vol": vol})
+def fc_verify_masks() -> dict[str, Any]:
+    """Pre-launch visual verification: training-mask polarity per lens, border-mask overlay on native frames,
+    and the actual train/holdout counts the loader will see."""
+    import numpy as np
+    import cv2
+    from pathlib import Path
+
+    masks_meta = json.loads(open(f"{R213}/build/masks.json").read())
+    worst = {0: [], 1: []}
+    for m in masks_meta:
+        worst[m["lens"]].append((m["masked_frac"], m["png"]))
+    for k in worst:
+        worst[k].sort(reverse=True)
+    demux = json.loads(open(f"{R213}/preflight/demux.json").read())
+    exposures = sorted({f"{d['video']}@{d['t']:.3f}" for d in demux}, key=lambda e: (e.split("@")[0], float(e.split("@")[1])))
+    rank = {e: i for i, e in enumerate(exposures)}
+    png2name = {}
+    hold = set(json.loads(open(f"{R213}/build/splits.json").read())["appearance_holdout_exposures"])
+    for d in demux:
+        exp = f"{d['video']}@{d['t']:.3f}"
+        png2name[d["png"]] = (f"camera{d['lens'] + 1}", f"frame_{rank[exp]:05d}" + ("_test" if exp in hold else ""))
+    bm = cv2.imread(f"{FC}/mask_border.png", 0)
+    tiles = []
+    picked = []
+    for lens in (0, 1):
+        for frac, png in worst[lens][:2] + worst[lens][len(worst[lens]) // 2:len(worst[lens]) // 2 + 1]:
+            cam, name = png2name[png]
+            img = cv2.imread(f"{DATA}/images/{cam}/{name}.png")
+            tm = cv2.imread(f"{DATA}/masks/masks-5/{cam}/{name}_mask.png", 0)   # 255 = EXCLUDE
+            if img is None or tm is None:
+                continue
+            ov = img.copy()
+            ov[tm > 127] = (0.45 * ov[tm > 127] + 0.55 * np.array([0, 0, 255])).astype(np.uint8)  # red = excluded
+            cv2.circle(ov, (1920, 1920), int(round(1979.7)), (0, 255, 0), 8)                       # border mask edge
+            ov = cv2.resize(ov, (640, 640))
+            cv2.putText(ov, f"L{lens} {cam} {name}", (8, 26), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
+            cv2.putText(ov, f"person {frac*100:.1f}%  excluded(red) {100*(tm>127).mean():.1f}%", (8, 620),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 255), 2)
+            tiles.append(ov)
+            picked.append({"lens": lens, "image": f"{cam}/{name}.png", "person_frac": round(frac, 4),
+                           "excluded_frac": round(float((tm > 127).mean()), 4)})
+    if tiles:
+        while len(tiles) % 3:
+            tiles.append(np.zeros_like(tiles[0]))
+        cv2.imwrite(f"{FC}/mask_verification.png", np.vstack([np.hstack(tiles[i:i + 3]) for i in range(0, len(tiles), 3)]))
+    n_train = len(list(Path(f"{DATA}/images/camera1").glob("*.png"))) + len(list(Path(f"{DATA}/images/camera2").glob("*.png")))
+    n_test = len([p for p in Path(f"{DATA}/images/camera1").glob("*_test.png")]) + \
+             len([p for p in Path(f"{DATA}/images/camera2").glob("*_test.png")])
+    vol.commit()
+    return {"samples": picked, "sheet": f"{FC}/mask_verification.png",
+            "images_total": n_train, "holdout_images": n_test, "train_images": n_train - n_test,
+            "holdout_exposures": len(hold), "border_mask_valid_frac": float((bm > 0).mean())}
+
+
+@app.function(image=fc_image, gpu="L40S", timeout=2 * 60 * 60, cpu=16.0, memory=64 * 1024, volumes={"/vol": vol})
+def fc_probe(iters: int = 150) -> dict[str, Any]:
+    """Phase 3b: short throughput/memory probe to choose the training resolution (no full run)."""
+    import subprocess
+    import threading
+    import time
+    res: dict[str, Any] = {}
+    for factor in (2, 1):
+        peak = [0]
+        stop = threading.Event()
+
+        def poll():
+            while not stop.wait(2):
+                try:
+                    r = subprocess.run(["nvidia-smi", "--query-gpu=memory.used", "--format=csv,noheader,nounits"],
+                                       capture_output=True, text=True, timeout=10)
+                    peak[0] = max(peak[0], int(r.stdout.strip().split("\n")[0]))
+                except Exception:  # noqa: BLE001
+                    pass
+        threading.Thread(target=poll, daemon=True).start()
+        t0 = time.time()
+        cmd = [PY, "train.py", "--config-name", "apps/colmap_3dgrt.yaml",
+               f"path={DATA}", f"out_dir=/tmp/probe{factor}", f"experiment_name=probe{factor}",
+               f"dataset.downsample_factor={factor}", 'dataset.test_frame_suffix=_test',
+               f"border_mask_train={FC}/mask_border.png", f"border_mask_test={FC}/mask_border.png",
+               f"n_iterations={iters}", "test_last=false", "compute_extra_metrics=false", "num_workers=8"]
+        r = subprocess.run(cmd, capture_output=True, text=True, cwd="/workspace/fullcircle")
+        stop.set(); el = time.time() - t0
+        open(f"{FC}/probe_{factor}.log", "w").write((r.stdout[-8000:] + "\n" + r.stderr[-8000:]))
+        res[f"downsample_{factor}"] = {"resolution": 3840 // factor, "exit": r.returncode, "elapsed_s": round(el, 1),
+                                       "iters": iters, "it_per_s": round(iters / el, 3) if r.returncode == 0 and el > 0 else None,
+                                       "peak_gpu_mib": peak[0],
+                                       "tail": (r.stdout[-700:] + r.stderr[-700:]) if r.returncode != 0 else (r.stdout[-400:])}
+    vol.commit()
+    json.dump(res, open(f"{FC}/probe.json", "w"), indent=1)
+    return res
+
+
 @app.local_entrypoint()
-def main(phase: str = "smoke", force: bool = False):
+def main(phase: str = "smoke", force: bool = False, iters: int = 150):
+    if phase == "verify":
+        print(json.dumps(fc_verify_masks.remote(), indent=1)); return
+    if phase == "stage_train":
+        print(json.dumps(fc_stage_train_inputs.remote(), indent=1)); return
+    if phase == "probe":
+        print(json.dumps(fc_probe.remote(iters), indent=1)); return
     if phase == "validate":
         print(json.dumps(fc_validate.remote(), indent=1))
         return
