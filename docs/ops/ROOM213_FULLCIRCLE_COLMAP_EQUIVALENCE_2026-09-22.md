@@ -64,3 +64,33 @@ opposite of our closed H1 build, which pinned intrinsics. We do not carry the H1
 
 Conclusion: no real incompatibility was found, so COLMAP 3.12 is **not** compiled. Five options are pinned to
 3.12 values; everything else is already identical.
+
+---
+
+## SUPERSEDED 2026-09-22 19:10 UTC — a real incompatibility was found, so the real binary is used
+
+The pycolmap translation above was **abandoned before it ever produced a camera solution**. `extract_features`
+refused the pinned options with `Check failed: extraction_options.Check()`, and the COLMAP log gave the reason:
+
+```
+E20260922 19:10:18 extractor.cc:156] Cannot use GPU feature extraction without CUDA or OpenGL support.
+                                      Consider setting use_gpu to false.
+```
+
+The **pycolmap PyPI wheel is built without CUDA/OpenGL SIFT**, so it cannot reproduce FullCircle's GPU feature
+extraction or GPU matching at all. That is material twice over: SiftGPU and CPU VLFeat SIFT produce different
+keypoints, and CPU brute-force matching of 29,161 pairs would have risked the one-day time box. Falling back to
+CPU SIFT would have been exactly the "silently accepting the newer default" this document exists to prevent.
+
+Per the standing guardrail ("do not compile COLMAP 3.12 unless a real incompatibility is found"), the real binary
+is now used — but without a source build: **conda-forge ships `colmap=3.12.6=cuda_126`**, installed into its own
+conda env (`colmap312`) so it cannot perturb the training environment. Phase 1 runs FullCircle's
+`scripts/run_colmap.sh` three commands verbatim.
+
+**Consequence: the entire override table above is moot.** With the genuine 3.12.6 binary every default is COLMAP
+3.12's own, so `max_image_size` 3200, GPU extraction, GPU matching, `ba_local_max_num_iterations` 25 and the
+absence of `use_sampson_refinement` are simply what the program does — nothing is pinned, translated or assumed.
+The table is retained as the audit record of why the pycolmap path was rejected.
+
+Result of the verbatim run: 242/242 images registered, 121/121 exposures, both lenses, all walks in one
+component, mean reprojection 1.15 px. See ROOM213_FULLCIRCLE_PHASE1_2_2026-09-22.md.
