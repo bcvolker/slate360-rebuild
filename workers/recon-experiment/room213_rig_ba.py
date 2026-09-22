@@ -353,7 +353,9 @@ def run_hypothesis(hyp, calib, meta_by_name, pyc):
     info_final2 = run_ba(rec, pyc, 5 if DRY else 300, gauge_frame, ftol=1e-6); log("BA final (2nd pass)", info_final2)
     (hdir / "rec").mkdir(exist_ok=True); rec.write(str(hdir / "rec"))
     e, l, fr, fc = residuals(rec, meta_by_name)
-    def stats(x): return {"n_obs": int(len(x)), "median_px": float(np.median(x)), "p95_px": float(np.percentile(x, 95)), "rms_px": float(np.sqrt(np.mean(np.minimum(x, 1e3) ** 2)))}
+    def stats(x): return {"n_obs": int(len(x)), "median_px": float(np.median(x)), "p95_px": float(np.percentile(x, 95)), "p99_px": float(np.percentile(x, 99)),
+                          "max_px": float(np.max(x)), "rms_px_unclipped": float(np.sqrt(np.mean(np.minimum(x, 1e4) ** 2))), "rms_px_clipped_1000": float(np.sqrt(np.mean(np.minimum(x, 1e3) ** 2))),
+                          "n_gt_2px": int(np.sum(x > 2)), "n_gt_5px": int(np.sum(x > 5)), "n_gt_20px": int(np.sum(x > 20)), "n_gt_50px": int(np.sum(x > 50))}
     ext, C = scene_extent(rec)
     ang_b, axis_b = R_to_angle_axis(R_best); ang_i, axis_i = R_to_angle_axis(R10)
     dev_lens1 = per_frame_residual_rotation(rec, meta_by_name, 1); dev_lens0 = per_frame_residual_rotation(rec, meta_by_name, 0)
@@ -378,7 +380,9 @@ def run_hypothesis(hyp, calib, meta_by_name, pyc):
     is_static = np.isin(fr, list(static_frames))
     def dist(mask):
         x = e[mask]; return {"n_obs": int(len(x)), "median_px": float(np.median(x)) if len(x) else None, "p95_px": float(np.percentile(x, 95)) if len(x) else None}
+    walk_of_obs = np.array([frame_walk[int(f_)] for f_ in fr])
     residual_distribution = {
+        "by_walk": {w: {"all": dist(walk_of_obs == w), "lens0": dist((walk_of_obs == w) & (l == 0)), "lens1": dist((walk_of_obs == w) & (l == 1))} for w in sorted(walks)},
         "static_vs_moving": {"static_020": dist(is_static), "moving_021_075": dist(~is_static),
                              "static_lens0": dist(is_static & (l == 0)), "static_lens1": dist(is_static & (l == 1)),
                              "moving_lens0": dist(~is_static & (l == 0)), "moving_lens1": dist(~is_static & (l == 1))},
