@@ -148,18 +148,61 @@ export const PREVIEW_OWNER_FAILURES: OwnerFailureFact[] = [
   },
 ];
 
+const scopePortal = ["items", "documents", "history", "compare"] as const;
+
+function scopeFact(
+  input: Omit<OwnerProjectFact, "internal" | "clientVisible" | "status" | "archived" | "thumbnailUrl" | "clientName" | "location"> & {
+    included: OwnerProjectFact["included"];
+  },
+): OwnerProjectFact {
+  return fact({
+    ...input,
+    status: "active",
+    archived: false,
+    clientName: "Scope Check",
+    location: null,
+    thumbnailUrl: null,
+    internal: {},
+    clientVisible: {},
+  });
+}
+
+/** Fixture for the included-service attention rule. Not the owner home sample. */
+export const ATTENTION_SCOPE_FACTS: OwnerProjectFact[] = [
+  scopeFact({ id: "east", name: "East Wing", documentedAt: "2026-09-01T00:00:00.000Z", included: [...scopePortal] }),
+  scopeFact({ id: "clinic", name: "Clinic Wing", documentedAt: "2026-09-02T00:00:00.000Z", included: ["thermal", ...scopePortal] }),
+  scopeFact({ id: "annex", name: "Annex", documentedAt: "2026-09-03T00:00:00.000Z", included: [...scopePortal] }),
+  scopeFact({ id: "drawings", name: "Drawings Hall", documentedAt: "2026-09-04T00:00:00.000Z", included: ["plans", ...scopePortal] }),
+  scopeFact({ id: "gallery", name: "Gallery", documentedAt: "2026-09-05T00:00:00.000Z", included: ["pano360", ...scopePortal] }),
+  scopeFact({ id: "model", name: "Model Hall", documentedAt: "2026-09-06T00:00:00.000Z", included: ["geometry", ...scopePortal] }),
+];
+
+export const ATTENTION_SCOPE_FAILURES: OwnerFailureFact[] = [
+  { id: "roof", projectId: "east", kind: "thermal", title: "Roof scan", occurredAt: "2026-09-16T00:00:00.000Z" },
+  { id: "boiler", projectId: "clinic", kind: "thermal", title: "Boiler room", occurredAt: "2026-09-16T00:00:00.000Z" },
+  { id: "a1", projectId: "annex", kind: "plan", title: "Sheet A1", occurredAt: "2026-09-18T00:00:00.000Z" },
+  { id: "a2", projectId: "drawings", kind: "plan", title: "Sheet A2", occurredAt: "2026-09-18T00:00:00.000Z" },
+  { id: "corridor", projectId: "gallery", kind: "capture", title: "Corridor", occurredAt: "2026-09-20T00:00:00.000Z" },
+  { id: "room4", projectId: "model", kind: "capture", title: "Room 4", occurredAt: "2026-09-20T00:00:00.000Z" },
+];
+
+export function previewAttentionScopeWorkspace() {
+  return previewOwnerWorkspace("/preview/vnext/owner/attention-scope", ATTENTION_SCOPE_FAILURES, ATTENTION_SCOPE_FACTS);
+}
+
 export function previewOwnerWorkspace(
   baseClients = "/preview/vnext/owner/clients",
   failures: readonly OwnerFailureFact[] = PREVIEW_OWNER_FAILURES,
+  facts: readonly OwnerProjectFact[] = PREVIEW_OWNER_FACTS,
 ) {
-  const listed = summarizeOwnerProjects(PREVIEW_OWNER_FACTS, failures).map((project) => ({
+  const listed = summarizeOwnerProjects(facts, failures).map((project) => ({
     ...project,
     detailHref: `/preview/vnext/owner/projects/${project.id}`,
   }));
-  const clients = groupOwnerClients(PREVIEW_OWNER_FACTS, baseClients);
+  const clients = groupOwnerClients(facts, baseClients);
   return {
     projects: applyGroupedClientNames(listed, clients),
-    attention: buildOwnerAttention(PREVIEW_OWNER_FACTS, failures),
+    attention: buildOwnerAttention(facts, failures),
     clients,
   };
 }

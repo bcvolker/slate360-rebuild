@@ -24,6 +24,28 @@ test.describe("vNext owner workspace", () => {
     health.assertClean();
   });
 
+  test("a failed job is attention only when that service is included", async ({ page }) => {
+    const health = attachRuntimeHealth(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(`${HOME}/attention-scope`, { waitUntil: "domcontentloaded" });
+    await expect(page.locator("[data-vnext-attention='thermal-boiler']")).toContainText("Boiler room failed");
+    await expect(page.locator("[data-vnext-attention='plan-a2']")).toContainText("Sheet A2 could not be prepared");
+    await expect(page.locator("[data-vnext-attention='capture-room4']")).toContainText("Room 4 failed");
+    await expect(page.locator("[data-vnext-attention='thermal-roof']")).toHaveCount(0);
+    await expect(page.locator("[data-vnext-attention='plan-a1']")).toHaveCount(0);
+    await expect(page.locator("[data-vnext-attention='capture-corridor']")).toHaveCount(0);
+    const east = page.locator("[data-vnext-owner-project='east']");
+    await expect(east).not.toContainText("Thermal");
+    await expect(east.locator("[data-vnext-project-attention]")).toHaveCount(0);
+    await expect(page.locator("[data-vnext-owner-project='annex'] [data-vnext-project-attention]")).toHaveCount(0);
+    await expect(page.locator("[data-vnext-owner-project='gallery'] [data-vnext-project-attention]")).toHaveCount(0);
+    await expect(page.locator("[data-vnext-owner-project='clinic']")).toContainText("Boiler room failed");
+    await expect(page.locator("[data-vnext-owner-project='drawings']")).toContainText("Sheet A2 could not be prepared");
+    await expect(page.locator("[data-vnext-owner-project='model']")).toContainText("Room 4 failed");
+    await expect(page.getByText("Thermal missing")).toHaveCount(0);
+    health.assertClean();
+  });
+
   test("a clear home does not invent work", async ({ page }) => {
     const health = attachRuntimeHealth(page);
     await page.setViewportSize({ width: 1440, height: 900 });

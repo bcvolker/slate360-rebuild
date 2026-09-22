@@ -808,13 +808,13 @@ Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 33 files / 267
 
 Owner Home, Clients, and Projects replace the scaffolds at `/vnext/ops`, `/vnext/ops/clients`, and `/vnext/ops/projects`. The owner gate is unchanged: `canAccessOperationsConsole` (CEO today).
 
-Home attention is only an explicit failed job: `digital_twin_captures.capture_status = failed`, `site_walk_plan_sets.processing_status = failed`, or `thermal_analysis_sessions.status = failed`. A service that was not included is not a problem. `review_status` stays unused because it defaults to pending and the product never clears it. Client questions, share management, QA, and publish stay deferred to later slices.
+Home attention is only an explicit failed job: `digital_twin_captures.capture_status = failed`, `site_walk_plan_sets.processing_status = failed`, or `thermal_analysis_sessions.status = failed`. The same `failureIsRelevantToIncludedScope` predicate decides Home and the project attention title. A plan failure counts only when Plans are included. A thermal failure counts only when Thermal is included. A capture failure counts when Reality or Geometry is included, because a failed capture row has no model format and can become either a splat or a mesh. 360 does not make a capture failure into attention. The processing record is not deleted. `review_status` stays unused because it defaults to pending and the product never clears it. Client questions, share management, QA, and publish stay deferred to later slices.
 
 Clients are grouped from `projects.client_name` by trimmed, case-folded text. "ABC Construction" and "ABC Construction LLC" stay separate. There is no new client table. A client page is that filtered project list.
 
 A project row shows included services and the subset the client can see. The owner project page edits `project_client_capabilities` through the existing scope route. Client surfaces still use the same resolver. Slice 10 was not started.
 
-Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 35 files / 275 tests passed, production build, Playwright 150 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. `npm run typecheck:changed` against `main` exits 2 only on the existing `splat-viewer-scene.tsx` lines 197–199.
+Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 35 files / 277 tests passed, production build, Playwright 151 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. `npm run typecheck:changed` against `main` exits 2 only on the existing `splat-viewer-scene.tsx` lines 197–199.
 
 
 

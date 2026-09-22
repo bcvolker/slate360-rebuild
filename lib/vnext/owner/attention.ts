@@ -18,10 +18,29 @@ function destination(projectId: string, kind: OwnerFailureFact["kind"]): string 
   return `/vnext/projects/${projectId}`;
 }
 
+function included(project: OwnerProjectFact, id: OwnerProjectFact["included"][number]): boolean {
+  return project.included.includes(id);
+}
+
 /**
- * A failed capture, plan, or thermal job is attention.
- * A service that was never included is not attention, and neither is an unreviewed
- * capture: review_status defaults to pending and nothing in the product clears it.
+ * A failed job is delivery attention only when the project includes a service
+ * that job can produce. The processing row itself is left untouched.
+ *
+ * plan → plans
+ * thermal → thermal
+ * capture → reality or geometry. A failed digital_twin_captures row has no
+ * model format, and that capture can become a splat or a mesh. It does not
+ * feed 360, plans, or thermal. Those come from other tables.
+ */
+export function failureIsRelevantToIncludedScope(project: OwnerProjectFact, failure: OwnerFailureFact): boolean {
+  if (failure.kind === "plan") return included(project, "plans");
+  if (failure.kind === "thermal") return included(project, "thermal");
+  return included(project, "reality") || included(project, "geometry");
+}
+
+/**
+ * Home and project attention share this list. review_status is not used:
+ * it defaults to pending and nothing in the product clears it.
  */
 export function buildOwnerAttention(
   projects: readonly OwnerProjectFact[],
@@ -31,7 +50,7 @@ export function buildOwnerAttention(
   const items: OwnerAttentionItem[] = [];
   for (const failure of failures) {
     const project = byId.get(failure.projectId);
-    if (!project) continue;
+    if (!project || !failureIsRelevantToIncludedScope(project, failure)) continue;
     items.push({
       id: `${failure.kind}-${failure.id}`,
       projectId: project.id,

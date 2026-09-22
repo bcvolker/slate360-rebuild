@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 import { buildOwnerAttention } from "./attention";
 import { clientGroupKey, groupOwnerClients } from "./clients";
 import { PREVIEW_OWNER_FACTS, PREVIEW_OWNER_FAILURES, previewOwnerWorkspace } from "./preview-owner";
-import { filterOwnerProjects, serviceLinesFor } from "./project-summary";
-import type { OwnerProjectFact } from "./owner-types";
+import { filterOwnerProjects, serviceLinesFor, summarizeOwnerProject } from "./project-summary";
+import type { OwnerFailureFact, OwnerProjectFact } from "./owner-types";
 
 describe("owner attention", () => {
   it("creates a row only for an explicit failed job on a project in this workspace", () => {
@@ -24,9 +24,51 @@ describe("owner attention", () => {
       [pending],
       [{ id: "old", projectId: "quiet", kind: "capture", title: "Draft", occurredAt: "2026-01-01T00:00:00.000Z" }],
     );
-    expect(items).toHaveLength(1);
+    expect(items).toEqual([]);
     expect(serviceLinesFor(pending).map((line) => line.label)).toEqual([]);
-    expect(items[0]?.title).not.toMatch(/Thermal|missing/i);
+  });
+
+  it("keeps a failed job only when the project includes the service that job serves", () => {
+    const base = PREVIEW_OWNER_FACTS[0]!;
+    const project = (included: OwnerProjectFact["included"], extra?: Partial<OwnerProjectFact>): OwnerProjectFact => ({
+      ...base,
+      id: "scope",
+      included,
+      ...extra,
+    });
+    const fail = (kind: "capture" | "plan" | "thermal", id = kind): OwnerFailureFact => ({
+      id,
+      projectId: "scope",
+      kind,
+      title: "Job",
+      occurredAt: "2026-09-02T00:00:00.000Z",
+    });
+
+    expect(buildOwnerAttention([project(["items"])], [fail("thermal")])).toEqual([]);
+    expect(buildOwnerAttention([project(["thermal"])], [fail("thermal")])).toHaveLength(1);
+    expect(buildOwnerAttention([project(["reality"])], [fail("plan")])).toEqual([]);
+    expect(buildOwnerAttention([project(["plans"])], [fail("plan")])).toHaveLength(1);
+    expect(buildOwnerAttention([project(["pano360", "plans", "thermal"])], [fail("capture")])).toEqual([]);
+    expect(buildOwnerAttention([project(["reality"])], [fail("capture")])).toHaveLength(1);
+    expect(buildOwnerAttention([project(["geometry"])], [fail("capture")])).toHaveLength(1);
+
+    expect(summarizeOwnerProject(project(["items"]), [fail("thermal")]).attentionTitle).toBeNull();
+    expect(summarizeOwnerProject(project(["thermal"]), [fail("thermal")]).attentionTitle).toBe("Job failed");
+    expect(buildOwnerAttention([project(["thermal"], { archived: true })], [fail("thermal")])).toEqual([]);
+    expect(buildOwnerAttention([project(["plans"], { status: "deleted" })], [fail("plan")])).toEqual([]);
+  });
+
+  it("orders included failures by time and ignores another project", () => {
+    const project = { ...PREVIEW_OWNER_FACTS[0]!, included: ["plans", "thermal", "reality"] as OwnerProjectFact["included"] };
+    const items = buildOwnerAttention(
+      [project],
+      [
+        { id: "early", projectId: project.id, kind: "plan", title: "Early", occurredAt: "2026-09-01T00:00:00.000Z" },
+        { id: "late", projectId: project.id, kind: "thermal", title: "Late", occurredAt: "2026-09-03T00:00:00.000Z" },
+        { id: "other", projectId: "elsewhere", kind: "plan", title: "Other", occurredAt: "2026-09-04T00:00:00.000Z" },
+      ],
+    );
+    expect(items.map((item) => item.id)).toEqual(["thermal-late", "plan-early"]);
   });
 
   it("drops a failure that belongs to another workspace", () => {
