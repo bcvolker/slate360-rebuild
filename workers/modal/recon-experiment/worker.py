@@ -923,6 +923,28 @@ def room213_raw_build() -> str:
     return buf.getvalue()
 
 
+@app.function(
+    image=gpu_image,
+    timeout=8 * 60 * 60,
+    memory=4 * 1024,
+    cpu=1.0,
+    volumes={"/vol": ckpt_vol},
+    retries=0,
+)
+def room213_raw_pipeline() -> str:
+    """Remote orchestrator: preflight (verify/demux/ChArUco/splits) then build (masks/faces/
+    rig SfM/splits/scale/loader). Runs entirely inside Modal so the laptop can be off once
+    this function has started. NO Gaussian training."""
+    pre = room213_raw_preflight.remote()
+    verify = json.loads((Path("/vol/room213/2026-09-21/preflight/verify.json")).read_text())
+    # only the three .insv originals gate the build; stills/LRVs are not build inputs
+    bad_vid = [m for m in verify["missing"] if m.startswith("VID_")] + [b["filename"] for b in verify["present_bad"] if b["filename"].startswith("VID_")]
+    if bad_vid:
+        return pre + chr(10) + "BUILD SKIPPED: video verify failed for %s" % bad_vid
+    build = room213_raw_build.remote()
+    return pre + chr(10) + "===== BUILD =====" + chr(10) + build
+
+
 def _committed_recipe(name: str) -> dict[str, Any]:
     """Recipes live in the repo (qa/*.json) so a fresh clone can launch; /experiments is gitignored."""
     for candidate in (ROOT / "qa" / name, ROOT / "experiments" / "room213-densification" / "frozen-recipe.json"):
@@ -996,6 +1018,9 @@ def main(phase: str = "exp3"):
     if phase == "room213-reassemble":
         import json as _j
         print(_j.dumps(room213_reassemble.remote(_j.loads(os.environ["ROOM213_REASSEMBLE"])), indent=1))
+        return
+    if phase == "room213-raw-pipeline":
+        print(room213_raw_pipeline.remote())
         return
     if phase == "room213-raw-build":
         print(room213_raw_build.remote())
