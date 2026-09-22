@@ -156,13 +156,27 @@ def stage_sfm(meta, calib):
         # colmap reads <name>.png masks from mask_path with the same relative name
         src = img_dir / f"{m['face']}_mask.png"; dst = mask_dir / (n + ".png")
         if not dst.exists(): dst.symlink_to(src)
+    log("pycolmap", getattr(pycolmap, "__version__", "?"))
     reader = pycolmap.ImageReaderOptions(camera_model="PINHOLE", camera_params=",".join(str(x) for x in cam.params), mask_path=str(mask_dir))
-    sift = pycolmap.SiftExtractionOptions(max_num_features=8192)
-    pycolmap.extract_features(str(db), str(img_dir), image_names=names, camera_mode=pycolmap.CameraMode.SINGLE, reader_options=reader, sift_options=sift, device=pycolmap.Device.auto)
-    pycolmap.match_sequential(str(db), matching_options=pycolmap.SequentialMatchingOptions(overlap=20, loop_detection=False))
-    pycolmap.match_exhaustive(str(db)) if len(names) <= 400 else None
+    ext = pycolmap.FeatureExtractionOptions()
+    try:
+        ext.sift.max_num_features = 8192
+    except AttributeError:
+        pass
+    pycolmap.extract_features(str(db), str(img_dir), image_names=names, camera_mode=pycolmap.CameraMode.SINGLE, reader_options=reader, extraction_options=ext, device=pycolmap.Device.auto)
+    # faces are named in temporal order (video, t, lens, face): sequential matching with a wide window
+    # covers same-exposure + neighbouring exposures; exhaustive when small enough
+    if len(names) <= 400:
+        pycolmap.match_exhaustive(str(db))
+    else:
+        so = pycolmap.SequentialMatchingOptions(); so.overlap = 60; so.loop_detection = False
+        try:
+            pycolmap.match_sequential(str(db), matching_options=so)
+        except TypeError:
+            pycolmap.match_sequential(str(db), so)
     mopts = pycolmap.IncrementalPipelineOptions()
-    mopts.ba_refine_focal_length = False; mopts.ba_refine_principal_point = False; mopts.ba_refine_extra_params = False
+    for k in ("ba_refine_focal_length", "ba_refine_principal_point", "ba_refine_extra_params"):
+        if hasattr(mopts, k): setattr(mopts, k, False)
     recs = pycolmap.incremental_mapping(str(db), str(img_dir), str(sdir), options=mopts)
     if not recs:
         log("SFM FAILED: no reconstruction"); return None
@@ -175,7 +189,8 @@ def stage_sfm(meta, calib):
     for img in rec.images.values():
         m = next((x for x in meta if x["face"] + ".png" == img.name), None)
         if m is None: continue
-        cfw = img.cam_from_world; Rcw = np.array(cfw.rotation.matrix()); tcw = np.array(cfw.translation)
+        cfw = img.cam_from_world() if callable(img.cam_from_world) else img.cam_from_world
+        Rcw = np.array(cfw.rotation.matrix()); tcw = np.array(cfw.translation)
         Rwc = Rcw.T; C = -Rwc @ tcw  # camera centre in world
         Rf = np.array(m["R_face_from_lens"])  # lens->face rays: d_face = R_f^T d_lens (we built d = d_face @ R^T => d_lens = R d_face)
         R_lens_wc = Rwc @ Rf.T  # world<-lens
