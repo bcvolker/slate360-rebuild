@@ -228,8 +228,120 @@ def fc_stage_and_colmap(force: bool = False) -> dict[str, Any]:
     return out
 
 
+@app.function(image=fc_image, timeout=60 * 60, cpu=16.0, memory=32 * 1024, volumes={"/vol": vol})
+def fc_validate() -> dict[str, Any]:
+    """Phase 2: quick GO/NO-GO on the native camera solution. Read-only, no training.
+    (a) leave-one-out reprojection on native fisheye frames through the self-calibrated cameras,
+        stratified by lens / walk / image radius / cross-walk -- detects H1-scale coherent error;
+    (b) physical plausibility: the known 32.26 mm inter-lens baseline is used ONLY as an external
+        ruler (never as a constraint) to convert the arbitrary COLMAP scale into metres;
+    (c) confirms nothing was won by discarding the room or a lens."""
+    import numpy as np
+    import pycolmap
+    from pathlib import Path
+
+    p1 = json.loads(open(f"{FC}/phase1_colmap.json").read())
+    rec = pycolmap.Reconstruction(f"{DATA}/sparse/{p1['best_component']}")
+    demux = json.loads(open(f"{R213}/preflight/demux.json").read())
+    exposures = sorted({f"{d['video']}@{d['t']:.3f}" for d in demux}, key=lambda e: (e.split("@")[0], float(e.split("@")[1])))
+    meta = {}
+    for im in rec.images.values():
+        stem = Path(im.name).stem; r_ = int(stem.replace("_test", "").split("_")[-1])
+        meta[im.image_id] = {"rank": r_, "walk": exposures[r_].split("_00_")[1].split(".insv")[0],
+                             "lens": 0 if im.name.startswith("camera1") else 1}
+    cams = {im.image_id: rec.camera(im.camera_id) for im in rec.images.values()}
+    pose = {im.image_id: (np.asarray(im.cam_from_world().rotation.matrix()), np.asarray(im.cam_from_world().translation))
+            for im in rec.images.values()}
+    centre = {i: -R.T @ t for i, (R, t) in pose.items()}
+    out: dict[str, Any] = {}
+
+    # ---- (b) external ruler: inter-lens distance per exposure, then metric scale
+    by_rank: dict[int, dict[int, int]] = {}
+    for iid, m in meta.items():
+        by_rank.setdefault(m["rank"], {})[m["lens"]] = iid
+    base = np.array([np.linalg.norm(centre[v[0]] - centre[v[1]]) for v in by_rank.values() if len(v) == 2])
+    scale = 0.03226 / float(np.median(base))
+    out["inter_lens_baseline_colmap_units"] = {"n_exposures": int(len(base)), "median": float(np.median(base)),
+                                               "cv": float(base.std() / base.mean()),
+                                               "p10_p90": [float(np.percentile(base, 10)), float(np.percentile(base, 90))]}
+    out["metric_scale_m_per_unit_from_32.26mm"] = scale
+    C = np.array([centre[i] for i in sorted(centre)]) * scale
+    P = np.array([np.asarray(pt.xyz) for pt in rec.points3D.values()]) * scale
+    lo, hi = np.percentile(P, 5, axis=0), np.percentile(P, 95, axis=0)
+    out["trajectory_extent_m"] = (C.max(0) - C.min(0)).tolist()
+    out["points_p5_p95_extent_m"] = (hi - lo).tolist()
+    per_walk = {}
+    for w in ("020", "021", "075"):
+        cc = np.array([centre[i] * scale for i, m in meta.items() if m["walk"] == w])
+        if len(cc): per_walk[w] = {"n_images": len(cc), "extent_m": (cc.max(0) - cc.min(0)).tolist(),
+                                   "centroid_m": cc.mean(0).tolist()}
+    out["per_walk"] = per_walk
+    if "021" in per_walk and "075" in per_walk:
+        out["walk_centroid_separation_m"] = float(np.linalg.norm(np.array(per_walk["021"]["centroid_m"]) - np.array(per_walk["075"]["centroid_m"])))
+
+    # ---- (a) leave-one-out reprojection on native frames, 4+ distinct exposures per point
+    rng = np.random.default_rng(213); tests = []
+    pts = [(pid, pt) for pid, pt in rec.points3D.items() if pt.track.length() >= 5]
+    rng.shuffle(pts)
+    for pid, pt in pts[:4000]:
+        obs = {}
+        for el in pt.track.elements:
+            m = meta.get(el.image_id)
+            if m and m["rank"] not in obs:   # one observation per physical exposure
+                obs[m["rank"]] = (el.image_id, np.asarray(rec.image(el.image_id).point2D(el.point2D_idx).xy))
+        if len(obs) < 4: continue
+        sel = list(obs.values())[:4]
+        for k in range(4):
+            fit = [sel[j] for j in range(4) if j != k]; held = sel[k]
+            A = np.zeros((3, 3)); b = np.zeros(3)
+            for iid, xy in fit:
+                n = cams[iid].cam_from_img(xy.reshape(1, 2))[0]
+                d = np.array([n[0], n[1], 1.0]); d /= np.linalg.norm(d)
+                R, t = pose[iid]; dw = R.T @ d; c = centre[iid]
+                M = np.eye(3) - np.outer(dw, dw); A += M; b += M @ c
+            try:
+                X = np.linalg.lstsq(A, b, rcond=None)[0]
+            except np.linalg.LinAlgError:
+                continue
+            iid, xy = held; R, t = pose[iid]; Xc = R @ X + t
+            if Xc[2] <= 1e-6: continue
+            uv = cams[iid].img_from_cam(Xc.reshape(1, 3))[0]
+            e = float(np.linalg.norm(uv - xy))
+            m = meta[iid]
+            tests.append({"err_px": e, "lens": m["lens"], "walk": m["walk"],
+                          "radius": float(np.linalg.norm(xy - 1920.0)),
+                          "cross_walk": m["walk"] not in {meta[i2]["walk"] for i2, _ in fit},
+                          "depth_m": float(Xc[2] * scale)})
+        if len(tests) > 12000: break
+
+    def agg(ts):
+        if not ts: return {"n": 0}
+        e = np.array([t["err_px"] for t in ts])
+        return {"n": int(len(e)), "median_px": float(np.median(e)), "p95_px": float(np.percentile(e, 95)),
+                "p99_px": float(np.percentile(e, 99)), "frac_gt5px": float((e > 5).mean()), "frac_gt20px": float((e > 20).mean())}
+    R_ = lambda a, b_: [t for t in tests if a <= t["radius"] < b_]
+    out["loo_native"] = {
+        "overall": agg(tests), "lens0": agg([t for t in tests if t["lens"] == 0]), "lens1": agg([t for t in tests if t["lens"] == 1]),
+        "walk021": agg([t for t in tests if t["walk"] == "021"]), "walk075": agg([t for t in tests if t["walk"] == "075"]),
+        "cross_walk": agg([t for t in tests if t["cross_walk"]]),
+        "radius_0_800": agg(R_(0, 800)), "radius_800_1300": agg(R_(800, 1300)),
+        "radius_1300_1700": agg(R_(1300, 1700)), "radius_1700_2100": agg(R_(1700, 2100)),
+        "depth_lt2m": agg([t for t in tests if t["depth_m"] < 2]), "depth_2_5m": agg([t for t in tests if 2 <= t["depth_m"] < 5]),
+        "note": "native 3840^2 fisheye pixels, self-calibrated OPENCV_FISHEYE cameras, triangulated from 3 distinct physical exposures and predicted into a 4th; SIFT coordinates (the H1 landmark test established these agree with independent measurements to ~1.7 px, so this detects H1-scale 5-18 px failures)"}
+    out["coverage"] = {"registered_images": p1["n_registered_images"], "of": 242,
+                       "registered_per_camera": p1["registered_per_camera"],
+                       "registered_exposures_per_walk": p1["registered_exposures_per_walk"],
+                       "nothing_discarded": p1["n_registered_images"] == 242}
+    json.dump(out, open(f"{FC}/phase2_validation.json", "w"), indent=1)
+    vol.commit()
+    return out
+
+
 @app.local_entrypoint()
 def main(phase: str = "smoke", force: bool = False):
+    if phase == "validate":
+        print(json.dumps(fc_validate.remote(), indent=1))
+        return
     if phase == "smoke":
         print(json.dumps(fc_smoke.remote(), indent=1))
     elif phase == "colmap":
