@@ -219,16 +219,25 @@ def stage_sfm(meta, calib, st: Status):
     import pycolmap
     import cv2
     sdir = OUT / "sfm"; sdir.mkdir(parents=True, exist_ok=True)
-    db = sdir / "database.db"; img_dir = OUT / "faces"
+    db = sdir / "database.db"; faces_dir = OUT / "faces"
     cam = pycolmap.Camera(model="PINHOLE", width=FACE, height=FACE, params=[FL, FL, FACE / 2, FACE / 2])
-    mask_dir = sdir / "colmap_masks"; mask_dir.mkdir(exist_ok=True)
+    # COLMAP's sequential matcher orders images by NAME. Face names embed unpadded times
+    # ("t10.0" < "t5.9"), so the first run paired non-neighbouring exposures and registered 3/1210.
+    # Present the faces under zero-padded temporal-rank names (both lenses, 10 faces per exposure
+    # contiguous) via symlinks; the face files themselves are untouched.
+    face_rank = {n: i for i, (n, _, _) in enumerate(FACES)}
+    order = sorted(range(len(meta)), key=lambda i: (meta[i]["video"], meta[i]["t"], meta[i]["stream"], face_rank[meta[i]["face_name"]]))
+    img_dir = sdir / "images_ordered"; img_dir.mkdir(exist_ok=True)
+    mask_dir = sdir / "colmap_masks_ordered"; mask_dir.mkdir(exist_ok=True)
     names = []
-    for m in meta:
-        n = m["face"] + ".png"; names.append(n)
-        src = img_dir / f"{m['face']}_mask.png"; dst = mask_dir / (n + ".png")
-        if not dst.exists(): dst.symlink_to(src)
+    for rank, i in enumerate(order):
+        m = meta[i]; n = f"{rank:05d}_{m['face']}.png"; m["colmap_name"] = n; names.append(n)
+        dst = img_dir / n
+        if not dst.exists(): dst.symlink_to(faces_dir / f"{m['face']}.png")
+        mdst = mask_dir / (n + ".png")
+        if not mdst.exists(): mdst.symlink_to(faces_dir / f"{m['face']}_mask.png")
     log("pycolmap", getattr(pycolmap, "__version__", "?"))
-    if not stage_is_done("sfm_extract"):
+    if not stage_is_done("sfm_extract_v2"):
         if db.exists(): db.unlink()
         st.set_stage("sfm_extract", n_images=len(names))
         reader = pycolmap.ImageReaderOptions(camera_model="PINHOLE", camera_params=",".join(str(x) for x in cam.params), mask_path=str(mask_dir))
@@ -236,9 +245,9 @@ def stage_sfm(meta, calib, st: Status):
         try: ext.sift.max_num_features = 8192
         except AttributeError: pass
         pycolmap.extract_features(str(db), str(img_dir), image_names=names, camera_mode=pycolmap.CameraMode.SINGLE, reader_options=reader, extraction_options=ext, device=pycolmap.Device.auto)
-        st.done("sfm_extract")
-    if not stage_is_done("sfm_match"):
-        overlap = 60
+        st.done("sfm_extract_v2")
+    if not stage_is_done("sfm_match_v2"):
+        overlap = 80
         st.set_stage("sfm_match", pairs_expected=len(names) * overlap if len(names) > 400 else len(names) * (len(names) - 1) // 2)
         if len(names) <= 400:
             pycolmap.match_exhaustive(str(db))
@@ -253,7 +262,7 @@ def stage_sfm(meta, calib, st: Status):
                     continue
             else:
                 pycolmap.match_sequential(str(db), so)
-        st.done("sfm_match")
+        st.done("sfm_match_v2")
     st.set_stage("sfm_map", n_images=len(names))
     for p in sdir.glob("[0-9]*"):
         if p.is_dir():
@@ -271,8 +280,9 @@ def stage_sfm(meta, calib, st: Status):
              "mean_reproj_px": float(rec.compute_mean_reprojection_error()), "mean_track_len": float(rec.compute_mean_track_length())}
     st.set_stage("sfm_rig", **stats)
     by_exp = {}; face_pose = {}
+    by_name = {m["colmap_name"]: m for m in meta}
     for img in rec.images.values():
-        m = next((x for x in meta if x["face"] + ".png" == img.name), None)
+        m = by_name.get(img.name)
         if m is None: continue
         cfw = img.cam_from_world() if callable(img.cam_from_world) else img.cam_from_world
         Rcw = np.array(cfw.rotation.matrix()); tcw = np.array(cfw.translation)
@@ -316,7 +326,7 @@ def stage_sfm(meta, calib, st: Status):
     # rig-constrained reprojection through rig-derived face poses (per lens)
     errs = {0: [], 1: []}; rig_face_pose = {}
     for img in rec.images.values():
-        m = next((x for x in meta if x["face"] + ".png" == img.name), None)
+        m = by_name.get(img.name)
         if m is None or (m["exposure"], m["stream"]) not in lens_pose: continue
         Rl, Cl = lens_pose[(m["exposure"], m["stream"])]; Rf = np.array(m["R_face_from_lens"])
         Rwc = Rl @ Rf; Rcw = Rwc.T; tcw = -Rcw @ Cl; rig_face_pose[m["face"]] = (Rwc, Cl)
