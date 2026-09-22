@@ -52,7 +52,8 @@ import numpy as np
 sys.path.insert(0, "/root/recon-experiment")
 import room213_raw_build as B  # noqa: E402  (FACE, FL, FACES, face_R, T_B_MM, OUT, stage_dataset, stage_gates)
 
-VOL = Path("/vol"); BASE = VOL / "room213" / "2026-09-21"; OUT = B.OUT; SFM = OUT / "sfm"; RB = OUT / "rig_ba"
+VOL = Path("/vol"); BASE = VOL / "room213" / "2026-09-21"; OUT = B.OUT; SFM = OUT / "sfm"
+RB = OUT / os.environ.get("RIG_BA_OUTDIR", "rig_ba_v2")   # v2 = corrected-objective pass (2026-09-22); v1 = rig_ba
 STATUS = BASE / "status.json"; CALIB = VOL / "room213" / "calib" / "x4_factory_mei.json"
 FACE_IDX = {n: i for i, (n, _, _) in enumerate(B.FACES)}
 # scene-based tripod estimates (mean of the two tripod frames per assignment), R_10: lens-0 rays -> lens-1 rays
@@ -200,7 +201,7 @@ def set_lens1_rotation(rec, R10, t10, pyc):
 # ---------------------------------------------------------------- residuals
 def residuals(rec, meta_by_name):
     """Per-observation reprojection error (px) under the RIG-derived poses, with lens/frame labels."""
-    errs = []; lens = []; frames = []; faces = []
+    errs = []; lens = []; frames = []; faces = []; radii = []
     pts = {pid: np.asarray(p.xyz) for pid, p in rec.points3D.items()}
     for im in rec.images.values():
         m = meta_by_name[im.name]
@@ -212,6 +213,8 @@ def residuals(rec, meta_by_name):
         u = B.FL * Xc[:, 0] / z + B.FACE / 2; v = B.FL * Xc[:, 1] / z + B.FACE / 2
         e = np.hypot(u - xy[:, 0], v - xy[:, 1]); e = np.where(np.isnan(e), 1e4, e)
         errs.append(e); lens.append(np.full(len(e), m["stream"])); frames.append(np.full(len(e), im.frame_id)); faces.append(np.full(len(e), FACE_IDX[m["face_name"]]))
+        radii.append(np.hypot(xy[:, 0] - B.FACE / 2, xy[:, 1] - B.FACE / 2))
+    residuals.last_radius = np.concatenate(radii)
     return np.concatenate(errs), np.concatenate(lens), np.concatenate(frames), np.concatenate(faces)
 
 
@@ -252,12 +255,15 @@ def per_frame_residual_rotation(rec, meta_by_name, lens_sel):
 
 
 # ---------------------------------------------------------------- BA
-def run_ba(rec, pyc, max_iter, gauge_frame, loss="HUBER", loss_scale=4.0):
+def run_ba(rec, pyc, max_iter, gauge_frame, loss="HUBER", loss_scale=4.0, ftol=1e-5):
     opt = pyc.BundleAdjustmentOptions()
     opt.refine_focal_length = False; opt.refine_principal_point = False; opt.refine_extra_params = False
     opt.refine_sensor_from_rig = False; opt.refine_rig_from_world = True; opt.refine_points3D = True; opt.print_summary = False
     opt.ceres.loss_function_type = getattr(pyc.LossFunctionType, loss); opt.ceres.loss_function_scale = loss_scale
     opt.ceres.solver_options.max_num_iterations = int(max_iter)
+    try:
+        opt.ceres.solver_options.function_tolerance = ftol   # converged = relative cost change below ftol (Ceres default 1e-6)
+    except Exception: pass  # noqa: BLE001
     try: opt.ceres.solver_options.num_threads = os.cpu_count() or 8
     except Exception: pass  # noqa: BLE001
     cfg = pyc.BundleAdjustmentConfig()
@@ -321,13 +327,17 @@ def run_hypothesis(hyp, calib, meta_by_name, pyc):
         R_best = R10; delta_best = np.zeros(3)
     else:
         from scipy.optimize import minimize
+        BOUND = math.radians(3.0)   # frozen search bound: |delta| <= 3 deg about the scene-based seed
         def objective(delta):
+            if np.linalg.norm(delta) > BOUND:
+                evals.append({"delta_deg": (np.degrees(delta)).tolist(), "huber_mean": None, "median_px": None, "p95_px": None, "rejected": "outside +/-3 deg bound"})
+                return 1e6 + float(np.linalg.norm(delta))
             r = pyc.Reconstruction(str(base_dir))
             Rd = rotvec_to_R(delta) @ R10
             set_lens1_rotation(r, Rd, t10 if hyp.startswith("H1") else (-Rd @ np.array(calib["lenses"][1]["t_m"])), pyc)
-            run_ba(r, pyc, 100, gauge_frame)   # to convergence: a noisy inner solve makes the outer objective noisy
+            info_e = run_ba(r, pyc, 300, gauge_frame, ftol=1e-5)   # to convergence (ftol) -- a noisy inner solve makes the outer objective noisy
             e, _, _, _ = residuals(r, meta_by_name); c = huber_mean(e)
-            evals.append({"delta_deg": (np.degrees(delta)).tolist(), "huber_mean": c, "median_px": float(np.median(e)), "p95_px": float(np.percentile(e, 95))})
+            evals.append({"delta_deg": (np.degrees(delta)).tolist(), "huber_mean": c, "median_px": float(np.median(e)), "p95_px": float(np.percentile(e, 95)), "ba": info_e})
             status(stage=f"rig_ba_{hyp}_outer", n_evals=len(evals), best_huber=min(v["huber_mean"] for v in evals), last_median_px=float(np.median(e)))
             log(f"  eval {len(evals)}: delta {np.degrees(delta).round(3)} huber {c:.4f} median {np.median(e):.3f}")
             return c
@@ -339,8 +349,8 @@ def run_hypothesis(hyp, calib, meta_by_name, pyc):
     rec = pyc.Reconstruction(str(base_dir))
     t_best = t10 if hyp.startswith("H1") else (-R_best @ np.array(calib["lenses"][1]["t_m"]))
     set_lens1_rotation(rec, R_best, t_best, pyc)
-    info_final = run_ba(rec, pyc, 5 if DRY else 200, gauge_frame); log("BA final", info_final)
-    info_final2 = run_ba(rec, pyc, 5 if DRY else 100, gauge_frame); log("BA final (2nd pass)", info_final2)
+    info_final = run_ba(rec, pyc, 5 if DRY else 500, gauge_frame, ftol=1e-6); log("BA final", info_final)
+    info_final2 = run_ba(rec, pyc, 5 if DRY else 300, gauge_frame, ftol=1e-6); log("BA final (2nd pass)", info_final2)
     (hdir / "rec").mkdir(exist_ok=True); rec.write(str(hdir / "rec"))
     e, l, fr, fc = residuals(rec, meta_by_name)
     def stats(x): return {"n_obs": int(len(x)), "median_px": float(np.median(x)), "p95_px": float(np.percentile(x, 95)), "rms_px": float(np.sqrt(np.mean(np.minimum(x, 1e3) ** 2)))}
@@ -362,6 +372,21 @@ def run_hypothesis(hyp, calib, meta_by_name, pyc):
             per_walk_res[f"{w}_lens{lens_}"] = {"n_frames": len(meds), "median_of_frame_medians_px": float(np.median(meds)) if meds else None, "p90_of_frame_medians_px": float(np.percentile(meds, 90)) if meds else None}
     for w in walks: walks[w]["residuals"] = {k: v for k, v in per_walk_res.items() if k.startswith(w)}
     n_behind = int(np.sum(e >= 1e4)); n_gt50 = int(np.sum(e > 50))
+    # residual distribution (diagnostic only): static (tripod walk 020) vs moving (021/075), x lens, x face, x image radius
+    rad = residuals.last_radius
+    static_frames = {fid_ for fid_, w in frame_walk.items() if w == "020"}
+    is_static = np.isin(fr, list(static_frames))
+    def dist(mask):
+        x = e[mask]; return {"n_obs": int(len(x)), "median_px": float(np.median(x)) if len(x) else None, "p95_px": float(np.percentile(x, 95)) if len(x) else None}
+    residual_distribution = {
+        "static_vs_moving": {"static_020": dist(is_static), "moving_021_075": dist(~is_static),
+                             "static_lens0": dist(is_static & (l == 0)), "static_lens1": dist(is_static & (l == 1)),
+                             "moving_lens0": dist(~is_static & (l == 0)), "moving_lens1": dist(~is_static & (l == 1))},
+        "by_lens": {"lens0": dist(l == 0), "lens1": dist(l == 1)},
+        "by_face": {n: {"all": dist(fc == i), "lens0": dist((fc == i) & (l == 0)), "lens1": dist((fc == i) & (l == 1))} for n, i in FACE_IDX.items()},
+        "by_image_radius_px": {f"{a}-{b_}": dist((rad >= a) & (rad < b_)) for a, b_ in ((0, 400), (400, 800), (800, 1280), (1280, 1900))},
+        "by_image_radius_x_lens": {f"lens{ln}_{a}-{b_}": dist((rad >= a) & (rad < b_) & (l == ln)) for ln in (0, 1) for a, b_ in ((0, 400), (400, 800), (800, 1280), (1280, 1900))},
+        "note": "static = tripod walk 020 (3 exposures); moving = walks 021/075 (hand-carried); radius = distance of the 2D observation from the 2560-face centre"}
     p1_best = -R_best.T @ t_best
     rep = {"hypothesis": hyp, "rig_structure": "10 PINHOLE sensors (5 per lens), ref = lens0/f, sensor_from_rig constant in BA (lens0: face rotations, zero translation; lens1: face rotations * [R_10 | t_10 factory 32.26 mm]); one Frame per exposure; refine rig_from_world + points only; intrinsics constant; gauge = frame 1 constant; R_10 by outer Nelder-Mead over the rigid inner BA",
            "scale_prior": prior, "initial_R10_deg_axis": [ang_i, axis_i], "final_R10_deg_axis": [ang_b, axis_b], "outer_delta_deg": np.degrees(delta_best).tolist(),
@@ -377,7 +402,8 @@ def run_hypothesis(hyp, calib, meta_by_name, pyc):
            "extent": ext, "per_walk": walks,
            "scale": {"ba_m_per_unit_relative_to_free_solve": float(s0 * (ext["track_extent_m_xyz"][0] / max(1e-9, ext_before["track_extent_m_xyz"][0]))), "prior_s0": s0, "free_solve_baseline_derived_invalid": 0.0940},
            "n_points": rec.num_points3D(), "mean_track_length": float(rec.compute_mean_track_length()),
-           "observations": {"total": int(len(e)), "rejected_or_filtered": 0, "behind_camera": n_behind, "residual_gt_50px": n_gt50, "note": "no observation filtering; every free-solve observation is scored"}}
+           "observations": {"total": int(len(e)), "rejected_or_filtered": 0, "behind_camera": n_behind, "residual_gt_50px": n_gt50, "note": "no observation filtering; every free-solve observation is scored"},
+           "residual_distribution": residual_distribution}
     json.dump(rep, open(hdir / "rig_ba_report.json", "w"), indent=1)
     # rig-derived poses for ALL faces of registered exposures (world_from_face, centre) in metres
     poses = {}
@@ -413,6 +439,10 @@ def main():
     status(stage="rig_ba_start", hypotheses=list(SCENE_R10))
     results = {}
     for hyp in SCENE_R10:
+        done = RB / hyp / "rig_ba_report.json"; pf = RB / hyp / "rig_face_poses.json"
+        if done.is_file() and pf.is_file() and not DRY:      # resumable: a pre-empted container must not redo a finished hypothesis
+            rep_ = json.load(open(done)); poses_ = {k: (np.array(v["R_wc"]), np.array(v["C"])) for k, v in json.load(open(pf)).items()}
+            results[hyp] = (rep_, poses_); log("HYPOTHESIS RESUMED FROM DISK", hyp); continue
         results[hyp] = run_hypothesis(hyp, calib, meta_by_name, pyc)
         if DRY: break
     # ---- selection on geometry only
