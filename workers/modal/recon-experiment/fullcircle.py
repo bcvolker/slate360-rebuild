@@ -54,6 +54,12 @@ fc_image = (
     # `simplejpeg`/`scipy` are likewise imported (datasetNcore.py) but undeclared; threedgrut/datasets/__init__.py
     # imports every dataset module eagerly, so they are needed even though we only use ColmapDataset.
     .run_commands("/opt/conda/envs/fullcircle/bin/pip install nvidia-ncore simplejpeg scipy")
+    # The pycolmap PyPI wheel is built WITHOUT CUDA/OpenGL SIFT ("Cannot use GPU feature extraction
+    # without CUDA or OpenGL support"), so it cannot reproduce FullCircle's GPU feature extraction and
+    # matching -- a real incompatibility. conda-forge ships the exact released major.minor with CUDA,
+    # so we install COLMAP 3.12.6 (cuda_126) in its own env and run scripts/run_colmap.sh verbatim.
+    .run_commands("conda create -n colmap312 -y -c conda-forge 'colmap=3.12.6=cuda*' && "
+                  "/opt/conda/envs/colmap312/bin/colmap -h 2>&1 | head -3")
     .pip_install("pycolmap==4.2.0", "numpy<2", "opencv-python-headless<4.11")   # our Phase-1 driver only
 )
 
@@ -150,21 +156,33 @@ def fc_stage_and_colmap(force: bool = False) -> dict[str, Any]:
     vol.commit()
     _status(stage="fc_colmap_extract", staged=staged, elapsed_s=round(time.time() - t0))
 
+    import subprocess
+    COLMAP = "/opt/conda/envs/colmap312/bin/colmap"
     db = f"{DATA}/database.db"
-    out: dict[str, Any] = {"staged": staged, "n_exposures": len(exposures), "held_out_exposures": sorted(hold)}
+    out: dict[str, Any] = {"staged": staged, "n_exposures": len(exposures), "held_out_exposures": sorted(hold),
+                           "colmap": subprocess.run([COLMAP, "-h"], capture_output=True, text=True).stdout.split("\n")[0][:80]}
     if force and os.path.exists(db):
         os.remove(db)
-    # ---- Step 1: feature_extractor (OPENCV_FISHEYE, one shared camera per lens folder, masks)
+
+    def run(tag: str, args: list[str]) -> float:
+        t = time.time()
+        r = subprocess.run([COLMAP] + args, capture_output=True, text=True)
+        log = (r.stdout[-4000:] + "\n" + r.stderr[-4000:])
+        open(f"{FC}/colmap_{tag}.log", "w").write(log)
+        if r.returncode != 0:
+            raise RuntimeError(f"colmap {tag} exited {r.returncode}: {log[-1500:]}")
+        return round(time.time() - t)
+
+    # ---- FullCircle scripts/run_colmap.sh, verbatim flags, COLMAP 3.12.6 defaults for everything else
     if not os.path.exists(db):
-        reader = pycolmap.ImageReaderOptions(camera_model="OPENCV_FISHEYE", mask_path=f"{DATA}/masks-colmap")
-        ext = pycolmap.FeatureExtractionOptions()
-        ext.max_image_size = 3200      # COLMAP 3.12 default (pycolmap 4.2 ships -1)
-        ext.use_gpu = True             # COLMAP 3.12 default (pycolmap 4.2 ships False)
-        te = time.time()
-        pycolmap.extract_features(db, f"{DATA}/images", camera_mode=pycolmap.CameraMode.PER_FOLDER,
-                                  reader_options=reader, extraction_options=ext, device=pycolmap.Device.cuda)
-        out["extract_s"] = round(time.time() - te)
-    # ---- Step 2: exhaustive_matcher
+        out["extract_s"] = run("extract", [
+            "feature_extractor",
+            "--image_path", f"{DATA}/images",
+            "--database_path", db,
+            "--ImageReader.mask_path", f"{DATA}/masks-colmap",
+            "--ImageReader.single_camera_per_folder", "1",
+            "--ImageReader.camera_model", "OPENCV_FISHEYE"])
+        vol.commit()
     import sqlite3
     con = sqlite3.connect(f"file:{db}?mode=ro", uri=True)
     n_imgs = con.execute("select count(*) from images").fetchone()[0]
@@ -172,36 +190,33 @@ def fc_stage_and_colmap(force: bool = False) -> dict[str, Any]:
     con.close()
     out["n_images_in_db"] = n_imgs
     if n_pairs == 0:
-        mo = pycolmap.FeatureMatchingOptions()
-        mo.use_gpu = True              # COLMAP 3.12 default
-        tvo = pycolmap.TwoViewGeometryOptions()
-        tvo.use_sampson_refinement = False   # post-3.12 addition, on by default; 3.12 behaved as if off
         _status(stage="fc_colmap_match", n_images=n_imgs, expected_pairs=n_imgs * (n_imgs - 1) // 2)
-        tm = time.time()
-        pycolmap.match_exhaustive(db, matching_options=mo, pairing_options=pycolmap.ExhaustivePairingOptions(),
-                                  verification_options=tvo, device=pycolmap.Device.cuda)
-        out["match_s"] = round(time.time() - tm)
+        out["match_s"] = run("match", ["exhaustive_matcher", "--database_path", db])
         vol.commit()
-    # ---- Step 3: mapper (3.12 defaults; the fisheye cameras self-calibrate)
-    mopts = pycolmap.IncrementalPipelineOptions()
-    mopts.ba_local_max_num_iterations = 25   # COLMAP 3.12 default (pycolmap 4.2 ships -1)
     _status(stage="fc_colmap_map", n_images=n_imgs)
-    tm = time.time()
-    recs = pycolmap.incremental_mapping(db, f"{DATA}/images", f"{DATA}/sparse", options=mopts)
-    out["map_s"] = round(time.time() - tm)
-    out["n_components"] = len(recs)
-    if recs:
+    Path(f"{DATA}/sparse").mkdir(parents=True, exist_ok=True)
+    out["map_s"] = run("map", ["mapper", "--image_path", f"{DATA}/images", "--database_path", db,
+                               "--output_path", f"{DATA}/sparse"])
+    comps = sorted(p for p in Path(f"{DATA}/sparse").iterdir() if p.is_dir() and p.name.isdigit())
+    out["n_components"] = len(comps)
+    if comps:
+        recs = {int(p.name): pycolmap.Reconstruction(str(p)) for p in comps}
         best_id = max(recs, key=lambda k: recs[k].num_reg_images())
         rec = recs[best_id]
-        Path(f"{DATA}/sparse/0").mkdir(parents=True, exist_ok=True)
-        rec.write(f"{DATA}/sparse/0")
         cams = {}
         for cid, c in rec.cameras.items():
             cams[str(cid)] = {"model": c.model_name if hasattr(c, "model_name") else str(c.model),
                               "w": c.width, "h": c.height, "params": [round(float(p), 4) for p in c.params]}
-        per_cam = {}
+        per_cam: dict[str, int] = {}
+        per_walk: dict[str, set] = {}
         for im in rec.images.values():
             per_cam[str(im.camera_id)] = per_cam.get(str(im.camera_id), 0) + 1
+            r_ = int(Path(im.name).stem.replace("_test", "").split("_")[-1])
+            walk = exposures[r_].split("_00_")[1].split(".insv")[0]
+            per_walk.setdefault(walk, set()).add(r_)
+        out["registered_exposures_per_walk"] = {w: len(v) for w, v in sorted(per_walk.items())}
+        out["n_registered_exposures"] = len({r_ for v in per_walk.values() for r_ in v})
+        out["both_walks_connected"] = len([w for w in per_walk if w in ("021", "075")]) == 2
         out.update({"best_component": int(best_id), "n_registered_images": rec.num_reg_images(),
                     "n_points": rec.num_points3D(), "mean_reproj_px": float(rec.compute_mean_reprojection_error()),
                     "mean_track_len": float(rec.compute_mean_track_length()),
