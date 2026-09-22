@@ -408,9 +408,12 @@ def main():
     best = min(results, key=key)
     sel = {"selected": best, "candidates": {h: results[h][0]["reprojection_rig_ba"]["all"] for h in results},
            "note": "hypotheses differ only in the ~1 mm lateral factory offset and the rotation seed; selected on lower rig-BA median/p95 reprojection; a difference below ~0.05 px is not discriminating and H1 (the assignment the faces were undistorted with) is then the physically consistent choice"}
+    inconclusive = False
     if len(results) == 2:
         a, b = [results[h][0]["reprojection_rig_ba"]["all"]["median_px"] for h in results]
-        if abs(a - b) < 0.05: best = "H1_stream0=A"; sel["selected"] = best; sel["tie"] = True
+        pa, pb = [results[h][0]["reprojection_rig_ba"]["all"]["p95_px"] for h in results]
+        # Brian 2026-09-22: indistinguishable within measurement uncertainty => RIG ASSIGNMENT INCONCLUSIVE, no auto-train
+        if abs(a - b) < 0.05 and abs(pa - pb) < 0.2: inconclusive = True; sel["tie"] = True
     rep, poses = results[best]
     # ---- frozen gates via the unchanged stage_gates code
     splits = json.load(open(OUT / "splits.json")); loader = json.load(open(OUT / "loader_survival.json"))
@@ -427,6 +430,8 @@ def main():
     ds = B.stage_dataset(meta, poses, splits, 1.0)
     verdict = B.stage_gates((rig_res_dict,), mask_summ, ds, loader, meta)
     verdict["source"] = "rig_ba"; verdict["selected_hypothesis"] = best
+    if inconclusive:
+        verdict["dataset"] = "RIG ASSIGNMENT INCONCLUSIVE"; verdict["blocking_issue"] = "stream<->lens assignment not distinguishable by geometry (H1 vs H2)"
     json.dump(verdict, open(OUT / "verdict.json", "w"), indent=1)
     build_report["rig_ba"] = {"selection": sel, "report": rep, "dataset": ds}; build_report["verdict"] = verdict
     json.dump(build_report, open(OUT / "report.json", "w"), indent=1)
