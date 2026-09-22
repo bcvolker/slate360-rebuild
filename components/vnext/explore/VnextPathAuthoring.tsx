@@ -1,56 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { CameraEasing, CameraKeyframe, TwinCameraPath } from "@/lib/digital-twin/camera-path-types";
-import { segmentDurations } from "@/lib/digital-twin/camera-path-math";
-import type { SplatViewerHandle } from "@/components/digital-twin/splat-viewer-constants";
+import { useState } from "react";
+import type { CameraEasing, CameraKeyframe } from "@/lib/digital-twin/camera-path-types";
 import { readLiveView } from "@/lib/vnext/views/live-view";
-import { pathDurationMs, playbackPause, playbackPlay, playbackRestart, playbackTick, type PlaybackState } from "@/lib/vnext/views/playback-state";
+import { useVnextPlayback } from "./VnextPlayback";
 
 const DURATIONS = [2000, 4000, 8000];
 
 type Props = {
   modelId: string;
-  initialPath: TwinCameraPath;
   canWrite: boolean;
   persist: "local" | "api";
   projectId: string;
-  getHandle: () => SplatViewerHandle | null;
 };
 
-export function VnextPathAuthoring({ modelId, initialPath, canWrite, persist, projectId, getHandle }: Props) {
-  const [path, setPath] = useState(initialPath);
+export function VnextPathAuthoring({ modelId, canWrite, persist, projectId }: Props) {
+  const { session, setPath, play, pause, restart } = useVnextPlayback();
   const [durationMs, setDurationMs] = useState(4000);
   const [easing, setEasing] = useState<CameraEasing>("easeInOut");
   const [notice, setNotice] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
-  const [playback, setPlayback] = useState<PlaybackState>({ status: "idle", elapsedMs: 0 });
-  const total = pathDurationMs(segmentDurations(path));
-
-  useEffect(() => {
-    if (playback.status !== "playing") return;
-    const timer = window.setInterval(() => {
-      setPlayback((current) => playbackTick(current, 100, total, path.loop === true));
-    }, 100);
-    return () => window.clearInterval(timer);
-  }, [playback.status, path.loop, total]);
-
-  useEffect(() => {
-    if (playback.status !== "playing") return;
-    let cancelled = false;
-    void import("@/lib/digital-twin/camera-path-math").then(({ samplePath }) => {
-      if (cancelled) return;
-      const sample = samplePath(path, playback.elapsedMs);
-      if (!sample) return;
-      getHandle()?.setCameraPose({
-        position: [sample.position.x, sample.position.y, sample.position.z],
-        target: [sample.lookAt.x, sample.lookAt.y, sample.lookAt.z],
-      });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [getHandle, path, playback.elapsedMs, playback.status]);
+  const path = session?.modelId === modelId ? session.path : null;
+  if (!path) return null;
 
   const addCurrent = () => {
     const live = readLiveView();
@@ -66,7 +37,7 @@ export function VnextPathAuthoring({ modelId, initialPath, canWrite, persist, pr
       durationMs,
       easing,
     };
-    setPath((current) => ({ ...current, keyframes: [...current.keyframes, frame] }));
+    setPath({ ...path, keyframes: [...path.keyframes, frame] });
     setNotice(null);
     setSaved(false);
   };
@@ -118,7 +89,7 @@ export function VnextPathAuthoring({ modelId, initialPath, canWrite, persist, pr
             </select>
           </label>
           <label className="flex h-11 items-center gap-2 text-[length:var(--vnext-body)] text-[var(--vnext-ink)]">
-            <input type="checkbox" checked={path.loop === true} data-vnext-path-loop="true" onChange={(event) => { setPath((current) => ({ ...current, loop: event.target.checked })); setSaved(false); }} />
+            <input type="checkbox" checked={path.loop === true} data-vnext-path-loop="true" onChange={(event) => { setPath({ ...path, loop: event.target.checked }); setSaved(false); }} />
             Loop
           </label>
           <button type="button" className="h-11 min-w-[44px] border border-[var(--vnext-line)] px-3 text-[length:var(--vnext-body)] text-[var(--vnext-ink)]" onClick={() => void save()} data-vnext-path-save="true">
@@ -126,14 +97,14 @@ export function VnextPathAuthoring({ modelId, initialPath, canWrite, persist, pr
           </button>
         </div>
       ) : null}
-      <div className="mt-2 flex flex-wrap gap-2" data-vnext-playback={playback.status} data-vnext-playback-elapsed={playback.elapsedMs}>
-        <button type="button" className="h-11 min-w-[44px] border border-[var(--vnext-line)] px-3 text-[length:var(--vnext-body)] text-[var(--vnext-ink)]" onClick={() => setPlayback((current) => playbackPlay(current))} data-vnext-path-play="true">
+      <div className="mt-2 flex flex-wrap gap-2">
+        <button type="button" className="h-11 min-w-[44px] border border-[var(--vnext-line)] px-3 text-[length:var(--vnext-body)] text-[var(--vnext-ink)]" onClick={play} data-vnext-path-play="true">
           Play
         </button>
-        <button type="button" className="h-11 min-w-[44px] border border-[var(--vnext-line)] px-3 text-[length:var(--vnext-body)] text-[var(--vnext-ink)]" onClick={() => setPlayback((current) => playbackPause(current))} data-vnext-path-pause="true">
+        <button type="button" className="h-11 min-w-[44px] border border-[var(--vnext-line)] px-3 text-[length:var(--vnext-body)] text-[var(--vnext-ink)]" onClick={pause} data-vnext-path-pause="true">
           Pause
         </button>
-        <button type="button" className="h-11 min-w-[44px] border border-[var(--vnext-line)] px-3 text-[length:var(--vnext-body)] text-[var(--vnext-ink)]" onClick={() => setPlayback(playbackRestart())} data-vnext-path-restart="true">
+        <button type="button" className="h-11 min-w-[44px] border border-[var(--vnext-line)] px-3 text-[length:var(--vnext-body)] text-[var(--vnext-ink)]" onClick={restart} data-vnext-path-restart="true">
           Restart
         </button>
       </div>

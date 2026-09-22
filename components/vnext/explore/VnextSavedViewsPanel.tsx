@@ -1,15 +1,15 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { TwinCameraPath } from "@/lib/digital-twin/camera-path-types";
-import type { SplatViewerHandle } from "@/components/digital-twin/splat-viewer-constants";
 import { vnextExploreHref } from "@/lib/vnext/explore/build-explore-href";
 import { formatPlainDate } from "@/lib/vnext/overview-visit";
 import { readLiveView } from "@/lib/vnext/views/live-view";
+import { playbackModelMatches } from "@/lib/vnext/views/playback-state";
 import { SAVED_VIEW_ASPECTS, type SavedViewAspect, type VnextSavedView } from "@/lib/vnext/views/saved-view-types";
 import type { VnextExploreRepresentation } from "@/lib/vnext/explore-types";
+import { useVnextPlayback } from "./VnextPlayback";
 
 const PathAuthoring = dynamic(() => import("./VnextPathAuthoring").then((mod) => mod.VnextPathAuthoring), { ssr: false });
 
@@ -27,8 +27,6 @@ type Props = {
   onViews: (views: VnextSavedView[]) => void;
   persist: "local" | "api";
   pathModelId: string | null;
-  initialPath: TwinCameraPath | null;
-  getHandle: () => SplatViewerHandle | null;
 };
 
 const control = "h-11 min-w-[44px] border border-[var(--vnext-line)] px-3 text-[length:var(--vnext-body)] text-[var(--vnext-ink)]";
@@ -41,28 +39,11 @@ export function VnextSavedViewsPanel(props: Props) {
   const [renameId, setRenameId] = useState<string | null>(null);
   const [renameTitle, setRenameTitle] = useState("");
   const [confirmId, setConfirmId] = useState<string | null>(null);
-  const [loadedPath, setLoadedPath] = useState<TwinCameraPath | null>(props.initialPath);
-
-  useEffect(() => {
-    if (props.initialPath) {
-      setLoadedPath(props.initialPath);
-      return;
-    }
-    if (props.persist !== "api" || props.representation !== "reality" || !props.sourceId) return;
-    let cancelled = false;
-    void fetch(`/api/vnext/projects/${props.projectId}/models/${props.sourceId}/camera-path`)
-      .then(async (response) => {
-        if (!response.ok || cancelled) return;
-        const body = (await response.json()) as { cameraPath?: TwinCameraPath };
-        if (body.cameraPath) setLoadedPath(body.cameraPath);
-      })
-      .catch(() => undefined);
-    return () => {
-      cancelled = true;
-    };
-  }, [props.initialPath, props.persist, props.projectId, props.representation, props.sourceId]);
-
+  const playback = useVnextPlayback();
   const pathModelId = props.pathModelId ?? (props.representation === "reality" ? props.sourceId : null);
+  const showPath = Boolean(
+    pathModelId && playback.session && playbackModelMatches(playback.session.modelId, pathModelId),
+  );
 
   const openView = (view: VnextSavedView) => {
     router.push(vnextExploreHref(props.basePath, {
@@ -197,8 +178,8 @@ export function VnextSavedViewsPanel(props: Props) {
               </button>
             ))}
           </div>
-          {pathModelId && loadedPath ? (
-            <PathAuthoring modelId={pathModelId} initialPath={loadedPath} canWrite={props.canWrite} persist={props.persist} projectId={props.projectId} getHandle={props.getHandle} />
+          {showPath && pathModelId ? (
+            <PathAuthoring modelId={pathModelId} canWrite={props.canWrite} persist={props.persist} projectId={props.projectId} />
           ) : null}
         </div>
       ) : null}

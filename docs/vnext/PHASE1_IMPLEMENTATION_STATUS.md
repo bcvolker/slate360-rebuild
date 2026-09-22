@@ -796,10 +796,12 @@ Writes are project-shared and limited to owner, admin, member, and manager. A cl
 
 Reality can save and restore a splat camera pose when the viewer returns one. Geometry saves the model only. The model viewer does not expose a pose. 360 saves yaw and pitch from Photo Sphere Viewer. It does not save zoom. Plan saves the sheet plus pan and zoom. Thermal saves the session and the selected capture. There is no thermal camera. A camera path remains one `camera_path` blob on that splat model. It is not copied to another model. Auto-orbit is not available: the vNext viewer has no orbit control to drive. Browser recording and server video export are deferred.
 
+Playback state lives on the Explore shell, not inside the Views panel. Entering presentation hides authoring and keeps the running path on the same model, from the same elapsed time. Presentation shows Play, Pause, and Restart only when that Reality model has a path.
+
 Slice 9 was not started. No public share, owner home, processing queue, AI, VR, or design studio.
 
 Migration `20260922180000_project_saved_views.sql` was applied to linked project `hadnfcenpcfaeclczsmm` and recorded in migration history. The two Slice 7A versions were not rerun. Older migration-history drift was not repaired.
 
-Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 33 files / 267 tests passed, production build, Playwright 134 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. `npm run typecheck:changed` against `main` exits 2 only on the existing `splat-viewer-scene.tsx` lines 197–199.
+Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 33 files / 267 tests passed, production build, Playwright 144 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. `npm run typecheck:changed` against `main` exits 2 only on the existing `splat-viewer-scene.tsx` lines 197–199.
 
 

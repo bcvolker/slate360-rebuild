@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { segmentDurations, samplePath } from "@/lib/digital-twin/camera-path-math";
 import type { TwinCameraPath } from "@/lib/digital-twin/camera-path-types";
-import { pathDurationMs, playbackModelMatches, playbackPause, playbackPlay, playbackRestart, playbackTick } from "./playback-state";
+import { adoptPlaybackPath, pathDurationMs, pathIsPlayable, pathPlayDurationMs, playbackModelMatches, playbackPause, playbackPlay, playbackRestart, playbackTick } from "./playback-state";
 
 const path: TwinCameraPath = {
   loop: false,
@@ -51,5 +51,14 @@ describe("camera path playback", () => {
     expect(playbackModelMatches("model-a", "model-a")).toBe(true);
     expect(playbackModelMatches("model-a", "model-b")).toBe(false);
     expect(playbackModelMatches("", "model-a")).toBe(false);
+    expect(pathPlayDurationMs(path)).toBe(pathDurationMs(segmentDurations(path)));
+    expect(pathIsPlayable(path)).toBe(true);
+    expect(pathIsPlayable({ keyframes: [path.keyframes[0]!] })).toBe(false);
+    const playing = adoptPlaybackPath(null, "model-a", path);
+    const moved = { ...playing, playback: playbackTick(playbackPlay(playing.playback), 400, 2000, false) };
+    expect(adoptPlaybackPath(moved, "model-a", path).playback).toEqual(moved.playback);
+    const other = adoptPlaybackPath(moved, "model-b", path);
+    expect(other.modelId).toBe("model-b");
+    expect(other.playback).toEqual({ status: "idle", elapsedMs: 0 });
   });
 });

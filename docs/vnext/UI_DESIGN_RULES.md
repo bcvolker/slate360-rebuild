@@ -310,7 +310,7 @@ Saved views are evidence links, not camera bookmarks. The list lives in Explore.
 
 Presentation mode hides project navigation, the representation row, the source row, and the saved-view list. The date stays on screen when the view is historical. Exit is a visible control, and Escape leaves presentation mode. Framing guides are 16:9, 9:16, and 1:1. They frame the viewer. They do not resize it.
 
-A Reality camera path is the current path for that one model. Play, pause, and restart sit with the saved views. There is no timeline editor.
+A Reality camera path is the current path for that one model. Playback lives with Explore, so it keeps running when presentation hides the saved-view list. Presentation shows Play, Pause, and Restart only when that model has a path. There is no timeline editor.
 
 Destructive actions must:
 

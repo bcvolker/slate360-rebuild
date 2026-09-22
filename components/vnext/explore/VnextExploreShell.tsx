@@ -15,6 +15,8 @@ import { VnextExploreErrorState } from "./VnextExploreErrorState";
 import { VnextSavedViewsPanel } from "./VnextSavedViewsPanel";
 import { VnextAspectGuide } from "./VnextAspectGuide";
 import { VnextViewContext } from "./VnextViewContext";
+import { VnextPlaybackProvider } from "./VnextPlayback";
+import { VnextPresentationTransport } from "./VnextPresentationTransport";
 import { VNEXT_EXPLORE_HELP } from "./vnext-explore-help-copy";
 import { vnextExploreHref } from "@/lib/vnext/explore/build-explore-href";
 import type { VnextExploreData } from "@/lib/vnext/explore-types";
@@ -131,8 +133,19 @@ export function VnextExploreShell({
   const activeSources = data.activeRepresentation
     ? (data.sourcesByRepresentation[data.activeRepresentation] ?? [])
     : [];
+  const realitySourceId =
+    data.activeSourceId ?? (data.activeSourceData?.kind === "reality" ? data.activeSourceData.modelId ?? null : null);
 
   return (
+    <VnextPlaybackProvider
+      projectId={data.projectId}
+      persist={persistViews}
+      representation={data.activeRepresentation}
+      sourceId={realitySourceId}
+      pathModelId={pathModelId}
+      initialPath={initialPath}
+      getHandle={getSplatHandle}
+    >
     <div
       className={
         present
@@ -207,7 +220,7 @@ export function VnextExploreShell({
               canWrite={canWrite}
               failed={viewsFailed}
               representation={data.activeRepresentation}
-              sourceId={data.activeSourceId ?? (data.activeSourceData?.kind === "reality" ? data.activeSourceData.modelId ?? null : null)}
+              sourceId={realitySourceId}
               itemId={item}
               aspect={guide}
               onAspect={(next) => {
@@ -217,8 +230,6 @@ export function VnextExploreShell({
               onViews={onViews ?? (() => undefined)}
               persist={persistViews}
               pathModelId={pathModelId}
-              initialPath={initialPath}
-              getHandle={getSplatHandle}
             />
           ) : null}
 
@@ -241,6 +252,7 @@ export function VnextExploreShell({
                 />
                 {openedView?.occurredAt ? <VnextViewContext view={openedView} /> : null}
                 {guide ? <VnextAspectGuide aspect={guide} /> : null}
+                <VnextPresentationTransport present={present} />
                 <VnextExploreViewerControls
                   isFullscreen={isFullscreen}
                   onToggleFullscreen={toggleFullscreen}
@@ -257,5 +269,6 @@ export function VnextExploreShell({
         </>
       )}
     </div>
+    </VnextPlaybackProvider>
   );
 }

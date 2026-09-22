@@ -1,3 +1,5 @@
+import type { TwinCameraPath } from "@/lib/digital-twin/camera-path-types";
+
 export type PlaybackStatus = "idle" | "playing" | "paused";
 
 export type PlaybackState = {
@@ -39,4 +41,36 @@ export function pathDurationMs(durations: readonly number[]): number {
 
 export function playbackModelMatches(pathModelId: string, activeModelId: string): boolean {
   return pathModelId.length > 0 && pathModelId === activeModelId;
+}
+
+/** Matches `segmentDurations` without pulling the 3D math module into the shell. */
+export function pathPlayDurationMs(path: TwinCameraPath): number {
+  if (path.keyframes.length < 2) return 0;
+  let total = 0;
+  for (let index = 0; index < path.keyframes.length - 1; index += 1) {
+    total += Math.max(200, path.keyframes[index]?.durationMs ?? 2000);
+  }
+  return total;
+}
+
+export function pathIsPlayable(path: TwinCameraPath | null): boolean {
+  return Boolean(path && path.keyframes.length >= 2);
+}
+
+export type PlaybackSession = {
+  modelId: string;
+  path: TwinCameraPath;
+  playback: PlaybackState;
+};
+
+/** Same model keeps the running clock. A different model starts idle so a path cannot cross models. */
+export function adoptPlaybackPath(
+  session: PlaybackSession | null,
+  modelId: string,
+  path: TwinCameraPath,
+): PlaybackSession {
+  if (session && playbackModelMatches(session.modelId, modelId)) {
+    return { modelId, path, playback: session.playback };
+  }
+  return { modelId, path, playback: { status: "idle", elapsedMs: 0 } };
 }
