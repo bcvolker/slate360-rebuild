@@ -6,6 +6,7 @@ import os
 import shutil
 import sys
 import tarfile
+import threading
 from pathlib import Path
 from typing import Any
 
@@ -119,6 +120,19 @@ def _download(bucket: str, key: str, dest: Path) -> None:
 
 def _upload(bucket: str, key: str, src: Path) -> None:
     _r2().upload_file(str(src), bucket, key)
+
+
+def _commit_every(stop: threading.Event, every_s: int = 300) -> None:
+    """Publish volume writes while a long job is still running.
+
+    Checkpoints, face files, and status.json are invisible to the watchdog
+    until commit. A preemption before the final commit must not drop them.
+    """
+    while not stop.wait(every_s):
+        try:
+            ckpt_vol.commit()
+        except Exception as exc:  # noqa: BLE001
+            print(f"[volume] commit failed (non-fatal): {type(exc).__name__}: {exc}", flush=True)
 
 
 @app.function(
@@ -917,12 +931,17 @@ def room213_raw_build() -> str:
     import io
     import contextlib
 
-    buf = io.StringIO()
-    with contextlib.redirect_stdout(buf):
-        import room213_raw_build as m
-        m.main()
-    ckpt_vol.commit()
-    return buf.getvalue()
+    stop = threading.Event()
+    threading.Thread(target=_commit_every, args=(stop,), daemon=True).start()
+    try:
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            import room213_raw_build as m
+            m.main()
+        ckpt_vol.commit()
+        return buf.getvalue()
+    finally:
+        stop.set()
 
 
 @app.function(
@@ -987,6 +1006,33 @@ def _classify(msg: str) -> str:
     return "infra" if any(p in msg for p in INFRA_PATTERNS) else "code"
 
 
+def _detached_cpu_build_running() -> tuple[bool, bool]:
+    """(alive, check_ok). A detached recon-experiment app with tasks is the current CPU build."""
+    import asyncio
+    from modal.client import _Client
+    from modal_proto import api_pb2
+
+    async def _query() -> bool:
+        client = await _Client.from_env()
+        resp = await client.stub.AppList(api_pb2.AppListRequest())
+        for row in resp.apps:
+            if "recon-experiment" not in (row.description or ""):
+                continue
+            if row.state in (
+                api_pb2.APP_STATE_DETACHED,
+                api_pb2.APP_STATE_DETACHED_DISCONNECTED,
+                api_pb2.APP_STATE_EPHEMERAL,
+            ) and int(row.n_running_tasks or 0) > 0:
+                return True
+        return False
+
+    try:
+        return asyncio.run(_query()), True
+    except Exception as exc:  # noqa: BLE001
+        print(f"[watchdog] app list failed: {type(exc).__name__}: {exc}", flush=True)
+        return False, False
+
+
 @app.function(
     image=gpu_image,
     schedule=modal.Period(minutes=10),
@@ -1038,8 +1084,18 @@ def room213_watchdog() -> dict[str, Any]:
                     _wd_event(st, f"cancel failed: {e}")
                 state, msg = "failed", "heartbeat stale (treated as infrastructure hang)"
         if state == "none":
-            call = room213_raw_build.spawn(); st["build_call_id"] = call.object_id
-            _wd_event(st, f"build launched as {call.object_id}")
+            # The detached CPU run is a different Modal app. Spawning here while it
+            # still has tasks would run two builds. Replace it once, after it is gone.
+            detached_alive, apps_visible = _detached_cpu_build_running()
+            if not apps_visible:
+                _wd_event(st, "could not list apps; not launching a second build")
+            elif detached_alive:
+                st["external_build_seen"] = True
+                _wd_event(st, "detached CPU build still running; not launching another")
+            elif st.get("external_build_seen") or not st.get("replacement_spawned"):
+                call = room213_raw_build.spawn(); st["build_call_id"] = call.object_id
+                st["replacement_spawned"] = True
+                _wd_event(st, f"build launched as {call.object_id}")
         elif state == "failed":
             relaunch("build", room213_raw_build, "build_call_id", msg or "unknown")
         elif state == "done":
@@ -1086,12 +1142,17 @@ def room213_stage1_train() -> str:
     sys.path.insert(0, "/root/recon-experiment"); sys.path.insert(0, "/root/splat-lab")
     import io
     import contextlib
-    buf = io.StringIO()
-    with contextlib.redirect_stdout(buf):
-        import room213_stage1 as m
-        m.main()
-    ckpt_vol.commit()
-    return buf.getvalue()
+    stop = threading.Event()
+    threading.Thread(target=_commit_every, args=(stop,), daemon=True).start()
+    try:
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            import room213_stage1 as m
+            m.main()
+        ckpt_vol.commit()
+        return buf.getvalue()
+    finally:
+        stop.set()
 
 
 def _committed_recipe(name: str) -> dict[str, Any]:
