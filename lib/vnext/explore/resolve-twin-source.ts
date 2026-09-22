@@ -61,13 +61,47 @@ async function findBestTwinModel(
   return best;
 }
 
+async function findTwinModelById(
+  admin: Admin,
+  projectId: string,
+  wantKind: "splat" | "model",
+  sourceId: string,
+): Promise<TwinModelCandidate | null> {
+  const { data: spaces } = await admin
+    .from("digital_twin_spaces")
+    .select("id")
+    .eq("project_id", projectId)
+    .is("deleted_at", null)
+    .neq("status", "archived");
+  const spaceIds = (spaces ?? []).map((space) => space.id as string);
+  if (spaceIds.length === 0) return null;
+  const { data: models } = await admin
+    .from("digital_twin_models")
+    .select("id, model_format, storage_key, title, updated_at, space_id")
+    .eq("id", sourceId)
+    .is("deleted_at", null)
+    .eq("status", "ready");
+  const model = (models ?? []).find((row) => spaceIds.includes(row.space_id as string));
+  if (!model) return null;
+  if (resolveTwinViewerKind(model.model_format ?? "", model.storage_key ?? "") !== wantKind) return null;
+  return {
+    id: model.id,
+    storageKey: model.storage_key,
+    title: (model.title as string | null) ?? null,
+    updatedAt: (model.updated_at as string | null) ?? "",
+  };
+}
+
 export async function resolveTwinSourceData(
   admin: Admin,
   projectId: string,
   wantKind: "splat" | "model",
   label: "Reality" | "Geometry",
+  sourceId: string | null = null,
 ): Promise<VnextRealitySourceData | VnextGeometrySourceData | null> {
-  const model = await findBestTwinModel(admin, projectId, wantKind);
+  const model = sourceId
+    ? await findTwinModelById(admin, projectId, wantKind, sourceId)
+    : await findBestTwinModel(admin, projectId, wantKind);
   if (!model) return null;
   const modelTitle = model.title || label;
 

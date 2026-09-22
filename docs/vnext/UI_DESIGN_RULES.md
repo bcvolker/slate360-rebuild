@@ -197,6 +197,15 @@ Project plans stay on Documents. They are not a new navigation item and not a fi
 - Show a revision label only when the plan set has one.
 - Upload plans is one button, shown only to someone allowed to manage the project. It is not a drop zone and not a storage dashboard.
 
+## History (Slice 7)
+
+History is a field archive of documented visits. It is not a dashboard, a ticket list, or a decorated timeline.
+
+- One list, newest first. Each row is a date, what was documented, a thumbnail from that visit when one exists, and Open visit. A missing thumbnail is a quiet "Record" mark, not a stock image and not the project's current hero.
+- Two visits can be selected, then compared. The compare page always shows Earlier and Later with both dates. Wide screens place the stills beside each other. Narrow screens stack them.
+- Say "Cameras are not linked" unless both reality models are verified into the same space. Even then, do not move the cameras together on this page.
+- Do not show a compare mode the two visits do not both have. Do not show a percentage changed, a progress estimate, or a red/green overlay.
+
 ## Prohibited patterns
 
 Glassmorphism, dark SaaS chrome, decorative gradients, icon tiles, widget boards, fake analytics/KPIs, giant headings, giant blank heroes, nested cards, upgrade/billing/seats/plan labels, Coming Soon product modules, Command Center, Studio proliferation, teal **interaction** accents, marketing slogans in the app.

@@ -1,8 +1,8 @@
 # Slate360 Phase 1 — Implementation Status
 
 **Last updated:** 2026-09-21  
-**Current slice:** 6A (Project plans foundation) — implemented, awaiting approval  
-**Next slice:** 7 (History + Compare) — **NOT STARTED**
+**Current slice:** 7 (History + Compare) — implemented, awaiting approval  
+**Next slice:** 8 (Presentation) — **NOT STARTED**
 
 Canonical plan: `docs/vnext/SLATE360_UI_PHASE1_MASTER_BUILD_PLAN.md`  
 Slice prompts: `docs/vnext/SLATE360_UI_PHASE1_CURSOR_SLICE_PROMPTS.md`  
@@ -37,8 +37,8 @@ The feature branch is **pushed**. It is not an unpushed `origin/main` clone.
 | 4 | Unified Explore viewer | **APPROVED** |
 | 5 | Items + spatial linking | **APPROVED** |
 | 6 | Documents + project search | **APPROVED** |
-| 6A | Project plans foundation | **IMPLEMENTED — awaiting approval** |
-| 7 | History + Compare | Not started |
+| 6A | Project plans foundation | **APPROVED** |
+| 7 | History + Compare | **IMPLEMENTED — awaiting approval** |
 | 8 | Presentation / social clip foundation | Not started |
 | 9 | Owner Home + Clients + Projects | Not started |
 | 10 | Processing + QA & Publish | Not started |
@@ -666,7 +666,7 @@ Slice 5 was not started.
 
 ## Handoff
 
-Slice 6 (Documents + project search) is implemented and waiting for review. Do not begin Slice 7 until Brian explicitly approves this slice.
+Slice 7 (History + Compare) is implemented and waiting for review. Do not begin Slice 8 until Brian explicitly approves this slice.
 
 ## Slice 5 notes (2026-09-21)
 
@@ -736,4 +736,36 @@ Project plans are a project asset. A visit may reference a sheet. It does not ow
 Future captured-versus-proposed boundary: `docs/vnext/CAPTURED_AND_PROPOSED.md`. No design surface was added.
 
 Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 28 files / 228 tests passed, production build, Playwright 105 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. Scoped typecheck of the Slice 6A files passed. `npm run typecheck:changed` against `main` still exits 2 only on the three pre-existing `splat-viewer-scene.tsx` `sparkRenderer` / `splatMesh` errors. Those lines were not edited.
+
+## Slice 7 notes (2026-09-21)
+
+History is a project record of documented site conditions. It is not a job log, an audit feed, or a claim that the software detected change. Slice 8 was not started.
+
+**No new table.** There is no persisted visits table. `assembleProjectHistory` builds `VnextVisit` rows from records that already exist. Two records on the same calendar date stay separate unless a foreign key joins them.
+
+**What becomes a history row**
+
+| Source | Date used | Included when | Identity |
+|---|---|---|---|
+| `site_walk_sessions` | `completed_at`, else `started_at`, else `created_offline_at`, else `created_at`. Never `updated_at` | `status` is `completed` or `signed`, and `project_id` matches. There is no separate publish flag; that status is the client record | `session-{id}` |
+| `site_walk_items` `photo_360` | The parent session's date | The item belongs to an included session | A representation of that session, not a second visit |
+| Orphan `photo_360` | `captured_at` only. Undated orphans are dropped | No included session covers `session_id` | `pano-{id}` |
+| `digital_twin_models` | The capture's `uploaded_at`, else `created_at`, else the model's `created_at`. Never `updated_at` | Model `status='ready'`, viewer kind is splat or glb/gltf, space is not deleted or archived. Models that share a capture still on this project are one visit. A model whose `capture_id` does not resolve is dropped. `review_status` is not a second publish gate; Explore does not use it either | `capture-{id}` or `model-{id}` |
+| `thermal_analysis_sessions` | Earliest `thermal_captures.created_at`, else `created_at`. The capture table has no `captured_at`. Never `updated_at` | `isThermalSessionAvailable`: published share, not revoked or expired, and `layer_config` still leaves a viewable capture. Never merged with a site walk or a scan by date | `thermal-{id}` |
+
+Drone, pano, lidar, and ply twin formats are not history rows. `digital_twin_capture_assets.panorama_360` is not a 360 source. Deleted and archived rows are excluded. A visit has no document count: no foreign key ties a document to a visit, and a shared date or filename is not one.
+
+**Plan context.** A visit points at the project's sheet through `site_walk_session_plan_sheets` and `visitPlanAnchors`. The same sheet can appear on two visits. The revision label is the plan set's label, or `Rev N` when the number is greater than 1. That is a drawing revision, not the visit date. This slice does not overlay two revisions.
+
+**Compare.** Exactly two visits. The route is `/history/compare?a=&b=` and the page orders them Earlier and Later. A representation appears only when both visits have it: Reality, Geometry, 360, Plan, or Thermal. One side is not enough. There is no Drone compare and no change detection.
+
+**Cameras.** `cameraSyncIsReliable` is true only when both models have `quality_metrics.georeferenceStatus === "VERIFIED"`, the same `space_id`, and different model ids. A shared space without verification is not enough. The compare page does not move the cameras even then. `TwinModelViewer` has no orbit handle, and synchronizing two canvases without that handle would fake a shared viewpoint. Verified pairs are labeled as sharing a frame. Everything else says the cameras are not linked. 360 has no station or yaw correspondence, so panoramas are never called the same viewpoint.
+
+**Stills, not two live viewers.** History rows use a thumbnail from that visit only. Compare shows those stills side by side on a wide screen and stacked on a narrow one. It does not mount splat, GLB, 360, or thermal viewers. Open goes to Explore with `rep` and `source` set to that historical model, panorama, sheet, or thermal session. An unknown source does not fall back to the newest. Thermal sessions have no project image route, so a thermal compare without a still says so and still opens Explore.
+
+**Access.** `getScopedProjectForUser`. A visit, session, model, thermal session, sheet, or compare id from another project is not in the assembled list and the page is not found. Unauthenticated history, visit, and compare routes redirect to login.
+
+**Routes.** `/vnext/projects/[projectId]/history`, `/history/[visitId]`, `/history/compare`. Filters `kind=` and compare selection `pick=` stay on the history URL. No `loading.tsx` on these routes.
+
+Canonical `npm run test:vnext` on 2026-09-21, exit code 0: Vitest 30 files / 240 tests passed, production build, Playwright 118 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. Scoped typecheck of the Slice 7 history files passed. `npm run typecheck:changed` against `main` still exits 2 only on the three pre-existing `splat-viewer-scene.tsx` `sparkRenderer` / `splatMesh` errors. Those lines were not edited.
 

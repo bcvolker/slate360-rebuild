@@ -269,6 +269,27 @@ Verified against the Phase 1 client route. This does not change the legacy Slate
 
 ---
 
+### 6d. vNext history and compare (Slice 7)
+
+| Field | Value |
+|---|---|
+| Backend / data model | Adapter over `site_walk_sessions`, `site_walk_items`, `digital_twin_captures`, `digital_twin_models`, `digital_twin_spaces`, `thermal_analysis_sessions`, and `site_walk_session_plan_sheets`. No visits table |
+| Merge rule | Only a real foreign key. Same calendar date does not merge a thermal scan with a site walk or a reality scan |
+| Date | Physical capture time. `updated_at` is never the visit date. See Slice 7 notes for the exact fallback per source |
+| Client record | Site walk `completed` or `signed`. Ready twin model in a live space. Thermal only when `isThermalSessionAvailable`. Drafts, failed processing, revoked or expired thermal, and deleted rows are excluded |
+| Documents on a visit | `NOT SUPPORTED`. No visit-to-document foreign key. Documents stay on Documents |
+| Items on a visit | `SUPPORTED` when `site_walk_items.session_id` is that session |
+| Plan context | `SUPPORTED` as a reference to the project sheet. The visit does not own a plan copy. Revision label is the drawing revision, not the visit date |
+| Compare | Reality, Geometry, 360, Plan, and Thermal, only when both selected visits can render that representation. Side-by-side stills. No automated change detection |
+| Camera sync | Allowed by evidence only: both models `georeferenceStatus=VERIFIED` in the same space. The compare page still does not move the cameras. Unproven pairs stay independent |
+| 360 viewpoint | `NOT SUPPORTED`. No station or yaw link. Side-by-side panoramas are not labeled as the same viewpoint |
+| Read | vNext project access. Another project's id is not found |
+| Write | `HIDDEN` |
+| Intended vNext UI | `/vnext/projects/[projectId]/history`, `/history/[visitId]`, `/history/compare` |
+| Planned Phase 1 slice | 7, built |
+
+---
+
 ## 7. Folder
 
 | Field | Value |

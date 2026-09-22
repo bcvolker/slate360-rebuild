@@ -20,6 +20,7 @@ type Admin = ReturnType<typeof createAdminClient>;
 export async function resolveThermalSourceData(
   admin: Admin,
   projectId: string,
+  sessionId: string | null = null,
 ): Promise<VnextExploreSourceData | null> {
   const { data: sessions } = await admin
     .from("thermal_analysis_sessions")
@@ -54,9 +55,10 @@ export async function resolveThermalSourceData(
     storagePath: row.storage_path as string | null,
   }));
 
-  const bestSession = (sessions ?? [])
-    .filter((s) => isThermalSessionAvailable(s.id as string, shares, captures))
-    .sort((a, b) => Date.parse(b.updated_at as string) - Date.parse(a.updated_at as string))[0];
+  const available = (sessions ?? []).filter((s) => isThermalSessionAvailable(s.id as string, shares, captures));
+  const bestSession = sessionId
+    ? available.find((session) => session.id === sessionId) ?? null
+    : available.sort((a, b) => Date.parse(b.updated_at as string) - Date.parse(a.updated_at as string))[0];
   if (!bestSession) return null;
 
   // The EXACT qualifying share for this session — not merely "the first non-revoked, non-expired

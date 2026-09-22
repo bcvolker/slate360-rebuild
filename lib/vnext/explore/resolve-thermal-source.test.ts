@@ -221,4 +221,26 @@ describe("resolveThermalSourceData", () => {
       captures: [{ id: "cap-1", imageUrl: "https://signed.example/a.jpg", label: "a.jpg" }],
     });
   });
+
+  it("opens the requested thermal session and does not substitute a newer one", async () => {
+    loadThermalShareViewerDataMock.mockResolvedValueOnce({
+      sessionId: "session-1",
+      sessionName: "North wall",
+      captures: [{ id: "cap-1", filename: "a.jpg", previewUrl: "https://signed.example/a.jpg" }],
+    });
+    const admin = mockAdmin({
+      thermal_analysis_sessions: [SESSION, { id: "session-2", name: "Newer", updated_at: "2026-06-01T00:00:00.000Z" }],
+      thermal_analysis_share_tokens: [
+        { session_id: "session-1", is_revoked: false, expires_at: null, layer_config: {} },
+        { session_id: "session-2", is_revoked: false, expires_at: null, layer_config: {} },
+      ],
+      thermal_captures: [
+        { id: "cap-1", session_id: "session-1", preview_path: "x.jpg", storage_path: null },
+        { id: "cap-2", session_id: "session-2", preview_path: "y.jpg", storage_path: null },
+      ],
+    });
+    const exact = await resolveThermalSourceData(admin, "p1", "session-1");
+    expect(exact && "sessionName" in exact ? exact.sessionName : null).toBe("North wall");
+    expect(await resolveThermalSourceData(admin, "p1", "missing")).toBeNull();
+  });
 });

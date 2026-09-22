@@ -9,6 +9,8 @@ const AUTH_ROUTES = [
   "/vnext/projects/11111111-1111-4111-8111-111111111111/items",
   "/vnext/projects/11111111-1111-4111-8111-111111111111/documents",
   "/vnext/projects/11111111-1111-4111-8111-111111111111/history",
+  "/vnext/projects/11111111-1111-4111-8111-111111111111/history/session-sep18",
+  "/vnext/projects/11111111-1111-4111-8111-111111111111/history/compare",
   "/vnext/account",
   "/vnext/ops",
   "/vnext/ops/clients",
@@ -58,6 +60,20 @@ test.describe("vNext route smoke", () => {
     // The redirect target must stay an internal /vnext/... path — never an absolute or external URL.
     expect(redirectTo?.startsWith("/vnext/")).toBe(true);
     expect(redirectTo).not.toContain("://");
+    health.assertClean();
+  });
+
+  test("unauthenticated history compare preserves the selected visits in redirectTo", async ({ page }) => {
+    const health = attachRuntimeHealth(page);
+    await page.goto(
+      "/vnext/projects/11111111-1111-4111-8111-111111111111/history/compare?a=capture-sep1&b=capture-sep15&rep=reality",
+      { waitUntil: "domcontentloaded" },
+    );
+    const url = new URL(page.url());
+    expect(url.pathname).toBe("/login");
+    expect(url.searchParams.get("redirectTo")).toBe(
+      "/vnext/projects/11111111-1111-4111-8111-111111111111/history/compare?a=capture-sep1&b=capture-sep15&rep=reality",
+    );
     health.assertClean();
   });
 

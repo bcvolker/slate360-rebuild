@@ -55,9 +55,13 @@ export async function loadVnextExploreData(
   if (activeRepresentation) {
     try {
       if (activeRepresentation === "reality") {
-        activeSourceData = await resolveTwinSourceData(admin, row.id, "splat", "Reality");
+        const reality = await resolveTwinSourceData(admin, row.id, "splat", "Reality", requestedSourceId);
+        activeSourceData = reality;
+        activeSourceId = reality ? requestedSourceId : null;
       } else if (activeRepresentation === "geometry") {
-        activeSourceData = await resolveTwinSourceData(admin, row.id, "model", "Geometry");
+        const geometry = await resolveTwinSourceData(admin, row.id, "model", "Geometry", requestedSourceId);
+        activeSourceData = geometry;
+        activeSourceId = geometry ? requestedSourceId : null;
       } else if (activeRepresentation === "360") {
         const resolved = await resolvePanoSourceData(admin, row.id, requestedSourceId);
         activeSourceId = resolved?.sourceId ?? null;
@@ -67,7 +71,8 @@ export async function loadVnextExploreData(
         activeSourceId = resolved?.sourceId ?? null;
         activeSourceData = resolved?.data ?? null;
       } else if (activeRepresentation === "thermal") {
-        activeSourceData = await resolveThermalSourceData(admin, row.id);
+        activeSourceData = await resolveThermalSourceData(admin, row.id, requestedSourceId);
+        activeSourceId = activeSourceData ? requestedSourceId : null;
       }
     } catch {
       activeSourceData = null;
