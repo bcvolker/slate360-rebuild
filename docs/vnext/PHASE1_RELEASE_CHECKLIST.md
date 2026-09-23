@@ -46,17 +46,17 @@ Evidence is the approved slice tests, the code audit on 2026-09-22, and the comm
 | Area | Status | Evidence |
 |---|---|---|
 | TypeScript (`npm run typecheck:changed`) | PASS | Exit 0 after the Spark JSX augmentation is imported. No `@ts-ignore` |
-| Full `npm run typecheck` | BLOCKED | Not run locally (full `tsc` OOMs). `.github/workflows/typecheck.yml` runs only on a PR or push to `main`. The 12B pull request is that gate. Do not merge while it is red. `next.config.ts` keeps `typescript.ignoreBuildErrors` |
+| Full `npm run typecheck` | FAIL | [Run 35826993947](https://github.com/bcvolker/slate360-rebuild/actions/runs/35826993947) failed. The errors are in Site Walk, preview fixtures, SlateDrop, thermal e2e, dev capture, and `lib/digital-twin/s360-world.ts`. None of those files are in the 12B diff. `typescript.ignoreBuildErrors` stays |
 | Production build | PASS | Inside `npm run test:vnext`. Result recorded below after this slice |
 | Tests | PASS | `npm run test:vnext`. Result recorded below |
 | `guard:architecture` | PASS | Run with this slice |
 | `guard:design` | PASS | Run with this slice |
 | `guard:file-size-regression` | PASS | Run with this slice |
-| Vercel | BLOCKED | Confirmed on the 12B SHA after push. A green Vercel build is not the typecheck gate |
+| Vercel | PASS | Preview deployment for `9ec382a5` completed: https://slate360-rebuild-junzyroqb-slate360.vercel.app |
 | Supabase migrations | PASS | Six vNext versions applied and recorded. See the inventory |
 | RLS | PASS | Reviews and share tokens are not readable by `authenticated` or `anon`. Publish RPCs are service-role |
 | Environment | PASS | Names below are already required by current code. None were added |
-| Service worker | PASS | `app/sw.ts` deletes caches, claims clients, posts `SLATE360_SW_KILL_RELOAD`, and unregisters. No fetch handler, so it does not intercept vNext navigations |
+| Service worker | PASS | On the 12B preview, `/sw.js` returns the kill switch for SHA `9ec382a5`. It clears caches, posts `SLATE360_SW_KILL_RELOAD`, and unregisters. `getRegistrations()` was empty. There is no fetch handler, so it does not intercept vNext navigations |
 | Reconstruction | DEFERRED / NON-BLOCKING | Separate workstream. This branch did not change it |
 
 ## Environment names
@@ -105,12 +105,12 @@ Scope profiles A, B, and C are covered by `e2e/vnext/scope.spec.ts`.
 
 ## Issues
 
-| Id | Class | Item | 12A action |
+| Id | Class | Item | 12B action |
 |---|---|---|---|
 | — | P0 | None in the cutover diff | The release stays blocked until the GitHub typecheck workflow on the PR is green |
 | — | P1 | None that should be patched inside this cutover | Do not merge before that workflow and a review of the diff |
-| TS-1 | P2 | `typescript.ignoreBuildErrors` is still true | Leave it. Remove it only in a later commit if the full typecheck is clean and production does not rely on ignored errors |
-| SW-1 | P3 | Browser confirmation of the kill switch on the 12B deployment | Code already clears caches and unregisters. No service-worker redesign |
+| TS-1 | P0 for merge | Full GitHub typecheck is red | Do not merge. Do not remove `ignoreBuildErrors`. The failures are outside the cutover diff |
+| SW-1 | P3 | Browser confirmation of the kill switch | Confirmed on the 12B preview. No service-worker redesign |
 
 ## Known limitations
 
@@ -131,7 +131,7 @@ Password on generic project links, public Items and Documents, Thermal on the ge
 - `npm run typecheck:changed`: exit 0
 - `npm run test:vnext`: exit 0. Vitest 45 files / 330 tests. Production build compiled. Playwright 162 passed
 - `guard:architecture`, `guard:design`, `guard:file-size-regression`: pass
-- Full GitHub `npm run typecheck`: not green yet. Open the PR and wait. Do not call the product released.
+- Full GitHub `npm run typecheck`: FAIL. https://github.com/bcvolker/slate360-rebuild/actions/runs/35826993947. Do not merge. Do not call the product released.
 
 Build warnings that do not change this release: Sentry still asks to move `sentry.client.config.ts` to `instrumentation-client.ts` before Turbopack. Serwist still emits `/sw.js`, and that worker unregisters itself. No auth, routing, or share warning was introduced.
 
