@@ -2,7 +2,7 @@
 
 Branch `feature/spirula-worker-experimental` in worktree `C:\s360-spirula-worker`.
 Starting SHA: `a7b1c66c0871c4e41adb89d0d58dab86183a9665` (`origin/main`).
-Ending SHA: recorded in the commit that publishes this file on `origin/feature/spirula-worker-experimental`.
+Ending SHA: `d801655e630666b1fa8ec79817a5625bb590f1fa` is the freeze commit. The following SHA stamp, if present, is HEAD.
 Remote branch: `origin/feature/spirula-worker-experimental`.
 
 Spirula pin: `harry7557558/spirula-studio` @ `e6d38a2a900bb1eddc73c68051cc625e88809c5f`.
