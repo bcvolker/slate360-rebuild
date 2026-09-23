@@ -47,6 +47,8 @@ type Props = {
   onViews?: (views: VnextSavedView[]) => void;
   pathModelId?: string | null;
   initialPath?: TwinCameraPath | null;
+  /** Public recipients do not get the saved-view authoring panel. */
+  showViews?: boolean;
 };
 
 export function VnextExploreShell({
@@ -66,6 +68,7 @@ export function VnextExploreShell({
   onViews,
   pathModelId = null,
   initialPath = null,
+  showViews = true,
 }: Props) {
   const router = useRouter();
   const [present, setPresent] = useState(initialPresent);
@@ -212,7 +215,7 @@ export function VnextExploreShell({
 
           {!present && itemFocus ? <VnextExploreItemContext focus={itemFocus} /> : null}
 
-          {!present ? (
+          {!present && showViews ? (
             <VnextSavedViewsPanel
               projectId={data.projectId}
               basePath={basePath}

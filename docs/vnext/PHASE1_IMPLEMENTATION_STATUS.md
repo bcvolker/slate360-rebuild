@@ -1,8 +1,8 @@
 # Slate360 Phase 1 — Implementation Status
 
 **Last updated:** 2026-09-22  
-**Current slice:** 10 (Processing / QA / Publish / Preview as client) — implemented, awaiting approval  
-**Next slice:** 11 (Sharing / permissions / polish) — **NOT STARTED**
+**Current slice:** 11 (Sharing / permissions / polish) — implemented, awaiting approval  
+**Next slice:** 12 (Cutover / cleanup / release gate) — **NOT STARTED**
 
 Canonical plan: `docs/vnext/SLATE360_UI_PHASE1_MASTER_BUILD_PLAN.md`  
 Slice prompts: `docs/vnext/SLATE360_UI_PHASE1_CURSOR_SLICE_PROMPTS.md`  
@@ -42,9 +42,9 @@ The feature branch is **pushed**. It is not an unpushed `origin/main` clone.
 | 7A | Client deliverable scope + visibility | **APPROVED** |
 | 8 | Presentation / saved views / evidence links | **APPROVED** |
 | 9 | Owner Home + Clients + Projects | **APPROVED** |
-| 10 | Processing + QA & Publish | **IMPLEMENTED — awaiting approval** |
-| 11 | Sharing + permissions + polish | **NOT STARTED** |
-| 12 | Cutover + cleanup | Not started |
+| 10 | Processing + QA & Publish | **APPROVED** |
+| 11 | Sharing + permissions + polish | **IMPLEMENTED — awaiting approval** |
+| 12 | Cutover + cleanup | **NOT STARTED** |
 
 ---
 
@@ -831,6 +831,19 @@ Closeout: publication is per source. Publishing one scan, sheet, or 360 station 
 Closeout `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 39 files / 302 tests passed, production build, Playwright 155 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. `npm run typecheck:changed` against `main` exits 2 only on the existing `splat-viewer-scene.tsx` lines 197–199.
 
 Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 37 files / 288 tests passed, production build, Playwright 155 passed. A confirming run of the same suite reused that production build after the Playwright spec waited for the plan and 360 viewers, and also exited 0 (155 passed). `VNEXT_SKIP_BUILD` was unset afterward. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. `npm run typecheck:changed` against `main` exits 2 only on the existing `splat-viewer-scene.tsx` lines 197–199.
+
+## Slice 11 notes (2026-09-22)
+
+Sharing is a project link and a saved-view link. The table is `project_share_links`. The public route is `/share/project/[token]` because `/portal/[token]` is already the deliverable viewer. Site Walk, Digital Twin, Thermal, and `deliverable_access_tokens` are unchanged. The contract is `docs/vnext/VNEXT_SHARING.md`.
+
+A project link follows the current included, published, and renderable portal. A saved-view link stays on that source. Items, Documents, and Thermal are not on the generic public link. Password protection is deferred. The owner page is `/vnext/ops/shares`. Settings and Account are short real pages, not billing.
+
+Slice 12 was not started. There is no cutover and no legacy deletion.
+
+Migration `20260923010000_project_share_links.sql` was applied to linked project `hadnfcenpcfaeclczsmm` and recorded. A rolled-back proof showed an expired token does not increment, an active token increments once, a revoked token does not increment again, and an authenticated role cannot read the table. `service_role` can execute `claim_project_share_open`. Older migrations were not rerun.
+
+Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 41 files / 312 tests passed, production build, Playwright 157 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. Scoped typecheck of the Slice 11 files exits 2 only on the existing `splat-viewer-scene.tsx` lines 197–199.
+
 
 
 

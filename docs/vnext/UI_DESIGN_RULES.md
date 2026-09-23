@@ -348,3 +348,10 @@ Do not invent settings that do not persist. Canonical inventory:
 - project defaults where supported
 
 Do not expose subscriptions, pricing plans, seat upsells, or app marketplace settings unless the Phase 1 plan is later changed explicitly.
+
+Slice 11 leaves Settings and Account as short owner pages. Settings points at project scope, publication, and Shares. Account shows the signed-in email. Neither is a billing screen or a new settings system.
+
+## Public share
+
+A public project link uses the client deliverable, not a landing page. No sign-up, pricing, or product list. Sections are only Overview, Explore, and History when the project includes them. Status on the owner Shares page is the word Active, Expired, or Revoked. The open count is labeled Opens. The canonical contract is `docs/vnext/VNEXT_SHARING.md`.
+

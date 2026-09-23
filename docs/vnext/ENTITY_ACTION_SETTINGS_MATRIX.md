@@ -545,3 +545,18 @@ A service with `included = false` is omitted from the project summary. It is not
 
 Publishing one splat does not revoke another splat or a mesh. Review notes are operator-only. The legacy `published_model_id` pointer is unchanged and is not the vNext release.
 
+## 13. Sharing (Slice 11)
+
+| Persona | Can | Cannot |
+|---|---|---|
+| Operations owner | Create, copy, and revoke a project link or a saved-view link at `/vnext/ops/shares`. Set an optional expiration | Create a Thermal link in this table. See a public recipient's identity |
+| Authenticated client | Open the published portal at `/vnext/projects/...` | Create or revoke a public link. See QA, publish, processing, scope, or share administration |
+| Public recipient | Open `/share/project/[token]` read-only: Overview, Explore, and History when those are included and published | Items, Documents, Thermal, save, questions, comments, upload, rename, or any owner action |
+
+A project link follows current publication. A saved-view link stays on that source and fails closed if that source is unpublished or its capability is removed. Password protection is deferred. Legacy Site Walk, Twin, Thermal, and deliverable tokens stay on their own routes.
+
+## Account and Settings (Slice 11)
+
+`/vnext/ops/settings` names where scope, publication, and share links live. `/vnext/ops/account` shows the signed-in email. Neither page adds billing, seats, or a settings system.
+
+
