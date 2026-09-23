@@ -6,7 +6,7 @@ import { DashboardDesktopTopBar } from "@/components/dashboard-desktop/Dashboard
 import { DashboardHomeContent } from "@/components/dashboard-desktop/DashboardHomeContent";
 import { dashboardDesktopTokens as t } from "@/components/dashboard-desktop/dashboard-tokens";
 
-const COUNTS = { projects: 12, siteWalks: 34, digitalTwins: 5 };
+const COUNTS = { projects: 12, siteWalks: 34, digitalTwins: 5, walksInProgress: 2, twinsDraft: 1 };
 const PROJECTS = Array.from({ length: 6 }, (_, i) => ({
   id: String(i),
   name: `Oak Ridge Roof Inspection ${i + 1}`,
@@ -42,7 +42,7 @@ export default function DashboardLookPreview() {
           onOpenCommand={() => {}}
         />
         <main className={t.content}>
-          <DashboardHomeContent counts={COUNTS} recentProjects={PROJECTS} recentWalks={WALKS} recentTwins={TWINS} />
+          <DashboardHomeContent counts={COUNTS} recentProjects={PROJECTS} recentWalks={WALKS} recentTwins={TWINS} needsAttention={[]} />
         </main>
       </div>
     </div>

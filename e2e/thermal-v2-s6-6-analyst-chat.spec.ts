@@ -9,6 +9,22 @@ import { test, expect, type Page } from "@playwright/test";
 
 const URL = "/preview/thermal-v2";
 
+type AnalystChatPost = { capture_id?: string; message?: string };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function readAnalystChatPost(value: unknown): AnalystChatPost | null {
+  if (!isRecord(value)) return null;
+  const captureId = value.capture_id;
+  const message = value.message;
+  return {
+    capture_id: typeof captureId === "string" ? captureId : undefined,
+    message: typeof message === "string" ? message : undefined,
+  };
+}
+
 async function warmBuildIdThenGoto(page: Page) {
   await page.goto(URL);
   await page.waitForFunction(() => localStorage.getItem("slate360-last-build") !== null);
@@ -43,12 +59,12 @@ test.describe("Thermal V2 S6.6 Analyst chat", () => {
   });
 
   test("sending a message shows the grounded reply and persists it", async ({ page }) => {
-    let postBody: { capture_id?: string; message?: string } | null = null;
+    const sent: { body: AnalystChatPost | null } = { body: null };
     await page.route("**/api/ops/thermal/sessions/*/chat*", async (route) => {
       if (route.request().method() === "GET") {
         return route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ thread: [] }) });
       }
-      postBody = route.request().postDataJSON();
+      sent.body = readAnalystChatPost(route.request().postDataJSON());
       return route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -65,8 +81,8 @@ test.describe("Thermal V2 S6.6 Analyst chat", () => {
 
     await expect(page.getByText("why is finding 1 severe?")).toBeVisible();
     await expect(page.getByText("That delta is well outside the solar-loading range.")).toBeVisible();
-    expect(postBody?.capture_id).toBe("a");
-    expect(postBody?.message).toBe("why is finding 1 severe?");
+    expect(sent.body?.capture_id).toBe("a");
+    expect(sent.body?.message).toBe("why is finding 1 severe?");
   });
 
   test("a revision proposal card's Accept persists via findings_review, same as AI Review's own Accept", async ({ page }) => {
