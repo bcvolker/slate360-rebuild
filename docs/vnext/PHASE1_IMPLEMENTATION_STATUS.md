@@ -1,8 +1,8 @@
 # Slate360 Phase 1 — Implementation Status
 
 **Last updated:** 2026-09-22  
-**Current slice:** 11 (Sharing / permissions / polish) — closeout implemented, awaiting approval  
-**Next slice:** 12 (Cutover / cleanup / release gate) — **NOT STARTED**
+**Current slice:** 12A (Release audit + cutover inventory) — implemented, awaiting approval  
+**Next slice:** 12B (Approved cutover + cleanup) — **NOT STARTED**
 
 Canonical plan: `docs/vnext/SLATE360_UI_PHASE1_MASTER_BUILD_PLAN.md`  
 Slice prompts: `docs/vnext/SLATE360_UI_PHASE1_CURSOR_SLICE_PROMPTS.md`  
@@ -43,8 +43,9 @@ The feature branch is **pushed**. It is not an unpushed `origin/main` clone.
 | 8 | Presentation / saved views / evidence links | **APPROVED** |
 | 9 | Owner Home + Clients + Projects | **APPROVED** |
 | 10 | Processing + QA & Publish | **APPROVED** |
-| 11 | Sharing + permissions + polish | **IMPLEMENTED — awaiting approval** |
-| 12 | Cutover + cleanup | **NOT STARTED** |
+| 11 | Sharing + permissions + polish | **APPROVED** |
+| 12A | Release audit + cutover inventory | **IMPLEMENTED** — awaiting approval |
+| 12B | Approved cutover + cleanup | **NOT STARTED** |
 
 ---
 
@@ -852,7 +853,18 @@ Opens is one browser-session entry. The token layout posts once to `/share/proje
 
 Closeout `npm run test:vnext` exit code 0: Vitest 44 files / 319 tests passed, production build, Playwright 158 passed. Guards passed. Scoped typecheck exits 2 only on the existing splat JSX errors.
 
-Slice 12 was not started.
+Slice 12B was not started.
+
+## Slice 12A notes (2026-09-22)
+
+Release audit and cutover inventory only. No route redirects, no legacy deletion, no merge to main.
+
+Inventory: `docs/vnext/REPO_CLEANUP_INVENTORY.md`. Checklist: `docs/vnext/PHASE1_RELEASE_CHECKLIST.md`.
+
+Spark JSX elements are typed by importing the existing `types/spark-r3f.d.ts` augmentation. `npm run typecheck:changed` exits 0. Rendering and reconstruction were not changed.
+
+The six vNext migrations `20260922120000` through `20260923010000` are applied and recorded on `hadnfcenpcfaeclczsmm`. Older migration drift was not repaired.
+
 
 
 

@@ -375,14 +375,14 @@ Production token URLs must remain stable (Decision K).
 | Archive | `NOT CURRENTLY SUPPORTED` |
 | Delete | `SUPPORTED` — confirmed delete by a manager. Turning a capability off does not delete the row |
 | Restore | `NOT APPLICABLE` |
-| Share / Copy link | `PARTIAL` — authenticated deep link `?view=` only. No public token in this slice |
+| Share / Copy link | `SUPPORTED` for the operations owner: a saved-view row can be an exact `/share/project/[token]` evidence link. Authenticated clients still have the `?view=` deep link. They cannot mint the public token |
 | Download | `NOT APPLICABLE` |
 | Publish / Unpublish / Revoke | `NOT APPLICABLE` — visibility follows project capability and source renderability |
 | Delete semantics | Row delete. Hidden is not deleted |
 | Intended vNext UI | Explore → Views. Not a project tab |
 | Planned Phase 1 slice | 8 — implemented |
 | Backend exists | `SUPPORTED` — `GET/POST /api/vnext/projects/[projectId]/saved-views`, `PATCH/DELETE .../[viewId]` |
-| Later verification | Public share tokens are Slice 11 |
+| Later verification | Slice 11 public evidence links are owner-only, exact-source, and fail closed. Slice 12A did not change that contract |
 
 ---
 
