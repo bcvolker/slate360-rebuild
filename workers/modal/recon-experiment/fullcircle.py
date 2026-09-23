@@ -839,8 +839,165 @@ runpy.run_path("/workspace/fullcircle/train.py", run_name="__main__")
     return res
 
 
+# fixed physical camera analysed at step 25k in the broken (non-densifying) run; crop boxes are in 720-px panel
+# coordinates of that frame and scale x(3840/720). Chosen from the viewed GT frame, not from any render.
+FIXED_VIEW = "camera2/frame_00103.png"
+CROPS_720 = {"ceiling_grid": (200, 60, 560, 300), "window_frames": (140, 350, 440, 470),
+             "chair_backs": (360, 420, 560, 540), "table_edges": (380, 450, 580, 560),
+             "door_hardware": (575, 340, 660, 430), "carpet": (60, 520, 250, 640)}
+
+RENDER_FIXED_SRC = '''import sys
+sys.path.insert(0, "/workspace/fullcircle")
+import threedgrut.datasets as D
+_o = D.make_test
+def mt(*a, **k):
+    cfg = k["config"] if "config" in k else a[1]
+    cfg.dataset.test_frame_suffix = sys.argv[3]
+    return _o(*a, **k)
+D.make_test = mt
+from threedgrut.render import Renderer
+Renderer.from_checkpoint(checkpoint_path=sys.argv[1], path=sys.argv[4], out_dir=sys.argv[2], save_gt=True,
+                         computes_extra_metrics=True).render_all()
+'''
+
+
+@app.function(image=fc_image, gpu="L40S", timeout=2 * 60 * 60, cpu=16.0, memory=64 * 1024, volumes={"/vol": vol})
+def fc_checkpoint_series_v2() -> dict[str, Any]:
+    """Render the SAME physical camera (camera2/frame_00103) from every saved checkpoint of the fixed-densification
+    run, beside the broken run's step-25k render of that camera, and measure edge energy per content region. The
+    camera is selected by setting the test-split filename suffix to '00103' (picks frame_00103 on both lenses) --
+    the released renderer itself is untouched. Also renders all 24 held-out frames from the final checkpoint through
+    the released render.py. Read-only; no training."""
+    import subprocess
+    import numpy as np
+    import cv2
+    from pathlib import Path
+
+    runs = sorted(Path(f"{FC}/runs/room213_native").iterdir())
+    run = [r for r in runs if (r / "ours_30000").exists()][-1]
+    broken = f"{FC}/runs/room213_native/room213-2209_200433"
+    out: dict[str, Any] = {"run": str(run), "fixed_view": FIXED_VIEW}
+    work = Path(f"{FC}/series"); work.mkdir(exist_ok=True)
+    script = work / "render_fixed_v2.py"; script.write_text(RENDER_FIXED_SRC)
+    gt_ref = cv2.imread(f"{DATA}/images/{FIXED_VIEW}")
+    small_ref = cv2.resize(gt_ref, (256, 256)).astype(np.float32)
+    renders: dict[str, Any] = {}
+    for step in (7000, 15000, 20000, 25000, 30000):
+        ck = run / f"ours_{step}" / f"ckpt_{step}.pt"
+        od = work / f"v2_step{step}"
+        if not ck.exists():
+            continue
+        if not any(od.rglob("*.png")):
+            r = subprocess.run([PY, str(script), str(ck), str(od), "00103", DATA], capture_output=True, text=True,
+                               cwd="/workspace/fullcircle")
+            (work / f"render_{step}.log").write_text(r.stdout[-4000:] + "\n" + r.stderr[-4000:])
+        best = (1e18, None)
+        for g in od.rglob("gt/*.png"):
+            im = cv2.imread(str(g))
+            if im is None:
+                continue
+            d = float(np.abs(cv2.resize(im, (256, 256)).astype(np.float32) - small_ref).mean())
+            if d < best[0]:
+                best = (d, g)
+        if best[1] is not None:
+            if best[0] > 5.0:
+                renders[str(step)] = {"INVALID_view_match_diff": round(best[0], 3)}; continue
+            renders[str(step)] = {"path": str(best[1].parent.parent / "renders" / best[1].name),
+                                  "gt_match_diff": round(best[0], 3)}
+    out["renders_found"] = renders
+    brk = cv2.imread(f"{broken}/training_images/renders/render_step_025000.png")
+    border = cv2.imread(f"{FC}/mask_border.png", 0) > 0
+    trm = cv2.imread(f"{DATA}/masks/masks-5/camera2/frame_00103_mask.png", 0)
+    valid = border & ~(trm > 127)
+    h, w = gt_ref.shape[:2]
+    xx = np.arange(w)[None, :].repeat(h, 0)
+
+    def grad(img):
+        g = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY).astype(np.float32)
+        return np.hypot(cv2.Sobel(g, cv2.CV_32F, 1, 0, 3), cv2.Sobel(g, cv2.CV_32F, 0, 1, 3))
+
+    gg = grad(gt_ref); sc = w / 720.0
+    cols = [("broken_25k", brk)] + [(f"fixed_{k}", cv2.imread(v["path"]))
+                                    for k, v in sorted(renders.items(), key=lambda t: int(t[0])) if "path" in v]
+    table: dict[str, Any] = {}
+    for name, im in cols:
+        if im is None:
+            continue
+        if im.shape != gt_ref.shape:
+            im = cv2.resize(im, (w, h))
+        gr = grad(im)
+        lm, rm = valid & (xx < w / 2), valid & (xx >= w / 2)
+        row = {"left_region": round(float(gr[lm].mean() / gg[lm].mean()), 3),
+               "right_region": round(float(gr[rm].mean() / gg[rm].mean()), 3)}
+        for cn, (x0, y0, x1, y1) in CROPS_720.items():
+            X0, Y0, X1, Y1 = int(x0 * sc), int(y0 * sc), int(x1 * sc), int(y1 * sc)
+            m = valid[Y0:Y1, X0:X1]
+            if m.sum() > 100:
+                row[cn] = round(float(gr[Y0:Y1, X0:X1][m].mean() / gg[Y0:Y1, X0:X1][m].mean()), 3)
+        table[name] = row
+    out["edge_ratio_render_over_gt"] = table
+
+    rows = []
+    for cn, (x0, y0, x1, y1) in CROPS_720.items():
+        X0, Y0, X1, Y1 = int(x0 * sc), int(y0 * sc), int(x1 * sc), int(y1 * sc)
+        tiles = []
+        for lab, im in [("GT", gt_ref)] + cols:
+            if im is None:
+                continue
+            if im.shape != gt_ref.shape:
+                im = cv2.resize(im, (w, h))
+            c = cv2.resize(im[Y0:Y1, X0:X1], (300, max(1, int(300 * (Y1 - Y0) / max(X1 - X0, 1)))))
+            c = cv2.copyMakeBorder(c, 26, 0, 0, 4, cv2.BORDER_CONSTANT, value=(0, 0, 0))
+            cv2.putText(c, lab, (4, 19), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 255), 1)
+            tiles.append(c)
+        hm = max(t.shape[0] for t in tiles)
+        tiles = [cv2.copyMakeBorder(t, 0, hm - t.shape[0], 0, 0, cv2.BORDER_CONSTANT, value=(0, 0, 0)) for t in tiles]
+        strip = np.hstack(tiles)
+        lab_img = np.zeros((strip.shape[0], 150, 3), np.uint8)
+        cv2.putText(lab_img, cn, (6, strip.shape[0] // 2), cv2.FONT_HERSHEY_SIMPLEX, 0.55, (255, 255, 255), 1)
+        rows.append(np.hstack([lab_img, strip]))
+    wm = max(r.shape[1] for r in rows)
+    rows = [cv2.copyMakeBorder(r, 0, 6, 0, wm - r.shape[1], cv2.BORDER_CONSTANT, value=(0, 0, 0)) for r in rows]
+    cv2.imwrite(str(work / "fixed_camera_series_v2.png"), np.vstack(rows))
+    fr = [cv2.resize(gt_ref, (900, 900))]
+    for im in (brk, cv2.imread(renders["30000"]["path"]) if "path" in renders.get("30000", {}) else None):
+        if im is not None:
+            fr.append(cv2.resize(im, (900, 900)))
+    cv2.imwrite(str(work / "room_view_gt_broken_final_v2.png"), np.hstack(fr))
+
+    hd = work / "heldout"
+    if not any(hd.rglob("*.png")):
+        r = subprocess.run([PY, "render.py", "--checkpoint", str(run / "ours_30000" / "ckpt_30000.pt"),
+                            "--path", DATA, "--out-dir", str(hd)], capture_output=True, text=True,
+                           cwd="/workspace/fullcircle")
+        (work / "heldout_render.log").write_text(r.stdout[-6000:] + "\n" + r.stderr[-6000:])
+    hr = sorted(hd.rglob("renders/*.png")); per = []
+    for rp in hr:
+        gp = rp.parent.parent / "gt" / rp.name
+        a, b = cv2.imread(str(rp)), cv2.imread(str(gp))
+        if a is None or b is None or a.shape != b.shape:
+            continue
+        bm = cv2.resize(border.astype(np.uint8), (a.shape[1], a.shape[0])) > 0
+        per.append(float(grad(a)[bm].mean() / grad(b)[bm].mean()))
+    out["heldout"] = {"n_frames": len(per),
+                      "edge_ratio_median": round(float(np.median(per)), 3) if per else None,
+                      "edge_ratio_min_max": [round(min(per), 3), round(max(per), 3)] if per else None,
+                      "metrics_txt": next((p.read_text()[-1200:] for p in hd.rglob("metrics.txt")), None)}
+    if len(hr) >= 6:
+        tiles = []
+        for rp in [hr[i] for i in np.linspace(0, len(hr) - 1, 6).astype(int)]:
+            a = cv2.imread(str(rp)); b = cv2.imread(str(rp.parent.parent / "gt" / rp.name))
+            tiles.append(np.vstack([cv2.resize(b, (420, 420)), cv2.resize(a, (420, 420))]))
+        cv2.imwrite(str(work / "heldout_gt_over_render.png"), np.hstack(tiles))
+    json.dump(out, open(work / "series_v2.json", "w"), indent=1)
+    vol.commit()
+    return out
+
+
 @app.local_entrypoint()
 def main(phase: str = "smoke", force: bool = False, iters: int = 150, downsample: int = 1, iterations: int = 30000, step: str = "025000"):
+    if phase == "series":
+        print(json.dumps(fc_checkpoint_series_v2.remote(), indent=1)); return
     if phase == "densify_diag":
         print(json.dumps(fc_densify_diag.remote(iterations), indent=1)); return
     if phase == "analyze_dump":
