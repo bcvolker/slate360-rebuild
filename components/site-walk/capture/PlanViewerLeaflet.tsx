@@ -86,7 +86,7 @@ export function PlanViewerLeaflet({
 
   const pageIndex = controlledPageIndex ?? internalPageIndex;
   const setPageIndex = onPageIndexChange ?? setInternalPageIndex;
-  const padding = fitPadding ?? capturePlanFitPadding();
+  const { top: padTop, bottom: padBottom, left: padLeft, right: padRight } = fitPadding ?? capturePlanFitPadding();
 
   const activePlanSet = useMemo(
     () =>
@@ -166,8 +166,8 @@ export function PlanViewerLeaflet({
   const refitMap = useCallback(() => {
     const map = mapRef.current;
     if (!map || !hasRasterized) return;
-    fitPlanLeafletMap(map, activeSheet, imageWidth, imageHeight, padding);
-  }, [activeSheet, hasRasterized, imageHeight, imageWidth, padding]);
+    fitPlanLeafletMap(map, activeSheet, imageWidth, imageHeight, { top: padTop, right: padRight, bottom: padBottom, left: padLeft });
+  }, [activeSheet, hasRasterized, imageHeight, imageWidth, padTop, padRight, padBottom, padLeft]);
 
   useEffect(() => {
     refitMap();
@@ -210,9 +210,9 @@ export function PlanViewerLeaflet({
         win.__devPlanLeafletMap = map;
         win.__devPlanImageSize = { width: imageWidth, height: imageHeight };
       }
-      if (hasRasterized) fitPlanLeafletMap(map, activeSheet, imageWidth, imageHeight, padding);
+      if (hasRasterized) fitPlanLeafletMap(map, activeSheet, imageWidth, imageHeight, { top: padTop, right: padRight, bottom: padBottom, left: padLeft });
     },
-    [activeSheet, devExposeMap, hasRasterized, imageHeight, imageWidth, padding],
+    [activeSheet, devExposeMap, hasRasterized, imageHeight, imageWidth, padTop, padRight, padBottom, padLeft],
   );
 
   const handleMarkerTap = useCallback(

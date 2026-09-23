@@ -183,7 +183,7 @@ export function PlanViewerPdf({ projectId, sessionId = "current-session", planSe
         onPointerCancel={endPointer}
         onPointerLeave={endPointer}
       >
-        <div ref={surfaceRef} className="absolute left-0 top-0 touch-none select-none overflow-hidden bg-white" style={{ backfaceVisibility: "hidden", contain: "layout paint", height: PLAN_PDF_BASE_HEIGHT, touchAction: "none", transform: `translate3d(${transform.x}px, ${transform.y}px, 0) scale(${transform.scale})`, transformOrigin: "top left", WebkitTouchCallout: "none", width: PLAN_PDF_BASE_WIDTH, willChange: "transform" }} data-plan-surface>
+        <div ref={surfaceRef} className="absolute left-0 top-0 touch-none select-none overflow-hidden bg-white" style={{ backfaceVisibility: "hidden", contain: "layout paint", height: PLAN_PDF_BASE_HEIGHT, touchAction: "none", transformOrigin: "top left", WebkitTouchCallout: "none", width: PLAN_PDF_BASE_WIDTH, willChange: "transform" }} data-plan-surface>
           {planFileUrl && activePage ? (
             <PlanPdfPage fileUrl={planFileUrl} pageNumber={activePage.pageNumber} label={activePage.label} onPageCount={setPdfPageCount} onPdfPageRendered={handlePdfPageRendered} />
           ) : (
