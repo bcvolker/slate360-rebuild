@@ -2,6 +2,7 @@ import "server-only";
 
 import { isThermalSessionAvailable, type ThermalCaptureLike, type ThermalShareLike } from "@/lib/vnext/thermal-availability";
 import { planSheetHasImage } from "@/lib/vnext/explore/resolve-plan-source";
+import { publishedIdSet, readProjectPublications } from "@/lib/vnext/release/read-publications";
 import { HISTORY_LOAD_ERROR } from "./history-types";
 import { assembleProjectHistory, type HistoryBuildInput } from "./assemble-history";
 import type { VnextVisit } from "./history-types";
@@ -53,6 +54,19 @@ export async function readProjectHistory(
   const sets = await queryOf(admin, "site_walk_plan_sets", "id, project_id, revision_number, revision_label").eq("project_id", projectId);
   const links = await queryOf(admin, "site_walk_session_plan_sheets", "session_id, plan_sheet_id, project_id").eq("project_id", projectId);
   const pins = await queryOf(admin, "site_walk_pins", "session_id, plan_sheet_id, project_id, x_pct, y_pct").eq("project_id", projectId);
+  let publishedReality: Set<string>;
+  let publishedGeometry: Set<string>;
+  let publishedPano: Set<string>;
+  let publishedPlans: Set<string>;
+  try {
+    const publications = await readProjectPublications(admin, projectId);
+    publishedReality = publishedIdSet(publications, projectId, "reality");
+    publishedGeometry = publishedIdSet(publications, projectId, "geometry");
+    publishedPano = publishedIdSet(publications, projectId, "pano360");
+    publishedPlans = publishedIdSet(publications, projectId, "plans");
+  } catch {
+    return { visits: [], error: HISTORY_LOAD_ERROR };
+  }
 
   const shareLikes: ThermalShareLike[] = rows(shares.data).map((row) => ({
     id: String(row.id),
@@ -84,7 +98,7 @@ export async function readProjectHistory(
       createdOfflineAt: (row.created_offline_at as string | null) ?? null,
       createdAt: (row.created_at as string | null) ?? null,
     })),
-    items: rows(items.data).map((row) => ({
+    items: rows(items.data).filter((row) => row.item_type !== "photo_360" || publishedPano.has(String(row.id))).map((row) => ({
       id: String(row.id),
       projectId: (row.project_id as string | null) ?? null,
       sessionId: (row.session_id as string | null) ?? null,
@@ -107,7 +121,7 @@ export async function readProjectHistory(
       createdAt: (row.created_at as string | null) ?? null,
       deleted: false,
     })),
-    models: rows(models.data).map((row) => ({
+    models: rows(models.data).filter((row) => modelIsPublished(row, publishedReality, publishedGeometry)).map((row) => ({
       id: String(row.id),
       spaceId: String(row.space_id ?? ""),
       captureId: (row.capture_id as string | null) ?? null,
@@ -129,7 +143,7 @@ export async function readProjectHistory(
       available: isThermalSessionAvailable(String(row.id), shareLikes, captureLikes),
       earliestCaptureAt: earliestCapture(String(row.id), rows(thermalCaptures.data)),
     })),
-    sheets: rows(sheets.data).map((row) => ({
+    sheets: rows(sheets.data).filter((row) => publishedPlans.has(String(row.id))).map((row) => ({
       id: String(row.id),
       projectId: String(row.project_id ?? ""),
       planSetId: String(row.plan_set_id ?? ""),
@@ -151,6 +165,15 @@ export async function readProjectHistory(
     })),
   };
   return { visits: assembleProjectHistory(input), error: null };
+}
+
+function modelIsPublished(row: Record<string, unknown>, reality: Set<string>, geometry: Set<string>): boolean {
+  const id = String(row.id);
+  const format = String(row.model_format ?? "").toLowerCase();
+  const key = String(row.storage_key ?? "").toLowerCase();
+  if (format === "spz" || key.endsWith(".spz")) return reality.has(id);
+  if (format === "glb" || format === "gltf" || format === "usdz" || key.endsWith(".glb") || key.endsWith(".gltf")) return geometry.has(id);
+  return false;
 }
 
 function georef(metrics: unknown): string | null {

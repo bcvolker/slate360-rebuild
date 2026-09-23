@@ -9,7 +9,7 @@ export type OwnerServiceId = (typeof OWNER_SERVICE_IDS)[number];
  * Home rows are explicit work. Later slices can add a kind, such as a real
  * capture request, without changing the row shape. Do not infer a kind from age.
  */
-export type OwnerAttentionKind = "processing_failed";
+export type OwnerAttentionKind = "processing_failed" | "ready_for_review" | "ready_to_publish";
 
 export type OwnerAttentionItem = {
   id: string;
@@ -56,6 +56,16 @@ export type OwnerClientSummary = {
 };
 
 export type OwnerFailureKind = "capture" | "plan" | "thermal";
+
+export type OwnerReleaseFact = {
+  id: string;
+  projectId: string;
+  representation: "reality" | "geometry" | "pano360" | "plans" | "thermal";
+  sourceId: string;
+  title: string;
+  bucket: "needs_review" | "ready_to_publish";
+  occurredAt: string | null;
+};
 
 export type OwnerFailureFact = {
   id: string;

@@ -2,7 +2,7 @@ import { CAPABILITY_LABEL } from "@/lib/vnext/scope/capabilities";
 import { canClientSeeCapability, scopeFromIncluded } from "@/lib/vnext/scope/resolve-client-scope";
 import { buildOwnerAttention } from "./attention";
 import { clientGroupKey } from "./clients";
-import type { OwnerFailureFact, OwnerProjectFact, OwnerProjectSummary, OwnerServiceId, OwnerServiceLine } from "./owner-types";
+import type { OwnerFailureFact, OwnerProjectFact, OwnerProjectSummary, OwnerReleaseFact, OwnerServiceId, OwnerServiceLine } from "./owner-types";
 import { OWNER_SERVICE_IDS } from "./owner-types";
 
 function joinLabels(lines: OwnerServiceLine[], pick: (line: OwnerServiceLine) => boolean): string {
@@ -23,9 +23,10 @@ export function serviceLinesFor(project: OwnerProjectFact): OwnerServiceLine[] {
 export function summarizeOwnerProject(
   project: OwnerProjectFact,
   failures: readonly OwnerFailureFact[],
+  releases: readonly OwnerReleaseFact[] = [],
 ): OwnerProjectSummary {
   const lines = serviceLinesFor(project);
-  const attention = buildOwnerAttention([project], failures)[0] ?? null;
+  const attention = buildOwnerAttention([project], failures, releases)[0] ?? null;
   return {
     id: project.id,
     name: project.name,
@@ -46,10 +47,17 @@ export function summarizeOwnerProject(
 export function summarizeOwnerProjects(
   projects: readonly OwnerProjectFact[],
   failures: readonly OwnerFailureFact[],
+  releases: readonly OwnerReleaseFact[] = [],
 ): OwnerProjectSummary[] {
   return projects
     .filter((project) => (project.status ?? "").toLowerCase() !== "deleted")
-    .map((project) => summarizeOwnerProject(project, failures.filter((failure) => failure.projectId === project.id)))
+    .map((project) =>
+      summarizeOwnerProject(
+        project,
+        failures.filter((failure) => failure.projectId === project.id),
+        releases.filter((release) => release.projectId === project.id),
+      ),
+    )
     .sort((a, b) => (b.documentedAt ?? "").localeCompare(a.documentedAt ?? "") || a.name.localeCompare(b.name));
 }
 

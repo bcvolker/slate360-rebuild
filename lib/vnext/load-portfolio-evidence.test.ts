@@ -119,6 +119,12 @@ describe("loadPortfolioEvidence — drone is not a client-renderable representat
       thermal_analysis_share_tokens: [{ session_id: "thermal-1", is_revoked: false, expires_at: null, layer_config: null }],
       thermal_captures: [{ id: "tcap-1", session_id: "thermal-1", preview_path: "orgs/x/thermal/a.jpg", storage_path: null }],
       project_client_capabilities: INCLUDED,
+      project_source_publications: [
+        { project_id: "p1", representation: "reality", source_id: "model-1", revoked_at: null },
+        { project_id: "p1", representation: "geometry", source_id: "model-2", revoked_at: null },
+        { project_id: "p1", representation: "pano360", source_id: "item-1", revoked_at: null },
+        { project_id: "p1", representation: "plans", source_id: "sheet-1", revoked_at: null },
+      ],
     });
 
     const result = await loadPortfolioEvidence(admin, ["p1"]);
@@ -154,6 +160,25 @@ describe("loadPortfolioEvidence — drone is not a client-renderable representat
 
     expect(result.p1.representations).not.toContain("360");
     expect(result.p1.pano360Url).toBeNull();
+  });
+
+  it("does not flag a ready source that has not been published", async () => {
+    const admin = mockAdmin({
+      digital_twin_spaces: [{ id: "space-1", project_id: "p1", updated_at: "2026-01-01T00:00:00.000Z" }],
+      digital_twin_models: [
+        { id: "model-1", space_id: "space-1", model_format: "spz", storage_key: "orgs/x/model.spz", preview_storage_key: "orgs/x/preview.jpg", status: "ready" },
+      ],
+      site_walk_items: [
+        { id: "item-1", project_id: "p1", item_type: "photo_360", s3_key: "orgs/x/item-1/pano.jpg", captured_at: "2026-01-02T12:00:00.000Z" },
+      ],
+      site_walk_plan_sheets: [
+        { id: "sheet-1", project_id: "p1", thumbnail_s3_key: "orgs/x/plan-thumb.jpg", rasterized_key: null, image_s3_key: null },
+      ],
+      project_client_capabilities: INCLUDED,
+    });
+    const result = await loadPortfolioEvidence(admin, ["p1"]);
+    expect(result.p1?.representations ?? []).not.toEqual(expect.arrayContaining(["reality", "360", "plan"]));
+    expect(result.p1?.realityPreviewUrl ?? null).toBeNull();
   });
 });
 

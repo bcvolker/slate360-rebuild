@@ -1,8 +1,8 @@
 # Slate360 Phase 1 — Implementation Status
 
 **Last updated:** 2026-09-22  
-**Current slice:** 9 (Owner Home / Clients / Projects) — implemented, awaiting approval  
-**Next slice:** 10 (Processing / QA / Publish) — **NOT STARTED**
+**Current slice:** 10 (Processing / QA / Publish / Preview as client) — implemented, awaiting approval  
+**Next slice:** 11 (Sharing / permissions / polish) — **NOT STARTED**
 
 Canonical plan: `docs/vnext/SLATE360_UI_PHASE1_MASTER_BUILD_PLAN.md`  
 Slice prompts: `docs/vnext/SLATE360_UI_PHASE1_CURSOR_SLICE_PROMPTS.md`  
@@ -41,9 +41,9 @@ The feature branch is **pushed**. It is not an unpushed `origin/main` clone.
 | 7 | History + Compare | **APPROVED** |
 | 7A | Client deliverable scope + visibility | **APPROVED** |
 | 8 | Presentation / saved views / evidence links | **APPROVED** |
-| 9 | Owner Home + Clients + Projects | **IMPLEMENTED — awaiting approval** |
-| 10 | Processing + QA & Publish | **NOT STARTED** |
-| 11 | Sharing + permissions + polish | Not started |
+| 9 | Owner Home + Clients + Projects | **APPROVED** |
+| 10 | Processing + QA & Publish | **IMPLEMENTED — awaiting approval** |
+| 11 | Sharing + permissions + polish | **NOT STARTED** |
 | 12 | Cutover + cleanup | Not started |
 
 ---
@@ -815,6 +815,18 @@ Clients are grouped from `projects.client_name` by trimmed, case-folded text. "A
 A project row shows included services and the subset the client can see. The owner project page edits `project_client_capabilities` through the existing scope route. Client surfaces still use the same resolver. Slice 10 was not started.
 
 Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 35 files / 277 tests passed, production build, Playwright 151 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. `npm run typecheck:changed` against `main` exits 2 only on the existing `splat-viewer-scene.tsx` lines 197–199.
+
+## Slice 10 notes (2026-09-22)
+
+Processing, QA, publish, and preview as client replace the scaffolds at `/vnext/ops/processing` and `/vnext/ops/qa`. The contract is `docs/vnext/PROCESS_QA_PUBLISH.md`.
+
+Reality and Geometry publish independently through `project_source_publications`. One `published_model_id` cannot do that, so the legacy pointer stays for twin share and vNext does not read it. The reconstruction callback still auto-publishes the first model in an empty space for that legacy pointer. A new model is not client-visible until an operator publishes it.
+
+360 and Plans use the same publication table, at item and sheet. Thermal still uses a live share token. Approve does not publish. Reject does not delete. Retry is not offered because reconstruction retry charges credits.
+
+Migration `20260922220000_project_source_release.sql` is the only new migration. Older versions were not rerun. Slice 11 was not started.
+
+Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 37 files / 288 tests passed, production build, Playwright 155 passed. A confirming run of the same suite reused that production build after the Playwright spec waited for the plan and 360 viewers, and also exited 0 (155 passed). `VNEXT_SKIP_BUILD` was unset afterward. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. `npm run typecheck:changed` against `main` exits 2 only on the existing `splat-viewer-scene.tsx` lines 197–199.
 
 
 

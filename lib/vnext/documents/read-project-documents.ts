@@ -2,6 +2,7 @@ import "server-only";
 
 import { formatPlainDate } from "@/lib/vnext/overview-visit";
 import { planSheetHasImage } from "@/lib/vnext/explore/resolve-plan-source";
+import { publishedIdSet, readProjectPublications } from "@/lib/vnext/release/read-publications";
 import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
 import { isDeliverableSentinel } from "@/lib/slatedrop/deliverable-sentinel";
 import {
@@ -163,12 +164,12 @@ async function readSearchItems(admin: Admin, projectId: string): Promise<SearchI
   let itemQuery = queryOf(
     admin,
     "site_walk_items",
-    "id, title, description, location_label, trade, category, tags, captured_at",
+    "id, title, description, location_label, trade, category, tags, captured_at, item_type",
   ).eq("project_id", projectId);
   itemQuery = excludeDeletedSiteWalkItems(itemQuery as never) as unknown as Query;
   const res = await itemQuery;
   if ((res as { error: unknown }).error) return [];
-  return asRows<{
+  const itemRows = asRows<{
     id: string;
     title: string | null;
     description: string | null;
@@ -177,7 +178,15 @@ async function readSearchItems(admin: Admin, projectId: string): Promise<SearchI
     category: string | null;
     tags: string[] | null;
     captured_at: string | null;
-  }>((res as { data: unknown }).data).map((row) => ({
+    item_type: string | null;
+  }>((res as { data: unknown }).data);
+  let publishedPano = new Set<string>();
+  try {
+    publishedPano = publishedIdSet(await readProjectPublications(admin, projectId), projectId, "pano360");
+  } catch {
+    publishedPano = new Set();
+  }
+  return itemRows.filter((row) => row.item_type !== "photo_360" || publishedPano.has(row.id)).map((row) => ({
     id: row.id,
     title: row.title?.trim() || "Untitled item",
     description: row.description,
@@ -196,6 +205,12 @@ async function readSearchPlans(admin: Admin, projectId: string): Promise<SearchP
     "id, sheet_name, sheet_number, thumbnail_s3_key, rasterized_key, image_s3_key, updated_at",
   ).eq("project_id", projectId);
   if ((res as { error: unknown }).error) return [];
+  let publishedPlans = new Set<string>();
+  try {
+    publishedPlans = publishedIdSet(await readProjectPublications(admin, projectId), projectId, "plans");
+  } catch {
+    return [];
+  }
   return asRows<{
     id: string;
     sheet_name: string | null;
@@ -205,7 +220,7 @@ async function readSearchPlans(admin: Admin, projectId: string): Promise<SearchP
     image_s3_key: string | null;
     updated_at: string | null;
   }>((res as { data: unknown }).data)
-    .filter((row) => planSheetHasImage(row))
+    .filter((row) => planSheetHasImage(row) && publishedPlans.has(row.id))
     .map((row) => ({
       id: row.id,
       label: row.sheet_name?.trim() || `Sheet ${row.sheet_number ?? ""}`.trim(),

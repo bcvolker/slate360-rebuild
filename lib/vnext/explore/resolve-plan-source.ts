@@ -3,6 +3,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { formatPlainDate } from "@/lib/vnext/overview-visit";
 import type { VnextExploreSourceData, VnextExploreSourceSummary } from "@/lib/vnext/explore-types";
+import { publishedIdSet, readProjectPublications } from "@/lib/vnext/release/read-publications";
 
 type Admin = ReturnType<typeof createAdminClient>;
 
@@ -18,14 +19,19 @@ function sheetLabel(row: { sheet_name: unknown; sheet_number: unknown }): string
   return (row.sheet_name as string | null)?.trim() || `Sheet ${row.sheet_number ?? ""}`.trim();
 }
 
-export async function loadPlanSources(admin: Admin, projectId: string): Promise<VnextExploreSourceSummary[]> {
+export async function loadPlanSources(
+  admin: Admin,
+  projectId: string,
+  options?: { includeUnpublished?: boolean },
+): Promise<VnextExploreSourceSummary[]> {
+  const published = options?.includeUnpublished ? null : publishedIdSet(await readProjectPublications(admin, projectId), projectId, "plans");
   const { data } = await admin
     .from("site_walk_plan_sheets")
     .select("id, sheet_name, sheet_number, thumbnail_s3_key, rasterized_key, image_s3_key, updated_at, sort_order")
     .eq("project_id", projectId)
     .order("sort_order", { ascending: true });
 
-  return (data ?? []).filter(planSheetHasImage).map((row) => ({
+  return (data ?? []).filter(planSheetHasImage).filter((row) => !published || published.has(row.id)).map((row) => ({
     id: row.id,
     label: sheetLabel(row),
     dateLabel: formatPlainDate(row.updated_at as string | null),
@@ -36,6 +42,7 @@ export async function resolvePlanSourceData(
   admin: Admin,
   projectId: string,
   sourceId: string | null,
+  options?: { includeUnpublished?: boolean },
 ): Promise<{ sourceId: string; data: VnextExploreSourceData } | null> {
   let query = admin
     .from("site_walk_plan_sheets")
@@ -44,7 +51,8 @@ export async function resolvePlanSourceData(
   query = sourceId ? query.eq("id", sourceId) : query.order("sort_order", { ascending: true }).limit(1);
 
   const { data } = await query;
-  const sheet = (data ?? []).filter(planSheetHasImage)[0];
+  const published = options?.includeUnpublished ? null : publishedIdSet(await readProjectPublications(admin, projectId), projectId, "plans");
+  const sheet = (data ?? []).filter(planSheetHasImage).find((row) => !published || published.has(row.id));
   if (!sheet) return null;
   return {
     sourceId: sheet.id,

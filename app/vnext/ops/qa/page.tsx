@@ -1,8 +1,9 @@
-import { VNEXT_OWNER_NOTE } from "@/lib/vnext/copy";
-import { VnextOwnerRoutePage } from "@/lib/vnext/route-page";
+import { renderQaPage } from "@/lib/vnext/ops/ops-pages";
+import { requireVnextOwner } from "@/lib/vnext/require-vnext-session";
 
-export const metadata = { title: "QA & Publish — Slate360" };
+export const metadata = { title: "QA — Slate360" };
 
-export default function VnextOpsQaPage() {
-  return <VnextOwnerRoutePage path="/vnext/ops/qa" title="QA & Publish" note={VNEXT_OWNER_NOTE} />;
+export default async function VnextOpsQaPage() {
+  await requireVnextOwner("/vnext/ops/qa");
+  return renderQaPage();
 }

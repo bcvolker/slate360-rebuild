@@ -3,6 +3,7 @@ import "server-only";
 import { resolveTwinViewerKind } from "@/lib/digital-twin/viewer-format";
 import { pickLatestIso } from "@/lib/vnext/project-hero";
 import { isThermalSessionAvailable, type ThermalCaptureLike, type ThermalShareLike } from "@/lib/vnext/thermal-availability";
+import { publishedIdSet, readPublicationsForProjects } from "@/lib/vnext/release/read-publications";
 import type { OwnerFailureFact, OwnerPresence } from "./owner-types";
 import { emptyPresence } from "./owner-types";
 
@@ -49,11 +50,11 @@ export async function readOwnerSignals(admin: Admin, projectIds: string[]): Prom
     rows<{ id: string; project_id: string }>(
       admin.from("digital_twin_spaces").select("id, project_id").in("project_id", projectIds).is("deleted_at", null).neq("status", "archived"),
     ),
-    rows<{ project_id: string | null; item_type: string; s3_key: string | null; captured_at: string | null }>(
-      admin.from("site_walk_items").select("project_id, item_type, s3_key, captured_at").in("project_id", projectIds).is("deleted_at", null),
+    rows<{ id: string; project_id: string | null; item_type: string; s3_key: string | null; captured_at: string | null }>(
+      admin.from("site_walk_items").select("id, project_id, item_type, s3_key, captured_at").in("project_id", projectIds).is("deleted_at", null),
     ),
-    rows<{ project_id: string; thumbnail_s3_key: string | null; rasterized_key: string | null; image_s3_key: string | null }>(
-      admin.from("site_walk_plan_sheets").select("project_id, thumbnail_s3_key, rasterized_key, image_s3_key").in("project_id", projectIds),
+    rows<{ id: string; project_id: string; thumbnail_s3_key: string | null; rasterized_key: string | null; image_s3_key: string | null }>(
+      admin.from("site_walk_plan_sheets").select("id, project_id, thumbnail_s3_key, rasterized_key, image_s3_key").in("project_id", projectIds),
     ),
     rows<{ id: string; project_id: string | null; created_at: string }>(
       admin.from("thermal_analysis_sessions").select("id, project_id, created_at").in("project_id", projectIds).is("deleted_at", null),
@@ -92,6 +93,12 @@ export async function readOwnerSignals(admin: Admin, projectIds: string[]): Prom
     dates[projectId] = list;
   };
 
+  let publications: Awaited<ReturnType<typeof readPublicationsForProjects>> = [];
+  try {
+    publications = await readPublicationsForProjects(admin, projectIds);
+  } catch {
+    publications = [];
+  }
   const spaceToProject = new Map(spaces.map((space) => [space.id, space.project_id]));
   if (spaces.length > 0) {
     const models = await rows<{ id: string; space_id: string; model_format: string | null; storage_key: string | null; preview_storage_key: string | null }>(
@@ -101,8 +108,14 @@ export async function readOwnerSignals(admin: Admin, projectIds: string[]): Prom
       const projectId = spaceToProject.get(model.space_id);
       if (!projectId) continue;
       const kind = resolveTwinViewerKind(model.model_format ?? "", model.storage_key ?? "");
-      if (kind === "splat") presence(internal, projectId).reality = true;
-      if (kind === "model") presence(internal, projectId).geometry = true;
+      if (kind === "splat") {
+        presence(internal, projectId).reality = true;
+        if (publishedIdSet(publications, projectId, "reality").has(model.id)) presence(clientVisible, projectId).reality = true;
+      }
+      if (kind === "model") {
+        presence(internal, projectId).geometry = true;
+        if (publishedIdSet(publications, projectId, "geometry").has(model.id)) presence(clientVisible, projectId).geometry = true;
+      }
       if (kind === "splat" && model.preview_storage_key && !empty.thumbnailUrl[projectId]) {
         empty.thumbnailUrl[projectId] = `/api/vnext/projects/${projectId}/twin-models/${model.id}/preview-image`;
       }
@@ -112,10 +125,15 @@ export async function readOwnerSignals(admin: Admin, projectIds: string[]): Prom
   for (const item of items) {
     if (!item.project_id) continue;
     pushDate(item.project_id, item.captured_at);
-    if (item.item_type === "photo_360" && item.s3_key) presence(internal, item.project_id).pano360 = true;
+    if (item.item_type === "photo_360" && item.s3_key) {
+      presence(internal, item.project_id).pano360 = true;
+      if (publishedIdSet(publications, item.project_id, "pano360").has(item.id)) presence(clientVisible, item.project_id).pano360 = true;
+    }
   }
   for (const sheet of sheets) {
-    if (sheet.thumbnail_s3_key || sheet.rasterized_key || sheet.image_s3_key) presence(internal, sheet.project_id).plans = true;
+    if (!(sheet.thumbnail_s3_key || sheet.rasterized_key || sheet.image_s3_key)) continue;
+    presence(internal, sheet.project_id).plans = true;
+    if (publishedIdSet(publications, sheet.project_id, "plans").has(sheet.id)) presence(clientVisible, sheet.project_id).plans = true;
   }
   for (const capture of captureDates) pushDate(capture.project_id, capture.uploaded_at || capture.created_at);
 
@@ -149,15 +167,6 @@ export async function readOwnerSignals(admin: Admin, projectIds: string[]): Prom
     const own = captures.filter((capture) => capture.sessionId === session.id);
     if (own.some((capture) => capture.previewPath || capture.storagePath)) presence(internal, session.project_id).thermal = true;
     if (isThermalSessionAvailable(session.id, shares, captures)) presence(clientVisible, session.project_id).thermal = true;
-  }
-
-  for (const projectId of projectIds) {
-    const source = presence(internal, projectId);
-    const visible = presence(clientVisible, projectId);
-    visible.reality = source.reality;
-    visible.geometry = source.geometry;
-    visible.pano360 = source.pano360;
-    visible.plans = source.plans;
   }
 
   const documentedAt: Record<string, string | null> = {};

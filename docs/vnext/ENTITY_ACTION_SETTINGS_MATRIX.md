@@ -113,7 +113,7 @@ No first-class `visits` table. Adapter over existing records (Decision C).
 | Restore | `NEEDS VERIFICATION` — archived status can likely be patched back; no dedicated restore route found |
 | Share / Copy link | `PARTIAL` — share is of deliverables / twin spaces / thermal reports, not a unified visit token |
 | Download | `NEEDS VERIFICATION` per modality |
-| Publish / Unpublish / Revoke | `NEEDS VERIFICATION` for twin/thermal publish; Site Walk session status is not a public publish flag |
+| Publish / Unpublish / Revoke | Reality and Geometry publish one model each through `project_source_publications`. Thermal publish is a live share token. A Site Walk session status is not a public publish flag |
 | Delete semantics | Site Walk: **soft archive** default; **hard-delete** when permanent. Twin/thermal: **NEEDS VERIFICATION** |
 | Intended vNext UI | History, Explore, owner Processing / QA; Overview (Slice 3) shows only a single derived "latest visit" (date + plain client-facing source label — "Site visit" / "3D scan" / "Thermal scan"; corrected 2026-09-18 from the original implementation-oriented "Site walk visit" / "Digital twin capture" / "Thermal session"), no visit list or actions |
 | Planned Phase 1 slice | 4, 7, 10 |
@@ -276,7 +276,7 @@ Verified against the Phase 1 client route. This does not change the legacy Slate
 | Backend / data model | Adapter over `site_walk_sessions`, `site_walk_items`, `digital_twin_captures`, `digital_twin_models`, `digital_twin_spaces`, `thermal_analysis_sessions`, and `site_walk_session_plan_sheets`. No visits table |
 | Merge rule | Only a real foreign key. Same calendar date does not merge a thermal scan with a site walk or a reality scan |
 | Date | Physical capture time. `updated_at` is never the visit date. See Slice 7 notes for the exact fallback per source |
-| Client record | Site walk `completed` or `signed`. Ready twin model in a live space. Thermal only when `isThermalSessionAvailable`. Drafts, failed processing, revoked or expired thermal, and deleted rows are excluded |
+| Client record | Site walk `completed` or `signed`. A published ready twin model. A published 360 photo or plan sheet. Thermal only when `isThermalSessionAvailable`. Drafts, failed processing, unpublished ready models, revoked or expired thermal, and deleted rows are excluded |
 | Documents on a visit | `NOT SUPPORTED`. No visit-to-document foreign key. Documents stay on Documents |
 | Items on a visit | `SUPPORTED` when `site_walk_items.session_id` is that session |
 | Plan context | `SUPPORTED` as a reference to the project sheet. The visit does not own a plan copy. Revision label is the drawing revision, not the visit date |
@@ -296,7 +296,7 @@ Verified against the Phase 1 client route. This does not change the legacy Slate
 |---|---|
 | Backend / data model | `project_client_capabilities`. One row per project and capability id. Not `projects.settings`, not `org_feature_flags` |
 | Included | The service or portal section is part of this project's delivery. Authoritative when any row exists |
-| Published | Separate. Thermal uses the live share. Reality, Geometry, 360, and Plans temporarily treat the current renderable source as published until Slice 10 |
+| Published | Separate from included and from ready. Thermal uses the live share. Reality, Geometry, 360, and Plans use an active `project_source_publications` row for that exact source. See `docs/vnext/PROCESS_QA_PUBLISH.md` |
 | Renderable | A working viewer or file. Included without a renderable source stays hidden |
 | Client rule | Project access AND included AND published where applicable AND renderable. Otherwise the client sees nothing about that capability |
 | Unconfigured | Portal sections on. Services off |
@@ -525,12 +525,23 @@ Verified against the current schema. No new client table.
 
 | Surface | What Slice 9 does | What it does not do |
 |---|---|---|
-| Home `/vnext/ops` | Lists explicit failed captures, failed plan preparation, and failed thermal sessions. Recent projects come from the owner's accessible projects | KPI tiles, question queue, QA queue, share manager |
+| Home `/vnext/ops` | Lists failed jobs that belong to an included service, plus a source that is ready for review or ready to publish. Recent projects come from the owner's accessible projects | KPI tiles, question queue, share manager |
 | Clients `/vnext/ops/clients` | Groups `projects.client_name` by trimmed case-folded text. Detail is the matching projects | CRM, fuzzy merge, `org_contacts` as the list source |
 | Projects `/vnext/ops/projects` | Search, client filter, attention filter. Row shows included services and client-visible services | Completion percent, storage, subscription language |
 | Project scope `/vnext/ops/projects/[projectId]` | Reads and writes `project_client_capabilities` through `PUT /api/vnext/projects/[projectId]/scope`. Write still requires `userCanManageVnextProject` | A second visibility resolver |
 
-Deferred attention: client questions (`site_walk_comments` has no client-versus-operator reply state), ready-for-QA (`review_status` defaults to pending and has no product writer), publish/revoke, and share expiry. Those belong to Slices 10 and 11.
+Deferred attention: client questions (`site_walk_comments` has no client-versus-operator reply state) and share expiry. Those belong to Slice 11.
 
 A service with `included = false` is omitted from the project summary. It is not an attention row.
+
+## 12. Processing, QA, and publish (Slice 10)
+
+| Surface | What Slice 10 does | What it does not do |
+|---|---|---|
+| Processing `/vnext/ops/processing` | Queued, running, failed, and recently completed twin, plan, and thermal jobs. Stage comes from the job | GPU metrics, cost, fake percent, retry |
+| QA `/vnext/ops/qa` | Needs review, ready to publish, published, and rejected. The row is one model, sheet, 360 photo, or thermal session | Kanban, `review_status`, auto-publish |
+| Preview | Owner route renders the client shell. A candidate source is a path on that route only | A client query that opens an unpublished source |
+| Publish | `POST /api/vnext/ops/projects/[projectId]/release`. Operations-console owner. Source must belong to the project | Credit purchase, share recipient UI |
+
+Publishing a splat does not revoke a mesh. The legacy `published_model_id` pointer is unchanged and is not the vNext release.
 

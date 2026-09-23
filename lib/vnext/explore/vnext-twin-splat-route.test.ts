@@ -55,6 +55,12 @@ vi.mock("@/lib/supabase/admin", () => ({
         }
         if (table === "digital_twin_models") return chain(table, modelScript);
         if (table === "project_client_capabilities") return chain(table, capabilityScript);
+        if (table === "project_source_publications") {
+          return chain(table, {
+            data: [{ project_id: "p1", representation: "reality", source_id: "model-1", revoked_at: null }],
+            error: null,
+          });
+        }
         throw new Error(`unexpected table ${table}`);
       },
     };

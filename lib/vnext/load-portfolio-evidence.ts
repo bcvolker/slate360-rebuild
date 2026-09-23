@@ -8,6 +8,7 @@ import { resolveRepresentations } from "./project-hero";
 import { applyScopeToEvidence } from "./scope/filter-client-surface";
 import { canClientSeeCapability } from "./scope/resolve-client-scope";
 import { readClientScopes } from "./scope/read-project-scope";
+import { publishedIdSet, readPublicationsForProjects } from "./release/read-publications";
 
 type Admin = ReturnType<typeof createAdminClient>;
 
@@ -54,6 +55,12 @@ export async function loadPortfolioEvidence(
       .is("deleted_at", null)
       .neq("status", "archived"),
   );
+  let publications: Awaited<ReturnType<typeof readPublicationsForProjects>> = [];
+  try {
+    publications = await readPublicationsForProjects(admin, projectIds);
+  } catch {
+    publications = [];
+  }
   const spaceToProject = new Map(spaces.map((space) => [space.id, space.project_id]));
   for (const space of spaces) ensure(byId, space.project_id).timestamps.push(space.updated_at);
 
@@ -77,7 +84,7 @@ export async function loadPortfolioEvidence(
       if (!projectId) continue;
       const evidence = ensure(byId, projectId);
       const kind = resolveTwinViewerKind(model.model_format ?? "", model.storage_key ?? "");
-      if (kind === "splat") {
+      if (kind === "splat" && publishedIdSet(publications, projectId, "reality").has(model.id)) {
         addFlag(evidence, "reality");
         if (!evidence.realityPreviewUrl && model.preview_storage_key) {
           // vNext-scoped route (project-access contract), not the legacy digital_twin-gated,
@@ -85,7 +92,7 @@ export async function loadPortfolioEvidence(
           evidence.realityPreviewUrl = `/api/vnext/projects/${projectId}/twin-models/${model.id}/preview-image`;
         }
       }
-      if (kind === "model") addFlag(evidence, "geometry");
+      if (kind === "model" && publishedIdSet(publications, projectId, "geometry").has(model.id)) addFlag(evidence, "geometry");
     }
   }
 
@@ -132,7 +139,7 @@ export async function loadPortfolioEvidence(
     if (!item.project_id) continue;
     const evidence = ensure(byId, item.project_id);
     if (item.captured_at) evidence.timestamps.push(item.captured_at);
-    if (item.item_type === "photo_360" && item.s3_key) {
+    if (item.item_type === "photo_360" && item.s3_key && publishedIdSet(publications, item.project_id, "pano360").has(item.id)) {
       addFlag(evidence, "360");
       // vNext-scoped route (project-access contract), not the legacy punchwalk-gated,
       // single-org route — same rationale as the Explore 360 photo route.
@@ -172,6 +179,7 @@ export async function loadPortfolioEvidence(
   );
   for (const sheet of sheets) {
     if (!sheet.thumbnail_s3_key && !sheet.rasterized_key && !sheet.image_s3_key) continue;
+    if (!publishedIdSet(publications, sheet.project_id, "plans").has(sheet.id)) continue;
     const evidence = ensure(byId, sheet.project_id);
     addFlag(evidence, "plan");
     // vNext-scoped route (project-access contract), not the legacy punchwalk-gated,

@@ -26,6 +26,10 @@ function mockAdmin(tables: Record<string, unknown[]>) {
 
 const SPACE = { id: "space-1", updated_at: "2026-01-01T00:00:00.000Z" };
 
+function published(representation: "reality" | "geometry", sourceId: string) {
+  return { project_id: "p1", representation, source_id: sourceId, revoked_at: null };
+}
+
 describe("resolveTwinSourceData", () => {
   it("resolves a splat model to the vNext-scoped project proxy URL, not the legacy org-only route", async () => {
     const admin = mockAdmin({
@@ -33,6 +37,7 @@ describe("resolveTwinSourceData", () => {
       digital_twin_models: [
         { id: "model-1", model_format: "spz", storage_key: "orgs/x/model.spz", title: "Front yard", updated_at: "2026-01-02T00:00:00.000Z" },
       ],
+      project_source_publications: [published("reality", "model-1")],
     });
 
     const result = await resolveTwinSourceData(admin, "p1", "splat", "Reality");
@@ -52,6 +57,7 @@ describe("resolveTwinSourceData", () => {
       digital_twin_models: [
         { id: "model-2", model_format: "glb", storage_key: "orgs/x/model.glb", title: null, updated_at: "2026-01-02T00:00:00.000Z" },
       ],
+      project_source_publications: [published("geometry", "model-2")],
     });
 
     const result = await resolveTwinSourceData(admin, "p1", "model", "Geometry");
@@ -86,9 +92,24 @@ describe("resolveTwinSourceData", () => {
         { id: "older", model_format: "spz", storage_key: "orgs/x/older.spz", title: "Older", updated_at: "2026-01-01T00:00:00.000Z" },
         { id: "newer", model_format: "spz", storage_key: "orgs/x/newer.spz", title: "Newer", updated_at: "2026-06-01T00:00:00.000Z" },
       ],
+      project_source_publications: [published("reality", "older"), published("reality", "newer")],
     });
     const result = await resolveTwinSourceData(admin, "p1", "splat", "Reality");
     expect(result?.modelUrl).toBe("/api/vnext/projects/p1/twin-models/newer/splat");
+  });
+
+  it("does not open a ready splat that has not been published", async () => {
+    const admin = mockAdmin({
+      digital_twin_spaces: [SPACE],
+      digital_twin_models: [
+        { id: "older", model_format: "spz", storage_key: "orgs/x/older.spz", title: "Older", updated_at: "2026-01-01T00:00:00.000Z" },
+        { id: "newer", model_format: "spz", storage_key: "orgs/x/newer.spz", title: "Newer", updated_at: "2026-06-01T00:00:00.000Z" },
+      ],
+      project_source_publications: [published("reality", "older")],
+    });
+    const result = await resolveTwinSourceData(admin, "p1", "splat", "Reality");
+    expect(result?.modelUrl).toBe("/api/vnext/projects/p1/twin-models/older/splat");
+    expect(await resolveTwinSourceData(admin, "p1", "splat", "Reality", "newer")).toBeNull();
   });
 
   it("opens the requested model and does not fall back to a newer one", async () => {
@@ -97,7 +118,11 @@ describe("resolveTwinSourceData", () => {
       { id: "newer", space_id: "space-1", status: "ready", model_format: "spz", storage_key: "orgs/x/newer.spz", title: "Newer", updated_at: "2026-06-01T00:00:00.000Z" },
     ];
     const older = await resolveTwinSourceData(
-      filteringAdmin({ digital_twin_spaces: [{ ...SPACE, project_id: "p1", status: "active" }], digital_twin_models: models }),
+      filteringAdmin({
+        digital_twin_spaces: [{ ...SPACE, project_id: "p1", status: "active" }],
+        digital_twin_models: models,
+        project_source_publications: [published("reality", "older"), published("reality", "newer")],
+      }),
       "p1",
       "splat",
       "Reality",

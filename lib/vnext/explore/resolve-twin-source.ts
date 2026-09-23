@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveDigitalTwinModelUrl } from "@/lib/digital-twin/resolve-model-url";
 import { resolveTwinViewerKind } from "@/lib/digital-twin/viewer-format";
 import type { VnextGeometrySourceData, VnextRealitySourceData } from "@/lib/vnext/explore-types";
+import { publishedIdSet, readProjectPublications } from "@/lib/vnext/release/read-publications";
 
 type Admin = ReturnType<typeof createAdminClient>;
 
@@ -23,10 +24,16 @@ type TwinModelCandidate = {
  * best model for this space", not "the best model for this REPRESENTATION across the project's
  * spaces", which can differ when a space has more than one ready model.
  */
+async function publishedModelIds(admin: Admin, projectId: string, wantKind: "splat" | "model"): Promise<Set<string> | null> {
+  const rows = await readProjectPublications(admin, projectId);
+  return publishedIdSet(rows, projectId, wantKind === "splat" ? "reality" : "geometry");
+}
+
 async function findBestTwinModel(
   admin: Admin,
   projectId: string,
   wantKind: "splat" | "model",
+  published: Set<string> | null,
 ): Promise<TwinModelCandidate | null> {
   const { data: spaces } = await admin
     .from("digital_twin_spaces")
@@ -48,6 +55,7 @@ async function findBestTwinModel(
   for (const model of models ?? []) {
     const kind = resolveTwinViewerKind(model.model_format ?? "", model.storage_key ?? "");
     if (kind !== wantKind) continue;
+    if (published && !published.has(model.id)) continue;
     const updatedAt = (model.updated_at as string | null) ?? "";
     if (!best || Date.parse(updatedAt) > Date.parse(best.updatedAt)) {
       best = {
@@ -66,6 +74,7 @@ async function findTwinModelById(
   projectId: string,
   wantKind: "splat" | "model",
   sourceId: string,
+  published: Set<string> | null,
 ): Promise<TwinModelCandidate | null> {
   const { data: spaces } = await admin
     .from("digital_twin_spaces")
@@ -84,6 +93,7 @@ async function findTwinModelById(
   const model = (models ?? []).find((row) => spaceIds.includes(row.space_id as string));
   if (!model) return null;
   if (resolveTwinViewerKind(model.model_format ?? "", model.storage_key ?? "") !== wantKind) return null;
+  if (published && !published.has(model.id)) return null;
   return {
     id: model.id,
     storageKey: model.storage_key,
@@ -98,10 +108,12 @@ export async function resolveTwinSourceData(
   wantKind: "splat" | "model",
   label: "Reality" | "Geometry",
   sourceId: string | null = null,
+  options?: { includeUnpublished?: boolean },
 ): Promise<VnextRealitySourceData | VnextGeometrySourceData | null> {
+  const published = options?.includeUnpublished ? null : await publishedModelIds(admin, projectId, wantKind);
   const model = sourceId
-    ? await findTwinModelById(admin, projectId, wantKind, sourceId)
-    : await findBestTwinModel(admin, projectId, wantKind);
+    ? await findTwinModelById(admin, projectId, wantKind, sourceId, published)
+    : await findBestTwinModel(admin, projectId, wantKind, published);
   if (!model) return null;
   const modelTitle = model.title || label;
 

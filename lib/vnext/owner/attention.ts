@@ -1,4 +1,4 @@
-import type { OwnerAttentionItem, OwnerFailureFact, OwnerProjectFact } from "./owner-types";
+import type { OwnerAttentionItem, OwnerFailureFact, OwnerProjectFact, OwnerReleaseFact } from "./owner-types";
 
 function active(project: OwnerProjectFact): boolean {
   if (project.archived) return false;
@@ -42,9 +42,14 @@ export function failureIsRelevantToIncludedScope(project: OwnerProjectFact, fail
  * Home and project attention share this list. review_status is not used:
  * it defaults to pending and nothing in the product clears it.
  */
+function releaseIncluded(project: OwnerProjectFact, release: OwnerReleaseFact): boolean {
+  return included(project, release.representation);
+}
+
 export function buildOwnerAttention(
   projects: readonly OwnerProjectFact[],
   failures: readonly OwnerFailureFact[],
+  releases: readonly OwnerReleaseFact[] = [],
 ): OwnerAttentionItem[] {
   const byId = new Map(projects.filter(active).map((project) => [project.id, project]));
   const items: OwnerAttentionItem[] = [];
@@ -60,6 +65,21 @@ export function buildOwnerAttention(
       title: titleFor(failure),
       destinationHref: destination(project.id, failure.kind),
       occurredAt: failure.occurredAt,
+    });
+  }
+  for (const release of releases) {
+    const project = byId.get(release.projectId);
+    if (!project || !releaseIncluded(project, release)) continue;
+    const kind = release.bucket === "needs_review" ? "ready_for_review" : "ready_to_publish";
+    items.push({
+      id: `${kind}-${release.id}`,
+      projectId: project.id,
+      projectName: project.name,
+      clientName: project.clientName,
+      kind,
+      title: release.title,
+      destinationHref: `/vnext/ops/qa/${project.id}/${release.representation}/${release.sourceId}`,
+      occurredAt: release.occurredAt,
     });
   }
   return items.sort((a, b) => (b.occurredAt ?? "").localeCompare(a.occurredAt ?? ""));

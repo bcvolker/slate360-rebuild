@@ -1,10 +1,9 @@
-import { VNEXT_OWNER_NOTE } from "@/lib/vnext/copy";
-import { VnextOwnerRoutePage } from "@/lib/vnext/route-page";
+import { renderProcessingPage } from "@/lib/vnext/ops/ops-pages";
+import { requireVnextOwner } from "@/lib/vnext/require-vnext-session";
 
 export const metadata = { title: "Processing — Slate360" };
 
-export default function VnextOpsProcessingPage() {
-  return (
-    <VnextOwnerRoutePage path="/vnext/ops/processing" title="Processing" note={VNEXT_OWNER_NOTE} />
-  );
+export default async function VnextOpsProcessingPage() {
+  await requireVnextOwner("/vnext/ops/processing");
+  return renderProcessingPage();
 }

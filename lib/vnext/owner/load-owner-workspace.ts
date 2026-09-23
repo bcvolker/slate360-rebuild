@@ -9,6 +9,8 @@ import { applyGroupedClientNames, groupOwnerClients } from "./clients";
 import type { OwnerAttentionItem, OwnerClientSummary, OwnerProjectFact, OwnerProjectSummary } from "./owner-types";
 import { emptyPresence } from "./owner-types";
 import { summarizeOwnerProjects } from "./project-summary";
+import { loadQaQueue } from "@/lib/vnext/ops/load-qa";
+import { releaseFactsFromQa } from "@/lib/vnext/ops/qa-model";
 import { readOwnerSignals } from "./read-owner-signals";
 
 const LOAD_ERROR = "Projects could not be loaded. Check your connection and try again.";
@@ -74,13 +76,15 @@ export async function loadOwnerWorkspace(userId: string): Promise<OwnerWorkspace
         clientVisible: signals.clientVisible[project.id] ?? emptyPresence(),
       };
     });
+    const queue = await loadQaQueue(admin, facts.map((fact) => ({ id: fact.id, name: fact.name, included: fact.included })));
+    const releases = releaseFactsFromQa(queue.items);
     const clients = groupOwnerClients(facts);
-    const summaries = applyGroupedClientNames(summarizeOwnerProjects(facts, signals.failures), clients);
+    const summaries = applyGroupedClientNames(summarizeOwnerProjects(facts, signals.failures, releases), clients);
     return {
       projects: summaries,
-      attention: buildOwnerAttention(facts, signals.failures),
+      attention: buildOwnerAttention(facts, signals.failures, releases),
       clients,
-      error: null,
+      error: queue.error,
     };
   } catch {
     return { projects: [], attention: [], clients: [], error: LOAD_ERROR };

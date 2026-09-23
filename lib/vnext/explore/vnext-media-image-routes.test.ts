@@ -99,6 +99,10 @@ describe("vNext-scoped items/image route", () => {
         data: [{ project_id: "p1", capability_id: "pano360", included: true }],
         error: null,
       },
+      project_source_publications: {
+        data: [{ project_id: "p1", representation: "pano360", source_id: "item-1", revoked_at: null }],
+        error: null,
+      },
     };
 
     const res = await itemsGET(req("http://localhost/api/vnext/projects/p1/items/item-1/image"), {
@@ -168,6 +172,10 @@ describe("vNext-scoped plan-sheets/image route", () => {
       },
       project_client_capabilities: {
         data: [{ project_id: "p1", capability_id: "plans", included: true }],
+        error: null,
+      },
+      project_source_publications: {
+        data: [{ project_id: "p1", representation: "plans", source_id: "sheet-1", revoked_at: null }],
         error: null,
       },
     };

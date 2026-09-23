@@ -13,8 +13,22 @@ function chain(data: unknown[]) {
   return builder;
 }
 
-function mockAdmin(items: unknown[]) {
-  return { from: () => chain(items) } as unknown as Parameters<typeof loadPanoSources>[0];
+function mockAdmin(items: unknown[], published = true) {
+  return {
+    from: (table: string) =>
+      chain(
+        table === "project_source_publications"
+          ? published
+            ? items.map((item) => ({
+                project_id: "p1",
+                representation: "pano360",
+                source_id: (item as { id: string }).id,
+                revoked_at: null,
+              }))
+            : []
+          : items,
+      ),
+  } as unknown as Parameters<typeof loadPanoSources>[0];
 }
 
 const ITEM = {
@@ -45,6 +59,12 @@ describe("resolvePanoSourceData", () => {
       sourceId: "item-1",
       data: { kind: "360", imageUrl: "/api/vnext/projects/p1/items/item-1/image", title: "East stair" },
     });
+  });
+
+  it("does not open an unpublished 360 photo", async () => {
+    const admin = mockAdmin([ITEM], false);
+    expect(await resolvePanoSourceData(admin, "p1", "item-1")).toBeNull();
+    expect(await loadPanoSources(admin, "p1")).toEqual([]);
   });
 
   it("returns null when no matching item exists", async () => {

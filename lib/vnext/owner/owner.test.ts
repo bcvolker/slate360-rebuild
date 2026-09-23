@@ -3,7 +3,7 @@ import { buildOwnerAttention } from "./attention";
 import { clientGroupKey, groupOwnerClients } from "./clients";
 import { PREVIEW_OWNER_FACTS, PREVIEW_OWNER_FAILURES, previewOwnerWorkspace } from "./preview-owner";
 import { filterOwnerProjects, serviceLinesFor, summarizeOwnerProject } from "./project-summary";
-import type { OwnerFailureFact, OwnerProjectFact } from "./owner-types";
+import type { OwnerFailureFact, OwnerProjectFact, OwnerReleaseFact } from "./owner-types";
 
 describe("owner attention", () => {
   it("creates a row only for an explicit failed job on a project in this workspace", () => {
@@ -69,6 +69,26 @@ describe("owner attention", () => {
       ],
     );
     expect(items.map((item) => item.id)).toEqual(["thermal-late", "plan-early"]);
+  });
+
+  it("adds review attention only while an included source is waiting, and the queue can clear", () => {
+    const base = PREVIEW_OWNER_FACTS[0]!;
+    const project = (included: OwnerProjectFact["included"]): OwnerProjectFact => ({ ...base, id: "scope", included });
+    const release = (representation: OwnerReleaseFact["representation"]): OwnerReleaseFact => ({
+      id: representation,
+      projectId: "scope",
+      representation,
+      sourceId: "source-1",
+      title: "Ready for review",
+      bucket: "needs_review",
+      occurredAt: "2026-09-01T00:00:00.000Z",
+    });
+    expect(buildOwnerAttention([project(["reality"])], [], [release("thermal")])).toEqual([]);
+    const waiting = buildOwnerAttention([project(["reality"])], [], [release("reality")]);
+    expect(waiting).toHaveLength(1);
+    expect(waiting[0]?.kind).toBe("ready_for_review");
+    expect(waiting[0]?.destinationHref).toBe("/vnext/ops/qa/scope/reality/source-1");
+    expect(buildOwnerAttention([project(["reality"])], [], [])).toEqual([]);
   });
 
   it("drops a failure that belongs to another workspace", () => {

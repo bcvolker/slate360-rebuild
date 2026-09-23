@@ -16,6 +16,7 @@ import { notFound, serverError } from "@/lib/server/api-response";
 import { isBakeFresh, parseBakedExport } from "@/lib/digital-twin/bake-hash";
 import { resolveTwinViewerKind } from "@/lib/digital-twin/viewer-format";
 import { projectIncludesCapability } from "@/lib/vnext/scope/read-project-scope";
+import { clientMayReadSource } from "@/lib/vnext/release/source-visible";
 import { BUCKET, s3 } from "@/lib/s3";
 
 export const runtime = "nodejs";
@@ -24,7 +25,7 @@ type Params = { params: Promise<{ projectId: string; modelId: string }> };
 type StreamBody = { transformToWebStream?: () => ReadableStream<Uint8Array> };
 
 export function GET(req: NextRequest, ctx: Params) {
-  return withProjectAuth(req, ctx, async ({ admin, projectId }) => {
+  return withProjectAuth(req, ctx, async ({ admin, projectId, user }) => {
     const { modelId } = await ctx.params;
 
     const { data: model, error } = await admin
@@ -41,6 +42,7 @@ export function GET(req: NextRequest, ctx: Params) {
     const kind = resolveTwinViewerKind("", model.storage_key);
     const capability = kind === "model" ? "geometry" : kind === "splat" ? "reality" : null;
     if (!capability || !(await projectIncludesCapability(admin, projectId, capability))) return notFound();
+    if (!(await clientMayReadSource(admin, projectId, capability === "geometry" ? "geometry" : "reality", modelId, user.email))) return notFound();
 
     let key = model.storage_key;
     let bakeState: "baked" | "stale" | "none" = "none";

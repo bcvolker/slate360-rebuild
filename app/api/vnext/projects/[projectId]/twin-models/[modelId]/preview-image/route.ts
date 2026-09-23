@@ -17,11 +17,12 @@ import { notFound, serverError } from "@/lib/server/api-response";
 import { resolveDigitalTwinModelUrl } from "@/lib/digital-twin/resolve-model-url";
 import { resolveTwinViewerKind } from "@/lib/digital-twin/viewer-format";
 import { projectIncludesCapability } from "@/lib/vnext/scope/read-project-scope";
+import { clientMayReadSource } from "@/lib/vnext/release/source-visible";
 
 type Params = { params: Promise<{ projectId: string; modelId: string }> };
 
 export function GET(req: NextRequest, ctx: Params) {
-  return withProjectAuth(req, ctx, async ({ admin, projectId }) => {
+  return withProjectAuth(req, ctx, async ({ admin, projectId, user }) => {
     const { modelId } = await ctx.params;
 
     const { data: model, error } = await admin
@@ -38,6 +39,7 @@ export function GET(req: NextRequest, ctx: Params) {
     const kind = resolveTwinViewerKind(String(model?.model_format ?? ""), String(model?.storage_key ?? ""));
     const capability = kind === "splat" ? "reality" : kind === "model" ? "geometry" : null;
     if (!capability || !(await projectIncludesCapability(admin, projectId, capability))) return notFound();
+    if (!(await clientMayReadSource(admin, projectId, capability === "geometry" ? "geometry" : "reality", modelId, user.email))) return notFound();
 
     try {
       const url = await resolveDigitalTwinModelUrl(previewKey);

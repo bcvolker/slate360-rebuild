@@ -18,11 +18,12 @@ import { notFound, serverError } from "@/lib/server/api-response";
 import { BUCKET, s3 } from "@/lib/s3";
 import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
 import { projectIncludesCapability } from "@/lib/vnext/scope/read-project-scope";
+import { clientMayReadSource } from "@/lib/vnext/release/source-visible";
 
 type Params = { params: Promise<{ projectId: string; itemId: string }> };
 
 export function GET(req: NextRequest, ctx: Params) {
-  return withProjectAuth(req, ctx, async ({ admin, projectId }) => {
+  return withProjectAuth(req, ctx, async ({ admin, projectId, user }) => {
     const { itemId } = await ctx.params;
 
     let itemQuery = admin
@@ -37,6 +38,7 @@ export function GET(req: NextRequest, ctx: Params) {
     if (!item?.s3_key) return notFound("Item image not found");
     const capability = item.item_type === "photo_360" ? "pano360" : "items";
     if (!(await projectIncludesCapability(admin, projectId, capability))) return notFound();
+    if (item.item_type === "photo_360" && !(await clientMayReadSource(admin, projectId, "pano360", itemId, user.email))) return notFound();
 
     const ext = item.s3_key.split(".").pop()?.toLowerCase() ?? "jpg";
     const fileName = `${item.title || `site-walk-${itemId}`}.${ext}`;

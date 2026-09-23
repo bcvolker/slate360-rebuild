@@ -37,9 +37,14 @@ export function VnextOwnerProjectDetail({
               </li>
             ))}
           </ul>
-          <Link href={project.projectHref} className="mt-3 inline-flex h-11 items-center border border-[var(--vnext-line)] px-3 text-[length:var(--vnext-body)] text-[var(--vnext-ink)] no-underline">
-            Open project
-          </Link>
+          <div className="mt-3 flex flex-wrap gap-3">
+            <Link href={project.projectHref} className="inline-flex h-11 items-center border border-[var(--vnext-line)] px-3 text-[length:var(--vnext-body)] text-[var(--vnext-ink)] no-underline">
+              Open project
+            </Link>
+            <Link href="/vnext/ops/processing" className="inline-flex h-11 items-center text-[length:var(--vnext-body)] text-[var(--vnext-ink)] no-underline">Processing</Link>
+            <Link href="/vnext/ops/qa" className="inline-flex h-11 items-center text-[length:var(--vnext-body)] text-[var(--vnext-ink)] no-underline">Review deliverables</Link>
+            <Link href={`/vnext/ops/projects/${project.id}/client-preview`} className="inline-flex h-11 items-center text-[length:var(--vnext-body)] text-[var(--vnext-ink)] no-underline">Preview as client</Link>
+          </div>
           <VnextScopeEditor projectId={project.id} included={included} canWrite={canWrite} persist={persist} />
         </>
       ) : null}

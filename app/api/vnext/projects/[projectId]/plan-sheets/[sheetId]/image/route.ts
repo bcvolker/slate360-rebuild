@@ -12,11 +12,12 @@ import { withProjectAuth } from "@/lib/server/api-auth";
 import { notFound, serverError } from "@/lib/server/api-response";
 import { BUCKET, s3 } from "@/lib/s3";
 import { projectIncludesCapability } from "@/lib/vnext/scope/read-project-scope";
+import { clientMayReadSource } from "@/lib/vnext/release/source-visible";
 
 type Params = { params: Promise<{ projectId: string; sheetId: string }> };
 
 export function GET(req: NextRequest, ctx: Params) {
-  return withProjectAuth(req, ctx, async ({ admin, projectId }) => {
+  return withProjectAuth(req, ctx, async ({ admin, projectId, user }) => {
     const { sheetId } = await ctx.params;
     if (!(await projectIncludesCapability(admin, projectId, "plans"))) return notFound();
 
@@ -30,6 +31,7 @@ export function GET(req: NextRequest, ctx: Params) {
     if (error) return serverError(error.message);
     const key = sheet?.rasterized_key ?? sheet?.thumbnail_s3_key ?? sheet?.image_s3_key;
     if (!key) return notFound("Plan sheet image not found");
+    if (!(await clientMayReadSource(admin, projectId, "plans", sheetId, user.email))) return notFound();
 
     try {
       const url = await getSignedUrl(

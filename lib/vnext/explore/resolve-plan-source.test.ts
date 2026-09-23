@@ -12,8 +12,22 @@ function chain(data: unknown[]) {
   return builder;
 }
 
-function mockAdmin(sheets: unknown[]) {
-  return { from: () => chain(sheets) } as unknown as Parameters<typeof loadPlanSources>[0];
+function mockAdmin(sheets: unknown[], published = true) {
+  return {
+    from: (table: string) =>
+      chain(
+        table === "project_source_publications"
+          ? published
+            ? sheets.map((sheet) => ({
+                project_id: "p1",
+                representation: "plans",
+                source_id: (sheet as { id: string }).id,
+                revoked_at: null,
+              }))
+            : []
+          : sheets,
+      ),
+  } as unknown as Parameters<typeof loadPlanSources>[0];
 }
 
 describe("loadPlanSources", () => {
@@ -45,6 +59,15 @@ describe("resolvePlanSourceData", () => {
       sourceId: "sheet-1",
       data: { kind: "plan", imageUrl: "/api/vnext/projects/p1/plan-sheets/sheet-1/image", sheetName: "A1.0" },
     });
+  });
+
+  it("does not open a processed sheet that has not been published", async () => {
+    const admin = mockAdmin(
+      [{ id: "sheet-1", sheet_name: "A1.0", sheet_number: 1, thumbnail_s3_key: "orgs/x/a1.jpg", rasterized_key: null, image_s3_key: null }],
+      false,
+    );
+    expect(await resolvePlanSourceData(admin, "p1", "sheet-1")).toBeNull();
+    expect(await loadPlanSources(admin, "p1")).toEqual([]);
   });
 
   it("returns null when the only matching sheet has no image key", async () => {

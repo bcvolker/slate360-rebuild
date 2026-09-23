@@ -61,24 +61,24 @@ Thermal backfill uses `thermal_capture_allowed_by_share_layer`, the SQL form of 
 
 Replacing scope calls `replace_project_client_scope`. That function upserts all nine ids in one transaction. It does not delete the rows first. A failed call leaves the previous set in place. The app still checks `user_can_manage_project` before the call, and the function checks it again.
 
-## Publication stand-in
+## Publication
 
-Slice 10 replaces these with an explicit publish action. Until then, the central rule is:
+Ready is not published. The contract is `docs/vnext/PROCESS_QA_PUBLISH.md`. The Slice 10 migration backfills only sources that were already client-visible. A later ready source stays internal until an operator publishes it. `digital_twin_spaces.published_model_id` is not this contract.
 
-| Capability | Included | Published / renderable stand-in used now |
+| Capability | Included | Published and renderable |
 |---|---|---|
-| Reality | Row, or backfill when a ready splat exists in a live space | Ready splat in a live space. `ready` is temporarily treated as published. |
-| Geometry | Same, for a ready glb/gltf | Ready mesh in a live space. Same temporary stand-in. |
-| 360 | Row, or backfill when a non-deleted `photo_360` has `s3_key` | That photo. There is no separate publish flag. |
-| Plans | Row, or backfill when a sheet has a thumbnail, raster, or image key | That sheet image. Processing sheets without an image stay out. |
-| Thermal | Row, or backfill from a live share whose `layer_config` still leaves a viewable capture | `isThermalSessionAvailable`. Same publish rule as the backfill. |
+| Reality | Row, or the Slice 7A backfill | Active `project_source_publications` row for that exact splat, and the model is ready. |
+| Geometry | Same, for a mesh | Active row for that exact glb, gltf, or usdz. Independent of the Reality row. |
+| 360 | Row, or backfill when a non-deleted `photo_360` has `s3_key` | Active row for that item, and the item still has storage. |
+| Plans | Row, or backfill when a sheet has an image key | Active row for that sheet. `is_current_revision` is not publication. |
+| Thermal | Row, or backfill from a live share whose `layer_config` still leaves a viewable capture | `isThermalSessionAvailable`. The share token is the publication. |
 | Items | Portal default on | Non-deleted project items. |
 | Documents | Portal default on | Active files in a client folder. |
-| History | Portal default on | The Slice 7 record rules, then drop any visit whose representation is not included. |
-| Compare | Portal default on | History is on, and both visits can render an included representation. |
+| History | Portal default on | Slice 7 visit rules, then drop a visit whose representation is not included or whose source is not published. |
+| Compare | Portal default on | History is on, and both visits can render an included published representation. |
 
 An included service with nothing renderable is not shown. The client does not see "no thermal scans yet."
 
 ## Owner and client
 
-The owner write contract exists. The owner screen that lists included services, internal assets, QA, and published sources does not. That is Slice 9 and Slice 10.
+The owner writes scope on the project page. Processing, QA, and preview as client are `/vnext/ops/processing`, `/vnext/ops/qa`, and `/vnext/ops/projects/[projectId]/client-preview`. Share recipients stay in Slice 11.
