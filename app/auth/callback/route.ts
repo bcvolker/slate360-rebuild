@@ -4,17 +4,14 @@ import { ensureUserOrganization } from "@/lib/server/org-bootstrap";
 import { syncBrandingCookie } from "@/lib/server/branding";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { redeemInvitationToken } from "@/lib/server/invites";
+import { POST_AUTH_RESOLVER, postAuthDestination } from "@/lib/vnext/cutover";
 
 const INVITE_COOKIE_NAME = "slate360_invite_token";
 
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const rawNext = searchParams.get("next") ?? "/app";
-  // Block open-redirect: only allow relative paths that stay on our origin
-  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") && !rawNext.includes("://")
-    ? rawNext
-    : "/app";
+  const next = postAuthDestination(searchParams.get("next") ?? POST_AUTH_RESOLVER);
 
   if (code) {
     const supabase = await createClient();

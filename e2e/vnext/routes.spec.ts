@@ -23,7 +23,7 @@ const AUTH_ROUTES = [
 ] as const;
 
 function expectedRedirectTo(path: string): string {
-  if (path === "/vnext") return "/vnext/projects";
+  if (path === "/vnext") return "/vnext/home";
   return path;
 }
 

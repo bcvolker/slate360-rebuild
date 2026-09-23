@@ -1,8 +1,8 @@
 # Slate360 Phase 1 — Implementation Status
 
 **Last updated:** 2026-09-22  
-**Current slice:** 12A (Release audit + cutover inventory) — implemented, awaiting approval  
-**Next slice:** 12B (Approved cutover + cleanup) — **NOT STARTED**
+**Current slice:** 12B (Approved cutover) — implemented, awaiting final review. Do not merge.  
+**Next slice:** none in Phase 1. Viewer integration is post-Phase-1.
 
 Canonical plan: `docs/vnext/SLATE360_UI_PHASE1_MASTER_BUILD_PLAN.md`  
 Slice prompts: `docs/vnext/SLATE360_UI_PHASE1_CURSOR_SLICE_PROMPTS.md`  
@@ -44,8 +44,8 @@ The feature branch is **pushed**. It is not an unpushed `origin/main` clone.
 | 9 | Owner Home + Clients + Projects | **APPROVED** |
 | 10 | Processing + QA & Publish | **APPROVED** |
 | 11 | Sharing + permissions + polish | **APPROVED** |
-| 12A | Release audit + cutover inventory | **IMPLEMENTED** — awaiting approval |
-| 12B | Approved cutover + cleanup | **NOT STARTED** |
+| 12A | Release audit + cutover inventory | **APPROVED** at `dea2d6f8` |
+| 12B | Approved cutover | **IMPLEMENTED** — awaiting final review. PR must not be merged until the full GitHub typecheck is green |
 
 ---
 
@@ -864,6 +864,19 @@ Inventory: `docs/vnext/REPO_CLEANUP_INVENTORY.md`. Checklist: `docs/vnext/PHASE1
 Spark JSX elements are typed by importing the existing `types/spark-r3f.d.ts` augmentation. `npm run typecheck:changed` exits 0. Rendering and reconstruction were not changed.
 
 The six vNext migrations `20260922120000` through `20260923010000` are applied and recorded on `hadnfcenpcfaeclczsmm`. Older migration drift was not repaired.
+
+## Slice 12B notes (2026-09-22)
+
+Presentation cutover only. DELETE stays 0. No viewer features and no reconstruction changes.
+
+Canonical homes: desktop and mobile login without a deep link resolve through `/vnext/home` to `/vnext/ops` for the operations owner and `/vnext/projects` for a client. `/dashboard` uses the same split. `/app` stays the field shell when opened directly, including on desktop, so a capture deep link is not replaced by the portfolio. `/projects/new`, Site Walk capture, twin and thermal studios, and the specialized share tokens are not redirected.
+
+Project tabs in the approved matrix redirect and keep the project id. Owner console home and `/ceo` go to `/vnext/ops`. Feedback and other console subsections stay. Desktop `/my-account` splits to the client or owner account. Mobile account quarantine still sends `/my-account` to the field shell.
+
+Viewer salvage is documented in `docs/vnext/VIEWER_SALVAGE.md`. None of that UI was imported.
+
+Full-repo typecheck is the pull request to `main`. `typescript.ignoreBuildErrors` stays until that check is green and a later hardening commit is reviewed. Do not merge this branch from the slice itself.
+
 
 
 

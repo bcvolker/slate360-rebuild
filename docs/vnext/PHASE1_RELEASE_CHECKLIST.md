@@ -38,7 +38,7 @@ Evidence is the approved slice tests, the code audit on 2026-09-22, and the comm
 | Mobile | PASS | 390px checks in the vNext Playwright suite. Capture routes were not redirected |
 | Accessibility | PASS | Touch targets, labeled share form, Escape on revoke. No redesign in 12A |
 | Error states | PASS | Portfolio, overview, explore, items, documents, history, processing, QA, and the public unavailable page have explicit copy |
-| Legacy-route cutover | DEFERRED / NON-BLOCKING | Inventory only. `docs/vnext/REPO_CLEANUP_INVENTORY.md` |
+| Legacy-route cutover | PASS | Approved redirects are in `lib/vnext/cutover.ts` and covered by `lib/vnext/cutover.test.ts` and `e2e/vnext/cutover.spec.ts`. DELETE stays 0. The product is not released until the GitHub full typecheck on the PR is green |
 | Known limitations | DEFERRED / NON-BLOCKING | Listed below. Not treated as bugs to close in 12A |
 
 ## Engineering
@@ -46,17 +46,17 @@ Evidence is the approved slice tests, the code audit on 2026-09-22, and the comm
 | Area | Status | Evidence |
 |---|---|---|
 | TypeScript (`npm run typecheck:changed`) | PASS | Exit 0 after the Spark JSX augmentation is imported. No `@ts-ignore` |
-| Full `npm run typecheck` | DEFERRED / NON-BLOCKING | Not run. Local full `tsc` has OOMed on this repo before. GitHub Actions `.github/workflows/typecheck.yml` remains the full-repo gate. `next.config.ts` still has `typescript.ignoreBuildErrors` |
+| Full `npm run typecheck` | BLOCKED | Not run locally (full `tsc` OOMs). `.github/workflows/typecheck.yml` runs only on a PR or push to `main`. The 12B pull request is that gate. Do not merge while it is red. `next.config.ts` keeps `typescript.ignoreBuildErrors` |
 | Production build | PASS | Inside `npm run test:vnext`. Result recorded below after this slice |
 | Tests | PASS | `npm run test:vnext`. Result recorded below |
 | `guard:architecture` | PASS | Run with this slice |
 | `guard:design` | PASS | Run with this slice |
 | `guard:file-size-regression` | PASS | Run with this slice |
-| Vercel | PASS | Starting SHA `c0be6fa5` was green. This slice's deployment is in the completion report. It is not a cutover deploy |
+| Vercel | BLOCKED | Confirmed on the 12B SHA after push. A green Vercel build is not the typecheck gate |
 | Supabase migrations | PASS | Six vNext versions applied and recorded. See the inventory |
 | RLS | PASS | Reviews and share tokens are not readable by `authenticated` or `anon`. Publish RPCs are service-role |
 | Environment | PASS | Names below are already required by current code. None were added |
-| Service worker | PASS | `app/sw.ts` deletes caches and unregisters. It does not serve a cached app shell |
+| Service worker | PASS | `app/sw.ts` deletes caches, claims clients, posts `SLATE360_SW_KILL_RELOAD`, and unregisters. No fetch handler, so it does not intercept vNext navigations |
 | Reconstruction | DEFERRED / NON-BLOCKING | Separate workstream. This branch did not change it |
 
 ## Environment names
@@ -84,7 +84,7 @@ No missing name was found for the vNext routes. No new variable was added.
 | 7. Approve | PASS | QA approve. Reject of a published source is refused until unpublish |
 | 8. Preview as client | PASS | Owner client-preview route |
 | 9. Publish | PASS | Per source. Publishing another source does not revoke the first |
-| 10. Client sees only purchased, published deliverables | PASS on `/vnext/projects` | Login still lands on `/app`, then desktop `/dashboard`, until 12B |
+| 10. Client sees only purchased, published deliverables | PASS on `/vnext/projects` | Login without a deep link resolves to `/vnext/projects` for a client and `/vnext/ops` for the owner |
 | 11. Public project or evidence link | PASS | `/vnext/ops/shares` |
 | 12. Revoke or unpublish | PASS | Revoke stops the token. Unpublish stops that source only |
 | 13. Historical evidence | PASS | History and exact saved views |
@@ -107,14 +107,14 @@ Scope profiles A, B, and C are covered by `e2e/vnext/scope.spec.ts`.
 
 | Id | Class | Item | 12A action |
 |---|---|---|---|
-| — | P0 | None found | — |
-| — | P1 | None that should be patched before this inventory is reviewed | Login landing on `/app` is the cutover, not a silent redirect |
-| TS-1 | P2 | `typescript.ignoreBuildErrors` is still true | Left in place. `typecheck:changed` is green. Full `tsc` was not run locally |
-| SW-1 | P3 | Confirm a production browser unregisters the kill-switch worker after cutover | 12B check. No code change |
+| — | P0 | None in the cutover diff | The release stays blocked until the GitHub typecheck workflow on the PR is green |
+| — | P1 | None that should be patched inside this cutover | Do not merge before that workflow and a review of the diff |
+| TS-1 | P2 | `typescript.ignoreBuildErrors` is still true | Leave it. Remove it only in a later commit if the full typecheck is clean and production does not rely on ignored errors |
+| SW-1 | P3 | Browser confirmation of the kill switch on the 12B deployment | Code already clears caches and unregisters. No service-worker redesign |
 
 ## Known limitations
 
-Password on generic project links, public Items and Documents, Thermal on the generic link, Geometry camera pose, 360 zoom, auto-orbit, video export, Drone without a viewer, `client_name` grouping, project creation, Ask for another look, AI, VR, Design mode, and reconstruction quality. None of these were added in 12A.
+Password on generic project links, public Items and Documents, Thermal on the generic link, Geometry camera pose, 360 zoom, auto-orbit, video export, Drone without a viewer, `client_name` grouping, project creation, Ask for another look, AI, VR, Design mode, viewer Walk/Dollhouse integration, and reconstruction quality. None of these were added in 12B. Viewer salvage is `docs/vnext/VIEWER_SALVAGE.md`.
 
 ## Suites not run
 
@@ -129,7 +129,10 @@ Password on generic project links, public Items and Documents, Thermal on the ge
 ## Gate result
 
 - `npm run typecheck:changed`: exit 0
-- `npm run test:vnext`: exit 0. Vitest 44 files / 319 tests. Production build compiled. Playwright 158 passed
+- `npm run test:vnext`: exit 0. Vitest 45 files / 330 tests. Production build compiled. Playwright 162 passed
 - `guard:architecture`, `guard:design`, `guard:file-size-regression`: pass
+- Full GitHub `npm run typecheck`: not green yet. Open the PR and wait. Do not call the product released.
 
 Build warnings that do not change this release: Sentry still asks to move `sentry.client.config.ts` to `instrumentation-client.ts` before Turbopack. Serwist still emits `/sw.js`, and that worker unregisters itself. No auth, routing, or share warning was introduced.
+
+Project creation and capture/ingest remain legacy tools. Client delivery and operations are vNext.

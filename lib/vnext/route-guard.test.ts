@@ -43,7 +43,7 @@ function isProtected(source: string): boolean {
 
 function isRedirectOnlyIndex(relPath: string, source: string): boolean {
   if (!REDIRECT_ONLY_ALLOWLIST.has(relPath)) return false;
-  return source.includes("redirect(") && source.includes("/vnext/projects");
+  return source.includes("redirect(") && source.includes("/vnext/home");
 }
 
 describe("vNext production route-guard", () => {

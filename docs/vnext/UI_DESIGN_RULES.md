@@ -355,3 +355,7 @@ Slice 11 leaves Settings and Account as short owner pages. Settings points at pr
 
 A public project link uses the client deliverable, not a landing page. The project Overview reuses the authenticated project record with only published, share-safe evidence. No sign-up, pricing, or product list. Sections are only Overview, Explore, and History when the project includes them. Status on the owner Shares page is the word Active, Expired, or Revoked. Opens counts one browser-session entry, not each page inside the link. The canonical contract is `docs/vnext/VNEXT_SHARING.md`.
 
+## Viewer language
+
+One product language, different viewport tools. Project context, source, representation navigation, Saved Views, Presentation, history, type, spacing, and permissions stay consistent. Walk, thermal probe, mesh measure, and plan zoom do not transfer onto the wrong representation. Older demo viewers are salvage references only. See `docs/vnext/VIEWER_SALVAGE.md`.
+

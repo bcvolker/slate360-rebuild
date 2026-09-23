@@ -1,8 +1,8 @@
 # Repo cleanup inventory — Slice 12A
 
-This is a proposal. Slice 12A did not redirect routes, delete files, or merge to `main`.
+Slice 12B implemented the REDIRECT rows below as route changes only. DELETE remains 0. No legacy files were removed.
 
-Slice 12B may implement only the rows Brian and the reviewer approve.
+Viewer demos are salvage sources, not canonical UI. See `docs/vnext/VIEWER_SALVAGE.md`. Do not delete those behaviors in a later cleanup, and do not copy their shells into vNext.
 
 Re-audited against `feature/ui-vnext-phase1` after Slices 1–11. This is not a copy of the Slice 0 salvage map.
 
@@ -152,9 +152,9 @@ None. Looking unused is not proof. Capture, thermal, twin, and the public token 
 | DELETE | None in 12A |
 | UPDATE | Agent guidance, after the entrypoints in this file are approved |
 
-## Proposed agent guidance — do not apply until 12B
+## Agent guidance — applied in Slice 12B
 
-Add, without removing unrelated engineering rules:
+Applied in `AGENTS.md` and `CLAUDE.md`, without removing unrelated engineering rules:
 
 - The client product is a project portal. Services are included per project. There is no vNext plan, seat, or upgrade screen.
 - Client home, once cut over: `/vnext/projects`. Owner home: `/vnext/ops`.

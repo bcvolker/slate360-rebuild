@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
 
 export default function VnextIndexPage() {
-  redirect("/vnext/projects");
+  redirect("/vnext/home");
 }
