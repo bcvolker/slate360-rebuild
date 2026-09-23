@@ -994,6 +994,26 @@ def fc_checkpoint_series_v2() -> dict[str, Any]:
     return out
 
 
+@app.function(image=fc_image, gpu="L40S", timeout=3 * 60 * 60, cpu=16.0, memory=64 * 1024, volumes={"/vol": vol})
+def fc_patch_diag_run(src: str) -> dict[str, Any]:
+    """Final pre-correction diagnostic (read-only). The analysis script source is passed in so the exact code that ran
+    is recorded on the volume; it executes in the fullcircle env with pycolmap pinned to the version used elsewhere."""
+    import subprocess
+    from pathlib import Path
+    Path(f"{FC}/patch_diag").mkdir(parents=True, exist_ok=True)
+    Path(f"{FC}/patch_diag/fc_patch_diag.py").write_text(src)
+    pin = subprocess.run([PY, "-m", "pip", "install", "-q", "pycolmap==4.2.0"], capture_output=True, text=True)
+    r = subprocess.run([PY, f"{FC}/patch_diag/fc_patch_diag.py"], capture_output=True, text=True, cwd="/workspace/fullcircle")
+    Path(f"{FC}/patch_diag/run.log").write_text(pin.stdout[-800:] + pin.stderr[-800:] + "\n" + r.stdout[-30000:] + "\n" + r.stderr[-20000:])
+    vol.commit()
+    out: dict[str, Any] = {"exit": r.returncode, "stderr_tail": r.stderr[-3000:]}
+    try:
+        out["result"] = json.loads(Path(f"{FC}/patch_diag/patch_diag.json").read_text())
+    except Exception as e:  # noqa: BLE001
+        out["read_error"] = str(e)
+    return out
+
+
 @app.local_entrypoint()
 def main(phase: str = "smoke", force: bool = False, iters: int = 150, downsample: int = 1, iterations: int = 30000, step: str = "025000"):
     if phase == "series":
