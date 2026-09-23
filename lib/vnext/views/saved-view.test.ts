@@ -114,6 +114,11 @@ describe("saved view provenance", () => {
     expect(visible.some((view) => view.id === "sv-history")).toBe(true);
   });
 
+  it("stays on the saved source after a newer source is also published", () => {
+    expect(exactSavedSource("model-a", ["model-a", "model-b"])).toBe("model-a");
+    expect(exactSavedSource("model-a", ["model-b"])).toBeNull();
+  });
+
   it("attaches a visit only when one visit contains the source", () => {
     const older = visit("visit-sep18", "model-sep18");
     const newer = { ...visit("visit-now", "model-current"), occurredAt: "2026-09-20T12:00:00.000Z" };

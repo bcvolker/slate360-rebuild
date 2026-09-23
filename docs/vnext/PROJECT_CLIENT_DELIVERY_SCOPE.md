@@ -63,7 +63,7 @@ Replacing scope calls `replace_project_client_scope`. That function upserts all 
 
 ## Publication
 
-Ready is not published. The contract is `docs/vnext/PROCESS_QA_PUBLISH.md`. The Slice 10 migration backfills only sources that were already client-visible. A later ready source stays internal until an operator publishes it. `digital_twin_spaces.published_model_id` is not this contract.
+Ready is not published. Included is not published. The contract is `docs/vnext/PROCESS_QA_PUBLISH.md`. Several sources of one representation may stay published. Publishing one does not revoke another. The client default is the newest published source that the existing ordering already picks. An exact history link or saved view still opens the older published source. Publish requires the service to be included and that exact source to be approved. Turning a service on does not publish an internal model. `digital_twin_spaces.published_model_id` is not this contract.
 
 | Capability | Included | Published and renderable |
 |---|---|---|

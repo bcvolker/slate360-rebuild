@@ -36,11 +36,11 @@ The reviewed object is the client source, not the capture that produced it.
 
 | Representation | Source of truth | Revoke |
 |---|---|---|
-| Reality | Active `project_source_publications` row, `representation = reality` | Sets `revoked_at`. Does not delete the model. |
-| Geometry | Active row, `representation = geometry` | Same. Does not touch the Reality row. |
-| 360 | Active row, `representation = pano360`, `source_id` is the item | Same. Does not delete the photo. |
-| Plans | Active row, `representation = plans`, `source_id` is the sheet | Same. Does not delete the sheet or an older revision. |
-| Thermal | A live, unexpired `thermal_analysis_share_tokens` row whose `layer_config` still leaves a capture | Sets `is_revoked`. No second published flag. |
+| Reality | Active `project_source_publications` row, `representation = reality` | Explicit unpublish sets `revoked_at` on that model only. Another splat stays published. |
+| Geometry | Active row, `representation = geometry` | Same. Does not touch a Reality row or another mesh. |
+| 360 | Active row, `representation = pano360`, `source_id` is the item | Same. Another station stays published. The photo is not deleted. |
+| Plans | Active row, `representation = plans`, `source_id` is the sheet | Same. Another sheet stays published. `is_current_revision` is not publication. |
+| Thermal | A live, unexpired `thermal_analysis_share_tokens` row whose `layer_config` still leaves a capture | Sets `is_revoked`. No `project_source_publications` row. |
 
 `digital_twin_spaces.published_model_id` remains the legacy twin-share pointer. It is one model per space, so it cannot publish a splat and a mesh independently. vNext does not read it.
 
@@ -50,13 +50,19 @@ Items and documents keep their existing client-folder and non-deleted rules. The
 
 ## Publish and revoke
 
-`publish_project_source` revokes other active rows for the same project and representation, then upserts the chosen source. It does not revoke the other representation. Publishing model B leaves a published mesh in place.
+Publication answers whether the client may open that exact source. It does not choose which published source opens first. Explore still opens the newest valid published source. History and an exact saved view keep the older source.
 
-`revoke_project_source` sets `revoked_at` on that source only.
+`publish_project_source` upserts that source only. It does not revoke any other row. Publishing scan B leaves scan A published. Publishing sheet A2.0 leaves A1.0 published. Publishing a second 360 station leaves the first station published.
+
+`revoke_project_source` sets `revoked_at` on that source only. The file stays stored.
+
+Publish is allowed only when that service is included and the latest review of that exact source is `approved`. An unreviewed or rejected source cannot be published. A service that is off cannot be pre-published. Turning the service on later does not publish it.
+
+Reject of a source that is still published fails. Unpublish it first. Reject does not delete the file. After unpublish, an approved review returns the source to ready to publish.
 
 Both functions execute as `service_role` only. The route is `POST /api/vnext/ops/projects/[projectId]/release`. It requires `canAccessOperationsConsole`, then checks the source belongs to that project. A cross-project id is not found. `user_can_manage_project` is not enough.
 
-Review rows live in `project_source_reviews`. `approved` or `rejected`. No default pending. A missing row on a renderable unpublished source means it needs review. A note is optional and stays internal. `needs_recapture` is set only when the operator checks it.
+Review rows live in `project_source_reviews`. `approved` or `rejected`. No default pending. A missing row on a renderable unpublished source means it needs review. A note is optional. `needs_recapture` is set only when the operator checks it. Authenticated project members cannot select this table. The owner server reads it with the service role.
 
 ## Backfill
 
@@ -67,7 +73,9 @@ The migration inserts publication rows only for sources the client could already
 - Non-deleted `photo_360` with a non-empty `s3_key`.
 - A plan sheet with a thumbnail, raster, or image key.
 
-It does not insert ply or splat_ply. It does not collapse several active rows. The next explicit publish of that representation leaves one active source. A source that was not client-visible is not backfilled.
+It does not insert ply or splat_ply. It does not collapse several active rows.
+
+That first backfill did not also require the service to be included. `20260922233000_project_source_release_closeout.sql` deletes automatic rows, which have `published_by` null, when that capability is not included. Operator rows with `published_by` set are left alone. A ready model that was internal stays unpublished. Turning the service on does not publish it.
 
 ## First model
 

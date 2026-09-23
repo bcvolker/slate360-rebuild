@@ -3,7 +3,9 @@ import "server-only";
 import { randomBytes } from "crypto";
 import { resolveTwinViewerKind } from "@/lib/digital-twin/viewer-format";
 import { planSheetHasImage } from "@/lib/vnext/explore/resolve-plan-source";
-import { isReleaseRepresentation, type ReleaseRepresentation, type ReviewDecision } from "@/lib/vnext/release/release-rules";
+import { canClientSeeCapability } from "@/lib/vnext/scope/resolve-client-scope";
+import { readClientScope } from "@/lib/vnext/scope/read-project-scope";
+import { capabilityForRepresentation, isReleaseRepresentation, publishBlockReason, type ReleaseRepresentation, type ReviewDecision } from "@/lib/vnext/release/release-rules";
 
 type Admin = any;
 
@@ -46,6 +48,9 @@ export async function applyReleaseAction(
   if (!isReleaseRepresentation(input.representation)) return { ok: false, status: 400, error: "Unknown representation" };
   const belongs = await sourceBelongsToProject(admin, input.projectId, input.representation, input.sourceId);
   if (!belongs) return { ok: false, status: 404, error: "Source not found" };
+  if (input.action === "reject" && await isSourcePublished(admin, input.projectId, input.representation, input.sourceId)) {
+    return { ok: false, status: 409, error: "Unpublish this source before rejecting it" };
+  }
   if (input.action === "approve" || input.action === "reject") {
     const decision: ReviewDecision = input.action === "approve" ? "approved" : "rejected";
     const note = input.note?.trim() ? input.note.trim().slice(0, 500) : null;
@@ -61,6 +66,10 @@ export async function applyReleaseAction(
     }, { onConflict: "project_id,representation,source_id" });
     return error ? { ok: false, status: 500, error: "Review could not be saved" } : { ok: true };
   }
+  if (input.action === "publish") {
+    const blocked = await publishBlocked(admin, input.projectId, input.representation, input.sourceId);
+    if (blocked) return blocked;
+  }
   if (input.representation === "thermal") return input.action === "publish" ? publishThermal(admin, input) : revokeThermal(admin, input.sourceId);
   const rpc = input.action === "publish" ? "publish_project_source" : "revoke_project_source";
   const { error } = await admin.rpc(rpc, {
@@ -70,6 +79,32 @@ export async function applyReleaseAction(
     p_actor: input.actorId,
   });
   return error ? { ok: false, status: 500, error: "Publication could not be saved" } : { ok: true };
+}
+
+async function publishBlocked(
+  admin: Admin,
+  projectId: string,
+  representation: ReleaseRepresentation,
+  sourceId: string,
+): Promise<{ ok: false; status: number; error: string } | null> {
+  const scope = await readClientScope(admin, projectId);
+  const review = await admin.from("project_source_reviews").select("decision").eq("project_id", projectId).eq("representation", representation).eq("source_id", sourceId).maybeSingle();
+  const reason = publishBlockReason({
+    included: canClientSeeCapability(scope, capabilityForRepresentation(representation)),
+    decision: review.data?.decision === "approved" || review.data?.decision === "rejected" ? review.data.decision : null,
+  });
+  if (reason === "not_included") return { ok: false, status: 409, error: "This service is not included for the client" };
+  if (reason === "not_approved") return { ok: false, status: 409, error: "Approve this source before publishing it" };
+  return null;
+}
+
+async function isSourcePublished(admin: Admin, projectId: string, representation: ReleaseRepresentation, sourceId: string): Promise<boolean> {
+  if (representation === "thermal") {
+    const existing = await admin.from("thermal_analysis_share_tokens").select("id").eq("session_id", sourceId).eq("is_revoked", false).is("expires_at", null).limit(1);
+    return Array.isArray(existing.data) && existing.data.length > 0;
+  }
+  const row = await admin.from("project_source_publications").select("id").eq("project_id", projectId).eq("representation", representation).eq("source_id", sourceId).is("revoked_at", null).maybeSingle();
+  return Boolean(row.data);
 }
 
 async function publishThermal(admin: Admin, input: { sourceId: string; actorId: string }): Promise<{ ok: true } | { ok: false; status: number; error: string }> {

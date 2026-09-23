@@ -36,19 +36,26 @@ export function activePublishedIds(
   );
 }
 
-/** Publishing one Reality model does not revoke a Geometry publication. */
+/** Publishing source B adds B. It does not revoke A, even in the same representation. */
 export function publishRecords(
   rows: readonly PublicationRecord[],
   next: Omit<PublicationRecord, "revokedAt">,
 ): PublicationRecord[] {
-  const revoked = rows
-    .filter((row) => !(row.projectId === next.projectId && row.representation === next.representation && row.sourceId === next.sourceId))
-    .map((row) =>
-      row.projectId === next.projectId && row.representation === next.representation && !row.revokedAt
-        ? { ...row, revokedAt: "revoked" }
-        : row,
-    );
-  return [...revoked, { ...next, revokedAt: null }];
+  const rest = rows.filter(
+    (row) => !(row.projectId === next.projectId && row.representation === next.representation && row.sourceId === next.sourceId),
+  );
+  return [...rest, { ...next, revokedAt: null }];
+}
+
+/** Automatic backfill has no actor. Drop it only when that service is not included. */
+export function automaticBackfillShouldDrop(row: { publishedBy: string | null; included: boolean }): boolean {
+  return row.publishedBy == null && !row.included;
+}
+
+export function publishBlockReason(input: { included: boolean; decision: ReviewDecision | null }): "not_included" | "not_approved" | null {
+  if (!input.included) return "not_included";
+  if (input.decision !== "approved") return "not_approved";
+  return null;
 }
 
 export function revokeRecord(

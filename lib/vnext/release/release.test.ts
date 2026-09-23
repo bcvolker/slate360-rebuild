@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { activePublishedIds, publishRecords, qaBucket, revokeRecord, type PublicationRecord, type QaSource } from "./release-rules";
+import { activePublishedIds, automaticBackfillShouldDrop, publishBlockReason, publishRecords, qaBucket, revokeRecord, type PublicationRecord, type QaSource } from "./release-rules";
 
 const project = "p1";
 
@@ -25,13 +25,18 @@ describe("vNext publication", () => {
     expect(activePublishedIds(next, project, "reality")).toEqual(new Set(["splat"]));
   });
 
-  it("replaces the published reality model and keeps the previous row", () => {
+  it("keeps an older published source when a newer one is published", () => {
     const published = publishRecords([row("reality", "a")], { projectId: project, representation: "reality", sourceId: "b" });
-    expect([...activePublishedIds(published, project, "reality")]).toEqual(["b"]);
-    expect(published.find((item) => item.sourceId === "a")?.revokedAt).toBeTruthy();
-    const revoked = revokeRecord(published, { projectId: project, representation: "reality", sourceId: "b" });
-    expect(activePublishedIds(revoked, project, "reality").size).toBe(0);
-    expect(revoked.find((item) => item.sourceId === "b")).toBeTruthy();
+    expect(activePublishedIds(published, project, "reality")).toEqual(new Set(["a", "b"]));
+    const plans = publishRecords(
+      [row("plans", "a1"), row("plans", "a2", "revoked")],
+      { projectId: project, representation: "plans", sourceId: "a2" },
+    );
+    expect(activePublishedIds(plans, project, "plans")).toEqual(new Set(["a1", "a2"]));
+    const panos = publishRecords([row("pano360", "station-1")], { projectId: project, representation: "pano360", sourceId: "station-2" });
+    expect(activePublishedIds(panos, project, "pano360")).toEqual(new Set(["station-1", "station-2"]));
+    const revoked = revokeRecord(published, { projectId: project, representation: "reality", sourceId: "a" });
+    expect(activePublishedIds(revoked, project, "reality")).toEqual(new Set(["b"]));
   });
 
   it("does not put an unsold thermal source in the delivery queue", () => {
@@ -43,5 +48,19 @@ describe("vNext publication", () => {
     expect(qaBucket(source({}), { projectId: project, representation: "reality", sourceId: "a", decision: "approved", note: null, needsRecapture: false })).toBe("ready_to_publish");
     expect(qaBucket(source({}), { projectId: project, representation: "reality", sourceId: "a", decision: "rejected", note: "Blurred", needsRecapture: true })).toBe("rejected");
     expect(qaBucket(source({ published: true }), null)).toBe("published");
+    expect(qaBucket(source({ published: false }), { projectId: project, representation: "reality", sourceId: "a", decision: "approved", note: null, needsRecapture: false })).toBe("ready_to_publish");
+  });
+
+  it("drops an automatic backfill only when that service is not included", () => {
+    expect(automaticBackfillShouldDrop({ publishedBy: null, included: false })).toBe(true);
+    expect(automaticBackfillShouldDrop({ publishedBy: null, included: true })).toBe(false);
+    expect(automaticBackfillShouldDrop({ publishedBy: "operator", included: false })).toBe(false);
+  });
+
+  it("publishes only an included source that is already approved", () => {
+    expect(publishBlockReason({ included: true, decision: null })).toBe("not_approved");
+    expect(publishBlockReason({ included: true, decision: "rejected" })).toBe("not_approved");
+    expect(publishBlockReason({ included: false, decision: "approved" })).toBe("not_included");
+    expect(publishBlockReason({ included: true, decision: "approved" })).toBeNull();
   });
 });

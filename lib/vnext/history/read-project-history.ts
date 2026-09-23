@@ -3,6 +3,7 @@ import "server-only";
 import { isThermalSessionAvailable, type ThermalCaptureLike, type ThermalShareLike } from "@/lib/vnext/thermal-availability";
 import { planSheetHasImage } from "@/lib/vnext/explore/resolve-plan-source";
 import { publishedIdSet, readProjectPublications } from "@/lib/vnext/release/read-publications";
+import { twinModelIsClientPublished } from "./history-rules";
 import { HISTORY_LOAD_ERROR } from "./history-types";
 import { assembleProjectHistory, type HistoryBuildInput } from "./assemble-history";
 import type { VnextVisit } from "./history-types";
@@ -168,12 +169,11 @@ export async function readProjectHistory(
 }
 
 function modelIsPublished(row: Record<string, unknown>, reality: Set<string>, geometry: Set<string>): boolean {
-  const id = String(row.id);
-  const format = String(row.model_format ?? "").toLowerCase();
-  const key = String(row.storage_key ?? "").toLowerCase();
-  if (format === "spz" || key.endsWith(".spz")) return reality.has(id);
-  if (format === "glb" || format === "gltf" || format === "usdz" || key.endsWith(".glb") || key.endsWith(".gltf")) return geometry.has(id);
-  return false;
+  return twinModelIsClientPublished(
+    { id: String(row.id), format: String(row.model_format ?? ""), storageKey: String(row.storage_key ?? "") },
+    reality,
+    geometry,
+  );
 }
 
 function georef(metrics: unknown): string | null {

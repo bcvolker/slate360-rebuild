@@ -61,6 +61,14 @@ describe("resolvePanoSourceData", () => {
     });
   });
 
+  it("keeps every published station when another station is also published", async () => {
+    const second = { ...ITEM, id: "item-2", title: "West stair" };
+    const admin = mockAdmin([ITEM, second]);
+    const sources = await loadPanoSources(admin, "p1");
+    expect(sources.map((item) => item.id)).toEqual(["item-1", "item-2"]);
+    expect((await resolvePanoSourceData(admin, "p1", "item-1"))?.sourceId).toBe("item-1");
+  });
+
   it("does not open an unpublished 360 photo", async () => {
     const admin = mockAdmin([ITEM], false);
     expect(await resolvePanoSourceData(admin, "p1", "item-1")).toBeNull();

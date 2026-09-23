@@ -113,7 +113,7 @@ No first-class `visits` table. Adapter over existing records (Decision C).
 | Restore | `NEEDS VERIFICATION` — archived status can likely be patched back; no dedicated restore route found |
 | Share / Copy link | `PARTIAL` — share is of deliverables / twin spaces / thermal reports, not a unified visit token |
 | Download | `NEEDS VERIFICATION` per modality |
-| Publish / Unpublish / Revoke | Reality and Geometry publish one model each through `project_source_publications`. Thermal publish is a live share token. A Site Walk session status is not a public publish flag |
+| Publish / Unpublish / Revoke | Each Reality model, Geometry model, 360 photo, and plan sheet is its own `project_source_publications` row. Publishing one does not revoke another. Thermal publish is a live share token, and only after that session is included and approved. A Site Walk session status is not a public publish flag |
 | Delete semantics | Site Walk: **soft archive** default; **hard-delete** when permanent. Twin/thermal: **NEEDS VERIFICATION** |
 | Intended vNext UI | History, Explore, owner Processing / QA; Overview (Slice 3) shows only a single derived "latest visit" (date + plain client-facing source label — "Site visit" / "3D scan" / "Thermal scan"; corrected 2026-09-18 from the original implementation-oriented "Site walk visit" / "Digital twin capture" / "Thermal session"), no visit list or actions |
 | Planned Phase 1 slice | 4, 7, 10 |
@@ -541,7 +541,7 @@ A service with `included = false` is omitted from the project summary. It is not
 | Processing `/vnext/ops/processing` | Queued, running, failed, and recently completed twin, plan, and thermal jobs. Stage comes from the job | GPU metrics, cost, fake percent, retry |
 | QA `/vnext/ops/qa` | Needs review, ready to publish, published, and rejected. The row is one model, sheet, 360 photo, or thermal session | Kanban, `review_status`, auto-publish |
 | Preview | Owner route renders the client shell. A candidate source is a path on that route only | A client query that opens an unpublished source |
-| Publish | `POST /api/vnext/ops/projects/[projectId]/release`. Operations-console owner. Source must belong to the project | Credit purchase, share recipient UI |
+| Publish | `POST /api/vnext/ops/projects/[projectId]/release`. Operations-console owner. Source must belong to the project, the service must be included, and the review must be approved. Unpublish is that source only | Credit purchase, share recipient UI, publishing an unreviewed or rejected source |
 
-Publishing a splat does not revoke a mesh. The legacy `published_model_id` pointer is unchanged and is not the vNext release.
+Publishing one splat does not revoke another splat or a mesh. Review notes are operator-only. The legacy `published_model_id` pointer is unchanged and is not the vNext release.
 

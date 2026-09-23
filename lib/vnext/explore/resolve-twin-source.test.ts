@@ -112,6 +112,30 @@ describe("resolveTwinSourceData", () => {
     expect(await resolveTwinSourceData(admin, "p1", "splat", "Reality", "newer")).toBeNull();
   });
 
+  it("keeps an older published reality model addressable after a newer one is published", async () => {
+    const models = [
+      { id: "older", space_id: "space-1", status: "ready", model_format: "spz", storage_key: "orgs/x/older.spz", title: "September", updated_at: "2026-09-01T00:00:00.000Z" },
+      { id: "newer", space_id: "space-1", status: "ready", model_format: "spz", storage_key: "orgs/x/newer.spz", title: "November", updated_at: "2026-11-01T00:00:00.000Z" },
+    ];
+    const tables = {
+      digital_twin_spaces: [{ ...SPACE, project_id: "p1", status: "active" }],
+      digital_twin_models: models,
+      project_source_publications: [published("reality", "older"), published("reality", "newer")],
+    };
+    const opened = await resolveTwinSourceData(filteringAdmin(tables), "p1", "splat", "Reality", "older");
+    const fallback = await resolveTwinSourceData(filteringAdmin(tables), "p1", "splat", "Reality");
+    const unpublished = await resolveTwinSourceData(
+      filteringAdmin({ ...tables, project_source_publications: [published("reality", "newer")] }),
+      "p1",
+      "splat",
+      "Reality",
+      "older",
+    );
+    expect(opened?.modelUrl).toContain("older");
+    expect(fallback?.modelUrl).toContain("newer");
+    expect(unpublished).toBeNull();
+  });
+
   it("opens the requested model and does not fall back to a newer one", async () => {
     const models = [
       { id: "older", space_id: "space-1", status: "ready", model_format: "spz", storage_key: "orgs/x/older.spz", title: "Older", updated_at: "2026-01-01T00:00:00.000Z" },

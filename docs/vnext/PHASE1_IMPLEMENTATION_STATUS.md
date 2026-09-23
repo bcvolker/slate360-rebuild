@@ -824,7 +824,11 @@ Reality and Geometry publish independently through `project_source_publications`
 
 360 and Plans use the same publication table, at item and sheet. Thermal still uses a live share token. Approve does not publish. Reject does not delete. Retry is not offered because reconstruction retry charges credits.
 
-Migration `20260922220000_project_source_release.sql` is the only new migration. Older versions were not rerun. Slice 11 was not started.
+Migration `20260922220000_project_source_release.sql` was the Slice 10 migration. Older versions were not rerun. Slice 11 was not started.
+
+Closeout: publication is per source. Publishing one scan, sheet, or 360 station does not revoke another. `20260922233000_project_source_release_closeout.sql` replaces `publish_project_source`, deletes automatic backfill rows whose service is not included, and removes client select access to `project_source_reviews`. Publish requires an included service and an approved review. Reject of a published source fails until it is unpublished. Slice 11 was not started.
+
+Closeout `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 39 files / 302 tests passed, production build, Playwright 155 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. `npm run typecheck:changed` against `main` exits 2 only on the existing `splat-viewer-scene.tsx` lines 197–199.
 
 Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 37 files / 288 tests passed, production build, Playwright 155 passed. A confirming run of the same suite reused that production build after the Playwright spec waited for the plan and 360 viewers, and also exited 0 (155 passed). `VNEXT_SKIP_BUILD` was unset afterward. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. `npm run typecheck:changed` against `main` exits 2 only on the existing `splat-viewer-scene.tsx` lines 197–199.
 

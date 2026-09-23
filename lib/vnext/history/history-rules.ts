@@ -21,6 +21,19 @@ export function twinOccurredAt(capture: { uploadedAt: string | null; createdAt: 
   return capture?.uploadedAt || capture?.createdAt || modelCreatedAt || null;
 }
 
+/** A twin model stays in client history only while that exact model is published. */
+export function twinModelIsClientPublished(
+  model: { id: string; format: string; storageKey: string },
+  publishedReality: ReadonlySet<string>,
+  publishedGeometry: ReadonlySet<string>,
+): boolean {
+  const format = model.format.toLowerCase();
+  const key = model.storageKey.toLowerCase();
+  if (format === "spz" || key.endsWith(".spz")) return publishedReality.has(model.id);
+  if (format === "glb" || format === "gltf" || format === "usdz" || key.endsWith(".glb") || key.endsWith(".gltf")) return publishedGeometry.has(model.id);
+  return false;
+}
+
 /** Earliest capture record time, else the session was created. Not updated_at. */
 export function thermalOccurredAt(captureCreatedAt: string | null, sessionCreatedAt: string | null): string | null {
   return captureCreatedAt || sessionCreatedAt || null;

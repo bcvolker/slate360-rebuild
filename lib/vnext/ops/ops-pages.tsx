@@ -75,7 +75,7 @@ export async function renderQaDetailPage(projectId: string, representation: stri
       </p>
       {item.note ? <p className="mt-2 text-[length:var(--vnext-body)] text-[var(--vnext-ink)]">{item.note}</p> : null}
       <div className="mt-4 h-[70dvh] min-h-96 w-full">{preview && rep ? <VnextExploreViewerStage representation={rep} data={preview} /> : <p className="text-[length:var(--vnext-body)] text-[var(--vnext-ink)]">This source cannot be opened yet.</p>}</div>
-      <VnextReleaseActions projectId={projectId} projectName={item.projectName} representation={item.representation} representationLabel={representationLabel(item.representation)} sourceId={sourceId} version={item.version ?? item.occurredAt} published={item.bucket === "published"} />
+      <VnextReleaseActions projectId={projectId} projectName={item.projectName} representation={item.representation} representationLabel={representationLabel(item.representation)} sourceId={sourceId} version={item.version ?? item.occurredAt} bucket={item.bucket} />
       <a className="mt-3 inline-flex h-11 min-w-11 items-center text-[length:var(--vnext-body)] text-[var(--vnext-ink)]" href={`/vnext/ops/projects/${projectId}/client-preview/${item.representation}/${sourceId}`}>Preview as client</a>
     </div>
   );

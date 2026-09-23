@@ -61,6 +61,16 @@ describe("resolvePlanSourceData", () => {
     });
   });
 
+  it("keeps every published sheet when another sheet is also published", async () => {
+    const admin = mockAdmin([
+      { id: "a1", sheet_name: "A1.0", sheet_number: 1, thumbnail_s3_key: "a1.jpg", rasterized_key: null, image_s3_key: null, updated_at: null },
+      { id: "a2", sheet_name: "A2.0", sheet_number: 2, thumbnail_s3_key: "a2.jpg", rasterized_key: null, image_s3_key: null, updated_at: null },
+    ]);
+    const sources = await loadPlanSources(admin, "p1");
+    expect(sources.map((sheet) => sheet.id)).toEqual(["a1", "a2"]);
+    expect((await resolvePlanSourceData(admin, "p1", "a1"))?.sourceId).toBe("a1");
+  });
+
   it("does not open a processed sheet that has not been published", async () => {
     const admin = mockAdmin(
       [{ id: "sheet-1", sheet_name: "A1.0", sheet_number: 1, thumbnail_s3_key: "orgs/x/a1.jpg", rasterized_key: null, image_s3_key: null }],
