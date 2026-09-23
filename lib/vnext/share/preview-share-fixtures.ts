@@ -1,3 +1,5 @@
+import type { PortfolioEvidence } from "@/lib/vnext/portfolio-types";
+import { composePublicOverview } from "./public-overview";
 import type { ShareListItem } from "./share-rules";
 
 export const PREVIEW_SHARE_PROJECTS = [{ id: "project-harbor", name: "Harbor Street Residence" }];
@@ -30,3 +32,24 @@ export const PREVIEW_SHARE_LINKS: ShareListItem[] = [
     url: "https://slate360.ai/share/project/preview-expired-link-000000000001",
   },
 ];
+
+const PREVIEW_EVIDENCE: PortfolioEvidence = {
+  realityPreviewUrl: "/api/vnext/projects/project-harbor/twin-models/model-a/preview-image",
+  pano360Url: null,
+  droneUrl: "https://private.example/drone.jpg",
+  planUrl: null,
+  timestamps: ["2020-01-01T00:00:00.000Z"],
+  representations: ["reality", "geometry", "plan", "thermal", "drone"],
+};
+
+export const PREVIEW_PUBLIC_OVERVIEW = composePublicOverview({
+  id: "project-harbor",
+  name: "Harbor Street Residence",
+  context: "Northwater Construction",
+  locationLabel: "Portland, ME",
+  evidence: PREVIEW_EVIDENCE,
+  projectId: "project-harbor",
+  token: "preview-harbor-client-link-0000000001",
+  sections: ["overview", "explore", "history"],
+  publishedVisits: [{ occurredAt: "2026-09-14T15:00:00.000Z", sourceLabel: "3D scan" }],
+});

@@ -13,7 +13,8 @@ import { comparableReps } from "@/lib/vnext/history/history-rules";
 import type { VnextCompareRep } from "@/lib/vnext/history/history-types";
 import { loadPublicExplore } from "./load-public-explore";
 import { loadPublicHistory } from "./load-public-history";
-import { claimResolvedShare, exploreRepresentation, resolvePublicShare } from "./resolve-public-share";
+import { loadPublicOverview } from "./load-public-overview";
+import { exploreRepresentation, resolvePublicShare } from "./resolve-public-share";
 import { sharePath } from "./share-rules";
 
 type Section = "overview" | "explore" | "history" | "visit" | "compare";
@@ -32,7 +33,6 @@ export async function renderPublicShare(token: string, section: Section, query: 
       sourceId: share.view.sourceId,
     });
     if (!data) return <VnextShareUnavailable />;
-    if (!(await claimResolvedShare(admin, token))) return <VnextShareUnavailable />;
     return (
       <VnextRoot>
         <VnextPublicShell token={token} projectName={share.projectName} sections={[]} pathname={root}>
@@ -77,16 +77,10 @@ export async function renderPublicShare(token: string, section: Section, query: 
         )
       : null;
   if (section === "explore" && !exploreData) return <VnextShareUnavailable />;
-  if (!(await claimResolvedShare(admin, token))) return <VnextShareUnavailable />;
+  const overview = section === "overview" ? await loadPublicOverview(admin, share.projectId, token, share.sections) : null;
+  if (section === "overview" && !overview) return <VnextShareUnavailable />;
 
-  let body = (
-    <VnextPublicOverview
-      projectName={share.projectName}
-      exploreHref={`${root}/explore`}
-      historyHref={`${root}/history`}
-      sections={share.sections}
-    />
-  );
+  let body = overview ? <VnextPublicOverview overview={overview} /> : null;
   if (section === "explore" && exploreData) {
     body = (
       <VnextExploreShell

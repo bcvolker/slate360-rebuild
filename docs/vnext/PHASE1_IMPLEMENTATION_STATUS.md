@@ -1,7 +1,7 @@
 # Slate360 Phase 1 — Implementation Status
 
 **Last updated:** 2026-09-22  
-**Current slice:** 11 (Sharing / permissions / polish) — implemented, awaiting approval  
+**Current slice:** 11 (Sharing / permissions / polish) — closeout implemented, awaiting approval  
 **Next slice:** 12 (Cutover / cleanup / release gate) — **NOT STARTED**
 
 Canonical plan: `docs/vnext/SLATE360_UI_PHASE1_MASTER_BUILD_PLAN.md`  
@@ -843,6 +843,16 @@ Slice 12 was not started. There is no cutover and no legacy deletion.
 Migration `20260923010000_project_share_links.sql` was applied to linked project `hadnfcenpcfaeclczsmm` and recorded. A rolled-back proof showed an expired token does not increment, an active token increments once, a revoked token does not increment again, and an authenticated role cannot read the table. `service_role` can execute `claim_project_share_open`. Older migrations were not rerun.
 
 Canonical `npm run test:vnext` on 2026-09-22, exit code 0: Vitest 41 files / 312 tests passed, production build, Playwright 157 passed. `guard:architecture`, `guard:design`, and `guard:file-size-regression` passed. Scoped typecheck of the Slice 11 files exits 2 only on the existing `splat-viewer-scene.tsx` lines 197–199.
+
+## Slice 11 closeout (2026-09-22)
+
+The public project Overview now uses the same project record as the authenticated portal, filled only from published, share-safe evidence. Items, documents, thermal, thumbnail images, and saved-view Overview navigation stay out.
+
+Opens is one browser-session entry. The token layout posts once to `/share/project/[token]/entry`. That route claims only when the link is active and the HttpOnly session cookie is absent. Moving among Overview, Explore, and History does not claim again. Refresh keeps the cookie. A revoked or expired link still fails closed.
+
+Closeout `npm run test:vnext` exit code 0: Vitest 44 files / 319 tests passed, production build, Playwright 158 passed. Guards passed. Scoped typecheck exits 2 only on the existing splat JSX errors.
+
+Slice 12 was not started.
 
 
 

@@ -353,5 +353,5 @@ Slice 11 leaves Settings and Account as short owner pages. Settings points at pr
 
 ## Public share
 
-A public project link uses the client deliverable, not a landing page. No sign-up, pricing, or product list. Sections are only Overview, Explore, and History when the project includes them. Status on the owner Shares page is the word Active, Expired, or Revoked. The open count is labeled Opens. The canonical contract is `docs/vnext/VNEXT_SHARING.md`.
+A public project link uses the client deliverable, not a landing page. The project Overview reuses the authenticated project record with only published, share-safe evidence. No sign-up, pricing, or product list. Sections are only Overview, Explore, and History when the project includes them. Status on the owner Shares page is the word Active, Expired, or Revoked. Opens counts one browser-session entry, not each page inside the link. The canonical contract is `docs/vnext/VNEXT_SHARING.md`.
 

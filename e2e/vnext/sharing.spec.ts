@@ -49,6 +49,16 @@ test.describe("vNext sharing", () => {
     }
     await page.setViewportSize({ width: 1440, height: 900 });
     await expect(page.getByRole("heading", { name: "Harbor Street Residence" })).toBeVisible();
+    await expect(page.getByText("Northwater Construction")).toBeVisible();
+    await expect(page.getByText("Portland, ME")).toBeVisible();
+    await expect(page.getByText("Last documented Sep 14, 2026")).toBeVisible();
+    await expect(page.getByText("3D scan · Sep 14, 2026")).toBeVisible();
+    await expect(page.getByText("Reality · Geometry · Plan")).toBeVisible();
+    await expect(page.locator("[data-vnext-overview] img")).toHaveAttribute("src", "/vnext-preview/reality.svg");
+    await expect(page.getByRole("link", { name: "Explore project" })).toHaveAttribute("href", "/preview/vnext/share/explore");
+    await expect(page.getByRole("link", { name: "History" })).toHaveAttribute("href", "/share/project/preview/history");
+    await expect(page.getByText("Recent items")).toHaveCount(0);
+    await expect(page.getByText("Recent documents")).toHaveCount(0);
     await expect(page.getByText("Thermal")).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Items" })).toHaveCount(0);
     await expect(page.getByRole("link", { name: "Documents" })).toHaveCount(0);
@@ -78,5 +88,36 @@ test.describe("vNext sharing", () => {
     await expect(page.getByText("Harbor Street Residence")).toHaveCount(0);
     await page.screenshot({ path: `${DIR}/public-unavailable-1440.png`, fullPage: true });
     health.assertClean();
+  });
+
+  test("an entry cookie does not open an invalid link", async ({ page, browser }) => {
+    const token = "b".repeat(43);
+    const posts: string[] = [];
+    await page.route("**/share/project/*/entry", async (route) => {
+      posts.push(route.request().url());
+      await route.fulfill({ status: 204 });
+    });
+    await page.goto(`/share/project/${token}`, { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: "This link is not available." })).toBeVisible();
+    await expect(page.getByText("Harbor Street Residence")).toHaveCount(0);
+    await expect.poll(() => posts.length).toBe(1);
+    await page.context().addCookies([
+      { name: "s360_share_open", value: "1", url: page.url(), httpOnly: true, sameSite: "Lax" },
+    ]);
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: "This link is not available." })).toBeVisible();
+    const fresh = await browser.newContext();
+    const freshPosts: string[] = [];
+    await fresh.route("**/share/project/*/entry", async (route) => {
+      freshPosts.push(route.request().url());
+      await route.fulfill({ status: 204 });
+    });
+    const freshPage = await fresh.newPage();
+    await freshPage.goto(`/share/project/${token}`, { waitUntil: "domcontentloaded" });
+    await expect.poll(() => freshPosts.length).toBe(1);
+    await fresh.close();
+    const denied = await page.request.post("/share/project/not-a-token/entry");
+    expect(denied.status()).toBe(204);
+    expect(denied.headers()["set-cookie"] ?? "").not.toContain("s360_share_open");
   });
 });
