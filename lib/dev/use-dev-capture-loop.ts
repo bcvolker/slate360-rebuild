@@ -5,6 +5,7 @@ import { resolveCaptureV2PreviewUrl } from "@/components/capture-v2/capture-v2-p
 import type { CaptureV2Loop } from "@/components/capture-v2/useCaptureV2Loop";
 import type { CaptureIntent } from "@/components/site-walk/capture/useCaptureFileHandler";
 import type { CaptureItemRecord } from "@/lib/types/site-walk-capture";
+import type { PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
 import { DEV_MOCK_CAPTURE_ITEMS } from "./mock-site-walk";
 
 type PreviewState = { url: string; title: string; itemId: string } | null;
@@ -16,7 +17,7 @@ type Options = {
   measurePin?: boolean;
 };
 
-const DEV_MEASURE_PIN = {
+const DEV_MEASURE_PIN: PhotoAttachmentPin = {
   id: "dev-measure-pin",
   xPct: 50,
   yPct: 42,
@@ -24,7 +25,7 @@ const DEV_MEASURE_PIN = {
   note: "",
   files: [],
   createdAt: "2026-06-04T18:00:00.000Z",
-} as const;
+};
 
 function sortItems(items: CaptureItemRecord[]) {
   return [...items].sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));

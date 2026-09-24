@@ -5,6 +5,7 @@ import { AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TwinViewerKind } from "@/lib/digital-twin/viewer-format";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
+import type { SplatViewerHandle } from "@/components/digital-twin/splat-viewer-constants";
 
 const SplatViewer = dynamic(() => import("@/components/digital-twin/SplatViewer"), {
   ssr: false,
@@ -35,13 +36,15 @@ export function TwinModelViewer({
   viewerKind,
   modelUrl,
   modelTitle,
+  onSplatHandle,
 }: {
   viewerKind: TwinViewerKind;
   modelUrl: string;
   modelTitle: string;
+  onSplatHandle?: (handle: SplatViewerHandle | null) => void;
 }) {
   if (viewerKind === "splat") {
-    return <SplatViewer src={modelUrl} className="absolute inset-0" />;
+    return <SplatViewer ref={onSplatHandle} src={modelUrl} className="absolute inset-0" />;
   }
 
   if (viewerKind === "model") {

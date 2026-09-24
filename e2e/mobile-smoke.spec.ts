@@ -19,7 +19,7 @@ test.describe("mobile smoke", () => {
   test("projects redirects to login with redirectTo", async ({ request }) => {
     const response = await request.get("/projects", { maxRedirects: 0 });
     expect(response.status()).toBe(307);
-    expect(response.headers()["location"]).toContain("/login?redirectTo=%2Fprojects");
+    expect(response.headers()["location"]).toContain("/vnext/projects");
   });
 
   test("design studio feature route serves expected content", async ({ request }) => {

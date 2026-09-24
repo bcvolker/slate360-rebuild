@@ -108,11 +108,11 @@ export function composeSim3(first: Sim3, second: Sim3): Sim3 {
 }
 
 export function translationSim3(tx: number, ty: number, tz: number): Sim3 {
-  const m = [...I16];
-  m[12] = tx;
-  m[13] = ty;
-  m[14] = tz;
-  return { matrix: m, scale: 1 };
+  const matrix: number[] = [...I16];
+  matrix[12] = tx;
+  matrix[13] = ty;
+  matrix[14] = tz;
+  return { matrix, scale: 1 };
 }
 
 export function uniformScaleSim3(scale: number): Sim3 {

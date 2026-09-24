@@ -14,6 +14,7 @@ import type { SiteWalkPin, SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/type
 import type { CaptureItemDraft } from "@/lib/types/site-walk-capture";
 import type { CaptureSheetTab } from "@/components/site-walk/capture/CaptureDataBottomSheet";
 import { hasReadyPlanSet } from "@/lib/site-walk/capture-v2-fork";
+import { openNativePickerInGesture, walkModeAfterPlanSave } from "@/lib/site-walk/plan-capture-gesture";
 import { findGhostImageUrl, nextStopLabel, parseRecentLocations } from "./captureSessionHelpers";
 import { SharedCaptureTaskHeader } from "./SharedCaptureTaskHeader";
 
@@ -133,8 +134,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
   function openPickerDirect(input: "camera" | "upload", source: string) {
     pickerIntentRef.current = { source, input };
     const ref = input === "camera" ? directCameraRef : directUploadRef;
-    ref.current!.value = "";
-    ref.current!.click();
+    if (ref.current) openNativePickerInGesture(ref.current);
   }
 
   function saveNextStop(options: { fromPlanPin?: boolean } = {}) {
@@ -144,7 +144,7 @@ function CaptureClientIslandInner({ sessionId, projectId, walkName, showPlanCanv
       console.error("[site-walk] Save & Next draft flush failed; continuing to next stop", error);
     });
     
-    const shouldReturnToPlan = options.fromPlanPin || returnToPlanAfterSave;
+    const shouldReturnToPlan = walkModeAfterPlanSave({ fromPlanPin: options.fromPlanPin, armedReturn: returnToPlanAfterSave }) === "plan";
     
     updateLocation(nextStopLabel(currentLocation, recentLocations));
     if (shouldReturnToPlan) {

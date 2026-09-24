@@ -6,6 +6,7 @@ import { useMap, useMapEvents } from "react-leaflet";
 import type { PlanViewerPin } from "./PlanPin";
 import { createClientPinId, type QuickMenuState } from "./planViewerModel";
 import { PLAN_PIN_MARKER } from "@/lib/capture-v2/plan-pin-marker-tokens";
+import { pinPressCancelledByMove } from "@/lib/site-walk/plan-capture-gesture";
 
 export type PlanPinDropPayload = {
   clientPinId: string;
@@ -29,8 +30,6 @@ type Props = {
   onPersistPin?: (pin: PlanViewerPin) => Promise<{ id: string } | null>;
   useSourcePickerFlow?: boolean;
 };
-
-const MOVE_CANCEL_PX = 10;
 
 export function PlanViewerLeafletEvents({
   toolMode,
@@ -158,7 +157,7 @@ export function PlanViewerLeafletEvents({
     function handlePointerMove(event: PointerEvent) {
       const press = pressRef.current;
       if (!press || press.pointerId !== event.pointerId) return;
-      if (Math.hypot(event.clientX - press.x, event.clientY - press.y) > MOVE_CANCEL_PX) {
+      if (pinPressCancelledByMove(event.clientX - press.x, event.clientY - press.y)) {
         clearTimer();
         pressRef.current = null;
       }

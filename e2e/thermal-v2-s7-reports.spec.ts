@@ -8,6 +8,31 @@ import { test, expect, type Page } from "@playwright/test";
 
 const URL = "/preview/thermal-v2";
 
+type ReportJobPost = { job_type?: string; capture_ids?: string[] };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === "object" && !Array.isArray(value);
+}
+
+function readStringList(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+  const ids: string[] = [];
+  for (const item of value) {
+    if (typeof item !== "string") return undefined;
+    ids.push(item);
+  }
+  return ids;
+}
+
+function readReportJobPost(value: unknown): ReportJobPost | null {
+  if (!isRecord(value)) return null;
+  const jobType = value.job_type;
+  return {
+    job_type: typeof jobType === "string" ? jobType : undefined,
+    capture_ids: readStringList(value.capture_ids),
+  };
+}
+
 async function warmBuildIdThenGoto(page: Page) {
   await page.goto(URL);
   await page.waitForFunction(() => localStorage.getItem("slate360-last-build") !== null);
@@ -79,9 +104,9 @@ test.describe("Thermal V2 S7 Reports", () => {
 
   test("Generate PDF dispatches a report job for the outline's images", async ({ page }) => {
     await mockSessionAndTemplates(page);
-    let jobBody: { job_type?: string; capture_ids?: string[] } | null = null;
+    const sent: { body: ReportJobPost | null } = { body: null };
     await page.route("**/api/ops/thermal/jobs", async (route) => {
-      jobBody = route.request().postDataJSON();
+      sent.body = readReportJobPost(route.request().postDataJSON());
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -93,8 +118,8 @@ test.describe("Thermal V2 S7 Reports", () => {
     await page.getByRole("button", { name: "Report", exact: true }).click();
     await page.getByRole("button", { name: /Generate PDF/ }).click();
 
-    await expect.poll(() => jobBody?.job_type, { timeout: 3000 }).toBe("report");
-    expect(jobBody?.capture_ids).toContain("b");
+    await expect.poll(() => sent.body?.job_type, { timeout: 3000 }).toBe("report");
+    expect(sent.body?.capture_ids).toContain("b");
   });
 
   test("no page scroll at 1280x800 and 1440x900", async ({ page }) => {

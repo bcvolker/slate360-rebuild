@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, FileUp, Loader2 } from "lucide-react";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { createClient } from "@/lib/supabase/client";
 import { PlanUploaderCard } from "@/components/site-walk/PlanUploaderCard";
+import { choosePlanSurface } from "@/lib/site-walk/plan-surface-choice";
 import type { SiteWalkPlanSet, SiteWalkPlanSheet } from "@/lib/types/site-walk";
 import { PlanViewerLeaflet } from "./PlanViewerLeaflet";
 import { PlanViewerPdf } from "./PlanViewerPdf";
@@ -20,7 +20,7 @@ type Props = {
 };
 
 export function PlanViewer(props: Props) {
-  const isMobile = useIsMobile();
+  const [isPhone, setIsPhone] = useState<boolean | null>(null);
   const [localPlanSets, setLocalPlanSets] = useState<SiteWalkPlanSet[]>([]);
   const [localSheets, setLocalSheets] = useState<SiteWalkPlanSheet[]>([]);
   const [retrying, setRetrying] = useState(false);
@@ -42,8 +42,19 @@ export function PlanViewer(props: Props) {
   );
 
   const hasRasterized = planSheets.length > 0 && planSheets.some((s) => s.rasterized_key != null);
-  // On mobile: always use Leaflet (or show processing state). Never fall back to React-PDF on mobile.
-  const usingLeaflet = isMobile && hasRasterized;
+  const surface = choosePlanSurface({
+    viewportKnown: isPhone !== null,
+    isPhone: isPhone === true,
+    hasRasterizedSheet: hasRasterized,
+  });
+
+  useEffect(() => {
+    const media = window.matchMedia("(max-width: 767px)");
+    const apply = () => setIsPhone(media.matches);
+    apply();
+    media.addEventListener("change", apply);
+    return () => media.removeEventListener("change", apply);
+  }, []);
 
   // Check whether the Trigger.dev rasterization job has failed/missing so we can surface it instead of spinning.
   useEffect(() => {
@@ -103,9 +114,13 @@ export function PlanViewer(props: Props) {
     }
   }
 
+  if (surface === "pending") {
+    return <div className="absolute inset-0 bg-slate-950" data-plan-surface-choice="pending" />;
+  }
+
   // Mobile without a rasterized image → show a processing screen.
   // Never show React-PDF on mobile (it crashes with touch gestures).
-  if (isMobile && !hasRasterized) {
+  if (surface === "mobile-processing") {
     // no activePlanSet means this project/walk has no plans yet — show uploader immediately
     // jobStatus="none" means old plan with no raster job row — show Generate button immediately
     // jobStatus="stale" means a queued/processing row is old enough to be considered stuck
@@ -194,7 +209,7 @@ export function PlanViewer(props: Props) {
 
   return (
     <div className="relative h-full w-full">
-      {usingLeaflet ? (
+      {surface === "mobile-raster" ? (
         <PlanViewerLeaflet {...props} planSets={allPlanSets} sheets={allSheets} />
       ) : (
         <PlanViewerPdf {...props} planSets={allPlanSets} sheets={allSheets} />

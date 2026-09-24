@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import { AuthGlassShell } from "@/components/auth/AuthGlassShell";
 import { useIsNativePlatform } from "@/lib/capacitor/is-native-platform";
+import { POST_AUTH_RESOLVER, safeInternalPath } from "@/lib/vnext/cutover";
 import {
   AUTH_BODY,
   AUTH_DIVIDER,
@@ -21,10 +22,6 @@ import {
   AUTH_SUBMIT,
 } from "@/components/auth/auth-styles";
 
-function isSafeRedirectPath(url: string): boolean {
-  return url.startsWith("/") && !url.startsWith("//") && !url.includes("://");
-}
-
 function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -32,8 +29,8 @@ function LoginForm() {
   // Sign-in-with-Apple trigger (Apple 4.8 only requires it when a
   // third-party social login is user-visible in the app).
   const isNative = useIsNativePlatform();
-  const rawRedirect = searchParams?.get("redirectTo") ?? "/app";
-  const redirectTo = isSafeRedirectPath(rawRedirect) ? rawRedirect : "/app";
+  const requested = safeInternalPath(searchParams?.get("redirectTo"));
+  const redirectTo = requested ? `${requested.pathname}${requested.search}` : POST_AUTH_RESOLVER;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

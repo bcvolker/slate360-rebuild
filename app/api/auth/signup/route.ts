@@ -9,6 +9,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendConfirmationEmail } from "@/lib/email";
 import { createRateLimiter } from "@/lib/server/rate-limit";
 import { verifyTurnstile } from "@/lib/server/turnstile";
+import { postAuthDestination } from "@/lib/vnext/cutover";
 
 const checkRate = createRateLimiter("auth:signup", 5, 900); // 5 signups per IP per 15 min
 
@@ -54,9 +55,7 @@ export async function POST(req: Request) {
 
     const supabase = createAdminClient();
     const origin = new URL(req.url).origin;
-    const next = typeof redirectAfter === "string" && redirectAfter.startsWith("/")
-      ? redirectAfter
-      : "/dashboard";
+    const next = postAuthDestination(typeof redirectAfter === "string" ? redirectAfter : null);
     const redirectTo = `${origin}/auth/callback?next=${encodeURIComponent(next)}`;
 
     // Use generateLink which creates user + generates confirmation link in one step

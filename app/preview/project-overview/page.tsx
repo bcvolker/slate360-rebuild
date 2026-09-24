@@ -5,14 +5,17 @@ import type { ProjectOverviewData } from "@/lib/projects/load-project-overview-d
 const MOCK: ProjectOverviewData = {
   projectId: "demo",
   name: "Oak Ridge Roof Inspection",
+  status: "active",
+  locationLabel: "Oak Ridge",
   description: "Annual roof + envelope inspection for the Oak Ridge commercial complex.",
   startDate: new Date().toISOString(),
   endDate: null,
-  counts: { walks: 6, twins: 2, files: 41, teamMembers: 4 },
+  counts: { walks: 6, twins: 2, files: 41, deliverables: 3, teamMembers: 4 },
   lastFileUploadAt: new Date().toISOString(),
   showTwins: true,
   recentActivity: Array.from({ length: 8 }, (_, i) => ({
     id: String(i),
+    kind: "walk" as const,
     title: `Walk ${i + 1} captured`,
     meta: "Site Walk",
     occurredAt: new Date(Date.now() - 86400000 * i).toISOString(),

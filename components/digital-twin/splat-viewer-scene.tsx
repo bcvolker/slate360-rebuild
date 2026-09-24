@@ -23,6 +23,7 @@ import { estimateOrientationFromMesh } from "@/lib/digital-twin/splat-pca-orient
 import { applyEditListToMesh } from "@/lib/digital-twin/splat-edit-runtime";
 import { ControlsBridge } from "@/components/digital-twin/splat-viewer-controls-bridge";
 import { useSplatBytes } from "@/hooks/useSplatBytes";
+import "@/types/spark-jsx";
 
 extend({ SparkRenderer: SparkRendererImpl, SplatMesh: SplatMeshImpl });
 

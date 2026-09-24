@@ -23,6 +23,18 @@ describe("identitySim3", () => {
   });
 });
 
+describe("translationSim3", () => {
+  it("writes the translation into the last column and keeps scale 1", () => {
+    const sim = translationSim3(4, -2, 9);
+    expect(sim.scale).toBe(1);
+    expect(sim.matrix[12]).toBe(4);
+    expect(sim.matrix[13]).toBe(-2);
+    expect(sim.matrix[14]).toBe(9);
+    expect(sim.matrix[15]).toBe(1);
+    expect(applySim3(sim, vec3(0, 0, 0))).toEqual(vec3(4, -2, 9));
+  });
+});
+
 describe("sparkPiXFlipSim3", () => {
   it("is Rx(π): (x,y,z) → (x,-y,-z), matching Spark rotation={[Math.PI,0,0]}", () => {
     expect(applySim3(sparkPiXFlipSim3(), vec3(2, 3, 4))).toEqual(vec3(2, -3, -4));

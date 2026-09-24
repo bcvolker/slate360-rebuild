@@ -9,6 +9,9 @@ const MOCK: ProjectDeliverablesTabData = {
     { id: "d2", title: "Client Walkthrough Slideshow", deliverableType: "presentation", outputMode: "presentation", status: "published", shareToken: "def456def456def456", createdAt: new Date().toISOString(), unansweredCount: 0 },
     { id: "d3", title: "Punch List Summary", deliverableType: "report", outputMode: "hosted", status: "draft", shareToken: null, createdAt: new Date().toISOString(), unansweredCount: 0 },
   ],
+  walks: [
+    { id: "w1", title: "Roof walk", status: "completed", createdAt: new Date().toISOString() },
+  ],
 };
 
 export default function ProjectDeliverablesPreview() {

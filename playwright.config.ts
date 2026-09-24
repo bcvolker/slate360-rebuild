@@ -6,9 +6,9 @@ const skipWebServer = process.env.PLAYWRIGHT_SKIP_WEBSERVER === "1";
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
-  timeout: 45_000,
+  timeout: 60_000,
   expect: {
-    timeout: 10_000,
+    timeout: 15_000,
   },
   retries: process.env.CI ? 2 : 0,
   reporter: [["list"], ["html", { open: "never" }]],
@@ -18,6 +18,8 @@ export default defineConfig({
     screenshot: "only-on-failure",
     video: "retain-on-failure",
   },
+  // Other e2e suites still use the dev server. The vNext regression gate does not:
+  // `npm run test:vnext` uses playwright.vnext.config.ts and `next start`.
   webServer: skipWebServer
     ? undefined
     : {

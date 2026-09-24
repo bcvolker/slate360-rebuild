@@ -22,4 +22,8 @@
 - Anti-Pattern Alert: All background layout card outlines around features, dark button pill shapes (`rounded-full`), emoji bullet point elements, and early-2000s cartoon icons are permanently banned from the project tree. Feature lists must use a clean, borderless layout row using raw typography strings styled in `text-slate-200 text-base font-normal tracking-wide flex items-start gap-2`, accompanied exclusively by a sharp laser dot chevron accent indicator node: (`»`) cast in high-contrast teal (`text-[#00E699] drop-shadow-[0_0_8px_rgba(0,230,153,0.6)]`).
 
 ## 5. RE-ROUTING CANONICAL TARGET CORES
-- Authenticated account entry routes must completely bypass legacy folder locations (`app/site-walk/page.tsx`). Validated logins must route traffic exclusively to our modern studio hub cockpit route at **`/app`** (`components/dashboard-v3/DashboardV3Shell.tsx`), rendering exactly two clean application launch tiles on a solid `#0B0F15` base background canvas.
+- Authenticated account entry does not use `app/site-walk/page.tsx` as the product home.
+- Desktop and mobile login without a deep link: operations owner → `/vnext/ops`; approved client → `/vnext/projects`.
+- `/app` stays the field shell when someone opens it. It is not the default home.
+- Capture, `/projects/new`, twin ingest, and thermal studio stay on their operational routes.
+- A direct `redirectTo` deep link wins over the default home.
