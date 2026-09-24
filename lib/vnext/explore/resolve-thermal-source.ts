@@ -3,6 +3,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { loadThermalShareViewerData } from "@/lib/thermal/load-share-viewer";
 import { findRenderableThermalShare, isThermalSessionAvailable, type ThermalCaptureLike, type ThermalShareLike } from "@/lib/vnext/thermal-availability";
+import { publishedIdSet, readProjectPublications } from "@/lib/vnext/release/read-publications";
 import type { VnextExploreSourceData } from "@/lib/vnext/explore-types";
 
 type Admin = ReturnType<typeof createAdminClient>;
@@ -55,7 +56,9 @@ export async function resolveThermalSourceData(
     storagePath: row.storage_path as string | null,
   }));
 
-  const available = (sessions ?? []).filter((s) => isThermalSessionAvailable(s.id as string, shares, captures));
+  const publications = await readProjectPublications(admin, projectId).catch(() => []);
+  const publishedSessionIds = publishedIdSet(publications, projectId, "thermal");
+  const available = (sessions ?? []).filter((s) => isThermalSessionAvailable(s.id as string, shares, captures, publishedSessionIds));
   const bestSession = sessionId
     ? available.find((session) => session.id === sessionId) ?? null
     : available.sort((a, b) => Date.parse(b.updated_at as string) - Date.parse(a.updated_at as string))[0];

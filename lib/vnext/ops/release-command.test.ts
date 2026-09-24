@@ -87,6 +87,17 @@ function publish(representation: Representation, sourceId: string, options: Para
   }).then((result) => ({ result, calls: script.calls }));
 }
 
+function revoke(representation: Representation, sourceId: string, options: Parameters<typeof releaseAdmin>[0]) {
+  const script = releaseAdmin(options);
+  return applyReleaseAction(script.admin, {
+    projectId: "p1",
+    representation,
+    sourceId,
+    action: "revoke",
+    actorId: "owner",
+  }).then((result) => ({ result, calls: script.calls }));
+}
+
 describe("release command", () => {
   it("refuses to publish a source that has not been approved", async () => {
     const unreviewed = await publish("reality", "model-b", { representation: "reality", decision: null });
@@ -153,5 +164,23 @@ describe("release command", () => {
     expect(hidden.result).toMatchObject({ ok: false, status: 409 });
     expect(ready.result).toEqual({ ok: true });
     expect(ready.calls).toContain("insert:thermal_analysis_share_tokens");
+    // P1-P3: publishing to the client portal is now the SAME publish_project_source RPC every
+    // other representation uses, not just a share-token insert — that's what makes it a real,
+    // review-gated portal publication instead of "a share token happens to exist."
+    expect(ready.calls).toContain("rpc:publish_project_source:thermal:session-1");
+  });
+
+  it("reuses an existing live report share when publishing thermal, but still records the separate portal publication", async () => {
+    const alreadyShared = await publish("thermal", "session-1", { representation: "thermal", decision: "approved", published: true });
+    expect(alreadyShared.result).toEqual({ ok: true });
+    expect(alreadyShared.calls).not.toContain("insert:thermal_analysis_share_tokens");
+    expect(alreadyShared.calls).toContain("rpc:publish_project_source:thermal:session-1");
+  });
+
+  it("revoking thermal from the client portal calls revoke_project_source and never touches thermal_analysis_share_tokens (P1-P3: must not kill an independent report link)", async () => {
+    const revoked = await revoke("thermal", "session-1", { representation: "thermal", decision: "approved", published: true });
+    expect(revoked.result).toEqual({ ok: true });
+    expect(revoked.calls).toContain("rpc:revoke_project_source:thermal:session-1");
+    expect(revoked.calls.some((call) => call.startsWith("update:thermal_analysis_share_tokens"))).toBe(false);
   });
 });

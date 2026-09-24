@@ -65,16 +65,29 @@ export function findRenderableThermalShare(
 }
 
 /**
- * The single effective Thermal-availability predicate — Overview (load-portfolio-evidence.ts) and
- * Explore (resolve-thermal-source.ts) both defer to this so they cannot drift again. A session is
- * Thermal-available only when at least one of its shares is both currently published (non-revoked,
- * non-expired) AND that SAME share's layer_config leaves at least one genuinely viewable capture.
+ * The single effective Thermal-availability predicate — Overview (load-portfolio-evidence.ts),
+ * Explore (resolve-thermal-source.ts), History, owner attention signals, and the QA queue all
+ * defer to this so they cannot drift again. A session is Thermal-available to the CLIENT PORTAL
+ * only when BOTH:
+ *   1. it has an explicit client-portal publication (project_source_publications, representation
+ *      "thermal", not revoked) — the same publish/review-gated mechanism every other
+ *      representation uses, via release-command.ts's publishThermal/revokeThermal; and
+ *   2. at least one of its Thermal Studio report shares is both currently published (non-revoked,
+ *      non-expired) AND that SAME share's layer_config leaves at least one genuinely viewable
+ *      capture — the report-share row is only ever a RENDER DATA SOURCE here (its layer_config/
+ *      branding_snapshot), never itself the publication decision.
+ * A specialized report share created for someone outside the client portal (an adjuster, a
+ * one-off recipient) therefore never auto-publishes to the portal on its own — (1) has to be true
+ * independently — and unpublishing from the portal (revoking only the publication row) never
+ * revokes that independent report link.
  */
 export function isThermalSessionAvailable(
   sessionId: string,
   shares: readonly ThermalShareLike[],
   captures: readonly ThermalCaptureLike[],
+  publishedSessionIds: ReadonlySet<string>,
   now = Date.now(),
 ): boolean {
+  if (!publishedSessionIds.has(sessionId)) return false;
   return findRenderableThermalShare(sessionId, shares, captures, now) !== null;
 }

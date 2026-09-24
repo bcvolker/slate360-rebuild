@@ -254,7 +254,8 @@ export async function loadPortfolioEvidence(
     const scope = scopes.get(session.project_id);
     if (!scope || !canClientSeeCapability(scope, "thermal")) continue;
     evidence.timestamps.push(session.updated_at);
-    if (isThermalSessionAvailable(session.id, thermalShares, thermalCaptures)) addFlag(evidence, "thermal");
+    const publishedThermal = publishedIdSet(publications, session.project_id, "thermal");
+    if (isThermalSessionAvailable(session.id, thermalShares, thermalCaptures, publishedThermal)) addFlag(evidence, "thermal");
   }
 
   const result: Record<string, PortfolioEvidence> = {};

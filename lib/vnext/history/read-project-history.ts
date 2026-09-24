@@ -59,12 +59,14 @@ export async function readProjectHistory(
   let publishedGeometry: Set<string>;
   let publishedPano: Set<string>;
   let publishedPlans: Set<string>;
+  let publishedThermal: Set<string>;
   try {
     const publications = await readProjectPublications(admin, projectId);
     publishedReality = publishedIdSet(publications, projectId, "reality");
     publishedGeometry = publishedIdSet(publications, projectId, "geometry");
     publishedPano = publishedIdSet(publications, projectId, "pano360");
     publishedPlans = publishedIdSet(publications, projectId, "plans");
+    publishedThermal = publishedIdSet(publications, projectId, "thermal");
   } catch {
     return { visits: [], error: HISTORY_LOAD_ERROR };
   }
@@ -141,7 +143,7 @@ export async function readProjectHistory(
       name: (row.name as string | null) ?? null,
       createdAt: (row.created_at as string | null) ?? null,
       deleted: false,
-      available: isThermalSessionAvailable(String(row.id), shareLikes, captureLikes),
+      available: isThermalSessionAvailable(String(row.id), shareLikes, captureLikes, publishedThermal),
       earliestCaptureAt: earliestCapture(String(row.id), rows(thermalCaptures.data)),
     })),
     sheets: rows(sheets.data).filter((row) => publishedPlans.has(String(row.id))).map((row) => ({

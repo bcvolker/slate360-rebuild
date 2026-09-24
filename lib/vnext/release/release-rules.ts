@@ -4,7 +4,7 @@ export type ReleaseRepresentation = (typeof RELEASE_REPRESENTATIONS)[number];
 
 export type PublicationRecord = {
   projectId: string;
-  representation: Exclude<ReleaseRepresentation, "thermal">;
+  representation: ReleaseRepresentation;
   sourceId: string;
   revokedAt: string | null;
 };

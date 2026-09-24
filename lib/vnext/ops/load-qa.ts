@@ -87,7 +87,8 @@ export async function loadQaQueue(admin: Admin, projects: readonly ProjectRef[])
     if (!project) continue;
     const own = captures.filter((capture) => capture.sessionId === String(session.id));
     if (!own.some((capture) => capture.previewPath || capture.storagePath)) continue;
-    sources.push(source(project, "thermal", String(session.id), String(session.name ?? "Thermal"), null, stringOrNull(session.created_at), isThermalSessionAvailable(String(session.id), shares, captures)));
+    const publishedThermal = publishedIdSet(publications, project.id, "thermal");
+    sources.push(source(project, "thermal", String(session.id), String(session.name ?? "Thermal"), null, stringOrNull(session.created_at), isThermalSessionAvailable(String(session.id), shares, captures, publishedThermal)));
   }
 
   const items = sources.flatMap((entry) => {

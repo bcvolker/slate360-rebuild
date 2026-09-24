@@ -70,7 +70,11 @@ export async function applyReleaseAction(
     const blocked = await publishBlocked(admin, input.projectId, input.representation, input.sourceId);
     if (blocked) return blocked;
   }
-  if (input.representation === "thermal") return input.action === "publish" ? publishThermal(admin, input) : revokeThermal(admin, input.sourceId);
+  if (input.representation === "thermal") {
+    return input.action === "publish"
+      ? publishThermal(admin, { projectId: input.projectId, sourceId: input.sourceId, actorId: input.actorId })
+      : revokeThermal(admin, input.projectId, input.sourceId, input.actorId);
+  }
   const rpc = input.action === "publish" ? "publish_project_source" : "revoke_project_source";
   const { error } = await admin.rpc(rpc, {
     p_project_id: input.projectId,
@@ -99,35 +103,65 @@ async function publishBlocked(
 }
 
 async function isSourcePublished(admin: Admin, projectId: string, representation: ReleaseRepresentation, sourceId: string): Promise<boolean> {
-  if (representation === "thermal") {
-    const existing = await admin.from("thermal_analysis_share_tokens").select("id").eq("session_id", sourceId).eq("is_revoked", false).is("expires_at", null).limit(1);
-    return Array.isArray(existing.data) && existing.data.length > 0;
-  }
+  // Thermal now uses the exact same project_source_publications lookup as every other
+  // representation — it no longer treats a live Thermal Studio report-share token as equivalent
+  // to client-portal publication (that conflation was the P1-P3 bug: unpublishing from the portal
+  // used to revoke the report share too, and an independently-created report share used to
+  // auto-count as "published").
   const row = await admin.from("project_source_publications").select("id").eq("project_id", projectId).eq("representation", representation).eq("source_id", sourceId).is("revoked_at", null).maybeSingle();
   return Boolean(row.data);
 }
 
-async function publishThermal(admin: Admin, input: { sourceId: string; actorId: string }): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
+/**
+ * Ensures a renderable Thermal Studio share exists to source layer_config/branding_snapshot from
+ * for client-portal rendering (thermal has no other place that data lives), reusing one if a live
+ * one is already there — this part is unchanged from before. The actual portal-publication
+ * decision is now the separate publish_project_source row below, which is what
+ * isThermalSessionAvailable (lib/vnext/thermal-availability.ts) actually gates on.
+ */
+async function publishThermal(
+  admin: Admin,
+  input: { projectId: string; sourceId: string; actorId: string },
+): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
   const existing = await admin.from("thermal_analysis_share_tokens").select("id").eq("session_id", input.sourceId).eq("is_revoked", false).is("expires_at", null).limit(1);
-  if (Array.isArray(existing.data) && existing.data.length > 0) return { ok: true };
-  const session = await admin.from("thermal_analysis_sessions").select("org_id, name, branding_config, metadata").eq("id", input.sourceId).maybeSingle();
-  const meta = (session.data?.metadata ?? {}) as Record<string, unknown>;
-  const { error } = await admin.from("thermal_analysis_share_tokens").insert({
-    token: randomBytes(24).toString("base64url"),
-    org_id: session.data?.org_id ?? null,
-    session_id: input.sourceId,
-    created_by: input.actorId,
-    role: "view",
-    label: session.data?.name ?? "Thermal",
-    expires_at: null,
-    is_revoked: false,
-    layer_config: { linked_space_id: typeof meta.linked_space_id === "string" ? meta.linked_space_id : null },
-    branding_snapshot: session.data?.branding_config ?? {},
+  if (!(Array.isArray(existing.data) && existing.data.length > 0)) {
+    const session = await admin.from("thermal_analysis_sessions").select("org_id, name, branding_config, metadata").eq("id", input.sourceId).maybeSingle();
+    const meta = (session.data?.metadata ?? {}) as Record<string, unknown>;
+    const { error: shareError } = await admin.from("thermal_analysis_share_tokens").insert({
+      token: randomBytes(24).toString("base64url"),
+      org_id: session.data?.org_id ?? null,
+      session_id: input.sourceId,
+      created_by: input.actorId,
+      role: "view",
+      label: session.data?.name ?? "Thermal",
+      expires_at: null,
+      is_revoked: false,
+      layer_config: { linked_space_id: typeof meta.linked_space_id === "string" ? meta.linked_space_id : null },
+      branding_snapshot: session.data?.branding_config ?? {},
+    });
+    if (shareError) return { ok: false, status: 500, error: "Thermal could not be published" };
+  }
+  const { error } = await admin.rpc("publish_project_source", {
+    p_project_id: input.projectId,
+    p_representation: "thermal",
+    p_source_id: input.sourceId,
+    p_actor: input.actorId,
   });
   return error ? { ok: false, status: 500, error: "Thermal could not be published" } : { ok: true };
 }
 
-async function revokeThermal(admin: Admin, sessionId: string): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
-  const { error } = await admin.from("thermal_analysis_share_tokens").update({ is_revoked: true }).eq("session_id", sessionId).eq("is_revoked", false);
+/**
+ * Revokes only the client-portal publication row. Deliberately does NOT touch
+ * thermal_analysis_share_tokens — a specialized report link (e.g. sent to an adjuster) that
+ * happens to share the same underlying session must keep working after the portal copy is
+ * unpublished.
+ */
+async function revokeThermal(admin: Admin, projectId: string, sessionId: string, actorId: string): Promise<{ ok: true } | { ok: false; status: number; error: string }> {
+  const { error } = await admin.rpc("revoke_project_source", {
+    p_project_id: projectId,
+    p_representation: "thermal",
+    p_source_id: sessionId,
+    p_actor: actorId,
+  });
   return error ? { ok: false, status: 500, error: "Thermal could not be revoked" } : { ok: true };
 }

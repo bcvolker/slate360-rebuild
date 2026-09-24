@@ -19,7 +19,16 @@ import { fileURLToPath } from "node:url";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const port = Number(process.env.VNEXT_TEST_PORT || 3110);
-const baseURL = `http://127.0.0.1:${port}`;
+// "localhost", not "127.0.0.1": Next's middleware (next start -H 127.0.0.1, confirmed via direct
+// curl with an explicit Host: 127.0.0.1 header — reproducible independent of Playwright/the
+// browser) always builds its redirect Location using "localhost" regardless of the incoming
+// request's Host. Navigating here as 127.0.0.1 while every auth-redirect Location says
+// "localhost" makes them different origins, so CSP's connect-src 'self' correctly refuses the
+// second one — a real console error, but one that only exists because THIS harness starts on the
+// "wrong" hostname; in production both sides are always the same "https://www.slate360.ai"
+// origin, so the mismatch cannot occur there. Matching the harness's own hostname to what the
+// server always redirects to removes the mismatch without touching any redirect-construction code.
+const baseURL = `http://localhost:${port}`;
 const nextBin = path.join(root, "node_modules", "next", "dist", "bin", "next");
 const playwrightCli = path.join(root, "node_modules", "@playwright", "test", "cli.js");
 const logPath = path.join(root, "test-results", "vnext-next-start.log");
@@ -73,6 +82,10 @@ function runBuild() {
 }
 
 async function main() {
+  // Read by next.config.ts to skip the Strict-Transport-Security header — see the comment there.
+  // Set before runBuild() too: headers() is evaluated at build time, not just at `next start`.
+  process.env.VNEXT_E2E_SERVER = "1";
+
   const freeGb = os.freemem() / 1024 ** 3;
   console.log(`[vnext-playwright] free physical memory: ${freeGb.toFixed(2)} GB`);
   console.log(`[vnext-playwright] server: next start ${baseURL}`);

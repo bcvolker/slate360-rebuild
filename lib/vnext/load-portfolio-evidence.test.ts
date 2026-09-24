@@ -124,6 +124,7 @@ describe("loadPortfolioEvidence — drone is not a client-renderable representat
         { project_id: "p1", representation: "geometry", source_id: "model-2", revoked_at: null },
         { project_id: "p1", representation: "pano360", source_id: "item-1", revoked_at: null },
         { project_id: "p1", representation: "plans", source_id: "sheet-1", revoked_at: null },
+        { project_id: "p1", representation: "thermal", source_id: "thermal-1", revoked_at: null },
       ],
     });
 
@@ -237,9 +238,21 @@ describe("loadPortfolioEvidence — thermal availability matches Explore's actua
       thermal_analysis_share_tokens: [{ session_id: "thermal-1", is_revoked: false, expires_at: null, layer_config: null }],
       thermal_captures: [CAPTURE_ROW],
       project_client_capabilities: INCLUDED,
+      project_source_publications: [{ project_id: "p1", representation: "thermal", source_id: "thermal-1", revoked_at: null }],
     });
     const result = await loadPortfolioEvidence(admin, ["p1"]);
     expect(result.p1.representations).toContain("thermal");
+  });
+
+  it("does not flag thermal when a live, viewable share exists but there is no client-portal publication (P1-P3)", async () => {
+    const admin = mockAdmin({
+      thermal_analysis_sessions: [SESSION_ROW],
+      thermal_analysis_share_tokens: [{ session_id: "thermal-1", is_revoked: false, expires_at: null, layer_config: null }],
+      thermal_captures: [CAPTURE_ROW],
+      project_client_capabilities: INCLUDED,
+    });
+    const result = await loadPortfolioEvidence(admin, ["p1"]);
+    expect(result.p1.representations).not.toContain("thermal");
   });
 
   it("hides a published thermal share when thermal is not included for the project", async () => {

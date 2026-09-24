@@ -166,7 +166,9 @@ export async function readOwnerSignals(admin: Admin, projectIds: string[]): Prom
     if (!session.project_id) continue;
     const own = captures.filter((capture) => capture.sessionId === session.id);
     if (own.some((capture) => capture.previewPath || capture.storagePath)) presence(internal, session.project_id).thermal = true;
-    if (isThermalSessionAvailable(session.id, shares, captures)) presence(clientVisible, session.project_id).thermal = true;
+    if (isThermalSessionAvailable(session.id, shares, captures, publishedIdSet(publications, session.project_id, "thermal"))) {
+      presence(clientVisible, session.project_id).thermal = true;
+    }
   }
 
   const documentedAt: Record<string, string | null> = {};

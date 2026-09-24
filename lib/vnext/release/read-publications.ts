@@ -29,7 +29,7 @@ export async function readPublicationsForProjects(admin: Admin, projectIds: stri
 export function publishedIdSet(
   rows: readonly PublicationRecord[],
   projectId: string,
-  representation: Exclude<ReleaseRepresentation, "thermal">,
+  representation: ReleaseRepresentation,
 ): Set<string> {
   return activePublishedIds(rows, projectId, representation);
 }
@@ -39,7 +39,6 @@ function asRecords(data: unknown): PublicationRecord[] {
   return data.flatMap((row) => {
     const record = row as { project_id?: string; representation?: string; source_id?: string; revoked_at?: string | null };
     if (!record.project_id || !record.source_id || !record.representation) return [];
-    if (record.representation === "thermal") return [];
     return [{
       projectId: record.project_id,
       representation: record.representation as PublicationRecord["representation"],

@@ -29,6 +29,9 @@ function mockAdmin(tables: Record<string, unknown[]>) {
 }
 
 const SESSION = { id: "session-1", name: "North wall", updated_at: "2026-01-01T00:00:00.000Z" };
+// A client-portal publication for the exact session under test — required since P1-P3: a live
+// Thermal Studio report share alone no longer counts as client-portal availability.
+const PUBLISHED_SESSION_1 = [{ project_id: "p1", representation: "thermal", source_id: "session-1", revoked_at: null }];
 
 describe("resolveThermalSourceData", () => {
   it("returns null when no session exists for the project", async () => {
@@ -43,6 +46,19 @@ describe("resolveThermalSourceData", () => {
       thermal_analysis_share_tokens: [],
     });
     expect(await resolveThermalSourceData(admin, "p1")).toBeNull();
+  });
+
+  it("returns null when a live, viewable share exists but the session has no client-portal publication (P1-P3)", async () => {
+    const admin = mockAdmin({
+      thermal_analysis_sessions: [SESSION],
+      thermal_analysis_share_tokens: [
+        { session_id: "session-1", is_revoked: false, expires_at: null, layer_config: {} },
+      ],
+      thermal_captures: [{ id: "cap-1", session_id: "session-1", preview_path: "x.jpg", storage_path: null }],
+      project_source_publications: [],
+    });
+    expect(await resolveThermalSourceData(admin, "p1")).toBeNull();
+    expect(loadThermalShareViewerDataMock).not.toHaveBeenCalled();
   });
 
   it("returns null when the only share token is revoked", async () => {
@@ -100,6 +116,7 @@ describe("resolveThermalSourceData", () => {
         { session_id: "session-1", is_revoked: false, expires_at: null, layer_config: {} },
       ],
       thermal_captures: [{ id: "cap-1", session_id: "session-1", preview_path: "x.jpg", storage_path: null }],
+      project_source_publications: PUBLISHED_SESSION_1,
     });
     expect(await resolveThermalSourceData(admin, "p1")).toBeNull();
   });
@@ -131,6 +148,7 @@ describe("resolveThermalSourceData", () => {
         },
       ],
       thermal_captures: [{ id: "cap-1", session_id: "session-1", preview_path: "x.jpg", storage_path: null }],
+      project_source_publications: PUBLISHED_SESSION_1,
     });
 
     const result = await resolveThermalSourceData(admin, "p1");
@@ -187,6 +205,7 @@ describe("resolveThermalSourceData", () => {
         },
       ],
       thermal_captures: [{ id: "cap-1", session_id: "session-1", preview_path: "x.jpg", storage_path: null }],
+      project_source_publications: PUBLISHED_SESSION_1,
     });
 
     const result = await resolveThermalSourceData(admin, "p1");
@@ -210,6 +229,7 @@ describe("resolveThermalSourceData", () => {
         { session_id: "session-1", is_revoked: false, expires_at: null, branding_snapshot: { a: 1 }, layer_config: { b: 2 } },
       ],
       thermal_captures: [{ id: "cap-1", session_id: "session-1", preview_path: "x.jpg", storage_path: null }],
+      project_source_publications: PUBLISHED_SESSION_1,
     });
 
     const result = await resolveThermalSourceData(admin, "p1");
@@ -237,6 +257,10 @@ describe("resolveThermalSourceData", () => {
       thermal_captures: [
         { id: "cap-1", session_id: "session-1", preview_path: "x.jpg", storage_path: null },
         { id: "cap-2", session_id: "session-2", preview_path: "y.jpg", storage_path: null },
+      ],
+      project_source_publications: [
+        ...PUBLISHED_SESSION_1,
+        { project_id: "p1", representation: "thermal", source_id: "session-2", revoked_at: null },
       ],
     });
     const exact = await resolveThermalSourceData(admin, "p1", "session-1");

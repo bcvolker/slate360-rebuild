@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test";
 import {
   VNEXT_CLIENT_NAV,
+  VNEXT_OWNER_FIELD_TOOLS,
   VNEXT_OWNER_NAV,
   VNEXT_OWNER_PRIMARY_NAV,
 } from "../../lib/vnext/nav";
@@ -78,7 +79,9 @@ test.describe("vNext owner shell", () => {
         await expect(menu).toBeVisible();
         await expect(menu).toHaveAttribute("aria-expanded", "false");
         await expect(menu).toHaveAttribute("aria-haspopup", "dialog");
-        await openOwnerMenuWithNavLinks(page, VNEXT_OWNER_NAV.length);
+        // The rendered menu shows VNEXT_OWNER_NAV plus the separate Field Tools section (legacy
+        // operational routes deliberately excluded from VNEXT_OWNER_NAV itself — see nav.test.ts).
+        await openOwnerMenuWithNavLinks(page, VNEXT_OWNER_NAV.length + VNEXT_OWNER_FIELD_TOOLS.length);
         const dialog = () => page.getByRole("dialog", { name: "Menu" });
 
         for (const item of VNEXT_OWNER_NAV) {

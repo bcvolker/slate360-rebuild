@@ -15,6 +15,7 @@ const SHARE = {
   brandingSnapshot: null,
 };
 const CAPTURE = { id: "c1", sessionId: "s1", previewPath: "x.jpg", storagePath: null };
+const PUBLISHED = new Set(["s1"]);
 
 describe("isSharePublished", () => {
   it("is false when revoked", () => {
@@ -69,37 +70,45 @@ describe("hasViewableCaptureUnderShare", () => {
 
 describe("isThermalSessionAvailable — the shared Overview/Explore predicate", () => {
   it("is false with no shares at all", () => {
-    expect(isThermalSessionAvailable("s1", [], [CAPTURE])).toBe(false);
+    expect(isThermalSessionAvailable("s1", [], [CAPTURE], PUBLISHED)).toBe(false);
   });
 
   it("is false when the only share is revoked", () => {
-    expect(isThermalSessionAvailable("s1", [{ ...SHARE, isRevoked: true }], [CAPTURE])).toBe(false);
+    expect(isThermalSessionAvailable("s1", [{ ...SHARE, isRevoked: true }], [CAPTURE], PUBLISHED)).toBe(false);
   });
 
   it("is false when the only share is expired", () => {
     expect(
-      isThermalSessionAvailable("s1", [{ ...SHARE, expiresAt: "2020-01-01T00:00:00.000Z" }], [CAPTURE]),
+      isThermalSessionAvailable("s1", [{ ...SHARE, expiresAt: "2020-01-01T00:00:00.000Z" }], [CAPTURE], PUBLISHED),
     ).toBe(false);
   });
 
   it("is false when published but the session has zero captures", () => {
-    expect(isThermalSessionAvailable("s1", [SHARE], [])).toBe(false);
+    expect(isThermalSessionAvailable("s1", [SHARE], [], PUBLISHED)).toBe(false);
   });
 
   it("is false when published but every capture is excluded by layer_config", () => {
     expect(
-      isThermalSessionAvailable("s1", [{ ...SHARE, layerConfig: { capture_ids: ["nope"] } }], [CAPTURE]),
+      isThermalSessionAvailable("s1", [{ ...SHARE, layerConfig: { capture_ids: ["nope"] } }], [CAPTURE], PUBLISHED),
     ).toBe(false);
   });
 
   it("is true for a published share with at least one viewable capture", () => {
-    expect(isThermalSessionAvailable("s1", [SHARE], [CAPTURE])).toBe(true);
+    expect(isThermalSessionAvailable("s1", [SHARE], [CAPTURE], PUBLISHED)).toBe(true);
   });
 
   it("ignores shares/captures belonging to a different session", () => {
     const otherSessionShare = { ...SHARE, sessionId: "s2" };
     const otherSessionCapture = { ...CAPTURE, sessionId: "s2" };
-    expect(isThermalSessionAvailable("s1", [otherSessionShare], [otherSessionCapture])).toBe(false);
+    expect(isThermalSessionAvailable("s1", [otherSessionShare], [otherSessionCapture], PUBLISHED)).toBe(false);
+  });
+
+  it("is false when a live, viewable share exists but there is no client-portal publication (P1-P3: a report share alone must not auto-publish)", () => {
+    expect(isThermalSessionAvailable("s1", [SHARE], [CAPTURE], new Set())).toBe(false);
+  });
+
+  it("is false when published but no share is currently live (unpublishing the portal copy must not depend on the report share still existing)", () => {
+    expect(isThermalSessionAvailable("s1", [], [CAPTURE], PUBLISHED)).toBe(false);
   });
 });
 
@@ -124,7 +133,7 @@ describe("findRenderableThermalShare — the exact-share-selection fix", () => {
       brandingSnapshot: { brand: "B" },
     };
 
-    expect(isThermalSessionAvailable("s1", [shareA, shareB], [c1])).toBe(true);
+    expect(isThermalSessionAvailable("s1", [shareA, shareB], [c1], PUBLISHED)).toBe(true);
     const chosen = findRenderableThermalShare("s1", [shareA, shareB], [c1]);
     expect(chosen?.id).toBe("share-B");
     // The chosen share's layer_config and branding_snapshot must come from the same row — never
@@ -136,7 +145,7 @@ describe("findRenderableThermalShare — the exact-share-selection fix", () => {
   it("B: returns null when multiple published shares exist but none exposes a usable capture", () => {
     const shareA = { ...SHARE, id: "share-A", layerConfig: { capture_ids: ["nope"] } };
     const shareB = { ...SHARE, id: "share-B", layerConfig: { capture_ids: ["also-nope"] } };
-    expect(isThermalSessionAvailable("s1", [shareA, shareB], [c1])).toBe(false);
+    expect(isThermalSessionAvailable("s1", [shareA, shareB], [c1], PUBLISHED)).toBe(false);
     expect(findRenderableThermalShare("s1", [shareA, shareB], [c1])).toBeNull();
   });
 
