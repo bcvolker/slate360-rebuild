@@ -46,5 +46,5 @@ export type VnextVisit = {
   frame: VnextFrameEvidence | null;
 };
 
-export const HISTORY_EMPTY_COPY = "No project history has been published yet.";
+export const HISTORY_EMPTY_COPY = "No visits recorded yet.";
 export const HISTORY_LOAD_ERROR = "Project history could not be loaded. Try again.";

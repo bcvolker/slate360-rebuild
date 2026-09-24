@@ -30,9 +30,14 @@ export function filterVisitsForScope(visits: VnextVisit[], scope: ClientProjectS
     if (visit.kind === "pano" && !canClientSeeCapability(scope, "pano360")) return [];
     const sources = visit.sources.filter((source) => canClientSeeRepresentation(scope, source.rep));
     const plans = canClientSeeCapability(scope, "plans") ? visit.plans : [];
+    // Items was the one visit field filterVisitsForScope never stripped — an excluded-Items
+    // project still showed each visit's real item titles/counts and a working link into
+    // /items/[id], a page that then 404s. Same bug reached public share links, which reuse this
+    // function. See lib/vnext/history/history-types.ts for the VnextHistoryItem/itemCount shape.
+    const items = canClientSeeCapability(scope, "items") ? visit.items : [];
     if (visit.kind === "reality" && sources.length === 0) return [];
     const thumbnailHref = sources.find((source) => source.imageHref)?.imageHref ?? plans[0]?.imageHref ?? null;
-    return [{ ...visit, sources, plans, thumbnailHref }];
+    return [{ ...visit, sources, plans, items, itemCount: items.length, thumbnailHref }];
   });
 }
 

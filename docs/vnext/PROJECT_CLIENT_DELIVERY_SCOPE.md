@@ -2,6 +2,21 @@
 
 Binding for every later vNext slice.
 
+## Business model
+
+Slate360 is a **service business**, not a subscription SaaS product, seat-based platform, app
+marketplace, or self-service software catalog. Brian/Slate360 performs professional
+built-environment capture and documentation services — 3D/reality capture, 360 capture, plans,
+progress documentation, and specialized services like Thermal only when the engagement calls for
+it — then processes, QAs, packages, and publishes the result as a client portal. Customers
+(general and specialty contractors, architects, owners, developers, facilities teams,
+consultants) receive access to exactly what their engagement included, nothing more. The portal
+is selling the *result* of the service, not a catalog of Slate360's technical capabilities — a
+client who bought a 3D scan and 360 progress documentation should feel that is the product, not
+that they received two modules out of ten. This is why the rule below is absolute: an
+unpurchased/excluded capability must be architecturally invisible, not merely locked or
+upsold.
+
 Slate360 sells services per project. A client sees a capability only when all of these are true:
 
 ```
@@ -71,8 +86,16 @@ Ready is not published. Included is not published. The contract is `docs/vnext/P
 | Geometry | Same, for a mesh | Active row for that exact glb, gltf, or usdz. Independent of the Reality row. |
 | 360 | Row, or backfill when a non-deleted `photo_360` has `s3_key` | Active row for that item, and the item still has storage. |
 | Plans | Row, or backfill when a sheet has an image key | Active row for that sheet. `is_current_revision` is not publication. |
-| Thermal | Row, or backfill from a live share whose `layer_config` still leaves a viewable capture | `isThermalSessionAvailable`. The share token is the publication. |
+| Thermal | Row, or backfill from a live share whose `layer_config` still leaves a viewable capture | `isThermalSessionAvailable`: an active `project_source_publications` row for that exact session (representation `thermal`, published via `publish_project_source`/`release-command.ts`, the same mechanism every other capability uses) **and** at least one live, viewable Thermal Studio report share to source render data from. A live report share alone is not publication — see below. |
 | Items | Portal default on | Non-deleted project items. |
+
+**Report share vs. client-portal publication (Thermal only).** `thermal_analysis_share_tokens` is the
+specialized Thermal Studio report-link mechanism (sent to an adjuster, a specific recipient) and is
+independent of client-portal publication. Creating a report share never auto-publishes to the
+portal; unpublishing the portal copy (`revokeThermal` in `release-command.ts`) never revokes a
+report share. A report share is only ever a render-data source (its `layer_config`/
+`branding_snapshot`) for an already-portal-published session, never the publication decision
+itself.
 | Documents | Portal default on | Active files in a client folder. |
 | History | Portal default on | Slice 7 visit rules, then drop a visit whose representation is not included or whose source is not published. |
 | Compare | Portal default on | History is on, and both visits can render an included published representation. |

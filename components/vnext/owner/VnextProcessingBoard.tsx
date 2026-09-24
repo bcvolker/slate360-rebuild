@@ -48,7 +48,7 @@ function Section({ title, rows }: { title: string; rows: ProcessingRow[] }) {
             <p className="m-0 text-[length:var(--vnext-body)] text-[var(--vnext-ink)]">{row.projectName} · {row.source}</p>
             <p className="m-0 text-[length:var(--vnext-meta)] text-[var(--vnext-ink-secondary)]">
               {row.kind} · {row.stage ?? row.statusLabel} · {row.statusLabel}
-              {row.progressPct != null ? ` · Worker reported ${row.progressPct}%` : ""}
+              {row.progressPct != null ? ` · ${row.progressPct}% complete` : ""}
             </p>
             {row.error ? <p className="m-0 text-[length:var(--vnext-body)] text-[var(--vnext-ink)]">{row.error}</p> : null}
             {row.output ? <p className="m-0 text-[length:var(--vnext-meta)] text-[var(--vnext-ink-secondary)]">{row.output}</p> : null}

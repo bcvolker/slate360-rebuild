@@ -74,7 +74,7 @@ export function assembleProjectPlans(
             id: sheet.id,
             label,
             exploreHref: renderable ? vnextExploreHref(exploreBase, { rep: "plan", source: sheet.id }) : null,
-            statusLabel: renderable ? null : set.processingStatus === "failed" ? "Could not be prepared" : "Processing",
+            statusLabel: renderable ? null : set.processingStatus === "failed" ? "Could not be prepared" : "Preparing",
           };
         });
       return {

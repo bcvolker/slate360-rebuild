@@ -73,7 +73,7 @@ export function itemMatchesQuery(item: VnextClientItem, query: string): boolean 
 
 export const IMAGE_ITEM_TYPES = new Set(["photo", "photo_360"]);
 
-export const ITEMS_EMPTY_COPY = "No project items have been published yet.";
+export const ITEMS_EMPTY_COPY = "No items yet for this project.";
 export const ITEMS_FILTER_EMPTY_COPY = "No items match this search.";
 export const ITEMS_LOAD_ERROR = "Items could not be loaded. Check your connection and try again.";
 export const QUESTION_SEND_ERROR = "The question could not be sent. Try again.";

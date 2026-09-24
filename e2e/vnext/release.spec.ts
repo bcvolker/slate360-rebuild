@@ -11,7 +11,7 @@ test.describe("vNext processing and publication", () => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/preview/vnext/owner/processing", { waitUntil: "domcontentloaded" });
     await expect(page.locator("[data-vnext-processing-row='run-1']")).toContainText("train");
-    await expect(page.locator("[data-vnext-processing-row='run-1']")).toContainText("Worker reported 40%");
+    await expect(page.locator("[data-vnext-processing-row='run-1']")).toContainText("40% complete");
     await expect(page.locator("[data-vnext-processing-row='fail-1']")).toContainText("could not be rasterized");
     await expect(page.getByText("47%")).toHaveCount(0);
     await page.screenshot({ path: `${DIR}/processing-1440.png`, fullPage: true });

@@ -71,7 +71,7 @@ test.describe("vNext sharing", () => {
     await page.screenshot({ path: `${DIR}/public-project-390.png`, fullPage: true });
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/preview/vnext/share/history", { waitUntil: "domcontentloaded" });
-    await expect(page.getByText("No project history has been published yet.")).toBeVisible();
+    await expect(page.getByText("No visits recorded yet.")).toBeVisible();
     await expect(page.getByText("Thermal")).toHaveCount(0);
     await page.goto("/preview/vnext/share/evidence", { waitUntil: "domcontentloaded" });
     await expect(page.getByText("Above-ceiling plumbing")).toBeVisible();

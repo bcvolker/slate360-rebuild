@@ -37,7 +37,7 @@ test.describe("vNext project plans", () => {
     await expect(page).toHaveURL(/\/explore\?rep=plan&source=sheet-a101/);
     await page.goBack();
     await expect(page).toHaveURL(/documents-plans/);
-    await page.getByRole("link", { name: "Source: Level 2 reflected ceiling" }).click();
+    await page.getByRole("link", { name: "From: Level 2 reflected ceiling" }).click();
     await expect(page).toHaveURL(/\/documents\/doc-ceiling/);
     await page.getByRole("link", { name: "View sheets" }).click();
     await expect(page).toHaveURL(/documents-plans#plan-arch/);

@@ -25,7 +25,7 @@ export default function VnextThermalViewer({
   if (captures.length === 0) {
     return (
       <div className="flex h-full w-full items-center justify-center bg-[var(--graphite-canvas)] px-6 text-center">
-        <p className="text-sm text-zinc-400">This thermal session has no viewable images yet.</p>
+        <p className="text-sm text-zinc-400">No thermal images for this visit yet.</p>
       </div>
     );
   }

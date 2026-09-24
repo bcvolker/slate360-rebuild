@@ -223,7 +223,7 @@ test.describe("vNext items", () => {
     const health = attachRuntimeHealth(page);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/preview/vnext/project/items-empty", { waitUntil: "domcontentloaded" });
-    await expect(page.getByText("No project items have been published yet.")).toBeVisible();
+    await expect(page.getByText("No items yet for this project.")).toBeVisible();
     await expect(page.getByRole("button", { name: "Create" })).toHaveCount(0);
     await page.screenshot({ path: `${SCREENSHOT_DIR}/items-empty-1440.png`, fullPage: true });
     await page.goto("/preview/vnext/project/items-loading", { waitUntil: "domcontentloaded" });

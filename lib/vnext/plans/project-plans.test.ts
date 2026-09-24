@@ -84,7 +84,7 @@ describe("project plan assembly", () => {
     expect(sets[0].sheets[0].exploreHref).toContain("rep=plan");
     expect(sets[0].sheets[0].exploreHref).toContain("source=sheet-ok");
     expect(sets[0].sheets[1].exploreHref).toBeNull();
-    expect(sets[0].sheets[1].statusLabel).toBe("Processing");
+    expect(sets[0].sheets[1].statusLabel).toBe("Preparing");
     expect(JSON.stringify(sets)).not.toContain("orgs/secret");
   });
 

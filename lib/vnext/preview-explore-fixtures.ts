@@ -107,7 +107,7 @@ export const PREVIEW_EXPLORE_EMPTY: VnextExploreData = {
 export const PREVIEW_EXPLORE_ERROR: VnextExploreData = {
   ...PREVIEW_EXPLORE_REALITY,
   activeSourceData: null,
-  activeSourceError: "This representation could not be loaded right now. Try again or switch to another.",
+  activeSourceError: "This view isn't available right now. Try again, or choose another view above.",
 };
 
 // See the PREVIEW_EXPLORE_360 comment above: a raster placeholder, required by the pano

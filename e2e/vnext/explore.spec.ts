@@ -253,7 +253,7 @@ test.describe("vNext Explore", () => {
     const health = attachRuntimeHealth(page);
     await page.goto(EXPLORE, { waitUntil: "domcontentloaded" });
     await page.locator("[data-vnext-explore-help] summary").click();
-    await expect(page.getByText("photo-real 3D reconstruction")).toBeVisible();
+    await expect(page.getByText("photo-real 3D scan")).toBeVisible();
     health.assertClean();
   });
 

@@ -21,7 +21,7 @@ export function VnextProjectPlans({ planSets, canUpload, projectId }: Props) {
       </div>
       {planSets.length === 0 ? (
         <p className="m-0 mt-4 text-[length:var(--vnext-body)] text-[var(--vnext-ink-secondary)]">
-          No project plans have been published yet.
+          No project plans yet.
         </p>
       ) : (
         planSets.map((set) => (
@@ -33,7 +33,7 @@ export function VnextProjectPlans({ planSets, canUpload, projectId }: Props) {
               ) : null}
               {set.source ? (
                 <Link href={set.source.href} className={ACTION}>
-                  Source: {set.source.title}
+                  From: {set.source.title}
                 </Link>
               ) : null}
             </div>

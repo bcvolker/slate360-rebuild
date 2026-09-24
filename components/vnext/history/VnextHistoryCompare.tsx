@@ -36,8 +36,8 @@ export function VnextHistoryCompare({ earlier, later, historyHref, rep }: Props)
             {rep === "360"
               ? "Each panorama stands on its own. This is not the same viewpoint unless the record says so."
               : synced
-                ? "These scans share a verified coordinate frame. Open each one to move through it. This page does not move the cameras together."
-                : "Cameras are not linked. Each view stands on its own."}
+                ? "These two scans were captured in the same space and line up with each other. Open each one to move through it — this page doesn't move them together."
+                : "These two scans aren't linked. Each one stands on its own."}
           </p>
           <div className="mt-5 grid grid-cols-1 gap-6 lg:grid-cols-2">
             <ComparePane label="Earlier" dateLabel={ordered.earlier.dateLabel} title={left.label} imageHref={left.imageHref} exploreHref={left.exploreHref} />

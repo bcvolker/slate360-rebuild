@@ -21,7 +21,7 @@ export function VnextRepresentationSelector({ basePath, available, active, prese
 
   return (
     <nav
-      aria-label="Representation"
+      aria-label="View type"
       className="flex flex-wrap gap-1 border-b border-[var(--vnext-line)]"
       data-vnext-rep-selector="true"
     >

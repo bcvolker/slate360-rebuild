@@ -265,7 +265,7 @@ export function VnextExploreShell({
               </>
             ) : (
               <VnextExploreErrorState
-                message={data.activeSourceError ?? "This representation could not be loaded right now."}
+                message={data.activeSourceError ?? "This view could not be loaded right now."}
               />
             )}
           </div>

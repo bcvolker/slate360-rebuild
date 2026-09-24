@@ -104,7 +104,7 @@ export function VnextProjectOverview({ overview, loadError = null }: Props) {
       {isSparse ? (
         <div className={`${SURFACE} mt-6 p-5`} data-vnext-sparse-notice="true">
           <p className="m-0 text-[length:var(--vnext-body)] text-[var(--vnext-ink-secondary)]">
-            No documented visits or published project records are available yet.
+            No site visits or project records yet.
           </p>
         </div>
       ) : (

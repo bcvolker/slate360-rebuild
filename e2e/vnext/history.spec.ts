@@ -22,7 +22,7 @@ test.describe("vNext history", () => {
       await expect(page.getByText("Sep 18, 2026")).toHaveCount(2);
       await expect(page.getByText("Site documentation").first()).toBeVisible();
       await expect(page.getByText("Reality scan").first()).toBeVisible();
-      await expect(page.getByText("No project history has been published yet.")).toHaveCount(0);
+      await expect(page.getByText("No visits recorded yet.")).toHaveCount(0);
       await assertNoHorizontalOverflow(page);
       await assertNamedTouchTargets(page, "[data-vnext-shell='client']");
       await page.screenshot({ path: `${SCREENSHOT_DIR}/history-${viewport.name}.png`, fullPage: true });
@@ -65,7 +65,7 @@ test.describe("vNext history", () => {
     await expect(page).toHaveURL(/b=capture-sep15/);
     await expect(page.getByText("Earlier Sep 1, 2026")).toBeVisible();
     await expect(page.getByText("Later Sep 15, 2026")).toBeVisible();
-    await expect(page.getByText("Cameras are not linked.")).toHaveCount(0);
+    await expect(page.getByText("These two scans aren't linked.")).toHaveCount(0);
     await page.reload();
     await expect(page.getByText("Earlier Sep 1, 2026")).toBeVisible();
     await page.goBack();
@@ -85,13 +85,13 @@ test.describe("vNext history", () => {
     const health = attachRuntimeHealth(page);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(INDEPENDENT, { waitUntil: "domcontentloaded" });
-    await expect(page.getByText("Cameras are not linked.")).toBeVisible();
+    await expect(page.getByText("These two scans aren't linked.")).toBeVisible();
     await expect(page.getByText("Earlier Sep 1, 2026")).toBeVisible();
     await expect(page.getByText("Later Sep 15, 2026")).toBeVisible();
     await page.screenshot({ path: `${SCREENSHOT_DIR}/compare-independent-1440.png`, fullPage: true });
     await page.goto(ALIGNED, { waitUntil: "domcontentloaded" });
-    await expect(page.getByText(/share a verified coordinate frame/)).toBeVisible();
-    await expect(page.getByText("does not move the cameras together")).toBeVisible();
+    await expect(page.getByText(/captured in the same space and line up/)).toBeVisible();
+    await expect(page.getByText(/doesn't move them together/)).toBeVisible();
     await page.goto(PANO, { waitUntil: "domcontentloaded" });
     await expect(page.getByText("not the same viewpoint")).toBeVisible();
     await page.screenshot({ path: `${SCREENSHOT_DIR}/compare-360-1440.png`, fullPage: true });
@@ -106,7 +106,7 @@ test.describe("vNext history", () => {
     const health = attachRuntimeHealth(page);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(EMPTY, { waitUntil: "domcontentloaded" });
-    await expect(page.getByText("No project history has been published yet.")).toBeVisible();
+    await expect(page.getByText("No visits recorded yet.")).toBeVisible();
     await page.screenshot({ path: `${SCREENSHOT_DIR}/history-empty-1440.png`, fullPage: true });
     const loading = await page.goto("/preview/vnext/project/history-loading", { waitUntil: "domcontentloaded" });
     expect(loading?.status()).toBe(200);

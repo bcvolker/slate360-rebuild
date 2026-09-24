@@ -1,7 +1,7 @@
 const IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "gif"]);
 const OPEN_EXTENSIONS = new Set(["pdf", ...IMAGE_EXTENSIONS]);
 
-export const DOCUMENTS_EMPTY_COPY = "No project documents have been published yet.";
+export const DOCUMENTS_EMPTY_COPY = "No documents yet for this project.";
 export const DOCUMENTS_SEARCH_EMPTY_COPY = "No results for this search.";
 export const DOCUMENTS_FOLDER_EMPTY_COPY = "No documents in this folder.";
 export const DOCUMENTS_LOAD_ERROR = "Documents could not be loaded. Try again.";

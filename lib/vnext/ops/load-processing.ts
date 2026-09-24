@@ -37,7 +37,9 @@ export async function loadProcessingQueue(
         id: `twin-${job.id}`,
         projectId,
         projectName: names.get(projectId) ?? "Project",
-        source: String(job.capture_id ?? job.id),
+        // job.id alone is a raw UUID with no meaning to a human reader — a short reconstruction-run
+        // label at least says what this row IS when there's no capture to name it after.
+        source: job.capture_id ? String(job.capture_id) : `Reconstruction run ${String(job.id).slice(0, 8)}`,
         kind: String(job.job_type ?? "reconstruction"),
         stage: typeof job.stage === "string" && job.stage ? job.stage : null,
         status,

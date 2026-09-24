@@ -59,7 +59,7 @@ export async function loadPublicExplore(
       activeSourceData = null;
     }
     if (!activeSourceData && !activeSourceError) {
-      activeSourceError = "This representation could not be loaded right now. Try again or switch to another.";
+      activeSourceError = "This view isn't available right now. Try again, or choose another view above.";
     }
   }
 

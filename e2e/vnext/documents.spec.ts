@@ -96,7 +96,7 @@ test.describe("vNext documents", () => {
     const health = attachRuntimeHealth(page);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto("/preview/vnext/project/documents-empty", { waitUntil: "domcontentloaded" });
-    await expect(page.getByText("No project documents have been published yet.")).toBeVisible();
+    await expect(page.getByText("No documents yet for this project.")).toBeVisible();
     await expect(page.getByRole("button", { name: "Upload" })).toHaveCount(0);
     await page.screenshot({ path: `${SCREENSHOT_DIR}/documents-empty-1440.png`, fullPage: true });
     await page.goto("/preview/vnext/project/documents-loading", { waitUntil: "domcontentloaded" });

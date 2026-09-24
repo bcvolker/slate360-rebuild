@@ -45,7 +45,7 @@ test.describe("vNext project overview", () => {
     await expect(page.getByText("Recent documents")).toHaveCount(0);
     await expect(page.locator("[data-vnext-sparse-notice]")).toBeVisible();
     await expect(
-      page.getByText("No documented visits or published project records are available yet."),
+      page.getByText("No site visits or project records yet."),
     ).toBeVisible();
     await assertNoHorizontalOverflow(page);
     await page.screenshot({ path: `${SCREENSHOT_DIR}/sparse-1440.png`, fullPage: true });
