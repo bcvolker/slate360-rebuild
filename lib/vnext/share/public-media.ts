@@ -4,6 +4,7 @@ import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextResponse } from "next/server";
 import { isBakeFresh, parseBakedExport } from "@/lib/digital-twin/bake-hash";
+import { parseEditList } from "@/lib/digital-twin/edit-list-types";
 import { resolveDigitalTwinModelUrl } from "@/lib/digital-twin/resolve-model-url";
 import { resolveTwinViewerKind } from "@/lib/digital-twin/viewer-format";
 import { notFound, serverError } from "@/lib/server/api-response";
@@ -101,6 +102,54 @@ export async function streamPublicTwin(token: string, modelId: string, baked: bo
     return new NextResponse(stream as ReadableStream<Uint8Array>, { status: 200, headers });
   } catch {
     return serverError("Model stream failed");
+  }
+}
+
+/**
+ * Public counterpart of app/api/vnext/projects/[projectId]/twin-models/[modelId]/manifest —
+ * the authenticated vNext Reality viewer and this generic public Project/Evidence viewer must
+ * render the SAME approved model (baked output, correction_quaternion, edit_list), never a raw,
+ * unedited one. Reuses the exact same authorization gate as streamPublicTwin (fails closed on a
+ * wrong project, wrong source, revoked/expired/inactive share, or Reality not included/published)
+ * so a manifest can never be read for a model the caller couldn't also stream.
+ */
+export async function streamPublicTwinManifest(token: string, modelId: string) {
+  const opened = await resolvePublicShare(token);
+  if (opened.share.state !== "active") return notFound();
+  const admin = opened.admin;
+  const { data: model, error } = await admin
+    .from("digital_twin_models")
+    .select("storage_key, edit_list, digital_twin_spaces!inner(project_id)")
+    .eq("id", modelId)
+    .eq("status", "ready")
+    .is("deleted_at", null)
+    .maybeSingle();
+  if (error) return serverError("Manifest could not be loaded");
+  if (!model?.storage_key) return notFound();
+  const kind = resolveTwinViewerKind("", model.storage_key);
+  const representation = kind === "splat" ? "reality" : kind === "model" ? "geometry" : null;
+  if (!representation) return notFound();
+  const gate = await allow(admin, opened.share, representation, modelId, joinedProjectId(model.digital_twin_spaces));
+  if (!gate) return notFound();
+
+  const storageKey = model.storage_key as string;
+  const key = storageKey.toLowerCase().endsWith(".spz")
+    ? `${storageKey.slice(0, -".spz".length)}.manifest.json`
+    : null;
+  if (!key) return notFound();
+
+  try {
+    const res = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
+    const body = await res.Body?.transformToString();
+    if (!body) return notFound();
+    const manifest = JSON.parse(body) as Record<string, unknown>;
+    manifest.edit_list = parseEditList(model.edit_list);
+    return NextResponse.json(manifest, {
+      status: 200,
+      headers: { "cache-control": "private, max-age=300" },
+    });
+  } catch {
+    return notFound();
   }
 }
 

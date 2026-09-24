@@ -73,14 +73,19 @@ export async function fetchSplatManifest(modelUrl: string): Promise<SplatManifes
     // link). Route those URLs to the token-scoped share manifest endpoint instead.
     const shareMatch = modelUrl.match(/\/api\/share\/twin\/([^/?]+)\/splat(?:$|\?)/);
     const vnextMatch = modelUrl.match(/\/api\/vnext\/projects\/([^/?]+)\/twin-models\/([^/?]+)\/splat(?:$|\?)/);
+    // Generic public Project/Evidence share links (not the legacy /share/twin token) — the same
+    // baked/correction/edit_list parity the authenticated vNext viewer gets.
+    const publicProjectMatch = modelUrl.match(/\/api\/share\/project\/([^/?]+)\/twin-models\/([^/?]+)\/splat(?:$|\?)/);
     const authMatch = modelUrl.match(/\/api\/digital-twin\/models\/([^/?]+)\/splat(?:$|\?)/);
     const endpoint = shareMatch
       ? `/api/share/twin/${shareMatch[1]}/manifest`
       : vnextMatch
         ? `/api/vnext/projects/${vnextMatch[1]}/twin-models/${vnextMatch[2]}/manifest`
-        : authMatch
-          ? `/api/digital-twin/models/${authMatch[1]}/manifest`
-          : `/api/digital-twin/splat-manifest?u=${encodeURIComponent(modelUrl)}`;
+        : publicProjectMatch
+          ? `/api/share/project/${publicProjectMatch[1]}/twin-models/${publicProjectMatch[2]}/manifest`
+          : authMatch
+            ? `/api/digital-twin/models/${authMatch[1]}/manifest`
+            : `/api/digital-twin/splat-manifest?u=${encodeURIComponent(modelUrl)}`;
     let res = await fetch(endpoint);
     if (!res.ok) {
       // Fall back to a sibling manifest on the same URL shape. The generic
