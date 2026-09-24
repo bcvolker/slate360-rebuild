@@ -26,11 +26,17 @@ ALLOWED_FLAGS = {"--data-format", "--image-dir", "--mask-dir", "--load-masks", "
                  "--use-bilateral-grid-for-geometry", "--use-ppisp", "--load-depths", "--load-normals",
                  "--normal-supervision-weight", "--depth-supervision-weight", "--steps-per-save",
                  "--save-only-latest-checkpoint", "--save-full-checkpoint", "--save-eval-images", "--disable-viewer",
-                 "--keep-viewer-alive"}
+                 "--keep-viewer-alive",
+                 "--ppisp-param-type", "--loss-scale-min-pixels", "--num-loss-scales"}
 # NOTE: --max-steps is NOT a stop in this Spirula revision (it is the LR-schedule horizon); never allowed in a job.
-LOCKED = {"--warp-to-pinhole": ("0", "1"), "--load-depths": "0", "--load-normals": "0", "--use-ppisp": "0",
-          "--use-bilateral-grid": "0", "--use-bilateral-grid-for-geometry": "0", "--save-full-checkpoint": "1",
+LOCKED = {"--warp-to-pinhole": ("0", "1"), "--load-depths": "0", "--load-normals": "0", "--use-ppisp": ("0", "1"),
+          "--use-bilateral-grid": ("0", "1"), "--use-bilateral-grid-for-geometry": "0", "--save-full-checkpoint": "1",
           "--disable-viewer": "1", "--data-format": "colmap"}
+
+
+# Optional flags: absent = the golden resolved value; present = only these values (approved 2026-09-24 photoreal push).
+PINNED_OPTIONAL = {"--ppisp-param-type": ("no_crf_no_vig",), "--loss-scale-min-pixels": ("1920", "0"),
+                   "--num-loss-scales": ("0",)}
 
 
 class JobRejected(RuntimeError):
@@ -64,6 +70,8 @@ def load_job(raw: bytes, expected_sha: str) -> dict:
         allowed = LOCKED.get(name)
         if allowed is not None and val not in (allowed if isinstance(allowed, tuple) else (allowed,)):
             raise JobRejected(f"flag {name} is locked to {LOCKED[name]}")
+        if name in PINNED_OPTIONAL and val not in PINNED_OPTIONAL[name]:
+            raise JobRejected(f"flag {name} only allows {PINNED_OPTIONAL[name]}")
         seen.add(name)
     missing_locked = set(LOCKED) - seen
     if missing_locked:

@@ -371,7 +371,7 @@ def compare_golden(final_prefix: str) -> dict:
 
 
 diag_image = (modal.Image.debian_slim(python_version="3.11").apt_install("libgl1", "libglib2.0-0")
-              .pip_install("boto3", "numpy<2", "opencv-python-headless<4.11", "scipy").add_local_python_source(*MODULES, "softdiag"))
+              .pip_install("boto3", "numpy<2", "opencv-python-headless<4.11", "scipy").add_local_python_source(*MODULES, "softdiag", "srcaudit", "ppispcheck"))
 
 
 @app.function(image=diag_image, cpu=16.0, memory=65536, timeout=3600, volumes={"/vol": golden_vol.read_only()})
@@ -567,4 +567,183 @@ def reverify_final(job_key: str, job_sha: str, attempt_id: str) -> dict:
     out["inventory"] = verify_remote(s3, b, pre, inv, set(job["requiredArtifactTypes"]))
     out["note"] = "acceptance re-check after a transport timeout in the original fresh read; no retraining"
     s3.put_object(Bucket=b, Key=f"{pre}/acceptance-recheck.json", Body=json.dumps(out, indent=1).encode())
+    return out
+
+
+@app.function(image=diag_image, cpu=16.0, memory=65536, timeout=3 * 3600, secrets=[secret],
+              volumes={"/vol": golden_vol.read_only()})
+def source_audit(freeze_key: str = "") -> dict:
+    """Prerequisite 4 (read-only): geometric multi-view repeatability of the predefined targets; optionally freeze."""
+    from srcaudit import audit
+    res = audit()
+    if freeze_key:
+        from storage import bucket, client
+        client().put_object(Bucket=bucket(), Key=freeze_key, Body=json.dumps(res, indent=1).encode())
+    return res
+
+
+@app.function(image=diag_image, cpu=8.0, memory=32768, timeout=3600, secrets=[secret],
+              volumes={"/vol": golden_vol.read_only()})
+def frozen_target_views(audit_key: str, freeze_key: str) -> dict:
+    from srcaudit import target_views
+    from storage import bucket, client
+    s3, b = client(), bucket()
+    res = target_views(json.loads(s3.get_object(Bucket=b, Key=audit_key)["Body"].read()))
+    s3.put_object(Bucket=b, Key=freeze_key, Body=json.dumps(
+        {"frozen": res["frozen"], "views": [{k: v for k, v in x.items() if k != "rectifiedSourcePng"} for x in res["views"]]},
+        indent=1).encode())
+    return res
+
+
+@app.function(image=diag_image, cpu=8.0, memory=32768, timeout=3600, secrets=[secret],
+              volumes={"/vol": golden_vol.read_only()})
+def ppisp_engagement(final_prefix: str, ckpt5000_prefix: str, render_eval_index_prefix: str = "") -> dict:
+    """Experiment-1 check: learned PPISP parameters, optimizer state, and the effect of a learned correction."""
+    import cv2
+    import numpy as np
+    from ppispcheck import check
+    from storage import bucket, client
+    s3, b = client(), bucket()
+    get = lambda k: s3.get_object(Bucket=b, Key=k)["Body"].read()
+    inv = json.loads(get(f"{final_prefix}/inventory.json"))
+    st_item = next(it for it in inv["items"] if it["type"] == "terminal-state")
+    final_state = get(f"{final_prefix}/{st_item['path']}")
+    if hashlib.sha256(final_state).hexdigest() != st_item["sha256"]:
+        raise RuntimeError("terminal state differs from the accepted inventory")
+    ck = json.loads(get(f"{ckpt5000_prefix}/ckpt.json"))
+    c5 = get(f"{ckpt5000_prefix}/" + next(it["path"] for it in ck["inventory"]["items"] if it["type"] == "ckpt-state"))
+    dump = json.loads(get(f"{R2_ROOT}/datasets/room213-golden-v1/golden_camera_dump.json"))
+    names = [x.split("/dataset/images/")[-1] for x in dump["image_filenames"]]
+    G = "/vol/room213/2026-09-21/spirula_bench_v1"
+    ev = json.load(open(f"{G}/eval_full/eval.json"))
+    man = json.load(open(f"{G}/dataset_manifest.json"))
+    fx = man["fixed_eval"]["camera2/frame_00103.png"]
+    gold_gt = (Path(G) / "runs/room213_spirula_full" / f"eval-gt-{ev['identified'][fx]['eval_index']:05d}.png").read_bytes()
+    h = hashlib.sha256(gold_gt).hexdigest()
+    ren = gt = None
+    for it in inv["items"]:
+        if it["type"] == "eval-image" and "eval-gt-" in it["path"] and it["sha256"] == h:
+            gt = cv2.imdecode(np.frombuffer(get(f"{final_prefix}/{it['path']}"), np.uint8), cv2.IMREAD_COLOR)
+            rp = it["path"].replace("eval-gt-", "eval-render-")
+            ren = cv2.imdecode(np.frombuffer(get(f"{final_prefix}/{rp}"), np.uint8), cv2.IMREAD_COLOR)
+    twin = names.index("camera2/frame_00103_train.png")
+    mask = cv2.imread(f"{G}/dataset/masks/{fx}", 0) > 127
+    return check(final_state, c5, names, ren, gt, twin, mask)
+
+
+lineage_image = (modal.Image.debian_slim(python_version="3.11").apt_install("libgl1", "libglib2.0-0", "ffmpeg")
+                 .pip_install("boto3", "numpy<2", "opencv-python-headless<4.11", "scipy", "av")
+                 .add_local_python_source(*MODULES, "srcaudit", "lineage", "lineage_ext"))
+
+
+@app.function(image=lineage_image, cpu=16.0, memory=98304, timeout=3 * 3600, secrets=[secret],
+              volumes={"/vol": golden_vol.read_only()})
+def feature_lineage(frozen_key: str, final_3m: str, final_ppisp: str, extra: dict | None = None) -> dict:
+    """Mandatory root-cause diagnostic (read-only): lineage, multi-view agreement, allocation for 3 frozen edges."""
+    import base64
+    import av
+    import cv2
+    import numpy as np
+    from lineage import run, sheets, stage_sheet
+    from storage import bucket, client
+    s3, b = client(), bucket()
+    get = lambda k: s3.get_object(Bucket=b, Key=k)["Body"].read()
+    G = "/vol/room213/2026-09-21/spirula_bench_v1"
+    frozen = json.loads(get(frozen_key))["frozen"]
+    # decoded .insv frame (camera2 = stream 1, frame 1120)
+    c = av.open("/vol/room213/2026-09-21/raw-capture-test/VID_20260921_111410_00_075.insv")
+    dec = None
+    for i, fr in enumerate(c.decode(c.streams.video[1])):
+        if i == 1120:
+            dec = fr.to_ndarray(format="bgr24"); break
+    ev = json.load(open(f"{G}/eval_full/eval.json")); man = json.load(open(f"{G}/dataset_manifest.json"))
+    fx = man["fixed_eval"]["camera2/frame_00103.png"]; gi = ev["identified"][fx]["eval_index"]
+    gold_gt = (Path(G) / "runs/room213_spirula_full" / f"eval-gt-{gi:05d}.png").read_bytes()
+    h = hashlib.sha256(gold_gt).hexdigest()
+    renders = {"1M": cv2.imread(f"{G}/runs/room213_spirula_full/eval-render-{gi:05d}.png")}
+    for lab, pre in (("3M", final_3m), ("PPISP_1M", final_ppisp), *((extra or {}).items())):
+        inv = json.loads(get(f"{pre}/inventory.json"))
+        it = next(x for x in inv["items"] if x["type"] == "eval-image" and "eval-gt-" in x["path"] and x["sha256"] == h)
+        renders[lab] = cv2.imdecode(np.frombuffer(get(f"{pre}/{it['path'].replace('eval-gt-', 'eval-render-')}"), np.uint8), cv2.IMREAD_COLOR)
+    inv3 = json.loads(get(f"{final_3m}/inventory.json"))
+    ply3 = next(x for x in inv3["items"] if x["type"] == "master-ply")
+    Path("/tmp/m3.ply").write_bytes(get(f"{final_3m}/{ply3['path']}"))
+    if hashlib.sha256(Path("/tmp/m3.ply").read_bytes()).hexdigest() != ply3["sha256"]:
+        raise RuntimeError("3M PLY differs from its accepted inventory")
+    res = run({"frozenAnchors": frozen}, f"{G}/runs/room213_spirula_full/step-000030000.ckpt/splat.ply", "/tmp/m3.ply",
+              renders, dec)
+    stage_imgs = {"decoded_insv": dec, "dataset_png": cv2.imread(f"{G}/dataset/images/camera2/frame_00103_train.png"),
+                  "loss_tensor_evalgt": cv2.imread(f"{G}/runs/room213_spirula_full/eval-gt-{gi:05d}.png"),
+                  **{f"spirula_render_{k}": v for k, v in renders.items()}}
+    imgs = {f"validation_{k}.jpg": base64.b64encode(v).decode() for k, v in sheets(res).items()}
+    imgs.update({f"lineage_{k}.jpg": base64.b64encode(v).decode() for k, v in stage_sheet(res, stage_imgs).items()})
+    s3.put_object(Bucket=b, Key=f"{R2_ROOT}/photoreal/feature_lineage{'_x' if extra else ''}.json", Body=json.dumps(res, indent=1, default=float).encode())
+    return {"result": res, "images": imgs}
+
+
+@app.function(image=lineage_image, cpu=16.0, memory=65536, timeout=3 * 3600, secrets=[secret],
+              volumes={"/vol": golden_vol.read_only()})
+def feature_lineage_ext(final_3m: str, final_ppisp: str, only: str = "", extra: dict | None = None) -> dict:
+    """Extended read-only lineage: baseboard edge, ceiling tile corner (2D residual), carpet texture patch."""
+    import base64
+    import av
+    import cv2
+    import numpy as np
+    from lineage_ext import run, sheets
+    from storage import bucket, client
+    s3, b = client(), bucket()
+    get = lambda k: s3.get_object(Bucket=b, Key=k)["Body"].read()
+    G = "/vol/room213/2026-09-21/spirula_bench_v1"
+    c = av.open("/vol/room213/2026-09-21/raw-capture-test/VID_20260921_111410_00_075.insv")
+    dec = None
+    for i, fr in enumerate(c.decode(c.streams.video[1])):
+        if i == 1120:
+            dec = fr.to_ndarray(format="bgr24"); break
+    ev = json.load(open(f"{G}/eval_full/eval.json")); man = json.load(open(f"{G}/dataset_manifest.json"))
+    fx = man["fixed_eval"]["camera2/frame_00103.png"]; gi = ev["identified"][fx]["eval_index"]
+    h = hashlib.sha256((Path(G) / "runs/room213_spirula_full" / f"eval-gt-{gi:05d}.png").read_bytes()).hexdigest()
+    gray = lambda im: cv2.cvtColor(im, cv2.COLOR_BGR2GRAY).astype(np.float32)
+    stages = {"decoded_insv_frame": gray(dec),
+              "spirula_dataset_png": gray(cv2.imread(f"{G}/dataset/images/camera2/frame_00103_train.png")),
+              "loss_tensor_evalgt": gray(cv2.imread(f"{G}/runs/room213_spirula_full/eval-gt-{gi:05d}.png")),
+              "spirula_render_1M": gray(cv2.imread(f"{G}/runs/room213_spirula_full/eval-render-{gi:05d}.png"))}
+    for lab, pre in (("3M", final_3m), ("PPISP_1M", final_ppisp), *((extra or {}).items())):
+        inv = json.loads(get(f"{pre}/inventory.json"))
+        it = next(x for x in inv["items"] if x["type"] == "eval-image" and "eval-gt-" in x["path"] and x["sha256"] == h)
+        stages[f"spirula_render_{lab}"] = gray(cv2.imdecode(np.frombuffer(get(f"{pre}/{it['path'].replace('eval-gt-', 'eval-render-')}"), np.uint8), cv2.IMREAD_COLOR))
+    res = run(f"{G}/runs/room213_spirula_full/step-000030000.ckpt/splat.ply", stages, only)
+    imgs = {f"validation_{k}.jpg": base64.b64encode(v).decode() for k, v in sheets(res).items()}
+    s3.put_object(Bucket=b, Key=f"{R2_ROOT}/photoreal/feature_lineage_ext{'_' + only if only else ''}{'_x' if extra else ''}.json", Body=json.dumps(res, indent=1, default=float).encode())
+    return {"result": res, "images": imgs}
+
+
+@app.function(image=diag_image, cpu=8.0, memory=32768, timeout=1800, volumes={"/vol": golden_vol.read_only()})
+def target_error_map() -> dict:
+    """Is each frozen target HIGH error (actively targeted by SSIM-CS densification) or LOW error (ignored) in the
+    1M model at the fixed training camera? Per-pixel 1-SSIM_cs (the densify_loss_map_mode) and |render-source|,
+    32-px window mean at each target, ranked against every valid pixel of the view."""
+    import cv2
+    import numpy as np
+    G = "/vol/room213/2026-09-21/spirula_bench_v1"
+    ev = json.load(open(f"{G}/eval_full/eval.json")); man = json.load(open(f"{G}/dataset_manifest.json"))
+    fx = man["fixed_eval"]["camera2/frame_00103.png"]; gi = ev["identified"][fx]["eval_index"]
+    gt = cv2.cvtColor(cv2.imread(f"{G}/dataset/images/camera2/frame_00103_train.png"), cv2.COLOR_BGR2GRAY).astype(np.float64)
+    rd = cv2.cvtColor(cv2.imread(f"{G}/runs/room213_spirula_full/eval-render-{gi:05d}.png"), cv2.COLOR_BGR2GRAY).astype(np.float64)
+    m = cv2.imread(f"{G}/dataset/masks/{fx}", 0) > 127
+    bl = lambda x: cv2.GaussianBlur(x, (11, 11), 1.5)
+    mu_a, mu_b = bl(rd), bl(gt)
+    va = bl(rd * rd) - mu_a ** 2; vb = bl(gt * gt) - mu_b ** 2; cov = bl(rd * gt) - mu_a * mu_b
+    C2 = (0.03 * 255) ** 2
+    cs = (2 * cov + C2) / (va + vb + C2)
+    err_cs = 1 - cs; err_l1 = np.abs(rd - gt)
+    win = lambda e: cv2.blur(e, (33, 33))
+    E_cs, E_l1 = win(err_cs), win(err_l1)
+    valid_cs = E_cs[m]; valid_l1 = E_l1[m]
+    pts = {"chair_slat": (2701, 2811), "table_edge": (2428, 3035), "window_frame": (1801, 2285), "baseboard": (756, 2878),
+           "tile_corner": (995, 1018), "carpet": (1029, 3093)}
+    out = {"view": fx, "imageMedian1mSSIMcs": round(float(np.median(valid_cs)), 4), "imageMedianL1": round(float(np.median(valid_l1)), 2)}
+    for k, (x, y) in pts.items():
+        a, b = float(E_cs[y, x]), float(E_l1[y, x])
+        out[k] = {"err1mSSIMcs": round(a, 4), "percentileSSIMcs": round(float((valid_cs < a).mean() * 100), 1),
+                  "errL1": round(b, 2), "percentileL1": round(float((valid_l1 < b).mean() * 100), 1)}
     return out
