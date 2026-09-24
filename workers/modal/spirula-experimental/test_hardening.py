@@ -179,11 +179,28 @@ class GateProbes(Tmp):
 
     def test_resume_continuity(self):
         r = make_run(self.w); att = {**r["attempt"], "resumeFromStep": 50}
-        self.assertTrue(self.accept(r, attempt=att, log=good_log(resumed_at=50))["evidence"]["resume"])
+        for d in (self.w / "resume_src" / "step-000000050.ckpt", r["run"] / "step-000000050.ckpt"):
+            d.mkdir(parents=True); (d / "state.tar").write_bytes(state_tar_bytes(50))
+        self.assertTrue(self.accept(r, attempt=att, log=good_log(resumed_at=50))["evidence"]["restoredState"])
         self.assertRaises(GateRejected, self.accept, r, attempt={**att, "resumeFromStep": 40},
                           log=good_log(resumed_at=50))
         self.assertRaises(GateRejected, resume_continuity, "Resumed from x at step 50\nstep  1/100\n")
         self.assertRaises(GateRejected, self.accept, r, attempt=att, log=good_log())
+
+
+class RestoreProbes(Tmp):
+    def test_restored_state(self):
+        from gate import restored_state_check
+        a = self.w / "a.tar"; b = self.w / "b.tar"; a.write_bytes(state_tar_bytes(50)); b.write_bytes(state_tar_bytes(50))
+        self.assertTrue(restored_state_check(a, b)["worldIdentical"])
+        b.write_bytes(state_tar_bytes(50, n=65))
+        self.assertRaises(GateRejected, restored_state_check, a, b)
+        self.assertRaises(GateRejected, restored_state_check, a, self.w / "missing.tar")
+
+    def test_adapt_line_rejected(self):
+        r = make_run(self.w); att = {**r["attempt"], "resumeFromStep": 50}
+        log = good_log(resumed_at=50).replace("Resumed from", "Checkpoint layout differs from this run's" + chr(10) + "Resumed from")
+        self.assertRaisesRegex(GateRejected, "adapted", self.accept, r, attempt=att, log=log)
 
 
 class DatasetProbes(Tmp):

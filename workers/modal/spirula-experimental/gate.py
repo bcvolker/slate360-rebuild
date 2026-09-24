@@ -119,6 +119,32 @@ def terminal_evidence(log: str, terminal: int, eval_expected: bool) -> dict:
     return ok
 
 
+def restored_state_check(src_tar: Path, resaved_tar: Path) -> dict:
+    """Spirula re-saves the checkpoint at the resume step in the new run dir. Compare it member-by-member with the
+    durable checkpoint it was restored from: every world.* array (the Gaussians) must be byte-identical and the
+    state.json layout fields equal. Engine/optimizer buffers are compared and reported."""
+    import hashlib as _h
+
+    def members(p):
+        with tarfile.open(p) as t:
+            return {m.name: _h.sha256(t.extractfile(m).read()).hexdigest() for m in t.getmembers() if m.isfile()},                 json.loads(t.extractfile("state.json").read())
+    if not resaved_tar.is_file():
+        raise GateRejected("resumed attempt: no re-saved checkpoint at the resume step to prove state restoration")
+    a, sa = members(src_tar); b, sb = members(resaved_tar)
+    world = sorted(k for k in a if k.startswith("world."))
+    world_bad = [k for k in world if a.get(k) != b.get(k)]
+    layout = ("step", "primitive", "cur_num_splats", "max_num_splats", "num_sh", "sh_degree", "packed")
+    layout_bad = [k for k in layout if sa.get(k) != sb.get(k)]
+    eng = sorted(k for k in a if k.startswith("eng."))
+    eng_diff = [k for k in eng if a.get(k) != b.get(k)]
+    rep = {"worldArrays": len(world), "worldIdentical": not world_bad, "layoutIdentical": not layout_bad,
+           "engineBuffers": len(eng), "engineBuffersIdentical": len(eng) - len(eng_diff), "engineBuffersDiffering": eng_diff,
+           "sameMemberSet": set(a) == set(b)}
+    if world_bad or layout_bad or not rep["sameMemberSet"]:
+        raise GateRejected(f"restored state differs from the durable checkpoint: world={world_bad} layout={layout_bad}")
+    return rep
+
+
 def resume_continuity(log: str) -> dict:
     """For a resumed attempt: Spirula must say where it resumed, and its next step line must follow on."""
     m = re.search(r"Resumed from (\S+) at step (\d+)", log)
@@ -181,6 +207,11 @@ def final_acceptance(*, s3, bucket: str, prefix: str, run_dir: Path, work: Path,
         evidence["resume"] = resume_continuity(log_text)
         if evidence["resume"]["resumedAtStep"] != int(attempt["resumeFromStep"]):
             raise GateRejected("Spirula resumed at a different step than the durable checkpoint")
+        if "Checkpoint layout differs" in log_text:
+            raise GateRejected("Spirula adapted the checkpoint layout on resume (not a faithful continuation)")
+        k = int(attempt["resumeFromStep"])
+        evidence["restoredState"] = restored_state_check(
+            work / "resume_src" / f"step-{k:09d}.ckpt" / "state.tar", run_dir / f"step-{k:09d}.ckpt" / "state.tar")
     ck = run_dir / f"step-{T:09d}.ckpt"
     if (ck / "state.txt").exists():
         raise GateRejected("state.txt is not an acceptable checkpoint")

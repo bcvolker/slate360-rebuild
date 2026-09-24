@@ -17,11 +17,11 @@ from pathlib import Path
 
 import modal
 
-from pin import BINARY_SHA256, CUDA_BASE_IMAGE, GPU, R2_ROOT, SPIRULA_BIN, SPIRULA_SHA, SPIRULA_SHA_FILE
+from pin import (BINARY_R2_KEY, BINARY_SHA256, CUDA_BASE_IMAGE, GPU, R2_ROOT, SPIRULA_BIN, SPIRULA_BUILD_ID,
+                 SPIRULA_SHA, SPIRULA_SHA_FILE)
 
 APP_NAME = "slate360-spirula-hardened"
 SECRET_NAME = "slate360-twin-worker"
-LOCAL_BINARY = os.environ.get("SPIRULA_GOLDEN_BINARY", "")
 MODULES = ("pin", "storage", "ids", "inventory", "gate", "jobspec", "runlock", "cost_guard", "train_run",
            "attempt", "dspackage")
 
@@ -35,13 +35,29 @@ cpu_image = (modal.Image.debian_slim(python_version="3.11").apt_install("libgl1"
 gpu_image = (modal.Image.from_registry(CUDA_BASE_IMAGE, add_python="3.11")
              .apt_install("libgomp1", "libgl1", "libglib2.0-0")
              .pip_install("boto3", "numpy<2", "opencv-python-headless<4.11", "scipy"))
-if LOCAL_BINARY:
-    h = hashlib.sha256(Path(LOCAL_BINARY).read_bytes()).hexdigest()
-    if h != BINARY_SHA256:
-        raise RuntimeError(f"local Spirula binary {h} is not the golden build {BINARY_SHA256}")
-    gpu_image = (gpu_image.add_local_file(LOCAL_BINARY, SPIRULA_BIN, copy=True)
-                 .run_commands(f"chmod 755 {SPIRULA_BIN} && printf '%s\\n' {SPIRULA_SHA} > {SPIRULA_SHA_FILE}"
-                               f" && printf '%s\\n' cuda > /opt/spirula/BACKEND"))
+
+
+def _fetch_binary(key: str, want: str, bin_path: str, sha_file: str, build_id: str):
+    """Image build step: pull the patched build from R2 and refuse the image unless its sha256 is the pinned one."""
+    import hashlib as _h
+    import os as _os
+    import boto3
+    ep = _os.environ.get("R2_ENDPOINT") or f"https://{_os.environ['CLOUDFLARE_ACCOUNT_ID'].strip()}.r2.cloudflarestorage.com"
+    s3 = boto3.client("s3", endpoint_url=ep, aws_access_key_id=_os.environ["R2_ACCESS_KEY_ID"],
+                      aws_secret_access_key=_os.environ["R2_SECRET_ACCESS_KEY"], region_name="auto")
+    _os.makedirs("/opt/spirula/bin", exist_ok=True)
+    s3.download_file(_os.environ["R2_BUCKET"], key, bin_path)
+    h = _h.sha256(open(bin_path, "rb").read()).hexdigest()
+    if h != want:
+        raise RuntimeError(f"fetched Spirula binary {h} is not the pinned build {want}")
+    _os.chmod(bin_path, 0o755)
+    open(sha_file, "w").write(build_id + chr(10))
+    open("/opt/spirula/BACKEND", "w").write("cuda" + chr(10))
+
+
+gpu_image = gpu_image.add_local_python_source("pin", copy=True).run_function(_fetch_binary, secrets=[secret], kwargs={
+    "key": BINARY_R2_KEY, "want": BINARY_SHA256, "bin_path": SPIRULA_BIN, "sha_file": SPIRULA_SHA_FILE,
+    "build_id": SPIRULA_BUILD_ID})
 gpu_image = gpu_image.add_local_python_source(*MODULES)
 
 
@@ -136,7 +152,7 @@ def package_golden() -> dict:
     dump_raw = open(f"{base}/cameras_dump_train.json", "rb").read()
     s3.put_object(Bucket=b, Key=f"{pre}/golden_camera_dump.json", Body=dump_raw)
     s3.put_object(Bucket=b, Key=f"{pre}/golden_resolved_config.json", Body=json.dumps(cfg, indent=1).encode())
-    job = {"schema": "spirula-job-v1", "runId": "room213-golden-repro-v1", "spirulaSha": SPIRULA_SHA,
+    job = {"schema": "spirula-job-v1", "runId": "room213-golden-repro-v1", "spirulaSha": SPIRULA_BUILD_ID,
            "binarySha256": BINARY_SHA256, "backend": "cuda", "gpu": GPU, "preset": cmd[cmd.index("train") + 1],
            "flags": flags, "expectedResolvedConfigSha256": normalized_config_sha(cfg),
            "dataset": {"manifestKey": f"{pre}/dataset_manifest.json", "manifestSha256": man_sha,
@@ -183,7 +199,7 @@ def package_fixture(run_id: str = "fixture-resume-v1") -> dict:
              ["--depth-supervision-weight", "0"], ["--steps-per-save", "5000"], ["--save-only-latest-checkpoint", "0"],
              ["--save-full-checkpoint", "1"], ["--save-eval-images", "0"], ["--disable-viewer", "1"],
              ["--keep-viewer-alive", "0"]]
-    job = {"schema": "spirula-job-v1", "runId": run_id, "spirulaSha": SPIRULA_SHA, "binarySha256": BINARY_SHA256,
+    job = {"schema": "spirula-job-v1", "runId": run_id, "spirulaSha": SPIRULA_BUILD_ID, "binarySha256": BINARY_SHA256,
            "backend": "cuda", "gpu": GPU, "preset": "3dgs", "flags": flags, "expectedResolvedConfigSha256": "PENDING",
            "dataset": {"manifestKey": f"{pre}/dataset_manifest.json", "manifestSha256": man_sha,
                        "datasetSha256": canonical_sha(man["files"]), "objectsPrefix": f"{pre}/objects"},
@@ -269,4 +285,50 @@ def fidelity_probe(job_key: str, job_sha: str) -> dict:
         out["cameraDumpCheck"] = compare_camera_dump(d, json.loads(raw), str(data), ref["goldenDataRoot"])
         out["dumpSha256"] = hashlib.sha256(dump.read_bytes()).hexdigest()
         out["trainFrameScale"] = d.get("train_frame_scale"); out["numPoints"] = d.get("num_points")
+    return out
+
+
+build_image = (modal.Image.from_registry(CUDA_BASE_IMAGE, add_python="3.11")
+               .apt_install("git", "wget", "ca-certificates", "build-essential", "ninja-build", "libgomp1", "libgl1",
+                            "libglib2.0-0", "python3")
+               .run_commands("pip install cmake==3.31.6").pip_install("boto3")
+               .env({"NVIDIA_DRIVER_CAPABILITIES": "compute,utility"}).add_local_python_source(*MODULES))
+
+RESUME_PATCH_OLD = "    target.num_sh         = (cfg.sh_degree + 1) * (cfg.sh_degree + 1);\n"
+RESUME_PATCH_NEW = "    target.num_sh         = (cfg.sh_degree + 1) * (cfg.sh_degree + 1) - 1;\n"
+
+
+@app.function(image=build_image, cpu=32.0, memory=131072, timeout=4 * 60 * 60, secrets=[secret])
+def build_patched() -> dict:
+    """Golden build recipe (same image, cmake, flags) + ONE line: the resume target counts SH rest coefficients
+    ((d+1)^2 - 1) like fresh init and the checkpoint writer do. Output goes to R2, recorded as upstream SHA + patch."""
+    import time
+    from inventory import sha256_file
+    from storage import bucket, client
+    t0 = time.time(); src = Path("/tmp/spirula-src")
+    r0 = subprocess.run(["bash", "-c", f"git clone -q https://github.com/harry7557558/spirula-studio.git {src} && "
+                         f"cd {src} && git checkout -q {SPIRULA_SHA} && git rev-parse HEAD"],
+                        capture_output=True, text=True)
+    if r0.stdout.strip() != SPIRULA_SHA:
+        raise RuntimeError(f"checkout failed: {r0.stdout} {r0.stderr}")
+    f = src / "src/app/TrainerCore.cpp"
+    text = f.read_text()
+    if text.count(RESUME_PATCH_OLD) != 1:
+        raise RuntimeError("patch anchor not found exactly once")
+    f.write_text(text.replace(RESUME_PATCH_OLD, RESUME_PATCH_NEW))
+    diff = subprocess.run(["git", "-C", str(src), "diff"], capture_output=True, text=True).stdout
+    patch_sha = hashlib.sha256(diff.encode()).hexdigest()
+    r = subprocess.run(["bash", "-c", f"cd {src} && bash build_develop.bash -DSS_BACKEND=cuda -DSS_BUILD_GUI=OFF "
+                        "-DTORCH_CUDA_ARCH_LIST=8.9 -DSS_CHECK_COMMENTS=OFF"], capture_output=True, text=True)
+    binp = src / "build_cuda/spirula"
+    out = {"ok": binp.is_file(), "exit": r.returncode, "elapsedS": round(time.time() - t0), "patchSha256": patch_sha,
+           "diff": diff, "tail": (r.stdout + r.stderr)[-2000:]}
+    if binp.is_file():
+        s3, b = client(), bucket()
+        out["binarySha256"] = sha256_file(binp); out["bytes"] = binp.stat().st_size
+        pre = f"{R2_ROOT}/tools/spirula/{SPIRULA_SHA}+resume-nsh-{patch_sha[:12]}"
+        s3.upload_file(str(binp), b, f"{pre}/spirula")
+        s3.put_object(Bucket=b, Key=f"{pre}/resume-nsh.patch", Body=diff.encode())
+        s3.put_object(Bucket=b, Key=f"{pre}/build.json", Body=json.dumps({k: v for k, v in out.items()}).encode())
+        out["r2Prefix"] = pre
     return out
