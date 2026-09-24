@@ -237,3 +237,36 @@ def selftest() -> dict:
     res = unittest.TextTestRunner(stream=buf, verbosity=2).run(suite)
     return {"ran": res.testsRun, "failures": len(res.failures), "errors": len(res.errors),
             "skipped": len(res.skipped), "ok": res.wasSuccessful(), "log": buf.getvalue()[-12000:]}
+
+
+@app.function(image=gpu_image, gpu=GPU, cpu=8.0, memory=65536, timeout=3600, max_containers=1, retries=0,
+              secrets=[secret])
+def fidelity_probe(job_key: str, job_sha: str) -> dict:
+    """Blocker-8 evidence WITHOUT training: materialize the immutable package, exhaustive fidelity over every image,
+    then Spirula's own camera dump (SS_DUMP_CAMERAS exits before training) compared field-by-field to the golden dump."""
+    import time
+    from jobspec import build_command, compare_camera_dump, load_job, materialize, verify_fidelity
+    from storage import bucket, client
+    t0 = time.time()
+    s3, b = client(), bucket()
+    hw = _hardware()
+    job = load_job(s3.get_object(Bucket=b, Key=job_key)["Body"].read(), job_sha)
+    work = Path("/tmp/fid"); data = work / "dataset"
+    man = materialize(s3, b, job, data)
+    fid = verify_fidelity(data, man)
+    t_fid = time.time() - t0
+    ref = job["cameraDump"]
+    raw = s3.get_object(Bucket=b, Key=ref["key"])["Body"].read()
+    assert hashlib.sha256(raw).hexdigest() == ref["sha256"]
+    dump = work / "camera_dump.json"
+    cmd = build_command(SPIRULA_BIN, job, str(data), str(work), "dumprun")
+    r = subprocess.run(cmd, env={**os.environ, "SS_DUMP_CAMERAS": str(dump)}, capture_output=True, text=True,
+                       timeout=1800, cwd="/tmp")
+    out = {"hardware": hw, "fidelity": fid, "fidelitySeconds": round(t_fid), "dumpExit": r.returncode,
+           "dumpTail": (r.stdout + r.stderr)[-1500:], "elapsedS": round(time.time() - t0)}
+    if dump.is_file():
+        d = json.loads(dump.read_text())
+        out["cameraDumpCheck"] = compare_camera_dump(d, json.loads(raw), str(data), ref["goldenDataRoot"])
+        out["dumpSha256"] = hashlib.sha256(dump.read_bytes()).hexdigest()
+        out["trainFrameScale"] = d.get("train_frame_scale"); out["numPoints"] = d.get("num_points")
+    return out

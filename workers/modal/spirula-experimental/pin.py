@@ -11,3 +11,9 @@ SPIRULA_SHA_FILE = "/opt/spirula/PINNED_SHA"
 CUDA_BASE_IMAGE = "nvidia/cuda:12.8.1-devel-ubuntu22.04"
 GPU = "L40S"
 R2_ROOT = "experimental/spirula-hardened"
+
+# Upstream defect at this pin (verified 2026-09-23, fixture-resume-v1/v2): checkpoints store num_sh = 15 (SH rest
+# coefficients) but TrainerSession::restore_checkpoint targets (sh_degree+1)^2 = 16, so EVERY resume takes the host
+# "adapt" path, resamples SH 15 -> 16 and exports a non-standard PLY (f_rest_0..47). The strict gate rejects it.
+# Resume stays disabled (fail closed, before any GPU training) until a pin without this defect is validated.
+RESUME_SUPPORTED = False

@@ -45,6 +45,29 @@ def _status(ctx, run_id, attempt_id, status, **extra):
     return body
 
 
+def _diagnostics(ctx, run_id, attempt_id, work: Path) -> dict:
+    """Preserve evidence for any non-completed outcome: the full trainer log (real exit code + crash report), every
+    PLY header and a listing of the run dir. Written under attempts/<attempt>/diagnostics/; never read by the gate."""
+    pre = f"{ctx.root}/runs/{run_id}/attempts/{attempt_id}/diagnostics"
+    out = {"prefix": pre, "files": []}
+    try:
+        if (work / "train.log").is_file():
+            ctx.s3.upload_file(str(work / "train.log"), ctx.bucket, f"{pre}/train.log"); out["files"].append("train.log")
+        listing, headers = [], {}
+        for p in sorted((work / RUN_NAME).rglob("*")) if (work / RUN_NAME).exists() else []:
+            if p.is_file():
+                listing.append({"path": p.relative_to(work).as_posix(), "bytes": p.stat().st_size})
+                if p.suffix == ".ply":
+                    raw = p.open("rb").read(16384)
+                    headers[p.relative_to(work).as_posix()] = raw[:raw.find(b"end_header")].decode("ascii", "replace")
+        ctx.s3.put_object(Bucket=ctx.bucket, Key=f"{pre}/run_listing.json",
+                          Body=json.dumps({"files": listing, "plyHeaders": headers}, indent=1).encode())
+        out["files"].append("run_listing.json")
+    except Exception as exc:  # noqa: BLE001 - diagnostics must never mask the real outcome
+        out["error"] = str(exc)[:300]
+    return out
+
+
 def _durable_checkpoints(ctx, run_id) -> list[int]:
     pre = f"{ctx.root}/runs/{run_id}/ckpts/"
     steps = set(); token = None
@@ -120,7 +143,8 @@ def run_attempt(ctx: Ctx, job_key: str, job_sha: str, attempt_id: str, inject_in
             check_id(run_id, "runId"); check_id(attempt_id, "attemptId")
         except Exception:  # noqa: BLE001
             raise exc
-        return _status(ctx, run_id, attempt_id, "failed", reason=f"{type(exc).__name__}: {str(exc)[:500]}")
+        return _status(ctx, run_id, attempt_id, "failed", reason=f"{type(exc).__name__}: {str(exc)[:500]}",
+                       diagnostics=_diagnostics(ctx, run_id, attempt_id, ctx.work))
 
 
 def _run_attempt(ctx: Ctx, job_key: str, job_sha: str, attempt_id: str, inject_interrupt_after_step: int,
@@ -171,6 +195,10 @@ def _run_attempt(ctx: Ctx, job_key: str, job_sha: str, attempt_id: str, inject_i
     T = int(job["terminalStep"])
     resume_step = None; resume_arg = None
     if durable:
+        from pin import RESUME_SUPPORTED
+        if not RESUME_SUPPORTED and not os.environ.get("SPIRULA_ALLOW_BROKEN_RESUME_FOR_EVIDENCE"):
+            raise AttemptError(f"durable checkpoint {durable[-1]} exists but resume is disabled at this Spirula pin "
+                               "(num_sh 15 vs 16 adapt defect); refusing before any GPU training")
         resume_step = durable[-1]
         if resume_step >= T:
             raise AttemptError("a terminal checkpoint is already durable; acceptance-only recovery is not implemented")
@@ -229,7 +257,8 @@ def _run_attempt(ctx: Ctx, job_key: str, job_sha: str, attempt_id: str, inject_i
                   "stopped" if res["stopReason"] else f"exit {res['exitCode']}")
     if res["stopReason"]:
         return _status(ctx, run_id, attempt_id, "interrupted", reason=res["stopReason"], exitCode=res["exitCode"],
-                       durableCheckpoints=sorted(st["shipped"]), elapsedS=res["elapsedS"])
+                       durableCheckpoints=sorted(st["shipped"]), elapsedS=res["elapsedS"],
+                       diagnostics=_diagnostics(ctx, run_id, attempt_id, work))
     if (run_dir / "metrics.json").is_file():
         extra += [(f"{RUN_NAME}/metrics.json", "eval-metrics", None)]
     for p in sorted(run_dir.glob("eval-*.png")):
@@ -242,7 +271,8 @@ def _run_attempt(ctx: Ctx, job_key: str, job_sha: str, attempt_id: str, inject_i
                                     log_text=log, extra_files=extra)
     except (GateRejected, JobRejected, InventoryRejected) as exc:
         return _status(ctx, run_id, attempt_id, "rejected", reason=str(exc), exitCode=res["exitCode"],
-                       crashPresent="crash report" in log)
+                       crashPresent="crash report" in log, durableCheckpoints=sorted(st["shipped"]),
+                       diagnostics=_diagnostics(ctx, run_id, attempt_id, work))
     decision["ledger"] = ledger.load()
     lock.complete(decision)                                                   # 18: only now is the run terminal
     return _status(ctx, run_id, attempt_id, "completed", decision=decision)
