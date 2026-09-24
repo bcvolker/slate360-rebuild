@@ -20,7 +20,9 @@ def client():
         aws_access_key_id=os.environ["R2_ACCESS_KEY_ID"],
         aws_secret_access_key=os.environ["R2_SECRET_ACCESS_KEY"],
         region_name=os.environ.get("R2_REGION", "auto"),
-        config=Config(signature_version="s3v4", retries={"max_attempts": 5, "mode": "standard"}),
+        config=Config(signature_version="s3v4", retries={"max_attempts": 8, "mode": "adaptive"},
+                      connect_timeout=30, read_timeout=300, tcp_keepalive=True,
+                      request_checksum_calculation="when_required", response_checksum_validation="when_required"),
     )
 
 

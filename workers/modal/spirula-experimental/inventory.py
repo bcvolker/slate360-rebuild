@@ -47,6 +47,30 @@ def upload_inventory(s3, bucket: str, prefix: str, root: Path, inv: dict) -> Non
     s3.put_object(Bucket=bucket, Key=f"{prefix}/inventory.json", Body=raw, ContentType="application/json")
 
 
+def _fresh_hash(s3, bucket: str, key: str, attempts: int = 4) -> tuple[int, str]:
+    """Stream + hash one object. A transport error (timeout, reset) retries the WHOLE read; it never changes what is
+    compared, only whether the comparison could be made."""
+    import time
+    for i in range(attempts):
+        try:
+            obj = s3.get_object(Bucket=bucket, Key=key)
+            h = hashlib.sha256(); n = 0
+            for chunk in iter(lambda: obj["Body"].read(8 * 1024 * 1024), b""):
+                h.update(chunk); n += len(chunk)
+            return n, h.hexdigest()
+        except Exception as exc:  # noqa: BLE001
+            name = type(exc).__name__
+            if i == attempts - 1 or not any(k in name for k in ("Timeout", "Connection", "Protocol", "Incomplete")):
+                raise
+            time.sleep(5 * (i + 1))
+            try:                                   # a fresh client = fresh connection pool for the retry
+                from storage import client
+                s3 = client()
+            except Exception:  # noqa: BLE001
+                pass
+    raise RuntimeError("unreachable")
+
+
 def verify_remote(s3, bucket: str, prefix: str, inv: dict, required_types: set[str]) -> dict:
     """Fresh read of every inventoried object. Size and sha256 must equal the PRE-upload values."""
     have = {it["type"] for it in inv["items"]}
@@ -55,11 +79,8 @@ def verify_remote(s3, bucket: str, prefix: str, inv: dict, required_types: set[s
         raise InventoryRejected(f"inventory incomplete, missing artifact types {missing_types}")
     bad = []
     for it in inv["items"]:
-        obj = s3.get_object(Bucket=bucket, Key=f"{prefix}/{it['path']}")
-        h = hashlib.sha256(); n = 0
-        for chunk in iter(lambda: obj["Body"].read(8 * 1024 * 1024), b""):
-            h.update(chunk); n += len(chunk)
-        if n != it["bytes"] or h.hexdigest() != it["sha256"]:
+        n, digest = _fresh_hash(s3, bucket, f"{prefix}/{it['path']}")
+        if n != it["bytes"] or digest != it["sha256"]:
             bad.append({"path": it["path"], "expectedBytes": it["bytes"], "readBytes": n})
     if bad:
         raise InventoryRejected(f"fresh storage read does not match the pre-upload inventory: {bad[:5]}")

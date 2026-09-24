@@ -22,7 +22,7 @@ from pin import (BINARY_R2_KEY, BINARY_SHA256, CUDA_BASE_IMAGE, GPU, R2_ROOT, SP
 
 APP_NAME = "slate360-spirula-hardened"
 SECRET_NAME = "slate360-twin-worker"
-MODULES = ("pin", "storage", "ids", "inventory", "gate", "jobspec", "runlock", "cost_guard", "train_run",
+MODULES = ("pin", "storage", "ids", "inventory", "gate", "jobspec", "runlock", "cost_guard", "train_run", "abtools",
            "attempt", "dspackage")
 
 app = modal.App(APP_NAME)
@@ -368,3 +368,203 @@ def compare_golden(final_prefix: str) -> dict:
                 files[p.name] = base64.b64encode(p.read_bytes()).decode()
     s3.put_object(Bucket=b, Key=f"{cpre}/compare.json", Body=json.dumps(res, indent=1).encode())
     return {"result": res, "images": files, "prefix": cpre}
+
+
+diag_image = (modal.Image.debian_slim(python_version="3.11").apt_install("libgl1", "libglib2.0-0")
+              .pip_install("boto3", "numpy<2", "opencv-python-headless<4.11", "scipy").add_local_python_source(*MODULES, "softdiag"))
+
+
+@app.function(image=diag_image, cpu=16.0, memory=65536, timeout=3600, volumes={"/vol": golden_vol.read_only()})
+def soft_diagnostic() -> dict:
+    """Step 0: read-only analysis of the existing 1M model's soft regions (no training, no tuning)."""
+    from softdiag import run
+    return run()
+
+
+def _job(s3, b, key, sha):
+    from jobspec import load_job
+    job = load_job(s3.get_object(Bucket=b, Key=key)["Body"].read(), sha)
+    job["datasetSha256"] = job["dataset"]["datasetSha256"]
+    return job
+
+
+@app.function(image=gpu_image, gpu=GPU, cpu=16.0, memory=131072, timeout=2 * 60 * 60, max_containers=1, retries=0,
+              secrets=[secret])
+def ab_prepare(job_key: str, job_sha: str, ref_final_prefix: str, probe_steps: int = 3000,
+               check_warp: bool = False) -> dict:
+    """Before an A/B launch: resolved-config hash + diff vs golden, (warp) face-pose inheritance check, and a bounded
+    throughput probe calibrated against the reference run's own step timeline. Produces no accepted artifact."""
+    import time
+    from abtools import parse_timeline, throughput_probe, warp_camera_check
+    from gate import normalized_config_sha
+    from jobspec import build_command, materialize
+    from storage import bucket, client
+    from train_run import run_trainer
+    s3, b = client(), bucket(); t0 = time.time()
+    job = _job(s3, b, job_key, job_sha)
+    work = Path("/tmp/abprep"); data = work / "dataset"
+    materialize(s3, b, job, data)
+    out = {"hardware": _hardware()}
+    cfgp = work / "cfg" / "config.json"
+    run_trainer(build_command(SPIRULA_BIN, job, str(data), str(work), "cfg"), work / "cfg.log", 900, poll_s=1.0,
+                on_poll=lambda e: "config written" if cfgp.is_file() and cfgp.stat().st_size > 100 else None)
+    time.sleep(1)
+    cfg = json.loads(cfgp.read_text())
+    gcfg = json.loads(s3.get_object(Bucket=b, Key=f"{R2_ROOT}/datasets/room213-golden-v1/golden_resolved_config.json")["Body"].read())
+    skip = {"data", "output_dir_prefix", "output_dir_name", "resume"}
+    out["resolvedConfigSha256"] = normalized_config_sha(cfg)
+    out["configDiffVsGolden"] = {k: {"golden": gcfg.get(k), "this": cfg.get(k)} for k in sorted(set(cfg) | set(gcfg))
+                                 if k not in skip and cfg.get(k) != gcfg.get(k)}
+    if check_warp:
+        gd = json.loads(s3.get_object(Bucket=b, Key=f"{R2_ROOT}/datasets/room213-golden-v1/golden_camera_dump.json")["Body"].read())
+        out["warpCameraCheck"] = warp_camera_check(SPIRULA_BIN, job, data, work, gd)
+    out["probe"] = throughput_probe(SPIRULA_BIN, job, data, work, probe_steps, 3600)
+    ref = parse_timeline(s3.get_object(Bucket=b, Key=f"{ref_final_prefix}/train.log")["Body"].read().decode(errors="replace"))
+    out["referenceTimeline"] = ref[::10] + ref[-1:]
+    pr = out["probe"]["steps"]
+    if pr and ref:
+        s_last, _, e_last = pr[-1]
+        e_ref = next(e for s, _, e in ref if s >= s_last)
+        out["probeVsReferenceAtStep"] = {"step": s_last, "probeS": e_last, "referenceS": e_ref,
+                                         "ratio": round(e_last / max(e_ref, 1e-6), 3), "referenceTotalS": ref[-1][2]}
+    out["elapsedS"] = round(time.time() - t0)
+    return out
+
+
+@app.function(image=gpu_image, gpu=GPU, cpu=16.0, memory=131072, timeout=3 * 60 * 60, max_containers=1, retries=0,
+              secrets=[secret])
+def ab_native_render(final_prefix: str, native_job_key: str, native_job_sha: str, cap: str, iters: str,
+                     out_prefix: str) -> dict:
+    """Render an accepted model at the native fisheye eval cameras (see abtools.native_rerender) and upload the eval
+    renders with an inventory + fresh read. Evaluation only; never an accepted training artifact."""
+    import hashlib as _h
+    import time
+    from abtools import native_rerender
+    from inventory import build_inventory, upload_inventory, verify_remote
+    from jobspec import materialize
+    from storage import bucket, client
+    s3, b = client(), bucket(); t0 = time.time()
+    job = _job(s3, b, native_job_key, native_job_sha)
+    inv = json.loads(s3.get_object(Bucket=b, Key=f"{final_prefix}/inventory.json")["Body"].read())
+    work = Path("/tmp/nr"); data = work / "dataset"
+    import shutil
+    shutil.rmtree(work, ignore_errors=True)
+    ck = work / "src" / f"step-{int(iters):09d}.ckpt"; ck.mkdir(parents=True)
+    for it in inv["items"]:
+        if it["type"] in ("terminal-state", "master-ply", "resolved-config"):
+            body = s3.get_object(Bucket=b, Key=f"{final_prefix}/{it['path']}")["Body"].read()
+            if _h.sha256(body).hexdigest() != it["sha256"]:
+                raise RuntimeError(f"{it['path']} does not match the accepted inventory")
+            # the run's own resolved config sits beside the checkpoint (Spirula rebuilds the config from it; every
+            # explicit CLI flag -- the native dataset flags -- then overrides it)
+            dest = ck.parent / "config.json" if it["type"] == "resolved-config" else ck / Path(it["path"]).name
+            dest.write_bytes(body)
+    materialize(s3, b, job, data)
+    res = native_rerender(SPIRULA_BIN, job, data, work, ck, cap, iters)
+    run = work / "nrender"
+    res["runListing"] = sorted(p.name for p in run.iterdir())[:40] if run.exists() else None
+    res["srcListing"] = sorted(str(p.relative_to(work)) for p in (work / "src").rglob("*")); res["codeVersion"] = "nr-3"
+    if not res["evalWritten"] or res["adapted"] or not res["resumed"] or res["trainedSteps"]:
+        res["log"] = (work / "nrender.log").read_text(errors="replace")[-6000:]
+        return res
+    files = [(p.relative_to(work).as_posix(), "eval-image", None) for p in sorted(run.glob("eval-*.png"))]
+    files += [("nrender/metrics.json", "eval-metrics", None), ("nrender.log", "render-log", None)]
+    inv2 = build_inventory(work, files, "native-render", "native-render")
+    upload_inventory(s3, b, out_prefix, work, inv2)
+    res["inventory"] = verify_remote(s3, b, out_prefix, inv2, {"eval-image", "eval-metrics"})
+    res["evalImages"] = len(files) - 2; res["elapsedS"] = round(time.time() - t0); res["outPrefix"] = out_prefix
+    return res
+
+
+ab_cmp_image = (modal.Image.debian_slim(python_version="3.11").apt_install("libgl1", "libglib2.0-0", "ffmpeg")
+                .pip_install("boto3", "numpy<2", "opencv-python-headless<4.11", "scipy")
+                .pip_install("torch==2.5.1", "torchvision==0.20.1", index_url="https://download.pytorch.org/whl/cpu")
+                .pip_install("lpips==0.1.4").run_commands("python -c \"import lpips; lpips.LPIPS(net='alex', verbose=False)\"")
+                .add_local_python_source(*MODULES, "abcompare"))
+
+
+@app.function(image=ab_cmp_image, cpu=16.0, memory=65536, timeout=3 * 60 * 60, secrets=[secret],
+              volumes={"/vol": golden_vol.read_only()})
+def ab_compare(prefixes: dict, out_prefix: str) -> dict:
+    """prefixes: {label: R2 prefix holding an eval render set with inventory.json (native cameras)}."""
+    import base64
+    from abcompare import compare_ab
+    from storage import bucket, client
+    s3, b = client(), bucket()
+    runs = {}
+    for lab, pre in prefixes.items():
+        inv = json.loads(s3.get_object(Bucket=b, Key=f"{pre}/inventory.json")["Body"].read())
+        d = Path(f"/tmp/ab/{lab}")
+        for it in inv["items"]:
+            if it["type"] != "eval-image":
+                continue
+            body = s3.get_object(Bucket=b, Key=f"{pre}/{it['path']}")["Body"].read()
+            if hashlib.sha256(body).hexdigest() != it["sha256"]:
+                raise RuntimeError(f"{lab}: {it['path']} does not match its inventory")
+            dest = d / Path(it["path"]).name; dest.parent.mkdir(parents=True, exist_ok=True); dest.write_bytes(body)
+        runs[lab] = d
+    out = Path("/tmp/ab_out")
+    res = compare_ab(runs, out)
+    imgs = {}
+    for p in sorted(out.glob("*")):
+        if p.is_file():
+            s3.upload_file(str(p), b, f"{out_prefix}/{p.name}")
+            if p.suffix == ".jpg":
+                imgs[p.name] = base64.b64encode(p.read_bytes()).decode()
+    s3.put_object(Bucket=b, Key=f"{out_prefix}/ab.json", Body=json.dumps(res, indent=1).encode())
+    return {"result": res, "images": imgs}
+
+
+@app.function(image=diag_image, cpu=16.0, memory=65536, timeout=3600, volumes={"/vol": golden_vol.read_only()})
+def soft_crossview() -> dict:
+    """Step 0b: is the source's fine texture real (consistent across neighbouring views) or noise?"""
+    from softdiag import crossview
+    return crossview()
+
+
+@app.function(image=diag_image, cpu=4.0, memory=16384, timeout=1800, volumes={"/vol": golden_vol.read_only()})
+def soft_grain() -> dict:
+    from softdiag import grain_floor
+    return grain_floor()
+
+
+@app.function(image=cpu_image, cpu=8.0, memory=32768, timeout=2 * 60 * 60, secrets=[secret])
+def reverify_final(job_key: str, job_sha: str, attempt_id: str) -> dict:
+    """Acceptance re-check for an attempt whose training + local gate checks finished and whose artifacts were fully
+    uploaded, but whose fresh-read verification hit a transport error. Uses ONLY the attempt's own pre-upload
+    inventory.json; re-downloads and re-validates terminal state, master PLY, resolved config and the train log with
+    the same gate functions. Records `acceptance-recheck.json`; it does not retrain or rewrite any artifact."""
+    import tempfile
+    from gate import (GateRejected, check_ply, exit_acceptable, normalized_config_sha, parse_state_tar,
+                      terminal_evidence)
+    from inventory import verify_remote
+    from storage import bucket, client
+    s3, b = client(), bucket()
+    job = _job(s3, b, job_key, job_sha)
+    pre = f"{R2_ROOT}/runs/{job['runId']}/final/{attempt_id}"
+    inv = json.loads(s3.get_object(Bucket=b, Key=f"{pre}/inventory.json")["Body"].read())
+    if inv["attemptId"] != attempt_id or inv["runId"] != job["runId"]:
+        raise GateRejected("inventory belongs to another attempt")
+    by = {it["type"]: it for it in inv["items"] if it["type"] in ("terminal-state", "master-ply", "resolved-config", "train-log")}
+    T = int(job["terminalStep"]); d = Path(tempfile.mkdtemp())
+    for k, it in by.items():
+        body = s3.get_object(Bucket=b, Key=f"{pre}/{it['path']}")["Body"].read()
+        if hashlib.sha256(body).hexdigest() != it["sha256"]:
+            raise GateRejected(f"{it['path']} differs from the pre-upload inventory")
+        (d / k).write_bytes(body)
+    log = (d / "train-log").read_text(errors="replace")
+    exit_code = -11 if "=== Spirula Studio crash report ===" in log else 0
+    out = {"exit": exit_acceptable(exit_code, log)["acceptedAs"], "evidence": terminal_evidence(log, T, bool(job["evalExpected"]))}
+    st = parse_state_tar(d / "terminal-state")
+    if st["step"] != T or by["terminal-state"]["terminalStep"] != T:
+        raise GateRejected("terminal state is not step T")
+    out["stateTar"] = {k: v for k, v in st.items() if k != "state"}
+    out["masterPly"] = check_ply(d / "master-ply", int(job["shDegree"]), int(job["countMin"]), int(job["countMax"]))
+    cfg = normalized_config_sha(json.loads((d / "resolved-config").read_text()))
+    if cfg != job["expectedResolvedConfigSha256"]:
+        raise GateRejected("resolved config differs from the job")
+    out["resolvedConfigSha256"] = cfg
+    out["inventory"] = verify_remote(s3, b, pre, inv, set(job["requiredArtifactTypes"]))
+    out["note"] = "acceptance re-check after a transport timeout in the original fresh read; no retraining"
+    s3.put_object(Bucket=b, Key=f"{pre}/acceptance-recheck.json", Body=json.dumps(out, indent=1).encode())
+    return out
