@@ -24,6 +24,15 @@ export function canonicalAccountHome(canAccessOperationsConsole: boolean): strin
   return canAccessOperationsConsole ? OWNER_ACCOUNT : CLIENT_ACCOUNT;
 }
 
+/** Field/operator routing. A client org or project membership does not qualify. */
+export function isSlateInternalOperator(input: {
+  isOwner: boolean;
+  isSlateStaff: boolean;
+  isNativeApp: boolean;
+}): boolean {
+  return input.isOwner || input.isSlateStaff || input.isNativeApp;
+}
+
 const SAFE_INTERNAL_PATH_ORIGIN = "http://internal.invalid";
 
 export function safeInternalPath(raw: string | null | undefined): CutoverTarget | null {
@@ -101,12 +110,9 @@ export function resolvePhase1Cutover(input: {
   isMobile: boolean;
   isStandaloneOnly: boolean;
   /**
-   * Org-scoped staff (operations/field, via organization_members membership — the same signal
-   * middleware already fetches for the walled-garden check) or the native app wrapper. These are
-   * not client-portal visitors: the legacy /projects* operational UI (SlateDrop, Twin/Reality
-   * capture links, Walks, plan sheets, punch list) is their real workspace, so it must stay
-   * reachable rather than being rewritten to the read-only vNext client experience. Defaults to
-   * false so every existing (client) call site is unaffected.
+   * Slate360 operator, not a client. True for the operations owner, an active
+   * slate360_staff row, or the native Slate360App wrapper. Organization membership
+   * is not this flag. Those sessions keep legacy /projects* operational routes.
    */
   isInternalUser?: boolean;
 }): CutoverTarget | null {

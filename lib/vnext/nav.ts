@@ -28,6 +28,15 @@ export const VNEXT_OWNER_NAV: readonly VnextNavItem[] = [
   ...VNEXT_OWNER_SECONDARY_NAV,
 ] as const;
 
+/** Retained operational tools. Not part of the client portal nav. */
+export const VNEXT_OWNER_FIELD_TOOLS: readonly VnextNavItem[] = [
+  { href: "/projects/new", label: "New project" },
+  { href: "/app", label: "Field" },
+  { href: "/site-walk", label: "Site Walk" },
+  { href: "/digital-twin", label: "Twin" },
+  { href: "/thermal-studio", label: "Thermal" },
+] as const;
+
 export const VNEXT_ALL_NAV: readonly VnextNavItem[] = [
   ...VNEXT_CLIENT_NAV,
   ...VNEXT_OWNER_NAV,

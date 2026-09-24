@@ -3,7 +3,7 @@
 import { useCallback, useRef, type ReactNode, type RefObject } from "react";
 import { VnextNavLink } from "@/components/vnext/VnextNavLink";
 import { useVnextDialog } from "@/components/vnext/useVnextDialog";
-import { VNEXT_OWNER_PRIMARY_NAV, VNEXT_OWNER_SECONDARY_NAV } from "@/lib/vnext/nav";
+import { VNEXT_OWNER_FIELD_TOOLS, VNEXT_OWNER_PRIMARY_NAV, VNEXT_OWNER_SECONDARY_NAV } from "@/lib/vnext/nav";
 
 type VnextOwnerMenuProps = {
   pathname: string;
@@ -18,6 +18,21 @@ export function VnextOwnerNavLists({ pathname, onNavigate }: VnextOwnerMenuProps
       </p>
       <nav aria-label="Owner" className="flex flex-col">
         {VNEXT_OWNER_PRIMARY_NAV.map((item) => (
+          <VnextNavLink
+            key={item.href}
+            item={item}
+            pathname={pathname}
+            variant="sidebar"
+            onNavigate={onNavigate}
+          />
+        ))}
+      </nav>
+      <div className="mx-3 mt-4 border-t border-[var(--vnext-line)]" />
+      <p className="m-0 px-3 pt-3 pb-1 text-[length:var(--vnext-meta)] text-[var(--vnext-ink-muted)]">
+        Field tools
+      </p>
+      <nav aria-label="Field tools" className="flex flex-col">
+        {VNEXT_OWNER_FIELD_TOOLS.map((item) => (
           <VnextNavLink
             key={item.href}
             item={item}

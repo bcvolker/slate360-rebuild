@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState, type PointerEvent, type WheelEvent } from "react";
 import { Minus, Plus, RotateCcw } from "lucide-react";
 import type { VnextPlanSourceData } from "@/lib/vnext/explore-types";
+import { pointerDistance, scaleFromPinch } from "@/lib/vnext/explore/plan-pinch";
 import type { VnextPlanMarker } from "@/lib/vnext/items/item-types";
 import { registerLiveView } from "@/lib/vnext/views/live-view";
 import type { SavedPlanState } from "@/lib/vnext/views/saved-view-types";
@@ -31,6 +32,10 @@ export default function VnextPlanViewer({
   const [imageReady, setImageReady] = useState(false);
   const [fitted, setFitted] = useState<{ w: number; h: number } | null>(null);
   const dragRef = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
+  const pointersRef = useRef(new Map<number, { x: number; y: number }>());
+  const pinchRef = useRef<{ distance: number; scale: number } | null>(null);
+  const scaleRef = useRef(scale);
+  scaleRef.current = scale;
   const frameRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
 
@@ -89,18 +94,35 @@ export default function VnextPlanViewer({
   };
 
   const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    event.currentTarget.setPointerCapture(event.pointerId);
+    if (pointersRef.current.size >= 2) {
+      const [a, b] = [...pointersRef.current.values()];
+      pinchRef.current = { distance: pointerDistance(a, b), scale: scaleRef.current };
+      dragRef.current = null;
+      return;
+    }
     if (scale <= 1) return;
-    (event.target as Element).setPointerCapture(event.pointerId);
     dragRef.current = { x: event.clientX, y: event.clientY, ox: offset.x, oy: offset.y };
   };
 
   const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (!pointersRef.current.has(event.pointerId)) return;
+    pointersRef.current.set(event.pointerId, { x: event.clientX, y: event.clientY });
+    const pinch = pinchRef.current;
+    if (pinch && pointersRef.current.size >= 2) {
+      const [a, b] = [...pointersRef.current.values()];
+      setScale(clampScale(scaleFromPinch(pinch.scale, pinch.distance, pointerDistance(a, b))));
+      return;
+    }
     const drag = dragRef.current;
     if (!drag) return;
     setOffset({ x: drag.ox + (event.clientX - drag.x), y: drag.oy + (event.clientY - drag.y) });
   };
 
-  const onPointerUp = () => {
+  const onPointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    pointersRef.current.delete(event.pointerId);
+    if (pointersRef.current.size < 2) pinchRef.current = null;
     dragRef.current = null;
   };
 
@@ -113,7 +135,11 @@ export default function VnextPlanViewer({
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
-        onPointerLeave={onPointerUp}
+        onPointerLeave={() => {
+          pointersRef.current.clear();
+          pinchRef.current = null;
+          dragRef.current = null;
+        }}
         onDoubleClick={reset}
         data-vnext-plan-canvas="true"
         data-vnext-plan-scale={scale}

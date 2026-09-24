@@ -112,7 +112,7 @@ Publish and revoke run as `service_role` through `POST /api/vnext/ops/projects/[
 
 | Table | Purpose | Read | Write |
 |---|---|---|---|
-| `project_client_capabilities` | Which services and portal sections this project includes | Project scope resolver | `PUT /api/vnext/projects/[projectId]/scope` then `replace_project_client_scope`. Documented write check is `user_can_manage_project`. Unknown ids are dropped. |
+| `project_client_capabilities` | Which services and portal sections this project includes | Project scope resolver | `PUT /api/vnext/projects/[projectId]/scope` then `replace_project_client_scope` as service role. The route requires `canAccessOperationsConsole`. Authenticated roles cannot write the table or execute the function. |
 | `project_saved_views` | Exact representation, source, date, and saved camera or view state | Client when the bound source is still visible | Owner authoring on the vNext viewer |
 | `project_source_reviews` | Operator approve/reject of one source. Optional note. `needs_recapture` only when checked. | Service role. Authenticated members cannot select the table. | Service role. No default pending row. |
 | `project_source_publications` | Exact client release for Reality, Geometry, 360, Plans | Client visibility resolvers | `publish_project_source` / `revoke_project_source`, service role only, from the owner release route |

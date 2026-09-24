@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { isOwnerEmail } from "@/lib/auth/owner-email";
 import { resolveMobileLegacyRedirect } from "@/lib/mobile-route-policy";
-import { resolvePhase1Cutover, type CutoverTarget } from "@/lib/vnext/cutover";
+import { isSlateInternalOperator, resolvePhase1Cutover, type CutoverTarget } from "@/lib/vnext/cutover";
 import { NextResponse, type NextRequest, userAgent } from "next/server";
 
 const INVITE_COOKIE_NAME = "slate360_invite_token";
@@ -42,7 +42,6 @@ export async function middleware(request: NextRequest) {
   // Fail-open on DB errors — requireBetaAccess() in layouts is the safety net.
   let accountApproved = true;
   let isAppReviewer = false;
-  let isOrgMember = false;
 
   if (user) {
     try {
@@ -64,8 +63,6 @@ export async function middleware(request: NextRequest) {
         accountApproved = profile.account_status === "approved";
         isAppReviewer = profile.is_app_reviewer === true;
       }
-
-      isOrgMember = Boolean(member);
 
       // Walled-garden standalone-only check
       if (member) {
@@ -131,12 +128,13 @@ export async function middleware(request: NextRequest) {
   }
 
   const isOwner = isOwnerEmail(user?.email);
-  // isOrgMember reuses the org-membership fetch above — that's operations/field staff, not a
-  // client-portal visitor. The native app wrapper (Slate360App UA, set via capacitor.config.ts's
-  // appendUserAgent) covers the same field-capture audience. See resolvePhase1Cutover's
-  // isInternalUser doc comment.
   const isNativeApp = request.headers.get("user-agent")?.includes("Slate360App") ?? false;
-  const isInternalUser = isOwner || isOrgMember || isNativeApp;
+  let isSlateStaff = false;
+  if (user && !isOwner && !isNativeApp) {
+    const { data, error } = await supabase.rpc("user_is_slate_staff");
+    isSlateStaff = !error && data === true;
+  }
+  const isInternalUser = isSlateInternalOperator({ isOwner, isSlateStaff, isNativeApp });
   const cutover = resolvePhase1Cutover({
     pathname,
     search: request.nextUrl.search,

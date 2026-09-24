@@ -3,6 +3,7 @@ import {
   VNEXT_ALL_NAV,
   VNEXT_CLIENT_NAV,
   VNEXT_FORBIDDEN_NAV_PREFIXES,
+  VNEXT_OWNER_FIELD_TOOLS,
   VNEXT_OWNER_NAV,
   VNEXT_OWNER_PRIMARY_NAV,
   VNEXT_OWNER_SECONDARY_NAV,
@@ -29,6 +30,13 @@ describe("vNext navigation contract", () => {
       "Shares",
     ]);
     expect(VNEXT_OWNER_SECONDARY_NAV.map((item) => item.label)).toEqual(["Settings", "Account"]);
+    expect(VNEXT_OWNER_FIELD_TOOLS.map((item) => item.href)).toEqual([
+      "/projects/new",
+      "/app",
+      "/site-walk",
+      "/digital-twin",
+      "/thermal-studio",
+    ]);
     expect(VNEXT_OWNER_NAV.map((item) => item.href)).toEqual([
       "/vnext/ops",
       "/vnext/ops/clients",

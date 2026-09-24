@@ -48,7 +48,7 @@ One resolver owns the rule: `resolveClientProjectScope`, `canClientSeeCapability
 
 ## Storage and defaults
 
-Table: `project_client_capabilities` (`project_id`, `capability_id`, `included`). Primary key is the pair. Writes require `user_can_manage_project` (owner, admin, member, manager). Collaborators and viewers cannot write. The API is `PUT /api/vnext/projects/[projectId]/scope` with `{ included: string[] }`. Unknown ids are dropped. Every known id is stored, so a project with services off stays configured.
+Table: `project_client_capabilities` (`project_id`, `capability_id`, `included`). Primary key is the pair. Writes require `canAccessOperationsConsole` (the operations owner). An organization member, project member, or project manager cannot write. The API is `PUT /api/vnext/projects/[projectId]/scope` with `{ included: string[] }`. Unknown ids are dropped. Every known id is stored, so a project with services off stays configured.
 
 | Situation | Rule |
 |---|---|
@@ -59,7 +59,7 @@ Table: `project_client_capabilities` (`project_id`, `capability_id`, `included`)
 
 Thermal backfill uses `thermal_capture_allowed_by_share_layer`, the SQL form of `filterCapturesByLayerConfig`. A share whose `capture_ids` list hides every usable capture does not turn Thermal on. Runtime still uses `isThermalSessionAvailable`, so an included project with nothing viewable stays hidden.
 
-Replacing scope calls `replace_project_client_scope`. That function upserts all nine ids in one transaction. It does not delete the rows first. A failed call leaves the previous set in place. The app still checks `user_can_manage_project` before the call, and the function checks it again.
+Replacing scope calls `replace_project_client_scope` as `service_role` after the operations-owner check. Authenticated roles cannot execute that function, and there is no authenticated write policy on the table. The function upserts all nine ids in one transaction. It does not delete the rows first. A failed call leaves the previous set in place.
 
 ## Publication
 

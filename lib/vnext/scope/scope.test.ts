@@ -112,8 +112,8 @@ describe("project client scope", () => {
 describe("project scope writes", () => {
   it("replaces every capability in one call and ignores unknown ids", async () => {
     const state = scopeState();
-    const admin = writer({ orgRole: "owner", memberRole: "viewer" }, state);
-    const result = await replaceProjectClientScope(admin, "user-1", "p1", "org-a", ["reality", "drone", "plans"]);
+    const admin = writer(state);
+    const result = await replaceProjectClientScope(admin, "user-1", "p1", ["reality", "drone", "plans"], true);
     expect(result).toBe("ok");
     expect(state.calls).toEqual([
       {
@@ -130,9 +130,9 @@ describe("project scope writes", () => {
 
   it("turns an included service off and an excluded service on without dropping rows", async () => {
     const state = scopeState();
-    const admin = writer({ orgRole: "manager", memberRole: null }, state);
-    await replaceProjectClientScope(admin, "user-1", "p1", "org-a", ["reality", "thermal"]);
-    await replaceProjectClientScope(admin, "user-1", "p1", "org-a", ["thermal"]);
+    const admin = writer(state);
+    await replaceProjectClientScope(admin, "user-1", "p1", ["reality", "thermal"], true);
+    await replaceProjectClientScope(admin, "user-1", "p1", ["thermal"], true);
     expect(state.stored).toHaveLength(9);
     expect(state.stored.find((row) => row.capability_id === "reality")?.included).toBe(false);
     expect(state.stored.find((row) => row.capability_id === "thermal")?.included).toBe(true);
@@ -144,31 +144,19 @@ describe("project scope writes", () => {
     state.stored = CLIENT_CAPABILITY_IDS.map((capability_id) => ({ capability_id, included: capability_id === "reality" }));
     state.rpcError = { message: "write failed" };
     const before = state.stored.map((row) => ({ ...row }));
-    const admin = writer({ orgRole: "owner", memberRole: null }, state);
-    const result = await replaceProjectClientScope(admin, "user-1", "p1", "org-a", ["thermal"]);
+    const admin = writer(state);
+    const result = await replaceProjectClientScope(admin, "user-1", "p1", ["thermal"], true);
     expect(result).toBe("error");
     expect(state.stored).toEqual(before);
     expect(state.deletes).toBe(0);
   });
 
-  it("refuses a collaborator and a viewer before any write", async () => {
+  it("refuses every role that is not the operations owner before any write", async () => {
     const state = scopeState();
-    const collaborator = await replaceProjectClientScope(
-      writer({ orgRole: null, memberRole: "collaborator" }, state),
-      "user-1",
-      "p1",
-      "org-a",
-      ["thermal"],
-    );
-    const viewer = await replaceProjectClientScope(
-      writer({ orgRole: null, memberRole: "viewer" }, state),
-      "user-2",
-      "p1",
-      "org-a",
-      ["thermal"],
-    );
-    expect(collaborator).toBe("denied");
-    expect(viewer).toBe("denied");
+    const member = await replaceProjectClientScope(writer(state), "user-1", "p1", ["thermal"], false);
+    const manager = await replaceProjectClientScope(writer(state), "user-2", "p1", ["thermal"], false);
+    expect(member).toBe("denied");
+    expect(manager).toBe("denied");
     expect(state.calls).toEqual([]);
     expect(state.stored).toEqual([]);
   });
@@ -185,31 +173,8 @@ function scopeState() {
   };
 }
 
-function writer(
-  roles: { orgRole: string | null; memberRole: string | null },
-  state: ReturnType<typeof scopeState>,
-) {
+function writer(state: ReturnType<typeof scopeState>) {
   return {
-    from(table: string) {
-      const data =
-        table === "organization_members"
-          ? roles.orgRole
-            ? { role: roles.orgRole }
-            : null
-          : roles.memberRole
-            ? { role: roles.memberRole }
-            : null;
-      const node = {
-        select: () => node,
-        eq: () => node,
-        maybeSingle: async () => ({ data, error: null }),
-        delete: () => {
-          state.deletes += 1;
-          return { eq: async () => ({ error: null }) };
-        },
-      };
-      return node;
-    },
     async rpc(
       name: string,
       args: { p_project_id: string; p_included: string[]; p_actor: string },

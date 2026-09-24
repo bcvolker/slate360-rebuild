@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   CLIENT_ACCOUNT,
   CLIENT_HOME,
+  isSlateInternalOperator,
   OWNER_ACCOUNT,
   OWNER_HOME,
   POST_AUTH_RESOLVER,
@@ -97,13 +98,37 @@ describe("phase 1 cutover", () => {
     expect(go({ pathname: `/projects/${ID}/plans` })?.pathname).toBe(`${CLIENT_HOME}/${ID}/documents`);
   });
 
-  it("keeps operational /projects* routes reachable for internal/field users instead of rewriting to the vNext client home", () => {
-    expect(go({ pathname: `/projects/${ID}`, isInternalUser: true })).toBeNull();
-    expect(go({ pathname: `/projects/${ID}/twins/model-7`, isInternalUser: true })).toBeNull();
-    expect(go({ pathname: `/projects/${ID}/plans`, search: "?sheet=sheet-9", isInternalUser: true })).toBeNull();
-    expect(go({ pathname: "/projects", isInternalUser: true })).toBeNull();
-    // A client (the default) is unaffected — still redirected to the vNext home.
-    expect(go({ pathname: `/projects/${ID}` })?.pathname).toBe(`${CLIENT_HOME}/${ID}`);
+  it("keeps operational routes for the owner, staff, and the native app, and sends client orgs to vNext", () => {
+    const internal = (flags: { isOwner?: boolean; isSlateStaff?: boolean; isNativeApp?: boolean }) =>
+      isSlateInternalOperator({ isOwner: false, isSlateStaff: false, isNativeApp: false, ...flags });
+
+    expect(internal({ isOwner: true })).toBe(true);
+    expect(internal({ isSlateStaff: true })).toBe(true);
+    expect(internal({ isNativeApp: true })).toBe(true);
+    expect(internal({})).toBe(false);
+
+    for (const isInternalUser of [true, true, true]) {
+      expect(go({ pathname: "/projects", isInternalUser })).toBeNull();
+      expect(go({ pathname: `/projects/${ID}`, isInternalUser })).toBeNull();
+    }
+    expect(go({ pathname: "/projects", isInternalUser: false })?.pathname).toBe(CLIENT_HOME);
+    expect(go({ pathname: `/projects/${ID}`, isInternalUser: false })?.pathname).toBe(`${CLIENT_HOME}/${ID}`);
+
+    expect(go({ pathname: "/dashboard", canAccessOperationsConsole: true })?.pathname).toBe(OWNER_HOME);
+    expect(go({ pathname: "/dashboard", isInternalUser: true })?.pathname).toBe(CLIENT_HOME);
+    expect(go({ pathname: "/dashboard", isMobile: true })?.pathname).toBe(CLIENT_HOME);
+    expect(go({ pathname: "/dashboard", isMobile: true, isInternalUser: true })?.pathname).toBe(CLIENT_HOME);
+
+    expect(go({ pathname: "/login", canAccessOperationsConsole: true })?.pathname).toBe(OWNER_HOME);
+    expect(go({ pathname: "/login", isInternalUser: true })?.pathname).toBe(CLIENT_HOME);
+    expect(go({ pathname: "/login", isMobile: true })?.pathname).toBe(CLIENT_HOME);
+    expect(go({ pathname: "/login", isMobile: true, isInternalUser: true })?.pathname).toBe(CLIENT_HOME);
+
+    const operational = `/projects/${ID}/plans`;
+    expect(go({ pathname: "/login", redirectTo: operational, isInternalUser: true })?.pathname).toBe(operational);
+    expect(go({ pathname: "/login", redirectTo: operational, isInternalUser: false })?.pathname).not.toBe(operational);
+    expect(go({ pathname: CLIENT_HOME })).toBeNull();
+    expect(go({ pathname: OWNER_HOME, canAccessOperationsConsole: true })).toBeNull();
   });
 
   it("keeps a deep-link redirectTo for an internal user pointed at the operational route, not the vNext client rewrite", () => {
