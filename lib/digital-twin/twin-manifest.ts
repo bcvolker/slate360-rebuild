@@ -72,14 +72,15 @@ export async function fetchSplatManifest(modelUrl: string): Promise<SplatManifes
     // sibling key and 404s (leaving the model uncorrected/upside-down on the branded
     // link). Route those URLs to the token-scoped share manifest endpoint instead.
     const shareMatch = modelUrl.match(/\/api\/share\/twin\/([^/?]+)\/splat(?:$|\?)/);
-    // Authenticated viewer streams via /api/digital-twin/models/<id>/splat (no .spz suffix) — route
-    // its manifest to the org-scoped sibling endpoint, same as the share path does for its token.
+    const vnextMatch = modelUrl.match(/\/api\/vnext\/projects\/([^/?]+)\/twin-models\/([^/?]+)\/splat(?:$|\?)/);
     const authMatch = modelUrl.match(/\/api\/digital-twin\/models\/([^/?]+)\/splat(?:$|\?)/);
     const endpoint = shareMatch
       ? `/api/share/twin/${shareMatch[1]}/manifest`
-      : authMatch
-        ? `/api/digital-twin/models/${authMatch[1]}/manifest`
-        : `/api/digital-twin/splat-manifest?u=${encodeURIComponent(modelUrl)}`;
+      : vnextMatch
+        ? `/api/vnext/projects/${vnextMatch[1]}/twin-models/${vnextMatch[2]}/manifest`
+        : authMatch
+          ? `/api/digital-twin/models/${authMatch[1]}/manifest`
+          : `/api/digital-twin/splat-manifest?u=${encodeURIComponent(modelUrl)}`;
     let res = await fetch(endpoint);
     if (!res.ok) {
       // Fall back to a sibling manifest on the same URL shape. The generic

@@ -33,6 +33,7 @@ export type AssembleItemContext = {
   projectId: string;
   pins: LocatorPinEvidence[];
   renderableSheetIds: ReadonlySet<string>;
+  publishedPanoramaIds?: ReadonlySet<string>;
   sessionIds: ReadonlySet<string>;
   commentCount: number;
   relatedTitle: string | null;
@@ -59,6 +60,7 @@ export function assembleClientItem(row: ItemSourceRow, context: AssembleItemCont
     capturedAt: capturedAt || null,
     pins: context.pins,
     renderableSheetIds: context.renderableSheetIds,
+    publishedPanoramaIds: context.publishedPanoramaIds,
   });
   const title = clean(row.title) ?? "Untitled item";
   const tags = (row.tags ?? []).map((tag) => tag.trim()).filter(Boolean);

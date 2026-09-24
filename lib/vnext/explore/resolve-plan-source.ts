@@ -44,15 +44,22 @@ export async function resolvePlanSourceData(
   sourceId: string | null,
   options?: { includeUnpublished?: boolean },
 ): Promise<{ sourceId: string; data: VnextExploreSourceData } | null> {
+  const published = options?.includeUnpublished ? null : publishedIdSet(await readProjectPublications(admin, projectId), projectId, "plans");
   let query = admin
     .from("site_walk_plan_sheets")
     .select("id, sheet_name, sheet_number, thumbnail_s3_key, rasterized_key, image_s3_key, sort_order")
     .eq("project_id", projectId);
-  query = sourceId ? query.eq("id", sourceId) : query.order("sort_order", { ascending: true }).limit(1);
+  if (sourceId) {
+    query = query.eq("id", sourceId);
+  } else if (published && published.size === 0) {
+    return null;
+  } else {
+    if (published) query = query.in("id", [...published]);
+    query = query.order("sort_order", { ascending: true }).limit(1);
+  }
 
   const { data } = await query;
-  const published = options?.includeUnpublished ? null : publishedIdSet(await readProjectPublications(admin, projectId), projectId, "plans");
-  const sheet = (data ?? []).filter(planSheetHasImage).find((row) => !published || published.has(row.id));
+  const sheet = (data ?? []).filter(planSheetHasImage).find((row) => sourceId && published ? published.has(row.id) : true);
   if (!sheet) return null;
   return {
     sourceId: sheet.id,

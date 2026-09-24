@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   CLIENT_ACCOUNT,
   CLIENT_HOME,
+  FIELD_HOME,
   isSlateInternalOperator,
   OWNER_ACCOUNT,
   OWNER_HOME,
   POST_AUTH_RESOLVER,
+  personaDefaultHome,
   postAuthDestination,
   resolvePhase1Cutover,
   safeInternalPath,
@@ -106,6 +108,9 @@ describe("phase 1 cutover", () => {
     expect(internal({ isSlateStaff: true })).toBe(true);
     expect(internal({ isNativeApp: true })).toBe(true);
     expect(internal({})).toBe(false);
+    expect(personaDefaultHome({ canAccessOperationsConsole: true, isInternalUser: true })).toBe(OWNER_HOME);
+    expect(personaDefaultHome({ canAccessOperationsConsole: false, isInternalUser: true })).toBe(FIELD_HOME);
+    expect(personaDefaultHome({ canAccessOperationsConsole: false, isInternalUser: false })).toBe(CLIENT_HOME);
 
     for (const isInternalUser of [true, true, true]) {
       expect(go({ pathname: "/projects", isInternalUser })).toBeNull();
@@ -115,14 +120,16 @@ describe("phase 1 cutover", () => {
     expect(go({ pathname: `/projects/${ID}`, isInternalUser: false })?.pathname).toBe(`${CLIENT_HOME}/${ID}`);
 
     expect(go({ pathname: "/dashboard", canAccessOperationsConsole: true })?.pathname).toBe(OWNER_HOME);
-    expect(go({ pathname: "/dashboard", isInternalUser: true })?.pathname).toBe(CLIENT_HOME);
+    expect(go({ pathname: "/dashboard", isInternalUser: true })?.pathname).toBe("/app");
     expect(go({ pathname: "/dashboard", isMobile: true })?.pathname).toBe(CLIENT_HOME);
-    expect(go({ pathname: "/dashboard", isMobile: true, isInternalUser: true })?.pathname).toBe(CLIENT_HOME);
+    expect(go({ pathname: "/dashboard", isMobile: true, isInternalUser: true })?.pathname).toBe("/app");
 
     expect(go({ pathname: "/login", canAccessOperationsConsole: true })?.pathname).toBe(OWNER_HOME);
-    expect(go({ pathname: "/login", isInternalUser: true })?.pathname).toBe(CLIENT_HOME);
+    expect(go({ pathname: "/login", isInternalUser: true })?.pathname).toBe("/app");
     expect(go({ pathname: "/login", isMobile: true })?.pathname).toBe(CLIENT_HOME);
-    expect(go({ pathname: "/login", isMobile: true, isInternalUser: true })?.pathname).toBe(CLIENT_HOME);
+    expect(go({ pathname: "/login", isMobile: true, isInternalUser: true })?.pathname).toBe("/app");
+    expect(go({ pathname: POST_AUTH_RESOLVER, isInternalUser: true })?.pathname).toBe("/app");
+    expect(go({ pathname: POST_AUTH_RESOLVER })?.pathname).toBe(CLIENT_HOME);
 
     const operational = `/projects/${ID}/plans`;
     expect(go({ pathname: "/login", redirectTo: operational, isInternalUser: true })?.pathname).toBe(operational);

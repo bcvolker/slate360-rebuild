@@ -2,6 +2,7 @@ import "server-only";
 
 import type { createAdminClient } from "@/lib/supabase/admin";
 import { planSheetHasImage } from "@/lib/vnext/explore/resolve-plan-source";
+import { publishedIdSet, readProjectPublications } from "@/lib/vnext/release/read-publications";
 import { excludeDeletedSiteWalkItems } from "@/lib/site-walk/item-filters";
 import { ITEMS_LOAD_ERROR } from "./item-language";
 import { assembleClientItem, type ItemSourceRow } from "./assemble-items";
@@ -18,15 +19,20 @@ export type ItemsReadResult =
   | { ok: false; error: string };
 
 async function renderableSheetIds(admin: VnextAdmin, projectId: string): Promise<Set<string>> {
+  const published = publishedIdSet(await readProjectPublications(admin, projectId), projectId, "plans");
   const { data } = await admin
     .from("site_walk_plan_sheets")
     .select("id, thumbnail_s3_key, rasterized_key, image_s3_key")
     .eq("project_id", projectId);
   const ids = new Set<string>();
   for (const row of data ?? []) {
-    if (planSheetHasImage(row)) ids.add(row.id);
+    if (planSheetHasImage(row) && published.has(row.id)) ids.add(row.id);
   }
   return ids;
+}
+
+async function publishedPanoramaIds(admin: VnextAdmin, projectId: string): Promise<Set<string>> {
+  return publishedIdSet(await readProjectPublications(admin, projectId), projectId, "pano360");
 }
 
 async function projectSessionIds(admin: VnextAdmin, projectId: string, sessionIds: string[]): Promise<Set<string>> {
@@ -85,8 +91,9 @@ export async function readProjectItems(admin: VnextAdmin, projectId: string): Pr
   const rows = (data ?? []) as ItemSourceRow[];
   const itemIds = rows.map((row) => row.id);
   const sessionIds = rows.map((row) => row.session_id).filter((id): id is string => Boolean(id));
-  const [sheets, sessions, pins, counts] = await Promise.all([
+  const [sheets, panoramas, sessions, pins, counts] = await Promise.all([
     renderableSheetIds(admin, projectId),
+    publishedPanoramaIds(admin, projectId),
     projectSessionIds(admin, projectId, sessionIds),
     pinsForItems(admin, projectId, itemIds),
     commentCounts(admin, projectId, itemIds),
@@ -100,6 +107,7 @@ export async function readProjectItems(admin: VnextAdmin, projectId: string): Pr
         projectId,
         pins,
         renderableSheetIds: sheets,
+        publishedPanoramaIds: panoramas,
         sessionIds: sessions,
         commentCount: counts.get(row.id) ?? 0,
         relatedTitle: row.before_item_id ? titles.get(row.before_item_id) ?? null : null,
@@ -137,8 +145,9 @@ export async function readProjectItem(
 
   const row = data as ItemSourceRow;
   const sessionIds = row.session_id ? [row.session_id] : [];
-  const [sheets, sessions, pins, counts, related] = await Promise.all([
+  const [sheets, panoramas, sessions, pins, counts, related] = await Promise.all([
     renderableSheetIds(admin, projectId),
+    publishedPanoramaIds(admin, projectId),
     projectSessionIds(admin, projectId, sessionIds),
     pinsForItems(admin, projectId, [row.id]),
     commentCounts(admin, projectId, [row.id]),
@@ -151,6 +160,7 @@ export async function readProjectItem(
       projectId,
       pins,
       renderableSheetIds: sheets,
+      publishedPanoramaIds: panoramas,
       sessionIds: sessions,
       commentCount: counts.get(row.id) ?? 0,
       relatedTitle: related,

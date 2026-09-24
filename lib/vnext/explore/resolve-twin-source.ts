@@ -126,7 +126,7 @@ export async function resolveTwinSourceData(
       // wrongly refuse a project_members collaborator whose access comes from a different org. Still a
       // same-origin stream (Spark/three.js can't load a cross-origin presigned URL) — see the route's
       // own comment.
-      modelUrl: `/api/vnext/projects/${projectId}/twin-models/${model.id}/splat`,
+      modelUrl: `/api/vnext/projects/${projectId}/twin-models/${model.id}/splat?baked=1`,
       modelTitle,
       modelId: model.id,
     };

@@ -142,4 +142,10 @@ describe("BUG-079 capture chrome", () => {
     expect(markup).toContain("100dvh");
     expect(markup).not.toContain("<SiteWalkModuleNav");
   });
+
+  it("does not let a saved evidence pin drag", () => {
+    const source = readFileSync("components/site-walk/capture/PlanViewerLeaflet.tsx", "utf8");
+    expect(source).toContain("draggable={currentSession && !pin.item_id}");
+    expect(source).not.toContain("draggable={currentSession}");
+  });
 });

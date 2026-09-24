@@ -7,6 +7,7 @@
 
 export const CLIENT_HOME = "/vnext/projects";
 export const OWNER_HOME = "/vnext/ops";
+export const FIELD_HOME = "/app";
 export const CLIENT_ACCOUNT = "/vnext/account";
 export const OWNER_ACCOUNT = "/vnext/ops/account";
 /** Authenticated landing that middleware splits by persona. */
@@ -31,6 +32,16 @@ export function isSlateInternalOperator(input: {
   isNativeApp: boolean;
 }): boolean {
   return input.isOwner || input.isSlateStaff || input.isNativeApp;
+}
+
+/** CEO uses operations. Staff and the native field app use the field shell. Clients use the portal. */
+export function personaDefaultHome(input: {
+  canAccessOperationsConsole: boolean;
+  isInternalUser?: boolean;
+}): string {
+  if (input.canAccessOperationsConsole) return OWNER_HOME;
+  if (input.isInternalUser) return FIELD_HOME;
+  return CLIENT_HOME;
 }
 
 const SAFE_INTERNAL_PATH_ORIGIN = "http://internal.invalid";
@@ -123,12 +134,12 @@ export function resolvePhase1Cutover(input: {
     const deep = safeInternalPath(input.redirectTo);
     if (deep && deep.pathname !== "/login" && deep.pathname !== "/signup") {
       if (deep.pathname === POST_AUTH_RESOLVER) {
-        return homeTarget(input.canAccessOperationsConsole);
+        return homeTarget(input);
       }
       if (input.isInternalUser) return deep;
       return resolveLegacyProjectRedirect(deep.pathname, deep.search) ?? deep;
     }
-    return homeTarget(input.canAccessOperationsConsole);
+    return homeTarget(input);
   }
 
   if (path === "/ceo" || path === "/operations-console") {
@@ -142,11 +153,11 @@ export function resolvePhase1Cutover(input: {
 
   if (!input.hasUser) return null;
 
-  if (path === POST_AUTH_RESOLVER) return homeTarget(input.canAccessOperationsConsole);
+  if (path === POST_AUTH_RESOLVER) return homeTarget(input);
 
   if (path === "/dashboard") {
-    if (input.isStandaloneOnly) return { pathname: "/app", search: "" };
-    return { pathname: canonicalProductHome(input.canAccessOperationsConsole), search };
+    if (input.isStandaloneOnly) return { pathname: FIELD_HOME, search: "" };
+    return { pathname: personaDefaultHome(input), search };
   }
 
   if (!input.isMobile && path === "/my-account") {
@@ -169,8 +180,11 @@ export function postAuthDestination(raw: string | null | undefined): string {
   return `${safe.pathname}${safe.search}`;
 }
 
-function homeTarget(canAccessOperationsConsole: boolean): CutoverTarget {
-  return { pathname: canonicalProductHome(canAccessOperationsConsole), search: "" };
+function homeTarget(input: {
+  canAccessOperationsConsole: boolean;
+  isInternalUser?: boolean;
+}): CutoverTarget {
+  return { pathname: personaDefaultHome(input), search: "" };
 }
 
 function sameTarget(path: string, search: string, target: CutoverTarget): CutoverTarget | null {

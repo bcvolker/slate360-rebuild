@@ -287,9 +287,9 @@ export function PlanViewerLeaflet({
                   yPct: pin.y_pct,
                   itemType: pin.item_id ? itemTypeById.get(pin.item_id) ?? null : null,
                 })}
-                draggable={currentSession}
+                draggable={currentSession && !pin.item_id}
                 eventHandlers={
-                  currentSession
+                  currentSession && !pin.item_id
                     ? {
                         click: () => handleMarkerTap(pin),
                         dragend: (event) => {

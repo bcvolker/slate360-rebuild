@@ -87,4 +87,60 @@ describe("resolvePlanSourceData", () => {
     const result = await resolvePlanSourceData(admin, "p1", "sheet-1");
     expect(result).toBeNull();
   });
+
+  it("defaults to the published sheet when a newer unpublished sheet sorts first", async () => {
+    const admin = filteringPlanAdmin([
+      { id: "B", sheet_name: "Draft", sheet_number: 1, thumbnail_s3_key: "b.jpg", rasterized_key: null, image_s3_key: null, sort_order: 0 },
+      { id: "A", sheet_name: "Published", sheet_number: 2, thumbnail_s3_key: "a.jpg", rasterized_key: null, image_s3_key: null, sort_order: 1 },
+    ], new Set(["A"]));
+    expect((await resolvePlanSourceData(admin, "p1", null))?.sourceId).toBe("A");
+  });
+
+  it("does not substitute another sheet for an explicit unpublished source", async () => {
+    const admin = filteringPlanAdmin([
+      { id: "B", sheet_name: "Draft", sheet_number: 1, thumbnail_s3_key: "b.jpg", rasterized_key: null, image_s3_key: null, sort_order: 0 },
+      { id: "A", sheet_name: "Published", sheet_number: 2, thumbnail_s3_key: "a.jpg", rasterized_key: null, image_s3_key: null, sort_order: 1 },
+    ], new Set(["A"]));
+    expect(await resolvePlanSourceData(admin, "p1", "B")).toBeNull();
+  });
 });
+
+function filteringPlanAdmin(
+  sheets: Array<{ id: string; sort_order: number; thumbnail_s3_key: string | null; rasterized_key: null; image_s3_key: null; sheet_name: string; sheet_number: number }>,
+  publishedIds: Set<string>,
+) {
+  return {
+    from: (table: string) => {
+      if (table === "project_source_publications") {
+        return chain([...publishedIds].map((id) => ({
+          project_id: "p1",
+          representation: "plans",
+          source_id: id,
+          revoked_at: null,
+        })));
+      }
+      let rows = sheets.slice();
+      const builder = {
+        select: () => builder,
+        eq: (column: string, value: string) => {
+          if (column === "id") rows = rows.filter((row) => row.id === value);
+          return builder;
+        },
+        in: (_column: string, ids: string[]) => {
+          rows = rows.filter((row) => ids.includes(row.id));
+          return builder;
+        },
+        order: () => {
+          rows = rows.slice().sort((a, b) => a.sort_order - b.sort_order);
+          return builder;
+        },
+        limit: (count: number) => {
+          rows = rows.slice(0, count);
+          return builder;
+        },
+        then: (resolve: (value: { data: unknown[] }) => void) => resolve({ data: rows }),
+      };
+      return builder;
+    },
+  } as unknown as Parameters<typeof resolvePlanSourceData>[0];
+}

@@ -44,6 +44,8 @@ export function VnextOwnerProjectDetail({
             <Link href="/vnext/ops/processing" className="inline-flex h-11 items-center text-[length:var(--vnext-body)] text-[var(--vnext-ink)] no-underline">Processing</Link>
             <Link href="/vnext/ops/qa" className="inline-flex h-11 items-center text-[length:var(--vnext-body)] text-[var(--vnext-ink)] no-underline">Review deliverables</Link>
             <Link href={`/vnext/ops/projects/${project.id}/client-preview`} className="inline-flex h-11 items-center text-[length:var(--vnext-body)] text-[var(--vnext-ink)] no-underline">Preview as client</Link>
+            <Link href={`/projects/${project.id}/slatedrop`} className="inline-flex h-11 items-center text-[length:var(--vnext-body)] text-[var(--vnext-ink)] no-underline">Project files</Link>
+            <Link href={`/projects/${project.id}/people`} className="inline-flex h-11 items-center text-[length:var(--vnext-body)] text-[var(--vnext-ink)] no-underline">People</Link>
           </div>
           <VnextScopeEditor projectId={project.id} included={included} canWrite={canWrite} persist={persist} />
         </>

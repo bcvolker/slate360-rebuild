@@ -41,17 +41,24 @@ export async function resolvePanoSourceData(
   sourceId: string | null,
   options?: { includeUnpublished?: boolean },
 ): Promise<{ sourceId: string; data: VnextExploreSourceData } | null> {
+  const published = options?.includeUnpublished ? null : publishedIdSet(await readProjectPublications(admin, projectId), projectId, "pano360");
   let query = admin
     .from("site_walk_items")
     .select("id, title, captured_at")
     .eq("project_id", projectId)
     .eq("item_type", "photo_360")
     .is("deleted_at", null);
-  query = sourceId ? query.eq("id", sourceId) : query.order("captured_at", { ascending: false }).limit(1);
+  if (sourceId) {
+    query = query.eq("id", sourceId);
+  } else if (published && published.size === 0) {
+    return null;
+  } else {
+    if (published) query = query.in("id", [...published]);
+    query = query.order("captured_at", { ascending: false, nullsFirst: false }).limit(1);
+  }
 
   const { data } = await query;
-  const published = options?.includeUnpublished ? null : publishedIdSet(await readProjectPublications(admin, projectId), projectId, "pano360");
-  const item = (data ?? []).find((row) => !published || published.has(row.id));
+  const item = (data ?? []).find((row) => sourceId && published ? published.has(row.id) : true);
   if (!item) return null;
   return {
     sourceId: item.id,

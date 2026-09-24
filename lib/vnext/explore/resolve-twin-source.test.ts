@@ -46,7 +46,7 @@ describe("resolveTwinSourceData", () => {
       kind: "reality",
       viewerKind: "splat",
       modelId: "model-1",
-      modelUrl: "/api/vnext/projects/p1/twin-models/model-1/splat",
+      modelUrl: "/api/vnext/projects/p1/twin-models/model-1/splat?baked=1",
       modelTitle: "Front yard",
     });
   });
@@ -95,7 +95,7 @@ describe("resolveTwinSourceData", () => {
       project_source_publications: [published("reality", "older"), published("reality", "newer")],
     });
     const result = await resolveTwinSourceData(admin, "p1", "splat", "Reality");
-    expect(result?.modelUrl).toBe("/api/vnext/projects/p1/twin-models/newer/splat");
+    expect(result?.modelUrl).toBe("/api/vnext/projects/p1/twin-models/newer/splat?baked=1");
   });
 
   it("does not open a ready splat that has not been published", async () => {
@@ -108,7 +108,7 @@ describe("resolveTwinSourceData", () => {
       project_source_publications: [published("reality", "older")],
     });
     const result = await resolveTwinSourceData(admin, "p1", "splat", "Reality");
-    expect(result?.modelUrl).toBe("/api/vnext/projects/p1/twin-models/older/splat");
+    expect(result?.modelUrl).toBe("/api/vnext/projects/p1/twin-models/older/splat?baked=1");
     expect(await resolveTwinSourceData(admin, "p1", "splat", "Reality", "newer")).toBeNull();
   });
 
@@ -153,7 +153,7 @@ describe("resolveTwinSourceData", () => {
       "older",
     );
     const missing = await resolveTwinSourceData(filteringAdmin({ digital_twin_spaces: [SPACE], digital_twin_models: models }), "p1", "splat", "Reality", "missing");
-    expect(older?.modelUrl).toBe("/api/vnext/projects/p1/twin-models/older/splat");
+    expect(older?.modelUrl).toBe("/api/vnext/projects/p1/twin-models/older/splat?baked=1");
     expect(missing).toBeNull();
   });
 });

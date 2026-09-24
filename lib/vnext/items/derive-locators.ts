@@ -25,6 +25,7 @@ export type LocatorEvidence = {
   capturedAt: string | null;
   pins: LocatorPinEvidence[];
   renderableSheetIds: ReadonlySet<string>;
+  publishedPanoramaIds?: ReadonlySet<string>;
 };
 
 function percent(value: number | string | null | undefined): number | null {
@@ -65,7 +66,11 @@ export function deriveItemLocators(evidence: LocatorEvidence): VnextItemLocator[
     locators.push({ kind: "plan", sheetId: pin.sheetId, xPct: pin.xPct, yPct: pin.yPct, precise: true });
   }
 
-  if (evidence.itemType === "photo_360" && evidence.hasRenderableImage) {
+  if (
+    evidence.itemType === "photo_360" &&
+    evidence.hasRenderableImage &&
+    (!evidence.publishedPanoramaIds || evidence.publishedPanoramaIds.has(evidence.itemId))
+  ) {
     locators.push({ kind: "panorama", sourceId: evidence.itemId, precise: false });
   }
 

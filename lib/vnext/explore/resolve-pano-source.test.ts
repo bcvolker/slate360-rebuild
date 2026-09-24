@@ -80,4 +80,60 @@ describe("resolvePanoSourceData", () => {
     const result = await resolvePanoSourceData(admin, "p1", "missing");
     expect(result).toBeNull();
   });
+
+  it("defaults to the published station when a newer unpublished station exists", async () => {
+    const older = { id: "A", title: "Published", captured_at: "2026-01-01T00:00:00.000Z" };
+    const newer = { id: "B", title: "Draft", captured_at: "2026-09-01T00:00:00.000Z" };
+    const admin = filteringAdmin([newer, older], new Set(["A"]));
+    expect((await resolvePanoSourceData(admin, "p1", null))?.sourceId).toBe("A");
+  });
+
+  it("does not substitute another station for an explicit unpublished source", async () => {
+    const older = { id: "A", title: "Published", captured_at: "2026-01-01T00:00:00.000Z" };
+    const newer = { id: "B", title: "Draft", captured_at: "2026-09-01T00:00:00.000Z" };
+    const admin = filteringAdmin([newer, older], new Set(["A"]));
+    expect(await resolvePanoSourceData(admin, "p1", "B")).toBeNull();
+  });
 });
+
+function filteringAdmin(items: Array<{ id: string; captured_at: string | null }>, publishedIds: Set<string>) {
+  return {
+    from: (table: string) => {
+      if (table === "project_source_publications") {
+        return chain([...publishedIds].map((id) => ({
+          project_id: "p1",
+          representation: "pano360",
+          source_id: id,
+          revoked_at: null,
+        })));
+      }
+      let rows = items.slice();
+      const builder = {
+        select: () => builder,
+        eq: (column: string, value: string) => {
+          if (column === "id") rows = rows.filter((row) => row.id === value);
+          return builder;
+        },
+        is: () => builder,
+        in: (_column: string, ids: string[]) => {
+          rows = rows.filter((row) => ids.includes(row.id));
+          return builder;
+        },
+        order: () => {
+          rows = rows.slice().sort((a, b) => {
+            if (!a.captured_at) return 1;
+            if (!b.captured_at) return -1;
+            return a.captured_at < b.captured_at ? 1 : -1;
+          });
+          return builder;
+        },
+        limit: (count: number) => {
+          rows = rows.slice(0, count);
+          return builder;
+        },
+        then: (resolve: (value: { data: unknown[] }) => void) => resolve({ data: rows }),
+      };
+      return builder;
+    },
+  } as unknown as Parameters<typeof resolvePanoSourceData>[0];
+}
