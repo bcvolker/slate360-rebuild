@@ -332,3 +332,39 @@ def build_patched() -> dict:
         s3.put_object(Bucket=b, Key=f"{pre}/build.json", Body=json.dumps({k: v for k, v in out.items()}).encode())
         out["r2Prefix"] = pre
     return out
+
+
+compare_image = (modal.Image.debian_slim(python_version="3.11").apt_install("libgl1", "libglib2.0-0", "ffmpeg")
+                 .pip_install("boto3", "numpy<2", "opencv-python-headless<4.11").add_local_python_source(*MODULES, "compare"))
+
+
+@app.function(image=compare_image, cpu=16.0, memory=65536, timeout=2 * 60 * 60, secrets=[secret],
+              volumes={"/vol": golden_vol.read_only()})
+def compare_golden(final_prefix: str) -> dict:
+    """Read-only on the golden run; downloads the worker's accepted artifacts from R2 (hash-checked against the
+    stored inventory), compares, and uploads the comparison under <final_prefix>/../compare/."""
+    import base64
+    from compare import compare
+    from storage import bucket, client
+    s3, b = client(), bucket()
+    inv = json.loads(s3.get_object(Bucket=b, Key=f"{final_prefix}/inventory.json")["Body"].read())
+    root = Path("/tmp/worker")
+    for it in inv["items"]:
+        if not (it["path"].startswith("run/") and (it["type"] in ("master-ply", "eval-image", "eval-metrics"))):
+            continue
+        dest = root / it["path"][len("run/"):]; dest.parent.mkdir(parents=True, exist_ok=True)
+        body = s3.get_object(Bucket=b, Key=f"{final_prefix}/{it['path']}")["Body"].read()
+        if hashlib.sha256(body).hexdigest() != it["sha256"]:
+            raise RuntimeError(f"{it['path']} does not match the accepted inventory")
+        dest.write_bytes(body)
+    out = Path("/tmp/compare")
+    res = compare(root, out)
+    cpre = final_prefix.rsplit("/final/", 1)[0] + "/compare"
+    files = {}
+    for p in sorted(out.glob("*")):
+        if p.is_file():
+            s3.upload_file(str(p), b, f"{cpre}/{p.name}")
+            if p.suffix == ".jpg":
+                files[p.name] = base64.b64encode(p.read_bytes()).decode()
+    s3.put_object(Bucket=b, Key=f"{cpre}/compare.json", Body=json.dumps(res, indent=1).encode())
+    return {"result": res, "images": files, "prefix": cpre}

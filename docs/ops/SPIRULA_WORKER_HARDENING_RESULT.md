@@ -112,3 +112,50 @@ attempt is lost, never retried automatically); the Room 213 job's `expectedMinut
 trainer is killed at 2× that.
 
 **Decision: all blockers closed → launch exactly one Room 213 reproduction with the golden job.**
+
+## Room 213 worker run (launched 2026-09-24 01:03:53 UTC)
+
+Launch facts: L40S (max_containers=1, retries=0) · projected 40 min / $1.30 (hard trainer kill at 80 min) · run
+`room213-golden-repro-v1`, attempt `-a01`, call `fc-01M38F1GB68AHGVBKTGGV7XN8R` · job `9edc7a06…93d7` · dataset
+manifest `3b58ec74…891c` · resolved config `085213c5…bd57` · build `fd1afca1+resume-nsh-2f6a873bb639`.
+
+Result: **completed, accepted by the strict gate.** Fresh container; prepare (1,316-file materialize + fidelity +
+camera dump = golden) → 30,000 steps (Spirula training time 1,587 s vs golden 1,671 s) → eval 838 views → exit -11
+accepted only as the known on_exit SIGSEGV with the full chain → 1,686 artifacts inventoried, uploaded, fresh-read.
+Durable checkpoints 5k–25k shipped during training. Master PLY `275b885a…cfb`, 996,260 Gaussians, 62 properties,
+all finite. End-to-end 55.2 min (training finished ~01:37; the rest is eval + upload/fresh-read of 1,686 files).
+Cost: ledger $1.10 at trainer exit; full container time 55.2 min ≈ **$1.80** at the L40S card rate.
+
+## Golden vs worker (`compare_golden`, same views identified by content, same masks, same metric code)
+
+| | golden | worker |
+|---|---|---|
+| Gaussians | 996,092 | 996,260 |
+| bbox p1 / p99 | [-7.16,-6.85,-4.59] / [6.11,3.09,6.74] | [-7.12,-7.00,-4.59] / [6.23,3.13,6.68] |
+| opacity median / max-scale median | 0.1362 / 0.01071 | 0.1364 / 0.01073 |
+| held-out 24 PSNR / SSIM | 19.19 / 0.714 | 19.21 / 0.715 |
+| fixed view camera2/frame_00103 PSNR / SSIM | 19.16 / 0.745 | 19.17 / 0.746 |
+| Spirula own eval (838 views) avg PSNR | 4.220 | 4.214 (walkthrough GT is black by design) |
+
+Worker vs golden render agreement: held-out 29.6 dB / 0.958 SSIM; fixed view 32.2 dB; walkthrough 800/800 poses
+matched uniquely (median NCC 0.995), median 31.6 dB (p10 29.5). Fixed-view crops (edge ratio / gradient corr vs
+source): ceiling 0.154/0.45 vs 0.153/0.44 · windows 0.514/0.685 vs 0.528/0.686 · chairs 0.739/0.792 vs 0.756/0.796 ·
+table 0.757/0.784 vs 0.773/0.789 · door 0.665/0.735 vs 0.636/0.736 · carpet 0.570/0.531 vs 0.575/0.533. Visual crops
+and walkthrough frames: indistinguishable. Spark viewer (the app's Spark 2.1.0 renderer, same poses as the golden Spark
+check): worker PLY loads and renders; worker vs golden Spark frames median 32.3 dB, min 28.9 dB, no empty frames
+(54 of 80 poses rendered at report time — pane throttled while hidden). Outputs: R2 `runs/room213-golden-repro-v1/compare/`.
+
+Absolute bbox extremes differ (a few far-out low-opacity floaters in both runs; ±700–1,200 units) — stochastic, the
+1–99 % extents agree to ~0.1 unit.
+
+## Remaining production gaps (not blockers for this milestone)
+
+- The ledger is written at trainer exit; eval upload + fresh-read time after that (~20 min here) is not in it. Record
+  the ledger again after the gate (or at function exit).
+- Inventory upload/fresh-read is sequential (1,686 files ≈ 20 min of GPU-container time); move it to a CPU function or
+  parallelize.
+- Callback route + production migration intentionally NOT deployed (milestone rule). Production untouched.
+- Preemption re-delivers the same attempt id, which the lease refuses: safe, but it needs a supervised new attempt id.
+- The patched build must stay recorded as a patch; drop it once upstream fixes the resume SH target.
+
+**Verdict: A. WORKER REPRODUCES GOLDEN SPIRULA RESULT — PIPELINE PROVEN.**
