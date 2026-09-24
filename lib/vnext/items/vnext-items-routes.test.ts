@@ -224,6 +224,28 @@ describe("vNext items access", () => {
     });
   });
 
+  it("fails closed (404) on list, detail, and questions when Items is excluded from client scope", async () => {
+    authedOrg();
+    const itemsExcluded = {
+      data: [{ project_id: "p1", capability_id: "items", included: false }],
+      error: null,
+    };
+    tables = { project_client_capabilities: itemsExcluded, site_walk_items: { data: [ITEM], error: null } };
+
+    const list = await listGET(req("http://localhost/api/vnext/projects/p1/items"), { params: Promise.resolve({ projectId: "p1" }) });
+    expect(list.status).toBe(404);
+
+    const detail = await detailGET(req("http://localhost/api/vnext/projects/p1/items/item-1"), {
+      params: Promise.resolve({ projectId: "p1", itemId: "item-1" }),
+    });
+    expect(detail.status).toBe(404);
+
+    const questions = await questionsGET(req("http://localhost/api/vnext/projects/p1/items/item-1/questions"), {
+      params: Promise.resolve({ projectId: "p1", itemId: "item-1" }),
+    });
+    expect(questions.status).toBe(404);
+  });
+
   it("does not depend on the punchwalk entitlement, and the legacy comment route still does", () => {
     const sources = [
       "app/api/vnext/projects/[projectId]/items/route.ts",

@@ -42,6 +42,7 @@ export async function middleware(request: NextRequest) {
   // Fail-open on DB errors — requireBetaAccess() in layouts is the safety net.
   let accountApproved = true;
   let isAppReviewer = false;
+  let isOrgMember = false;
 
   if (user) {
     try {
@@ -63,6 +64,8 @@ export async function middleware(request: NextRequest) {
         accountApproved = profile.account_status === "approved";
         isAppReviewer = profile.is_app_reviewer === true;
       }
+
+      isOrgMember = Boolean(member);
 
       // Walled-garden standalone-only check
       if (member) {
@@ -128,6 +131,12 @@ export async function middleware(request: NextRequest) {
   }
 
   const isOwner = isOwnerEmail(user?.email);
+  // isOrgMember reuses the org-membership fetch above — that's operations/field staff, not a
+  // client-portal visitor. The native app wrapper (Slate360App UA, set via capacitor.config.ts's
+  // appendUserAgent) covers the same field-capture audience. See resolvePhase1Cutover's
+  // isInternalUser doc comment.
+  const isNativeApp = request.headers.get("user-agent")?.includes("Slate360App") ?? false;
+  const isInternalUser = isOwner || isOrgMember || isNativeApp;
   const cutover = resolvePhase1Cutover({
     pathname,
     search: request.nextUrl.search,
@@ -136,6 +145,7 @@ export async function middleware(request: NextRequest) {
     canAccessOperationsConsole: isOwner,
     isMobile,
     isStandaloneOnly,
+    isInternalUser,
   });
   if (cutover) return redirectToCutover(request, cutover);
 

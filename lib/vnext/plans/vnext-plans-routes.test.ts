@@ -92,6 +92,12 @@ const { GET, POST } = await import("@/app/api/vnext/projects/[projectId]/plans/r
 const PROJECT = { id: "p1", org_id: "org-a", name: "Harbor" };
 const NOT_FOUND: ScriptedResult = { data: null, error: { message: "no rows" } };
 const FOLDERS = [{ id: "f-draw", name: "Drawings", folder_type: "drawings", project_id: "p1" }];
+// Plans is a sold service capability (off by default, unlike the base portal sections) — tests
+// that expect plan data back need this row, matching a project where Plans is actually included.
+const PLANS_INCLUDED: ScriptedResult = {
+  data: [{ project_id: "p1", capability_id: "documents", included: true }, { project_id: "p1", capability_id: "plans", included: true }],
+  error: null,
+};
 const FILE = {
   id: "file-1",
   file_name: "A1.pdf",
@@ -127,6 +133,7 @@ describe("vNext project plans access", () => {
   it("returns project sheets without storage keys and omits another project's set", async () => {
     authedOwner();
     tables = {
+      project_client_capabilities: PLANS_INCLUDED,
       project_folders: { data: FOLDERS, error: null },
       slatedrop_uploads: { data: [], error: null },
       site_walk_plan_sets: {
@@ -192,7 +199,12 @@ describe("vNext project plans access", () => {
     orgScript = { org_id: "org-home" };
     projectsScript = [NOT_FOUND, { data: PROJECT, error: null }];
     membershipScript = { project_id: "p1", role: "collaborator" };
-    tables = { project_folders: { data: [], error: null }, site_walk_plan_sets: { data: [], error: null }, site_walk_plan_sheets: { data: [], error: null } };
+    tables = {
+      project_client_capabilities: PLANS_INCLUDED,
+      project_folders: { data: [], error: null },
+      site_walk_plan_sets: { data: [], error: null },
+      site_walk_plan_sheets: { data: [], error: null },
+    };
     const read = await GET(req("http://localhost/api/vnext/projects/p1/plans"), { params: Promise.resolve({ projectId: "p1" }) });
     expect(read.status).toBe(200);
     const write = await POST(req("http://localhost/api/vnext/projects/p1/plans", { fileId: "file-1", pageCount: 1 }), {
@@ -244,6 +256,19 @@ describe("vNext project plans access", () => {
     expect(sheetInsert?.row).toHaveLength(2);
     expect((sheetInsert?.row as Array<{ project_id: string }>)[0].project_id).toBe("p1");
     expect(triggered).toEqual(["plan.rasterize"]);
+  });
+
+  it("fails closed (404) when Plans is not an included client capability", async () => {
+    authedOwner();
+    tables = {
+      // No project_client_capabilities row at all — Plans is a sold service capability, off by
+      // default, unlike the base portal sections (documents/items/history/compare).
+      project_folders: { data: FOLDERS, error: null },
+      site_walk_plan_sets: { data: [{ id: "set-1", project_id: "p1" }], error: null },
+      site_walk_plan_sheets: { data: [], error: null },
+    };
+    const res = await GET(req("http://localhost/api/vnext/projects/p1/plans"), { params: Promise.resolve({ projectId: "p1" }) });
+    expect(res.status).toBe(404);
   });
 
   it("does not use Punchwalk auth", () => {

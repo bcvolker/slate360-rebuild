@@ -52,6 +52,19 @@ describe("phase 1 cutover", () => {
     expect(go({ pathname: "/login", redirectTo: "https://evil.example" })?.pathname).toBe(CLIENT_HOME);
   });
 
+  it("rejects control-character and protocol-relative open-redirect payloads", () => {
+    for (const payload of [
+      "/\t/evil.com",
+      "/\n/evil.com",
+      "/\r//evil.com",
+      "//evil.com",
+      "\\evil.com",
+      "https://evil.com",
+    ]) {
+      expect(safeInternalPath(payload)).toBeNull();
+    }
+  });
+
   it("splits /dashboard by persona and does not loop through /app", () => {
     expect(go({ pathname: "/dashboard" })?.pathname).toBe(CLIENT_HOME);
     expect(go({ pathname: "/dashboard", canAccessOperationsConsole: true })?.pathname).toBe(OWNER_HOME);
@@ -82,6 +95,23 @@ describe("phase 1 cutover", () => {
       search: "?source=sheet-9&rep=plan",
     });
     expect(go({ pathname: `/projects/${ID}/plans` })?.pathname).toBe(`${CLIENT_HOME}/${ID}/documents`);
+  });
+
+  it("keeps operational /projects* routes reachable for internal/field users instead of rewriting to the vNext client home", () => {
+    expect(go({ pathname: `/projects/${ID}`, isInternalUser: true })).toBeNull();
+    expect(go({ pathname: `/projects/${ID}/twins/model-7`, isInternalUser: true })).toBeNull();
+    expect(go({ pathname: `/projects/${ID}/plans`, search: "?sheet=sheet-9", isInternalUser: true })).toBeNull();
+    expect(go({ pathname: "/projects", isInternalUser: true })).toBeNull();
+    // A client (the default) is unaffected — still redirected to the vNext home.
+    expect(go({ pathname: `/projects/${ID}` })?.pathname).toBe(`${CLIENT_HOME}/${ID}`);
+  });
+
+  it("keeps a deep-link redirectTo for an internal user pointed at the operational route, not the vNext client rewrite", () => {
+    const deep = `/projects/${ID}/twins/model-7`;
+    expect(go({ pathname: "/login", redirectTo: deep, isInternalUser: true })).toEqual({
+      pathname: deep,
+      search: "",
+    });
   });
 
   it("leaves operational and specialized routes alone", () => {

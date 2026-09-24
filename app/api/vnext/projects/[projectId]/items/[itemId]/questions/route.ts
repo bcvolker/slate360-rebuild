@@ -3,11 +3,13 @@ import { badRequest, created, notFound, ok, serverError } from "@/lib/server/api
 import { withProjectAuth } from "@/lib/server/api-auth";
 import { createItemQuestion, readItemQuestions } from "@/lib/vnext/items/item-questions";
 import { questionValidationMessage } from "@/lib/vnext/items/question-body";
+import { projectIncludesCapability } from "@/lib/vnext/scope/read-project-scope";
 
 type Params = { params: Promise<{ projectId: string; itemId: string }> };
 
 export function GET(req: NextRequest, ctx: Params) {
   return withProjectAuth(req, ctx, async ({ admin, projectId }) => {
+    if (!(await projectIncludesCapability(admin, projectId, "items"))) return notFound();
     const { itemId } = await ctx.params;
     const read = await readItemQuestions(admin, projectId, itemId);
     if (!read.ok && read.status === "missing") return notFound();
@@ -18,6 +20,7 @@ export function GET(req: NextRequest, ctx: Params) {
 
 export function POST(req: NextRequest, ctx: Params) {
   return withProjectAuth(req, ctx, async ({ admin, projectId, user }) => {
+    if (!(await projectIncludesCapability(admin, projectId, "items"))) return notFound();
     const { itemId } = await ctx.params;
     const payload = (await req.json().catch(() => null)) as { body?: unknown } | null;
     const raw = typeof payload?.body === "string" ? payload.body : "";

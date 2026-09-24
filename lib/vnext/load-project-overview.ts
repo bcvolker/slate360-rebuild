@@ -2,7 +2,7 @@ import "server-only";
 
 import { getScopedProjectForUser } from "@/lib/projects/access";
 import { resolveProjectLocation } from "@/lib/projects/location";
-import { resolveNamespace } from "@/lib/slatedrop/storage";
+import { clientFolderMap, isClientFile, type DocumentFileRow, type DocumentFolderRow } from "@/lib/vnext/documents/assemble-document";
 import { loadPortfolioEvidence } from "@/lib/vnext/load-portfolio-evidence";
 import { vnextProjectHref } from "@/lib/vnext/nav";
 import { formatPlainDate, pickLatestVisit } from "@/lib/vnext/overview-visit";
@@ -36,10 +36,6 @@ function asString(value: unknown): string | null {
 
 function readMetaString(metadata: Record<string, unknown> | null, key: string): string | null {
   return asString(metadata?.[key]);
-}
-
-function escapeLike(value: string): string {
-  return value.replace(/[\\%_]/g, "\\$&");
 }
 
 function formatItemStatus(status: string): string {
@@ -116,37 +112,57 @@ async function loadRecentItems(admin: ScopedAdmin, projectId: string): Promise<V
     .filter((item) => item.dateLabel !== "");
 }
 
-async function loadRecentDocuments(
+export async function loadRecentDocuments(
   admin: ScopedAdmin,
-  orgId: string | null,
-  userId: string,
   projectId: string,
 ): Promise<VnextRecentDocument[]> {
-  const { data: folders } = await admin.from("project_folders").select("id").eq("project_id", projectId);
-  const folderIds = (folders ?? []).map((folder) => folder.id).filter(Boolean) as string[];
+  // Reuses the exact same folder-type allowlist and file-visibility check as the real Documents
+  // page (readProjectDocuments in lib/vnext/documents/read-project-documents.ts) instead of this
+  // widget's own separate, unfiltered query — that older query matched every project_folders row
+  // regardless of folder_type, so intake/capture/internal/commercial/operator folder uploads (and
+  // their real file names) could appear here even though Documents itself correctly hides them.
+  const { data: folderRows } = await admin
+    .from("project_folders")
+    .select("id, name, folder_type, project_id")
+    .eq("project_id", projectId);
+  const folders: DocumentFolderRow[] = (folderRows ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+    folderType: row.folder_type,
+    projectId: row.project_id,
+  }));
+  const visible = clientFolderMap(folders, projectId);
+  const folderIds = [...visible.keys()];
   if (folderIds.length === 0) return [];
 
-  const namespace = resolveNamespace(orgId, userId);
-  const filters = folderIds.map(
-    (folderId) => `s3_key.like.${escapeLike(`orgs/${namespace}/${folderId}/`)}%`,
-  );
-
-  let query = admin
+  const { data: fileRows } = await admin
     .from("slatedrop_uploads")
-    .select("id, file_name, created_at")
+    .select("id, file_name, file_size, file_type, folder_id, project_id, s3_key, created_at, status")
+    .in("folder_id", folderIds)
     .eq("status", "active")
-    .or(filters.join(","))
+    .is("deleted_at", null)
     .order("created_at", { ascending: false })
-    .limit(5);
-  query = orgId ? query.eq("org_id", orgId) : query.eq("uploaded_by", userId);
+    .limit(20);
+  const files: DocumentFileRow[] = (fileRows ?? []).map((row) => ({
+    id: row.id,
+    fileName: row.file_name,
+    fileSize: row.file_size,
+    fileType: row.file_type,
+    folderId: row.folder_id,
+    projectId: row.project_id,
+    s3Key: row.s3_key,
+    createdAt: row.created_at,
+    status: row.status,
+  }));
 
-  const { data } = await query;
-  return (data ?? [])
-    .map((row) => ({
-      id: row.id,
-      name: row.file_name,
-      uploadedAt: row.created_at,
-      dateLabel: formatPlainDate(row.created_at) ?? "",
+  return files
+    .filter((file) => isClientFile(file, visible, projectId) && file.createdAt)
+    .slice(0, 5)
+    .map((file) => ({
+      id: file.id,
+      name: file.fileName,
+      uploadedAt: file.createdAt as string,
+      dateLabel: formatPlainDate(file.createdAt) ?? "",
     }))
     .filter((document) => document.dateLabel !== "");
 }
@@ -155,7 +171,7 @@ export async function loadVnextProjectOverview(
   userId: string,
   projectId: string,
 ): Promise<{ overview: VnextProjectOverview | null; error: string | null }> {
-  const { admin, orgId: scopeOrgId, project } = await getScopedProjectForUser(
+  const { admin, project } = await getScopedProjectForUser(
     userId,
     projectId,
     "id, name, metadata, status, org_id, thumbnail_url, client_name, address, location, latitude, longitude",
@@ -181,7 +197,6 @@ export async function loadVnextProjectOverview(
     rawLocationLabel && rawLocationLabel.toLowerCase() !== (context ?? "").toLowerCase()
       ? rawLocationLabel
       : null;
-  const orgId = row.org_id ?? scopeOrgId;
 
   const base: VnextProjectOverview = {
     id: row.id,
@@ -207,7 +222,7 @@ export async function loadVnextProjectOverview(
       loadLatestVisit(admin, row.id, scope),
       canClientSeeCapability(scope, "items") ? loadRecentItems(admin, row.id) : Promise.resolve([]),
       canClientSeeCapability(scope, "documents")
-        ? loadRecentDocuments(admin, orgId, userId, row.id)
+        ? loadRecentDocuments(admin, row.id)
         : Promise.resolve([]),
     ]);
     const evidence = evidenceById[row.id];

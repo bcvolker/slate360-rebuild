@@ -5,11 +5,19 @@ import { userCanManageVnextProject } from "@/lib/vnext/plans/manage-access";
 import { commitProjectPlanUpload, type PlanUploadRejection } from "@/lib/vnext/plans/plan-upload";
 import { readProjectPlans } from "@/lib/vnext/plans/read-project-plans";
 import { readProjectDocuments } from "@/lib/vnext/documents/read-project-documents";
+import { projectIncludesCapability } from "@/lib/vnext/scope/read-project-scope";
 
 type Params = { params: Promise<{ projectId: string }> };
 
 export function GET(req: NextRequest, ctx: Params) {
   return withProjectAuth(req, ctx, async ({ admin, projectId }) => {
+    // Mirrors load-project-documents.ts's own gate: the Plans tab is a sub-section of Documents,
+    // so it needs both capabilities included, not just "plans" alone.
+    const [documentsIncluded, plansIncluded] = await Promise.all([
+      projectIncludesCapability(admin, projectId, "documents"),
+      projectIncludesCapability(admin, projectId, "plans"),
+    ]);
+    if (!documentsIncluded || !plansIncluded) return notFound();
     const documents = await readProjectDocuments(admin, projectId, {
       documentsBase: `/vnext/projects/${projectId}/documents`,
       itemsBase: `/vnext/projects/${projectId}/items`,

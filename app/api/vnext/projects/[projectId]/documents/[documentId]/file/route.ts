@@ -6,11 +6,13 @@ import { withProjectAuth } from "@/lib/server/api-auth";
 import { BUCKET, s3 } from "@/lib/s3";
 import { canOpenInBrowser, contentTypeForExtension, fileExtension } from "@/lib/vnext/documents/document-language";
 import { readClientDocumentFile } from "@/lib/vnext/documents/read-project-documents";
+import { projectIncludesCapability } from "@/lib/vnext/scope/read-project-scope";
 
 type Params = { params: Promise<{ projectId: string; documentId: string }> };
 
 export function GET(req: NextRequest, ctx: Params) {
   return withProjectAuth(req, ctx, async ({ admin, projectId }) => {
+    if (!(await projectIncludesCapability(admin, projectId, "documents"))) return notFound();
     const { documentId } = await ctx.params;
     const file = await readClientDocumentFile(admin, projectId, documentId);
     if (!file) return notFound();

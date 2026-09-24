@@ -24,18 +24,35 @@ export function canonicalAccountHome(canAccessOperationsConsole: boolean): strin
   return canAccessOperationsConsole ? OWNER_ACCOUNT : CLIENT_ACCOUNT;
 }
 
+const SAFE_INTERNAL_PATH_ORIGIN = "http://internal.invalid";
+
 export function safeInternalPath(raw: string | null | undefined): CutoverTarget | null {
   if (!raw) return null;
+  // Reject any C0 control character (tab, LF, CR, ...) or DEL anywhere in the string, not just
+  // leading. Browsers strip ASCII tab/newline/CR per the WHATWG URL spec wherever they occur, so
+  // a string that looks like a safe same-origin path here — e.g. "/\t/evil.com" — can be
+  // reparsed downstream (a raw Location header, window.location =, an unguarded `new URL(...)`
+  // call) as "//evil.com", a protocol-relative open redirect. Stripping the characters and
+  // continuing would just recreate that exact hole, so any control character is an outright
+  // rejection, not a sanitize-and-continue.
+  // eslint-disable-next-line no-control-regex
+  if (/[\x00-\x1f\x7f]/.test(raw)) return null;
   if (!raw.startsWith("/") || raw.startsWith("//") || raw.includes("://") || raw.includes("\\")) {
     return null;
   }
-  const hash = raw.indexOf("#");
-  const withoutHash = hash === -1 ? raw : raw.slice(0, hash);
-  const query = withoutHash.indexOf("?");
-  const pathname = normalizePath(query === -1 ? withoutHash : withoutHash.slice(0, query));
-  const search = query === -1 ? "" : withoutHash.slice(query);
+  let url: URL;
+  try {
+    url = new URL(raw, SAFE_INTERNAL_PATH_ORIGIN);
+  } catch {
+    return null;
+  }
+  // Parsing against a fixed local origin means any payload that resolves to a different
+  // origin — scheme-relative, backslash tricks the browser normalizes, anything the checks
+  // above missed — fails here instead of silently producing an off-site target.
+  if (url.origin !== SAFE_INTERNAL_PATH_ORIGIN) return null;
+  const pathname = normalizePath(url.pathname);
   if (!pathname.startsWith("/") || pathname.startsWith("//")) return null;
-  return { pathname, search };
+  return { pathname, search: url.search };
 }
 
 export function resolveLegacyProjectRedirect(pathname: string, search: string): CutoverTarget | null {
@@ -83,6 +100,15 @@ export function resolvePhase1Cutover(input: {
   canAccessOperationsConsole: boolean;
   isMobile: boolean;
   isStandaloneOnly: boolean;
+  /**
+   * Org-scoped staff (operations/field, via organization_members membership — the same signal
+   * middleware already fetches for the walled-garden check) or the native app wrapper. These are
+   * not client-portal visitors: the legacy /projects* operational UI (SlateDrop, Twin/Reality
+   * capture links, Walks, plan sheets, punch list) is their real workspace, so it must stay
+   * reachable rather than being rewritten to the read-only vNext client experience. Defaults to
+   * false so every existing (client) call site is unaffected.
+   */
+  isInternalUser?: boolean;
 }): CutoverTarget | null {
   const path = normalizePath(input.pathname);
   const search = input.search.startsWith("?") || input.search === "" ? input.search : `?${input.search}`;
@@ -93,6 +119,7 @@ export function resolvePhase1Cutover(input: {
       if (deep.pathname === POST_AUTH_RESOLVER) {
         return homeTarget(input.canAccessOperationsConsole);
       }
+      if (input.isInternalUser) return deep;
       return resolveLegacyProjectRedirect(deep.pathname, deep.search) ?? deep;
     }
     return homeTarget(input.canAccessOperationsConsole);
@@ -102,8 +129,10 @@ export function resolvePhase1Cutover(input: {
     return { pathname: OWNER_HOME, search: path === "/operations-console" ? search : "" };
   }
 
-  const project = resolveLegacyProjectRedirect(path, search);
-  if (project) return sameTarget(path, search, project);
+  if (!input.isInternalUser) {
+    const project = resolveLegacyProjectRedirect(path, search);
+    if (project) return sameTarget(path, search, project);
+  }
 
   if (!input.hasUser) return null;
 

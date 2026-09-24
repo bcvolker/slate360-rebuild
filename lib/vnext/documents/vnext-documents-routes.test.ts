@@ -212,6 +212,35 @@ describe("vNext documents access", () => {
     expect(res.headers.get("location")).toBe("https://files.example/signed");
   });
 
+  it("fails closed (404) on list, detail, and file when Documents is excluded from client scope", async () => {
+    authedOrg();
+    const documentsExcluded = {
+      data: [{ project_id: "p1", capability_id: "documents", included: false }],
+      error: null,
+    };
+    tables = {
+      project_client_capabilities: documentsExcluded,
+      project_folders: { data: FOLDERS, error: null },
+      slatedrop_uploads: { data: [PDF], error: null },
+    };
+
+    const list = await listGET(req("http://localhost/api/vnext/projects/p1/documents"), {
+      params: Promise.resolve({ projectId: "p1" }),
+    });
+    expect(list.status).toBe(404);
+
+    const detail = await detailGET(req("http://localhost/api/vnext/projects/p1/documents/doc-1"), {
+      params: Promise.resolve({ projectId: "p1", documentId: "doc-1" }),
+    });
+    expect(detail.status).toBe(404);
+
+    const file = await fileGET(req("http://localhost/api/vnext/projects/p1/documents/doc-1/file"), {
+      params: Promise.resolve({ projectId: "p1", documentId: "doc-1" }),
+    });
+    expect(file.status).toBe(404);
+    expect(signed).toEqual([]);
+  });
+
   it("does not require a SlateDrop entitlement, and the legacy download route still scopes by org", () => {
     const sources = [
       "app/api/vnext/projects/[projectId]/documents/route.ts",
