@@ -27,7 +27,7 @@ ALLOWED_FLAGS = {"--data-format", "--image-dir", "--mask-dir", "--load-masks", "
                  "--normal-supervision-weight", "--depth-supervision-weight", "--steps-per-save",
                  "--save-only-latest-checkpoint", "--save-full-checkpoint", "--save-eval-images", "--disable-viewer",
                  "--keep-viewer-alive",
-                 "--ppisp-param-type", "--loss-scale-min-pixels", "--num-loss-scales"}
+                 "--ppisp-param-type", "--loss-scale-min-pixels", "--num-loss-scales", "--densify-loss-map-mode"}
 # NOTE: --max-steps is NOT a stop in this Spirula revision (it is the LR-schedule horizon); never allowed in a job.
 LOCKED = {"--warp-to-pinhole": ("0", "1"), "--load-depths": "0", "--load-normals": "0", "--use-ppisp": ("0", "1"),
           "--use-bilateral-grid": ("0", "1"), "--use-bilateral-grid-for-geometry": "0", "--save-full-checkpoint": "1",
@@ -36,7 +36,7 @@ LOCKED = {"--warp-to-pinhole": ("0", "1"), "--load-depths": "0", "--load-normals
 
 # Optional flags: absent = the golden resolved value; present = only these values (approved 2026-09-24 photoreal push).
 PINNED_OPTIONAL = {"--ppisp-param-type": ("no_crf_no_vig",), "--loss-scale-min-pixels": ("1920", "0"),
-                   "--num-loss-scales": ("0",)}
+                   "--num-loss-scales": ("0",), "--densify-loss-map-mode": ("ssim_cs", "edge_aware")}
 
 
 class JobRejected(RuntimeError):

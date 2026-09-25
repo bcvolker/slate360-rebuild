@@ -371,7 +371,7 @@ def compare_golden(final_prefix: str) -> dict:
 
 
 diag_image = (modal.Image.debian_slim(python_version="3.11").apt_install("libgl1", "libglib2.0-0")
-              .pip_install("boto3", "numpy<2", "opencv-python-headless<4.11", "scipy").add_local_python_source(*MODULES, "softdiag", "srcaudit", "ppispcheck"))
+              .pip_install("boto3", "numpy<2", "opencv-python-headless<4.11", "scipy").add_local_python_source(*MODULES, "softdiag", "srcaudit", "ppispcheck", "densmap"))
 
 
 @app.function(image=diag_image, cpu=16.0, memory=65536, timeout=3600, volumes={"/vol": golden_vol.read_only()})
@@ -746,4 +746,87 @@ def target_error_map() -> dict:
         a, b = float(E_cs[y, x]), float(E_l1[y, x])
         out[k] = {"err1mSSIMcs": round(a, 4), "percentileSSIMcs": round(float((valid_cs < a).mean() * 100), 1),
                   "errL1": round(b, 2), "percentileL1": round(float((valid_l1 < b).mean() * 100), 1)}
+    return out
+
+
+@app.function(image=diag_image, cpu=16.0, memory=131072, timeout=3 * 3600, secrets=[secret],
+              volumes={"/vol": golden_vol.read_only()})
+def densify_map_selection() -> dict:
+    """Phase 1 (zero-GPU): candidate densification maps on the golden 1M renders + 1M/3M Gaussian history."""
+    import numpy as np
+    from densmap import gaussian_history, run
+    from srcaudit import Splats, _qR, project, unproject
+    from storage import bucket, client
+    s3, b = client(), bucket()
+    res = run()
+    G = "/vol/room213/2026-09-21/spirula_bench_v1"
+    man = json.load(open(f"{G}/dataset_manifest.json"))
+    fx_new = man["fixed_eval"]["camera2/frame_00103.png"]
+    sp = Path(f"{G}/dataset/sparse/0"); cams = {}; poses = {}
+    for ln in (sp / "cameras.txt").read_text().splitlines():
+        if ln and not ln.startswith("#"):
+            q = ln.split(); cams[int(q[0])] = [float(x) for x in q[4:]]
+    lines = (sp / "images.txt").read_text().splitlines()
+    for i in range(0, len(lines), 2):
+        q = lines[i].split()
+        if q and not q[0].startswith("#"):
+            poses[q[9]] = (_qR([float(x) for x in q[1:5]]), np.array([float(x) for x in q[5:8]]), int(q[8]))
+    R0, t0, c0 = poses[fx_new]; p0 = cams[c0]; C0 = -R0.T @ t0
+    spl = Splats(f"{G}/runs/room213_spirula_full/step-000030000.ckpt/splat.ply")
+    def surf(u, v):
+        for rad in (3.0, 6.0, 10.0, 20.0, 40.0):
+            d = spl.surface_depth(R0, t0, p0, (u, v), rad=rad)
+            if d is not None:
+                return (C0 + (R0.T @ unproject(u, v, p0)) * d).tolist()
+    ext = json.loads(s3.get_object(Bucket=b, Key=f"{R2_ROOT}/photoreal/feature_lineage_ext.json")["Body"].read())
+    rad = 30 / 1110.6
+    pts = {"carpet_texture": ([-5.18694, 2.03317, 2.20071], rad),
+           "baseboard_edge": (ext["targets"]["baseboard"]["E"], rad),
+           "grainy_wall": (surf(*res["regions"]["grainy_wall"]), rad * 3),
+           "grainy_ceiling": (surf(*res["regions"]["grainy_ceiling"]), rad * 3)}
+    res["regionPoints3D"] = {k: v[0] for k, v in pts.items()}
+    seq1 = [(s, f"{G}/runs/room213_spirula_full/step-{s:09d}.ckpt/splat.ply") for s in (5000, 10000, 15000, 30000)]
+    seq3 = []
+    pre3 = f"{R2_ROOT}/runs/room213-native-3m-v1"
+    for s in (5000, 10000, 15000):
+        key = f"{pre3}/ckpts/step-{s:09d}/step-{s:09d}.ckpt/splat.ply"
+        dst = f"/tmp/m3_{s}.ply"; s3.download_file(b, key, dst); seq3.append((s, dst))
+    s3.download_file(b, f"{pre3}/final/room213-native-3m-v1-a01/run/step-000050000.ckpt/splat.ply", "/tmp/m3_50000.ply")
+    seq3.append((50000, "/tmp/m3_50000.ply"))
+    res["gaussianHistory"] = gaussian_history(pts, {"1M": seq1, "3M": seq3}, R0, t0, p0[0])
+    res["refinementNote"] = ("Spirula exports no per-primitive split/relocation log or error map; refinement evidence is the "
+                             "per-region Gaussian count at durable checkpoints (refinement stops at step 14000).")
+    s3.put_object(Bucket=b, Key=f"{R2_ROOT}/photoreal/densify_map_selection.json", Body=json.dumps(res, indent=1, default=float).encode())
+    return res
+
+
+STOCK_SHA = "183b2c6d"  # v2026.9.24 (resolved to the full hash at build time)
+
+
+@app.function(image=build_image, cpu=32.0, memory=131072, timeout=4 * 60 * 60, secrets=[secret])
+def build_stock() -> dict:
+    """Stock Spirula v2026.9.24 (tag) -- UNMODIFIED -- with the golden build flags; binary stored in R2."""
+    import time
+    from inventory import sha256_file
+    from storage import bucket, client
+    t0 = time.time(); src = Path("/tmp/spirula-stock")
+    r0 = subprocess.run(["bash", "-c", f"git clone -q https://github.com/harry7557558/spirula-studio.git {src} && "
+                         f"cd {src} && git checkout -q v2026.9.24 && git rev-parse HEAD && git status --porcelain | wc -l"],
+                        capture_output=True, text=True)
+    full, dirty = (r0.stdout.split() + ["", ""])[:2]
+    if not full.startswith(STOCK_SHA):
+        raise RuntimeError(f"v2026.9.24 resolved to {full}")
+    r = subprocess.run(["bash", "-c", f"cd {src} && bash build_develop.bash -DSS_BACKEND=cuda -DSS_BUILD_GUI=OFF "
+                        "-DTORCH_CUDA_ARCH_LIST=8.9 -DSS_CHECK_COMMENTS=OFF -DCMAKE_CXX_FLAGS=\"-include stddef.h\""], capture_output=True, text=True)
+    binp = src / "build_cuda/spirula"
+    allout = r.stdout + r.stderr
+    errs = [l for l in allout.splitlines() if "error" in l.lower() and "werror" not in l.lower()][:30]
+    out = {"ok": binp.is_file(), "commit": full, "worktreeDirtyFiles": dirty, "elapsedS": round(time.time() - t0),
+           "buildNote": "stock source unmodified; GCC 11 needs -include stddef.h (compiler flag only) for SceneAlign.cpp ptrdiff_t",
+           "errors": errs, "tail": allout[-1500:]}
+    if binp.is_file():
+        s3, b = client(), bucket()
+        out["binarySha256"] = sha256_file(binp)
+        out["r2Key"] = f"{R2_ROOT}/tools/spirula/{full}-stock/spirula"
+        s3.upload_file(str(binp), b, out["r2Key"])
     return out

@@ -121,3 +121,51 @@ everything else frozen. It is Spirula's own noise-robust edge-weighted densifica
 the ignored-target finding. No capacity, iterations, appearance or loss-pyramid changes.
 
 **Verdict (photorealism-push list): D. TESTED PIPELINE HAS PLATEAUED BUT SOURCE STILL CONTAINS RECOVERABLE DETAIL.**
+
+## Addendum — densification-map selection + one edge_aware run (2026-09-24/25)
+
+**Correction.** The full reconstruction of the trainer's densification map (3-scale pyramid, power 4, 14 training
+views) shows the flattest grainy wall and ceiling tiles at the **bottom** of the baseline `ssim_cs` map (2.4 / 0.4
+percentile). Per pixel, structured areas already get 4.8× the weight of flat ones. The earlier "capacity chases
+grain" statement came from a single-scale, unpowered proxy and is withdrawn. The real finding stands: the soft
+targets rank only 14–41 (ceiling grid 68).
+
+**Phase 1 (zero-GPU) candidates:**
+
+| candidate | targets percentile | flat-pixel weight |
+|---|---|---|
+| `ssim_cs` p2 / p1 | about the same | more (worse) |
+| `robust_edge_aware` q0.9 | targets up to 63–80 | more (16.3 → 21.8 %) |
+| `edge_aware` | targets 59–100 | 16.3 → 0.01 % |
+
+`edge_aware` was the only clear improvement, and was selected.
+
+**Phase 2 run** (`densify_loss_map_mode` → `edge_aware`, everything else = baseline; 993,740 Gaussians, strict
+gate passed, 81 min, ≈ $2.64 + $0.13 probe).
+
+Capacity moved as intended:
+
+| region | baseline | edge_aware |
+|---|---|---|
+| carpet | 6 Gaussians (22 mm) | 18 (9 mm) |
+| baseboard | 2 | 9 |
+| ceiling | 158 | 181 |
+| chair slat | 27 | 4 |
+
+Carpet texture at the training camera improved:
+
+| carpet measure | baseline | edge_aware |
+|---|---|---|
+| fine-band energy (× source) | 0.40 | 0.55 |
+| mid-band NCC | 0.70 | 0.79 |
+| mid-band energy (× source) | 0.52 | 0.64 |
+
+**Gate: FAIL.**
+- Spark target edge widths −4 % … +4 % (noise); no plainly visible change at walkthrough scale.
+- Walkthrough clip: gradient 24.38 vs 24.22, flicker 8.29 vs 8.24, flat speckle 1.54 vs 1.51.
+- Held-out PSNR 19.20 vs 19.21, LPIPS 0.275 vs 0.272.
+- Ceiling-grid edge at the training camera got softer (4.55 → 8.2 px).
+
+Per the stop rule, **the current custom Spirula recipe is closed.** The stock v2026.9.24 trainer control (Phase 3) was
+prepared but **not run**: the build needs a compiler flag (`-include stddef.h`, no source change) and a retried
+checkout. It awaits approval.
