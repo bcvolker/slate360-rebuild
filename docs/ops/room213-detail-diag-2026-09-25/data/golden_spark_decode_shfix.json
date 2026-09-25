@@ -1,0 +1,22 @@
+{
+ "n": 4096,
+ "centreMaxAbs": 0.0,
+ "logScaleMaxAbs": 0.015621185302734375,
+ "quatAngleErrDeg_max_p99": [
+  0.41978557346684325,
+  0.3415255883902433
+ ],
+ "opacityMaxAbs": 0.0002432503147589138,
+ "dcColourMaxAbs(0.5+C0*f_dc)": 0.0002441554238730159,
+ "shCoeffMaxAbs_by_band": {
+  "deg1": 0.0015454591489305614,
+  "deg2": 0.001900105149138187,
+  "deg3": 0.0019524401309443107
+ },
+ "shCoeffP99Abs": 0.0008020089432304857,
+ "shNonzeroBandsPresent": {
+  "deg1": true,
+  "deg2": true,
+  "deg3": true
+ }
+}

@@ -1,0 +1,78 @@
+{
+ "loadMs": 2972,
+ "settings": {
+  "blurAmount": 0.3,
+  "preBlurAmount": 0,
+  "maxStdDev": 2.8284271247461903,
+  "minAlpha": 0.00196078431372549,
+  "minPixelRadius": 0,
+  "maxPixelRadius": 512,
+  "clipXY": 1.4,
+  "focalAdjustment": 1,
+  "falloff": 1,
+  "encodeLinear": false,
+  "sortRadial": true,
+  "enableLod": false,
+  "enableDriveLod": false,
+  "lodSplatCount": 2500000,
+  "lodSplatScale": 1,
+  "lodRenderScale": 1,
+  "lodInflate": false,
+  "enable2DGS": false,
+  "covSplats": false,
+  "accumExtSplats": false,
+  "pagedExtSplats": false,
+  "minSortIntervalMs": 0,
+  "focalDistance": 0,
+  "apertureAngle": 0,
+  "behindFoveate": 0.2,
+  "coneFov0": 90,
+  "coneFov": 120,
+  "coneFoveate": 0.4,
+  "premultipliedAlpha": true,
+  "toneMapping": 0,
+  "outputColorSpace": "srgb",
+  "pixelRatio": 1,
+  "drawingBuffer": [
+   1280,
+   720
+  ]
+ },
+ "meshNumSh": null,
+ "extNumSplats": 996092,
+ "packedNumSplats": null,
+ "lodNumSplats": null,
+ "extraKeys": [
+  "sh1",
+  "sh2",
+  "sh3a",
+  "sh3b",
+  "sh1Codes",
+  "sh2Codes",
+  "sh3Codes",
+  "lodTree"
+ ],
+ "frames": [
+  {
+   "name": "carpet_a0_indep_f640",
+   "settleFrames": 30,
+   "activeSplats": 996092,
+   "maxSplats": 999424,
+   "displayNumSplats": 996092
+  }
+ ],
+ "renderSource": "extSplats",
+ "renderSourceNumSplats": 996092,
+ "renderSourceNumSh": 3,
+ "renderSourceExtra": {
+  "sh1": "Uint32Array[3989504]",
+  "sh2": "Uint32Array[3989504]",
+  "sh3a": "Uint32Array[3989504]",
+  "sh3b": "Uint32Array[3989504]",
+  "sh1Codes": "undefined",
+  "sh2Codes": "undefined",
+  "sh3Codes": "undefined",
+  "lodTree": "undefined"
+ },
+ "totalMs": 6316.0999999940395
+}

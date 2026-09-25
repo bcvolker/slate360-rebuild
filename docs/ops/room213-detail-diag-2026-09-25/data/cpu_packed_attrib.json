@@ -1,0 +1,311 @@
+{
+ "golden/carpet_a0_indep_f640": {
+  "none": {
+   "fineCoherentGain": 0.577,
+   "fineNcc": 0.726,
+   "fineEnergyRatio": 0.795,
+   "meanLumaMinusRef": 1.96
+  },
+  "centre": {
+   "fineCoherentGain": 0.574,
+   "fineNcc": 0.721,
+   "fineEnergyRatio": 0.796,
+   "meanLumaMinusRef": 1.95
+  },
+  "scale": {
+   "fineCoherentGain": 0.575,
+   "fineNcc": 0.725,
+   "fineEnergyRatio": 0.793,
+   "meanLumaMinusRef": 2.11
+  },
+  "quat": {
+   "fineCoherentGain": 0.578,
+   "fineNcc": 0.727,
+   "fineEnergyRatio": 0.795,
+   "meanLumaMinusRef": 1.95
+  },
+  "colour_alpha": {
+   "fineCoherentGain": 0.426,
+   "fineNcc": 0.689,
+   "fineEnergyRatio": 0.618,
+   "meanLumaMinusRef": -4.36
+  },
+  "all": {
+   "fineCoherentGain": 0.424,
+   "fineNcc": 0.684,
+   "fineEnergyRatio": 0.62,
+   "meanLumaMinusRef": -4.27
+  }
+ },
+ "golden/carpet_a0_fixed_f640": {
+  "none": {
+   "fineCoherentGain": 0.396,
+   "fineNcc": 0.668,
+   "fineEnergyRatio": 0.592,
+   "meanLumaMinusRef": -3.12
+  },
+  "centre": {
+   "fineCoherentGain": 0.385,
+   "fineNcc": 0.652,
+   "fineEnergyRatio": 0.591,
+   "meanLumaMinusRef": -3.12
+  },
+  "scale": {
+   "fineCoherentGain": 0.396,
+   "fineNcc": 0.668,
+   "fineEnergyRatio": 0.593,
+   "meanLumaMinusRef": -3.13
+  },
+  "quat": {
+   "fineCoherentGain": 0.396,
+   "fineNcc": 0.668,
+   "fineEnergyRatio": 0.592,
+   "meanLumaMinusRef": -3.13
+  },
+  "colour_alpha": {
+   "fineCoherentGain": 0.335,
+   "fineNcc": 0.658,
+   "fineEnergyRatio": 0.509,
+   "meanLumaMinusRef": -6.29
+  },
+  "all": {
+   "fineCoherentGain": 0.323,
+   "fineNcc": 0.636,
+   "fineEnergyRatio": 0.508,
+   "meanLumaMinusRef": -6.31
+  }
+ },
+ "golden/carpet_a0_indep_f1280": {
+  "none": {
+   "fineCoherentGain": 0.42,
+   "fineNcc": 0.528,
+   "fineEnergyRatio": 0.797,
+   "meanLumaMinusRef": -4.14
+  },
+  "centre": {
+   "fineCoherentGain": 0.41,
+   "fineNcc": 0.512,
+   "fineEnergyRatio": 0.801,
+   "meanLumaMinusRef": -4.13
+  },
+  "scale": {
+   "fineCoherentGain": 0.419,
+   "fineNcc": 0.525,
+   "fineEnergyRatio": 0.797,
+   "meanLumaMinusRef": -4.16
+  },
+  "quat": {
+   "fineCoherentGain": 0.42,
+   "fineNcc": 0.525,
+   "fineEnergyRatio": 0.799,
+   "meanLumaMinusRef": -4.17
+  },
+  "colour_alpha": {
+   "fineCoherentGain": 0.322,
+   "fineNcc": 0.493,
+   "fineEnergyRatio": 0.652,
+   "meanLumaMinusRef": -10.4
+  },
+  "all": {
+   "fineCoherentGain": 0.315,
+   "fineNcc": 0.478,
+   "fineEnergyRatio": 0.657,
+   "meanLumaMinusRef": -10.46
+  }
+ },
+ "golden/carpet_a0_fixed_f1280": {
+  "none": {
+   "fineCoherentGain": 0.254,
+   "fineNcc": 0.506,
+   "fineEnergyRatio": 0.501,
+   "meanLumaMinusRef": -4.28
+  },
+  "centre": {
+   "fineCoherentGain": 0.243,
+   "fineNcc": 0.485,
+   "fineEnergyRatio": 0.5,
+   "meanLumaMinusRef": -4.26
+  },
+  "scale": {
+   "fineCoherentGain": 0.254,
+   "fineNcc": 0.507,
+   "fineEnergyRatio": 0.501,
+   "meanLumaMinusRef": -4.26
+  },
+  "quat": {
+   "fineCoherentGain": 0.253,
+   "fineNcc": 0.505,
+   "fineEnergyRatio": 0.501,
+   "meanLumaMinusRef": -4.3
+  },
+  "colour_alpha": {
+   "fineCoherentGain": 0.219,
+   "fineNcc": 0.489,
+   "fineEnergyRatio": 0.449,
+   "meanLumaMinusRef": -7.66
+  },
+  "all": {
+   "fineCoherentGain": 0.209,
+   "fineNcc": 0.469,
+   "fineEnergyRatio": 0.447,
+   "meanLumaMinusRef": -7.68
+  }
+ },
+ "edge/carpet_a0_indep_f640": {
+  "none": {
+   "fineCoherentGain": 0.582,
+   "fineNcc": 0.736,
+   "fineEnergyRatio": 0.791,
+   "meanLumaMinusRef": 1.36
+  },
+  "centre": {
+   "fineCoherentGain": 0.567,
+   "fineNcc": 0.722,
+   "fineEnergyRatio": 0.785,
+   "meanLumaMinusRef": 1.36
+  },
+  "scale": {
+   "fineCoherentGain": 0.587,
+   "fineNcc": 0.739,
+   "fineEnergyRatio": 0.794,
+   "meanLumaMinusRef": 1.34
+  },
+  "quat": {
+   "fineCoherentGain": 0.583,
+   "fineNcc": 0.736,
+   "fineEnergyRatio": 0.792,
+   "meanLumaMinusRef": 1.36
+  },
+  "colour_alpha": {
+   "fineCoherentGain": 0.4,
+   "fineNcc": 0.683,
+   "fineEnergyRatio": 0.586,
+   "meanLumaMinusRef": -4.28
+  },
+  "all": {
+   "fineCoherentGain": 0.389,
+   "fineNcc": 0.669,
+   "fineEnergyRatio": 0.581,
+   "meanLumaMinusRef": -4.32
+  }
+ },
+ "edge/carpet_a0_fixed_f640": {
+  "none": {
+   "fineCoherentGain": 0.439,
+   "fineNcc": 0.702,
+   "fineEnergyRatio": 0.626,
+   "meanLumaMinusRef": -2.74
+  },
+  "centre": {
+   "fineCoherentGain": 0.427,
+   "fineNcc": 0.684,
+   "fineEnergyRatio": 0.624,
+   "meanLumaMinusRef": -2.7
+  },
+  "scale": {
+   "fineCoherentGain": 0.441,
+   "fineNcc": 0.703,
+   "fineEnergyRatio": 0.627,
+   "meanLumaMinusRef": -2.72
+  },
+  "quat": {
+   "fineCoherentGain": 0.438,
+   "fineNcc": 0.701,
+   "fineEnergyRatio": 0.625,
+   "meanLumaMinusRef": -2.65
+  },
+  "colour_alpha": {
+   "fineCoherentGain": 0.358,
+   "fineNcc": 0.679,
+   "fineEnergyRatio": 0.527,
+   "meanLumaMinusRef": -6.31
+  },
+  "all": {
+   "fineCoherentGain": 0.35,
+   "fineNcc": 0.664,
+   "fineEnergyRatio": 0.526,
+   "meanLumaMinusRef": -6.18
+  }
+ },
+ "edge/carpet_a0_indep_f1280": {
+  "none": {
+   "fineCoherentGain": 0.433,
+   "fineNcc": 0.531,
+   "fineEnergyRatio": 0.816,
+   "meanLumaMinusRef": -1.62
+  },
+  "centre": {
+   "fineCoherentGain": 0.418,
+   "fineNcc": 0.513,
+   "fineEnergyRatio": 0.815,
+   "meanLumaMinusRef": -1.62
+  },
+  "scale": {
+   "fineCoherentGain": 0.436,
+   "fineNcc": 0.533,
+   "fineEnergyRatio": 0.817,
+   "meanLumaMinusRef": -1.75
+  },
+  "quat": {
+   "fineCoherentGain": 0.434,
+   "fineNcc": 0.532,
+   "fineEnergyRatio": 0.816,
+   "meanLumaMinusRef": -1.63
+  },
+  "colour_alpha": {
+   "fineCoherentGain": 0.311,
+   "fineNcc": 0.484,
+   "fineEnergyRatio": 0.642,
+   "meanLumaMinusRef": -7.05
+  },
+  "all": {
+   "fineCoherentGain": 0.3,
+   "fineNcc": 0.467,
+   "fineEnergyRatio": 0.643,
+   "meanLumaMinusRef": -7.2
+  }
+ },
+ "edge/carpet_a0_fixed_f1280": {
+  "none": {
+   "fineCoherentGain": 0.306,
+   "fineNcc": 0.561,
+   "fineEnergyRatio": 0.546,
+   "meanLumaMinusRef": -2.81
+  },
+  "centre": {
+   "fineCoherentGain": 0.29,
+   "fineNcc": 0.53,
+   "fineEnergyRatio": 0.547,
+   "meanLumaMinusRef": -2.8
+  },
+  "scale": {
+   "fineCoherentGain": 0.306,
+   "fineNcc": 0.561,
+   "fineEnergyRatio": 0.546,
+   "meanLumaMinusRef": -2.74
+  },
+  "quat": {
+   "fineCoherentGain": 0.306,
+   "fineNcc": 0.56,
+   "fineEnergyRatio": 0.546,
+   "meanLumaMinusRef": -2.84
+  },
+  "colour_alpha": {
+   "fineCoherentGain": 0.254,
+   "fineNcc": 0.53,
+   "fineEnergyRatio": 0.478,
+   "meanLumaMinusRef": -6.34
+  },
+  "all": {
+   "fineCoherentGain": 0.24,
+   "fineNcc": 0.503,
+   "fineEnergyRatio": 0.478,
+   "meanLumaMinusRef": -6.27
+  }
+ },
+ "fp16CentreErrorUnits_p50_p99_max": [
+  0.0005106925964355469,
+  0.003757476806640625,
+  0.24981689453125
+ ]
+}

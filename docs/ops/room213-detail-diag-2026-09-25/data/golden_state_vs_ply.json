@@ -1,0 +1,174 @@
+{
+ "stateJson": {
+  "format_version": 1,
+  "full_resume": 1,
+  "quant_codec": "joint_u_log_sqrt_g2_v1",
+  "quant_block_size": 256,
+  "quant_eps": 1e-15,
+  "step": 30000,
+  "primitive": "3dgut",
+  "cur_num_splats": 1000000,
+  "max_num_splats": 1000000,
+  "num_sh": 15,
+  "sh_degree": 29,
+  "packed": 1,
+  "sh_optim_bits": 8,
+  "sh_value_bits": 16,
+  "non_sh_optim_bits": 16,
+  "use_fused_proj_bwd_optim": 1,
+  "use_per_splat_bias_correction": 1,
+  "camera": {
+   "num": 1,
+   "width": 3840,
+   "height": 3840,
+   "model": "FISHEYE"
+  },
+  "bilagrid_rgb": {
+   "enabled": 0
+  },
+  "bilagrid_depth": {
+   "enabled": 0
+  },
+  "bilagrid_normal": {
+   "enabled": 0
+  },
+  "ppisp": {
+   "enabled": 0
+  }
+ },
+ "stateCurNumSplats": 1000000,
+ "numShRestPerChannel": 15,
+ "impliedShDegree": 3,
+ "exportFilter": {
+  "nonFinite": 0,
+  "lowOpacity": 3505,
+  "deadScale": 403,
+  "kept": 996092
+ },
+ "ply": {
+  "vertices": 996092,
+  "properties": 62,
+  "propertyTypes": [
+   "float"
+  ],
+  "fRestCount": 45,
+  "header": [
+   "ply",
+   "format binary_little_endian 1.0",
+   "element vertex 996092",
+   "property float x",
+   "property float y",
+   "property float z",
+   "property float nx",
+   "property float ny",
+   "property float nz",
+   "property float f_dc_0",
+   "property float f_dc_1",
+   "property float f_dc_2",
+   "property float f_rest_0",
+   "property float f_rest_1",
+   "property float f_rest_2",
+   "property float f_rest_3",
+   "property float f_rest_4",
+   "property float f_rest_5",
+   "property float f_rest_6",
+   "property float f_rest_7",
+   "property float f_rest_8",
+   "property float f_rest_9",
+   "property float f_rest_10",
+   "property float f_rest_11",
+   "property float f_rest_12",
+   "property float f_rest_13",
+   "property float f_rest_14",
+   "property float f_rest_15",
+   "property float f_rest_16",
+   "property float f_rest_17",
+   "property float f_rest_18",
+   "property float f_rest_19",
+   "property float f_rest_20",
+   "property float f_rest_21",
+   "property float f_rest_22",
+   "property float f_rest_23",
+   "property float f_rest_24",
+   "property float f_rest_25",
+   "property float f_rest_26",
+   "property float f_rest_27",
+   "property float f_rest_28",
+   "property float f_rest_29",
+   "property float f_rest_30",
+   "property float f_rest_31",
+   "property float f_rest_32",
+   "property float f_rest_33",
+   "property float f_rest_34",
+   "property float f_rest_35",
+   "property float f_rest_36",
+   "property float f_rest_37",
+   "property float f_rest_38",
+   "property float f_rest_39",
+   "property float f_rest_40",
+   "property float f_rest_41",
+   "property float f_rest_42",
+   "property float f_rest_43",
+   "property float f_rest_44",
+   "property float opacity",
+   "property float scale_0",
+   "property float scale_1",
+   "property float scale_2",
+   "property float rot_0",
+   "property float rot_1",
+   "property float rot_2",
+   "property float rot_3",
+   "end_header"
+  ]
+ },
+ "stateVsPly": {
+  "means(x,y,z)": {
+   "maxAbsDiff": 0.0,
+   "bitExact": true
+  },
+  "quats(rot_0..3 = w,x,y,z)": {
+   "maxAbsDiff": 0.0,
+   "bitExact": true
+  },
+  "scales(log)": {
+   "maxAbsDiff": 0.0,
+   "bitExact": true
+  },
+  "opacity(logit)": {
+   "maxAbsDiff": 0.0,
+   "bitExact": true
+  },
+  "f_dc": {
+   "maxAbsDiff": 0.0,
+   "bitExact": true
+  },
+  "f_rest (channel-major r0..,g0..,b0..) vs decoded 16-bit state": {
+   "maxAbsDiff": 2.086162567138672e-07,
+   "bitExact": false
+  },
+  "normals": {
+   "allZero": true
+  }
+ },
+ "plyStats": {
+  "opacitySigmoid_p10_50_90": [
+   0.0488,
+   0.1362,
+   0.518
+  ],
+  "maxScaleExp_p10_50_90": [
+   0.003857600851915777,
+   0.010712971445173025,
+   0.06038239188492302
+  ],
+  "quatNorm_min_max": [
+   0.9999997615814209,
+   1.0000001192092896
+  ],
+  "shRestAbs_p99_by_band": [
+   0.261706680059433,
+   0.3113933205604553,
+   0.3806415796279907
+  ]
+ }
+}

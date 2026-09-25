@@ -1,0 +1,1109 @@
+{
+ "doc": "Room 213 detail diagnostic, footprint instrumentation (CPU, no renderer change).\n\nA small reference rasterizer for ONE crop of ONE pinhole view that re-implements, from the installed sources, the two\nper-pixel models the product path actually uses, so contributor-level quantities (projected footprints, weights,\nopacity) can be measured on exactly the splats that make the carpet pixels:\n\n  mode \"spirula3dgut\"  Spirula fd1afca1 primitive 3dgut, eval path (shaders/projection_utils.slang\n                       evaluate_alpha_3dgs + kernels/raster/RasterizationEval3DFwd_kernel.cuh):\n                       alpha = sigmoid(o) * exp(-0.5 |g_d x g_o|^2 / |g_d|^2), g = S^-1 R^T (ray-to-centre Mahalanobis\n                       distance, i.e. the maximum response along the pixel-centre ray). NO 2D dilation, no compensation.\n                       Skip alpha <= 1/255; front to back in camera-z order; a pixel stops once T would fall <= 1e-4.\n                       Colour = max(SH3(view dir from camera centre) + 0.5, 0). Float accumulation.\n  mode \"spark\"         Spark 2.1.0 (dist/spark.module.js splatVertex/splatFragment): EWA Jacobian at the centre,\n                       cov2d + preBlur, then + blurAmount with alpha *= sqrt(detOrig / det) (compensation), cull if\n                       alpha < minAlpha (0.5/255), quad clipped at maxStdDev = sqrt(8) (discard z^2 > 8),\n                       alpha = a * exp(-0.5 z^2); back to front by radial distance (sortRadial); premultiplied\n                       blending ONE, ONE_MINUS_SRC_ALPHA into an RGBA8 target (rounded after every splat).\nVariants toggle one factor at a time (blur, compensation, cutoff, 8-bit target, projection, sort) for attribution.\n\nThe model is validated against the real renders of the same crop before any attribution is reported.\nusage: python cpu_raster.py <dd dir> <out json>",
+ "crops": {
+  "golden/carpet_a0_indep_f640": {
+   "crop": [
+    660,
+    440,
+    788,
+    536
+   ],
+   "candidateSplats": 5007,
+   "validation": {
+    "cpuSpirula_vs_realSpirulaA_psnr": 33.46348745815343,
+    "cpuSpark_vs_realSparkC_psnr": 34.363337510703104,
+    "cpuSparkExtAccumulator_vs_realSparkC_psnr": 26.01800986403388,
+    "realA_vs_realC_psnr": 28.560403865536305
+   },
+   "bands": {
+    "realSpirulaA": {
+     "fineEnergyRatio": 0.910763154747826,
+     "fineNcc": 0.7304533836650755,
+     "fineCoherentGain": 0.6652700281030283,
+     "meanLumaMinusRef": -1.6014666666666528
+    },
+    "realSparkC": {
+     "fineEnergyRatio": 0.6216856205492566,
+     "fineNcc": 0.6209290371246904,
+     "fineCoherentGain": 0.3860226537619156,
+     "meanLumaMinusRef": -6.754935839843739
+    },
+    "cpuSpirula": {
+     "fineEnergyRatio": 0.9165472277226725,
+     "fineNcc": 0.7304344053886342,
+     "fineCoherentGain": 0.6694776292922114,
+     "meanLumaMinusRef": 2.063491569010381
+    },
+    "cpuSpark(packed accumulator = product)": {
+     "fineEnergyRatio": 0.6198147451118475,
+     "fineNcc": 0.6844904632429576,
+     "fineCoherentGain": 0.42425728200642415,
+     "meanLumaMinusRef": -4.271327490234398
+    },
+    "cpuSpark_extAccumulator": {
+     "fineEnergyRatio": 0.7946187132107992,
+     "fineNcc": 0.7261564776871143,
+     "fineCoherentGain": 0.5770175258894212,
+     "meanLumaMinusRef": 1.964919042968745
+    },
+    "cpu_spark_blur0": {
+     "fineEnergyRatio": 0.9512081631929679,
+     "fineNcc": 0.7214804057149838,
+     "fineCoherentGain": 0.686278051499867,
+     "meanLumaMinusRef": 2.0182013020833267
+    },
+    "cpu_spark_preblur0.3_noComp": {
+     "fineEnergyRatio": 0.9392503475633557,
+     "fineNcc": 0.7243522975928237,
+     "fineCoherentGain": 0.6803481472723749,
+     "meanLumaMinusRef": 3.454657128906234
+    },
+    "cpu_spark_noCompOnly": {
+     "fineEnergyRatio": 0.9392503475633557,
+     "fineNcc": 0.7243522975928237,
+     "fineCoherentGain": 0.6803481472723749,
+     "meanLumaMinusRef": 3.454657128906234
+    },
+    "cpu_spark_cutoff3.33": {
+     "fineEnergyRatio": 0.7939916779102519,
+     "fineNcc": 0.7267325125881969,
+     "fineCoherentGain": 0.5770195670618358,
+     "meanLumaMinusRef": 2.008087825520846
+    },
+    "cpu_spark_floatTarget": {
+     "fineEnergyRatio": 0.7643125449001023,
+     "fineNcc": 0.7377327413088459,
+     "fineCoherentGain": 0.5638583889658928,
+     "meanLumaMinusRef": 2.076213395182293
+    },
+    "cpu_spark_blur0_cutoff3.33_float": {
+     "fineEnergyRatio": 0.9165285607188424,
+     "fineNcc": 0.729265664830968,
+     "fineCoherentGain": 0.6683928101691967,
+     "meanLumaMinusRef": 2.216022574869754
+    }
+   },
+   "footprint_spirula3dgut": {
+    "contributingSplats": 2003,
+    "sigmaMinorPx_w_p10_50_90": [
+     1.3076512683521897,
+     11.15707920981249,
+     41.53146663025354
+    ],
+    "sigmaMajorPx_w_p10_50_90": [
+     3.128876206939093,
+     26.851679647932468,
+     108.71786958962743
+    ],
+    "opacity_w_p10_50_90": [
+     0.08780471444972231,
+     0.19631930792142044,
+     0.9500520290349447
+    ],
+    "weightFrac_sigmaMinor_lt_0.5px": 0.0037855404211056373,
+    "weightFrac_sigmaMajor_lt_1px": 0.0029159262344379835,
+    "sparkCompensation_w_p10_50_90": null,
+    "meanAccumulatedAlphaPerPixel": 0.9885172164915578
+   },
+   "footprint_spark": {
+    "contributingSplats": 2045,
+    "sigmaMinorPx_w_p10_50_90": [
+     4.0009058400803825,
+     17.66371900871032,
+     47.545115566466265
+    ],
+    "sigmaMajorPx_w_p10_50_90": [
+     11.461377415403861,
+     92.62180853071993,
+     113.11243677909903
+    ],
+    "opacity_w_p10_50_90": [
+     0.11764705882352941,
+     0.8343010316750243,
+     0.9812671643864896
+    ],
+    "weightFrac_sigmaMinor_lt_0.5px": 0.0011807970707852298,
+    "weightFrac_sigmaMajor_lt_1px": 0.0008402411153140009,
+    "sparkCompensation_w_p10_50_90": [
+     0.9888139294083216,
+     0.9994973612810576,
+     0.9999131365320307
+    ],
+    "meanAccumulatedAlphaPerPixel": 4.62876780000758
+   },
+   "sourceTexture": {
+    "energyPeakWavelengthPx": 11.76,
+    "autocorrHalfWidthPx_xy": [
+     3.0,
+     2.0
+    ]
+   }
+  },
+  "golden/carpet_a0_indep_f1280": {
+   "crop": [
+    680,
+    520,
+    936,
+    712
+   ],
+   "candidateSplats": 3050,
+   "validation": {
+    "cpuSpirula_vs_realSpirulaA_psnr": 27.63165767444777,
+    "cpuSpark_vs_realSparkC_psnr": 26.673910941797928,
+    "cpuSparkExtAccumulator_vs_realSparkC_psnr": 25.715328230907577,
+    "realA_vs_realC_psnr": 29.255397963612854
+   },
+   "bands": {
+    "realSpirulaA": {
+     "fineEnergyRatio": 0.7716253383974675,
+     "fineNcc": 0.5498768468748008,
+     "fineCoherentGain": 0.4242989080467005,
+     "meanLumaMinusRef": -0.904509517415363
+    },
+    "realSparkC": {
+     "fineEnergyRatio": 0.7276759669709187,
+     "fineNcc": 0.40033911699306185,
+     "fineCoherentGain": 0.29131715407421005,
+     "meanLumaMinusRef": -5.511466833496087
+    },
+    "cpuSpirula": {
+     "fineEnergyRatio": 0.8176677643663456,
+     "fineNcc": 0.5362114542056051,
+     "fineCoherentGain": 0.4384428209879241,
+     "meanLumaMinusRef": -3.681472949218744
+    },
+    "cpuSpark(packed accumulator = product)": {
+     "fineEnergyRatio": 0.6573370479580575,
+     "fineNcc": 0.47845109705975086,
+     "fineCoherentGain": 0.31450363173355056,
+     "meanLumaMinusRef": -10.463163244628902
+    },
+    "cpuSpark_extAccumulator": {
+     "fineEnergyRatio": 0.7969414424893467,
+     "fineNcc": 0.5275966544253462,
+     "fineCoherentGain": 0.4204636388302887,
+     "meanLumaMinusRef": -4.13726337076821
+    },
+    "cpu_spark_blur0": {
+     "fineEnergyRatio": 0.8679360009641274,
+     "fineNcc": 0.5172400845014428,
+     "fineCoherentGain": 0.4489312904805295,
+     "meanLumaMinusRef": -4.12419402669272
+    },
+    "cpu_spark_preblur0.3_noComp": {
+     "fineEnergyRatio": 0.847515222309378,
+     "fineNcc": 0.5240540952751804,
+     "fineCoherentGain": 0.4441438230592844,
+     "meanLumaMinusRef": -3.6496480305989962
+    },
+    "cpu_spark_noCompOnly": {
+     "fineEnergyRatio": 0.847515222309378,
+     "fineNcc": 0.5240540952751804,
+     "fineCoherentGain": 0.4441438230592844,
+     "meanLumaMinusRef": -3.6496480305989962
+    },
+    "cpu_spark_cutoff3.33": {
+     "fineEnergyRatio": 0.7957714731248923,
+     "fineNcc": 0.5275984013361564,
+     "fineCoherentGain": 0.4198477570496113,
+     "meanLumaMinusRef": -4.088282218424467
+    },
+    "cpu_spark_floatTarget": {
+     "fineEnergyRatio": 0.7442564212647625,
+     "fineNcc": 0.5515645283524699,
+     "fineCoherentGain": 0.4105054419681959,
+     "meanLumaMinusRef": -3.9191654093424404
+    },
+    "cpu_spark_blur0_cutoff3.33_float": {
+     "fineEnergyRatio": 0.8138936885237218,
+     "fineNcc": 0.5371237045913019,
+     "fineCoherentGain": 0.4371615931233405,
+     "meanLumaMinusRef": -3.764839314778669
+    }
+   },
+   "footprint_spirula3dgut": {
+    "contributingSplats": 1974,
+    "sigmaMinorPx_w_p10_50_90": [
+     2.6008780850209514,
+     19.965681235293836,
+     68.96589382278258
+    ],
+    "sigmaMajorPx_w_p10_50_90": [
+     6.1602357499483205,
+     50.08572490201632,
+     218.56928995242762
+    ],
+    "opacity_w_p10_50_90": [
+     0.08728632336500124,
+     0.19579624967550402,
+     0.9500228969218268
+    ],
+    "weightFrac_sigmaMinor_lt_0.5px": 0.00038458446341328533,
+    "weightFrac_sigmaMajor_lt_1px": 2.7535168039100748e-05,
+    "sparkCompensation_w_p10_50_90": null,
+    "meanAccumulatedAlphaPerPixel": 0.9693028094542654
+   },
+   "footprint_spark": {
+    "contributingSplats": 2007,
+    "sigmaMinorPx_w_p10_50_90": [
+     5.502456937151816,
+     35.31409288303451,
+     75.23850405585965
+    ],
+    "sigmaMajorPx_w_p10_50_90": [
+     17.241177420511008,
+     180.21068679774453,
+     228.2863629643666
+    ],
+    "opacity_w_p10_50_90": [
+     0.11764705882352941,
+     0.6536187591482574,
+     0.9794236454632456
+    ],
+    "weightFrac_sigmaMinor_lt_0.5px": 0.00015426504934528039,
+    "weightFrac_sigmaMajor_lt_1px": 9.622185064527436e-06,
+    "sparkCompensation_w_p10_50_90": [
+     0.9939370304282337,
+     0.9998699035653268,
+     0.999969287720969
+    ],
+    "meanAccumulatedAlphaPerPixel": 3.6825664998292917
+   },
+   "sourceTexture": {
+    "energyPeakWavelengthPx": 13.33,
+    "autocorrHalfWidthPx_xy": [
+     4.0,
+     3.0
+    ]
+   }
+  },
+  "golden/carpet_a0_fixed_f640": {
+   "crop": [
+    460,
+    500,
+    588,
+    596
+   ],
+   "candidateSplats": 5147,
+   "validation": {
+    "cpuSpirula_vs_realSpirulaA_psnr": 44.1921204074071,
+    "cpuSpark_vs_realSparkC_psnr": 38.31721148147955,
+    "cpuSparkExtAccumulator_vs_realSparkC_psnr": 31.293797008267962,
+    "realA_vs_realC_psnr": 31.99280792098108
+   },
+   "bands": {
+    "realSpirulaA": {
+     "fineEnergyRatio": 0.6408270123307679,
+     "fineNcc": 0.6931666571540986,
+     "fineCoherentGain": 0.4441999179513667,
+     "meanLumaMinusRef": -3.570278190104176
+    },
+    "realSparkC": {
+     "fineEnergyRatio": 0.5224596084731373,
+     "fineNcc": 0.5973555988541601,
+     "fineCoherentGain": 0.31209417229658104,
+     "meanLumaMinusRef": -8.104888785807276
+    },
+    "cpuSpirula": {
+     "fineEnergyRatio": 0.6851569806792815,
+     "fineNcc": 0.6913537051344215,
+     "fineCoherentGain": 0.4736858171913347,
+     "meanLumaMinusRef": -2.7681020182291434
+    },
+    "cpuSpark(packed accumulator = product)": {
+     "fineEnergyRatio": 0.5077600102017017,
+     "fineNcc": 0.6362927892550797,
+     "fineCoherentGain": 0.32308403316342854,
+     "meanLumaMinusRef": -6.3142679361978935
+    },
+    "cpuSpark_extAccumulator": {
+     "fineEnergyRatio": 0.5921871132633226,
+     "fineNcc": 0.6679231204025073,
+     "fineCoherentGain": 0.3955354645529916,
+     "meanLumaMinusRef": -3.1244921386718545
+    },
+    "cpu_spark_blur0": {
+     "fineEnergyRatio": 0.7024909749620871,
+     "fineNcc": 0.6820332663975212,
+     "fineCoherentGain": 0.47912221426817153,
+     "meanLumaMinusRef": -3.0620019042968636
+    },
+    "cpu_spark_preblur0.3_noComp": {
+     "fineEnergyRatio": 0.687329530501133,
+     "fineNcc": 0.6703387138181411,
+     "fineCoherentGain": 0.46074359344535637,
+     "meanLumaMinusRef": -1.668624593098997
+    },
+    "cpu_spark_noCompOnly": {
+     "fineEnergyRatio": 0.687329530501133,
+     "fineNcc": 0.6703387138181411,
+     "fineCoherentGain": 0.46074359344535637,
+     "meanLumaMinusRef": -1.668624593098997
+    },
+    "cpu_spark_cutoff3.33": {
+     "fineEnergyRatio": 0.5919133220611615,
+     "fineNcc": 0.6677626537341368,
+     "fineCoherentGain": 0.39525761072015003,
+     "meanLumaMinusRef": -3.1202370605468843
+    },
+    "cpu_spark_floatTarget": {
+     "fineEnergyRatio": 0.573066821884686,
+     "fineNcc": 0.6840188086322748,
+     "fineCoherentGain": 0.39198848477224707,
+     "meanLumaMinusRef": -2.7918073404947847
+    },
+    "cpu_spark_blur0_cutoff3.33_float": {
+     "fineEnergyRatio": 0.6817484001779055,
+     "fineNcc": 0.6887847690629125,
+     "fineCoherentGain": 0.4695779143755488,
+     "meanLumaMinusRef": -2.668471679687485
+    }
+   },
+   "footprint_spirula3dgut": {
+    "contributingSplats": 1741,
+    "sigmaMinorPx_w_p10_50_90": [
+     1.4142086155173563,
+     18.36914574429557,
+     51.648553121354865
+    ],
+    "sigmaMajorPx_w_p10_50_90": [
+     3.0127559989041153,
+     48.40911243254454,
+     75.64534463586493
+    ],
+    "opacity_w_p10_50_90": [
+     0.0893539663658691,
+     0.3025342656465829,
+     0.9496225134377428
+    ],
+    "weightFrac_sigmaMinor_lt_0.5px": 0.0015820386386006964,
+    "weightFrac_sigmaMajor_lt_1px": 0.0016523422986206163,
+    "sparkCompensation_w_p10_50_90": null,
+    "meanAccumulatedAlphaPerPixel": 0.9984518830635812
+   },
+   "footprint_spark": {
+    "contributingSplats": 1776,
+    "sigmaMinorPx_w_p10_50_90": [
+     6.948528857600541,
+     33.9621509188732,
+     53.7778681306997
+    ],
+    "sigmaMajorPx_w_p10_50_90": [
+     16.07980590024002,
+     76.43162875302609,
+     113.8368268931552
+    ],
+    "opacity_w_p10_50_90": [
+     0.10980392156862745,
+     0.8077418636829465,
+     0.9882352941176471
+    ],
+    "weightFrac_sigmaMinor_lt_0.5px": 0.00039450052651742487,
+    "weightFrac_sigmaMajor_lt_1px": 0.0004413978716302224,
+    "sparkCompensation_w_p10_50_90": [
+     0.9963450374830493,
+     0.9998164126387463,
+     0.9999254926551626
+    ],
+    "meanAccumulatedAlphaPerPixel": 5.255363963931816
+   },
+   "sourceTexture": {
+    "energyPeakWavelengthPx": 13.33,
+    "autocorrHalfWidthPx_xy": [
+     3.0,
+     3.0
+    ]
+   }
+  },
+  "golden/carpet_a0_fixed_f1280": {
+   "crop": [
+    280,
+    500,
+    536,
+    692
+   ],
+   "candidateSplats": 3505,
+   "validation": {
+    "cpuSpirula_vs_realSpirulaA_psnr": 37.012099651515896,
+    "cpuSpark_vs_realSparkC_psnr": 36.327103827579066,
+    "cpuSparkExtAccumulator_vs_realSparkC_psnr": 31.36806481323473,
+    "realA_vs_realC_psnr": 32.24345338225778
+   },
+   "bands": {
+    "realSpirulaA": {
+     "fineEnergyRatio": 0.48887317299502153,
+     "fineNcc": 0.5342563608540418,
+     "fineCoherentGain": 0.26118360232348864,
+     "meanLumaMinusRef": -4.139544694010397
+    },
+    "realSparkC": {
+     "fineEnergyRatio": 0.5409490928595254,
+     "fineNcc": 0.37729450873193887,
+     "fineCoherentGain": 0.2040971222394226,
+     "meanLumaMinusRef": -8.344670971679648
+    },
+    "cpuSpirula": {
+     "fineEnergyRatio": 0.5110562551959067,
+     "fineNcc": 0.5339047016220613,
+     "fineCoherentGain": 0.27285533744245855,
+     "meanLumaMinusRef": -4.164333512369808
+    },
+    "cpuSpark(packed accumulator = product)": {
+     "fineEnergyRatio": 0.446921713846655,
+     "fineNcc": 0.4685655868148451,
+     "fineCoherentGain": 0.2094121351088542,
+     "meanLumaMinusRef": -7.681366198730501
+    },
+    "cpuSpark_extAccumulator": {
+     "fineEnergyRatio": 0.5013090706415939,
+     "fineNcc": 0.5059795820846497,
+     "fineCoherentGain": 0.25365215405847774,
+     "meanLumaMinusRef": -4.276004414876269
+    },
+    "cpu_spark_blur0": {
+     "fineEnergyRatio": 0.5417257813552286,
+     "fineNcc": 0.5049033123035853,
+     "fineCoherentGain": 0.2735191413665028,
+     "meanLumaMinusRef": -4.258252217610675
+    },
+    "cpu_spark_preblur0.3_noComp": {
+     "fineEnergyRatio": 0.5291256986643118,
+     "fineNcc": 0.5056661049328732,
+     "fineCoherentGain": 0.26756093106346773,
+     "meanLumaMinusRef": -3.8306911702474054
+    },
+    "cpu_spark_noCompOnly": {
+     "fineEnergyRatio": 0.5291256986643118,
+     "fineNcc": 0.5056661049328732,
+     "fineCoherentGain": 0.26756093106346773,
+     "meanLumaMinusRef": -3.8306911702474054
+    },
+    "cpu_spark_cutoff3.33": {
+     "fineEnergyRatio": 0.5010154607372929,
+     "fineNcc": 0.5059680165795017,
+     "fineCoherentGain": 0.25349779894491326,
+     "meanLumaMinusRef": -4.271152453613297
+    },
+    "cpu_spark_floatTarget": {
+     "fineEnergyRatio": 0.46196363695816833,
+     "fineNcc": 0.5366548887233518,
+     "fineCoherentGain": 0.24791504418602067,
+     "meanLumaMinusRef": -3.958350451660152
+    },
+    "cpu_spark_blur0_cutoff3.33_float": {
+     "fineEnergyRatio": 0.502028476287212,
+     "fineNcc": 0.5315950407075993,
+     "fineCoherentGain": 0.26687584828827454,
+     "meanLumaMinusRef": -3.8044428385416893
+    }
+   },
+   "footprint_spirula3dgut": {
+    "contributingSplats": 1975,
+    "sigmaMinorPx_w_p10_50_90": [
+     2.4645972802933787,
+     14.452552043955073,
+     106.1379839555532
+    ],
+    "sigmaMajorPx_w_p10_50_90": [
+     5.9175688174340335,
+     29.66690509642328,
+     161.5608696848341
+    ],
+    "opacity_w_p10_50_90": [
+     0.0841621334964073,
+     0.24531855740461161,
+     0.9688468264227232
+    ],
+    "weightFrac_sigmaMinor_lt_0.5px": 0.00030967365484211624,
+    "weightFrac_sigmaMajor_lt_1px": 3.900508760585787e-05,
+    "sparkCompensation_w_p10_50_90": null,
+    "meanAccumulatedAlphaPerPixel": 0.9978344142032493
+   },
+   "footprint_spark": {
+    "contributingSplats": 1997,
+    "sigmaMinorPx_w_p10_50_90": [
+     5.675393029901466,
+     39.86400019119097,
+     99.45528848511537
+    ],
+    "sigmaMajorPx_w_p10_50_90": [
+     14.678371100096232,
+     123.54563283863614,
+     216.99660654407583
+    ],
+    "opacity_w_p10_50_90": [
+     0.11764705882352941,
+     0.7840846475205568,
+     0.9893372596783596
+    ],
+    "weightFrac_sigmaMinor_lt_0.5px": 0.0001236611867544795,
+    "weightFrac_sigmaMajor_lt_1px": 1.1544092367795995e-05,
+    "sparkCompensation_w_p10_50_90": [
+     0.9944384236783956,
+     0.9999013931223705,
+     0.9999789200773149
+    ],
+    "meanAccumulatedAlphaPerPixel": 4.93607564066867
+   },
+   "sourceTexture": {
+    "energyPeakWavelengthPx": 10.53,
+    "autocorrHalfWidthPx_xy": [
+     4.0,
+     3.0
+    ]
+   }
+  },
+  "edge/carpet_a0_indep_f640": {
+   "crop": [
+    660,
+    440,
+    788,
+    536
+   ],
+   "candidateSplats": 9321,
+   "validation": {
+    "cpuSpirula_vs_realSpirulaA_psnr": 45.416275120069606,
+    "cpuSpark_vs_realSparkC_psnr": 37.54915120626845,
+    "cpuSparkExtAccumulator_vs_realSparkC_psnr": 29.147848029111714,
+    "realA_vs_realC_psnr": 28.64610775725021
+   },
+   "bands": {
+    "realSpirulaA": {
+     "fineEnergyRatio": 0.9180511955096995,
+     "fineNcc": 0.7339807490653268,
+     "fineCoherentGain": 0.673831904160528,
+     "meanLumaMinusRef": 2.164391634114594
+    },
+    "realSparkC": {
+     "fineEnergyRatio": 0.5863085503490507,
+     "fineNcc": 0.6016111351570765,
+     "fineCoherentGain": 0.3527297525277923,
+     "meanLumaMinusRef": -2.860005192057315
+    },
+    "cpuSpirula": {
+     "fineEnergyRatio": 0.9333916399339086,
+     "fineNcc": 0.7343390252518913,
+     "fineCoherentGain": 0.6854259070473308,
+     "meanLumaMinusRef": 1.276065820312482
+    },
+    "cpuSpark(packed accumulator = product)": {
+     "fineEnergyRatio": 0.5811426701008857,
+     "fineNcc": 0.6689536642036424,
+     "fineCoherentGain": 0.38875751858907603,
+     "meanLumaMinusRef": -4.3210906738281665
+    },
+    "cpuSpark_extAccumulator": {
+     "fineEnergyRatio": 0.7910565924684424,
+     "fineNcc": 0.7360246853644312,
+     "fineCoherentGain": 0.5822371795770444,
+     "meanLumaMinusRef": 1.363344401041644
+    },
+    "cpu_spark_blur0": {
+     "fineEnergyRatio": 0.95585002795661,
+     "fineNcc": 0.7249979429568614,
+     "fineCoherentGain": 0.6929893040438007,
+     "meanLumaMinusRef": 1.4696248860676917
+    },
+    "cpu_spark_preblur0.3_noComp": {
+     "fineEnergyRatio": 0.9624859169121132,
+     "fineNcc": 0.7343697652975016,
+     "fineCoherentGain": 0.7068205569048992,
+     "meanLumaMinusRef": 3.926481217447872
+    },
+    "cpu_spark_noCompOnly": {
+     "fineEnergyRatio": 0.9624859169121132,
+     "fineNcc": 0.7343697652975016,
+     "fineCoherentGain": 0.7068205569048992,
+     "meanLumaMinusRef": 3.926481217447872
+    },
+    "cpu_spark_cutoff3.33": {
+     "fineEnergyRatio": 0.7908406716729371,
+     "fineNcc": 0.7361346116367179,
+     "fineCoherentGain": 0.5821651907084787,
+     "meanLumaMinusRef": 1.3652094401041666
+    },
+    "cpu_spark_floatTarget": {
+     "fineEnergyRatio": 0.7559830103731037,
+     "fineNcc": 0.7500791901566127,
+     "fineCoherentGain": 0.5670471241928158,
+     "meanLumaMinusRef": 1.7177575032552284
+    },
+    "cpu_spark_blur0_cutoff3.33_float": {
+     "fineEnergyRatio": 0.9213113984569878,
+     "fineNcc": 0.7339530020893671,
+     "fineCoherentGain": 0.6761992667566593,
+     "meanLumaMinusRef": 1.8265215820312335
+    }
+   },
+   "footprint_spirula3dgut": {
+    "contributingSplats": 3433,
+    "sigmaMinorPx_w_p10_50_90": [
+     1.1429553782031885,
+     10.921119077751126,
+     41.48749904225636
+    ],
+    "sigmaMajorPx_w_p10_50_90": [
+     2.5876989367990544,
+     25.7028060564616,
+     114.0192734435515
+    ],
+    "opacity_w_p10_50_90": [
+     0.07379593376580464,
+     0.2519828747133458,
+     0.9066624289893264
+    ],
+    "weightFrac_sigmaMinor_lt_0.5px": 0.008304442048036865,
+    "weightFrac_sigmaMajor_lt_1px": 0.005412381580927939,
+    "sparkCompensation_w_p10_50_90": null,
+    "meanAccumulatedAlphaPerPixel": 0.9996884207534512
+   },
+   "footprint_spark": {
+    "contributingSplats": 3536,
+    "sigmaMinorPx_w_p10_50_90": [
+     6.7360487339846475,
+     32.82320165049681,
+     57.78756964069959
+    ],
+    "sigmaMajorPx_w_p10_50_90": [
+     16.523211382672738,
+     104.32029751682336,
+     118.31310255055223
+    ],
+    "opacity_w_p10_50_90": [
+     0.14901960784313725,
+     0.8670445100940295,
+     0.9849648470242011
+    ],
+    "weightFrac_sigmaMinor_lt_0.5px": 0.0014483121746757656,
+    "weightFrac_sigmaMajor_lt_1px": 0.0010004538380424545,
+    "sparkCompensation_w_p10_50_90": [
+     0.9960430868560041,
+     0.9998479659279714,
+     0.999933213351704
+    ],
+    "meanAccumulatedAlphaPerPixel": 7.536747719002182
+   },
+   "sourceTexture": {
+    "energyPeakWavelengthPx": 11.76,
+    "autocorrHalfWidthPx_xy": [
+     3.0,
+     2.0
+    ]
+   }
+  },
+  "edge/carpet_a0_indep_f1280": {
+   "crop": [
+    680,
+    520,
+    936,
+    712
+   ],
+   "candidateSplats": 5847,
+   "validation": {
+    "cpuSpirula_vs_realSpirulaA_psnr": 32.85407393342955,
+    "cpuSpark_vs_realSparkC_psnr": 34.27364145263213,
+    "cpuSparkExtAccumulator_vs_realSparkC_psnr": 30.201663465955445,
+    "realA_vs_realC_psnr": 28.13498227445464
+   },
+   "bands": {
+    "realSpirulaA": {
+     "fineEnergyRatio": 0.7992274465871175,
+     "fineNcc": 0.5408814261127397,
+     "fineCoherentGain": 0.4322872810984835,
+     "meanLumaMinusRef": 2.443272896321588
+    },
+    "realSparkC": {
+     "fineEnergyRatio": 0.7333286282036253,
+     "fineNcc": 0.3700768254265993,
+     "fineCoherentGain": 0.2713879307200405,
+     "meanLumaMinusRef": -4.142720987955727
+    },
+    "cpuSpirula": {
+     "fineEnergyRatio": 0.8593366134626529,
+     "fineNcc": 0.5398171792401781,
+     "fineCoherentGain": 0.4638846666972165,
+     "meanLumaMinusRef": -1.6845548706054956
+    },
+    "cpuSpark(packed accumulator = product)": {
+     "fineEnergyRatio": 0.6426440556671448,
+     "fineNcc": 0.46720718296698704,
+     "fineCoherentGain": 0.30024791889872626,
+     "meanLumaMinusRef": -7.1954068603515395
+    },
+    "cpuSpark_extAccumulator": {
+     "fineEnergyRatio": 0.8158370359680963,
+     "fineNcc": 0.5311455259240053,
+     "fineCoherentGain": 0.43332819153755603,
+     "meanLumaMinusRef": -1.6224106363932265
+    },
+    "cpu_spark_blur0": {
+     "fineEnergyRatio": 0.8960586516321415,
+     "fineNcc": 0.517604744018079,
+     "fineCoherentGain": 0.46380420900323954,
+     "meanLumaMinusRef": -1.5917593872070483
+    },
+    "cpu_spark_preblur0.3_noComp": {
+     "fineEnergyRatio": 0.8805769373118593,
+     "fineNcc": 0.528027517394271,
+     "fineCoherentGain": 0.4649688540834316,
+     "meanLumaMinusRef": -0.8722099568684598
+    },
+    "cpu_spark_noCompOnly": {
+     "fineEnergyRatio": 0.8805769373118593,
+     "fineNcc": 0.528027517394271,
+     "fineCoherentGain": 0.4649688540834316,
+     "meanLumaMinusRef": -0.8722099568684598
+    },
+    "cpu_spark_cutoff3.33": {
+     "fineEnergyRatio": 0.8156273784910388,
+     "fineNcc": 0.5308011762327772,
+     "fineCoherentGain": 0.4329359718706998,
+     "meanLumaMinusRef": -1.6190157226562576
+    },
+    "cpu_spark_floatTarget": {
+     "fineEnergyRatio": 0.7586500437102265,
+     "fineNcc": 0.5616385429627163,
+     "fineCoherentGain": 0.42608710516801257,
+     "meanLumaMinusRef": -1.2611638956705633
+    },
+    "cpu_spark_blur0_cutoff3.33_float": {
+     "fineEnergyRatio": 0.840883198403634,
+     "fineNcc": 0.5402560610848574,
+     "fineCoherentGain": 0.4542922446019839,
+     "meanLumaMinusRef": -1.172069991048204
+    }
+   },
+   "footprint_spirula3dgut": {
+    "contributingSplats": 3434,
+    "sigmaMinorPx_w_p10_50_90": [
+     2.2668445400806854,
+     18.277020071382154,
+     84.2815122657175
+    ],
+    "sigmaMajorPx_w_p10_50_90": [
+     5.13590111843027,
+     48.994257270761906,
+     229.35191111557242
+    ],
+    "opacity_w_p10_50_90": [
+     0.07350350033666547,
+     0.28466783273359497,
+     0.9173529499100862
+    ],
+    "weightFrac_sigmaMinor_lt_0.5px": 0.0010961824920613544,
+    "weightFrac_sigmaMajor_lt_1px": 3.761969403344302e-05,
+    "sparkCompensation_w_p10_50_90": null,
+    "meanAccumulatedAlphaPerPixel": 0.9996799369280781
+   },
+   "footprint_spark": {
+    "contributingSplats": 3483,
+    "sigmaMinorPx_w_p10_50_90": [
+     10.739202041389495,
+     54.29141644023246,
+     130.64407192492345
+    ],
+    "sigmaMajorPx_w_p10_50_90": [
+     25.39593420865857,
+     215.87857517292363,
+     235.65024970355682
+    ],
+    "opacity_w_p10_50_90": [
+     0.14901960784313725,
+     0.8753068207018362,
+     0.9870100219130786
+    ],
+    "weightFrac_sigmaMinor_lt_0.5px": 0.0002337573423038508,
+    "weightFrac_sigmaMajor_lt_1px": 8.525841341570757e-06,
+    "sparkCompensation_w_p10_50_90": [
+     0.9984229640168104,
+     0.9999452175538636,
+     0.9999848891876224
+    ],
+    "meanAccumulatedAlphaPerPixel": 6.4389870675156855
+   },
+   "sourceTexture": {
+    "energyPeakWavelengthPx": 13.33,
+    "autocorrHalfWidthPx_xy": [
+     4.0,
+     3.0
+    ]
+   }
+  },
+  "edge/carpet_a0_fixed_f640": {
+   "crop": [
+    460,
+    500,
+    588,
+    596
+   ],
+   "candidateSplats": 6743,
+   "validation": {
+    "cpuSpirula_vs_realSpirulaA_psnr": 40.64855309465709,
+    "cpuSpark_vs_realSparkC_psnr": 37.12773774415234,
+    "cpuSparkExtAccumulator_vs_realSparkC_psnr": 31.486816722732097,
+    "realA_vs_realC_psnr": 30.708579061663805
+   },
+   "bands": {
+    "realSpirulaA": {
+     "fineEnergyRatio": 0.7058484696640159,
+     "fineNcc": 0.7248877928743406,
+     "fineCoherentGain": 0.5116609392784796,
+     "meanLumaMinusRef": -1.4467009114583504
+    },
+    "realSparkC": {
+     "fineEnergyRatio": 0.5366436348047031,
+     "fineNcc": 0.617043790580392,
+     "fineCoherentGain": 0.33113262261073373,
+     "meanLumaMinusRef": -6.440035953776032
+    },
+    "cpuSpirula": {
+     "fineEnergyRatio": 0.7279202369367295,
+     "fineNcc": 0.7257542727133784,
+     "fineCoherentGain": 0.5282912221513663,
+     "meanLumaMinusRef": -1.9357062499999813
+    },
+    "cpuSpark(packed accumulator = product)": {
+     "fineEnergyRatio": 0.5261937925118317,
+     "fineNcc": 0.664482459806403,
+     "fineCoherentGain": 0.3496465455831221,
+     "meanLumaMinusRef": -6.175759244791635
+    },
+    "cpuSpark_extAccumulator": {
+     "fineEnergyRatio": 0.6259375683105597,
+     "fineNcc": 0.7020096507434065,
+     "fineCoherentGain": 0.4394142137168732,
+     "meanLumaMinusRef": -2.737874886067715
+    },
+    "cpu_spark_blur0": {
+     "fineEnergyRatio": 0.7483215012913765,
+     "fineNcc": 0.7147520563668383,
+     "fineCoherentGain": 0.534864331871531,
+     "meanLumaMinusRef": -2.6520937011718786
+    },
+    "cpu_spark_preblur0.3_noComp": {
+     "fineEnergyRatio": 0.730619309589667,
+     "fineNcc": 0.7067276718339764,
+     "fineCoherentGain": 0.5163488836632527,
+     "meanLumaMinusRef": -0.7770048665364584
+    },
+    "cpu_spark_noCompOnly": {
+     "fineEnergyRatio": 0.730619309589667,
+     "fineNcc": 0.7067276718339764,
+     "fineCoherentGain": 0.5163488836632527,
+     "meanLumaMinusRef": -0.7770048665364584
+    },
+    "cpu_spark_cutoff3.33": {
+     "fineEnergyRatio": 0.6256936121444998,
+     "fineNcc": 0.7019271405815805,
+     "fineCoherentGain": 0.43919132805274935,
+     "meanLumaMinusRef": -2.7232750976562556
+    },
+    "cpu_spark_floatTarget": {
+     "fineEnergyRatio": 0.5997044433646826,
+     "fineNcc": 0.7175008106229898,
+     "fineCoherentGain": 0.4302884242483687,
+     "meanLumaMinusRef": -2.1423741861979124
+    },
+    "cpu_spark_blur0_cutoff3.33_float": {
+     "fineEnergyRatio": 0.7226067505673435,
+     "fineNcc": 0.7245924151434345,
+     "fineCoherentGain": 0.5235953705925408,
+     "meanLumaMinusRef": -1.9690093098958243
+    }
+   },
+   "footprint_spirula3dgut": {
+    "contributingSplats": 2369,
+    "sigmaMinorPx_w_p10_50_90": [
+     1.307342081827024,
+     9.83259501343434,
+     38.99054608420028
+    ],
+    "sigmaMajorPx_w_p10_50_90": [
+     2.6138505090909243,
+     22.652173947300387,
+     119.77789236601177
+    ],
+    "opacity_w_p10_50_90": [
+     0.08335200663282333,
+     0.21575469725851948,
+     0.8729233553666944
+    ],
+    "weightFrac_sigmaMinor_lt_0.5px": 0.002438301987362362,
+    "weightFrac_sigmaMajor_lt_1px": 0.002945251266747262,
+    "sparkCompensation_w_p10_50_90": null,
+    "meanAccumulatedAlphaPerPixel": 0.9943826208400489
+   },
+   "footprint_spark": {
+    "contributingSplats": 2423,
+    "sigmaMinorPx_w_p10_50_90": [
+     5.941570830665064,
+     25.74079365686415,
+     86.35055637474962
+    ],
+    "sigmaMajorPx_w_p10_50_90": [
+     9.957073945323032,
+     102.94720253346482,
+     120.08773465612647
+    ],
+    "opacity_w_p10_50_90": [
+     0.12549019607843137,
+     0.47058823529411764,
+     0.9739844697165051
+    ],
+    "weightFrac_sigmaMinor_lt_0.5px": 0.0006405679807750463,
+    "weightFrac_sigmaMajor_lt_1px": 0.000677245775122262,
+    "sparkCompensation_w_p10_50_90": [
+     0.9942579682637698,
+     0.9997574747964764,
+     0.999968998837134
+    ],
+    "meanAccumulatedAlphaPerPixel": 5.061912501742957
+   },
+   "sourceTexture": {
+    "energyPeakWavelengthPx": 13.33,
+    "autocorrHalfWidthPx_xy": [
+     3.0,
+     3.0
+    ]
+   }
+  },
+  "edge/carpet_a0_fixed_f1280": {
+   "crop": [
+    280,
+    500,
+    536,
+    692
+   ],
+   "candidateSplats": 5133,
+   "validation": {
+    "cpuSpirula_vs_realSpirulaA_psnr": 42.942352515185334,
+    "cpuSpark_vs_realSparkC_psnr": 39.770328946151785,
+    "cpuSparkExtAccumulator_vs_realSparkC_psnr": 32.30443993409661,
+    "realA_vs_realC_psnr": 31.0723379861442
+   },
+   "bands": {
+    "realSpirulaA": {
+     "fineEnergyRatio": 0.5449470637887176,
+     "fineNcc": 0.5887774316039173,
+     "fineCoherentGain": 0.3208525325776172,
+     "meanLumaMinusRef": -1.425375720214845
+    },
+    "realSparkC": {
+     "fineEnergyRatio": 0.5794226550077299,
+     "fineNcc": 0.4089124072636415,
+     "fineCoherentGain": 0.23693311268230124,
+     "meanLumaMinusRef": -6.4929778564453215
+    },
+    "cpuSpirula": {
+     "fineEnergyRatio": 0.553389772398504,
+     "fineNcc": 0.5900876209478498,
+     "fineCoherentGain": 0.32654845425150525,
+     "meanLumaMinusRef": -2.6087658406575542
+    },
+    "cpuSpark(packed accumulator = product)": {
+     "fineEnergyRatio": 0.4781908709769798,
+     "fineNcc": 0.5026810065866133,
+     "fineCoherentGain": 0.24037746836323753,
+     "meanLumaMinusRef": -6.2702183064778865
+    },
+    "cpuSpark_extAccumulator": {
+     "fineEnergyRatio": 0.5458634149314209,
+     "fineNcc": 0.5606456003147872,
+     "fineCoherentGain": 0.30603592195410617,
+     "meanLumaMinusRef": -2.81431178385418
+    },
+    "cpu_spark_blur0": {
+     "fineEnergyRatio": 0.5920937609325181,
+     "fineNcc": 0.5601973447228675,
+     "fineCoherentGain": 0.33168935270137284,
+     "meanLumaMinusRef": -2.794514518229164
+    },
+    "cpu_spark_preblur0.3_noComp": {
+     "fineEnergyRatio": 0.5765631009601297,
+     "fineNcc": 0.5621161155183513,
+     "fineCoherentGain": 0.32409541066292313,
+     "meanLumaMinusRef": -2.2716775227864616
+    },
+    "cpu_spark_noCompOnly": {
+     "fineEnergyRatio": 0.5765631009601297,
+     "fineNcc": 0.5621161155183513,
+     "fineCoherentGain": 0.32409541066292313,
+     "meanLumaMinusRef": -2.2716775227864616
+    },
+    "cpu_spark_cutoff3.33": {
+     "fineEnergyRatio": 0.5457020102708593,
+     "fineNcc": 0.5607326543508239,
+     "fineCoherentGain": 0.30599293670375943,
+     "meanLumaMinusRef": -2.8079891153971346
+    },
+    "cpu_spark_floatTarget": {
+     "fineEnergyRatio": 0.4990268537547869,
+     "fineNcc": 0.5956627989533968,
+     "fineCoherentGain": 0.2972517324604837,
+     "meanLumaMinusRef": -2.3594817220052278
+    },
+    "cpu_spark_blur0_cutoff3.33_float": {
+     "fineEnergyRatio": 0.5442241050850286,
+     "fineNcc": 0.5896089445089453,
+     "fineCoherentGain": 0.3208794001755091,
+     "meanLumaMinusRef": -2.2169473673502296
+    }
+   },
+   "footprint_spirula3dgut": {
+    "contributingSplats": 2892,
+    "sigmaMinorPx_w_p10_50_90": [
+     2.1748381374075563,
+     11.587671444354706,
+     77.56472231702168
+    ],
+    "sigmaMajorPx_w_p10_50_90": [
+     5.1668930059446,
+     24.50168453908594,
+     226.14256016927263
+    ],
+    "opacity_w_p10_50_90": [
+     0.07691870009919674,
+     0.21929881420922914,
+     0.8824006417355166
+    ],
+    "weightFrac_sigmaMinor_lt_0.5px": 0.00031113106007636194,
+    "weightFrac_sigmaMajor_lt_1px": 3.360888141392484e-05,
+    "sparkCompensation_w_p10_50_90": null,
+    "meanAccumulatedAlphaPerPixel": 0.9991502968233524
+   },
+   "footprint_spark": {
+    "contributingSplats": 2925,
+    "sigmaMinorPx_w_p10_50_90": [
+     7.360780728847602,
+     41.75847334463018,
+     96.36849110985662
+    ],
+    "sigmaMajorPx_w_p10_50_90": [
+     17.490098805252874,
+     201.27548530350393,
+     231.24583291400893
+    ],
+    "opacity_w_p10_50_90": [
+     0.11764705882352941,
+     0.6830421877171852,
+     0.9867977273815004
+    ],
+    "weightFrac_sigmaMinor_lt_0.5px": 8.253485644384438e-05,
+    "weightFrac_sigmaMajor_lt_1px": 6.882441486260296e-06,
+    "sparkCompensation_w_p10_50_90": [
+     0.9965215874580984,
+     0.9999046450010809,
+     0.9999760759383216
+    ],
+    "meanAccumulatedAlphaPerPixel": 6.236649467022467
+   },
+   "sourceTexture": {
+    "energyPeakWavelengthPx": 10.53,
+    "autocorrHalfWidthPx_xy": [
+     4.0,
+     3.0
+    ]
+   }
+  }
+ }
+}

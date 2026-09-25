@@ -1,0 +1,149 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Room 213 Spark diag</title>
+<style>html,body{margin:0;background:#000}canvas{display:block}</style>
+<script>
+// importmap: the app's own node_modules copy (a ?spark=shfix JS-encoder patch was tried and had no effect: the ext SH
+// encoding happens in Spark's wasm; the SH check re-encodes the slots after load instead, see shfix=1 below)
+{ const shfix = new URLSearchParams(location.search).get("spark") === "shfix";
+  const im = { imports: { "three": "/nm/three/build/three.module.js", "three/addons/": "/nm/three/examples/jsm/",
+    "@sparkjsdev/spark": shfix ? "/p/spark.module.js" : "/nm/@sparkjsdev/spark/dist/spark.module.js" } };
+  const el = document.createElement("script"); el.type = "importmap"; el.textContent = JSON.stringify(im);
+  document.currentScript.after(el); }
+</script>
+</head>
+<body>
+<script type="module">
+// Stage C of the Room 213 detail diagnostic. Reproduces the product viewer
+// (components/digital-twin/splat-viewer-core.tsx + splat-viewer-scene.tsx, used by the client TwinExperience):
+//   WebGLRenderer({ antialias: false, alpha: true }), no tone-mapping chunk in Spark's shaders,
+//   new SparkRenderer({ renderer, enableLod: true, lodSplatCount: DESKTOP_LOD_SPLAT_COUNT = 2_500_000 })  (defaults otherwise)
+//   new SplatMesh({ url, lod: true, enableLod: true, extSplats: true })
+// Differences on purpose: background black (Spirula eval background) instead of #0B0F15; pixel ratio 1 and an exact
+// 1280x720 drawing buffer (no CSS/browser resizing); camera = the exact pinhole (fx=fy=f, cx=640, cy=360).
+// Query overrides (targeted checks only): blur, preblur, lod=0|1, lodcount.
+import * as THREE from "three";
+import { SparkRenderer, SplatMesh } from "@sparkjsdev/spark";
+const qs = new URLSearchParams(location.search);
+const file = qs.get("file"), tag = qs.get("tag");
+const W = Number(qs.get("w") || 1280), H = Number(qs.get("h") || 720);
+const lodOn = qs.get("lod") !== "0";
+const sparkOpts = { enableLod: lodOn, lodSplatCount: Number(qs.get("lodcount") || 2500000) };
+if (qs.has("blur")) sparkOpts.blurAmount = Number(qs.get("blur"));
+if (qs.has("preblur")) sparkOpts.preBlurAmount = Number(qs.get("preblur"));
+const meshOpts = lodOn ? { lod: true, enableLod: true, extSplats: true } : { extSplats: true };
+const renderer = new THREE.WebGLRenderer({ antialias: false, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1); renderer.setSize(W, H); document.body.appendChild(renderer.domElement);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0, 0, 0);
+const camera = new THREE.PerspectiveCamera(50, W / H, 0.01, 1000);
+const spark = new SparkRenderer({ renderer, ...sparkOpts });
+scene.add(spark);
+const t0 = performance.now();
+const mesh = new SplatMesh({ url: file, ...meshOpts });
+scene.add(mesh);
+window.__status = { stage: "loading" };
+await mesh.initialized;
+const loadMs = performance.now() - t0;
+if (qs.get("shfix") === "1") {
+  // Targeted check (render-only decoder correction): Spark 2.1.0 packs each SH coefficient's RGB triplet with a shared
+  // exponent floor(log2(maxAbs)) and 8-bit magnitudes in units of 2^e/255, so the largest channel is clamped to 2^e
+  // (i.e. to 50-100 % of its value). Re-encode the SAME PLY coefficients with exponent floor(log2(maxAbs)) + 1 (no
+  // clamping) into the same ExtSplats slots. LoD must be off so splat order = file order.
+  if (lodOn) throw new Error("shfix needs lod=0");
+  const buf = new Uint8Array(await (await fetch(file)).arrayBuffer());
+  const hdrEnd = new TextDecoder().decode(buf.subarray(0, 8192)).indexOf("end_header\n") + 11;
+  const hdr = new TextDecoder().decode(buf.subarray(0, hdrEnd)).split("\n");
+  const props = hdr.filter((l) => l.startsWith("property")).map((l) => l.split(" ").pop());
+  const nv = Number(hdr.find((l) => l.startsWith("element vertex")).split(" ").pop());
+  const F = new Float32Array(buf.buffer.slice(hdrEnd, hdrEnd + nv * props.length * 4));
+  const np = props.length, r0 = props.indexOf("f_rest_0"), K = 15;
+  const enc = (r, g, b) => {
+    const ar = Math.abs(r), ag = Math.abs(g), ab = Math.abs(b), mx = Math.max(ar, ag, ab);
+    const bb = Math.max(0, Math.min(31, Math.floor(Math.log2(mx)) + 1 + 15));
+    const dv = 2 ** (bb - 15) / 255;
+    const q = (x) => Math.round(Math.max(0, Math.min(255, x / dv)));
+    return (q(ar) | q(ag) << 8 | q(ab) << 16 | ((bb << 3) | (r < 0 ? 1 : 0) | (g < 0 ? 2 : 0) | (b < 0 ? 4 : 0)) << 24) >>> 0;
+  };
+  const ex = mesh.extSplats.extra;
+  if (mesh.extSplats.numSplats !== nv) throw new Error("splat count differs from the PLY");
+  for (let i = 0; i < nv; i++) {
+    const o = i * np + r0, c = (k) => enc(F[o + k], F[o + K + k], F[o + 2 * K + k]);
+    ex.sh1[i * 4] = c(0); ex.sh1[i * 4 + 1] = c(1); ex.sh1[i * 4 + 2] = c(2); ex.sh1[i * 4 + 3] = c(3);
+    ex.sh2[i * 4] = c(4); ex.sh2[i * 4 + 1] = c(5); ex.sh2[i * 4 + 2] = c(6); ex.sh2[i * 4 + 3] = c(7);
+    ex.sh3a[i * 4] = c(8); ex.sh3a[i * 4 + 1] = c(9); ex.sh3a[i * 4 + 2] = c(10); ex.sh3a[i * 4 + 3] = c(11);
+    ex.sh3b[i * 4] = c(12); ex.sh3b[i * 4 + 1] = c(13); ex.sh3b[i * 4 + 2] = c(14);
+  }
+  for (const v of Object.values(mesh.extSplats)) if (v && v.isTexture) v.needsUpdate = true;
+  for (const v of Object.values(mesh.extSplats)) if (Array.isArray(v)) v.forEach((t) => { if (t && t.isTexture) t.needsUpdate = true; });
+}
+const poses = await (await fetch(qs.get("poses"))).json();
+const gl = renderer.getContext();
+const px = new Uint8Array(W * H * 4);
+function hashPixels() {
+  gl.readPixels(0, 0, W, H, gl.RGBA, gl.UNSIGNED_BYTE, px);
+  let h = 2166136261 >>> 0;
+  for (let i = 0; i < px.length; i += 7) { h ^= px[i]; h = Math.imul(h, 16777619) >>> 0; }
+  return h;
+}
+const settings = {};
+for (const k of ["blurAmount", "preBlurAmount", "maxStdDev", "minAlpha", "minPixelRadius", "maxPixelRadius", "clipXY",
+  "focalAdjustment", "falloff", "encodeLinear", "sortRadial", "enableLod", "enableDriveLod", "lodSplatCount",
+  "lodSplatScale", "lodRenderScale", "lodInflate", "enable2DGS", "covSplats", "accumExtSplats", "pagedExtSplats",
+  "minSortIntervalMs", "focalDistance", "apertureAngle", "behindFoveate", "coneFov0", "coneFov", "coneFoveate"]) settings[k] = spark[k];
+settings.premultipliedAlpha = spark.material.premultipliedAlpha;
+settings.toneMapping = renderer.toneMapping; settings.outputColorSpace = renderer.outputColorSpace;
+settings.pixelRatio = renderer.getPixelRatio(); settings.drawingBuffer = [gl.drawingBufferWidth, gl.drawingBufferHeight];
+const info = { loadMs, settings, meshNumSh: mesh.getNumSh ? mesh.getNumSh() : null,
+  extNumSplats: mesh.extSplats ? mesh.extSplats.numSplats : null,
+  packedNumSplats: mesh.packedSplats ? mesh.packedSplats.numSplats : null,
+  lodNumSplats: mesh.extSplats && mesh.extSplats.lodSplats ? mesh.extSplats.lodSplats.numSplats : null,
+  extraKeys: mesh.extSplats ? Object.keys(mesh.extSplats.extra || {}) : null, frames: [] };
+{
+  const src = (mesh.extSplats && mesh.extSplats.lodSplats) || mesh.extSplats || mesh.packedSplats;
+  info.renderSource = src === mesh.extSplats ? "extSplats" : (src === mesh.packedSplats ? "packedSplats" : "extSplats.lodSplats");
+  info.renderSourceNumSplats = src ? src.numSplats : null;
+  info.renderSourceNumSh = src && src.getNumSh ? src.getNumSh() : null;
+  info.renderSourceExtra = src ? Object.fromEntries(Object.entries(src.extra || {}).map(([k, v]) =>
+    [k, v && v.constructor ? `${v.constructor.name}[${v.length}]` : typeof v])) : null;
+  if (qs.get("decode") === "1" && src && src.forEachSplat) {
+    // Spark's own decoded values for the first 4096 splats (order = file order when LoD is off)
+    const dec = [];
+    src.forEachSplat((i, c, s, q, o, col) => { if (i < 4096) dec.push([c.x, c.y, c.z, s.x, s.y, s.z, q.x, q.y, q.z, q.w, o, col.r, col.g, col.b]); });
+    const ex = {};
+    for (const [k, v] of Object.entries(src.extra || {})) if (v && v.length) ex[k] = Array.from(v.slice(0, 4096 * 16));
+    await fetch(`/save?name=${tag}__decoded.json`, { method: "POST", body: JSON.stringify({ dec, extra: ex }) });
+  }
+}
+window.__status = { stage: "rendering", loadMs, n: poses.length, done: 0 };
+for (const p of poses) {
+  const R = p.c2w_R, C = p.C, f = p.f;
+  camera.fov = 2 * Math.atan(H / 2 / f) * 180 / Math.PI; camera.aspect = W / H; camera.updateProjectionMatrix();
+  // OpenCV c2w -> three camera (y up, looks down -z): M = [R_c2w | C] * diag(1,-1,-1)
+  const m = new THREE.Matrix4().set(R[0][0], R[0][1], R[0][2], C[0], R[1][0], R[1][1], R[1][2], C[1],
+    R[2][0], R[2][1], R[2][2], C[2], 0, 0, 0, 1).multiply(new THREE.Matrix4().makeScale(1, -1, -1));
+  camera.matrixAutoUpdate = false; camera.matrix.copy(m); camera.matrixWorld.copy(m);
+  camera.matrixWorldInverse.copy(m).invert();
+  // Wait for load, LoD traversal and the async sort to settle: identical frame hash 6 times in a row
+  // (min 30 frames, max 400), with sort/LoD flags idle.
+  let last = -1, same = 0, i = 0;
+  for (; i < 400; i++) {
+    renderer.render(scene, camera);
+    await new Promise((r) => setTimeout(r, 30));
+    const h = hashPixels();
+    same = (h === last && !spark.sorting && !spark.sortDirty && !spark.lodDirty) ? same + 1 : 0; last = h;
+    if (i >= 30 && same >= 6) break;
+  }
+  const blob = await new Promise((r) => renderer.domElement.toBlob(r, "image/png"));
+  await fetch(`/save?name=${tag}__${p.name}.png`, { method: "POST", body: blob });
+  info.frames.push({ name: p.name, settleFrames: i, activeSplats: spark.activeSplats, maxSplats: spark.maxSplats,
+    displayNumSplats: spark.display ? spark.display.numSplats : null });
+  window.__status.done++;
+}
+info.totalMs = performance.now() - t0;
+await fetch(`/save?name=${tag}__info.json`, { method: "POST", body: JSON.stringify(info, null, 1) });
+window.__status.stage = "done";
+</script>
+</body>
+</html>

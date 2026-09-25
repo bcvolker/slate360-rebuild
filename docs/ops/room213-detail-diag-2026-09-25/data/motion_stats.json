@@ -1,0 +1,44 @@
+{
+ "roiF640": [
+  600,
+  400,
+  750,
+  530
+ ],
+ "golden_A_spirula": {
+  "frames": 25,
+  "shimmer2ndDiffOverStd": 0.1394,
+  "frameDiffOverStd": 0.1888,
+  "meanFineStd": 4.222
+ },
+ "golden_C_spark": {
+  "frames": 25,
+  "shimmer2ndDiffOverStd": 0.6528,
+  "frameDiffOverStd": 0.4196,
+  "meanFineStd": 2.889
+ },
+ "golden_Cfilt_spark": {
+  "frames": 25,
+  "shimmer2ndDiffOverStd": 0.5643,
+  "frameDiffOverStd": 0.3733,
+  "meanFineStd": 3.372
+ },
+ "edge_A_spirula": {
+  "frames": 25,
+  "shimmer2ndDiffOverStd": 0.154,
+  "frameDiffOverStd": 0.2046,
+  "meanFineStd": 4.23
+ },
+ "edge_C_spark": {
+  "frames": 25,
+  "shimmer2ndDiffOverStd": 0.7013,
+  "frameDiffOverStd": 0.4485,
+  "meanFineStd": 2.777
+ },
+ "edge_Cfilt_spark": {
+  "frames": 25,
+  "shimmer2ndDiffOverStd": 0.5925,
+  "frameDiffOverStd": 0.3915,
+  "meanFineStd": 3.34
+ }
+}

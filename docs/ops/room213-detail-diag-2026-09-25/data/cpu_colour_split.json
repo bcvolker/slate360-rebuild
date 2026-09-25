@@ -1,0 +1,86 @@
+{
+ "golden/carpet_a0_indep_f640": {
+  "splatColourOutside01_frac": 0.6383063710804873,
+  "splatColourAbove1_frac": 0.6191332135010985,
+  "splatColourBelow0_frac": 0.021370081885360496,
+  "none": {
+   "fineCoherentGain": 0.577,
+   "meanLumaMinusRef": 1.96
+  },
+  "colourClamp01": {
+   "fineCoherentGain": 0.427,
+   "meanLumaMinusRef": -4.46
+  },
+  "colour8bitNoClamp": {
+   "fineCoherentGain": 0.576,
+   "meanLumaMinusRef": 1.93
+  },
+  "alphaHalf8bit": {
+   "fineCoherentGain": 0.576,
+   "meanLumaMinusRef": 2.12
+  }
+ },
+ "golden/carpet_a0_fixed_f640": {
+  "splatColourOutside01_frac": 0.6176413444725083,
+  "splatColourAbove1_frac": 0.5982125510005829,
+  "splatColourBelow0_frac": 0.020594521080240916,
+  "none": {
+   "fineCoherentGain": 0.396,
+   "meanLumaMinusRef": -3.12
+  },
+  "colourClamp01": {
+   "fineCoherentGain": 0.335,
+   "meanLumaMinusRef": -6.27
+  },
+  "colour8bitNoClamp": {
+   "fineCoherentGain": 0.395,
+   "meanLumaMinusRef": -3.12
+  },
+  "alphaHalf8bit": {
+   "fineCoherentGain": 0.396,
+   "meanLumaMinusRef": -3.15
+  }
+ },
+ "edge/carpet_a0_indep_f640": {
+  "splatColourOutside01_frac": 0.6650573972749705,
+  "splatColourAbove1_frac": 0.6516468190108358,
+  "splatColourBelow0_frac": 0.01501984765583092,
+  "none": {
+   "fineCoherentGain": 0.582,
+   "meanLumaMinusRef": 1.36
+  },
+  "colourClamp01": {
+   "fineCoherentGain": 0.402,
+   "meanLumaMinusRef": -4.29
+  },
+  "colour8bitNoClamp": {
+   "fineCoherentGain": 0.584,
+   "meanLumaMinusRef": 1.33
+  },
+  "alphaHalf8bit": {
+   "fineCoherentGain": 0.581,
+   "meanLumaMinusRef": 1.4
+  }
+ },
+ "edge/carpet_a0_fixed_f640": {
+  "splatColourOutside01_frac": 0.6231647634584013,
+  "splatColourAbove1_frac": 0.6098175886104108,
+  "splatColourBelow0_frac": 0.01453359039003411,
+  "none": {
+   "fineCoherentGain": 0.439,
+   "meanLumaMinusRef": -2.74
+  },
+  "colourClamp01": {
+   "fineCoherentGain": 0.358,
+   "meanLumaMinusRef": -6.35
+  },
+  "colour8bitNoClamp": {
+   "fineCoherentGain": 0.439,
+   "meanLumaMinusRef": -2.69
+  },
+  "alphaHalf8bit": {
+   "fineCoherentGain": 0.44,
+   "meanLumaMinusRef": -2.75
+  }
+ }
+}

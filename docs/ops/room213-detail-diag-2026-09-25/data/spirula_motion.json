@@ -1,0 +1,2029 @@
+{
+ "build": "fd1afca1c47f89c98c8e64929f1c73b82571e5f3+resume-nsh-2f6a873bb639",
+ "binarySha256": "dce42548527bbacf266bb3c4f9447afa5681d8d6179c7d2c9f149b67d77bd8aa",
+ "gpu": "NVIDIA L40S, 46068 MiB",
+ "dataset": {
+  "evalOrder": [
+   "motion_a0indep_f640_k00",
+   "motion_a0indep_f640_k01",
+   "motion_a0indep_f640_k02",
+   "motion_a0indep_f640_k03",
+   "motion_a0indep_f640_k04",
+   "motion_a0indep_f640_k05",
+   "motion_a0indep_f640_k06",
+   "motion_a0indep_f640_k07",
+   "motion_a0indep_f640_k08",
+   "motion_a0indep_f640_k09",
+   "motion_a0indep_f640_k10",
+   "motion_a0indep_f640_k11",
+   "motion_a0indep_f640_k12",
+   "motion_a0indep_f640_k13",
+   "motion_a0indep_f640_k14",
+   "motion_a0indep_f640_k15",
+   "motion_a0indep_f640_k16",
+   "motion_a0indep_f640_k17",
+   "motion_a0indep_f640_k18",
+   "motion_a0indep_f640_k19",
+   "motion_a0indep_f640_k20",
+   "motion_a0indep_f640_k21",
+   "motion_a0indep_f640_k22",
+   "motion_a0indep_f640_k23",
+   "motion_a0indep_f640_k24"
+  ],
+  "imagesTxt": "37 0.9509350000014167 0.29565080084779216 0.0881446775146266 -0.023318352347608255 3.7954899392675205 0.21935475088692769 -0.9747849312916956 1 camera1/frame_00036_train.png\n\n226 0.940135831279351 -0.15760780830885085 -0.28798112094128187 0.09149465277362974 3.215468256152472 1.2181828118322955 2.347363547821452 2 camera2/frame_00104_train.png\n\n1000 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.1617351669011398 0.5073853042396677 -2.291785683151149 3 diag/v000_motion_a0indep_f640_k00_eval.png\n\n1001 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.160384545615348 0.5073853042396677 -2.291785683151149 3 diag/v001_motion_a0indep_f640_k01_eval.png\n\n1002 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.159033924329557 0.5073853042396675 -2.291785683151149 3 diag/v002_motion_a0indep_f640_k02_eval.png\n\n1003 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.157683303043766 0.5073853042396677 -2.2917856831511494 3 diag/v003_motion_a0indep_f640_k03_eval.png\n\n1004 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.1563326817579744 0.5073853042396677 -2.291785683151149 3 diag/v004_motion_a0indep_f640_k04_eval.png\n\n1005 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.154982060472183 0.5073853042396677 -2.291785683151149 3 diag/v005_motion_a0indep_f640_k05_eval.png\n\n1006 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.153631439186391 0.5073853042396677 -2.291785683151149 3 diag/v006_motion_a0indep_f640_k06_eval.png\n\n1007 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.1522808179006 0.5073853042396677 -2.2917856831511494 3 diag/v007_motion_a0indep_f640_k07_eval.png\n\n1008 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.150930196614808 0.5073853042396677 -2.291785683151149 3 diag/v008_motion_a0indep_f640_k08_eval.png\n\n1009 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.149579575329017 0.5073853042396677 -2.291785683151149 3 diag/v009_motion_a0indep_f640_k09_eval.png\n\n1010 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.1482289540432253 0.5073853042396677 -2.291785683151149 3 diag/v010_motion_a0indep_f640_k10_eval.png\n\n1011 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.146878332757434 0.5073853042396677 -2.291785683151149 3 diag/v011_motion_a0indep_f640_k11_eval.png\n\n1012 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.1455277114716425 0.5073853042396677 -2.2917856831511494 3 diag/v012_motion_a0indep_f640_k12_eval.png\n\n1013 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.1441770901858512 0.5073853042396677 -2.291785683151149 3 diag/v013_motion_a0indep_f640_k13_eval.png\n\n1014 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.1428264689000596 0.5073853042396677 -2.291785683151149 3 diag/v014_motion_a0indep_f640_k14_eval.png\n\n1015 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.1414758476142683 0.5073853042396677 -2.2917856831511494 3 diag/v015_motion_a0indep_f640_k15_eval.png\n\n1016 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.1401252263284767 0.5073853042396677 -2.291785683151149 3 diag/v016_motion_a0indep_f640_k16_eval.png\n\n1017 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.138774605042685 0.5073853042396677 -2.291785683151149 3 diag/v017_motion_a0indep_f640_k17_eval.png\n\n1018 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.1374239837568934 0.5073853042396677 -2.291785683151149 3 diag/v018_motion_a0indep_f640_k18_eval.png\n\n1019 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.1360733624711026 0.5073853042396677 -2.2917856831511494 3 diag/v019_motion_a0indep_f640_k19_eval.png\n\n1020 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.1347227411853114 0.5073853042396677 -2.291785683151149 3 diag/v020_motion_a0indep_f640_k20_eval.png\n\n1021 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.1333721198995192 0.5073853042396677 -2.291785683151149 3 diag/v021_motion_a0indep_f640_k21_eval.png\n\n1022 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.132021498613728 0.5073853042396677 -2.291785683151149 3 diag/v022_motion_a0indep_f640_k22_eval.png\n\n1023 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.1306708773279364 0.5073853042396677 -2.2917856831511494 3 diag/v023_motion_a0indep_f640_k23_eval.png\n\n1024 0.8966513874532845 0.3419730231372421 0.27406543098302394 -0.06291963417379716 3.1293202560421447 0.5073853042396677 -2.291785683151149 3 diag/v024_motion_a0indep_f640_k24_eval.png\n\n",
+  "camerasTxt": "1 OPENCV_FISHEYE 3840 3840 1078.8686209519187 1080.5500866347165 1920.0 1920.0 0.07994262258409293 -0.02762373829789928 0.010194086079569318 -0.0026981533423785804\n2 OPENCV_FISHEYE 3840 3840 1067.2557569033272 1069.3964814531253 1920.0 1920.0 0.08176174338210515 -0.03171358071935591 0.012065858788226257 -0.002846308921897194\n3 PINHOLE 1280 720 640.0 640.0 640.0 360.0\n4 PINHOLE 1280 720 1280.0 1280.0 640.0 360.0\n"
+ },
+ "runs": {
+  "golden_A": {
+   "cmd": [
+    "/opt/spirula/bin/spirula",
+    "train",
+    "3dgs",
+    "--data",
+    "/tmp/dd/dataset",
+    "--data-format",
+    "colmap",
+    "--image-dir",
+    "images",
+    "--mask-dir",
+    "masks",
+    "--load-masks",
+    "1",
+    "--eval-mode",
+    "filename",
+    "--warp-to-pinhole",
+    "0",
+    "--train-resolution-divisor",
+    "1",
+    "--primitive",
+    "3dgut",
+    "--cap-max",
+    "1000000",
+    "--num-iterations",
+    "30000",
+    "--use-bilateral-grid",
+    "0",
+    "--use-bilateral-grid-for-geometry",
+    "0",
+    "--use-ppisp",
+    "0",
+    "--load-depths",
+    "0",
+    "--load-normals",
+    "0",
+    "--normal-supervision-weight",
+    "0",
+    "--depth-supervision-weight",
+    "0",
+    "--steps-per-save",
+    "5000",
+    "--save-only-latest-checkpoint",
+    "0",
+    "--save-full-checkpoint",
+    "1",
+    "--save-eval-images",
+    "1",
+    "--disable-viewer",
+    "1",
+    "--keep-viewer-alive",
+    "0",
+    "--densify-loss-map-mode",
+    "ssim_cs",
+    "--output-dir-prefix",
+    "/tmp/dd/golden",
+    "--output-dir-name",
+    "golden_A",
+    "--resume",
+    "/tmp/dd/golden/src/step-000030000.ckpt"
+   ],
+   "exit": -11,
+   "wallS": 3.8,
+   "trainedStepLines": 0,
+   "resumedLine": [
+    "Resumed from /tmp/dd/golden/src/step-000030000.ckpt at step 30000"
+   ],
+   "adapted": false,
+   "seedOrPlyLines": [
+    "Cameras: 2 (2 after splitting), seed points: 56674 (train_frame_scale=0.4992)"
+   ],
+   "evalWritten": true,
+   "logTail": "Resuming from: /tmp/dd/golden/src/step-000030000.ckpt\nDevices:\n  * [0] NVIDIA L40S (discrete, 45457 MB)\nCameras: 2 (2 after splitting), seed points: 56674 (train_frame_scale=0.4992)\nOutput directory: /tmp/dd/golden/golden_A\nResumed from /tmp/dd/golden/src/step-000030000.ckpt at step 30000\nCheckpoint saved to: /tmp/dd/golden/golden_A\nTraining complete. Steps: -30000   Time: 00:00:00.000\nEval: views to score: 25\n  cc_l1: 0.030612\n  cc_psnr: inf\n  cc_ssim: 0.960007\n  l1: 0.355703\n  psnr: 9.658901\n  ssim: 0.585347\nEval metrics written to /tmp/dd/golden/golden_A/metrics.json\n\n=== Spirula Studio crash report ===\ntime:    2026-09-25T08:42:07Z\nversion: 2026.9.20 (fd1afca-dirty)\nbuild:   Jan  1 2022 05:00:00\npid:     88\ndoing:   /opt/spirula/bin/spirula train\ncause:   SIGSEGV at 0x5649338bf6e9\nstack:\n  #0 spirula+0x1636c6\n  #1 spirula+0x1645ff\n  #2 libc.so.6+0x42520\n  #3 spirula+0x27b3b6\n  #4 libc.so.6+0x45495\n  #5 libc.so.6+0x45610  on_exit\n  #6 libc.so.6+0x29d97\n  #7 libc.so.6+0x29e40  __libc_start_main\n  #8 spirula+0x13f9a5\nResolve a frame with: addr2line -f -C -e <module> <offset>\n  (Windows: the offset is an RVA; open it against the matching .pdb)\n",
+   "sceneTransform": {
+    "format": "spirula-scene-transform",
+    "version": 1,
+    "readme": [
+     "p_train = train_from_world.scale * train_from_world.rotation.matrix_3x3 @ p_world + train_from_world.translation, for a column vector p.",
+     "train_from_world is the ACTIVE transform taking a point of the dataset's own frame (world) into the frame the splats were trained in (train); read passively, it gives a fixed point's train coordinates from its world coordinates. world_from_train is its inverse.",
+     "matrix_4x4 acts on column vectors [x, y, z, 1]. matrix_4x4_flat_row_major lists it row by row; matrix_4x4_flat_column_major column by column, which is also the row-major layout of its transpose, the matrix that acts on row vectors [x, y, z, 1] @ M^T.",
+     "rotation.matrix_3x3 acts on column vectors. quaternion_wxyz is (w, x, y, z) and quaternion_xyzw is (x, y, z, w), the same unit quaternion. axis_angle is a unit axis with a right-handed angle; rotation_vector is axis * angle_rad.",
+     "euler.intrinsic.abc = [a1, a2, a3] means R = R_a(a1) @ R_b(a2) @ R_c(a3): rotate about the body axis a, then the new b, then the new c. euler.extrinsic.abc = [a1, a2, a3] means R = R_c(a3) @ R_b(a2) @ R_a(a1): rotate about the fixed axis a, then b, then c. So extrinsic.xyz = [roll about X, pitch about Y, yaw about Z] applied in that order, and intrinsic.zyx = [yaw, pitch, roll]. Every entry is given in radians and in degrees.",
+     "translation is applied AFTER the rotation and scale (p_out = s R p + t). translation_before_rotation is the equivalent shift applied first (p_out = s R (p + t_pre)); for train_from_world it is minus centering.center_world."
+    ],
+    "centering": {
+     "mode": "none",
+     "center_world": [
+      0,
+      0,
+      0
+     ]
+    },
+    "train_from_world": {
+     "scale": 1,
+     "translation": [
+      0,
+      0,
+      0
+     ],
+     "translation_before_rotation": [
+      0,
+      0,
+      0
+     ],
+     "rotation": {
+      "matrix_3x3": [
+       [
+        1,
+        0,
+        0
+       ],
+       [
+        0,
+        1,
+        0
+       ],
+       [
+        0,
+        0,
+        1
+       ]
+      ],
+      "matrix_3x3_flat_row_major": [
+       1,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       1
+      ],
+      "matrix_3x3_flat_column_major": [
+       1,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       1
+      ],
+      "quaternion_wxyz": [
+       1,
+       0,
+       0,
+       0
+      ],
+      "quaternion_xyzw": [
+       0,
+       0,
+       0,
+       1
+      ],
+      "axis_angle": {
+       "axis": [
+        0,
+        0,
+        1
+       ],
+       "angle_rad": 0,
+       "angle_deg": 0
+      },
+      "rotation_vector": [
+       0,
+       0,
+       0
+      ],
+      "euler": {
+       "intrinsic": {
+        "xyz": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "xzy": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "yxz": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "yzx": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "zxy": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "zyx": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        }
+       },
+       "extrinsic": {
+        "xyz": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "xzy": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "yxz": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "yzx": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "zxy": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "zyx": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        }
+       }
+      }
+     },
+     "matrix_4x4": [
+      [
+       1,
+       0,
+       0,
+       0
+      ],
+      [
+       0,
+       1,
+       0,
+       0
+      ],
+      [
+       0,
+       0,
+       1,
+       0
+      ],
+      [
+       0,
+       0,
+       0,
+       1
+      ]
+     ],
+     "matrix_4x4_flat_row_major": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
+     ],
+     "matrix_4x4_flat_column_major": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
+     ],
+     "matrix_3x4_flat_row_major": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0
+     ]
+    },
+    "world_from_train": {
+     "scale": 1,
+     "translation": [
+      0,
+      0,
+      0
+     ],
+     "translation_before_rotation": [
+      0,
+      0,
+      0
+     ],
+     "rotation": {
+      "matrix_3x3": [
+       [
+        1,
+        0,
+        0
+       ],
+       [
+        0,
+        1,
+        0
+       ],
+       [
+        0,
+        0,
+        1
+       ]
+      ],
+      "matrix_3x3_flat_row_major": [
+       1,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       1
+      ],
+      "matrix_3x3_flat_column_major": [
+       1,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       1
+      ],
+      "quaternion_wxyz": [
+       1,
+       0,
+       0,
+       0
+      ],
+      "quaternion_xyzw": [
+       0,
+       0,
+       0,
+       1
+      ],
+      "axis_angle": {
+       "axis": [
+        0,
+        0,
+        1
+       ],
+       "angle_rad": 0,
+       "angle_deg": 0
+      },
+      "rotation_vector": [
+       0,
+       0,
+       0
+      ],
+      "euler": {
+       "intrinsic": {
+        "xyz": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "xzy": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "yxz": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "yzx": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "zxy": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "zyx": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        }
+       },
+       "extrinsic": {
+        "xyz": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "xzy": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "yxz": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "yzx": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "zxy": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "zyx": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        }
+       }
+      }
+     },
+     "matrix_4x4": [
+      [
+       1,
+       0,
+       0,
+       0
+      ],
+      [
+       0,
+       1,
+       0,
+       0
+      ],
+      [
+       0,
+       0,
+       1,
+       0
+      ],
+      [
+       0,
+       0,
+       0,
+       1
+      ]
+     ],
+     "matrix_4x4_flat_row_major": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
+     ],
+     "matrix_4x4_flat_column_major": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
+     ],
+     "matrix_3x4_flat_row_major": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0
+     ]
+    }
+   },
+   "resolvedConfig": {
+    "preset": "3dgs",
+    "data": "/tmp/dd/dataset",
+    "resume": "/tmp/dd/golden/src/step-000030000.ckpt",
+    "output_dir_prefix": "/tmp/dd/golden",
+    "output_dir_name": "golden_A",
+    "num_iterations": 30000,
+    "steps_per_save": 5000,
+    "save_only_latest_checkpoint": false,
+    "save_full_checkpoint": true,
+    "save_eval_images": true,
+    "viewer_port": 7007,
+    "disable_viewer": true,
+    "keep_viewer_alive": false,
+    "data_format": "colmap",
+    "image_dir": "images",
+    "mask_dir": "masks",
+    "load_masks": true,
+    "apply_loss_for_mask": false,
+    "flip_mask": false,
+    "mask_boundary_offset": 0,
+    "depth_dir": "depths",
+    "normal_dir": "normals",
+    "load_depths": false,
+    "load_normals": false,
+    "depth_unit_scale_factor": 0.001,
+    "colmap_recon_dir": null,
+    "metashape_xml": null,
+    "metashape_ply": null,
+    "metashape_psx": null,
+    "init_ply": null,
+    "init_ply_add_points": false,
+    "train_resolution_divisor": 1,
+    "downscale_rounding_mode": "floor",
+    "eval_mode": "filename",
+    "eval_interval": 8,
+    "train_split_fraction": 0.9,
+    "validation_fraction": 0,
+    "warp_to_pinhole": false,
+    "warp_spherical_to_pinhole": true,
+    "warp_face_fit": "uniform",
+    "warp_back_face": false,
+    "deblur_training_images": false,
+    "exif_orientation": "orient",
+    "orientation_method": "up",
+    "center_method": "poses",
+    "auto_scale_poses": true,
+    "outlier_threshold": Infinity,
+    "scene_center": "none",
+    "relative_scale": null,
+    "train_frame": "points",
+    "primitive": "3dgut",
+    "sh_degree": 3,
+    "sh_degree_warmup_every": 1000,
+    "background_mode": "color",
+    "background_color": [
+     0,
+     0,
+     0
+    ],
+    "background_sh_degree": 4,
+    "background_noise_warmup": 2000,
+    "background_noise_pre_warmup": 0.25,
+    "background_match_luminance": false,
+    "scale_init": null,
+    "opacity_init": null,
+    "suppress_initial_scales": false,
+    "random_init": "auto",
+    "random_init_fraction": 0.1,
+    "random_init_distribution": "isotropic-gaussian",
+    "random_init_center": "camera-median",
+    "random_init_spread": "median",
+    "random_init_std": 1,
+    "use_camera_optimizer": false,
+    "quality": "medium",
+    "cap_max": 1000000,
+    "distraction_robustness": "off",
+    "min_init_fraction": 0,
+    "growth_factor": 1.05,
+    "min_opacity": 0.005,
+    "refine_every": 100,
+    "refine_start_iter": 500,
+    "refine_stop_num_iter": 2500,
+    "refine_stop_iter": 14000,
+    "noise_lr": 80,
+    "noise_lr_final": 0.8,
+    "use_revised_densification": true,
+    "densify_score_mode": "mean",
+    "densify_score_blend_world_grad": 0,
+    "densify_loss_map_mode": "ssim_cs",
+    "densify_robust_edge_aware_quantile": 0.9,
+    "densify_nms_falloff": 0.5,
+    "densify_loss_map_normalize": false,
+    "densify_loss_map_clip_quantile": 1,
+    "densify_loss_map_power": 4,
+    "densify_accum_mode": "avg",
+    "densify_score_power": 0.4,
+    "densify_score_clip_quantile": 1,
+    "densify_final_score_power": 1,
+    "densify_oversize_split_fraction": 0.15,
+    "densify_oversize_score_blend": 1,
+    "use_long_axis_split": true,
+    "long_axis_split_opacity_k": [
+     0.5,
+     0.6,
+     15000
+    ],
+    "max_screen_size": 0.3,
+    "max_screen_size_clip_hardness": 1.5,
+    "max_screen_size_penalty": 1,
+    "max_world_size": Infinity,
+    "ssim_lambda": 0.2,
+    "l1_weight": 1,
+    "l2_weight": 0,
+    "l1_weight_y": 0,
+    "l2_weight_y": 0,
+    "l2_weight_u": 0,
+    "l2_weight_v": 0,
+    "loss_scale_min_pixels": 1920,
+    "num_loss_scales": 0,
+    "alpha_loss_weight": 0.1,
+    "alpha_loss_weight_under": 0,
+    "loss_saturation_threshold": -1,
+    "loss_luminance_normalization": 0,
+    "floater_suppression": "off",
+    "depth_distortion_reg": 0,
+    "normal_distortion_reg": 0,
+    "rgb_distortion_reg": 0,
+    "distortion_reg_warmup": 6000,
+    "normal_reg_weight": 0.04,
+    "normal_reg_warmup": 6000,
+    "alpha_reg_weight": 0,
+    "alpha_reg_warmup": 12000,
+    "reg_warmup_length": 0,
+    "depth_supervision_weight": 0,
+    "normal_supervision_weight": 0,
+    "input_depth_is_ray_depth": null,
+    "supervision_warmup": 0,
+    "mean_median_depth_weight": 0,
+    "median_depth_normal_reg_weight": 0,
+    "median_normal_supervision_weight": 0,
+    "median_render_normal_reg_weight": 0,
+    "median_warmup": 6000,
+    "opacity_reg": 0.005,
+    "scale_reg": 0.01,
+    "opacity_reg_decay_power": 1,
+    "scale_reg_decay_power": 0.4,
+    "opacity_decay": 0,
+    "scale_decay": 0,
+    "erank_reg": 0.001,
+    "erank_reg_s3": 0,
+    "scale_regularization_weight": 0,
+    "max_gauss_ratio": 10,
+    "dc_reg": 0.001,
+    "sh_reg": 0.001,
+    "overexposure_reg": 0,
+    "quat_norm_reg": 0.01,
+    "use_bilateral_grid": false,
+    "bilagrid_type": "ppisp",
+    "bilagrid_shape": [
+     16,
+     16,
+     8
+    ],
+    "bilagrid_tv_loss_weight": 10,
+    "color_shift_reg_weight": 0,
+    "color_shift_reg_ema_period": 750,
+    "use_bilateral_grid_for_geometry": false,
+    "bilagrid_shape_geometry": [
+     8,
+     8,
+     4
+    ],
+    "bilagrid_tv_loss_weight_geometry": 10,
+    "use_adagrad_bilagrid_optim": true,
+    "use_ppisp": false,
+    "ppisp_param_type": "no_crf_no_vig",
+    "ppisp_exposure_from_exif": false,
+    "ppisp_exposure_arithmetic_mean": true,
+    "apply_ppisp_before_bilagrid": true,
+    "apply_ppisp_before_color_space": false,
+    "use_adagrad_ppisp_optim": true,
+    "ppisp_reg_exposure_mean": 1,
+    "ppisp_reg_color_mean": 1,
+    "ppisp_reg_vig_center": 0.02,
+    "ppisp_reg_vig_non_pos": 0.01,
+    "ppisp_reg_vig_channel_var": 0.1,
+    "ppisp_reg_crf_channel_var": 0.1,
+    "bilagrid_adagrad_lr": 0.04,
+    "bilagrid_adagrad_depth_lr": 0.04,
+    "bilagrid_adagrad_normal_lr": 0.01,
+    "ppisp_adagrad_lr": 0.1,
+    "bilagrid_lr": 0.002,
+    "bilagrid_lr_final": 0.0001,
+    "bilagrid_lr_warmup": 1000,
+    "bilagrid_depth_lr": 0.002,
+    "bilagrid_depth_lr_final": 0.0001,
+    "bilagrid_depth_lr_warmup": 2000,
+    "bilagrid_normal_lr": 0.0005,
+    "bilagrid_normal_lr_final": 4e-05,
+    "bilagrid_normal_lr_warmup": 2000,
+    "ppisp_lr": 0.002,
+    "ppisp_lr_final": 2e-05,
+    "ppisp_lr_warmup": 500,
+    "image_color_is_linear": null,
+    "image_color_transfer": null,
+    "image_color_gamut": null,
+    "splat_color_is_linear": null,
+    "splat_color_transfer": null,
+    "splat_color_gamut": null,
+    "convert_initial_point_cloud_color": null,
+    "cache_images": "disk",
+    "max_batch_per_epoch": 800,
+    "split_batch": true,
+    "use_fused_proj_bwd_optim": true,
+    "packed": true,
+    "quantization_level": 1,
+    "bin_tile_size": 0,
+    "preallocate_splat_tensors": true,
+    "optimizer_offload": null,
+    "use_bvh": false,
+    "means_lr": 0.000128,
+    "means_lr_final": 1.6e-06,
+    "scales_lr": 0.02,
+    "scales_lr_final": 0.005,
+    "quats_lr": 0.0015,
+    "opacities_lr": 0.025,
+    "features_dc_lr": 0.005,
+    "features_sh_lr": 0.00025,
+    "background_dc_lr": 0.0025,
+    "background_sh_lr": 0.0005,
+    "max_steps": null,
+    "use_scale_agnostic_mean": true,
+    "use_per_splat_bias_correction": true
+   },
+   "uploaded": {
+    "eval-gt-00000.png": "f889cde1663294b065497fe96917f1b2e43f5678cc83e5667edf63e47965ee07",
+    "eval-gt-00001.png": "4a244b1eaa2a29597cba215df3c4b7f72c3324f83cf7d1a35c453b0fffc7a8c2",
+    "eval-gt-00002.png": "6363cde7da36d3baa417ac47be6bbad66ddc44dc2939301c2318c8b4d901f521",
+    "eval-gt-00003.png": "9018e84278e53781742d96b3c6f7d9bd720cba237d916026b5cb91755d2e18c1",
+    "eval-gt-00004.png": "2179b9cbe87cfd8992a4443309d17e104e2a42c4ece353cb915919956a41ef75",
+    "eval-gt-00005.png": "0fe06bdaf1eedf486e1461eccfe794f18d4f9432fb0efd213649d5356e539038",
+    "eval-gt-00006.png": "81878a34f19fc8e02e8c01841f4c31a49cf646f22c24d18b017da7a9fb46d9f6",
+    "eval-gt-00007.png": "b68016198327e1031ed34a409eaf3faef208ad89cac7f42b11ddadcfefd37226",
+    "eval-gt-00008.png": "84ec08d65f9fee7b91bf2e8029174d8a665f372fe69b04da5f0c532bafaaf3a8",
+    "eval-gt-00009.png": "19c3066dec670463f6bae3b0ee4a4b6674b2a0c775fc47f87d19f70bfffca394",
+    "eval-gt-00010.png": "95bc66a119c881003edb9983abaed15bae1ffdcb5ec1b9e1bcc83213ab114c0e",
+    "eval-gt-00011.png": "1431a9a60a55c9d2a2341293b15331652b9194643beecd5d1e156cf385ee73d8",
+    "eval-gt-00012.png": "6fa092391ef69bb84ad1b61fe0a4a7232a1c88f34d1015fa289c26f1142b8fbc",
+    "eval-gt-00013.png": "4220ae0f675be96124d8a7ba7395f852a0e11303a44b08c58d6926115fd28a89",
+    "eval-gt-00014.png": "905c48b5e543f58fa9811d3e96c909bd633c7ee092a097ffd3639cde639b8e23",
+    "eval-gt-00015.png": "6ff6b21fe20d41d852f4e4bccba38037e122073328b4961ecfffb3ccf89173ab",
+    "eval-gt-00016.png": "087806efbfc032618a0321b4de41e568de993f2c0aee66bf677fc7f8b71b5062",
+    "eval-gt-00017.png": "dfb243341da59579980808c5a0cf64a40c544f34204857a2721fb3d7c5b459f4",
+    "eval-gt-00018.png": "c2917da6ec97a696cc3586c08187a1d81eb006f3855abeeaf28c28f4c8d4df1b",
+    "eval-gt-00019.png": "82413b16b4f7549d3bfd61ad22fab412583814bdf78bf533670b9f6190b8345e",
+    "eval-gt-00020.png": "f0fd6f2101ea044f6177499c6ea526813e3b52a0f21ae4370dab239a25867b64",
+    "eval-gt-00021.png": "d7026c750ed988f9f15ff2ecdeb1ef53bba0ac8cbe5d4d354ff1dc769c9cceff",
+    "eval-gt-00022.png": "ea389f267f2f4d7e99cf885d8d5b21dd9342a56276541c519f7621eacffe1919",
+    "eval-gt-00023.png": "02c64d71451d76fbe93e54d74f246b5dee4c20108a1959392193840f6c2769b7",
+    "eval-gt-00024.png": "016033a69d07c610127446dab816d9a03612a345d286609155491027af341330",
+    "eval-render-00000.png": "ab38b28dc2f9aaaf818f2447a293914d544ae4a4a16ee1a7c8aa40b596e66f4a",
+    "eval-render-00001.png": "9f4577d6bf4b13ee7a36d0790e179de51b7ac17974c57d331019474b8cbf694a",
+    "eval-render-00002.png": "38e8c7272d85ea5654bb4600122fbe28eeb65b9b6dc52079860eb8e5fb657c07",
+    "eval-render-00003.png": "1d6f7c1488463acd96d0bfabf3009b81a7fca2cdaa2e9b3fcb7f84fce8278d15",
+    "eval-render-00004.png": "70a4ef7381643b753f2a7272a7953fa23056c210dd3c1354cecc551eec38fe88",
+    "eval-render-00005.png": "dfaddf63f7ea9c1a9596a90971842786f8d2ea2fe760a7aa9f4bbff0dc3c84f7",
+    "eval-render-00006.png": "11c039d4a4fd15b8e2970506b67739adbd12bdfdb6da9b2cebac0923b632e2f3",
+    "eval-render-00007.png": "941bdb37e10618e224481e4c66bb9b5f52a4cfa5303f11bdec3259602272a815",
+    "eval-render-00008.png": "1e474290625d580a8f009ae2f1169624eda9b2cb535659a49944fba5519ca51e",
+    "eval-render-00009.png": "747aad75998806aaa74d3bcc05a4535c0e38fb6b10d2ae7ae26ddc70ca1053a7",
+    "eval-render-00010.png": "2c633b709e3e3a0352dc2898b8c68103069579b400019448618b8c0f643e243f",
+    "eval-render-00011.png": "11742da077d94179d43936872d92a3f3a444efe318ce9a3ee6840c5254722547",
+    "eval-render-00012.png": "85a16fa046a5f7834f0f18cd3f7512352293ce9fc486b8ee2c896088b6a23a95",
+    "eval-render-00013.png": "e3685395f7dc158c6afc13ffb889f10c86b18788206b326a429e72e3fe4b4260",
+    "eval-render-00014.png": "2976eeceb1131eab31021024ec714247af23e59c9829ae84a517d4d5feef3ccc",
+    "eval-render-00015.png": "ae3b55ea782d1f70c31c56c7ba6de21baaaf75c09658c67a3366982637b2a682",
+    "eval-render-00016.png": "ca850bbfc5dc2f9cc5c4086e0168987b1588f198c461e0a132fec658822efc26",
+    "eval-render-00017.png": "992a55a965ff291fca73200ba0e9d28461c17d7bfc5d9e73faf0ae6afb5bc335",
+    "eval-render-00018.png": "35009f947a646cf0b2493bb5e94152ff6deccaf052b7fcffd4f3a18d2c1209a0",
+    "eval-render-00019.png": "146059c7fa01a39299cb73e996920d9220a13fd16b7518fa0b5fd017ea018cac",
+    "eval-render-00020.png": "8448f94b55dace2ee88e9c265358e6b443c0def6bb3d15626595b97c662bb984",
+    "eval-render-00021.png": "b70eb8d329a8ad84c082c7bd2e0830839c91082e0254ea3dbf229858243ea045",
+    "eval-render-00022.png": "2137e5892b37923d8fd5cda3df78228f44054d6b8bf87fb332b4f0aa0d9e310f",
+    "eval-render-00023.png": "87a5b1e37233e887130764248e009f2b9e591a186e1c312908a7a61926af030e",
+    "eval-render-00024.png": "662599a0bc0d631765aa8cf2b2c1c35c2eb4eba46941538ff1daf1f57269c163",
+    "metrics.json": "e003999b09f9890406b4c2e8371b39d45ab99688bf2310d76b721f470deb4cc6"
+   }
+  },
+  "edge_A": {
+   "cmd": [
+    "/opt/spirula/bin/spirula",
+    "train",
+    "3dgs",
+    "--data",
+    "/tmp/dd/dataset",
+    "--data-format",
+    "colmap",
+    "--image-dir",
+    "images",
+    "--mask-dir",
+    "masks",
+    "--load-masks",
+    "1",
+    "--eval-mode",
+    "filename",
+    "--warp-to-pinhole",
+    "0",
+    "--train-resolution-divisor",
+    "1",
+    "--primitive",
+    "3dgut",
+    "--cap-max",
+    "1000000",
+    "--num-iterations",
+    "30000",
+    "--use-bilateral-grid",
+    "0",
+    "--use-bilateral-grid-for-geometry",
+    "0",
+    "--use-ppisp",
+    "0",
+    "--load-depths",
+    "0",
+    "--load-normals",
+    "0",
+    "--normal-supervision-weight",
+    "0",
+    "--depth-supervision-weight",
+    "0",
+    "--steps-per-save",
+    "5000",
+    "--save-only-latest-checkpoint",
+    "0",
+    "--save-full-checkpoint",
+    "1",
+    "--save-eval-images",
+    "1",
+    "--disable-viewer",
+    "1",
+    "--keep-viewer-alive",
+    "0",
+    "--densify-loss-map-mode",
+    "edge_aware",
+    "--output-dir-prefix",
+    "/tmp/dd/edge",
+    "--output-dir-name",
+    "edge_A",
+    "--resume",
+    "/tmp/dd/edge/src/step-000030000.ckpt"
+   ],
+   "exit": -11,
+   "wallS": 4.0,
+   "trainedStepLines": 0,
+   "resumedLine": [
+    "Resumed from /tmp/dd/edge/src/step-000030000.ckpt at step 30000"
+   ],
+   "adapted": false,
+   "seedOrPlyLines": [
+    "Cameras: 2 (2 after splitting), seed points: 56674 (train_frame_scale=0.4992)"
+   ],
+   "evalWritten": true,
+   "logTail": "Resuming from: /tmp/dd/edge/src/step-000030000.ckpt\nDevices:\n  * [0] NVIDIA L40S (discrete, 45457 MB)\nCameras: 2 (2 after splitting), seed points: 56674 (train_frame_scale=0.4992)\nOutput directory: /tmp/dd/edge/edge_A\nResumed from /tmp/dd/edge/src/step-000030000.ckpt at step 30000\nCheckpoint saved to: /tmp/dd/edge/edge_A\nTraining complete. Steps: -30000   Time: 00:00:00.000\nEval: views to score: 25\n  cc_l1: 0.030510\n  cc_psnr: inf\n  cc_ssim: 0.960007\n  l1: 0.355522\n  psnr: 9.584954\n  ssim: 0.582826\nEval metrics written to /tmp/dd/edge/edge_A/metrics.json\n\n=== Spirula Studio crash report ===\ntime:    2026-09-25T08:42:34Z\nversion: 2026.9.20 (fd1afca-dirty)\nbuild:   Jan  1 2022 05:00:00\npid:     310\ndoing:   /opt/spirula/bin/spirula train\ncause:   SIGSEGV at 0x562d5f2935f5\nstack:\n  #0 spirula+0x1636c6\n  #1 spirula+0x1645ff\n  #2 libc.so.6+0x42520\n  #3 spirula+0x27b3b6\n  #4 libc.so.6+0x45495\n  #5 libc.so.6+0x45610  on_exit\n  #6 libc.so.6+0x29d97\n  #7 libc.so.6+0x29e40  __libc_start_main\n  #8 spirula+0x13f9a5\nResolve a frame with: addr2line -f -C -e <module> <offset>\n  (Windows: the offset is an RVA; open it against the matching .pdb)\n",
+   "sceneTransform": {
+    "format": "spirula-scene-transform",
+    "version": 1,
+    "readme": [
+     "p_train = train_from_world.scale * train_from_world.rotation.matrix_3x3 @ p_world + train_from_world.translation, for a column vector p.",
+     "train_from_world is the ACTIVE transform taking a point of the dataset's own frame (world) into the frame the splats were trained in (train); read passively, it gives a fixed point's train coordinates from its world coordinates. world_from_train is its inverse.",
+     "matrix_4x4 acts on column vectors [x, y, z, 1]. matrix_4x4_flat_row_major lists it row by row; matrix_4x4_flat_column_major column by column, which is also the row-major layout of its transpose, the matrix that acts on row vectors [x, y, z, 1] @ M^T.",
+     "rotation.matrix_3x3 acts on column vectors. quaternion_wxyz is (w, x, y, z) and quaternion_xyzw is (x, y, z, w), the same unit quaternion. axis_angle is a unit axis with a right-handed angle; rotation_vector is axis * angle_rad.",
+     "euler.intrinsic.abc = [a1, a2, a3] means R = R_a(a1) @ R_b(a2) @ R_c(a3): rotate about the body axis a, then the new b, then the new c. euler.extrinsic.abc = [a1, a2, a3] means R = R_c(a3) @ R_b(a2) @ R_a(a1): rotate about the fixed axis a, then b, then c. So extrinsic.xyz = [roll about X, pitch about Y, yaw about Z] applied in that order, and intrinsic.zyx = [yaw, pitch, roll]. Every entry is given in radians and in degrees.",
+     "translation is applied AFTER the rotation and scale (p_out = s R p + t). translation_before_rotation is the equivalent shift applied first (p_out = s R (p + t_pre)); for train_from_world it is minus centering.center_world."
+    ],
+    "centering": {
+     "mode": "none",
+     "center_world": [
+      0,
+      0,
+      0
+     ]
+    },
+    "train_from_world": {
+     "scale": 1,
+     "translation": [
+      0,
+      0,
+      0
+     ],
+     "translation_before_rotation": [
+      0,
+      0,
+      0
+     ],
+     "rotation": {
+      "matrix_3x3": [
+       [
+        1,
+        0,
+        0
+       ],
+       [
+        0,
+        1,
+        0
+       ],
+       [
+        0,
+        0,
+        1
+       ]
+      ],
+      "matrix_3x3_flat_row_major": [
+       1,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       1
+      ],
+      "matrix_3x3_flat_column_major": [
+       1,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       1
+      ],
+      "quaternion_wxyz": [
+       1,
+       0,
+       0,
+       0
+      ],
+      "quaternion_xyzw": [
+       0,
+       0,
+       0,
+       1
+      ],
+      "axis_angle": {
+       "axis": [
+        0,
+        0,
+        1
+       ],
+       "angle_rad": 0,
+       "angle_deg": 0
+      },
+      "rotation_vector": [
+       0,
+       0,
+       0
+      ],
+      "euler": {
+       "intrinsic": {
+        "xyz": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "xzy": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "yxz": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "yzx": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "zxy": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "zyx": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        }
+       },
+       "extrinsic": {
+        "xyz": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "xzy": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "yxz": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "yzx": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "zxy": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "zyx": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        }
+       }
+      }
+     },
+     "matrix_4x4": [
+      [
+       1,
+       0,
+       0,
+       0
+      ],
+      [
+       0,
+       1,
+       0,
+       0
+      ],
+      [
+       0,
+       0,
+       1,
+       0
+      ],
+      [
+       0,
+       0,
+       0,
+       1
+      ]
+     ],
+     "matrix_4x4_flat_row_major": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
+     ],
+     "matrix_4x4_flat_column_major": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
+     ],
+     "matrix_3x4_flat_row_major": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0
+     ]
+    },
+    "world_from_train": {
+     "scale": 1,
+     "translation": [
+      0,
+      0,
+      0
+     ],
+     "translation_before_rotation": [
+      0,
+      0,
+      0
+     ],
+     "rotation": {
+      "matrix_3x3": [
+       [
+        1,
+        0,
+        0
+       ],
+       [
+        0,
+        1,
+        0
+       ],
+       [
+        0,
+        0,
+        1
+       ]
+      ],
+      "matrix_3x3_flat_row_major": [
+       1,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       1
+      ],
+      "matrix_3x3_flat_column_major": [
+       1,
+       0,
+       0,
+       0,
+       1,
+       0,
+       0,
+       0,
+       1
+      ],
+      "quaternion_wxyz": [
+       1,
+       0,
+       0,
+       0
+      ],
+      "quaternion_xyzw": [
+       0,
+       0,
+       0,
+       1
+      ],
+      "axis_angle": {
+       "axis": [
+        0,
+        0,
+        1
+       ],
+       "angle_rad": 0,
+       "angle_deg": 0
+      },
+      "rotation_vector": [
+       0,
+       0,
+       0
+      ],
+      "euler": {
+       "intrinsic": {
+        "xyz": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "xzy": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "yxz": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "yzx": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "zxy": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "zyx": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        }
+       },
+       "extrinsic": {
+        "xyz": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "xzy": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "yxz": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "yzx": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "zxy": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        },
+        "zyx": {
+         "radians": [
+          0,
+          0,
+          0
+         ],
+         "degrees": [
+          0,
+          0,
+          0
+         ]
+        }
+       }
+      }
+     },
+     "matrix_4x4": [
+      [
+       1,
+       0,
+       0,
+       0
+      ],
+      [
+       0,
+       1,
+       0,
+       0
+      ],
+      [
+       0,
+       0,
+       1,
+       0
+      ],
+      [
+       0,
+       0,
+       0,
+       1
+      ]
+     ],
+     "matrix_4x4_flat_row_major": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
+     ],
+     "matrix_4x4_flat_column_major": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1
+     ],
+     "matrix_3x4_flat_row_major": [
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0
+     ]
+    }
+   },
+   "resolvedConfig": {
+    "preset": "3dgs",
+    "data": "/tmp/dd/dataset",
+    "resume": "/tmp/dd/edge/src/step-000030000.ckpt",
+    "output_dir_prefix": "/tmp/dd/edge",
+    "output_dir_name": "edge_A",
+    "num_iterations": 30000,
+    "steps_per_save": 5000,
+    "save_only_latest_checkpoint": false,
+    "save_full_checkpoint": true,
+    "save_eval_images": true,
+    "viewer_port": 7007,
+    "disable_viewer": true,
+    "keep_viewer_alive": false,
+    "data_format": "colmap",
+    "image_dir": "images",
+    "mask_dir": "masks",
+    "load_masks": true,
+    "apply_loss_for_mask": false,
+    "flip_mask": false,
+    "mask_boundary_offset": 0,
+    "depth_dir": "depths",
+    "normal_dir": "normals",
+    "load_depths": false,
+    "load_normals": false,
+    "depth_unit_scale_factor": 0.001,
+    "colmap_recon_dir": null,
+    "metashape_xml": null,
+    "metashape_ply": null,
+    "metashape_psx": null,
+    "init_ply": null,
+    "init_ply_add_points": false,
+    "train_resolution_divisor": 1,
+    "downscale_rounding_mode": "floor",
+    "eval_mode": "filename",
+    "eval_interval": 8,
+    "train_split_fraction": 0.9,
+    "validation_fraction": 0,
+    "warp_to_pinhole": false,
+    "warp_spherical_to_pinhole": true,
+    "warp_face_fit": "uniform",
+    "warp_back_face": false,
+    "deblur_training_images": false,
+    "exif_orientation": "orient",
+    "orientation_method": "up",
+    "center_method": "poses",
+    "auto_scale_poses": true,
+    "outlier_threshold": Infinity,
+    "scene_center": "none",
+    "relative_scale": null,
+    "train_frame": "points",
+    "primitive": "3dgut",
+    "sh_degree": 3,
+    "sh_degree_warmup_every": 1000,
+    "background_mode": "color",
+    "background_color": [
+     0,
+     0,
+     0
+    ],
+    "background_sh_degree": 4,
+    "background_noise_warmup": 2000,
+    "background_noise_pre_warmup": 0.25,
+    "background_match_luminance": false,
+    "scale_init": null,
+    "opacity_init": null,
+    "suppress_initial_scales": false,
+    "random_init": "auto",
+    "random_init_fraction": 0.1,
+    "random_init_distribution": "isotropic-gaussian",
+    "random_init_center": "camera-median",
+    "random_init_spread": "median",
+    "random_init_std": 1,
+    "use_camera_optimizer": false,
+    "quality": "medium",
+    "cap_max": 1000000,
+    "distraction_robustness": "off",
+    "min_init_fraction": 0,
+    "growth_factor": 1.05,
+    "min_opacity": 0.005,
+    "refine_every": 100,
+    "refine_start_iter": 500,
+    "refine_stop_num_iter": 2500,
+    "refine_stop_iter": 14000,
+    "noise_lr": 80,
+    "noise_lr_final": 0.8,
+    "use_revised_densification": true,
+    "densify_score_mode": "mean",
+    "densify_score_blend_world_grad": 0,
+    "densify_loss_map_mode": "edge_aware",
+    "densify_robust_edge_aware_quantile": 0.9,
+    "densify_nms_falloff": 0.5,
+    "densify_loss_map_normalize": false,
+    "densify_loss_map_clip_quantile": 1,
+    "densify_loss_map_power": 4,
+    "densify_accum_mode": "avg",
+    "densify_score_power": 0.4,
+    "densify_score_clip_quantile": 1,
+    "densify_final_score_power": 1,
+    "densify_oversize_split_fraction": 0.15,
+    "densify_oversize_score_blend": 1,
+    "use_long_axis_split": true,
+    "long_axis_split_opacity_k": [
+     0.5,
+     0.6,
+     15000
+    ],
+    "max_screen_size": 0.3,
+    "max_screen_size_clip_hardness": 1.5,
+    "max_screen_size_penalty": 1,
+    "max_world_size": Infinity,
+    "ssim_lambda": 0.2,
+    "l1_weight": 1,
+    "l2_weight": 0,
+    "l1_weight_y": 0,
+    "l2_weight_y": 0,
+    "l2_weight_u": 0,
+    "l2_weight_v": 0,
+    "loss_scale_min_pixels": 1920,
+    "num_loss_scales": 0,
+    "alpha_loss_weight": 0.1,
+    "alpha_loss_weight_under": 0,
+    "loss_saturation_threshold": -1,
+    "loss_luminance_normalization": 0,
+    "floater_suppression": "off",
+    "depth_distortion_reg": 0,
+    "normal_distortion_reg": 0,
+    "rgb_distortion_reg": 0,
+    "distortion_reg_warmup": 6000,
+    "normal_reg_weight": 0.04,
+    "normal_reg_warmup": 6000,
+    "alpha_reg_weight": 0,
+    "alpha_reg_warmup": 12000,
+    "reg_warmup_length": 0,
+    "depth_supervision_weight": 0,
+    "normal_supervision_weight": 0,
+    "input_depth_is_ray_depth": null,
+    "supervision_warmup": 0,
+    "mean_median_depth_weight": 0,
+    "median_depth_normal_reg_weight": 0,
+    "median_normal_supervision_weight": 0,
+    "median_render_normal_reg_weight": 0,
+    "median_warmup": 6000,
+    "opacity_reg": 0.005,
+    "scale_reg": 0.01,
+    "opacity_reg_decay_power": 1,
+    "scale_reg_decay_power": 0.4,
+    "opacity_decay": 0,
+    "scale_decay": 0,
+    "erank_reg": 0.001,
+    "erank_reg_s3": 0,
+    "scale_regularization_weight": 0,
+    "max_gauss_ratio": 10,
+    "dc_reg": 0.001,
+    "sh_reg": 0.001,
+    "overexposure_reg": 0,
+    "quat_norm_reg": 0.01,
+    "use_bilateral_grid": false,
+    "bilagrid_type": "ppisp",
+    "bilagrid_shape": [
+     16,
+     16,
+     8
+    ],
+    "bilagrid_tv_loss_weight": 10,
+    "color_shift_reg_weight": 0,
+    "color_shift_reg_ema_period": 750,
+    "use_bilateral_grid_for_geometry": false,
+    "bilagrid_shape_geometry": [
+     8,
+     8,
+     4
+    ],
+    "bilagrid_tv_loss_weight_geometry": 10,
+    "use_adagrad_bilagrid_optim": true,
+    "use_ppisp": false,
+    "ppisp_param_type": "no_crf_no_vig",
+    "ppisp_exposure_from_exif": false,
+    "ppisp_exposure_arithmetic_mean": true,
+    "apply_ppisp_before_bilagrid": true,
+    "apply_ppisp_before_color_space": false,
+    "use_adagrad_ppisp_optim": true,
+    "ppisp_reg_exposure_mean": 1,
+    "ppisp_reg_color_mean": 1,
+    "ppisp_reg_vig_center": 0.02,
+    "ppisp_reg_vig_non_pos": 0.01,
+    "ppisp_reg_vig_channel_var": 0.1,
+    "ppisp_reg_crf_channel_var": 0.1,
+    "bilagrid_adagrad_lr": 0.04,
+    "bilagrid_adagrad_depth_lr": 0.04,
+    "bilagrid_adagrad_normal_lr": 0.01,
+    "ppisp_adagrad_lr": 0.1,
+    "bilagrid_lr": 0.002,
+    "bilagrid_lr_final": 0.0001,
+    "bilagrid_lr_warmup": 1000,
+    "bilagrid_depth_lr": 0.002,
+    "bilagrid_depth_lr_final": 0.0001,
+    "bilagrid_depth_lr_warmup": 2000,
+    "bilagrid_normal_lr": 0.0005,
+    "bilagrid_normal_lr_final": 4e-05,
+    "bilagrid_normal_lr_warmup": 2000,
+    "ppisp_lr": 0.002,
+    "ppisp_lr_final": 2e-05,
+    "ppisp_lr_warmup": 500,
+    "image_color_is_linear": null,
+    "image_color_transfer": null,
+    "image_color_gamut": null,
+    "splat_color_is_linear": null,
+    "splat_color_transfer": null,
+    "splat_color_gamut": null,
+    "convert_initial_point_cloud_color": null,
+    "cache_images": "disk",
+    "max_batch_per_epoch": 800,
+    "split_batch": true,
+    "use_fused_proj_bwd_optim": true,
+    "packed": true,
+    "quantization_level": 1,
+    "bin_tile_size": 0,
+    "preallocate_splat_tensors": true,
+    "optimizer_offload": null,
+    "use_bvh": false,
+    "means_lr": 0.000128,
+    "means_lr_final": 1.6e-06,
+    "scales_lr": 0.02,
+    "scales_lr_final": 0.005,
+    "quats_lr": 0.0015,
+    "opacities_lr": 0.025,
+    "features_dc_lr": 0.005,
+    "features_sh_lr": 0.00025,
+    "background_dc_lr": 0.0025,
+    "background_sh_lr": 0.0005,
+    "max_steps": null,
+    "use_scale_agnostic_mean": true,
+    "use_per_splat_bias_correction": true
+   },
+   "uploaded": {
+    "eval-gt-00000.png": "f889cde1663294b065497fe96917f1b2e43f5678cc83e5667edf63e47965ee07",
+    "eval-gt-00001.png": "9018e84278e53781742d96b3c6f7d9bd720cba237d916026b5cb91755d2e18c1",
+    "eval-gt-00002.png": "c2917da6ec97a696cc3586c08187a1d81eb006f3855abeeaf28c28f4c8d4df1b",
+    "eval-gt-00003.png": "95bc66a119c881003edb9983abaed15bae1ffdcb5ec1b9e1bcc83213ab114c0e",
+    "eval-gt-00004.png": "016033a69d07c610127446dab816d9a03612a345d286609155491027af341330",
+    "eval-gt-00005.png": "1431a9a60a55c9d2a2341293b15331652b9194643beecd5d1e156cf385ee73d8",
+    "eval-gt-00006.png": "02c64d71451d76fbe93e54d74f246b5dee4c20108a1959392193840f6c2769b7",
+    "eval-gt-00007.png": "dfb243341da59579980808c5a0cf64a40c544f34204857a2721fb3d7c5b459f4",
+    "eval-gt-00008.png": "4220ae0f675be96124d8a7ba7395f852a0e11303a44b08c58d6926115fd28a89",
+    "eval-gt-00009.png": "81878a34f19fc8e02e8c01841f4c31a49cf646f22c24d18b017da7a9fb46d9f6",
+    "eval-gt-00010.png": "4a244b1eaa2a29597cba215df3c4b7f72c3324f83cf7d1a35c453b0fffc7a8c2",
+    "eval-gt-00011.png": "905c48b5e543f58fa9811d3e96c909bd633c7ee092a097ffd3639cde639b8e23",
+    "eval-gt-00012.png": "6ff6b21fe20d41d852f4e4bccba38037e122073328b4961ecfffb3ccf89173ab",
+    "eval-gt-00013.png": "84ec08d65f9fee7b91bf2e8029174d8a665f372fe69b04da5f0c532bafaaf3a8",
+    "eval-gt-00014.png": "82413b16b4f7549d3bfd61ad22fab412583814bdf78bf533670b9f6190b8345e",
+    "eval-gt-00015.png": "6363cde7da36d3baa417ac47be6bbad66ddc44dc2939301c2318c8b4d901f521",
+    "eval-gt-00016.png": "19c3066dec670463f6bae3b0ee4a4b6674b2a0c775fc47f87d19f70bfffca394",
+    "eval-gt-00017.png": "f0fd6f2101ea044f6177499c6ea526813e3b52a0f21ae4370dab239a25867b64",
+    "eval-gt-00018.png": "6fa092391ef69bb84ad1b61fe0a4a7232a1c88f34d1015fa289c26f1142b8fbc",
+    "eval-gt-00019.png": "ea389f267f2f4d7e99cf885d8d5b21dd9342a56276541c519f7621eacffe1919",
+    "eval-gt-00020.png": "2179b9cbe87cfd8992a4443309d17e104e2a42c4ece353cb915919956a41ef75",
+    "eval-gt-00021.png": "d7026c750ed988f9f15ff2ecdeb1ef53bba0ac8cbe5d4d354ff1dc769c9cceff",
+    "eval-gt-00022.png": "b68016198327e1031ed34a409eaf3faef208ad89cac7f42b11ddadcfefd37226",
+    "eval-gt-00023.png": "087806efbfc032618a0321b4de41e568de993f2c0aee66bf677fc7f8b71b5062",
+    "eval-gt-00024.png": "0fe06bdaf1eedf486e1461eccfe794f18d4f9432fb0efd213649d5356e539038",
+    "eval-render-00000.png": "91c0de52d32a17b9815347accac0d096471b7fc4f0b047ba127aeb46a137cd76",
+    "eval-render-00001.png": "538d7fe9d974a97b500e459a704e49d9cc1fd8edcca64a12b394e9076a5696cf",
+    "eval-render-00002.png": "5b532dc75da0f5ffb81b27a9df994bbd0239ba4c9c71f36f8f998ccbd7b9afed",
+    "eval-render-00003.png": "c7cb1d13cbd98f6781b917230aecff24110c2067cfab6a1c2712a84cdec7233d",
+    "eval-render-00004.png": "ff42a9ff7d2fffb6b06066229e14b55d4f890a996e970e86627d487c83a1bfd5",
+    "eval-render-00005.png": "14b3183ad3e3fe1c7e911a1b2391f304c987dfecc950b2ca985eb2e82152b5d8",
+    "eval-render-00006.png": "6a6d03030940173cd57cb1a226b00c2e99c4013c85a7c562682679058e8453a3",
+    "eval-render-00007.png": "6a321865d3e1ee34dc2803db9d8b0f88952813e1a5fd3f0034536dd5b0821dd7",
+    "eval-render-00008.png": "324aae266abca49713c07cca7567d84e2e44d60d3651af6fe26c3d38a71a8d8d",
+    "eval-render-00009.png": "01fb01a0ed927239ea39ab3c37f50af56d2669f29636a06b9f18450314167bf3",
+    "eval-render-00010.png": "1ee60c86b604c251740ca62e3bea45d32b577fbf4aad6f84ec31ebf8dfbf3d32",
+    "eval-render-00011.png": "5f0e705ad84e790a205e3720dd1db4be1dd3aa3942d1f606c57586f82c2ce3d9",
+    "eval-render-00012.png": "c7fed3c1ee312cb105d398beff9e59f9d21dd899a94aca41d79e8a9f544bf980",
+    "eval-render-00013.png": "382ea0b1b3cc2ee101d2597457b75b041ccd9974ed3ab2bdbe4c93451b8396e5",
+    "eval-render-00014.png": "97343c620c3f02fe7702e49e8210a9c08b1be70a2b23f9ba41844031ac32fe34",
+    "eval-render-00015.png": "b2f5ccb06c36e12124c69f39c4b553d07e619bd3ebfd58cb831f2e67c026c361",
+    "eval-render-00016.png": "0d997a5f52a539403f513dec3b1a7e6868a01d1df1b927e3602acb1f9df29be6",
+    "eval-render-00017.png": "47027e9a6824288f1ba913932658a3d702e7c96a1cdb975d19eb4933d242c5a7",
+    "eval-render-00018.png": "6ee82c396657126654eadf94fbfb47b1fd47a9c0e28b344ca34151857f7e1c9c",
+    "eval-render-00019.png": "e8e5606bb73f4f2f7299d5e720cd789f3ac7d825bc6d952fb5b2163c3f21b904",
+    "eval-render-00020.png": "620654779d6cf08931bcc0d7c4b50121c7ab6ee786af5e3f22155140616c4719",
+    "eval-render-00021.png": "8514f93c7eaad3c4713e30c141ed4a81876d6b2eb16abcee99714c096b9a7787",
+    "eval-render-00022.png": "3b42fcf7c30fe9aa58a589fb2adae0e52e3f3fbc8c3c47b53890e4a8770da767",
+    "eval-render-00023.png": "f7fbd14651185be2de167e1e3b22be3bde56767d8132061c83cde694eea0111e",
+    "eval-render-00024.png": "d0a0e39d468963d8149a1d2d5b153bb1ce23c1c78a093c1e9338b6a38d8ca504",
+    "metrics.json": "74a50e1cc535c2215bbf4767cdb3774f4a1e56f2f411c58132abbaf7902ce23b"
+   }
+  }
+ },
+ "elapsedS": 59.1
+}

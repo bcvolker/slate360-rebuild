@@ -1,0 +1,237 @@
+{
+ "loadMs": 7543.399999991059,
+ "settings": {
+  "blurAmount": 0.3,
+  "preBlurAmount": 0,
+  "maxStdDev": 2.8284271247461903,
+  "minAlpha": 0.00196078431372549,
+  "minPixelRadius": 0,
+  "maxPixelRadius": 512,
+  "clipXY": 1.4,
+  "focalAdjustment": 1,
+  "falloff": 1,
+  "encodeLinear": false,
+  "sortRadial": true,
+  "enableLod": true,
+  "enableDriveLod": true,
+  "lodSplatCount": 2500000,
+  "lodSplatScale": 1,
+  "lodRenderScale": 1,
+  "lodInflate": false,
+  "enable2DGS": false,
+  "covSplats": false,
+  "accumExtSplats": false,
+  "pagedExtSplats": false,
+  "minSortIntervalMs": 0,
+  "focalDistance": 0,
+  "apertureAngle": 0,
+  "behindFoveate": 0.2,
+  "coneFov0": 90,
+  "coneFov": 120,
+  "coneFoveate": 0.4,
+  "premultipliedAlpha": true,
+  "toneMapping": 0,
+  "outputColorSpace": "srgb",
+  "pixelRatio": 1,
+  "drawingBuffer": [
+   1280,
+   720
+  ]
+ },
+ "meshNumSh": null,
+ "extNumSplats": 0,
+ "packedNumSplats": null,
+ "lodNumSplats": 1439668,
+ "extraKeys": [],
+ "frames": [
+  {
+   "name": "motion_a0indep_f640_k00",
+   "settleFrames": 30,
+   "activeSplats": 471487,
+   "maxSplats": 475136,
+   "displayNumSplats": 471487
+  },
+  {
+   "name": "motion_a0indep_f640_k01",
+   "settleFrames": 30,
+   "activeSplats": 471536,
+   "maxSplats": 475136,
+   "displayNumSplats": 471536
+  },
+  {
+   "name": "motion_a0indep_f640_k02",
+   "settleFrames": 30,
+   "activeSplats": 471566,
+   "maxSplats": 475136,
+   "displayNumSplats": 471566
+  },
+  {
+   "name": "motion_a0indep_f640_k03",
+   "settleFrames": 30,
+   "activeSplats": 471594,
+   "maxSplats": 475136,
+   "displayNumSplats": 471594
+  },
+  {
+   "name": "motion_a0indep_f640_k04",
+   "settleFrames": 30,
+   "activeSplats": 471634,
+   "maxSplats": 475136,
+   "displayNumSplats": 471634
+  },
+  {
+   "name": "motion_a0indep_f640_k05",
+   "settleFrames": 30,
+   "activeSplats": 471667,
+   "maxSplats": 475136,
+   "displayNumSplats": 471667
+  },
+  {
+   "name": "motion_a0indep_f640_k06",
+   "settleFrames": 30,
+   "activeSplats": 471705,
+   "maxSplats": 475136,
+   "displayNumSplats": 471705
+  },
+  {
+   "name": "motion_a0indep_f640_k07",
+   "settleFrames": 30,
+   "activeSplats": 471765,
+   "maxSplats": 475136,
+   "displayNumSplats": 471765
+  },
+  {
+   "name": "motion_a0indep_f640_k08",
+   "settleFrames": 30,
+   "activeSplats": 471796,
+   "maxSplats": 475136,
+   "displayNumSplats": 471796
+  },
+  {
+   "name": "motion_a0indep_f640_k09",
+   "settleFrames": 30,
+   "activeSplats": 471857,
+   "maxSplats": 475136,
+   "displayNumSplats": 471857
+  },
+  {
+   "name": "motion_a0indep_f640_k10",
+   "settleFrames": 30,
+   "activeSplats": 471899,
+   "maxSplats": 475136,
+   "displayNumSplats": 471899
+  },
+  {
+   "name": "motion_a0indep_f640_k11",
+   "settleFrames": 30,
+   "activeSplats": 471952,
+   "maxSplats": 475136,
+   "displayNumSplats": 471952
+  },
+  {
+   "name": "motion_a0indep_f640_k12",
+   "settleFrames": 30,
+   "activeSplats": 471987,
+   "maxSplats": 475136,
+   "displayNumSplats": 471987
+  },
+  {
+   "name": "motion_a0indep_f640_k13",
+   "settleFrames": 30,
+   "activeSplats": 472014,
+   "maxSplats": 475136,
+   "displayNumSplats": 472014
+  },
+  {
+   "name": "motion_a0indep_f640_k14",
+   "settleFrames": 30,
+   "activeSplats": 472039,
+   "maxSplats": 475136,
+   "displayNumSplats": 472039
+  },
+  {
+   "name": "motion_a0indep_f640_k15",
+   "settleFrames": 30,
+   "activeSplats": 472076,
+   "maxSplats": 475136,
+   "displayNumSplats": 472076
+  },
+  {
+   "name": "motion_a0indep_f640_k16",
+   "settleFrames": 30,
+   "activeSplats": 472101,
+   "maxSplats": 475136,
+   "displayNumSplats": 472101
+  },
+  {
+   "name": "motion_a0indep_f640_k17",
+   "settleFrames": 30,
+   "activeSplats": 472139,
+   "maxSplats": 475136,
+   "displayNumSplats": 472139
+  },
+  {
+   "name": "motion_a0indep_f640_k18",
+   "settleFrames": 30,
+   "activeSplats": 472164,
+   "maxSplats": 475136,
+   "displayNumSplats": 472164
+  },
+  {
+   "name": "motion_a0indep_f640_k19",
+   "settleFrames": 30,
+   "activeSplats": 472207,
+   "maxSplats": 475136,
+   "displayNumSplats": 472207
+  },
+  {
+   "name": "motion_a0indep_f640_k20",
+   "settleFrames": 30,
+   "activeSplats": 472237,
+   "maxSplats": 475136,
+   "displayNumSplats": 472237
+  },
+  {
+   "name": "motion_a0indep_f640_k21",
+   "settleFrames": 30,
+   "activeSplats": 472279,
+   "maxSplats": 475136,
+   "displayNumSplats": 472279
+  },
+  {
+   "name": "motion_a0indep_f640_k22",
+   "settleFrames": 30,
+   "activeSplats": 472318,
+   "maxSplats": 475136,
+   "displayNumSplats": 472318
+  },
+  {
+   "name": "motion_a0indep_f640_k23",
+   "settleFrames": 30,
+   "activeSplats": 472350,
+   "maxSplats": 475136,
+   "displayNumSplats": 472350
+  },
+  {
+   "name": "motion_a0indep_f640_k24",
+   "settleFrames": 30,
+   "activeSplats": 472426,
+   "maxSplats": 475136,
+   "displayNumSplats": 472426
+  }
+ ],
+ "renderSource": "extSplats.lodSplats",
+ "renderSourceNumSplats": 1439668,
+ "renderSourceNumSh": 3,
+ "renderSourceExtra": {
+  "sh1": "Uint32Array[5758976]",
+  "sh2": "Uint32Array[5758976]",
+  "sh3a": "Uint32Array[5758976]",
+  "sh3b": "Uint32Array[5758976]",
+  "sh1Codes": "undefined",
+  "sh2Codes": "undefined",
+  "sh3Codes": "undefined",
+  "lodTree": "Uint32Array[5758672]"
+ },
+ "totalMs": 75587.39999999106
+}

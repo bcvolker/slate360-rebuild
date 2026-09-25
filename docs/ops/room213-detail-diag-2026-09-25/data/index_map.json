@@ -1,0 +1,58 @@
+{
+ "golden_A": {
+  "carpet_a5_indep_f1280": 0,
+  "carpet_a0_indep_f1280": 1,
+  "carpet_a0_fixed_f1280": 2,
+  "carpet_a3_indep_f640": 3,
+  "carpet_a5_indep_f640": 4,
+  "carpet_a0_indep_f640": 5,
+  "table_edges_a4_indep_f640": 6,
+  "table_edges_a4_indep_f1280": 7,
+  "chair_slats_a2_fixed_f640": 8,
+  "carpet_a0_fixed_f640": 9,
+  "chair_slats_a2_fixed_f1280": 10,
+  "carpet_a3_indep_f1280": 11
+ },
+ "golden_B": {
+  "carpet_a0_indep_f1280": 0,
+  "carpet_a0_indep_f640": 1,
+  "carpet_a3_indep_f640": 2,
+  "carpet_a0_fixed_f1280": 3,
+  "carpet_a0_fixed_f640": 4,
+  "table_edges_a4_indep_f1280": 5,
+  "chair_slats_a2_fixed_f1280": 6,
+  "table_edges_a4_indep_f640": 7,
+  "carpet_a5_indep_f1280": 8,
+  "chair_slats_a2_fixed_f640": 9,
+  "carpet_a5_indep_f640": 10,
+  "carpet_a3_indep_f1280": 11
+ },
+ "edge_A": {
+  "carpet_a0_indep_f1280": 0,
+  "carpet_a3_indep_f1280": 1,
+  "carpet_a0_fixed_f1280": 2,
+  "carpet_a0_indep_f640": 3,
+  "carpet_a3_indep_f640": 4,
+  "chair_slats_a2_fixed_f1280": 5,
+  "table_edges_a4_indep_f1280": 6,
+  "carpet_a5_indep_f640": 7,
+  "table_edges_a4_indep_f640": 8,
+  "carpet_a0_fixed_f640": 9,
+  "chair_slats_a2_fixed_f640": 10,
+  "carpet_a5_indep_f1280": 11
+ },
+ "edge_B": {
+  "carpet_a0_indep_f1280": 0,
+  "carpet_a3_indep_f1280": 1,
+  "carpet_a5_indep_f1280": 2,
+  "carpet_a0_indep_f640": 3,
+  "chair_slats_a2_fixed_f1280": 4,
+  "carpet_a5_indep_f640": 5,
+  "carpet_a0_fixed_f1280": 6,
+  "chair_slats_a2_fixed_f640": 7,
+  "table_edges_a4_indep_f1280": 8,
+  "table_edges_a4_indep_f640": 9,
+  "carpet_a0_fixed_f640": 10,
+  "carpet_a3_indep_f640": 11
+ }
+}
