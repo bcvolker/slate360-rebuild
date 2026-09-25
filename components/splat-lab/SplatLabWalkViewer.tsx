@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import {
   SplatViewerCore,
+  type SparkProfileCheck,
   type SplatViewerHandle,
 } from "@/components/digital-twin/splat-viewer-core";
 import { SplatWalkBar, type SplatViewMode, type WalkStride } from "@/components/splat-lab/SplatWalkBar";
@@ -22,16 +23,52 @@ export function SplatLabWalkViewer({
   kicker,
   title,
   note,
+  showPlan = true,
+  showZoom = true,
+  allowFullscreen = false,
+  expectedProfile,
+  onRenderProfileCheck,
+  internalPanel,
 }: {
   src: string;
   kicker: string;
   title: string;
   note?: string;
+  showPlan?: boolean;
+  showZoom?: boolean;
+  allowFullscreen?: boolean;
+  /** When set, a live renderer that does not match this profile shows a visible notice (never silent). */
+  expectedProfile?: SparkProfileCheck["expected"];
+  onRenderProfileCheck?: (check: SparkProfileCheck) => void;
+  internalPanel?: ReactNode;
 }) {
   const ref = useRef<SplatViewerHandle | null>(null);
   const [gl, setGl] = useState<boolean | null>(null);
   const [view, setView] = useState<SplatViewMode>("dollhouse");
   const [stride, setStride] = useState<WalkStride>("normal");
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const [canFullscreen, setCanFullscreen] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [profileCheck, setProfileCheck] = useState<SparkProfileCheck | null>(null);
+  useEffect(() => {
+    setCanFullscreen(allowFullscreen && Boolean(document.fullscreenEnabled));
+    const onChange = () => setIsFullscreen(document.fullscreenElement === rootRef.current);
+    document.addEventListener("fullscreenchange", onChange);
+    return () => document.removeEventListener("fullscreenchange", onChange);
+  }, [allowFullscreen]);
+  const toggleFullscreen = useCallback(() => {
+    if (document.fullscreenElement) void document.exitFullscreen();
+    else void rootRef.current?.requestFullscreen?.();
+  }, []);
+  const handleProfileCheck = useCallback(
+    (check: SparkProfileCheck) => {
+      setProfileCheck(check);
+      onRenderProfileCheck?.(check);
+    },
+    [onRenderProfileCheck],
+  );
+  const reducedFidelity =
+    expectedProfile !== undefined && profileCheck !== null && (!profileCheck.ok || profileCheck.expected !== expectedProfile);
 
   useEffect(() => { setGl(webglOk()); }, []);
   useEffect(() => { setWalkStride(stride); }, [stride]);
@@ -39,7 +76,7 @@ export function SplatLabWalkViewer({
   const cameraMode = view === "walk" ? "interior" : "orbit";
 
   return (
-    <div className="relative h-[100dvh] w-full overflow-hidden overscroll-none bg-[var(--graphite-canvas)] text-[var(--mkt-canvas)] touch-manipulation">
+    <div ref={rootRef} className="relative h-[100dvh] w-full overflow-hidden overscroll-none bg-[var(--graphite-canvas)] text-[var(--mkt-canvas)] touch-manipulation">
       <header className="pointer-events-none absolute inset-x-0 top-0 z-20 px-4 py-3 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))] pt-[max(0.75rem,env(safe-area-inset-top))] landscape:py-2 sm:px-5 sm:py-4">
         <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[var(--mkt-accent)] sm:text-xs">
           {kicker}
@@ -64,8 +101,7 @@ export function SplatLabWalkViewer({
           className="absolute inset-0 h-full w-full"
           cameraMode={cameraMode}
           onCameraModeChange={(mode) => setView(mode === "interior" ? "walk" : view === "plan" ? "plan" : "dollhouse")}
-          freeOrbit
-          planView={view === "plan"}
+          onRenderProfileCheck={handleProfileCheck}
         />
       )}
       <SplatWalkBar
@@ -79,7 +115,17 @@ export function SplatLabWalkViewer({
         }}
         onZoomIn={() => ref.current?.zoomIn()}
         onZoomOut={() => ref.current?.zoomOut()}
+        showPlan={showPlan}
+        showZoom={showZoom}
+        onFullscreen={canFullscreen ? toggleFullscreen : undefined}
+        fullscreen={isFullscreen}
       />
+      {reducedFidelity ? (
+        <p role="status" className="pointer-events-none absolute inset-x-0 top-[max(4.5rem,env(safe-area-inset-top))] z-20 mx-auto w-fit rounded-md bg-[var(--mkt-surface)]/92 px-3 py-1 text-[11px] text-[var(--mkt-ink)]">
+          This device is showing a reduced-quality view of the model.
+        </p>
+      ) : null}
+      {internalPanel}
     </div>
   );
 }

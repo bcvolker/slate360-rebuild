@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+/* Tailwind must not scan research/ops artefacts (a Windows path in docs/ops parses as an invalid CSS escape). */
+@source not "../docs";
 
 @custom-variant dark (&:is(.dark *));
 

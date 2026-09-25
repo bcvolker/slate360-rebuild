@@ -62,13 +62,22 @@ function buildEdit(op: TwinEditListOp): SplatEdit {
   });
   const sdf = buildSdf(op);
   edit.addSdf(sdf);
-  edit.position.set(op.position[0], op.position[1], op.position[2]);
+  // Transform goes on the SDF itself: Spark encodes each SDF from sdf.matrixWorld and the parent edit's
+  // own transform was not reflected on screen (measured 2026-09-25: box position/scale on the edit ignored).
+  sdf.position.set(op.position[0], op.position[1], op.position[2]);
   if (op.rotation) {
-    edit.rotation.set(op.rotation[0], op.rotation[1], op.rotation[2]);
+    sdf.rotation.set(op.rotation[0], op.rotation[1], op.rotation[2]);
   }
   const scale = op.scale ?? op.size;
   if (scale) {
-    edit.scale.set(scale[0], scale[1], scale[2]);
+    if (op.sdfType === "box" || op.sdfType === "ellipsoid") {
+      // Spark sizes a box/ellipsoid SDF from the SDF's OWN scale (half-extents: SplatEdits.update packs
+      // sdf.scale into `sizes`). A scale on the parent SplatEdit was not applied on screen (measured
+      // 2026-09-25: a crop sized [5.8, 1.4, 4.55] kept a 2x2 patch), so the extents go on the SDF.
+      sdf.scale.set(scale[0], scale[1], scale[2]);
+    } else {
+      edit.scale.set(scale[0], scale[1], scale[2]);
+    }
   }
   return edit;
 }

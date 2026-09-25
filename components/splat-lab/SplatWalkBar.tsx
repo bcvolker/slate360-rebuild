@@ -19,6 +19,10 @@ export function SplatWalkBar({
   onReset,
   onZoomIn,
   onZoomOut,
+  showPlan = true,
+  showZoom = true,
+  onFullscreen,
+  fullscreen = false,
 }: {
   view: SplatViewMode;
   onView: (view: SplatViewMode) => void;
@@ -27,6 +31,12 @@ export function SplatWalkBar({
   onReset: () => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
+  /** Plan needs a baked plan view; hide it where the model has none. */
+  showPlan?: boolean;
+  showZoom?: boolean;
+  /** Present only where the browser allows element fullscreen (not iPhone Safari). */
+  onFullscreen?: () => void;
+  fullscreen?: boolean;
 }) {
   return (
     <div
@@ -39,7 +49,7 @@ export function SplatWalkBar({
       >
         <ModeBtn id="walk" label="Walk" on={view === "walk"} onClick={() => onView("walk")} />
         <ModeBtn id="dollhouse" label="Dollhouse" on={view === "dollhouse"} onClick={() => onView("dollhouse")} />
-        <ModeBtn id="plan" label="Plan" on={view === "plan"} onClick={() => onView("plan")} />
+        {showPlan ? <ModeBtn id="plan" label="Plan" on={view === "plan"} onClick={() => onView("plan")} /> : null}
         {view === "walk" ? (
           <>
             <ModeBtn id="normal" label="Normal steps" on={stride === "normal"} onClick={() => onStride("normal")} />
@@ -51,9 +61,16 @@ export function SplatWalkBar({
             />
           </>
         ) : null}
-        <ModeBtn id="zin" label="Zoom in" on={false} onClick={onZoomIn} />
-        <ModeBtn id="zout" label="Zoom out" on={false} onClick={onZoomOut} />
+        {showZoom ? (
+          <>
+            <ModeBtn id="zin" label="Zoom in" on={false} onClick={onZoomIn} />
+            <ModeBtn id="zout" label="Zoom out" on={false} onClick={onZoomOut} />
+          </>
+        ) : null}
         <ModeBtn id="reset" label="Reset" on={false} onClick={onReset} />
+        {onFullscreen ? (
+          <ModeBtn id="fullscreen" label={fullscreen ? "Exit full screen" : "Full screen"} on={false} onClick={onFullscreen} />
+        ) : null}
       </div>
     </div>
   );

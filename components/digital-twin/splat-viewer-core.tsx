@@ -36,6 +36,8 @@ import {
 } from "@/components/digital-twin/splat-viewer-constants";
 
 export type { CameraMode, SplatViewerHandle, TwinPickPoint };
+export type { SparkProfileCheck } from "@/components/digital-twin/use-spark-profile-check";
+import type { SparkProfileCheck } from "@/components/digital-twin/use-spark-profile-check";
 export { SPLAT_VIEWER_SURFACE };
 
 type LoadState = "loading" | "ready" | "error";
@@ -56,6 +58,8 @@ export const SplatViewerCore = forwardRef<
     onManifestChange?: (manifest: SplatManifest | null) => void;
     /** D2: live orbit-camera pose changes, for progression-compare sync. */
     onCameraChange?: (pose: SplatCameraPose) => void;
+    /** Live renderer settings vs the model's provenance profile (spark-render-profile.ts). */
+    onRenderProfileCheck?: (check: SparkProfileCheck) => void;
   }
 >(function SplatViewerCore(
   {
@@ -70,6 +74,7 @@ export const SplatViewerCore = forwardRef<
     repositionMode = false,
     onManifestChange,
     onCameraChange,
+    onRenderProfileCheck,
   },
   ref,
 ) {
@@ -274,6 +279,7 @@ export const SplatViewerCore = forwardRef<
             onEnterInterior={handleEnterInterior}
             onManifestChange={onManifestChange}
             onCameraChange={onCameraChange}
+            onRenderProfileCheck={onRenderProfileCheck}
           />
         </Canvas>
       </SplatErrorBoundary>

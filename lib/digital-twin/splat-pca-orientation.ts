@@ -190,3 +190,13 @@ export function estimateOrientationFromMesh(mesh: SplatMesh, maxSamples = 8000):
     return null;
   }
 }
+
+/** Level an aerial/free-orbit model whose manifest has no baked correction: apply the PCA gravity estimate
+ * to the model group when it is confident (same rule as the default path). */
+export function applyAerialGravity(mesh: SplatMesh, group: THREE.Object3D): void {
+  const est = estimateOrientationFromMesh(mesh);
+  if (!est?.apply) return;
+  const [x, y, z, w] = est.quaternion;
+  group.quaternion.set(x, y, z, w);
+  group.updateMatrixWorld(true);
+}

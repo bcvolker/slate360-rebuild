@@ -40,6 +40,10 @@ export function useSplatBytes(
         const total = res.headers.get("content-encoding") ? null : hinted > 0 ? hinted : null;
         const reader = res.body?.getReader();
         if (!reader) throw new Error("empty response body");
+        // Known length: write each chunk straight into one buffer, so a large model (e.g. a 247 MB PLY)
+        // never exists twice in memory (chunks + concatenated copy) — that doubled peak is what a
+        // phone browser cannot afford. Unknown length: collect chunks, concatenate once.
+        let prealloc: Uint8Array | null = total ? new Uint8Array(total) : null;
         const chunks: Uint8Array[] = [];
         let loaded = 0;
         progressRef.current?.(0, total);
@@ -47,16 +51,29 @@ export function useSplatBytes(
           const { done, value } = await reader.read();
           if (done) break;
           if (value) {
-            chunks.push(value);
+            if (prealloc && loaded + value.length <= prealloc.length) {
+              prealloc.set(value, loaded);
+            } else {
+              if (prealloc) {
+                chunks.push(prealloc.subarray(0, loaded));
+                prealloc = null;
+              }
+              chunks.push(value);
+            }
             loaded += value.length;
             progressRef.current?.(loaded, total);
           }
         }
-        const out = new Uint8Array(loaded);
-        let offset = 0;
-        for (const c of chunks) {
-          out.set(c, offset);
-          offset += c.length;
+        let out: Uint8Array;
+        if (prealloc) {
+          out = loaded === prealloc.length ? prealloc : prealloc.slice(0, loaded);
+        } else {
+          out = new Uint8Array(loaded);
+          let offset = 0;
+          for (const c of chunks) {
+            out.set(c, offset);
+            offset += c.length;
+          }
         }
         // Signal "fully downloaded" so the viewer switches from the stall clock to the decode clock.
         progressRef.current?.(loaded, loaded);

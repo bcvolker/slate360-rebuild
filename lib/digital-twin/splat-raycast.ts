@@ -57,3 +57,22 @@ export function raycastSplatMeshFromRay(
     distance: first.distance,
   };
 }
+
+const groundPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+const groundHit = new THREE.Vector3();
+
+/** Screen tap → point on the horizontal floor plane y = floorY (null when the ray never reaches it). */
+export function raycastGroundPlane(
+  camera: THREE.Camera,
+  clientX: number,
+  clientY: number,
+  canvas: HTMLCanvasElement,
+  floorY: number,
+): THREE.Vector3 | null {
+  const rect = canvas.getBoundingClientRect();
+  if (rect.width <= 0 || rect.height <= 0) return null;
+  ndc.set(((clientX - rect.left) / rect.width) * 2 - 1, -(((clientY - rect.top) / rect.height) * 2 - 1));
+  raycaster.setFromCamera(ndc, camera);
+  groundPlane.constant = -floorY;
+  return raycaster.ray.intersectPlane(groundPlane, groundHit) ? groundHit.clone() : null;
+}

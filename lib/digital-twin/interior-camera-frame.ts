@@ -182,3 +182,16 @@ export function eyePositionFromHit(
   dest.y = floorY + INTERIOR_EYE_HEIGHT;
   return dest;
 }
+
+/** Walk floor: the bounds' floor (box.min.y — the same estimate the start frames above use). */
+export function sceneFloorY(box: THREE.Box3): number {
+  return box.min.y;
+}
+
+/** Eye height above that floor: human eye height in a metric scene; scaled down for unscaled models whose
+ * whole height is smaller than a person (keeps the eye inside the scene). */
+export function sceneEyeHeight(box: THREE.Box3): number {
+  const height = box.max.y - box.min.y;
+  if (!Number.isFinite(height) || height <= 0) return INTERIOR_EYE_HEIGHT;
+  return Math.min(INTERIOR_EYE_HEIGHT, height * 0.55);
+}

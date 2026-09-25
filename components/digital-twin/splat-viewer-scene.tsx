@@ -23,6 +23,12 @@ import { applyAerialGravity, estimateOrientationFromMesh } from "@/lib/digital-t
 import { applyEditListToMesh } from "@/lib/digital-twin/splat-edit-runtime";
 import { ControlsBridge } from "@/components/digital-twin/splat-viewer-controls-bridge";
 import { useSplatBytes } from "@/hooks/useSplatBytes";
+import {
+  resolveSparkRenderProfile,
+  sparkRendererArgsFor,
+  type SparkRenderProfile,
+} from "@/lib/digital-twin/spark-render-profile";
+import { useSparkProfileCheck, type SparkProfileCheck } from "@/components/digital-twin/use-spark-profile-check";
 
 extend({ SparkRenderer: SparkRendererImpl, SplatMesh: SplatMeshImpl });
 
@@ -52,6 +58,7 @@ export function SplatViewerScene({
   freeOrbit = false,
   invertOrbit = false,
   planView = false,
+  onRenderProfileCheck,
 }: {
   url: string;
   maxSplats: number;
@@ -81,9 +88,16 @@ export function SplatViewerScene({
   freeOrbit?: boolean;
   invertOrbit?: boolean;
   planView?: boolean;
+  /** Reports the renderer settings Spark is ACTUALLY using vs the model's provenance profile. */
+  onRenderProfileCheck?: (check: SparkProfileCheck) => void;
 }) {
   const gl = useThree((state) => state.gl);
   const [loadedMesh, setLoadedMesh] = useState<SplatMesh | null>(null);
+  const sparkRef = useRef<SparkRendererImpl | null>(null);
+  // How Spark draws THIS model, from the model's own manifest provenance (spark-render-profile.ts).
+  // accumExtSplats is fixed when the SparkRenderer is constructed, so the renderer mounts only once
+  // the manifest fetch has settled (a failed fetch resolves to Spark's defaults).
+  const [renderProfile, setRenderProfile] = useState<SparkRenderProfile | null>(null);
   // Worker-baked orientation correction (applied to the parent group, not the splat).
   const modelGroupRef = useRef<THREE.Group>(null);
   const manifestRef = useRef<SplatManifest | null>(null);
@@ -93,6 +107,7 @@ export function SplatViewerScene({
 
   useEffect(() => {
     setLoadedMesh(null);
+    setRenderProfile(null);
     manifestRef.current = null;
     // Reset any previous model's correction before the new one loads.
     modelGroupRef.current?.quaternion.identity();
@@ -103,6 +118,7 @@ export function SplatViewerScene({
     void promise.then((m) => {
       if (!cancelled) {
         manifestRef.current = m;
+        setRenderProfile(resolveSparkRenderProfile(m));
         onManifestChange?.(m);
       }
     });
@@ -117,7 +133,21 @@ export function SplatViewerScene({
   // API while LOD is active. Trading Spark's adaptive LOD for our own fixed downsample
   // is exactly the point of a HARD cap — the alternative (`maxSplats` alone) is only an
   // allocation hint that grows to fit the file, which is the bug this fixes.
-  const sparkArgs = useMemo(() => ({ renderer: gl, enableLod: false }), [gl]);
+  // A verified Spirula 3dgut model is drawn as validated (spark-render-profile.ts): ext (fp16 colour) input,
+  // unclamped ext accumulator, no screen blur, every splat (no source downsample). LoD stays OFF here as for
+  // every model in this viewer: with Spark LoD the source ExtSplats are emptied into the LoD tree, which blinds
+  // forEachSplat-based bounds, raycast (tap-to-walk) and orientation. LoD on/off measured identical on Room 213.
+  const verified = renderProfile?.id === "spirula-3dgut";
+  const sparkArgs = useMemo(
+    () =>
+      !renderProfile
+        ? null
+        : verified
+          ? sparkRendererArgsFor(gl, renderProfile, { enableLod: false })
+          : { renderer: gl, enableLod: false },
+    [gl, renderProfile, verified],
+  );
+  useSparkProfileCheck(sparkRef, renderProfile, loadedMesh, onRenderProfileCheck);
   // Download the file here (real byte progress) and hand Spark the bytes. Spark's
   // own url loader never surfaced progress for this viewer, so the stall watchdog
   // failed healthy loads with "Connection stalled" over a model that was still coming in.
@@ -130,15 +160,14 @@ export function SplatViewerScene({
     () => ({
       fileBytes: splatBytes ?? new Uint8Array(0),
       // Spark sniffs the real format from the bytes; the name is only a fallback hint.
-      fileName: "model.spz",
-      lod: false,
-      maxSplats,
+      fileName: verified ? "model.ply" : "model.spz",
+      ...(verified ? { lod: false, extSplats: true } : { lod: false, maxSplats }),
       onLoad: async (mesh: SplatMesh) => {
         // Enforce the hard splat cap: downsample deterministically once `onLoad` proves
         // the real splat count is populated, and BEFORE the mesh's first GPU texture
         // upload (which happens lazily on the first render frame, after this returns).
         const packedSplats = mesh.packedSplats;
-        if (packedSplats && packedSplats.numSplats > maxSplats) {
+        if (!verified && packedSplats && packedSplats.numSplats > maxSplats) {
           const originalCount = packedSplats.numSplats;
           const indices = buildDownsampleIndices(originalCount, maxSplats);
           const downsampled = packedSplats.extractSplats(indices, false);
@@ -181,20 +210,27 @@ export function SplatViewerScene({
         // A1: apply the desktop editor's non-destructive edit_list here too, so
         // shares/mobile/cinematic/compare all show what the operator cleaned up —
         // previously this only ran inside DesktopSplatViewport.
-        if (manifest?.edit_list?.length) {
-          applyEditListToMesh(mesh, manifest.edit_list);
+        if (manifest?.edit_list?.length || manifest?.dollhouse_edit_list?.length) {
+          applyEditListToMesh(mesh, manifest.edit_list ?? []);
         }
         setLoadedMesh(mesh);
         onReady();
       },
     }),
-    [splatBytes, maxSplats, onReady, onDownsampled, url, freeOrbit],
+    [splatBytes, maxSplats, onReady, onDownsampled, url, freeOrbit, verified],
   );
 
   useEffect(() => {
     if (!loadedMesh) return;
     loadedMesh.raycastable = true;
   }, [loadedMesh]);
+
+  // Dollhouse-only edits (manifest.dollhouse_edit_list): on in the exterior orbit view, off in Walk.
+  useEffect(() => {
+    const m = manifestRef.current;
+    if (!loadedMesh || !m?.dollhouse_edit_list?.length) return;
+    applyEditListToMesh(loadedMesh, [...(m.edit_list ?? []), ...(cameraMode === "orbit" ? m.dollhouse_edit_list : [])]);
+  }, [loadedMesh, cameraMode]);
 
   const handleOverviewEnter = useCallback(
     (point: THREE.Vector3) => onEnterInterior(point),
@@ -204,9 +240,11 @@ export function SplatViewerScene({
   return (
     <>
       <group ref={modelGroupRef} visible={modelVisible}>
-        <sparkRenderer args={[sparkArgs]}>
-          {splatBytes ? <splatMesh args={[splatArgs]} rotation={[Math.PI, 0, 0]} /> : null}
-        </sparkRenderer>
+        {sparkArgs && renderProfile ? (
+          <sparkRenderer ref={sparkRef} key={`${url}#${renderProfile.id}`} args={[sparkArgs]}>
+            {splatBytes ? <splatMesh args={[splatArgs]} rotation={[Math.PI, 0, 0]} /> : null}
+          </sparkRenderer>
+        ) : null}
       </group>
       {loadedMesh ? (
         <>
