@@ -8,6 +8,22 @@ import type { TwinEditList } from "./edit-list-types";
  * rotation=[Math.PI,0,0]); `correction_quaternion` is applied to the PARENT
  * group on top of that flip so the model is upright + centered.
  */
+/**
+ * Provenance of the renderer the model was TRAINED with, written by the training worker next to the
+ * model. Selects how Spark draws it (lib/digital-twin/spark-render-profile.ts). Absent → Spark defaults.
+ */
+export type TrainingRasterizer = {
+  /** e.g. "spirula" */
+  trainer: string;
+  /** Trainer source commit (a patched build may append "+<patch-id>"). */
+  trainer_revision?: string;
+  /** e.g. "3dgut", "3dgs" */
+  primitive?: string;
+  /** Screen-space blur (px²) the trainer's renderer adds to projected covariances; 0 for 3dgut. */
+  screen_blur_px2?: number;
+  antialiased?: boolean;
+};
+
 export type SplatManifest = {
   version?: number;
   coordinate_system?: string;
@@ -50,6 +66,7 @@ export type SplatManifest = {
    * mixed into the manifest response server-side so every viewer that reads the manifest
    * for orientation also picks up cleanup edits — not just the desktop editor. */
   edit_list?: TwinEditList;
+  training_rasterizer?: TrainingRasterizer;
 };
 
 /**
@@ -79,8 +96,8 @@ export async function fetchSplatManifest(modelUrl: string): Promise<SplatManifes
       // it — and a null manifest means NO ORIENTATION CORRECTION, which on a
       // capture with tilt_deg 179.9 renders the model upside down while looking
       // like a bad reconstruction rather than a missing fetch.
-      const sibling = modelUrl.includes("kind=spz")
-        ? modelUrl.replace("kind=spz", "kind=manifest.json")
+      const sibling = /kind=(spz|ply)(&|$)/.test(modelUrl)
+        ? modelUrl.replace(/kind=(spz|ply)(?=&|$)/, "kind=manifest.json")
         : null;
       if (!sibling) return null;
       res = await fetch(sibling);

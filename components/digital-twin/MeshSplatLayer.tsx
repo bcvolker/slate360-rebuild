@@ -12,7 +12,7 @@
  * native Brush). Spark Rx(π)/PCA are skipped. LOD is Spark-native; SH is kept.
  */
 
-import { useEffect, useMemo, useRef, type ReactElement } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactElement } from "react";
 import { extend, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import {
@@ -31,6 +31,12 @@ import {
 } from "@/lib/digital-twin/spark-appearance-load";
 import { fetchSplatManifest, type SplatManifest } from "@/lib/digital-twin/twin-manifest";
 import { absoluteSameOriginUrl } from "@/lib/digital-twin/asset-progress";
+import {
+  resolveSparkRenderProfile,
+  SPARK_DEFAULT_PROFILE,
+  sparkRendererArgsFor,
+  type SparkRenderProfile,
+} from "@/lib/digital-twin/spark-render-profile";
 
 extend({ SparkRenderer: SparkRendererImpl, SplatMesh: SplatMeshImpl });
 
@@ -76,9 +82,17 @@ export function MeshSplatLayer({
   const budget = useSparkLodSplatCount();
   const lodSplatCount = lodSplatCountProp ?? budget;
   const absoluteUrl = useMemo(() => absoluteSameOriginUrl(url), [url]);
+  // This layer's own look (Brush-B appearance args) stays the default; a manifest that proves a
+  // verified Spirula 3dgut model switches to that profile (spark-render-profile.ts).
+  const [profile, setProfile] = useState<SparkRenderProfile | null>(null);
   const sparkArgs = useMemo(
-    () => sparkRendererAppearanceArgs(gl, lodSplatCount),
-    [gl, lodSplatCount],
+    () =>
+      !profile
+        ? null
+        : profile.id === SPARK_DEFAULT_PROFILE.id
+          ? { ...sparkRendererAppearanceArgs(gl, lodSplatCount), renderer: gl }
+          : sparkRendererArgsFor(gl, profile, { lodSplatCount }),
+    [gl, lodSplatCount, profile],
   );
   const pose = useMemo(() => {
     if (!worldMatrix) return null;
@@ -93,11 +107,15 @@ export function MeshSplatLayer({
   useEffect(() => {
     meshRef.current = null;
     manifestRef.current = null;
+    setProfile(null);
     let cancelled = false;
     const promise = fetchSplatManifest(absoluteUrl);
     manifestPromiseRef.current = promise;
     void promise.then((manifest) => {
-      if (!cancelled) manifestRef.current = manifest;
+      if (!cancelled) {
+        manifestRef.current = manifest;
+        setProfile((prev) => prev ?? resolveSparkRenderProfile(manifest));
+      }
     });
     return () => {
       cancelled = true;
@@ -140,9 +158,11 @@ export function MeshSplatLayer({
       quaternion={pose ? pose.quaternion : undefined}
       scale={pose ? [pose.scale.x, pose.scale.y, pose.scale.z] : undefined}
     >
-      <sparkRenderer args={[sparkArgs]}>
-        <splatMesh args={[splatArgs]} rotation={sparkPiFlip ? [Math.PI, 0, 0] : [0, 0, 0]} />
-      </sparkRenderer>
+      {sparkArgs && profile ? (
+        <sparkRenderer key={`${absoluteUrl}#${profile.id}`} args={[sparkArgs]}>
+          <splatMesh args={[splatArgs]} rotation={sparkPiFlip ? [Math.PI, 0, 0] : [0, 0, 0]} />
+        </sparkRenderer>
+      ) : null}
     </group>
   );
 }

@@ -20,6 +20,11 @@ import { estimateOrientationFromMesh } from "@/lib/digital-twin/splat-pca-orient
 import { applyOverviewHomeFrame } from "@/lib/digital-twin/splat-overview-home";
 import { raycastSplatMesh } from "@/lib/digital-twin/splat-raycast";
 import { DESKTOP_MAX_SPLATS } from "@/components/digital-twin/splat-viewer-constants";
+import {
+  resolveSparkRenderProfile,
+  sparkRendererArgsFor,
+  type SparkRenderProfile,
+} from "@/lib/digital-twin/spark-render-profile";
 
 extend({ SparkRenderer: SparkRendererImpl, SplatMesh: SplatMeshImpl });
 
@@ -82,16 +87,22 @@ function EditableSparkScene({
   const camera = useThree((state) => state.camera);
   const manifestRef = useRef<SplatManifest | null>(null);
   const manifestPromiseRef = useRef<Promise<SplatManifest | null> | null>(null);
+  // Renderer profile from the model's manifest provenance (lib/digital-twin/spark-render-profile.ts).
+  const [renderProfile, setRenderProfile] = useState<SparkRenderProfile | null>(null);
 
   useEffect(() => {
     manifestRef.current = null;
+    setRenderProfile(null);
     groupRef.current?.quaternion.identity();
     groupRef.current?.updateMatrixWorld(true);
     let cancelled = false;
     const promise = fetchSplatManifest(url);
     manifestPromiseRef.current = promise;
     void promise.then((m) => {
-      if (!cancelled) manifestRef.current = m;
+      if (!cancelled) {
+        manifestRef.current = m;
+        setRenderProfile((prev) => prev ?? resolveSparkRenderProfile(m));
+      }
     });
     return () => {
       cancelled = true;
@@ -171,9 +182,14 @@ function EditableSparkScene({
   return (
     <>
       <group ref={groupRef}>
-        <sparkRenderer args={[{ renderer: gl, enableLod: true, lodSplatCount: DESKTOP_MAX_SPLATS }]}>
-          <splatMesh ref={meshRef} args={[splatArgs]} rotation={[Math.PI, 0, 0]} />
-        </sparkRenderer>
+        {renderProfile ? (
+          <sparkRenderer
+            key={`${url}#${renderProfile.id}`}
+            args={[sparkRendererArgsFor(gl, renderProfile, { lodSplatCount: DESKTOP_MAX_SPLATS })]}
+          >
+            <splatMesh ref={meshRef} args={[splatArgs]} rotation={[Math.PI, 0, 0]} />
+          </sparkRenderer>
+        ) : null}
       </group>
       <OrbitControls ref={controlsRef} makeDefault enablePan enableZoom enableRotate />
     </>

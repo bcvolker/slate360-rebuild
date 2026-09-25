@@ -24,9 +24,15 @@ import {
   ZOOM_WHEEL_FACTOR,
 } from "@/components/digital-twin/splat-viewer-constants";
 import { fetchSplatManifest, type SplatManifest } from "@/lib/digital-twin/twin-manifest";
+import {
+  resolveSparkRenderProfile,
+  sparkRendererArgsFor,
+  type SparkRenderProfile,
+} from "@/lib/digital-twin/spark-render-profile";
 import { estimateOrientationFromMesh } from "@/lib/digital-twin/splat-pca-orientation";
 import { applyEditListToMesh } from "@/lib/digital-twin/splat-edit-runtime";
 import { useCameraSyncBridge } from "@/lib/digital-twin/splat-camera-sync";
+import { SplatRenderDebug } from "@/components/digital-twin/splat-render-debug";
 
 extend({ SparkRenderer: SparkRendererImpl, SplatMesh: SplatMeshImpl });
 
@@ -137,7 +143,12 @@ export function SplatViewerScene({
   onCameraChange?: (pose: SplatCameraPose) => void;
 }) {
   const gl = useThree((state) => state.gl);
+  const sparkRef = useRef<SparkRendererImpl | null>(null);
   const [loadedMesh, setLoadedMesh] = useState<SplatMesh | null>(null);
+  // How Spark draws THIS model (accumulator precision + screen filter), from the model's own manifest
+  // provenance. null until the manifest fetch settles: accumExtSplats is fixed when the SparkRenderer is
+  // constructed, so the renderer is mounted only once the profile is known (a failed fetch → defaults).
+  const [renderProfile, setRenderProfile] = useState<SparkRenderProfile | null>(null);
   // Worker-baked orientation correction (applied to the parent group, not the splat).
   const modelGroupRef = useRef<THREE.Group>(null);
   const manifestRef = useRef<SplatManifest | null>(null);
@@ -147,6 +158,7 @@ export function SplatViewerScene({
 
   useEffect(() => {
     setLoadedMesh(null);
+    setRenderProfile(null);
     manifestRef.current = null;
     // Reset any previous model's correction before the new one loads.
     modelGroupRef.current?.quaternion.identity();
@@ -157,6 +169,7 @@ export function SplatViewerScene({
     void promise.then((m) => {
       if (!cancelled) {
         manifestRef.current = m;
+        setRenderProfile((prev) => prev ?? resolveSparkRenderProfile(m));
         onManifestChange?.(m);
       }
     });
@@ -166,8 +179,8 @@ export function SplatViewerScene({
   }, [url, onManifestChange]);
 
   const sparkArgs = useMemo(
-    () => ({ renderer: gl, enableLod: true, lodSplatCount: maxSplats }),
-    [gl, maxSplats],
+    () => (renderProfile ? sparkRendererArgsFor(gl, renderProfile, { lodSplatCount: maxSplats }) : null),
+    [gl, maxSplats, renderProfile],
   );
   const splatArgs = useMemo(
     () => ({
@@ -217,6 +230,11 @@ export function SplatViewerScene({
     [url, maxSplats, onReady, onProgress, onDownsampled],
   );
 
+  // The load watchdog times the download; restart it when the renderer (and so the download) actually starts.
+  useEffect(() => {
+    if (renderProfile) onProgress?.(0, null);
+  }, [renderProfile, onProgress]);
+
   useEffect(() => {
     if (!loadedMesh) return;
     loadedMesh.raycastable = true;
@@ -230,9 +248,11 @@ export function SplatViewerScene({
   return (
     <>
       <group ref={modelGroupRef} visible={modelVisible}>
-        <sparkRenderer args={[sparkArgs]}>
-          <splatMesh args={[splatArgs]} rotation={[Math.PI, 0, 0]} />
-        </sparkRenderer>
+        {sparkArgs && renderProfile ? (
+          <sparkRenderer ref={sparkRef} key={`${url}#${renderProfile.id}`} args={[sparkArgs]}>
+            <splatMesh args={[splatArgs]} rotation={[Math.PI, 0, 0]} />
+          </sparkRenderer>
+        ) : null}
       </group>
       {loadedMesh ? (
         <>
@@ -264,6 +284,7 @@ export function SplatViewerScene({
         </>
       ) : null}
       {overlay}
+      <SplatRenderDebug sparkRef={sparkRef} profile={renderProfile} url={url} />
       <ControlsBridge
         apiRef={controlsApiRef}
         cameraMode={cameraMode}

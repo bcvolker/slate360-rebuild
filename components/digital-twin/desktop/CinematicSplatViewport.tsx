@@ -12,6 +12,12 @@ import { cn } from "@/lib/utils";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { samplePath, segmentDurations } from "@/lib/digital-twin/camera-path-math";
 import type { TwinCameraPath } from "@/lib/digital-twin/camera-path-types";
+import { fetchSplatManifest } from "@/lib/digital-twin/twin-manifest";
+import {
+  resolveSparkRenderProfile,
+  sparkRendererArgsFor,
+  type SparkRenderProfile,
+} from "@/lib/digital-twin/spark-render-profile";
 
 extend({ SparkRenderer: SparkRendererImpl, SplatMesh: SplatMeshImpl });
 
@@ -58,12 +64,25 @@ function CameraDriver({
 
 function SparkScene({ url, onReady }: { url: string; onReady: () => void }) {
   const gl = useThree((s) => s.gl);
+  // Presentation draws the model exactly like the shared viewer: same manifest-selected profile.
+  const [profile, setProfile] = useState<SparkRenderProfile | null>(null);
+  useEffect(() => {
+    setProfile(null);
+    let cancelled = false;
+    void fetchSplatManifest(url).then((m) => {
+      if (!cancelled) setProfile((prev) => prev ?? resolveSparkRenderProfile(m));
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [url]);
   const splatArgs = useMemo(
     () => ({ url, lod: true, maxSplats: DESKTOP_MAX_SPLATS, onLoad: () => onReady() }),
     [url, onReady],
   );
+  if (!profile) return null;
   return (
-    <sparkRenderer args={[{ renderer: gl, enableLod: true }]}>
+    <sparkRenderer key={`${url}#${profile.id}`} args={[sparkRendererArgsFor(gl, profile)]}>
       <splatMesh args={[splatArgs]} rotation={[Math.PI, 0, 0]} />
     </sparkRenderer>
   );
