@@ -6,9 +6,9 @@ import { isSplatLabEnabled, SPLAT_LAB_ROOT } from "@/lib/splat-lab/job-store";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-// Capture drops can be multi-gigabyte 360 videos; disable the default body
-// size limit for this route (still localhost-only, still desktop-gated).
-export const maxDuration = 0;
+// Capture drops can be multi-gigabyte 360 videos (localhost-only, desktop-gated). maxDuration is a time
+// limit, not a body-size switch; 0 is rejected by Vercel's deploy step (valid range 1–1800 s).
+export const maxDuration = 300;
 
 const UPLOAD_ROOT = join(SPLAT_LAB_ROOT, "_uploads");
 
