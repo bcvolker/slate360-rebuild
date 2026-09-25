@@ -1,0 +1,74 @@
+{
+ "tag": "golden_a0_after",
+ "effective": {
+  "profileId": "spirula-3dgut",
+  "accumExtSplats": true,
+  "displayAccumulatorExt": true,
+  "uniform_enableExtSplats": true,
+  "uniform_blurAmount": 0,
+  "uniform_preBlurAmount": 0,
+  "activeSplats": 565908,
+  "drawingBuffer": [
+   1597,
+   897
+  ],
+  "pixelRatio": 1.25,
+  "canvasCss": [
+   1278,
+   718
+  ]
+ },
+ "camera": {
+  "matrixWorld": [
+   0.7552344660574362,
+   2.7755575615628914e-17,
+   -0.6554547286265767,
+   0,
+   -0.37935948507558237,
+   0.8154887124983172,
+   -0.43710930082878113,
+   0,
+   0.534515932748621,
+   0.5787729777622974,
+   0.6158851823595327,
+   0,
+   -3.9109423,
+   0.002810235999999966,
+   -0.3295276549999999,
+   1
+  ],
+  "projection": [
+   1.079237220004145,
+   0,
+   0,
+   0,
+   0,
+   1.920982126971166,
+   0,
+   0,
+   0,
+   0,
+   -1.0000100000500003,
+   -1,
+   0,
+   0,
+   -0.020000100000500003,
+   0
+  ],
+  "fov": 55
+ },
+ "url": "/preview/room213-splat/asset?model=golden&view=carpet_a0_indep&provenance=on&kind=ply",
+ "profile": {
+  "id": "spirula-3dgut",
+  "accumExtSplats": true,
+  "blurAmount": 0,
+  "preBlurAmount": 0
+ },
+ "resources": [
+  {
+   "name": "http://localhost:3213/preview/room213-splat/asset?model=golden&view=carpet_a0_indep&provenance=on&kind=manifest.json",
+   "ms": 723,
+   "bytes": 394
+  }
+ ]
+}

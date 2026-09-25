@@ -1,0 +1,1586 @@
+{
+ "perView": {
+  "golden_A": {
+   "carpet_a0_indep_f640": {
+    "fineGain": 0.6686051387353761,
+    "fineNcc": 0.7234990485403054,
+    "fineIncoherent": 0.6379484474768249,
+    "fineEnergy": 0.9241271845268065,
+    "midGain": 1.0252917692649308,
+    "midNcc": 0.9372767418993988,
+    "rgbMinusSource": 0.9,
+    "lumaMinusSpirula": 0.0,
+    "baseboardPx": 2.250823974609375
+   },
+   "carpet_a3_indep_f640": {
+    "fineGain": 0.532422646940049,
+    "fineNcc": 0.7290624394092149,
+    "fineIncoherent": 0.49984084526986605,
+    "fineEnergy": 0.7302840170609941,
+    "midGain": 0.8642062741062395,
+    "midNcc": 0.9343776044149116,
+    "rgbMinusSource": -3.5766666666666667,
+    "lumaMinusSpirula": 0.0,
+    "baseboardPx": 2.364684645086527
+   },
+   "carpet_a0_fixed_f640": {
+    "fineGain": 0.47562521057630586,
+    "fineNcc": 0.7248763397350654,
+    "fineIncoherent": 0.45200568263877017,
+    "fineEnergy": 0.6561466894479434,
+    "midGain": 0.815142558972426,
+    "midNcc": 0.9345697457747726,
+    "rgbMinusSource": -4.6433333333333335,
+    "lumaMinusSpirula": 0.0,
+    "baseboardPx": 2.600076775997877
+   },
+   "carpet_a0_indep_f1280": {
+    "fineGain": 0.4141900257812536,
+    "fineNcc": 0.5397074508643338,
+    "fineIncoherent": 0.6460666164767807,
+    "fineEnergy": 0.7674343296871929,
+    "midGain": 0.8229860840296942,
+    "midNcc": 0.8408090978283267,
+    "rgbMinusSource": 1.2766666666666666,
+    "lumaMinusSpirula": 0.0,
+    "baseboardPx": 3.8379059405997396
+   },
+   "carpet_a3_indep_f1280": {
+    "fineGain": 0.308980853595591,
+    "fineNcc": 0.5427305718927545,
+    "fineIncoherent": 0.4781656878565778,
+    "fineEnergy": 0.5693079947901788,
+    "midGain": 0.7035976267896455,
+    "midNcc": 0.8481919469357291,
+    "rgbMinusSource": -3.7033333333333336,
+    "lumaMinusSpirula": 0.0,
+    "baseboardPx": 3.665598027408123
+   },
+   "carpet_a0_fixed_f1280": {
+    "fineGain": 0.27153624688884004,
+    "fineNcc": 0.5234264393401497,
+    "fineIncoherent": 0.44202605744096957,
+    "fineEnergy": 0.5187667769154887,
+    "midGain": 0.6517093743984843,
+    "midNcc": 0.8480957660566721,
+    "rgbMinusSource": -3.76,
+    "lumaMinusSpirula": 0.0,
+    "baseboardPx": 3.8316268558846787
+   }
+  },
+  "golden_baseline": {
+   "carpet_a0_indep_f640": {
+    "fineGain": 0.39863450460459704,
+    "fineNcc": 0.6324526603634645,
+    "fineIncoherent": 0.4882292597399044,
+    "fineEnergy": 0.6302993561217777,
+    "midGain": 0.6868617839327102,
+    "midNcc": 0.882046192279341,
+    "rgbMinusSource": -5.22,
+    "lumaMinusSpirula": -6.121299145299146,
+    "baseboardPx": 2.8059798050671816
+   },
+   "carpet_a3_indep_f640": {
+    "fineGain": 0.3336381663464316,
+    "fineNcc": 0.618594499307707,
+    "fineIncoherent": 0.4237719218930088,
+    "fineEnergy": 0.5393487441608663,
+    "midGain": 0.6274778830541284,
+    "midNcc": 0.887148552498668,
+    "rgbMinusSource": -9.203333333333333,
+    "lumaMinusSpirula": -5.627779544250132,
+    "baseboardPx": 3.466516464948654
+   },
+   "carpet_a0_fixed_f640": {
+    "fineGain": 0.31938721964495137,
+    "fineNcc": 0.6223823780180991,
+    "fineIncoherent": 0.40166406837085783,
+    "fineEnergy": 0.5131688025326184,
+    "midGain": 0.6314200368666976,
+    "midNcc": 0.8876016999088497,
+    "rgbMinusSource": -10.136666666666667,
+    "lumaMinusSpirula": -5.491974358974359,
+    "baseboardPx": 3.770529568195343
+   },
+   "carpet_a0_indep_f1280": {
+    "fineGain": 0.2860977848005991,
+    "fineNcc": 0.3997847969853585,
+    "fineIncoherent": 0.6559524407517091,
+    "fineEnergy": 0.7156294760530302,
+    "midGain": 0.5812447471989076,
+    "midNcc": 0.7980632873312024,
+    "rgbMinusSource": -4.583333333333333,
+    "lumaMinusSpirula": -5.861696581196581,
+    "baseboardPx": 4.024938344955444
+   },
+   "carpet_a3_indep_f1280": {
+    "fineGain": 0.2192923393152858,
+    "fineNcc": 0.3869017752927846,
+    "fineIncoherent": 0.5226495963184706,
+    "fineEnergy": 0.566790729118103,
+    "midGain": 0.5229771970497836,
+    "midNcc": 0.8025017874041667,
+    "rgbMinusSource": -8.946666666666665,
+    "lumaMinusSpirula": -5.2450503444621095,
+    "baseboardPx": 4.383469007909298
+   },
+   "carpet_a0_fixed_f1280": {
+    "fineGain": 0.20566967562374028,
+    "fineNcc": 0.37942663485382333,
+    "fineIncoherent": 0.5015200713799257,
+    "fineEnergy": 0.5420538695259912,
+    "midGain": 0.5129470107457565,
+    "midNcc": 0.8092335498547246,
+    "rgbMinusSource": -9.746666666666666,
+    "lumaMinusSpirula": -5.989480769230769,
+    "baseboardPx": 4.794588729739189
+   }
+  },
+  "golden_ext": {
+   "carpet_a0_indep_f640": {
+    "fineGain": 0.5047752196428901,
+    "fineNcc": 0.6742466353314853,
+    "fineIncoherent": 0.5528832222223552,
+    "fineEnergy": 0.7486507061243596,
+    "midGain": 0.8835558035738387,
+    "midNcc": 0.927866546872655,
+    "rgbMinusSource": -1.01,
+    "lumaMinusSpirula": -1.9116410256410257,
+    "baseboardPx": 2.8186903670430183
+   },
+   "carpet_a3_indep_f640": {
+    "fineGain": 0.4075506629260713,
+    "fineNcc": 0.6539959220493036,
+    "fineIncoherent": 0.4714269319142187,
+    "fineEnergy": 0.6231700369766936,
+    "midGain": 0.774162233018184,
+    "midNcc": 0.9220362653542983,
+    "rgbMinusSource": -5.473333333333334,
+    "lumaMinusSpirula": -1.9010174880763115,
+    "baseboardPx": 3.490114077925682
+   },
+   "carpet_a0_fixed_f640": {
+    "fineGain": 0.38503336936274996,
+    "fineNcc": 0.6556524111464359,
+    "fineIncoherent": 0.44341237886398255,
+    "fineEnergy": 0.5872522739442121,
+    "midGain": 0.7658827549458259,
+    "midNcc": 0.9260469199217267,
+    "rgbMinusSource": -6.553333333333334,
+    "lumaMinusSpirula": -1.9073333333333333,
+    "baseboardPx": 3.641608353704214
+   },
+   "carpet_a0_indep_f1280": {
+    "fineGain": 0.3600194598832619,
+    "fineNcc": 0.43709896205478127,
+    "fineIncoherent": 0.7408078290016625,
+    "fineEnergy": 0.8236566341654707,
+    "midGain": 0.7427377946212479,
+    "midNcc": 0.8333329697287474,
+    "rgbMinusSource": -0.12666666666666662,
+    "lumaMinusSpirula": -1.402905982905983,
+    "baseboardPx": 4.237114742398262
+   },
+   "carpet_a3_indep_f1280": {
+    "fineGain": 0.267625810005647,
+    "fineNcc": 0.4215933635672868,
+    "fineIncoherent": 0.5756235534858818,
+    "fineEnergy": 0.6347960692292388,
+    "midGain": 0.6402673078004839,
+    "midNcc": 0.8367001018007968,
+    "rgbMinusSource": -5.010000000000001,
+    "lumaMinusSpirula": -1.3089374668786433,
+    "baseboardPx": 4.359959114342928
+   },
+   "carpet_a0_fixed_f1280": {
+    "fineGain": 0.24424415017478787,
+    "fineNcc": 0.40579758014627304,
+    "fineIncoherent": 0.5501021238496776,
+    "fineEnergy": 0.6018866600602893,
+    "midGain": 0.6121453004910183,
+    "midNcc": 0.8378230776604532,
+    "rgbMinusSource": -5.91,
+    "lumaMinusSpirula": -2.149900641025641,
+    "baseboardPx": 4.646852150559425
+   }
+  },
+  "golden_blur0": {
+   "carpet_a0_indep_f640": {
+    "fineGain": 0.47598187293776645,
+    "fineNcc": 0.642506175614151,
+    "fineIncoherent": 0.5676764588667556,
+    "fineEnergy": 0.7408206971439466,
+    "midGain": 0.7200974531724468,
+    "midNcc": 0.8836041962965494,
+    "rgbMinusSource": -5.136666666666667,
+    "lumaMinusSpirula": -6.034393162393163,
+    "baseboardPx": 2.310185327194631
+   },
+   "carpet_a3_indep_f640": {
+    "fineGain": 0.4089123805506852,
+    "fineNcc": 0.6421151652402435,
+    "fineIncoherent": 0.48819214410459566,
+    "fineEnergy": 0.636820936004047,
+    "midGain": 0.6586753456019224,
+    "midNcc": 0.8896993005865437,
+    "rgbMinusSource": -9.086666666666666,
+    "lumaMinusSpirula": -5.512029676735559,
+    "baseboardPx": 2.8930389657616615
+   },
+   "carpet_a0_fixed_f640": {
+    "fineGain": 0.3865957182566056,
+    "fineNcc": 0.6430210834248365,
+    "fineIncoherent": 0.4604417316976803,
+    "fineEnergy": 0.6012177955309536,
+    "midGain": 0.6637282924730414,
+    "midNcc": 0.8908391502854419,
+    "rgbMinusSource": -10.046666666666667,
+    "lumaMinusSpirula": -5.40201282051282,
+    "baseboardPx": 3.4863424599170685
+   },
+   "carpet_a0_indep_f1280": {
+    "fineGain": 0.30718143251539703,
+    "fineNcc": 0.40396097690892935,
+    "fineIncoherent": 0.6956173619689782,
+    "fineEnergy": 0.7604235311685796,
+    "midGain": 0.6000491370422429,
+    "midNcc": 0.7979970087069608,
+    "rgbMinusSource": -4.5600000000000005,
+    "lumaMinusSpirula": -5.838337606837607,
+    "baseboardPx": 3.782751265913248
+   },
+   "carpet_a3_indep_f1280": {
+    "fineGain": 0.2384836131108351,
+    "fineNcc": 0.397664862554987,
+    "fineIncoherent": 0.5502524019381159,
+    "fineEnergy": 0.5997100462399011,
+    "midGain": 0.5404589534415828,
+    "midNcc": 0.8040588040743438,
+    "rgbMinusSource": -8.913333333333334,
+    "lumaMinusSpirula": -5.214194488606253,
+    "baseboardPx": 4.184743436053395
+   },
+   "carpet_a0_fixed_f1280": {
+    "fineGain": 0.22222247203360498,
+    "fineNcc": 0.38820118326202857,
+    "fineIncoherent": 0.5275475872172045,
+    "fineEnergy": 0.5724415112964995,
+    "midGain": 0.5301487596029466,
+    "midNcc": 0.8111350392704646,
+    "rgbMinusSource": -9.726666666666667,
+    "lumaMinusSpirula": -5.966573717948718,
+    "baseboardPx": 4.641602648422122
+   }
+  },
+  "golden_combined": {
+   "carpet_a0_indep_f640": {
+    "fineGain": 0.603950345624536,
+    "fineNcc": 0.6853465698434668,
+    "fineIncoherent": 0.6417292526347838,
+    "fineEnergy": 0.8812334841954169,
+    "midGain": 0.925373865472629,
+    "midNcc": 0.9291946967904181,
+    "rgbMinusSource": -0.8899999999999998,
+    "lumaMinusSpirula": -1.7931282051282051,
+    "baseboardPx": 2.397159203886986
+   },
+   "carpet_a3_indep_f640": {
+    "fineGain": 0.4965298263643595,
+    "fineNcc": 0.6785659205851341,
+    "fineIncoherent": 0.537487610535796,
+    "fineEnergy": 0.7317341046779906,
+    "midGain": 0.8123092429303299,
+    "midNcc": 0.9247840862136919,
+    "rgbMinusSource": -5.3500000000000005,
+    "lumaMinusSpirula": -1.7734287228404875,
+    "baseboardPx": 2.95928668230772
+   },
+   "carpet_a0_fixed_f640": {
+    "fineGain": 0.4651972512448549,
+    "fineNcc": 0.6783697745330981,
+    "fineIncoherent": 0.5038403014690995,
+    "fineEnergy": 0.6857576335340655,
+    "midGain": 0.8019392328143871,
+    "midNcc": 0.9287431572752373,
+    "rgbMinusSource": -6.433333333333333,
+    "lumaMinusSpirula": -1.7888461538461538,
+    "baseboardPx": 3.4004596676677465
+   },
+   "carpet_a0_indep_f1280": {
+    "fineGain": 0.3868530995605602,
+    "fineNcc": 0.44256272928774915,
+    "fineIncoherent": 0.7838565634190345,
+    "fineEnergy": 0.8741203765241442,
+    "midGain": 0.7644873712749835,
+    "midNcc": 0.8335379149646988,
+    "rgbMinusSource": -0.10000000000000002,
+    "lumaMinusSpirula": -1.3733034188034188,
+    "baseboardPx": 4.00180490128696
+   },
+   "carpet_a3_indep_f1280": {
+    "fineGain": 0.289497733651793,
+    "fineNcc": 0.4314014380545548,
+    "fineIncoherent": 0.6054066440110615,
+    "fineEnergy": 0.6710634414138955,
+    "midGain": 0.6605849598266156,
+    "midNcc": 0.8382793323496238,
+    "rgbMinusSource": -4.973333333333334,
+    "lumaMinusSpirula": -1.2735691573926868,
+    "baseboardPx": 4.099092863500118
+   },
+   "carpet_a0_fixed_f1280": {
+    "fineGain": 0.2632658344856417,
+    "fineNcc": 0.4150124558863265,
+    "fineIncoherent": 0.5771474899866997,
+    "fineEnergy": 0.634356465093065,
+    "midGain": 0.6315563320141848,
+    "midNcc": 0.8395715345228135,
+    "rgbMinusSource": -5.876666666666666,
+    "lumaMinusSpirula": -2.1180192307692307,
+    "baseboardPx": 4.4847890585660934
+   }
+  },
+  "edge_A": {
+   "carpet_a0_indep_f640": {
+    "fineGain": 0.6868591147492947,
+    "fineNcc": 0.7424888915524532,
+    "fineIncoherent": 0.6196703242554363,
+    "fineEnergy": 0.9250766207601523,
+    "midGain": 0.9737045748029173,
+    "midNcc": 0.9446544412423195,
+    "rgbMinusSource": 2.353333333333333,
+    "lumaMinusSpirula": 0.0,
+    "baseboardPx": 2.4560782611370087
+   },
+   "carpet_a3_indep_f640": {
+    "fineGain": 0.5689731639511892,
+    "fineNcc": 0.7534620341996767,
+    "fineIncoherent": 0.49650142229348254,
+    "fineEnergy": 0.7551451010475259,
+    "midGain": 0.8599774049385066,
+    "midNcc": 0.9381078569089425,
+    "rgbMinusSource": -1.9433333333333334,
+    "lumaMinusSpirula": 0.0,
+    "baseboardPx": 2.724997717887163
+   },
+   "carpet_a0_fixed_f640": {
+    "fineGain": 0.5590789672873043,
+    "fineNcc": 0.7770776229682335,
+    "fineIncoherent": 0.4528337452001472,
+    "fineEnergy": 0.7194634754141661,
+    "midGain": 0.8650558970149124,
+    "midNcc": 0.9534674850231855,
+    "rgbMinusSource": -2.6833333333333336,
+    "lumaMinusSpirula": 0.0,
+    "baseboardPx": 2.2592555582523346
+   },
+   "carpet_a0_indep_f1280": {
+    "fineGain": 0.4430950431500182,
+    "fineNcc": 0.5553917889712606,
+    "fineIncoherent": 0.6634467597786783,
+    "fineEnergy": 0.7978062548795564,
+    "midGain": 0.8177143721535923,
+    "midNcc": 0.8578620864145335,
+    "rgbMinusSource": 2.513333333333333,
+    "lumaMinusSpirula": 0.0,
+    "baseboardPx": 3.189321779063903
+   },
+   "carpet_a3_indep_f1280": {
+    "fineGain": 0.34724866619760353,
+    "fineNcc": 0.574999476687292,
+    "fineIncoherent": 0.49409228897080515,
+    "fineEnergy": 0.603911273447039,
+    "midGain": 0.7100201062946213,
+    "midNcc": 0.8635193742263776,
+    "rgbMinusSource": -1.72,
+    "lumaMinusSpirula": 0.0,
+    "baseboardPx": 3.2348515624180436
+   },
+   "carpet_a0_fixed_f1280": {
+    "fineGain": 0.333795790596828,
+    "fineNcc": 0.5832890222788876,
+    "fineIncoherent": 0.4648305075780871,
+    "fineEnergy": 0.5722648255794371,
+    "midGain": 0.7095766161322515,
+    "midNcc": 0.88736425895365,
+    "rgbMinusSource": -2.143333333333333,
+    "lumaMinusSpirula": 0.0,
+    "baseboardPx": 3.3515629060566425
+   }
+  },
+  "edge_baseline": {
+   "carpet_a0_indep_f640": {
+    "fineGain": 0.3862129856841905,
+    "fineNcc": 0.6388000566526986,
+    "fineIncoherent": 0.4651561292774011,
+    "fineEnergy": 0.6045913453858159,
+    "midGain": 0.6274244980544986,
+    "midNcc": 0.8903231541344865,
+    "rgbMinusSource": -2.2566666666666664,
+    "lumaMinusSpirula": -4.605264957264957,
+    "baseboardPx": 3.4209760278463364
+   },
+   "carpet_a3_indep_f640": {
+    "fineGain": 0.3480255301371098,
+    "fineNcc": 0.6333748814480825,
+    "fineIncoherent": 0.4252108249434474,
+    "fineEnergy": 0.5494779479435944,
+    "midGain": 0.6193675983088155,
+    "midNcc": 0.8946626448084121,
+    "rgbMinusSource": -8.950000000000001,
+    "lumaMinusSpirula": -7.0082670906200315,
+    "baseboardPx": 3.6729401852935553
+   },
+   "carpet_a0_fixed_f640": {
+    "fineGain": 0.3427673901113496,
+    "fineNcc": 0.656539419535092,
+    "fineIncoherent": 0.39380210034060054,
+    "fineEnergy": 0.5220819647875365,
+    "midGain": 0.6346558726614808,
+    "midNcc": 0.9087874839104093,
+    "rgbMinusSource": -8.973333333333334,
+    "lumaMinusSpirula": -6.290551282051282,
+    "baseboardPx": 3.5144620276987553
+   },
+   "carpet_a0_indep_f1280": {
+    "fineGain": 0.29684324145157986,
+    "fineNcc": 0.4047561461876887,
+    "fineIncoherent": 0.6706279403811253,
+    "fineEnergy": 0.7333878540140347,
+    "midGain": 0.5601329269073484,
+    "midNcc": 0.8100542120647648,
+    "rgbMinusSource": -3.8066666666666666,
+    "lumaMinusSpirula": -6.319692307692308,
+    "baseboardPx": 4.525193369016051
+   },
+   "carpet_a3_indep_f1280": {
+    "fineGain": 0.24129608460424473,
+    "fineNcc": 0.4059029206997666,
+    "fineIncoherent": 0.5432934557793418,
+    "fineEnergy": 0.5944674755930711,
+    "midGain": 0.5168130228625833,
+    "midNcc": 0.8176406641748,
+    "rgbMinusSource": -8.38,
+    "lumaMinusSpirula": -6.660688924218336,
+    "baseboardPx": 4.631573840975761
+   },
+   "carpet_a0_fixed_f1280": {
+    "fineGain": 0.2382150975302495,
+    "fineNcc": 0.4184764714891693,
+    "fineIncoherent": 0.5170028667230679,
+    "fineEnergy": 0.569243706062014,
+    "midGain": 0.5342192233103908,
+    "midNcc": 0.8442036949080134,
+    "rgbMinusSource": -8.533333333333333,
+    "lumaMinusSpirula": -6.396301282051282,
+    "baseboardPx": 4.722202934324741
+   }
+  },
+  "edge_ext": {
+   "carpet_a0_indep_f640": {
+    "fineGain": 0.49650351668039716,
+    "fineNcc": 0.6831247293001544,
+    "fineIncoherent": 0.5307923389971729,
+    "fineEnergy": 0.7268123892821938,
+    "midGain": 0.8146763822919534,
+    "midNcc": 0.9355611864664264,
+    "rgbMinusSource": 1.1366666666666667,
+    "lumaMinusSpirula": -1.2162735042735042,
+    "baseboardPx": 3.21748685836792
+   },
+   "carpet_a3_indep_f640": {
+    "fineGain": 0.4281790308210616,
+    "fineNcc": 0.6731873356984158,
+    "fineIncoherent": 0.4703392049449179,
+    "fineEnergy": 0.6360473647009954,
+    "midGain": 0.7621235825947409,
+    "midNcc": 0.9261020440284292,
+    "rgbMinusSource": -5.576666666666667,
+    "lumaMinusSpirula": -3.6339586645469,
+    "baseboardPx": 3.473634108901024
+   },
+   "carpet_a0_fixed_f640": {
+    "fineGain": 0.4171830311583122,
+    "fineNcc": 0.6956635171954597,
+    "fineIncoherent": 0.4307985707970907,
+    "fineEnergy": 0.5996908287503264,
+    "midGain": 0.7634835484522989,
+    "midNcc": 0.9433018950459533,
+    "rgbMinusSource": -5.526666666666667,
+    "lumaMinusSpirula": -2.8427435897435895,
+    "baseboardPx": 3.259267672896385
+   },
+   "carpet_a0_indep_f1280": {
+    "fineGain": 0.37832500531536195,
+    "fineNcc": 0.447447190474842,
+    "fineIncoherent": 0.7561562060382541,
+    "fineEnergy": 0.8455187860580243,
+    "midGain": 0.7256962294811764,
+    "midNcc": 0.8478546302456296,
+    "rgbMinusSource": -0.09000000000000001,
+    "lumaMinusSpirula": -2.603307692307692,
+    "baseboardPx": 3.9425027817487717
+   },
+   "carpet_a3_indep_f1280": {
+    "fineGain": 0.2957212573157294,
+    "fineNcc": 0.44329083113735696,
+    "fineIncoherent": 0.5979775903487305,
+    "fineEnergy": 0.6671043850760314,
+    "midGain": 0.6384412942535156,
+    "midNcc": 0.8500538399647044,
+    "rgbMinusSource": -4.986666666666667,
+    "lumaMinusSpirula": -3.2689374668786435,
+    "baseboardPx": 4.0351656675338745
+   },
+   "carpet_a0_fixed_f1280": {
+    "fineGain": 0.29157938388887966,
+    "fineNcc": 0.4573449104909494,
+    "fineIncoherent": 0.566964775883693,
+    "fineEnergy": 0.6375481112840542,
+    "midGain": 0.6499499958089779,
+    "midNcc": 0.8777515914750542,
+    "rgbMinusSource": -5.266666666666667,
+    "lumaMinusSpirula": -3.1277179487179487,
+    "baseboardPx": 4.206500567495823
+   }
+  },
+  "edge_blur0": {
+   "carpet_a0_indep_f640": {
+    "fineGain": 0.46330667606027987,
+    "fineNcc": 0.647288378435004,
+    "fineIncoherent": 0.5455888052782321,
+    "fineEnergy": 0.7157654787197785,
+    "midGain": 0.6573537495209175,
+    "midNcc": 0.8915937573781466,
+    "rgbMinusSource": -2.1166666666666667,
+    "lumaMinusSpirula": -4.470752136752137,
+    "baseboardPx": 3.0965894907712936
+   },
+   "carpet_a3_indep_f640": {
+    "fineGain": 0.4278045959262043,
+    "fineNcc": 0.659658423646563,
+    "fineIncoherent": 0.48740860653940543,
+    "fineEnergy": 0.6485244189884201,
+    "midGain": 0.6489999016839046,
+    "midNcc": 0.8969410544113577,
+    "rgbMinusSource": -8.766666666666667,
+    "lumaMinusSpirula": -6.828086910439851,
+    "baseboardPx": 3.326467975974083
+   },
+   "carpet_a0_fixed_f640": {
+    "fineGain": 0.4213071027469016,
+    "fineNcc": 0.6831000709791681,
+    "fineIncoherent": 0.45043330065499554,
+    "fineEnergy": 0.6167575156931141,
+    "midGain": 0.6665291436275266,
+    "midNcc": 0.9117845406896582,
+    "rgbMinusSource": -8.83,
+    "lumaMinusSpirula": -6.146589743589743,
+    "baseboardPx": 2.9055571258068085
+   },
+   "carpet_a0_indep_f1280": {
+    "fineGain": 0.31905744183356627,
+    "fineNcc": 0.4085842381306545,
+    "fineIncoherent": 0.7127301477452022,
+    "fineEnergy": 0.780885340299251,
+    "midGain": 0.5781492749876312,
+    "midNcc": 0.8107776340963176,
+    "rgbMinusSource": -3.7633333333333336,
+    "lumaMinusSpirula": -6.279068376068376,
+    "baseboardPx": 4.258483372628689
+   },
+   "carpet_a3_indep_f1280": {
+    "fineGain": 0.2626994349089173,
+    "fineNcc": 0.4158507827412293,
+    "fineIncoherent": 0.5745029425785578,
+    "fineEnergy": 0.6317156196682857,
+    "midGain": 0.5341682497352459,
+    "midNcc": 0.8195913850269606,
+    "rgbMinusSource": -8.326666666666666,
+    "lumaMinusSpirula": -6.609059353471118,
+    "baseboardPx": 4.271401256322861
+   },
+   "carpet_a0_fixed_f1280": {
+    "fineGain": 0.2582021315848007,
+    "fineNcc": 0.42845821423772384,
+    "fineIncoherent": 0.5445140797383203,
+    "fineEnergy": 0.6026308354110372,
+    "midGain": 0.5520094778925231,
+    "midNcc": 0.8456667843520114,
+    "rgbMinusSource": -8.496666666666668,
+    "lumaMinusSpirula": -6.357262820512821,
+    "baseboardPx": 4.421246314421296
+   }
+  },
+  "edge_combined": {
+   "carpet_a0_indep_f640": {
+    "fineGain": 0.5962691880670372,
+    "fineNcc": 0.6919403370200873,
+    "fineIncoherent": 0.6221336031093311,
+    "fineEnergy": 0.8617349736177141,
+    "midGain": 0.853073709608493,
+    "midNcc": 0.935425995488632,
+    "rgbMinusSource": 1.3,
+    "lumaMinusSpirula": -1.0515042735042734,
+    "baseboardPx": 2.788573030382395
+   },
+   "carpet_a3_indep_f640": {
+    "fineGain": 0.5268411405841109,
+    "fineNcc": 0.6991474303064626,
+    "fineIncoherent": 0.538769881591589,
+    "fineEnergy": 0.7535479896610313,
+    "midGain": 0.8001391580510742,
+    "midNcc": 0.9286931092428956,
+    "rgbMinusSource": -5.390000000000001,
+    "lumaMinusSpirula": -3.446815050344462,
+    "baseboardPx": 3.1193152219057083
+   },
+   "carpet_a0_fixed_f640": {
+    "fineGain": 0.5139066928565568,
+    "fineNcc": 0.7251568438210205,
+    "fineIncoherent": 0.4879879297099106,
+    "fineEnergy": 0.7086835037626655,
+    "midGain": 0.8017936676632063,
+    "midNcc": 0.9461880550455672,
+    "rgbMinusSource": -5.36,
+    "lumaMinusSpirula": -2.675051282051282,
+    "baseboardPx": 2.656820185482502
+   },
+   "carpet_a0_indep_f1280": {
+    "fineGain": 0.4053561470594325,
+    "fineNcc": 0.44778962783543996,
+    "fineIncoherent": 0.8094084683919307,
+    "fineEnergy": 0.905237910531502,
+    "midGain": 0.7478708482757804,
+    "midNcc": 0.8477691530504622,
+    "rgbMinusSource": -0.04666666666666671,
+    "lumaMinusSpirula": -2.5606794871794873,
+    "baseboardPx": 3.6758337169885635
+   },
+   "carpet_a3_indep_f1280": {
+    "fineGain": 0.32193297046708,
+    "fineNcc": 0.45409637377393336,
+    "fineIncoherent": 0.6316434664803146,
+    "fineEnergy": 0.7089529647452122,
+    "midGain": 0.659053224045408,
+    "midNcc": 0.8516450669594768,
+    "rgbMinusSource": -4.93,
+    "lumaMinusSpirula": -3.2129968203497614,
+    "baseboardPx": 3.62459222599864
+   },
+   "carpet_a0_fixed_f1280": {
+    "fineGain": 0.31544601880068823,
+    "fineNcc": 0.4660744993584831,
+    "fineIncoherent": 0.5988086434849644,
+    "fineEnergy": 0.6768145848676043,
+    "midGain": 0.6715397801460803,
+    "midNcc": 0.8794846112057104,
+    "rgbMinusSource": -5.22,
+    "lumaMinusSpirula": -3.0797307692307694,
+    "baseboardPx": 3.870073052123189
+   }
+  }
+ },
+ "mean": {
+  "golden_A": {
+   "f640": {
+    "fineGain": 0.559,
+    "fineNcc": 0.726,
+    "fineIncoherent": 0.53,
+    "fineEnergy": 0.77,
+    "midGain": 0.902,
+    "midNcc": 0.935,
+    "rgbMinusSource": -2.44,
+    "lumaMinusSpirula": 0.0,
+    "baseboardPx": 2.405
+   },
+   "f1280": {
+    "fineGain": 0.332,
+    "fineNcc": 0.535,
+    "fineIncoherent": 0.522,
+    "fineEnergy": 0.619,
+    "midGain": 0.726,
+    "midNcc": 0.846,
+    "rgbMinusSource": -2.062,
+    "lumaMinusSpirula": 0.0,
+    "baseboardPx": 3.778
+   }
+  },
+  "golden_baseline": {
+   "f640": {
+    "fineGain": 0.351,
+    "fineNcc": 0.624,
+    "fineIncoherent": 0.438,
+    "fineEnergy": 0.561,
+    "midGain": 0.649,
+    "midNcc": 0.886,
+    "rgbMinusSource": -8.187,
+    "lumaMinusSpirula": -5.747,
+    "baseboardPx": 3.348
+   },
+   "f1280": {
+    "fineGain": 0.237,
+    "fineNcc": 0.389,
+    "fineIncoherent": 0.56,
+    "fineEnergy": 0.608,
+    "midGain": 0.539,
+    "midNcc": 0.803,
+    "rgbMinusSource": -7.759,
+    "lumaMinusSpirula": -5.699,
+    "baseboardPx": 4.401
+   }
+  },
+  "golden_ext": {
+   "f640": {
+    "fineGain": 0.432,
+    "fineNcc": 0.661,
+    "fineIncoherent": 0.489,
+    "fineEnergy": 0.653,
+    "midGain": 0.808,
+    "midNcc": 0.925,
+    "rgbMinusSource": -4.346,
+    "lumaMinusSpirula": -1.907,
+    "baseboardPx": 3.317
+   },
+   "f1280": {
+    "fineGain": 0.291,
+    "fineNcc": 0.421,
+    "fineIncoherent": 0.622,
+    "fineEnergy": 0.687,
+    "midGain": 0.665,
+    "midNcc": 0.836,
+    "rgbMinusSource": -3.682,
+    "lumaMinusSpirula": -1.621,
+    "baseboardPx": 4.415
+   }
+  },
+  "golden_blur0": {
+   "f640": {
+    "fineGain": 0.424,
+    "fineNcc": 0.643,
+    "fineIncoherent": 0.505,
+    "fineEnergy": 0.66,
+    "midGain": 0.681,
+    "midNcc": 0.888,
+    "rgbMinusSource": -8.09,
+    "lumaMinusSpirula": -5.649,
+    "baseboardPx": 2.897
+   },
+   "f1280": {
+    "fineGain": 0.256,
+    "fineNcc": 0.397,
+    "fineIncoherent": 0.591,
+    "fineEnergy": 0.644,
+    "midGain": 0.557,
+    "midNcc": 0.804,
+    "rgbMinusSource": -7.733,
+    "lumaMinusSpirula": -5.673,
+    "baseboardPx": 4.203
+   }
+  },
+  "golden_combined": {
+   "f640": {
+    "fineGain": 0.522,
+    "fineNcc": 0.681,
+    "fineIncoherent": 0.561,
+    "fineEnergy": 0.766,
+    "midGain": 0.847,
+    "midNcc": 0.928,
+    "rgbMinusSource": -4.224,
+    "lumaMinusSpirula": -1.785,
+    "baseboardPx": 2.919
+   },
+   "f1280": {
+    "fineGain": 0.313,
+    "fineNcc": 0.43,
+    "fineIncoherent": 0.655,
+    "fineEnergy": 0.727,
+    "midGain": 0.686,
+    "midNcc": 0.837,
+    "rgbMinusSource": -3.65,
+    "lumaMinusSpirula": -1.588,
+    "baseboardPx": 4.195
+   }
+  },
+  "edge_A": {
+   "f640": {
+    "fineGain": 0.605,
+    "fineNcc": 0.758,
+    "fineIncoherent": 0.523,
+    "fineEnergy": 0.8,
+    "midGain": 0.9,
+    "midNcc": 0.945,
+    "rgbMinusSource": -0.758,
+    "lumaMinusSpirula": 0.0,
+    "baseboardPx": 2.48
+   },
+   "f1280": {
+    "fineGain": 0.375,
+    "fineNcc": 0.571,
+    "fineIncoherent": 0.541,
+    "fineEnergy": 0.658,
+    "midGain": 0.746,
+    "midNcc": 0.87,
+    "rgbMinusSource": -0.45,
+    "lumaMinusSpirula": 0.0,
+    "baseboardPx": 3.259
+   }
+  },
+  "edge_baseline": {
+   "f640": {
+    "fineGain": 0.359,
+    "fineNcc": 0.643,
+    "fineIncoherent": 0.428,
+    "fineEnergy": 0.559,
+    "midGain": 0.627,
+    "midNcc": 0.898,
+    "rgbMinusSource": -6.727,
+    "lumaMinusSpirula": -5.968,
+    "baseboardPx": 3.536
+   },
+   "f1280": {
+    "fineGain": 0.259,
+    "fineNcc": 0.41,
+    "fineIncoherent": 0.577,
+    "fineEnergy": 0.632,
+    "midGain": 0.537,
+    "midNcc": 0.824,
+    "rgbMinusSource": -6.907,
+    "lumaMinusSpirula": -6.459,
+    "baseboardPx": 4.626
+   }
+  },
+  "edge_ext": {
+   "f640": {
+    "fineGain": 0.447,
+    "fineNcc": 0.684,
+    "fineIncoherent": 0.477,
+    "fineEnergy": 0.654,
+    "midGain": 0.78,
+    "midNcc": 0.935,
+    "rgbMinusSource": -3.322,
+    "lumaMinusSpirula": -2.564,
+    "baseboardPx": 3.317
+   },
+   "f1280": {
+    "fineGain": 0.322,
+    "fineNcc": 0.449,
+    "fineIncoherent": 0.64,
+    "fineEnergy": 0.717,
+    "midGain": 0.671,
+    "midNcc": 0.859,
+    "rgbMinusSource": -3.448,
+    "lumaMinusSpirula": -3.0,
+    "baseboardPx": 4.061
+   }
+  },
+  "edge_blur0": {
+   "f640": {
+    "fineGain": 0.437,
+    "fineNcc": 0.663,
+    "fineIncoherent": 0.494,
+    "fineEnergy": 0.66,
+    "midGain": 0.658,
+    "midNcc": 0.9,
+    "rgbMinusSource": -6.571,
+    "lumaMinusSpirula": -5.815,
+    "baseboardPx": 3.11
+   },
+   "f1280": {
+    "fineGain": 0.28,
+    "fineNcc": 0.418,
+    "fineIncoherent": 0.611,
+    "fineEnergy": 0.672,
+    "midGain": 0.555,
+    "midNcc": 0.825,
+    "rgbMinusSource": -6.862,
+    "lumaMinusSpirula": -6.415,
+    "baseboardPx": 4.317
+   }
+  },
+  "edge_combined": {
+   "f640": {
+    "fineGain": 0.546,
+    "fineNcc": 0.705,
+    "fineIncoherent": 0.55,
+    "fineEnergy": 0.775,
+    "midGain": 0.818,
+    "midNcc": 0.937,
+    "rgbMinusSource": -3.15,
+    "lumaMinusSpirula": -2.391,
+    "baseboardPx": 2.855
+   },
+   "f1280": {
+    "fineGain": 0.348,
+    "fineNcc": 0.456,
+    "fineIncoherent": 0.68,
+    "fineEnergy": 0.764,
+    "midGain": 0.693,
+    "midNcc": 0.86,
+    "rgbMinusSource": -3.399,
+    "lumaMinusSpirula": -2.951,
+    "baseboardPx": 3.723
+   }
+  }
+ },
+ "edges": {
+  "f640": {
+   "source": 2.09,
+   "golden_A": 1.62,
+   "golden_baseline": 2.42,
+   "golden_ext": 2.39,
+   "golden_blur0": 1.61,
+   "golden_combined": 1.54,
+   "edge_A": 1.56,
+   "edge_baseline": 2.58,
+   "edge_ext": 2.61,
+   "edge_blur0": 1.73,
+   "edge_combined": 1.58
+  },
+  "f1280": {
+   "source": 4.25,
+   "golden_A": 4.48,
+   "golden_baseline": 4.71,
+   "golden_ext": 4.73,
+   "golden_blur0": 4.48,
+   "golden_combined": 4.5,
+   "edge_A": 4.62,
+   "edge_baseline": 4.69,
+   "edge_ext": 4.69,
+   "edge_blur0": 4.46,
+   "edge_combined": 4.48
+  }
+ },
+ "motion": {
+  "golden_A": {
+   "frames": 25,
+   "shimmer2ndDiffOverStd": 0.1394,
+   "frameDiffOverStd": 0.1888,
+   "meanFineStd": 4.222
+  },
+  "golden_baseline": {
+   "frames": 25,
+   "shimmer2ndDiffOverStd": 0.6528,
+   "frameDiffOverStd": 0.4196,
+   "meanFineStd": 2.889
+  },
+  "golden_ext": {
+   "frames": 25,
+   "shimmer2ndDiffOverStd": 0.5908,
+   "frameDiffOverStd": 0.3849,
+   "meanFineStd": 3.433
+  },
+  "golden_blur0": {
+   "frames": 25,
+   "shimmer2ndDiffOverStd": 0.567,
+   "frameDiffOverStd": 0.3805,
+   "meanFineStd": 3.398
+  },
+  "golden_combined": {
+   "frames": 25,
+   "shimmer2ndDiffOverStd": 0.5003,
+   "frameDiffOverStd": 0.3465,
+   "meanFineStd": 4.032
+  },
+  "edge_A": {
+   "frames": 25,
+   "shimmer2ndDiffOverStd": 0.154,
+   "frameDiffOverStd": 0.2046,
+   "meanFineStd": 4.23
+  },
+  "edge_baseline": {
+   "frames": 25,
+   "shimmer2ndDiffOverStd": 0.7013,
+   "frameDiffOverStd": 0.4485,
+   "meanFineStd": 2.777
+  },
+  "edge_ext": {
+   "frames": 25,
+   "shimmer2ndDiffOverStd": 0.6292,
+   "frameDiffOverStd": 0.408,
+   "meanFineStd": 3.343
+  },
+  "edge_blur0": {
+   "frames": 25,
+   "shimmer2ndDiffOverStd": 0.6087,
+   "frameDiffOverStd": 0.4081,
+   "meanFineStd": 3.285
+  },
+  "edge_combined": {
+   "frames": 25,
+   "shimmer2ndDiffOverStd": 0.5281,
+   "frameDiffOverStd": 0.3672,
+   "meanFineStd": 3.959
+  }
+ },
+ "runtime": {
+  "golden_baseline": {
+   "loadMs": 6242,
+   "effective": {
+    "accumExtSplats": false,
+    "displayAccumulatorExt": false,
+    "uniform_enableExtSplats": false,
+    "uniform_blurAmount": 0.3,
+    "uniform_preBlurAmount": 0,
+    "uniform_maxStdDev": 2.8284271247461903,
+    "uniform_minAlpha": 0.00196078431372549,
+    "uniform_renderSize": [
+     1280,
+     720
+    ],
+    "drawingBuffer": [
+     1280,
+     720
+    ],
+    "pixelRatio": 1,
+    "canvasCss": [
+     1280,
+     720
+    ]
+   },
+   "accumulatorBytes": 38748160,
+   "accumulators": [
+    {
+     "ext": false,
+     "allocated": false
+    },
+    {
+     "ext": false,
+     "maxSplats": 968704,
+     "w": 2048,
+     "h": 473,
+     "d": 1,
+     "textures": [
+      1014,
+      "RGBA8"
+     ],
+     "bytes": 19374080
+    },
+    {
+     "ext": false,
+     "maxSplats": 968704,
+     "w": 2048,
+     "h": 473,
+     "d": 1,
+     "textures": [
+      1014,
+      "RGBA8"
+     ],
+     "bytes": 19374080
+    }
+   ],
+   "activeSplats": [
+    471987,
+    696153,
+    491214,
+    703622,
+    513427,
+    716850,
+    846891,
+    965368,
+    475363,
+    687409,
+    844159,
+    966808
+   ]
+  },
+  "golden_ext": {
+   "loadMs": 6329,
+   "effective": {
+    "accumExtSplats": true,
+    "displayAccumulatorExt": true,
+    "uniform_enableExtSplats": true,
+    "uniform_blurAmount": 0.3,
+    "uniform_preBlurAmount": 0,
+    "uniform_maxStdDev": 2.8284271247461903,
+    "uniform_minAlpha": 0.00196078431372549,
+    "uniform_renderSize": [
+     1280,
+     720
+    ],
+    "drawingBuffer": [
+     1280,
+     720
+    ],
+    "pixelRatio": 1,
+    "canvasCss": [
+     1280,
+     720
+    ]
+   },
+   "accumulatorBytes": 69746688,
+   "accumulators": [
+    {
+     "ext": true,
+     "allocated": false
+    },
+    {
+     "ext": true,
+     "maxSplats": 968704,
+     "w": 2048,
+     "h": 473,
+     "d": 1,
+     "textures": [
+      1014,
+      1014,
+      "RGBA8"
+     ],
+     "bytes": 34873344
+    },
+    {
+     "ext": true,
+     "maxSplats": 968704,
+     "w": 2048,
+     "h": 473,
+     "d": 1,
+     "textures": [
+      1014,
+      1014,
+      "RGBA8"
+     ],
+     "bytes": 34873344
+    }
+   ],
+   "activeSplats": [
+    471987,
+    696153,
+    491214,
+    703622,
+    513427,
+    716850,
+    846891,
+    965368,
+    475363,
+    687409,
+    844159,
+    966808
+   ]
+  },
+  "golden_blur0": {
+   "loadMs": 6490,
+   "effective": {
+    "accumExtSplats": false,
+    "displayAccumulatorExt": false,
+    "uniform_enableExtSplats": false,
+    "uniform_blurAmount": 0,
+    "uniform_preBlurAmount": 0,
+    "uniform_maxStdDev": 2.8284271247461903,
+    "uniform_minAlpha": 0.00196078431372549,
+    "uniform_renderSize": [
+     1280,
+     720
+    ],
+    "drawingBuffer": [
+     1280,
+     720
+    ],
+    "pixelRatio": 1,
+    "canvasCss": [
+     1280,
+     720
+    ]
+   },
+   "accumulatorBytes": 38748160,
+   "accumulators": [
+    {
+     "ext": false,
+     "allocated": false
+    },
+    {
+     "ext": false,
+     "maxSplats": 968704,
+     "w": 2048,
+     "h": 473,
+     "d": 1,
+     "textures": [
+      1014,
+      "RGBA8"
+     ],
+     "bytes": 19374080
+    },
+    {
+     "ext": false,
+     "maxSplats": 968704,
+     "w": 2048,
+     "h": 473,
+     "d": 1,
+     "textures": [
+      1014,
+      "RGBA8"
+     ],
+     "bytes": 19374080
+    }
+   ],
+   "activeSplats": [
+    471987,
+    696153,
+    491214,
+    703622,
+    513427,
+    716850,
+    846891,
+    965368,
+    475363,
+    687409,
+    844159,
+    966808
+   ]
+  },
+  "golden_combined": {
+   "loadMs": 6252,
+   "effective": {
+    "accumExtSplats": true,
+    "displayAccumulatorExt": true,
+    "uniform_enableExtSplats": true,
+    "uniform_blurAmount": 0,
+    "uniform_preBlurAmount": 0,
+    "uniform_maxStdDev": 2.8284271247461903,
+    "uniform_minAlpha": 0.00196078431372549,
+    "uniform_renderSize": [
+     1280,
+     720
+    ],
+    "drawingBuffer": [
+     1280,
+     720
+    ],
+    "pixelRatio": 1,
+    "canvasCss": [
+     1280,
+     720
+    ]
+   },
+   "accumulatorBytes": 69746688,
+   "accumulators": [
+    {
+     "ext": true,
+     "allocated": false
+    },
+    {
+     "ext": true,
+     "maxSplats": 968704,
+     "w": 2048,
+     "h": 473,
+     "d": 1,
+     "textures": [
+      1014,
+      1014,
+      "RGBA8"
+     ],
+     "bytes": 34873344
+    },
+    {
+     "ext": true,
+     "maxSplats": 968704,
+     "w": 2048,
+     "h": 473,
+     "d": 1,
+     "textures": [
+      1014,
+      1014,
+      "RGBA8"
+     ],
+     "bytes": 34873344
+    }
+   ],
+   "activeSplats": [
+    471987,
+    696153,
+    491214,
+    703622,
+    513427,
+    716850,
+    846891,
+    965368,
+    475363,
+    687409,
+    844159,
+    966808
+   ]
+  },
+  "edge_baseline": {
+   "loadMs": 6308,
+   "effective": {
+    "accumExtSplats": false,
+    "displayAccumulatorExt": false,
+    "uniform_enableExtSplats": false,
+    "uniform_blurAmount": 0.3,
+    "uniform_preBlurAmount": 0,
+    "uniform_maxStdDev": 2.8284271247461903,
+    "uniform_minAlpha": 0.00196078431372549,
+    "uniform_renderSize": [
+     1280,
+     720
+    ],
+    "drawingBuffer": [
+     1280,
+     720
+    ],
+    "pixelRatio": 1,
+    "canvasCss": [
+     1280,
+     720
+    ]
+   },
+   "accumulatorBytes": 37765120,
+   "accumulators": [
+    {
+     "ext": false,
+     "allocated": false
+    },
+    {
+     "ext": false,
+     "maxSplats": 944128,
+     "w": 2048,
+     "h": 461,
+     "d": 1,
+     "textures": [
+      1014,
+      "RGBA8"
+     ],
+     "bytes": 18882560
+    },
+    {
+     "ext": false,
+     "maxSplats": 944128,
+     "w": 2048,
+     "h": 461,
+     "d": 1,
+     "textures": [
+      1014,
+      "RGBA8"
+     ],
+     "bytes": 18882560
+    }
+   ],
+   "activeSplats": [
+    498807,
+    714079,
+    511962,
+    718904,
+    536382,
+    735179,
+    803459,
+    935890,
+    501891,
+    709601,
+    812569,
+    943723
+   ]
+  },
+  "edge_ext": {
+   "loadMs": 6387,
+   "effective": {
+    "accumExtSplats": true,
+    "displayAccumulatorExt": true,
+    "uniform_enableExtSplats": true,
+    "uniform_blurAmount": 0.3,
+    "uniform_preBlurAmount": 0,
+    "uniform_maxStdDev": 2.8284271247461903,
+    "uniform_minAlpha": 0.00196078431372549,
+    "uniform_renderSize": [
+     1280,
+     720
+    ],
+    "drawingBuffer": [
+     1280,
+     720
+    ],
+    "pixelRatio": 1,
+    "canvasCss": [
+     1280,
+     720
+    ]
+   },
+   "accumulatorBytes": 67977216,
+   "accumulators": [
+    {
+     "ext": true,
+     "allocated": false
+    },
+    {
+     "ext": true,
+     "maxSplats": 944128,
+     "w": 2048,
+     "h": 461,
+     "d": 1,
+     "textures": [
+      1014,
+      1014,
+      "RGBA8"
+     ],
+     "bytes": 33988608
+    },
+    {
+     "ext": true,
+     "maxSplats": 944128,
+     "w": 2048,
+     "h": 461,
+     "d": 1,
+     "textures": [
+      1014,
+      1014,
+      "RGBA8"
+     ],
+     "bytes": 33988608
+    }
+   ],
+   "activeSplats": [
+    498807,
+    714079,
+    511962,
+    718904,
+    536382,
+    735179,
+    803459,
+    935890,
+    501891,
+    709601,
+    812569,
+    943723
+   ]
+  },
+  "edge_blur0": {
+   "loadMs": 6169,
+   "effective": {
+    "accumExtSplats": false,
+    "displayAccumulatorExt": false,
+    "uniform_enableExtSplats": false,
+    "uniform_blurAmount": 0,
+    "uniform_preBlurAmount": 0,
+    "uniform_maxStdDev": 2.8284271247461903,
+    "uniform_minAlpha": 0.00196078431372549,
+    "uniform_renderSize": [
+     1280,
+     720
+    ],
+    "drawingBuffer": [
+     1280,
+     720
+    ],
+    "pixelRatio": 1,
+    "canvasCss": [
+     1280,
+     720
+    ]
+   },
+   "accumulatorBytes": 37765120,
+   "accumulators": [
+    {
+     "ext": false,
+     "allocated": false
+    },
+    {
+     "ext": false,
+     "maxSplats": 944128,
+     "w": 2048,
+     "h": 461,
+     "d": 1,
+     "textures": [
+      1014,
+      "RGBA8"
+     ],
+     "bytes": 18882560
+    },
+    {
+     "ext": false,
+     "maxSplats": 944128,
+     "w": 2048,
+     "h": 461,
+     "d": 1,
+     "textures": [
+      1014,
+      "RGBA8"
+     ],
+     "bytes": 18882560
+    }
+   ],
+   "activeSplats": [
+    498807,
+    714079,
+    511962,
+    718904,
+    536382,
+    735179,
+    803459,
+    935890,
+    501891,
+    709601,
+    812569,
+    943723
+   ]
+  },
+  "edge_combined": {
+   "loadMs": 6624,
+   "effective": {
+    "accumExtSplats": true,
+    "displayAccumulatorExt": true,
+    "uniform_enableExtSplats": true,
+    "uniform_blurAmount": 0,
+    "uniform_preBlurAmount": 0,
+    "uniform_maxStdDev": 2.8284271247461903,
+    "uniform_minAlpha": 0.00196078431372549,
+    "uniform_renderSize": [
+     1280,
+     720
+    ],
+    "drawingBuffer": [
+     1280,
+     720
+    ],
+    "pixelRatio": 1,
+    "canvasCss": [
+     1280,
+     720
+    ]
+   },
+   "accumulatorBytes": 67977216,
+   "accumulators": [
+    {
+     "ext": true,
+     "allocated": false
+    },
+    {
+     "ext": true,
+     "maxSplats": 944128,
+     "w": 2048,
+     "h": 461,
+     "d": 1,
+     "textures": [
+      1014,
+      1014,
+      "RGBA8"
+     ],
+     "bytes": 33988608
+    },
+    {
+     "ext": true,
+     "maxSplats": 944128,
+     "w": 2048,
+     "h": 461,
+     "d": 1,
+     "textures": [
+      1014,
+      1014,
+      "RGBA8"
+     ],
+     "bytes": 33988608
+    }
+   ],
+   "activeSplats": [
+    498807,
+    714079,
+    511962,
+    718904,
+    536382,
+    735179,
+    803459,
+    935890,
+    501891,
+    709601,
+    812569,
+    943723
+   ]
+  }
+ }
+}

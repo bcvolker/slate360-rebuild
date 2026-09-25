@@ -1,0 +1,131 @@
+{
+ "loadMs": 5786.200000017881,
+ "settings": {
+  "blurAmount": 0.3,
+  "preBlurAmount": 0,
+  "maxStdDev": 2.8284271247461903,
+  "minAlpha": 0.00196078431372549,
+  "minPixelRadius": 0,
+  "maxPixelRadius": 512,
+  "clipXY": 1.4,
+  "focalAdjustment": 1,
+  "falloff": 1,
+  "encodeLinear": false,
+  "sortRadial": true,
+  "enableLod": true,
+  "enableDriveLod": true,
+  "lodSplatCount": 2500000,
+  "lodSplatScale": 1,
+  "lodRenderScale": 1,
+  "lodInflate": false,
+  "enable2DGS": false,
+  "covSplats": false,
+  "accumExtSplats": false,
+  "pagedExtSplats": false,
+  "minSortIntervalMs": 0,
+  "focalDistance": 0,
+  "apertureAngle": 0,
+  "behindFoveate": 0.2,
+  "coneFov0": 90,
+  "coneFov": 120,
+  "coneFoveate": 0.4,
+  "premultipliedAlpha": true,
+  "toneMapping": 0,
+  "outputColorSpace": "srgb",
+  "pixelRatio": 1,
+  "drawingBuffer": [
+   1280,
+   720
+  ]
+ },
+ "meshNumSh": null,
+ "extNumSplats": 0,
+ "packedNumSplats": null,
+ "lodNumSplats": 1409621,
+ "extraKeys": [],
+ "frames": [
+  {
+   "name": "carpet_a0_indep_f640",
+   "settleFrames": 30,
+   "activeSplats": 498807,
+   "maxSplats": 507904,
+   "displayNumSplats": 498807
+  }
+ ],
+ "renderSource": "extSplats.lodSplats",
+ "renderSourceNumSplats": 1409621,
+ "renderSourceNumSh": 3,
+ "renderSourceExtra": {
+  "sh1": "Uint32Array[5644288]",
+  "sh2": "Uint32Array[5644288]",
+  "sh3a": "Uint32Array[5644288]",
+  "sh3b": "Uint32Array[5644288]",
+  "sh1Codes": "undefined",
+  "sh2Codes": "undefined",
+  "sh3Codes": "undefined",
+  "lodTree": "Uint32Array[5638484]"
+ },
+ "effective": {
+  "accumExtSplats": false,
+  "displayAccumulatorExt": false,
+  "uniform_enableExtSplats": false,
+  "uniform_blurAmount": 0.3,
+  "uniform_preBlurAmount": 0,
+  "uniform_maxStdDev": 2.8284271247461903,
+  "uniform_minAlpha": 0.00196078431372549,
+  "uniform_renderSize": [
+   1280,
+   720
+  ],
+  "drawingBuffer": [
+   1280,
+   720
+  ],
+  "pixelRatio": 1,
+  "canvasCss": [
+   1280,
+   720
+  ]
+ },
+ "accumulators": [
+  {
+   "ext": false,
+   "allocated": false
+  },
+  {
+   "ext": false,
+   "maxSplats": 499712,
+   "w": 2048,
+   "h": 244,
+   "d": 1,
+   "textures": [
+    1014,
+    "RGBA8"
+   ],
+   "bytes": 9994240
+  },
+  {
+   "ext": false,
+   "maxSplats": 499712,
+   "w": 2048,
+   "h": 244,
+   "d": 1,
+   "textures": [
+    1014,
+    "RGBA8"
+   ],
+   "bytes": 9994240
+  }
+ ],
+ "accumulatorBytesTotal": 19988480,
+ "frameMs": {
+  "n": 240,
+  "p50": 0.7,
+  "p90": 77.1,
+  "p99": 113.4,
+  "max": 128.8,
+  "mean": 20.98
+ },
+ "jsHeapMB": 201,
+ "totalMs": 14087.5
+}

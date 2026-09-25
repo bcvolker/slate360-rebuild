@@ -1,0 +1,2371 @@
+{
+ "definitions": "Room 213 detail diagnostic: matched-view measurements (CPU, local). Same masks, bands and definitions for every\nimage. No image is shifted, warped or re-aligned before scoring (the +-2 px shift scan is reported separately, as a\nregistration diagnostic only).\n\nDefinitions (grayscale = BT.709 luma of the 8-bit sRGB values, float):\n  fine band = g - G(sigma 1.5 px);  mid band = G(1.5) - G(4.0)          (output pixels of that view)\n  energy ratio      = std(render band) / std(reference band) over the scored mask\n  NCC               = zero-shift normalized cross-correlation of the two band images over the scored mask\n  coherent gain     = cov(r, s) / var(s)   (how much of the source's band signal the render reproduces, in amplitude)\n  incoherent ratio  = std(r - gain * s) / std(s)   (band energy NOT explained by the source: noise, ringing, aliasing,\n                      misplaced texture)\n  scored mask       = carpet ROI AND reference-valid (inside lens + dataset keep mask) eroded by 12 px (band support)\n  edge width        = 10-90 % rise of the mean profile across a fixed segment; each profile is centred on its own\n                      max-gradient sample (within +-6 px of the nominal line) and resampled bilinearly at 0.25 px.\nROIs / segments are given in f=1280 pixel coordinates and mapped to f=640 by u' = 640 + (u - 640) / 2 (same rotation,\nsame centre, so the same physical surface).\n\nusage: python analyze.py <dd dir> <out dir> <labels json: {label: pattern with {name}}>",
+ "views": {
+  "carpet_a0_indep_f640": {
+   "f": 640,
+   "sourceView": "camera1/frame_00036_train.png",
+   "labels": [
+    "edge_A",
+    "edge_baseline",
+    "edge_blur0",
+    "edge_combined",
+    "edge_ext",
+    "golden_A",
+    "golden_baseline",
+    "golden_blur0",
+    "golden_combined",
+    "golden_ext"
+   ],
+   "carpetRoi": [
+    600,
+    400,
+    750,
+    530
+   ],
+   "carpetScoredPixels": 19500,
+   "refBandStd": {
+    "fine": 4.577202330889616,
+    "mid": 4.459230257581494
+   },
+   "carpet": {
+    "golden_A": {
+     "fine": {
+      "energyRatio": 0.9241271845268065,
+      "ncc": 0.7234990485403054,
+      "coherentGain": 0.6686051387353761,
+      "incoherentRatio": 0.6379484474768249
+     },
+     "mid": {
+      "energyRatio": 1.093905058592587,
+      "ncc": 0.9372767418993988,
+      "coherentGain": 1.0252917692649308,
+      "incoherentRatio": 0.38132016087801934
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.7235,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -2.17,
+      0.09,
+      4.78
+     ],
+     "psnrVsRef": 32.30690238861637
+    },
+    "edge_A": {
+     "fine": {
+      "energyRatio": 0.9250766207601523,
+      "ncc": 0.7424888915524532,
+      "coherentGain": 0.6868591147492947,
+      "incoherentRatio": 0.6196703242554363
+     },
+     "mid": {
+      "energyRatio": 1.030752127224844,
+      "ncc": 0.9446544412423195,
+      "coherentGain": 0.9737045748029173,
+      "incoherentRatio": 0.3381558054897347
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.7425,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -1.07,
+      1.57,
+      6.56
+     ],
+     "psnrVsRef": 31.575328222876617
+    },
+    "golden_baseline": {
+     "fine": {
+      "energyRatio": 0.6302993561217777,
+      "ncc": 0.6324526603634645,
+      "coherentGain": 0.39863450460459704,
+      "incoherentRatio": 0.4882292597399044
+     },
+     "mid": {
+      "energyRatio": 0.7787140740982683,
+      "ncc": 0.882046192279341,
+      "coherentGain": 0.6868617839327102,
+      "incoherentRatio": 0.3669012114609305
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6325,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -5.15,
+      -4.97,
+      -5.54
+     ],
+     "psnrVsRef": 29.43294414216497
+    },
+    "golden_ext": {
+     "fine": {
+      "energyRatio": 0.7486507061243596,
+      "ncc": 0.6742466353314853,
+      "coherentGain": 0.5047752196428901,
+      "incoherentRatio": 0.5528832222223552
+     },
+     "mid": {
+      "energyRatio": 0.9522444866148432,
+      "ncc": 0.927866546872655,
+      "coherentGain": 0.8835558035738387,
+      "incoherentRatio": 0.35510379364258404
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6742,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -2.12,
+      -1.16,
+      0.25
+     ],
+     "psnrVsRef": 32.97762982293528
+    },
+    "golden_blur0": {
+     "fine": {
+      "energyRatio": 0.7408206971439466,
+      "ncc": 0.642506175614151,
+      "coherentGain": 0.47598187293776645,
+      "incoherentRatio": 0.5676764588667556
+     },
+     "mid": {
+      "energyRatio": 0.8149547684252649,
+      "ncc": 0.8836041962965494,
+      "coherentGain": 0.7200974531724468,
+      "incoherentRatio": 0.3815900057832137
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6425,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -5.07,
+      -4.89,
+      -5.45
+     ],
+     "psnrVsRef": 29.536127877387763
+    },
+    "golden_combined": {
+     "fine": {
+      "energyRatio": 0.8812334841954169,
+      "ncc": 0.6853465698434668,
+      "coherentGain": 0.603950345624536,
+      "incoherentRatio": 0.6417292526347838
+     },
+     "mid": {
+      "energyRatio": 0.995888018591812,
+      "ncc": 0.9291946967904181,
+      "coherentGain": 0.925373865472629,
+      "incoherentRatio": 0.3680708555087862
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6853,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -2.01,
+      -1.05,
+      0.39
+     ],
+     "psnrVsRef": 32.94781540575804
+    },
+    "edge_baseline": {
+     "fine": {
+      "energyRatio": 0.6045913453858159,
+      "ncc": 0.6388000566526986,
+      "coherentGain": 0.3862129856841905,
+      "incoherentRatio": 0.4651561292774011
+     },
+     "mid": {
+      "energyRatio": 0.7047154677948811,
+      "ncc": 0.8903231541344865,
+      "coherentGain": 0.6274244980544986,
+      "incoherentRatio": 0.32087753082822495
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6388,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -2.69,
+      -1.66,
+      -2.42
+     ],
+     "psnrVsRef": 30.727238804456096
+    },
+    "edge_ext": {
+     "fine": {
+      "energyRatio": 0.7268123892821938,
+      "ncc": 0.6831247293001544,
+      "coherentGain": 0.49650351668039716,
+      "incoherentRatio": 0.5307923389971729
+     },
+     "mid": {
+      "energyRatio": 0.8707889917590002,
+      "ncc": 0.9355611864664264,
+      "coherentGain": 0.8146763822919534,
+      "incoherentRatio": 0.3075318850206449
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6831,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -0.48,
+      1.34,
+      2.55
+     ],
+     "psnrVsRef": 32.29206794196394
+    },
+    "edge_blur0": {
+     "fine": {
+      "energyRatio": 0.7157654787197785,
+      "ncc": 0.647288378435004,
+      "coherentGain": 0.46330667606027987,
+      "incoherentRatio": 0.5455888052782321
+     },
+     "mid": {
+      "energyRatio": 0.7372794437838551,
+      "ncc": 0.8915937573781466,
+      "coherentGain": 0.6573537495209175,
+      "incoherentRatio": 0.3338667791455475
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6473,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -2.57,
+      -1.52,
+      -2.26
+     ],
+     "psnrVsRef": 30.864310185784937
+    },
+    "edge_combined": {
+     "fine": {
+      "energyRatio": 0.8617349736177141,
+      "ncc": 0.6919403370200873,
+      "coherentGain": 0.5962691880670372,
+      "incoherentRatio": 0.6221336031093311
+     },
+     "mid": {
+      "energyRatio": 0.9119627995402018,
+      "ncc": 0.935425995488632,
+      "coherentGain": 0.853073709608493,
+      "incoherentRatio": 0.3223994319474009
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6919,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -0.33,
+      1.5,
+      2.73
+     ],
+     "psnrVsRef": 32.244635587879706
+    }
+   },
+   "edges": {
+    "baseboard_top": {
+     "source": {
+      "width10_90px": 1.9140868410468102,
+      "contrast": 150.10897827148438,
+      "profiles": 43
+     },
+     "golden_A": {
+      "width10_90px": 2.250823974609375,
+      "contrast": 143.984619140625,
+      "profiles": 43
+     },
+     "edge_A": {
+      "width10_90px": 2.4560782611370087,
+      "contrast": 145.666015625,
+      "profiles": 43
+     },
+     "golden_baseline": {
+      "width10_90px": 2.8059798050671816,
+      "contrast": 143.12384033203125,
+      "profiles": 43
+     },
+     "golden_ext": {
+      "width10_90px": 2.8186903670430183,
+      "contrast": 142.74195861816406,
+      "profiles": 43
+     },
+     "golden_blur0": {
+      "width10_90px": 2.310185327194631,
+      "contrast": 143.18167114257812,
+      "profiles": 43
+     },
+     "golden_combined": {
+      "width10_90px": 2.397159203886986,
+      "contrast": 142.65005493164062,
+      "profiles": 43
+     },
+     "edge_baseline": {
+      "width10_90px": 3.4209760278463364,
+      "contrast": 132.50674438476562,
+      "profiles": 43
+     },
+     "edge_ext": {
+      "width10_90px": 3.21748685836792,
+      "contrast": 134.46717834472656,
+      "profiles": 43
+     },
+     "edge_blur0": {
+      "width10_90px": 3.0965894907712936,
+      "contrast": 132.69100952148438,
+      "profiles": 43
+     },
+     "edge_combined": {
+      "width10_90px": 2.788573030382395,
+      "contrast": 134.89276123046875,
+      "profiles": 43
+     }
+    }
+   }
+  },
+  "carpet_a0_indep_f1280": {
+   "f": 1280,
+   "sourceView": "camera1/frame_00036_train.png",
+   "labels": [
+    "edge_A",
+    "edge_baseline",
+    "edge_blur0",
+    "edge_combined",
+    "edge_ext",
+    "golden_A",
+    "golden_baseline",
+    "golden_blur0",
+    "golden_combined",
+    "golden_ext"
+   ],
+   "carpetRoi": [
+    560,
+    440,
+    860,
+    700
+   ],
+   "carpetScoredPixels": 78000,
+   "refBandStd": {
+    "fine": 2.395007028032234,
+    "mid": 3.965027083812838
+   },
+   "carpet": {
+    "golden_A": {
+     "fine": {
+      "energyRatio": 0.7674343296871929,
+      "ncc": 0.5397074508643338,
+      "coherentGain": 0.4141900257812536,
+      "incoherentRatio": 0.6460666164767807
+     },
+     "mid": {
+      "energyRatio": 0.9788025440677718,
+      "ncc": 0.8408090978283267,
+      "coherentGain": 0.8229860840296942,
+      "incoherentRatio": 0.5298568917802347
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.543,
+      "peakShiftPx": [
+       -1,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -1.94,
+      0.48,
+      5.29
+     ],
+     "psnrVsRef": 31.942420318108972
+    },
+    "edge_A": {
+     "fine": {
+      "energyRatio": 0.7978062548795564,
+      "ncc": 0.5553917889712606,
+      "coherentGain": 0.4430950431500182,
+      "incoherentRatio": 0.6634467597786783
+     },
+     "mid": {
+      "energyRatio": 0.9532002697208125,
+      "ncc": 0.8578620864145335,
+      "coherentGain": 0.8177143721535923,
+      "incoherentRatio": 0.48983054189105674
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.5554,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -0.95,
+      1.73,
+      6.76
+     ],
+     "psnrVsRef": 31.267928158697433
+    },
+    "golden_baseline": {
+     "fine": {
+      "energyRatio": 0.7156294760530302,
+      "ncc": 0.3997847969853585,
+      "coherentGain": 0.2860977848005991,
+      "incoherentRatio": 0.6559524407517091
+     },
+     "mid": {
+      "energyRatio": 0.7283191150699889,
+      "ncc": 0.7980632873312024,
+      "coherentGain": 0.5812447471989076,
+      "incoherentRatio": 0.4388658989144745
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.4032,
+      "peakShiftPx": [
+       -1,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -5.5,
+      -4.05,
+      -4.2
+     ],
+     "psnrVsRef": 29.67076523924711
+    },
+    "golden_ext": {
+     "fine": {
+      "energyRatio": 0.8236566341654707,
+      "ncc": 0.43709896205478127,
+      "coherentGain": 0.3600194598832619,
+      "incoherentRatio": 0.7408078290016625
+     },
+     "mid": {
+      "energyRatio": 0.8912857424361975,
+      "ncc": 0.8333329697287474,
+      "coherentGain": 0.7427377946212479,
+      "incoherentRatio": 0.49267722000434394
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.4382,
+      "peakShiftPx": [
+       -1,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -2.2,
+      -0.05,
+      1.87
+     ],
+     "psnrVsRef": 32.51403399553433
+    },
+    "golden_blur0": {
+     "fine": {
+      "energyRatio": 0.7604235311685796,
+      "ncc": 0.40396097690892935,
+      "coherentGain": 0.30718143251539703,
+      "incoherentRatio": 0.6956173619689782
+     },
+     "mid": {
+      "energyRatio": 0.7519440931420736,
+      "ncc": 0.7979970087069608,
+      "coherentGain": 0.6000491370422429,
+      "incoherentRatio": 0.45316768678505187
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.407,
+      "peakShiftPx": [
+       -1,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -5.48,
+      -4.03,
+      -4.17
+     ],
+     "psnrVsRef": 29.684817814632037
+    },
+    "golden_combined": {
+     "fine": {
+      "energyRatio": 0.8741203765241442,
+      "ncc": 0.44256272928774915,
+      "coherentGain": 0.3868530995605602,
+      "incoherentRatio": 0.7838565634190345
+     },
+     "mid": {
+      "energyRatio": 0.9171596847005579,
+      "ncc": 0.8335379149646988,
+      "coherentGain": 0.7644873712749835,
+      "incoherentRatio": 0.5066961085316251
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.4435,
+      "peakShiftPx": [
+       -1,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -2.18,
+      -0.03,
+      1.91
+     ],
+     "psnrVsRef": 32.46983723288065
+    },
+    "edge_baseline": {
+     "fine": {
+      "energyRatio": 0.7333878540140347,
+      "ncc": 0.4047561461876887,
+      "coherentGain": 0.29684324145157986,
+      "incoherentRatio": 0.6706279403811253
+     },
+     "mid": {
+      "energyRatio": 0.6914758525600568,
+      "ncc": 0.8100542120647648,
+      "coherentGain": 0.5601329269073484,
+      "incoherentRatio": 0.40545031615213306
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.4048,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -5.0,
+      -3.32,
+      -3.1
+     ],
+     "psnrVsRef": 29.935232650865927
+    },
+    "edge_ext": {
+     "fine": {
+      "energyRatio": 0.8455187860580243,
+      "ncc": 0.447447190474842,
+      "coherentGain": 0.37832500531536195,
+      "incoherentRatio": 0.7561562060382541
+     },
+     "mid": {
+      "energyRatio": 0.8559205830732293,
+      "ncc": 0.8478546302456296,
+      "coherentGain": 0.7256962294811764,
+      "incoherentRatio": 0.45383369976812044
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.4474,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -2.5,
+      -0.03,
+      2.26
+     ],
+     "psnrVsRef": 32.04397467631447
+    },
+    "edge_blur0": {
+     "fine": {
+      "energyRatio": 0.780885340299251,
+      "ncc": 0.4085842381306545,
+      "coherentGain": 0.31905744183356627,
+      "incoherentRatio": 0.7127301477452022
+     },
+     "mid": {
+      "energyRatio": 0.7130799502529802,
+      "ncc": 0.8107776340963176,
+      "coherentGain": 0.5781492749876312,
+      "incoherentRatio": 0.4174043977775859
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.4086,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -4.96,
+      -3.27,
+      -3.06
+     ],
+     "psnrVsRef": 29.962091717600966
+    },
+    "edge_combined": {
+     "fine": {
+      "energyRatio": 0.905237910531502,
+      "ncc": 0.44778962783543996,
+      "coherentGain": 0.4053561470594325,
+      "incoherentRatio": 0.8094084683919307
+     },
+     "mid": {
+      "energyRatio": 0.8821633172011208,
+      "ncc": 0.8477691530504622,
+      "coherentGain": 0.7478708482757804,
+      "incoherentRatio": 0.467868905265727
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.4478,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -2.46,
+      0.01,
+      2.31
+     ],
+     "psnrVsRef": 32.00649687396988
+    }
+   },
+   "edges": {
+    "baseboard_top": {
+     "source": {
+      "width10_90px": 2.621547246351838,
+      "contrast": 148.22825622558594,
+      "profiles": 86
+     },
+     "golden_A": {
+      "width10_90px": 3.8379059405997396,
+      "contrast": 140.39291381835938,
+      "profiles": 86
+     },
+     "edge_A": {
+      "width10_90px": 3.189321779063903,
+      "contrast": 138.25482177734375,
+      "profiles": 86
+     },
+     "golden_baseline": {
+      "width10_90px": 4.024938344955444,
+      "contrast": 141.3387451171875,
+      "profiles": 86
+     },
+     "golden_ext": {
+      "width10_90px": 4.237114742398262,
+      "contrast": 141.48764038085938,
+      "profiles": 86
+     },
+     "golden_blur0": {
+      "width10_90px": 3.782751265913248,
+      "contrast": 141.55393981933594,
+      "profiles": 86
+     },
+     "golden_combined": {
+      "width10_90px": 4.00180490128696,
+      "contrast": 141.59585571289062,
+      "profiles": 86
+     },
+     "edge_baseline": {
+      "width10_90px": 4.525193369016051,
+      "contrast": 135.2933807373047,
+      "profiles": 86
+     },
+     "edge_ext": {
+      "width10_90px": 3.9425027817487717,
+      "contrast": 135.80905151367188,
+      "profiles": 86
+     },
+     "edge_blur0": {
+      "width10_90px": 4.258483372628689,
+      "contrast": 135.5201873779297,
+      "profiles": 86
+     },
+     "edge_combined": {
+      "width10_90px": 3.6758337169885635,
+      "contrast": 135.95370483398438,
+      "profiles": 86
+     }
+    }
+   }
+  },
+  "carpet_a5_indep_f640": {
+   "f": 640,
+   "sourceView": "camera1/frame_00036_train.png",
+   "labels": [
+    "edge_A",
+    "edge_baseline",
+    "edge_blur0",
+    "edge_combined",
+    "edge_ext",
+    "golden_A",
+    "golden_baseline",
+    "golden_blur0",
+    "golden_combined",
+    "golden_ext"
+   ],
+   "edges": {}
+  },
+  "carpet_a5_indep_f1280": {
+   "f": 1280,
+   "sourceView": "camera1/frame_00036_train.png",
+   "labels": [
+    "edge_A",
+    "edge_baseline",
+    "edge_blur0",
+    "edge_combined",
+    "edge_ext",
+    "golden_A",
+    "golden_baseline",
+    "golden_blur0",
+    "golden_combined",
+    "golden_ext"
+   ],
+   "edges": {}
+  },
+  "carpet_a3_indep_f640": {
+   "f": 640,
+   "sourceView": "camera2/frame_00104_train.png",
+   "labels": [
+    "edge_A",
+    "edge_baseline",
+    "edge_blur0",
+    "edge_combined",
+    "edge_ext",
+    "golden_A",
+    "golden_baseline",
+    "golden_blur0",
+    "golden_combined",
+    "golden_ext"
+   ],
+   "carpetRoi": [
+    485,
+    330,
+    670,
+    500
+   ],
+   "carpetScoredPixels": 31450,
+   "refBandStd": {
+    "fine": 5.235089762198145,
+    "mid": 4.6861458541559005
+   },
+   "carpet": {
+    "golden_A": {
+     "fine": {
+      "energyRatio": 0.7302840170609941,
+      "ncc": 0.7290624394092149,
+      "coherentGain": 0.532422646940049,
+      "incoherentRatio": 0.49984084526986605
+     },
+     "mid": {
+      "energyRatio": 0.9249004578265634,
+      "ncc": 0.9343776044149116,
+      "coherentGain": 0.8642062741062395,
+      "incoherentRatio": 0.3295274991304949
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.7291,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -3.76,
+      -3.05,
+      -3.92
+     ],
+     "psnrVsRef": 31.6629951743045
+    },
+    "edge_A": {
+     "fine": {
+      "energyRatio": 0.7551451010475259,
+      "ncc": 0.7534620341996767,
+      "coherentGain": 0.5689731639511892,
+      "incoherentRatio": 0.49650142229348254
+     },
+     "mid": {
+      "energyRatio": 0.916714851714519,
+      "ncc": 0.9381078569089425,
+      "coherentGain": 0.8599774049385066,
+      "incoherentRatio": 0.31749800369325837
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.7535,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -2.51,
+      -1.65,
+      -1.67
+     ],
+     "psnrVsRef": 33.060704375578155
+    },
+    "golden_baseline": {
+     "fine": {
+      "energyRatio": 0.5393487441608663,
+      "ncc": 0.618594499307707,
+      "coherentGain": 0.3336381663464316,
+      "incoherentRatio": 0.4237719218930088
+     },
+     "mid": {
+      "energyRatio": 0.7072974208060498,
+      "ncc": 0.887148552498668,
+      "coherentGain": 0.6274778830541284,
+      "incoherentRatio": 0.32640641500558776
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6186,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -6.78,
+      -7.52,
+      -13.31
+     ],
+     "psnrVsRef": 26.407796076309115
+    },
+    "golden_ext": {
+     "fine": {
+      "energyRatio": 0.6231700369766936,
+      "ncc": 0.6539959220493036,
+      "coherentGain": 0.4075506629260713,
+      "incoherentRatio": 0.4714269319142187
+     },
+     "mid": {
+      "energyRatio": 0.8396223251812195,
+      "ncc": 0.9220362653542983,
+      "coherentGain": 0.774162233018184,
+      "incoherentRatio": 0.32502074689320487
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.654,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -3.96,
+      -4.12,
+      -8.34
+     ],
+     "psnrVsRef": 29.449160474318607
+    },
+    "golden_blur0": {
+     "fine": {
+      "energyRatio": 0.636820936004047,
+      "ncc": 0.6421151652402435,
+      "coherentGain": 0.4089123805506852,
+      "incoherentRatio": 0.48819214410459566
+     },
+     "mid": {
+      "energyRatio": 0.7403347908306588,
+      "ncc": 0.8896993005865437,
+      "coherentGain": 0.6586753456019224,
+      "incoherentRatio": 0.3379976207171639
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6421,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -6.67,
+      -7.4,
+      -13.19
+     ],
+     "psnrVsRef": 26.536216899431523
+    },
+    "golden_combined": {
+     "fine": {
+      "energyRatio": 0.7317341046779906,
+      "ncc": 0.6785659205851341,
+      "coherentGain": 0.4965298263643595,
+      "incoherentRatio": 0.537487610535796
+     },
+     "mid": {
+      "energyRatio": 0.8783771855938141,
+      "ncc": 0.9247840862136919,
+      "coherentGain": 0.8123092429303299,
+      "incoherentRatio": 0.3342157596847641
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6786,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -3.84,
+      -3.99,
+      -8.22
+     ],
+     "psnrVsRef": 29.635418188881445
+    },
+    "edge_baseline": {
+     "fine": {
+      "energyRatio": 0.5494779479435944,
+      "ncc": 0.6333748814480825,
+      "coherentGain": 0.3480255301371098,
+      "incoherentRatio": 0.4252108249434474
+     },
+     "mid": {
+      "energyRatio": 0.6922917838393153,
+      "ncc": 0.8946626448084121,
+      "coherentGain": 0.6193675983088155,
+      "incoherentRatio": 0.3092760775368686
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6334,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -6.73,
+      -7.45,
+      -12.67
+     ],
+     "psnrVsRef": 26.729826529263043
+    },
+    "edge_ext": {
+     "fine": {
+      "energyRatio": 0.6360473647009954,
+      "ncc": 0.6731873356984158,
+      "coherentGain": 0.4281790308210616,
+      "incoherentRatio": 0.4703392049449179
+     },
+     "mid": {
+      "energyRatio": 0.8229369403825064,
+      "ncc": 0.9261020440284292,
+      "coherentGain": 0.7621235825947409,
+      "incoherentRatio": 0.3104719837587254
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6732,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -4.35,
+      -4.48,
+      -7.9
+     ],
+     "psnrVsRef": 29.61592311133057
+    },
+    "edge_blur0": {
+     "fine": {
+      "energyRatio": 0.6485244189884201,
+      "ncc": 0.659658423646563,
+      "coherentGain": 0.4278045959262043,
+      "incoherentRatio": 0.48740860653940543
+     },
+     "mid": {
+      "energyRatio": 0.7235702931558067,
+      "ncc": 0.8969410544113577,
+      "coherentGain": 0.6489999016839046,
+      "incoherentRatio": 0.3199267052808539
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6597,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -6.55,
+      -7.27,
+      -12.48
+     ],
+     "psnrVsRef": 26.912797166770417
+    },
+    "edge_combined": {
+     "fine": {
+      "energyRatio": 0.7535479896610313,
+      "ncc": 0.6991474303064626,
+      "coherentGain": 0.5268411405841109,
+      "incoherentRatio": 0.538769881591589
+     },
+     "mid": {
+      "energyRatio": 0.8615754225886059,
+      "ncc": 0.9286931092428956,
+      "coherentGain": 0.8001391580510742,
+      "incoherentRatio": 0.31951453263044727
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6991,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -4.18,
+      -4.28,
+      -7.71
+     ],
+     "psnrVsRef": 29.868391257963918
+    }
+   },
+   "edges": {
+    "baseboard_top": {
+     "source": {
+      "width10_90px": 2.123049460351467,
+      "contrast": 151.86871337890625,
+      "profiles": 86
+     },
+     "golden_A": {
+      "width10_90px": 2.364684645086527,
+      "contrast": 141.38270568847656,
+      "profiles": 86
+     },
+     "edge_A": {
+      "width10_90px": 2.724997717887163,
+      "contrast": 147.91897583007812,
+      "profiles": 86
+     },
+     "golden_baseline": {
+      "width10_90px": 3.466516464948654,
+      "contrast": 142.2578887939453,
+      "profiles": 86
+     },
+     "golden_ext": {
+      "width10_90px": 3.490114077925682,
+      "contrast": 143.0587615966797,
+      "profiles": 86
+     },
+     "golden_blur0": {
+      "width10_90px": 2.8930389657616615,
+      "contrast": 142.3039093017578,
+      "profiles": 86
+     },
+     "golden_combined": {
+      "width10_90px": 2.95928668230772,
+      "contrast": 143.00100708007812,
+      "profiles": 86
+     },
+     "edge_baseline": {
+      "width10_90px": 3.6729401852935553,
+      "contrast": 143.49102783203125,
+      "profiles": 86
+     },
+     "edge_ext": {
+      "width10_90px": 3.473634108901024,
+      "contrast": 145.08058166503906,
+      "profiles": 86
+     },
+     "edge_blur0": {
+      "width10_90px": 3.326467975974083,
+      "contrast": 143.907470703125,
+      "profiles": 86
+     },
+     "edge_combined": {
+      "width10_90px": 3.1193152219057083,
+      "contrast": 145.46060180664062,
+      "profiles": 86
+     }
+    }
+   }
+  },
+  "carpet_a3_indep_f1280": {
+   "f": 1280,
+   "sourceView": "camera2/frame_00104_train.png",
+   "labels": [
+    "edge_A",
+    "edge_baseline",
+    "edge_blur0",
+    "edge_combined",
+    "edge_ext",
+    "golden_A",
+    "golden_baseline",
+    "golden_blur0",
+    "golden_combined",
+    "golden_ext"
+   ],
+   "carpetRoi": [
+    330,
+    300,
+    700,
+    640
+   ],
+   "carpetScoredPixels": 125800,
+   "refBandStd": {
+    "fine": 3.0250285172249542,
+    "mid": 4.2980871481528995
+   },
+   "carpet": {
+    "golden_A": {
+     "fine": {
+      "energyRatio": 0.5693079947901788,
+      "ncc": 0.5427305718927545,
+      "coherentGain": 0.308980853595591,
+      "incoherentRatio": 0.4781656878565778
+     },
+     "mid": {
+      "energyRatio": 0.8295264171412369,
+      "ncc": 0.8481919469357291,
+      "coherentGain": 0.7035976267896455,
+      "incoherentRatio": 0.4393910061791844
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.5507,
+      "peakShiftPx": [
+       -1,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -4.11,
+      -3.19,
+      -3.81
+     ],
+     "psnrVsRef": 31.250203691946666
+    },
+    "edge_A": {
+     "fine": {
+      "energyRatio": 0.603911273447039,
+      "ncc": 0.574999476687292,
+      "coherentGain": 0.34724866619760353,
+      "incoherentRatio": 0.49409228897080515
+     },
+     "mid": {
+      "energyRatio": 0.8222399259202776,
+      "ncc": 0.8635193742263776,
+      "coherentGain": 0.7100201062946213,
+      "incoherentRatio": 0.41466847533271495
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.575,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -2.35,
+      -1.43,
+      -1.38
+     ],
+     "psnrVsRef": 32.8047445786699
+    },
+    "golden_baseline": {
+     "fine": {
+      "energyRatio": 0.566790729118103,
+      "ncc": 0.3869017752927846,
+      "coherentGain": 0.2192923393152858,
+      "incoherentRatio": 0.5226495963184706
+     },
+     "mid": {
+      "energyRatio": 0.6516835292559849,
+      "ncc": 0.8025017874041667,
+      "coherentGain": 0.5229771970497836,
+      "incoherentRatio": 0.388826791347366
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.3989,
+      "peakShiftPx": [
+       -1,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -7.02,
+      -7.13,
+      -12.69
+     ],
+     "psnrVsRef": 26.53782905511632
+    },
+    "golden_ext": {
+     "fine": {
+      "energyRatio": 0.6347960692292388,
+      "ncc": 0.4215933635672868,
+      "coherentGain": 0.267625810005647,
+      "incoherentRatio": 0.5756235534858818
+     },
+     "mid": {
+      "energyRatio": 0.7652291501129994,
+      "ncc": 0.8367001018007968,
+      "coherentGain": 0.6402673078004839,
+      "incoherentRatio": 0.41908641918413925
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.4293,
+      "peakShiftPx": [
+       -1,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -4.05,
+      -3.52,
+      -7.46
+     ],
+     "psnrVsRef": 29.670612157651092
+    },
+    "golden_blur0": {
+     "fine": {
+      "energyRatio": 0.5997100462399011,
+      "ncc": 0.397664862554987,
+      "coherentGain": 0.2384836131108351,
+      "incoherentRatio": 0.5502524019381159
+     },
+     "mid": {
+      "energyRatio": 0.6721634670287269,
+      "ncc": 0.8040588040743438,
+      "coherentGain": 0.5404589534415828,
+      "incoherentRatio": 0.3996346407068681
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.4084,
+      "peakShiftPx": [
+       -1,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -6.99,
+      -7.09,
+      -12.66
+     ],
+     "psnrVsRef": 26.571568065004353
+    },
+    "golden_combined": {
+     "fine": {
+      "energyRatio": 0.6710634414138955,
+      "ncc": 0.4314014380545548,
+      "coherentGain": 0.289497733651793,
+      "incoherentRatio": 0.6054066440110615
+     },
+     "mid": {
+      "energyRatio": 0.7880248675284092,
+      "ncc": 0.8382793323496238,
+      "coherentGain": 0.6605849598266156,
+      "incoherentRatio": 0.4296634760996512
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.4374,
+      "peakShiftPx": [
+       -1,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -4.01,
+      -3.49,
+      -7.42
+     ],
+     "psnrVsRef": 29.710634357050658
+    },
+    "edge_baseline": {
+     "fine": {
+      "energyRatio": 0.5944674755930711,
+      "ncc": 0.4059029206997666,
+      "coherentGain": 0.24129608460424473,
+      "incoherentRatio": 0.5432934557793418
+     },
+     "mid": {
+      "energyRatio": 0.6320784245536203,
+      "ncc": 0.8176406641748,
+      "coherentGain": 0.5168130228625833,
+      "incoherentRatio": 0.3639058040012904
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.4059,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -6.47,
+      -6.84,
+      -11.83
+     ],
+     "psnrVsRef": 27.044985511521862
+    },
+    "edge_ext": {
+     "fine": {
+      "energyRatio": 0.6671043850760314,
+      "ncc": 0.44329083113735696,
+      "coherentGain": 0.2957212573157294,
+      "incoherentRatio": 0.5979775903487305
+     },
+     "mid": {
+      "energyRatio": 0.751059832021963,
+      "ncc": 0.8500538399647044,
+      "coherentGain": 0.6384412942535156,
+      "incoherentRatio": 0.3955800615156879
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.4433,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -4.08,
+      -3.82,
+      -7.06
+     ],
+     "psnrVsRef": 29.95508020283254
+    },
+    "edge_blur0": {
+     "fine": {
+      "energyRatio": 0.6317156196682857,
+      "ncc": 0.4158507827412293,
+      "coherentGain": 0.2626994349089173,
+      "incoherentRatio": 0.5745029425785578
+     },
+     "mid": {
+      "energyRatio": 0.6517494686912482,
+      "ncc": 0.8195913850269606,
+      "coherentGain": 0.5341682497352459,
+      "incoherentRatio": 0.3734188679139128
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.4159,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -6.42,
+      -6.78,
+      -11.78
+     ],
+     "psnrVsRef": 27.094880494933594
+    },
+    "edge_combined": {
+     "fine": {
+      "energyRatio": 0.7089529647452122,
+      "ncc": 0.45409637377393336,
+      "coherentGain": 0.32193297046708,
+      "incoherentRatio": 0.6316434664803146
+     },
+     "mid": {
+      "energyRatio": 0.7738590283841417,
+      "ncc": 0.8516450669594768,
+      "coherentGain": 0.659053224045408,
+      "incoherentRatio": 0.4055941859630153
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.4541,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -4.02,
+      -3.77,
+      -7.0
+     ],
+     "psnrVsRef": 30.01828574233459
+    }
+   },
+   "edges": {
+    "baseboard_top": {
+     "source": {
+      "width10_90px": 2.62374359741807,
+      "contrast": 147.19137573242188,
+      "profiles": 173
+     },
+     "golden_A": {
+      "width10_90px": 3.665598027408123,
+      "contrast": 143.14398193359375,
+      "profiles": 173
+     },
+     "edge_A": {
+      "width10_90px": 3.2348515624180436,
+      "contrast": 145.688720703125,
+      "profiles": 173
+     },
+     "golden_baseline": {
+      "width10_90px": 4.383469007909298,
+      "contrast": 141.65301513671875,
+      "profiles": 173
+     },
+     "golden_ext": {
+      "width10_90px": 4.359959114342928,
+      "contrast": 142.8886260986328,
+      "profiles": 173
+     },
+     "golden_blur0": {
+      "width10_90px": 4.184743436053395,
+      "contrast": 141.89727783203125,
+      "profiles": 173
+     },
+     "golden_combined": {
+      "width10_90px": 4.099092863500118,
+      "contrast": 143.09027099609375,
+      "profiles": 173
+     },
+     "edge_baseline": {
+      "width10_90px": 4.631573840975761,
+      "contrast": 139.30975341796875,
+      "profiles": 173
+     },
+     "edge_ext": {
+      "width10_90px": 4.0351656675338745,
+      "contrast": 140.77755737304688,
+      "profiles": 173
+     },
+     "edge_blur0": {
+      "width10_90px": 4.271401256322861,
+      "contrast": 139.32627868652344,
+      "profiles": 173
+     },
+     "edge_combined": {
+      "width10_90px": 3.62459222599864,
+      "contrast": 140.89865112304688,
+      "profiles": 173
+     }
+    }
+   }
+  },
+  "table_edges_a4_indep_f640": {
+   "f": 640,
+   "sourceView": "camera2/frame_00104_train.png",
+   "labels": [
+    "edge_A",
+    "edge_baseline",
+    "edge_blur0",
+    "edge_combined",
+    "edge_ext",
+    "golden_A",
+    "golden_baseline",
+    "golden_blur0",
+    "golden_combined",
+    "golden_ext"
+   ],
+   "edges": {}
+  },
+  "table_edges_a4_indep_f1280": {
+   "f": 1280,
+   "sourceView": "camera2/frame_00104_train.png",
+   "labels": [
+    "edge_A",
+    "edge_baseline",
+    "edge_blur0",
+    "edge_combined",
+    "edge_ext",
+    "golden_A",
+    "golden_baseline",
+    "golden_blur0",
+    "golden_combined",
+    "golden_ext"
+   ],
+   "edges": {}
+  },
+  "carpet_a0_fixed_f640": {
+   "f": 640,
+   "sourceView": "camera2/frame_00103_train.png",
+   "labels": [
+    "edge_A",
+    "edge_baseline",
+    "edge_blur0",
+    "edge_combined",
+    "edge_ext",
+    "golden_A",
+    "golden_baseline",
+    "golden_blur0",
+    "golden_combined",
+    "golden_ext"
+   ],
+   "carpetRoi": [
+    470,
+    400,
+    670,
+    530
+   ],
+   "carpetScoredPixels": 26000,
+   "refBandStd": {
+    "fine": 5.5554173053769045,
+    "mid": 4.867643575550665
+   },
+   "carpet": {
+    "golden_A": {
+     "fine": {
+      "energyRatio": 0.6561466894479434,
+      "ncc": 0.7248763397350654,
+      "coherentGain": 0.47562521057630586,
+      "incoherentRatio": 0.45200568263877017
+     },
+     "mid": {
+      "energyRatio": 0.872211584697363,
+      "ncc": 0.9345697457747726,
+      "coherentGain": 0.815142558972426,
+      "incoherentRatio": 0.31031541539564306
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.7249,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -4.16,
+      -3.95,
+      -5.82
+     ],
+     "psnrVsRef": 30.52885195278205
+    },
+    "edge_A": {
+     "fine": {
+      "energyRatio": 0.7194634754141661,
+      "ncc": 0.7770776229682335,
+      "coherentGain": 0.5590789672873043,
+      "incoherentRatio": 0.4528337452001472
+     },
+     "mid": {
+      "energyRatio": 0.9072736203415233,
+      "ncc": 0.9534674850231855,
+      "coherentGain": 0.8650558970149124,
+      "incoherentRatio": 0.2735392425363128
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.7771,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -2.76,
+      -2.15,
+      -3.14
+     ],
+     "psnrVsRef": 32.95444501934857
+    },
+    "golden_baseline": {
+     "fine": {
+      "energyRatio": 0.5131688025326184,
+      "ncc": 0.6223823780180991,
+      "coherentGain": 0.31938721964495137,
+      "incoherentRatio": 0.40166406837085783
+     },
+     "mid": {
+      "energyRatio": 0.7113776786722468,
+      "ncc": 0.8876016999088497,
+      "coherentGain": 0.6314200368666976,
+      "incoherentRatio": 0.3276689468905661
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6224,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -7.42,
+      -8.41,
+      -14.58
+     ],
+     "psnrVsRef": 25.687792877472774
+    },
+    "golden_ext": {
+     "fine": {
+      "energyRatio": 0.5872522739442121,
+      "ncc": 0.6556524111464359,
+      "coherentGain": 0.38503336936274996,
+      "incoherentRatio": 0.44341237886398255
+     },
+     "mid": {
+      "energyRatio": 0.8270453024243757,
+      "ncc": 0.9260469199217267,
+      "coherentGain": 0.7658827549458259,
+      "incoherentRatio": 0.3121338461923331
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6557,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -4.57,
+      -5.13,
+      -9.96
+     ],
+     "psnrVsRef": 28.50756627116035
+    },
+    "golden_blur0": {
+     "fine": {
+      "energyRatio": 0.6012177955309536,
+      "ncc": 0.6430210834248365,
+      "coherentGain": 0.3865957182566056,
+      "incoherentRatio": 0.4604417316976803
+     },
+     "mid": {
+      "energyRatio": 0.7450596353565851,
+      "ncc": 0.8908391502854419,
+      "coherentGain": 0.6637282924730414,
+      "incoherentRatio": 0.33849462921663664
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.643,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -7.34,
+      -8.31,
+      -14.49
+     ],
+     "psnrVsRef": 25.798231922206853
+    },
+    "golden_combined": {
+     "fine": {
+      "energyRatio": 0.6857576335340655,
+      "ncc": 0.6783697745330981,
+      "coherentGain": 0.4651972512448549,
+      "incoherentRatio": 0.5038403014690995
+     },
+     "mid": {
+      "energyRatio": 0.8634671776932713,
+      "ncc": 0.9287431572752373,
+      "coherentGain": 0.8019392328143871,
+      "incoherentRatio": 0.3201078471806894
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6784,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -4.46,
+      -5.01,
+      -9.83
+     ],
+     "psnrVsRef": 28.692845357955715
+    },
+    "edge_baseline": {
+     "fine": {
+      "energyRatio": 0.5220819647875365,
+      "ncc": 0.656539419535092,
+      "coherentGain": 0.3427673901113496,
+      "incoherentRatio": 0.39380210034060054
+     },
+     "mid": {
+      "energyRatio": 0.6983545481179261,
+      "ncc": 0.9087874839104093,
+      "coherentGain": 0.6346558726614808,
+      "incoherentRatio": 0.2913949178920022
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6565,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -6.79,
+      -7.36,
+      -12.77
+     ],
+     "psnrVsRef": 26.61389130777865
+    },
+    "edge_ext": {
+     "fine": {
+      "energyRatio": 0.5996908287503264,
+      "ncc": 0.6956635171954597,
+      "coherentGain": 0.4171830311583122,
+      "incoherentRatio": 0.4307985707970907
+     },
+     "mid": {
+      "energyRatio": 0.8093734916276254,
+      "ncc": 0.9433018950459533,
+      "coherentGain": 0.7634835484522989,
+      "incoherentRatio": 0.268660231876956
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6957,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -4.12,
+      -4.23,
+      -8.23
+     ],
+     "psnrVsRef": 29.676893107153127
+    },
+    "edge_blur0": {
+     "fine": {
+      "energyRatio": 0.6167575156931141,
+      "ncc": 0.6831000709791681,
+      "coherentGain": 0.4213071027469016,
+      "incoherentRatio": 0.45043330065499554
+     },
+     "mid": {
+      "energyRatio": 0.7310160612323778,
+      "ncc": 0.9117845406896582,
+      "coherentGain": 0.6665291436275266,
+      "incoherentRatio": 0.30020556702842077
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.6831,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -6.67,
+      -7.21,
+      -12.61
+     ],
+     "psnrVsRef": 26.79687183399252
+    },
+    "edge_combined": {
+     "fine": {
+      "energyRatio": 0.7086835037626655,
+      "ncc": 0.7251568438210205,
+      "coherentGain": 0.5139066928565568,
+      "incoherentRatio": 0.4879879297099106
+     },
+     "mid": {
+      "energyRatio": 0.847393563454564,
+      "ncc": 0.9461880550455672,
+      "coherentGain": 0.8017936676632063,
+      "incoherentRatio": 0.27423122703187575
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.7252,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -3.96,
+      -4.07,
+      -8.05
+     ],
+     "psnrVsRef": 29.983927670726935
+    }
+   },
+   "edges": {
+    "baseboard_top": {
+     "source": {
+      "width10_90px": 1.8990304544568062,
+      "contrast": 140.70387268066406,
+      "profiles": 115
+     },
+     "golden_A": {
+      "width10_90px": 2.600076775997877,
+      "contrast": 120.5697021484375,
+      "profiles": 115
+     },
+     "edge_A": {
+      "width10_90px": 2.2592555582523346,
+      "contrast": 130.33731079101562,
+      "profiles": 115
+     },
+     "golden_baseline": {
+      "width10_90px": 3.770529568195343,
+      "contrast": 130.06007385253906,
+      "profiles": 115
+     },
+     "golden_ext": {
+      "width10_90px": 3.641608353704214,
+      "contrast": 130.6863555908203,
+      "profiles": 115
+     },
+     "golden_blur0": {
+      "width10_90px": 3.4863424599170685,
+      "contrast": 130.17529296875,
+      "profiles": 115
+     },
+     "golden_combined": {
+      "width10_90px": 3.4004596676677465,
+      "contrast": 131.76251220703125,
+      "profiles": 115
+     },
+     "edge_baseline": {
+      "width10_90px": 3.5144620276987553,
+      "contrast": 128.3370361328125,
+      "profiles": 115
+     },
+     "edge_ext": {
+      "width10_90px": 3.259267672896385,
+      "contrast": 128.0893096923828,
+      "profiles": 115
+     },
+     "edge_blur0": {
+      "width10_90px": 2.9055571258068085,
+      "contrast": 127.55624389648438,
+      "profiles": 115
+     },
+     "edge_combined": {
+      "width10_90px": 2.656820185482502,
+      "contrast": 127.8411865234375,
+      "profiles": 115
+     }
+    }
+   }
+  },
+  "carpet_a0_fixed_f1280": {
+   "f": 1280,
+   "sourceView": "camera2/frame_00103_train.png",
+   "labels": [
+    "edge_A",
+    "edge_baseline",
+    "edge_blur0",
+    "edge_combined",
+    "edge_ext",
+    "golden_A",
+    "golden_baseline",
+    "golden_blur0",
+    "golden_combined",
+    "golden_ext"
+   ],
+   "carpetRoi": [
+    300,
+    440,
+    700,
+    700
+   ],
+   "carpetScoredPixels": 104000,
+   "refBandStd": {
+    "fine": 3.175887054090082,
+    "mid": 4.557524133070997
+   },
+   "carpet": {
+    "golden_A": {
+     "fine": {
+      "energyRatio": 0.5187667769154887,
+      "ncc": 0.5234264393401497,
+      "coherentGain": 0.27153624688884004,
+      "incoherentRatio": 0.44202605744096957
+     },
+     "mid": {
+      "energyRatio": 0.7684384246235411,
+      "ncc": 0.8480957660566721,
+      "coherentGain": 0.6517093743984843,
+      "incoherentRatio": 0.40715169624974634
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.5234,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -3.55,
+      -3.09,
+      -4.64
+     ],
+     "psnrVsRef": 30.851867188357467
+    },
+    "edge_A": {
+     "fine": {
+      "energyRatio": 0.5722648255794371,
+      "ncc": 0.5832890222788876,
+      "coherentGain": 0.333795790596828,
+      "incoherentRatio": 0.4648305075780871
+     },
+     "mid": {
+      "energyRatio": 0.7996452516230036,
+      "ncc": 0.88736425895365,
+      "coherentGain": 0.7095766161322515,
+      "incoherentRatio": 0.36869167915959306
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.5833,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -2.29,
+      -1.67,
+      -2.47
+     ],
+     "psnrVsRef": 32.80371621279094
+    },
+    "golden_baseline": {
+     "fine": {
+      "energyRatio": 0.5420538695259912,
+      "ncc": 0.37942663485382333,
+      "coherentGain": 0.20566967562374028,
+      "incoherentRatio": 0.5015200713799257
+     },
+     "mid": {
+      "energyRatio": 0.6338677021458662,
+      "ncc": 0.8092335498547246,
+      "coherentGain": 0.5129470107457565,
+      "incoherentRatio": 0.37238908146006805
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.3869,
+      "peakShiftPx": [
+       0,
+       1
+      ]
+     },
+     "meanRgbMinusRef": [
+      -7.42,
+      -7.8,
+      -14.02
+     ],
+     "psnrVsRef": 25.88767828266855
+    },
+    "golden_ext": {
+     "fine": {
+      "energyRatio": 0.6018866600602893,
+      "ncc": 0.40579758014627304,
+      "coherentGain": 0.24424415017478787,
+      "incoherentRatio": 0.5501021238496776
+     },
+     "mid": {
+      "energyRatio": 0.7306379077076511,
+      "ncc": 0.8378230776604532,
+      "coherentGain": 0.6121453004910183,
+      "incoherentRatio": 0.39888580228703924
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.4058,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -4.33,
+      -4.27,
+      -9.13
+     ],
+     "psnrVsRef": 28.896949590924876
+    },
+    "golden_blur0": {
+     "fine": {
+      "energyRatio": 0.5724415112964995,
+      "ncc": 0.38820118326202857,
+      "coherentGain": 0.22222247203360498,
+      "incoherentRatio": 0.5275475872172045
+     },
+     "mid": {
+      "energyRatio": 0.6535887786080142,
+      "ncc": 0.8111350392704646,
+      "coherentGain": 0.5301487596029466,
+      "incoherentRatio": 0.38225722257894995
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.3944,
+      "peakShiftPx": [
+       0,
+       1
+      ]
+     },
+     "meanRgbMinusRef": [
+      -7.41,
+      -7.78,
+      -13.99
+     ],
+     "psnrVsRef": 25.915840254861187
+    },
+    "golden_combined": {
+     "fine": {
+      "energyRatio": 0.634356465093065,
+      "ncc": 0.4150124558863265,
+      "coherentGain": 0.2632658344856417,
+      "incoherentRatio": 0.5771474899866997
+     },
+     "mid": {
+      "energyRatio": 0.7522364754459452,
+      "ncc": 0.8395715345228135,
+      "coherentGain": 0.6315563320141848,
+      "incoherentRatio": 0.408651825499565
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.415,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -4.3,
+      -4.24,
+      -9.09
+     ],
+     "psnrVsRef": 28.938072688399053
+    },
+    "edge_baseline": {
+     "fine": {
+      "energyRatio": 0.569243706062014,
+      "ncc": 0.4184764714891693,
+      "coherentGain": 0.2382150975302495,
+      "incoherentRatio": 0.5170028667230679
+     },
+     "mid": {
+      "energyRatio": 0.6328084401106546,
+      "ncc": 0.8442036949080134,
+      "coherentGain": 0.5342192233103908,
+      "incoherentRatio": 0.33919956267796525
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.4185,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -7.06,
+      -6.85,
+      -11.69
+     ],
+     "psnrVsRef": 26.907288996689655
+    },
+    "edge_ext": {
+     "fine": {
+      "energyRatio": 0.6375481112840542,
+      "ncc": 0.4573449104909494,
+      "coherentGain": 0.29157938388887966,
+      "incoherentRatio": 0.566964775883693
+     },
+     "mid": {
+      "energyRatio": 0.7404714524262411,
+      "ncc": 0.8777515914750542,
+      "coherentGain": 0.6499499958089779,
+      "incoherentRatio": 0.3547717221061123
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.4573,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -4.62,
+      -3.93,
+      -7.25
+     ],
+     "psnrVsRef": 29.950084997017136
+    },
+    "edge_blur0": {
+     "fine": {
+      "energyRatio": 0.6026308354110372,
+      "ncc": 0.42845821423772384,
+      "coherentGain": 0.2582021315848007,
+      "incoherentRatio": 0.5445140797383203
+     },
+     "mid": {
+      "energyRatio": 0.6527505728104221,
+      "ncc": 0.8456667843520114,
+      "coherentGain": 0.5520094778925231,
+      "incoherentRatio": 0.34838031893486504
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.4285,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -7.03,
+      -6.81,
+      -11.65
+     ],
+     "psnrVsRef": 26.953236773405692
+    },
+    "edge_combined": {
+     "fine": {
+      "energyRatio": 0.6768145848676043,
+      "ncc": 0.4660744993584831,
+      "coherentGain": 0.31544601880068823,
+      "incoherentRatio": 0.5988086434849644
+     },
+     "mid": {
+      "energyRatio": 0.763560580355633,
+      "ncc": 0.8794846112057104,
+      "coherentGain": 0.6715397801460803,
+      "incoherentRatio": 0.3633993444605881
+     },
+     "fineShiftScan": {
+      "peakNcc": 0.4661,
+      "peakShiftPx": [
+       0,
+       0
+      ]
+     },
+     "meanRgbMinusRef": [
+      -4.58,
+      -3.88,
+      -7.2
+     ],
+     "psnrVsRef": 30.019480464043887
+    }
+   },
+   "edges": {
+    "baseboard_top": {
+     "source": {
+      "width10_90px": 2.4934338480234146,
+      "contrast": 138.34222412109375,
+      "profiles": 231
+     },
+     "golden_A": {
+      "width10_90px": 3.8316268558846787,
+      "contrast": 119.04963684082031,
+      "profiles": 231
+     },
+     "edge_A": {
+      "width10_90px": 3.3515629060566425,
+      "contrast": 127.85894775390625,
+      "profiles": 231
+     },
+     "golden_baseline": {
+      "width10_90px": 4.794588729739189,
+      "contrast": 124.22113037109375,
+      "profiles": 231
+     },
+     "golden_ext": {
+      "width10_90px": 4.646852150559425,
+      "contrast": 125.39088439941406,
+      "profiles": 231
+     },
+     "golden_blur0": {
+      "width10_90px": 4.641602648422122,
+      "contrast": 124.5997543334961,
+      "profiles": 231
+     },
+     "golden_combined": {
+      "width10_90px": 4.4847890585660934,
+      "contrast": 125.83744812011719,
+      "profiles": 231
+     },
+     "edge_baseline": {
+      "width10_90px": 4.722202934324741,
+      "contrast": 128.53903198242188,
+      "profiles": 231
+     },
+     "edge_ext": {
+      "width10_90px": 4.206500567495823,
+      "contrast": 128.4110870361328,
+      "profiles": 231
+     },
+     "edge_blur0": {
+      "width10_90px": 4.421246314421296,
+      "contrast": 128.1728973388672,
+      "profiles": 231
+     },
+     "edge_combined": {
+      "width10_90px": 3.870073052123189,
+      "contrast": 128.4402618408203,
+      "profiles": 231
+     }
+    }
+   }
+  },
+  "chair_slats_a2_fixed_f640": {
+   "f": 640,
+   "sourceView": "camera2/frame_00103_train.png",
+   "labels": [
+    "edge_A",
+    "edge_baseline",
+    "edge_blur0",
+    "edge_combined",
+    "edge_ext",
+    "golden_A",
+    "golden_baseline",
+    "golden_blur0",
+    "golden_combined",
+    "golden_ext"
+   ],
+   "edges": {
+    "chair_back_top": {
+     "source": {
+      "width10_90px": 2.089771404862404,
+      "contrast": 158.43177795410156,
+      "profiles": 16
+     },
+     "golden_A": {
+      "width10_90px": 1.6175238769501448,
+      "contrast": 110.8814468383789,
+      "profiles": 16
+     },
+     "edge_A": {
+      "width10_90px": 1.5577467726543546,
+      "contrast": 110.11603546142578,
+      "profiles": 16
+     },
+     "golden_baseline": {
+      "width10_90px": 2.4171960055828094,
+      "contrast": 117.17115783691406,
+      "profiles": 16
+     },
+     "golden_ext": {
+      "width10_90px": 2.385616324841976,
+      "contrast": 116.82443237304688,
+      "profiles": 16
+     },
+     "golden_blur0": {
+      "width10_90px": 1.6083264853805304,
+      "contrast": 104.23800659179688,
+      "profiles": 16
+     },
+     "golden_combined": {
+      "width10_90px": 1.5414246618747711,
+      "contrast": 96.17874145507812,
+      "profiles": 16
+     },
+     "edge_baseline": {
+      "width10_90px": 2.580040328204632,
+      "contrast": 135.4452667236328,
+      "profiles": 16
+     },
+     "edge_ext": {
+      "width10_90px": 2.6138077452778816,
+      "contrast": 135.54660034179688,
+      "profiles": 16
+     },
+     "edge_blur0": {
+      "width10_90px": 1.7292819023132324,
+      "contrast": 114.86859130859375,
+      "profiles": 16
+     },
+     "edge_combined": {
+      "width10_90px": 1.5801441594958305,
+      "contrast": 106.41514587402344,
+      "profiles": 16
+     }
+    }
+   }
+  },
+  "chair_slats_a2_fixed_f1280": {
+   "f": 1280,
+   "sourceView": "camera2/frame_00103_train.png",
+   "labels": [
+    "edge_A",
+    "edge_baseline",
+    "edge_blur0",
+    "edge_combined",
+    "edge_ext",
+    "golden_A",
+    "golden_baseline",
+    "golden_blur0",
+    "golden_combined",
+    "golden_ext"
+   ],
+   "edges": {
+    "chair_back_top": {
+     "source": {
+      "width10_90px": 4.247936338186264,
+      "contrast": 160.85101318359375,
+      "profiles": 32
+     },
+     "golden_A": {
+      "width10_90px": 4.480912193655968,
+      "contrast": 138.76507568359375,
+      "profiles": 32
+     },
+     "edge_A": {
+      "width10_90px": 4.619805198162794,
+      "contrast": 140.12217712402344,
+      "profiles": 32
+     },
+     "golden_baseline": {
+      "width10_90px": 4.711189713329077,
+      "contrast": 130.42257690429688,
+      "profiles": 32
+     },
+     "golden_ext": {
+      "width10_90px": 4.727044180035591,
+      "contrast": 130.53713989257812,
+      "profiles": 32
+     },
+     "golden_blur0": {
+      "width10_90px": 4.481692269444466,
+      "contrast": 130.8428955078125,
+      "profiles": 32
+     },
+     "golden_combined": {
+      "width10_90px": 4.498186767101288,
+      "contrast": 131.03814697265625,
+      "profiles": 32
+     },
+     "edge_baseline": {
+      "width10_90px": 4.692065633833408,
+      "contrast": 132.04586791992188,
+      "profiles": 32
+     },
+     "edge_ext": {
+      "width10_90px": 4.694005027413368,
+      "contrast": 132.65731811523438,
+      "profiles": 32
+     },
+     "edge_blur0": {
+      "width10_90px": 4.46060230769217,
+      "contrast": 132.20111083984375,
+      "profiles": 32
+     },
+     "edge_combined": {
+      "width10_90px": 4.475478300708346,
+      "contrast": 133.2469482421875,
+      "profiles": 32
+     }
+    }
+   }
+  }
+ }
+}

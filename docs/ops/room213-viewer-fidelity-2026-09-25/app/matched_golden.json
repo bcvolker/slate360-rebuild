@@ -1,0 +1,93 @@
+{
+ "drawingBuffer": [
+  1597,
+  897
+ ],
+ "focalPx": [
+  861.7709201733097,
+  861.560483946568
+ ],
+ "cameraCentreMinusSourceCentre": 2.393918396847994e-10,
+ "sameCameraBeforeAfter": true,
+ "effectiveBefore": {
+  "profileId": "spark-default",
+  "accumExtSplats": false,
+  "displayAccumulatorExt": false,
+  "uniform_enableExtSplats": false,
+  "uniform_blurAmount": 0.3,
+  "uniform_preBlurAmount": 0,
+  "activeSplats": 565908,
+  "drawingBuffer": [
+   1597,
+   897
+  ],
+  "pixelRatio": 1.25,
+  "canvasCss": [
+   1278,
+   718
+  ]
+ },
+ "effectiveAfter": {
+  "profileId": "spirula-3dgut",
+  "accumExtSplats": true,
+  "displayAccumulatorExt": true,
+  "uniform_enableExtSplats": true,
+  "uniform_blurAmount": 0,
+  "uniform_preBlurAmount": 0,
+  "activeSplats": 565908,
+  "drawingBuffer": [
+   1597,
+   897
+  ],
+  "pixelRatio": 1.25,
+  "canvasCss": [
+   1278,
+   718
+  ]
+ },
+ "roi": [
+  479,
+  556,
+  1117,
+  852
+ ],
+ "scoredPixels": 188848,
+ "before": {
+  "fine": {
+   "energyRatio": 0.6372018825314776,
+   "ncc": 0.518605431151239,
+   "coherentGain": 0.3304563570206181,
+   "incoherentRatio": 0.5448163316259166
+  },
+  "mid": {
+   "energyRatio": 0.7973506103531194,
+   "ncc": 0.855806708913057,
+   "coherentGain": 0.6823780016961205,
+   "incoherentRatio": 0.4124660696732538
+  },
+  "meanRgbMinusSource": [
+   -4.21,
+   -3.91,
+   -5.24
+  ]
+ },
+ "after": {
+  "fine": {
+   "energyRatio": 0.7804692908191939,
+   "ncc": 0.5478351689349639,
+   "coherentGain": 0.4275685257844845,
+   "incoherentRatio": 0.6529299117595226
+  },
+  "mid": {
+   "energyRatio": 0.9353121788318167,
+   "ncc": 0.8758794726298682,
+   "coherentGain": 0.8192207379395047,
+   "incoherentRatio": 0.4513161357640273
+  },
+  "meanRgbMinusSource": [
+   -1.98,
+   -1.19,
+   -1.51
+  ]
+ }
+}

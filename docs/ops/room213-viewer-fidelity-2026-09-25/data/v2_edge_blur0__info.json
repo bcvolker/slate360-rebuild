@@ -1,0 +1,207 @@
+{
+ "loadMs": 6168.800000011921,
+ "settings": {
+  "blurAmount": 0,
+  "preBlurAmount": 0,
+  "maxStdDev": 2.8284271247461903,
+  "minAlpha": 0.00196078431372549,
+  "minPixelRadius": 0,
+  "maxPixelRadius": 512,
+  "clipXY": 1.4,
+  "focalAdjustment": 1,
+  "falloff": 1,
+  "encodeLinear": false,
+  "sortRadial": true,
+  "enableLod": true,
+  "enableDriveLod": true,
+  "lodSplatCount": 2500000,
+  "lodSplatScale": 1,
+  "lodRenderScale": 1,
+  "lodInflate": false,
+  "enable2DGS": false,
+  "covSplats": false,
+  "accumExtSplats": false,
+  "pagedExtSplats": false,
+  "minSortIntervalMs": 0,
+  "focalDistance": 0,
+  "apertureAngle": 0,
+  "behindFoveate": 0.2,
+  "coneFov0": 90,
+  "coneFov": 120,
+  "coneFoveate": 0.4,
+  "premultipliedAlpha": true,
+  "toneMapping": 0,
+  "outputColorSpace": "srgb",
+  "pixelRatio": 1,
+  "drawingBuffer": [
+   1280,
+   720
+  ]
+ },
+ "meshNumSh": null,
+ "extNumSplats": 0,
+ "packedNumSplats": null,
+ "lodNumSplats": 1409621,
+ "extraKeys": [],
+ "frames": [
+  {
+   "name": "carpet_a0_indep_f640",
+   "settleFrames": 30,
+   "activeSplats": 498807,
+   "maxSplats": 507904,
+   "displayNumSplats": 498807
+  },
+  {
+   "name": "carpet_a0_indep_f1280",
+   "settleFrames": 30,
+   "activeSplats": 714079,
+   "maxSplats": 720896,
+   "displayNumSplats": 714079
+  },
+  {
+   "name": "carpet_a5_indep_f640",
+   "settleFrames": 30,
+   "activeSplats": 511962,
+   "maxSplats": 720896,
+   "displayNumSplats": 511962
+  },
+  {
+   "name": "carpet_a5_indep_f1280",
+   "settleFrames": 30,
+   "activeSplats": 718904,
+   "maxSplats": 720896,
+   "displayNumSplats": 718904
+  },
+  {
+   "name": "carpet_a3_indep_f640",
+   "settleFrames": 30,
+   "activeSplats": 536382,
+   "maxSplats": 720896,
+   "displayNumSplats": 536382
+  },
+  {
+   "name": "carpet_a3_indep_f1280",
+   "settleFrames": 30,
+   "activeSplats": 735179,
+   "maxSplats": 737280,
+   "displayNumSplats": 735179
+  },
+  {
+   "name": "table_edges_a4_indep_f640",
+   "settleFrames": 30,
+   "activeSplats": 803459,
+   "maxSplats": 819200,
+   "displayNumSplats": 803459
+  },
+  {
+   "name": "table_edges_a4_indep_f1280",
+   "settleFrames": 30,
+   "activeSplats": 935890,
+   "maxSplats": 950272,
+   "displayNumSplats": 935890
+  },
+  {
+   "name": "carpet_a0_fixed_f640",
+   "settleFrames": 30,
+   "activeSplats": 501891,
+   "maxSplats": 950272,
+   "displayNumSplats": 501891
+  },
+  {
+   "name": "carpet_a0_fixed_f1280",
+   "settleFrames": 30,
+   "activeSplats": 709601,
+   "maxSplats": 950272,
+   "displayNumSplats": 709601
+  },
+  {
+   "name": "chair_slats_a2_fixed_f640",
+   "settleFrames": 30,
+   "activeSplats": 812569,
+   "maxSplats": 950272,
+   "displayNumSplats": 812569
+  },
+  {
+   "name": "chair_slats_a2_fixed_f1280",
+   "settleFrames": 30,
+   "activeSplats": 943723,
+   "maxSplats": 950272,
+   "displayNumSplats": 943723
+  }
+ ],
+ "renderSource": "extSplats.lodSplats",
+ "renderSourceNumSplats": 1409621,
+ "renderSourceNumSh": 3,
+ "renderSourceExtra": {
+  "sh1": "Uint32Array[5644288]",
+  "sh2": "Uint32Array[5644288]",
+  "sh3a": "Uint32Array[5644288]",
+  "sh3b": "Uint32Array[5644288]",
+  "sh1Codes": "undefined",
+  "sh2Codes": "undefined",
+  "sh3Codes": "undefined",
+  "lodTree": "Uint32Array[5638484]"
+ },
+ "effective": {
+  "accumExtSplats": false,
+  "displayAccumulatorExt": false,
+  "uniform_enableExtSplats": false,
+  "uniform_blurAmount": 0,
+  "uniform_preBlurAmount": 0,
+  "uniform_maxStdDev": 2.8284271247461903,
+  "uniform_minAlpha": 0.00196078431372549,
+  "uniform_renderSize": [
+   1280,
+   720
+  ],
+  "drawingBuffer": [
+   1280,
+   720
+  ],
+  "pixelRatio": 1,
+  "canvasCss": [
+   1280,
+   720
+  ]
+ },
+ "accumulators": [
+  {
+   "ext": false,
+   "allocated": false
+  },
+  {
+   "ext": false,
+   "maxSplats": 944128,
+   "w": 2048,
+   "h": 461,
+   "d": 1,
+   "textures": [
+    1014,
+    "RGBA8"
+   ],
+   "bytes": 18882560
+  },
+  {
+   "ext": false,
+   "maxSplats": 944128,
+   "w": 2048,
+   "h": 461,
+   "d": 1,
+   "textures": [
+    1014,
+    "RGBA8"
+   ],
+   "bytes": 18882560
+  }
+ ],
+ "accumulatorBytesTotal": 37765120,
+ "frameMs": {
+  "n": 120,
+  "p50": 0,
+  "p90": 0.09999999403953552,
+  "p99": 0.19999998807907104,
+  "max": 0.30000001192092896
+ },
+ "jsHeapMB": 233,
+ "totalMs": 28221.19999998808
+}
