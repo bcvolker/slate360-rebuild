@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head><meta charset="utf-8"><title>Spark diag runner</title></head>
+<body style="margin:0;background:#111;color:#ccc;font:12px monospace">
+<div id="log"></div>
+<script type="module">
+// Runs index.html jobs one at a time, each in a NEW iframe (fresh document, WebGL context, SparkRenderer and
+// accumulators), removing it before the next job. ?queue=<json file of index.html query strings>
+const qs = new URLSearchParams(location.search);
+const queue = await (await fetch(qs.get("queue"))).json();
+const logEl = document.getElementById("log");
+window.__runner = { total: queue.length, done: 0, results: [], stage: "running" };
+for (const q of queue) {
+  const f = document.createElement("iframe");
+  f.width = 1280; f.height = 720; f.style.border = "0";
+  const t0 = performance.now();
+  let err = null;
+  f.src = "/index.html?" + q;
+  document.body.appendChild(f);
+  await new Promise((r) => f.addEventListener("load", r, { once: true }));
+  f.contentWindow.addEventListener("error", (e) => { err = String(e.message || e); });
+  f.contentWindow.addEventListener("unhandledrejection", (e) => { err = String(e.reason); });
+  for (;;) {
+    await new Promise((r) => setTimeout(r, 500));
+    const st = f.contentWindow.__status;
+    if (err || (st && st.stage === "done") || performance.now() - t0 > 20 * 60 * 1000) break;
+  }
+  window.__runner.results.push({ q, ok: !err, err, s: Math.round((performance.now() - t0) / 1000) });
+  window.__runner.done++;
+  logEl.textContent = JSON.stringify(window.__runner.results.at(-1));
+  f.remove();
+  await new Promise((r) => setTimeout(r, 1500));
+}
+window.__runner.stage = "done";
+await fetch("/save?name=runner_" + (qs.get("tag") || "log") + ".json", { method: "POST", body: JSON.stringify(window.__runner, null, 1) });
+</script>
+</body>
+</html>

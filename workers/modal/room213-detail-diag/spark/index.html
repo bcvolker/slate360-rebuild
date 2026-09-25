@@ -24,6 +24,8 @@
 // Differences on purpose: background black (Spirula eval background) instead of #0B0F15; pixel ratio 1 and an exact
 // 1280x720 drawing buffer (no CSS/browser resizing); camera = the exact pinhole (fx=fy=f, cx=640, cy=360).
 // Query overrides (targeted checks only): blur, preblur, lod=0|1, lodcount.
+// Viewer-fidelity follow-up (2026-09-25): cond=baseline|ext|blur0|combined sets ALL of accumExtSplats / preBlurAmount /
+// blurAmount explicitly (preBlurAmount is always 0 there), on a fresh page = fresh SparkRenderer + accumulators.
 import * as THREE from "three";
 import { SparkRenderer, SplatMesh } from "@sparkjsdev/spark";
 const qs = new URLSearchParams(location.search);
@@ -31,6 +33,15 @@ const file = qs.get("file"), tag = qs.get("tag");
 const W = Number(qs.get("w") || 1280), H = Number(qs.get("h") || 720);
 const lodOn = qs.get("lod") !== "0";
 const sparkOpts = { enableLod: lodOn, lodSplatCount: Number(qs.get("lodcount") || 2500000) };
+const COND = { baseline: { accumExtSplats: false, preBlurAmount: 0, blurAmount: 0.3 },
+  ext: { accumExtSplats: true, preBlurAmount: 0, blurAmount: 0.3 },
+  blur0: { accumExtSplats: false, preBlurAmount: 0, blurAmount: 0 },
+  combined: { accumExtSplats: true, preBlurAmount: 0, blurAmount: 0 } };
+if (qs.has("cond")) {
+  if (!COND[qs.get("cond")]) throw new Error("unknown cond");
+  if (qs.has("blur") || qs.has("preblur") || qs.has("shfix")) throw new Error("cond excludes blur/preblur/shfix overrides");
+  Object.assign(sparkOpts, COND[qs.get("cond")]);
+}
 if (qs.has("blur")) sparkOpts.blurAmount = Number(qs.get("blur"));
 if (qs.has("preblur")) sparkOpts.preBlurAmount = Number(qs.get("preblur"));
 const meshOpts = lodOn ? { lod: true, enableLod: true, extSplats: true } : { extSplats: true };
@@ -141,6 +152,37 @@ for (const p of poses) {
     displayNumSplats: spark.display ? spark.display.numSplats : null });
   window.__status.done++;
 }
+// Effective runtime values (what the shaders actually receive), after rendering.
+const U = spark.material.uniforms;
+info.effective = { accumExtSplats: spark.accumExtSplats, displayAccumulatorExt: spark.display ? spark.display.extSplats : null,
+  uniform_enableExtSplats: U.enableExtSplats ? U.enableExtSplats.value : null, uniform_blurAmount: U.blurAmount.value,
+  uniform_preBlurAmount: U.preBlurAmount.value, uniform_maxStdDev: U.maxStdDev.value, uniform_minAlpha: U.minAlpha.value,
+  uniform_renderSize: U.renderSize ? [U.renderSize.value.x, U.renderSize.value.y] : null,
+  drawingBuffer: [gl.drawingBufferWidth, gl.drawingBufferHeight], pixelRatio: renderer.getPixelRatio(),
+  canvasCss: [renderer.domElement.clientWidth, renderer.domElement.clientHeight] };
+// Accumulator GPU storage: every SplatAccumulator render target (display + pool), bytes per texel from its formats.
+const bpt = (t) => (t.internalFormat === "RGBA8" || t.type === THREE.UnsignedByteType ? 4 : 16);
+info.accumulators = (spark.accumulators || []).concat(spark.display ? [spark.display] : []).filter((a, i, arr) => arr.indexOf(a) === i)
+  .map((a) => a.target ? { ext: a.extSplats, maxSplats: a.maxSplats, w: a.target.width, h: a.target.height, d: a.target.depth,
+    textures: a.target.textures.map((t) => t.internalFormat || t.type), bytes: a.target.textures.reduce((n, t) => n + bpt(t) * a.target.width * a.target.height * a.target.depth, 0) } : { ext: a.extSplats, allocated: false });
+info.accumulatorBytesTotal = info.accumulators.reduce((n, a) => n + (a.bytes || 0), 0);
+// Frame time at the first pose while the camera MOVES (a 0.5 deg yaw oscillation, so Spark re-generates, re-sorts
+// and re-traverses LoD like during navigation): 240 frames, each render followed by a 1-pixel readPixels, which
+// forces the GPU to finish that frame (gl.finish alone returns early in Chromium). CPU wall clock per frame.
+if (qs.get("timing") !== "0" && poses.length) {
+  const base = camera.matrixWorld.clone(), ft = [], one = new Uint8Array(4);
+  for (let k = 0; k < 240; k++) {
+    const m = base.clone().multiply(new THREE.Matrix4().makeRotationY(0.0087 * Math.sin(k / 6)));
+    camera.matrix.copy(m); camera.matrixWorld.copy(m); camera.matrixWorldInverse.copy(m).invert();
+    const a = performance.now(); renderer.render(scene, camera); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, one);
+    ft.push(performance.now() - a);
+    await new Promise((r) => setTimeout(r, 0));
+  }
+  ft.sort((x, y) => x - y);
+  const q = (f) => Math.round(ft[Math.min(ft.length - 1, Math.floor(f * ft.length))] * 100) / 100;
+  info.frameMs = { n: ft.length, p50: q(0.5), p90: q(0.9), p99: q(0.99), max: q(1), mean: Math.round(ft.reduce((x, y) => x + y, 0) / ft.length * 100) / 100 };
+}
+info.jsHeapMB = performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : null;
 info.totalMs = performance.now() - t0;
 await fetch(`/save?name=${tag}__info.json`, { method: "POST", body: JSON.stringify(info, null, 1) });
 window.__status.stage = "done";
