@@ -10,7 +10,7 @@ import type { SparkProfileCheck } from "@/components/digital-twin/splat-viewer-c
  * and the verified render profile asserted against the live renderer. `?internal=1` shows the live
  * renderer readout (profile, active splats, accumulator storage, load time); nothing technical otherwise.
  */
-export function Room213Viewer({ src, internal }: { src: string; internal: boolean }) {
+export function Room213Viewer({ src, signedSrc, internal }: { src: string; signedSrc: string; internal: boolean }) {
   const [check, setCheck] = useState<SparkProfileCheck | null>(null);
   const [readyMs, setReadyMs] = useState<number | null>(null);
   const onCheck = useCallback(
@@ -25,6 +25,7 @@ export function Room213Viewer({ src, internal }: { src: string; internal: boolea
   return (
     <SplatLabWalkViewer
       src={src}
+      signedSrc={signedSrc}
       kicker="Slate360"
       title="Room 213"
       showPlan={false}

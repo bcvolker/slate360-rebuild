@@ -1,4 +1,5 @@
-import { GetObjectCommand } from "@aws-sdk/client-s3";
+import { GetObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextResponse, type NextRequest } from "next/server";
 
 import { BUCKET, s3 } from "@/lib/s3";
@@ -28,8 +29,10 @@ const MODELS = {
 } as const;
 
 export const dynamic = "force-dynamic";
-// A 247 MB PLY streams through this function on a cold request.
+// Fallback only: `kind=ply` streams the 247 MB PLY through this function. The viewer first asks
+// `kind=ply-url` for a short-lived presigned R2 URL and downloads straight from R2.
 export const maxDuration = 300;
+const SIGNED_URL_TTL_SEC = 15 * 60;
 
 async function readJson(key: string): Promise<Record<string, unknown>> {
   const res = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: key }));
@@ -64,12 +67,25 @@ export async function GET(request: NextRequest) {
     if (tr) manifest.training_rasterizer = tr;
     return NextResponse.json(manifest, { headers: { "Cache-Control": "no-store" } });
   }
+  if (q.get("kind") === "ply-url") {
+    // Short-lived, single-object, GET-only signature for a fixed key; no credentials leave the server.
+    const Key = MODELS[model].ply;
+    const [head, url] = await Promise.all([
+      s3.send(new HeadObjectCommand({ Bucket: BUCKET, Key })),
+      getSignedUrl(s3, new GetObjectCommand({ Bucket: BUCKET, Key }), { expiresIn: SIGNED_URL_TTL_SEC }),
+    ]);
+    return NextResponse.json(
+      { url, bytes: head.ContentLength ?? null, expiresInSec: SIGNED_URL_TTL_SEC },
+      { headers: { "Cache-Control": "no-store" } },
+    );
+  }
   if (q.get("kind") !== "ply") return NextResponse.json({ error: "invalid kind" }, { status: 400 });
 
   const object = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: MODELS[model].ply }));
   const stream = (object.Body as { transformToWebStream?: () => ReadableStream<Uint8Array> } | undefined)?.transformToWebStream?.();
   if (!stream) return NextResponse.json({ error: "empty object" }, { status: 404 });
-  const headers = new Headers({ "Content-Type": "application/octet-stream", "Cache-Control": "public, max-age=3600" });
+  // no-transform: keep Content-Length exact (no edge compression) so the client can verify completeness.
+  const headers = new Headers({ "Content-Type": "application/octet-stream", "Cache-Control": "public, max-age=3600, no-transform" });
   if (object.ContentLength != null) headers.set("Content-Length", String(object.ContentLength));
   return new Response(stream, { status: 200, headers });
 }

@@ -20,6 +20,7 @@ function webglOk(): boolean {
 
 export function SplatLabWalkViewer({
   src,
+  signedSrc,
   kicker,
   title,
   note,
@@ -31,6 +32,8 @@ export function SplatLabWalkViewer({
   internalPanel,
 }: {
   src: string;
+  /** Optional endpoint returning a short-lived direct download URL for `src` (see useSplatBytes). */
+  signedSrc?: string;
   kicker: string;
   title: string;
   note?: string;
@@ -67,6 +70,9 @@ export function SplatLabWalkViewer({
     },
     [onRenderProfileCheck],
   );
+  // Model decoded (overlay gone) but nothing drawn yet / at all: say so instead of a blank canvas.
+  const [modelReady, setModelReady] = useState(false);
+  const nothingDrawn = profileCheck !== null && (profileCheck.effective.activeSplats ?? 1) === 0;
   const reducedFidelity =
     expectedProfile !== undefined && profileCheck !== null && (!profileCheck.ok || profileCheck.expected !== expectedProfile);
 
@@ -98,6 +104,8 @@ export function SplatLabWalkViewer({
         <SplatViewerCore
           ref={ref}
           src={src}
+          signedSrc={signedSrc}
+          onModelReady={setModelReady}
           className="absolute inset-0 h-full w-full"
           cameraMode={cameraMode}
           onCameraModeChange={(mode) => setView(mode === "interior" ? "walk" : view === "plan" ? "plan" : "dollhouse")}
@@ -120,6 +128,11 @@ export function SplatLabWalkViewer({
         onFullscreen={canFullscreen ? toggleFullscreen : undefined}
         fullscreen={isFullscreen}
       />
+      {nothingDrawn || (modelReady && expectedProfile !== undefined && profileCheck === null) ? (
+        <p role={nothingDrawn ? "alert" : "status"} className="pointer-events-none absolute inset-x-0 top-1/2 z-20 mx-auto w-fit max-w-[85vw] -translate-y-1/2 rounded-md bg-[var(--mkt-surface)]/92 px-3 py-1.5 text-center text-[12px] text-[var(--mkt-ink)]">
+          {nothingDrawn ? "The model loaded but the renderer is drawing 0 splats. Tap Reset, or reload the page." : "Rendering…"}
+        </p>
+      ) : null}
       {reducedFidelity ? (
         <p role="status" className="pointer-events-none absolute inset-x-0 top-[max(4.5rem,env(safe-area-inset-top))] z-20 mx-auto w-fit rounded-md bg-[var(--mkt-surface)]/92 px-3 py-1 text-[11px] text-[var(--mkt-ink)]">
           This device is showing a reduced-quality view of the model.

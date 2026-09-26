@@ -2,9 +2,18 @@
 
 import { useEffect, useRef, useState } from "react";
 
+import {
+  checkPlyComplete,
+  downloadBytes,
+  resolveSignedSource,
+  type DownloadSource,
+} from "@/lib/digital-twin/splat-download";
+
 export type SplatBytesState = {
   bytes: Uint8Array | null;
   error: string | null;
+  /** Where the bytes came from: a short-lived direct object-storage URL, or the app's proxy route. */
+  source: DownloadSource | null;
 };
 
 /**
@@ -16,78 +25,58 @@ export type SplatBytesState = {
  * loading — the share page showed "Connection stalled" over a live splat.
  * Streaming here feeds progress on every chunk and hands Spark the finished
  * bytes (`fileBytes`), which it decodes locally.
+ *
+ * `signedUrlEndpoint` (optional): a small authorized endpoint returning `{ url, bytes }` — a short-lived
+ * presigned object-storage URL — so a large model downloads straight from storage instead of streaming
+ * through a server function. If that path fails before completing (e.g. the bucket's CORS does not allow
+ * this origin), the download falls back to `url`. Either way the bytes are verified complete before decode.
  */
 export function useSplatBytes(
   url: string | null,
   onProgress?: (loaded: number, total: number | null) => void,
+  signedUrlEndpoint?: string | null,
 ): SplatBytesState {
-  const [state, setState] = useState<SplatBytesState>({ bytes: null, error: null });
+  const [state, setState] = useState<SplatBytesState>({ bytes: null, error: null, source: null });
   const progressRef = useRef(onProgress);
   progressRef.current = onProgress;
 
   useEffect(() => {
-    setState({ bytes: null, error: null });
+    setState({ bytes: null, error: null, source: null });
     if (!url) return;
     const controller = new AbortController();
     let cancelled = false;
+    const progress = (loaded: number, total: number | null) => progressRef.current?.(loaded, total);
     (async () => {
       try {
-        const res = await fetch(url, { signal: controller.signal, cache: "no-store" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        // Vercel may Brotli-compress the response, in which case Content-Length is absent
-        // or refers to the compressed size; treat it as a hint only.
-        const hinted = Number(res.headers.get("content-length") || 0);
-        const total = res.headers.get("content-encoding") ? null : hinted > 0 ? hinted : null;
-        const reader = res.body?.getReader();
-        if (!reader) throw new Error("empty response body");
-        // Known length: write each chunk straight into one buffer, so a large model (e.g. a 247 MB PLY)
-        // never exists twice in memory (chunks + concatenated copy) — that doubled peak is what a
-        // phone browser cannot afford. Unknown length: collect chunks, concatenate once.
-        let prealloc: Uint8Array | null = total ? new Uint8Array(total) : null;
-        const chunks: Uint8Array[] = [];
-        let loaded = 0;
-        progressRef.current?.(0, total);
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          if (value) {
-            if (prealloc && loaded + value.length <= prealloc.length) {
-              prealloc.set(value, loaded);
-            } else {
-              if (prealloc) {
-                chunks.push(prealloc.subarray(0, loaded));
-                prealloc = null;
-              }
-              chunks.push(value);
-            }
-            loaded += value.length;
-            progressRef.current?.(loaded, total);
+        let bytes: Uint8Array | null = null;
+        let source: DownloadSource = "proxy";
+        if (signedUrlEndpoint) {
+          try {
+            const signed = await resolveSignedSource(signedUrlEndpoint, controller.signal);
+            bytes = await downloadBytes(signed.url, controller.signal, signed.bytes, progress);
+            source = "direct";
+          } catch (err) {
+            if (controller.signal.aborted) return;
+            console.warn("[useSplatBytes] direct download failed, falling back to proxy:", err);
           }
         }
-        let out: Uint8Array;
-        if (prealloc) {
-          out = loaded === prealloc.length ? prealloc : prealloc.slice(0, loaded);
-        } else {
-          out = new Uint8Array(loaded);
-          let offset = 0;
-          for (const c of chunks) {
-            out.set(c, offset);
-            offset += c.length;
-          }
-        }
+        if (!bytes) bytes = await downloadBytes(url, controller.signal, null, progress);
+        const truncated = checkPlyComplete(bytes);
+        if (truncated) throw new Error(truncated);
         // Signal "fully downloaded" so the viewer switches from the stall clock to the decode clock.
-        progressRef.current?.(loaded, loaded);
-        if (!cancelled) setState({ bytes: out, error: null });
+        progress(bytes.length, bytes.length);
+        console.info(`[useSplatBytes] ${source} download complete: ${bytes.length} bytes`);
+        if (!cancelled) setState({ bytes, error: null, source });
       } catch (err) {
         if (cancelled || controller.signal.aborted) return;
-        setState({ bytes: null, error: err instanceof Error ? err.message : "download failed" });
+        setState({ bytes: null, error: err instanceof Error ? err.message : "download failed", source: null });
       }
     })();
     return () => {
       cancelled = true;
       controller.abort();
     };
-  }, [url]);
+  }, [url, signedUrlEndpoint]);
 
   return state;
 }

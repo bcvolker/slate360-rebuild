@@ -21,7 +21,9 @@ export function SplatLoadingOverlay({
   return (
     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-[var(--graphite-canvas)]/80 backdrop-blur-sm px-6">
       <Loader2 className={cn("size-7 animate-spin", twinAccent.spinner)} aria-hidden />
-      <p className="text-xs font-medium tracking-wide text-zinc-300">Loading 3D twin…</p>
+      <p className="text-xs font-medium tracking-wide text-zinc-300" role="status">
+        {progressPct === 100 ? "Preparing model…" : progressPct != null ? `Downloading model — ${progressPct}%` : "Downloading model…"}
+      </p>
       {progressPct != null ? (
         <div className="mt-1 w-full max-w-[220px]">
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">

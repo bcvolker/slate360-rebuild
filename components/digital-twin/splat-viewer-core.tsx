@@ -46,6 +46,10 @@ export const SplatViewerCore = forwardRef<
   SplatViewerHandle,
   {
     src: string;
+    /** Optional short-lived direct-download URL endpoint for `src` (hooks/useSplatBytes.ts). */
+    signedSrc?: string;
+    /** Fires true once the model is decoded and on the GPU, false while loading. */
+    onModelReady?: (ready: boolean) => void;
     className?: string;
     pickEnabled?: boolean;
     onPick?: (point: TwinPickPoint) => void;
@@ -64,6 +68,8 @@ export const SplatViewerCore = forwardRef<
 >(function SplatViewerCore(
   {
     src,
+    signedSrc,
+    onModelReady,
     className,
     pickEnabled = false,
     onPick,
@@ -105,6 +111,7 @@ export const SplatViewerCore = forwardRef<
   }, [src, retryNonce]);
 
   const handleReady = useCallback(() => setLoadState("ready"), []);
+  useEffect(() => onModelReady?.(loadState === "ready"), [loadState, onModelReady]);
   const handleRecenter = useCallback(() => {
     setInteriorEntryHit(null);
     onCameraModeChange?.("orbit");
@@ -258,6 +265,7 @@ export const SplatViewerCore = forwardRef<
           <color attach="background" args={["#0B0F15"]} />
           <SplatViewerScene
             url={effectiveSrc}
+            signedUrl={signedSrc}
             maxSplats={maxSplats}
             onReady={handleReady}
             onProgress={handleProgress}

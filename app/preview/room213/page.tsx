@@ -25,5 +25,6 @@ export default async function Room213Page({
   const one = (k: string) => (Array.isArray(p[k]) ? p[k]?.[0] : p[k]) as string | undefined;
   const model = one("model") === "edge" ? "edge" : "golden";
   const full = (one("dollhouse") === "full" ? "&dollhouse=full" : "");
-  return <Room213Viewer src={`/preview/room213/asset?model=${model}${full}&kind=ply`} internal={one("internal") === "1"} />;
+  const base = `/preview/room213/asset?model=${model}${full}`;
+  return <Room213Viewer src={`${base}&kind=ply`} signedSrc={`${base}&kind=ply-url`} internal={one("internal") === "1"} />;
 }

@@ -34,6 +34,7 @@ extend({ SparkRenderer: SparkRendererImpl, SplatMesh: SplatMeshImpl });
 
 export function SplatViewerScene({
   url,
+  signedUrl,
   maxSplats,
   onReady,
   onProgress,
@@ -61,6 +62,7 @@ export function SplatViewerScene({
   onRenderProfileCheck,
 }: {
   url: string;
+  signedUrl?: string;
   maxSplats: number;
   onReady: () => void;
   onProgress?: (loaded: number, total: number | null) => void;
@@ -151,7 +153,7 @@ export function SplatViewerScene({
   // Download the file here (real byte progress) and hand Spark the bytes. Spark's
   // own url loader never surfaced progress for this viewer, so the stall watchdog
   // failed healthy loads with "Connection stalled" over a model that was still coming in.
-  const { bytes: splatBytes, error: splatFetchError } = useSplatBytes(url, onProgress);
+  const { bytes: splatBytes, error: splatFetchError } = useSplatBytes(url, onProgress, signedUrl);
   useEffect(() => {
     if (splatFetchError) onLoadError?.(`Could not download the model (${splatFetchError}).`);
   }, [splatFetchError, onLoadError]);
