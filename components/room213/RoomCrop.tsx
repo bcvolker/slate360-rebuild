@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useLayoutEffect, useMemo } from "react";
 import type * as THREE from "three";
 import { SplatEdit, SplatEditRgbaBlendMode, SplatEditSdf, SplatEditSdfType } from "@sparkjsdev/spark";
 
@@ -27,7 +27,9 @@ export function RoomCrop({ parent, box }: { parent: THREE.Object3D | null; box: 
     };
   }, [parent, edit]);
 
-  useEffect(() => {
+  // Layout effect: the new crop is in place before the next rendered frame, so the first generation after a view
+  // switch already uses it (a post-paint effect let one frame generate with the previous view's crop).
+  useLayoutEffect(() => {
     const apply = (nudge: number) => {
       box.getCenter(edit.sdf.position);
       box.getSize(edit.sdf.scale).multiplyScalar(0.5);

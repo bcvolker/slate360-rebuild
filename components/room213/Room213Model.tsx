@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { useThree } from "@react-three/fiber";
 import type * as THREE from "three";
 import { SplatFileType, SplatMesh } from "@sparkjsdev/spark";
@@ -28,7 +28,9 @@ export function Room213Model({
   onProgress?: (p: ModelProgress) => void;
   onLoaded: (mesh: SplatMesh) => void;
   onError: (message: string) => void;
-  /** Toggled without reloading (e.g. the Walk-only perimeter complement). */
+  /** Shown/hidden without reloading (the Walk-only perimeter complement). Implemented as opacity 0/1, NOT
+   *  `visible`: a visibility change alters Spark's mesh mapping and forces a full re-sort before any new frame is
+   *  displayed (measured ~2.4 s on the first Walk → Plan switch); an opacity change only bumps the version. */
   visible?: boolean;
   /** Record load-phase timings (the main model only). */
   timed?: boolean;
@@ -41,8 +43,8 @@ export function Room213Model({
   cb.current = { onProgress, onLoaded, onError };
   const visibleRef = useRef(visible);
   visibleRef.current = visible;
-  useEffect(() => {
-    if (meshRef.current) meshRef.current.visible = visible;
+  useLayoutEffect(() => {
+    if (meshRef.current) meshRef.current.opacity = visible ? 1 : 0;
     invalidate();
   }, [visible, invalidate]);
 
@@ -108,7 +110,7 @@ export function Room213Model({
       await mesh.initialized;
       if (disposed) return;
       if (timed) markTiming("modelDecoded");
-      mesh.visible = visibleRef.current;
+      mesh.opacity = visibleRef.current ? 1 : 0;
       meshRef.current = mesh;
       parent.add(mesh);
       invalidate();

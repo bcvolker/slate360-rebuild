@@ -21,6 +21,7 @@ import { ContentSheet, type SheetState } from "@/components/room213/ContentSheet
 import { LoadingPoster } from "@/components/room213/LoadingPoster";
 import { WalkJoystick } from "@/components/room213/WalkJoystick";
 import { NavHints } from "@/components/room213/NavHints";
+import { useViewTransition } from "@/components/room213/useViewTransition";
 import { Identity, InternalPanel } from "@/components/room213/ExperienceChrome";
 import { useQuietControls, useMedia, useSessionBool } from "@/components/room213/ui-hooks";
 import type { SceneDebug } from "@/components/room213/scene-debug";
@@ -63,11 +64,9 @@ export function Room213Experience({
   const [error, setError] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [canvasKey, setCanvasKey] = useState(0);
-  const [view, setView] = useState<Room213View>("dollhouse");
   const [ceilingHidden, setCeilingHidden] = useSessionBool("room213.walkCeilingHidden", false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [sheet, setSheet] = useState<SheetState>(null);
-  const [fade, setFade] = useState(false);
   const [check, setCheck] = useState<SparkProfileCheck | null>(null);
   const [debug, setDebug] = useState<SceneDebug>({});
   const reducedMotion = useMedia("(prefers-reduced-motion: reduce)");
@@ -75,7 +74,6 @@ export function Room213Experience({
   const landscape = useMedia("(orientation: landscape)");
   const walkInput = useMemo(() => createWalkInput(), []);
   const walkPose = useMemo<WalkPose>(() => walkEntryPose(), []);
-  const walkEntered = useRef(false);
   const dollhousePose = useRef<SavedOrbitPose | null>(null);
   const [accent, setAccent] = useState(() => new THREE.Color());
   const [canvasBg, setCanvasBg] = useState(() => new THREE.Color());
@@ -100,25 +98,10 @@ export function Room213Experience({
     };
   }, [walkInput]);
 
-  const goView = useCallback(
-    (next: Room213View) => {
-      clearWalkInput(walkInput);
-      setMenuOpen(false);
-      if (next === view) return;
-      if (next === "walk" && !walkEntered.current) walkEntered.current = true;
-      if (reducedMotion || next === "plan" || view === "plan") {
-        setView(next);
-        return;
-      }
-      // Dollhouse ⇄ Walk: a short fade through the canvas colour instead of a flight through walls.
-      setFade(true);
-      window.setTimeout(() => {
-        setView(next);
-        window.setTimeout(() => setFade(false), 60);
-      }, 180);
-    },
-    [view, walkInput, reducedMotion],
-  );
+  const { view, goView, fade, slow: slowSwitch, settleToken, onSettled } = useViewTransition(reducedMotion, () => {
+    clearWalkInput(walkInput);
+    setMenuOpen(false);
+  });
 
   // Reset re-homes the current view's camera only (rigs remount on resetNonce); the model is never reloaded.
   const [resetNonce, setResetNonce] = useState(0);
@@ -207,6 +190,7 @@ export function Room213Experience({
         <Room213Scene
           key={attempt}
           resetNonce={resetNonce}
+          settleToken={settleToken}
           modelUrl={url}
           walkOnlyUrl={src.walkOnlyUrl}
           pagedRad={pagedRad}
@@ -221,6 +205,7 @@ export function Room213Experience({
           accent={accent}
           debug={debug}
           callbacks={{
+            onSettled,
             onProgress: (p) => {
               setProgress(p);
               if (p.phase === "preparing") setPhase("preparing");
@@ -247,7 +232,9 @@ export function Room213Experience({
         <AdaptiveDpr enabled={ready} />
       </Canvas>
 
-      <div className={`pointer-events-none absolute inset-0 bg-[var(--graphite-canvas)] transition-opacity duration-150 ${fade ? "opacity-100" : "opacity-0"}`} aria-hidden />
+      <div className={`pointer-events-none absolute inset-0 bg-[var(--graphite-canvas)] transition-opacity ${reducedMotion ? "duration-0" : "duration-150"} ${fade ? "opacity-100" : "opacity-0"}`} aria-hidden>
+        {fade && slowSwitch ? <p className="absolute inset-x-0 top-1/2 text-center text-[13px] text-[var(--mkt-canvas-deep)]">Preparing view…</p> : null}
+      </div>
 
       <LoadingPoster phase={phase} progress={progress} error={error} onRetry={error ? retry : undefined} posterMode={posterMode} />
 

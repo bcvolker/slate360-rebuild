@@ -21,6 +21,8 @@ import type { SceneDebug } from "@/components/room213/scene-debug";
 const noop = () => {};
 
 export type SceneCallbacks = {
+  /** Spark's displayed result has caught up with the current view (crop + visible meshes) after a switch. */
+  onSettled?: (token: number) => void;
   onProgress: (p: ModelProgress) => void;
   onError: (message: string) => void;
   onFirstFrame: () => void;
@@ -35,6 +37,7 @@ export function Room213Scene({
   pagedRad = false,
   profile,
   view,
+  settleToken = 0,
   resetNonce,
   walkCeilingHidden,
   walkPose,
@@ -53,6 +56,8 @@ export function Room213Scene({
   pagedRad?: boolean;
   profile: SparkRenderProfile;
   view: Room213View;
+  /** Incremented on each view switch; onSettled(token) fires once the new view is really on screen. */
+  settleToken?: number;
   resetNonce: number;
   walkCeilingHidden: boolean;
   walkPose: WalkPose;
@@ -105,6 +110,23 @@ export function Room213Scene({
       reported.current = true;
       markTiming("firstFrame");
       cb.current.onFirstFrame();
+    }
+  });
+
+  // A view switch changes the crop and which meshes are visible; Spark keeps DISPLAYING its previous accumulator
+  // until the re-sort for the new mapping finishes (spark.module.js prepareGenerate/display swap). Report when the
+  // displayed accumulator is current again so the transition cover can lift on a correct frame.
+  // Settled = an accumulator generated AFTER the switch is the one on screen (while a sort is in flight Spark
+  // skips generating, so `display === current` alone can still be the pre-switch result).
+  const settle = useRef<{ token: number; frames: number; start: unknown }>({ token: -1, frames: 0, start: null });
+  useFrame(() => {
+    if (!spark || !mesh || settle.current.token === settleToken) return;
+    const s = spark as unknown as { display?: unknown; current?: unknown };
+    if (settle.current.frames === 0) settle.current.start = s.current;
+    settle.current.frames += 1;
+    if (settle.current.frames >= 3 && s.current !== settle.current.start && s.display === s.current) {
+      settle.current = { token: settleToken, frames: 0, start: null };
+      cb.current.onSettled?.(settleToken);
     }
   });
 
