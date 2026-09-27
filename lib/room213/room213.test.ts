@@ -109,7 +109,12 @@ describe("no million-splat scans in the Room 213 viewer", () => {
   });
   it("builds the renderer from the verified profile, never Spark defaults", () => {
     const scene = readFileSync(join(process.cwd(), "components/room213/Room213Scene.tsx"), "utf8");
-    expect(scene).toMatch(/sparkRendererArgsFor\(gl, profile, \{ enableLod: false \}\)/);
+    // LoD stays off for the canonical PLY: only the local-only paged-RAD experiment turns it on.
+    expect(scene).toMatch(/sparkRendererArgsFor\(gl, profile, \{ enableLod: pagedRad \}\)/);
+    expect(scene).toMatch(/pagedRad = false,/);
+    const page = readFileSync(join(process.cwd(), "app/preview/room213/page.tsx"), "utf8");
+    expect(page).toMatch(/const pagedRad = modelUrl\.endsWith\("\.rad"\);/);
+    expect(page).toMatch(/!process\.env\.VERCEL && process\.env\.NODE_ENV !== "production"/);
     expect(scene).toMatch(/useSparkProfileCheck\(/);
     const model = readFileSync(join(process.cwd(), "components/room213/Room213Model.tsx"), "utf8");
     expect(model).toMatch(/extSplats: true/);
