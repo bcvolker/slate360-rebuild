@@ -2,6 +2,7 @@
 
 import type { SparkProfileCheck } from "@/components/digital-twin/use-spark-profile-check";
 import { getTiming } from "@/lib/room213/timing";
+import { ROOM213_PINS } from "@/lib/room213/pins";
 
 type Phase = "loading" | "preparing" | "ready" | "error";
 
@@ -28,5 +29,16 @@ export function InternalPanel({ check, sourceSha, assetSha, phase }: { check: Sp
         Object.entries(t).map(([k, v]) => `${k} ${v}`).join(" · "),
       ].join("\n")}
     </pre>
+  );
+}
+
+/** Pin title next to the mouse (desktop hover); touch users get the title in the sheet and Room information. */
+export function PinHoverLabel({ id, x, y }: { id: string; x: number; y: number }) {
+  const pin = ROOM213_PINS.find((p) => p.pin_id === id);
+  if (!pin) return null;
+  return (
+    <p className="pointer-events-none fixed z-30 rounded-md bg-[var(--mkt-surface)] px-2 py-1 text-[12px] font-semibold text-[var(--mkt-ink)] shadow-md" style={{ left: x + 14, top: y - 10 }}>
+      {pin.title}
+    </p>
   );
 }

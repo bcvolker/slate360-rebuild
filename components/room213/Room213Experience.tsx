@@ -22,7 +22,7 @@ import { LoadingPoster } from "@/components/room213/LoadingPoster";
 import { WalkJoystick } from "@/components/room213/WalkJoystick";
 import { NavHints } from "@/components/room213/NavHints";
 import { useViewTransition } from "@/components/room213/useViewTransition";
-import { Identity, InternalPanel } from "@/components/room213/ExperienceChrome";
+import { Identity, InternalPanel, PinHoverLabel } from "@/components/room213/ExperienceChrome";
 import { useQuietControls, useMedia, useSessionBool } from "@/components/room213/ui-hooks";
 import type { SceneDebug } from "@/components/room213/scene-debug";
 
@@ -69,6 +69,7 @@ export function Room213Experience({
   const [sheet, setSheet] = useState<SheetState>(null);
   const [check, setCheck] = useState<SparkProfileCheck | null>(null);
   const [debug, setDebug] = useState<SceneDebug>({});
+  const [hoverPin, setHoverPin] = useState<{ id: string; x: number; y: number } | null>(null);
   const reducedMotion = useMedia("(prefers-reduced-motion: reduce)");
   const coarse = useMedia("(pointer: coarse)");
   const landscape = useMedia("(orientation: landscape)");
@@ -226,6 +227,7 @@ export function Room213Experience({
             },
             onProfileCheck: setCheck,
             onPin: openPin,
+            onPinHover: setHoverPin,
             onActivity: poke,
           }}
         />
@@ -263,6 +265,7 @@ export function Room213Experience({
         </>
       ) : null}
       {!posterMode ? <Identity /> : null}
+      {hoverPin && !sheet ? <PinHoverLabel {...hoverPin} /> : null}
       <ContentSheet state={sheet} onClose={() => setSheet(null)} onOpenPin={openPin} />
       {internal ? <InternalPanel check={check} sourceSha={sourceSha} assetSha={assetSha} phase={phase} /> : null}
     </div>

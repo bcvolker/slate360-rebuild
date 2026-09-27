@@ -28,6 +28,8 @@ export type SceneCallbacks = {
   onFirstFrame: () => void;
   onProfileCheck: (c: SparkProfileCheck) => void;
   onPin: (id: string) => void;
+  /** Mouse hover over a live pin (null when none): drives the title label. */
+  onPinHover?: (hover: { id: string; x: number; y: number } | null) => void;
   onActivity: () => void;
 };
 
@@ -98,6 +100,26 @@ export function Room213Scene({
   const home = useMemo(() => heroPoseFor(size.width / Math.max(1, size.height)), [size.width, size.height]);
   const box = useMemo(() => debug?.cropOverride ?? cropBoxFor(view, walkCeilingHidden), [view, walkCeilingHidden, debug?.cropOverride]);
   const { pickPin, fileFrameRef } = usePinPicker(view);
+  const canvasEl = useThree((s) => s.gl.domElement);
+  useEffect(() => {
+    let last = 0;
+    let shown = false;
+    const move = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse" || performance.now() - last < 60) return;
+      last = performance.now();
+      const id = pickPin(e.clientX, e.clientY);
+      if (id || shown) cb.current.onPinHover?.(id ? { id, x: e.clientX, y: e.clientY } : null);
+      shown = Boolean(id);
+      if (id) canvasEl.style.cursor = "pointer";
+    };
+    const leave = () => cb.current.onPinHover?.(null);
+    canvasEl.addEventListener("pointermove", move);
+    canvasEl.addEventListener("pointerleave", leave);
+    return () => {
+      canvasEl.removeEventListener("pointermove", move);
+      canvasEl.removeEventListener("pointerleave", leave);
+    };
+  }, [canvasEl, pickPin]);
 
   // First usable frame: the mesh is in the scene AND Spark has sorted/drawn splats for two consecutive frames.
   const frames = useRef(0);
