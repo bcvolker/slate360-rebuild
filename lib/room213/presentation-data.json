@@ -1,0 +1,144 @@
+{
+ "golden_sha256": "7e7b5d18af92d5f4b751977d6d96f2251b896c46f1dbb37d356eed3dd0823a62",
+ "correction_quaternion": [
+  0.0228,
+  0.0,
+  0.00017,
+  0.99974
+ ],
+ "room_V": {
+  "min": [
+   -6.21,
+   -1.81,
+   -3.69
+  ],
+  "max": [
+   4.97,
+   0.67,
+   4.39
+  ]
+ },
+ "walls_V": {
+  "x_min": -6.21,
+  "x_max": 4.97,
+  "z_min": -3.69,
+  "z_max": 4.39
+ },
+ "counts_centres": {
+  "N": 996092,
+  "outside_room_plus_1.0": 35764,
+  "outside_room_plus_0.35": 48691,
+  "shell_0.35_to_1.0": 12927
+ },
+ "walk_grid": {
+  "x0": -6.21,
+  "z0": -3.69,
+  "cell": 0.1,
+  "nx": 112,
+  "nz": 81,
+  "floor_y": -1.81,
+  "bits_b64": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAB//4ADAA4AD8AAfAAgAf//gAMABwAPgAD4ABAB//+ABwAPAA+AAPgAEAP//4ADgA8AD4AA+AAYA///wAeAH4APwAD4AAwD///AB4AfgAeAAPgAGAP//4ADAA+AD4AA+AAcA///gAMADwAPAAD4ABwD//+AAwAPAA8AAPgAHAP//4ADAA8ADwAA+AAcA///wAOADwAHAAD4ABwD///AAwAPgAeAAPgAHAP//+ADAAcAB4AA+AAcA///wAAABwAHwAD4ABwB///AAgAGAAfAAPgADAH//4AAAA4AB4AA+AAcA///gAAADAAHgAD8ABwD//+AAAAcAAeAAPwAPAP//4AAAAwAB8AA/wb8A///wAAADgAHwAD///wD//+AAwAGAAfAAP///AP//4AAAA8AB8AA///8A///gAIABwADgAD///wD//+AAAAPAAOAAP///AP//4AAAAcAA4AA///8A///gAEAB4ADwAD///wB///AAQAHgAPAAP///AP//8ABgA/AA+AA///8A///4APAD8AH8AH///wD///wA/Af4AfwAf///AP///wP/3/gD/wH///8A/////////k///////wD/////////////////AP////////////////8Af////////////////wB/////////////////AH////////////////8Af////////////////wB/////////////////AH////////////////8A/////////////////wB///+D/gf/////////AP///gD4Af8B//////8A/+B8APgB/AB//f///wD/gBwAcADwAHwAf///AP8AGABwAPAAMAB///8AfwAIAGAA4AAwAD///wD+AAAAYADgAGAAP///AH4AAABAAcAAYAA///8AfAAAAEABwABgAD///wB8AAAAQAHgAOAAP///APwACAAAA+AA4AA///8A/gAIAAAB8APgAD///wD8AAAAAAHgAPAAf///APwAAAAAAOAAcAA//v8A+AAAAAAB4ABwAH/4PwD4AAAAAAHgADAAP/g/APgACAAAAfAAcAA/8B8AeAAIAAAB8AAwAD/wHwB8AAwAAAHwAHgAH/AfAHwADAAAAfAAOAAf8B8AfgAIAAAB4AA4AB/wHwB+AAgAAAHgAHgAH/AfAP4AAAAAAcAAcAA/8B8A/gAAAAABwABwAB/wHwD+AAAAAAPAAGAAH/AfAP4AEAAAA+AAcAAf8B8A/AAAAAAB4ABwAB/wHwD8AAAAAAPwAHgAH/AfAPgAAAAAAeAAcAAf8B8A+AAAAAAB4ADwAAPwHwBwAAAAwAHgAGAAAPAfAPAAAABAAfAAYAAAcB8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+  "walkable_cells": 3527
+ },
+ "table_blobs_V": [
+  {
+   "cells": 206,
+   "x": [
+    -3.61,
+    -2.81
+   ],
+   "z": [
+    -3.69,
+    -0.49
+   ]
+  },
+  {
+   "cells": 197,
+   "x": [
+    -2.31,
+    -1.41
+   ],
+   "z": [
+    -3.69,
+    -0.49
+   ]
+  },
+  {
+   "cells": 229,
+   "x": [
+    -0.91,
+    0.29
+   ],
+   "z": [
+    -3.69,
+    -0.39
+   ]
+  },
+  {
+   "cells": 276,
+   "x": [
+    1.09,
+    2.29
+   ],
+   "z": [
+    -3.69,
+    -0.49
+   ]
+  },
+  {
+   "cells": 119,
+   "x": [
+    3.19,
+    4.09
+   ],
+   "z": [
+    -3.19,
+    -1.69
+   ]
+  },
+  {
+   "cells": 205,
+   "x": [
+    -3.81,
+    -2.81
+   ],
+   "z": [
+    1.11,
+    4.21
+   ]
+  },
+  {
+   "cells": 229,
+   "x": [
+    -2.31,
+    -1.31
+   ],
+   "z": [
+    1.11,
+    4.11
+   ]
+  },
+  {
+   "cells": 536,
+   "x": [
+    -0.51,
+    2.89
+   ],
+   "z": [
+    1.21,
+    4.41
+   ]
+  },
+  {
+   "cells": 229,
+   "x": [
+    -5.11,
+    -4.01
+   ],
+   "z": [
+    1.31,
+    4.41
+   ]
+  }
+ ]
+}

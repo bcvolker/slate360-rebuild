@@ -1102,3 +1102,13 @@
   --graphite-text-body: var(--sw360-bone);
   --graphite-muted: var(--sw360-silver);
 }
+
+/* Room 213 preview: indeterminate "Preparing 3D…" bar */
+@keyframes room213-indeterminate {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
+}
+.room213-indeterminate { animation: room213-indeterminate 1.4s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .room213-indeterminate { animation: none; width: 100%; opacity: 0.6; }
+}
