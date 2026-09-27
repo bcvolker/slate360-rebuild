@@ -5,9 +5,9 @@
  */
 const marks: Record<string, number> = {};
 
-export function markTiming(name: string): void {
+export function markTiming(name: string, at?: number): void {
   if (typeof performance === "undefined" || name in marks) return;
-  marks[name] = Math.round(performance.now());
+  marks[name] = at ?? Math.round(performance.now());
 }
 
 export function resetTiming(names: string[]): void {

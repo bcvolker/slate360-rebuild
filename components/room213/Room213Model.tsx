@@ -45,6 +45,9 @@ export function Room213Model({
 
   useEffect(() => {
     if (!parent) return;
+    // Probe-only diagnostic: how many times the loader effect starts (a second start = a re-fetch).
+    const w = window as unknown as { __r213?: Record<string, unknown> };
+    if (w.__r213) w.__r213.loaderRuns = [...((w.__r213.loaderRuns as string[] | undefined) ?? []), `${Math.round(performance.now())}:${url.split("/").pop()?.slice(0, 12)}`];
     const abort = new AbortController();
     let mesh: SplatMesh | null = null;
     let disposed = false;

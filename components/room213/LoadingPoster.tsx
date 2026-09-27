@@ -26,6 +26,12 @@ export function LoadingPoster({
   posterMode: boolean;
 }) {
   const [gone, setGone] = useState(false);
+  // The poster usually finishes before hydration (it is in the server HTML), so onLoad never fires: take its real
+  // arrival time from resource timing instead.
+  useEffect(() => {
+    const e = performance.getEntriesByType("resource").find((r) => r.name.includes("/preview/room213/poster-")) as PerformanceResourceTiming | undefined;
+    if (e) markTiming("posterVisible", Math.round(e.responseEnd));
+  }, []);
   useEffect(() => {
     if (phase !== "ready") return setGone(false);
     const t = window.setTimeout(() => setGone(true), 700);
