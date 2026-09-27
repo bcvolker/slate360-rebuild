@@ -30,6 +30,7 @@ type Phase = "loading" | "preparing" | "ready" | "error";
 export function Room213Experience({
   modelUrl,
   walkOnlyUrl,
+  pagedRad = false,
   fallback,
   modelBytes,
   manifest,
@@ -41,6 +42,7 @@ export function Room213Experience({
 }: {
   modelUrl: string;
   walkOnlyUrl?: string;
+  pagedRad?: boolean;
   /** Same files from this deployment's own route: used automatically if the media host fails (e.g. CORS). */
   fallback?: { modelUrl: string; walkOnlyUrl?: string };
   modelBytes: number;
@@ -207,6 +209,7 @@ export function Room213Experience({
           resetNonce={resetNonce}
           modelUrl={url}
           walkOnlyUrl={src.walkOnlyUrl}
+          pagedRad={pagedRad}
           profile={profile}
           view={view}
           walkCeilingHidden={ceilingHidden}
@@ -228,7 +231,8 @@ export function Room213Experience({
                 setAttempt((a) => a + 1);
                 return;
               }
-              setError(m);
+              console.error("[room213] model load failed:", m);
+              setError("The connection was interrupted before the 3D capture finished loading.");
               setPhase("error");
             },
             onFirstFrame: () => {

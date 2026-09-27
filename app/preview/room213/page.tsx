@@ -47,13 +47,15 @@ export default async function Room213Page({ searchParams }: { searchParams: Prom
   let walkOnlyUrl: string | undefined = golden ? undefined : at(PRES_WALK_FILE);
   // Local development only (never on Vercel): A/B a candidate from public/preview/room213/_local.
   if (!process.env.VERCEL && process.env.NODE_ENV !== "production" && asset && asset !== "golden" && /^[a-zA-Z0-9-]+$/.test(asset)) {
-    modelUrl = `/preview/room213/_local/${asset}.ply`;
-    walkOnlyUrl = `/preview/room213/_local/${asset}-perimeter.ply`;
+    modelUrl = asset === "rad" ? "/preview/room213/_local/rad/room213-pres-v1-lod.rad" : `/preview/room213/_local/${asset}.ply`;
+    walkOnlyUrl = asset === "rad" ? at(PRES_WALK_FILE) : `/preview/room213/_local/${asset}-perimeter.ply`;
   }
+  const pagedRad = modelUrl.endsWith(".rad");
   return (
     <Room213Experience
       modelUrl={modelUrl}
       walkOnlyUrl={walkOnlyUrl}
+      pagedRad={pagedRad}
       fallback={base && !modelUrl.startsWith("/") ? { modelUrl: modelUrl.replace(`${base}/room213/`, "/preview/room213/model/"), walkOnlyUrl: walkOnlyUrl?.replace(`${base}/room213/`, "/preview/room213/model/") } : undefined}
       modelBytes={golden ? GOLDEN_BYTES : PRESENTATION.main.bytes}
       manifest={{ version: 1, training_rasterizer: trainingRasterizer ?? undefined }}

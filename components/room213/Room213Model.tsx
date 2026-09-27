@@ -21,6 +21,7 @@ export function Room213Model({
   onError,
   visible = true,
   timed = true,
+  paged = false,
 }: {
   url: string;
   parent: THREE.Object3D | null;
@@ -31,6 +32,8 @@ export function Room213Model({
   visible?: boolean;
   /** Record load-phase timings (the main model only). */
   timed?: boolean;
+  /** Experiment only: paged RAD (Spark fetches chunks itself, progressively). */
+  paged?: boolean;
 }) {
   const meshRef = useRef<SplatMesh | null>(null);
   const invalidate = useThree((s) => s.invalidate);
@@ -54,6 +57,20 @@ export function Room213Model({
 
     (async () => {
       if (timed) markTiming("modelRequest");
+      if (paged) {
+        mesh = new SplatMesh({ url, paged: true });
+        mesh.rotation.set(Math.PI, 0, 0);
+        await mesh.initialized;
+        if (disposed) return;
+        if (timed) markTiming("modelDecoded");
+        mesh.visible = visibleRef.current;
+        meshRef.current = mesh;
+        parent.add(mesh);
+        invalidate();
+        cb.current.onProgress?.({ loaded: 0, total: null, phase: "preparing" });
+        cb.current.onLoaded(mesh);
+        return;
+      }
       const res = await fetch(url, { signal: abort.signal });
       if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
       if (timed) markTiming("modelFirstByte");
@@ -110,7 +127,7 @@ export function Room213Model({
         mesh.dispose();
       }
     };
-  }, [url, parent, invalidate, timed]);
+  }, [url, parent, invalidate, timed, paged]);
 
   return null;
 }

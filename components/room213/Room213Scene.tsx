@@ -32,6 +32,7 @@ export type SceneCallbacks = {
 export function Room213Scene({
   modelUrl,
   walkOnlyUrl,
+  pagedRad = false,
   profile,
   view,
   resetNonce,
@@ -48,6 +49,8 @@ export function Room213Scene({
   modelUrl: string;
   /** Presentation complement shown only in Walk (faint wall splats that streak outside in exterior views). */
   walkOnlyUrl?: string;
+  /** Experiment only: modelUrl is a paged RAD (LoD on, 16-bit paged ext splats). */
+  pagedRad?: boolean;
   profile: SparkRenderProfile;
   view: Room213View;
   resetNonce: number;
@@ -73,14 +76,17 @@ export function Room213Scene({
   // must never outlive its cleanup.
   const [spark, setSpark] = useState<SparkRenderer | null>(null);
   useEffect(() => {
-    const s = new SparkRenderer(sparkRendererArgsFor(gl, profile, { enableLod: false }));
+    const s = new SparkRenderer({
+      ...sparkRendererArgsFor(gl, profile, { enableLod: pagedRad }),
+      ...(pagedRad ? { pagedExtSplats: true, lodSplatCount: 1_500_000 } : {}),
+    });
     setSpark(s);
     return () => {
       setSpark(null);
       s.removeFromParent();
       s.dispose();
     };
-  }, [gl, profile]);
+  }, [gl, profile, pagedRad]);
   const sparkRef = useMemo(() => ({ current: spark }), [spark]);
   useSparkProfileCheck(sparkRef, profile, mesh, (c) => cb.current.onProfileCheck(c));
 
@@ -116,7 +122,7 @@ export function Room213Scene({
           <PinLayer view={view} selected={selectedPin} accent={accent} />
         </group>
       </group>
-      <Room213Model url={modelUrl} parent={room} onProgress={onProgress} onLoaded={onLoaded} onError={onError} />
+      <Room213Model url={modelUrl} parent={room} onProgress={onProgress} onLoaded={onLoaded} onError={onError} paged={pagedRad} />
       {walkOnlyUrl ? (
         <Room213Model url={walkOnlyUrl} parent={room} onLoaded={noop} onError={onError} visible={view === "walk"} timed={false} />
       ) : null}
