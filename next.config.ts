@@ -73,7 +73,7 @@ const nextConfig: NextConfig = {
               "font-src 'self' https://fonts.gstatic.com data:",
               "img-src 'self' data: blob: https: http:",
               "media-src 'self' blob: data: https://*.r2.cloudflarestorage.com https://*.amazonaws.com https://slate360-storage.s3.us-east-2.amazonaws.com",
-              "connect-src 'self' data: blob: http: https://*.supabase.co wss://*.supabase.co https://api.resend.com https://*.googleapis.com https://maps.gstatic.com https://www.gstatic.com https://api.openweathermap.org https://api.open-meteo.com https://wttr.in https://nominatim.openstreetmap.org https://*.amazonaws.com https://*.r2.cloudflarestorage.com https://*.ingest.sentry.io https://us.i.posthog.com https://us-assets.i.posthog.com https://challenges.cloudflare.com https://sparkjs.dev",
+              "connect-src 'self' data: blob: http: https://*.supabase.co wss://*.supabase.co https://api.resend.com https://*.googleapis.com https://maps.gstatic.com https://www.gstatic.com https://api.openweathermap.org https://api.open-meteo.com https://wttr.in https://nominatim.openstreetmap.org https://*.amazonaws.com https://*.r2.cloudflarestorage.com https://media.slate360.ai https://*.ingest.sentry.io https://us.i.posthog.com https://us-assets.i.posthog.com https://challenges.cloudflare.com https://sparkjs.dev",
               "frame-src 'self' blob: https://cdn.pannellum.org/ https://*.amazonaws.com https://*.r2.cloudflarestorage.com https://slate360-storage.s3.us-east-2.amazonaws.com https://challenges.cloudflare.com"
               + (process.env.NODE_ENV === "production" ? "" : " http://127.0.0.1:7007 http://localhost:7007"),
               "worker-src 'self' blob:",

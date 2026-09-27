@@ -19,6 +19,7 @@ async function render({ width, height, dpr }) {
   const page = await ctx.newPage();
   await page.goto(`${base}/preview/room213?poster=1&probe=1`, { waitUntil: "domcontentloaded", timeout: 240_000 });
   await page.waitForFunction(() => window.__r213?.phase === "ready", undefined, { timeout: 600_000 });
+  await page.addStyleTag({ content: "nextjs-portal{display:none!important}" }); // dev-server badge, never in a poster
   await page.waitForTimeout(4000); // let the sort settle after the first frame
   const check = await page.evaluate(() => window.__r213.check);
   if (!check?.ok) throw new Error(`render profile not verified: ${JSON.stringify(check?.mismatches)}`);
@@ -37,11 +38,18 @@ async function compose(pngs, { width, height, html, out, quality }) {
 }
 
 const plain = (src) => `<html><body style="margin:0;background:black"><img src="${src}" style="width:100vw;height:100vh;object-fit:cover;display:block"></body></html>`;
-const logo = `data:image/svg+xml;base64,${readFileSync("public/uploads/SLATE 360-Color Reversed Lockup.svg").toString("base64")}`;
+// Homepage brand: the Slate360 icon mark + "SLATE" / green "360" wordmark (colours read from the design tokens).
+const css = readFileSync("app/globals.css", "utf8");
+const token = (name) => css.match(new RegExp(`${name}:\s*([^;]+);`))?.[1].trim();
+const GREEN = token("--mkt-brand-green");
+const SURFACE = token("--mkt-surface");
+const icon = `data:image/svg+xml;base64,${readFileSync("assets/brand/slate360-icon.svg").toString("base64")}`;
+const mark = `<div style="position:absolute;left:40px;bottom:34px;display:flex;align-items:center;gap:12px">
+  <img src="${icon}" style="height:42px"><span style="font:600 25px/1 'Segoe UI',Inter,system-ui,sans-serif;letter-spacing:.13em;color:${SURFACE}">SLATE<span style="color:${GREEN}">360</span></span></div>`;
 const og = (src) => `<html><body style="margin:0;position:relative;width:1200px;height:630px;overflow:hidden;background:black">
   <img src="${src}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover">
   <div style="position:absolute;left:0;right:0;bottom:0;height:150px;background:linear-gradient(to top,rgba(0,0,0,.55),rgba(0,0,0,0))"></div>
-  <img src="${logo}" style="position:absolute;left:40px;bottom:34px;height:40px">
+  ${mark}
 </body></html>`;
 
 const land = await render({ width: 1600, height: 1000, dpr: 1 });

@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { cropBoxFor } from "./edit-state";
 import { fitHeroPose, heroPoseFor, HERO_SUBJECT } from "./hero";
 import { ROOM213_PINS, presentContentTypes } from "./pins";
-import { EYE_Y, GOLDEN_SHA256, OPEN_TOP_Y, OPEN_WALL_MARGIN, PRESENTATION, ROOM, WALK_CEILING_CUT_Y } from "./scene-config";
+import { EYE_Y, GOLDEN_SHA256, OPEN_TOP_Y, OPEN_WALL_MARGIN, PLAN_TOP_Y, PRESENTATION, ROOM, WALK_CEILING_CUT_Y } from "./scene-config";
 import { isWalkable, nearestWalkable, slideMove, walkableAlong } from "./walk-area";
 import data from "./presentation-data.json";
 
@@ -23,7 +23,7 @@ describe("crop edit states", () => {
   it("dollhouse and plan open the room and tighten the walls; walk keeps the tier-1 volume", () => {
     for (const v of ["dollhouse", "plan"] as const) {
       const b = cropBoxFor(v, false);
-      expect(b.max.y).toBe(OPEN_TOP_Y);
+      expect(b.max.y).toBe(v === "plan" ? PLAN_TOP_Y : OPEN_TOP_Y);
       expect(b.min.x).toBeCloseTo(ROOM.min.x - OPEN_WALL_MARGIN);
       expect(b.max.z).toBeCloseTo(ROOM.max.z + OPEN_WALL_MARGIN);
       expect(b.min.y).toBe(PRESENTATION.min.y); // floor never clipped

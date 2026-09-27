@@ -82,9 +82,9 @@ export function fitHeroPose(
 export const HERO_PRESETS = {
   // From the door/whiteboard corner: the window wall (flag) and window end face the viewer; the walls nearest
   // the camera are plain, so they never show their exterior side or window fog in the foreground.
-  landscape: { azimuthDeg: 45, elevationDeg: 38, fov: 45, fill: 0.92 },
-  // Portrait looks more along the room's long (x) axis so the room fills the tall frame.
-  portrait: { azimuthDeg: 62, elevationDeg: 46, fov: 50, fill: 0.94 },
+  landscape: { azimuthDeg: 45, elevationDeg: 38, fov: 45, fill: 0.88 },
+  // Portrait looks along the room's long (x) axis, a little steeper: 1.7× the floor area of a 62°/46° view.
+  portrait: { azimuthDeg: 85, elevationDeg: 52, fov: 50, fill: 0.92 },
 } as const;
 
 export function heroPoseFor(aspect: number): CameraPose {

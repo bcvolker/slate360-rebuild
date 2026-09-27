@@ -30,13 +30,21 @@ export const PRESENTATION = ROOM.clone().expandByScalar(PRESENTATION_MARGIN);
  * (docs/ops/room213-poc): walls, window reveals, door and railing intact at every tested margin.
  */
 export const OPEN_WALL_MARGIN = 0.2;
-/** Dollhouse/Plan open the room by cutting everything above this height (walls stay ~1.9 units tall). */
-export const OPEN_TOP_Y = 0.1;
+/**
+ * Dollhouse opens the room by cutting everything above this height (walls ~1.7 units: window reveals and the flag
+ * stay; less soft wall-top). Plan cuts lower — just above table/monitor height — so it reads as a clean layout.
+ * Chosen from 0.1 / −0.1 / −0.25 sweeps on the presentation asset (docs/ops/room213-poc).
+ */
+export const OPEN_TOP_Y = -0.1;
+export const PLAN_TOP_Y = -0.5;
 /** Walk "hide ceiling": cut just below the ceiling plane so the tiles and light panels disappear. */
 export const WALK_CEILING_CUT_Y = CEILING_Y - 0.22;
 
-/** Eye height above the floor in scene units (≈1.6 m at the solve's ~1.11 m/unit; scale unvalidated). */
-export const EYE_HEIGHT = 1.4;
+/**
+ * Eye height above the floor in scene units: ≈1.52 m at ≈0.98 m/unit (LiDAR furniture fit, 2026-09-27; the
+ * registration failed on walls, so the scale remains UX-only — never shown or used for measurement).
+ */
+export const EYE_HEIGHT = 1.55;
 export const EYE_Y = FLOOR_Y + EYE_HEIGHT;
 
 export type Vec3 = [number, number, number];

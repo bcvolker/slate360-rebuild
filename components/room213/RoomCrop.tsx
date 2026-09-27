@@ -28,9 +28,24 @@ export function RoomCrop({ parent, box }: { parent: THREE.Object3D | null; box: 
   }, [parent, edit]);
 
   useEffect(() => {
-    box.getCenter(edit.sdf.position);
-    box.getSize(edit.sdf.scale).multiplyScalar(0.5);
-    edit.sdf.updateMatrixWorld(true);
+    const apply = (nudge: number) => {
+      box.getCenter(edit.sdf.position);
+      box.getSize(edit.sdf.scale).multiplyScalar(0.5);
+      edit.sdf.position.y += nudge;
+      edit.sdf.updateMatrixWorld(true);
+    };
+    apply(0);
+    // Re-assert shortly after a change: a crop change landing in the same frames as other Spark work (camera or
+    // mesh-visibility switches) was occasionally not regenerated (measured intermittently on Walk → Plan). A
+    // negligible nudge forces a fresh edit version once any pending generation has finished.
+    const t1 = window.setTimeout(() => apply(1e-5), 120);
+    const t2 = window.setTimeout(() => apply(0), 600);
+    const w = window as unknown as { __r213?: Record<string, unknown> };
+    if (w.__r213) w.__r213.crop = { center: edit.sdf.position.toArray(), half: edit.sdf.scale.toArray() };
+    return () => {
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
   }, [box, edit]);
 
   return null;

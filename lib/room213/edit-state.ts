@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { OPEN_TOP_Y, OPEN_WALL_MARGIN, PRESENTATION, ROOM, WALK_CEILING_CUT_Y } from "./scene-config";
+import { OPEN_TOP_Y, OPEN_WALL_MARGIN, PLAN_TOP_Y, PRESENTATION, ROOM, WALK_CEILING_CUT_Y } from "./scene-config";
 
 export type Room213View = "dollhouse" | "walk" | "plan";
 
@@ -17,7 +17,7 @@ export function cropBoxFor(view: Room213View, walkCeilingHidden: boolean): THREE
     box.max.x = ROOM.max.x + OPEN_WALL_MARGIN;
     box.min.z = ROOM.min.z - OPEN_WALL_MARGIN;
     box.max.z = ROOM.max.z + OPEN_WALL_MARGIN;
-    box.max.y = Math.min(box.max.y, OPEN_TOP_Y);
+    box.max.y = Math.min(box.max.y, view === "plan" ? PLAN_TOP_Y : OPEN_TOP_Y);
   }
   else if (walkCeilingHidden) box.max.y = Math.min(box.max.y, WALK_CEILING_CUT_Y);
   return box;

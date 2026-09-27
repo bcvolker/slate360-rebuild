@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { ROOM213_PINS, type SpatialPin } from "@/lib/room213/pins";
-import { OPEN_TOP_Y } from "@/lib/room213/scene-config";
+import { OPEN_TOP_Y, PLAN_TOP_Y } from "@/lib/room213/scene-config";
 import type { Room213View } from "@/lib/room213/edit-state";
 import { plaqueTexture } from "@/components/room213/plaque-texture";
 
@@ -32,7 +32,7 @@ function pinWorlds(group: THREE.Object3D | null): PinWorld[] {
 
 /** A pin is live (drawn AND hittable) only when it faces the camera and isn't cut away by the current crop. */
 function pinLive(p: PinWorld, camera: THREE.Camera, view: Room213View): boolean {
-  if (view !== "walk" && p.world.y > OPEN_TOP_Y) return false;
+  if (view !== "walk" && p.world.y > (view === "plan" ? PLAN_TOP_Y : OPEN_TOP_Y)) return false; // cut away
   const camDir = (camera as THREE.OrthographicCamera).isOrthographicCamera
     ? camera.getWorldDirection(tmpToCam).negate()
     : tmpToCam.copy(camera.position).sub(p.world).normalize();

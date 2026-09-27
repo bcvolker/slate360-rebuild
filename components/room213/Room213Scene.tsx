@@ -18,6 +18,8 @@ import { PinLayer, usePinPicker } from "@/components/room213/PinLayer";
 import type { WalkInput } from "@/components/room213/walk-input";
 import type { SceneDebug } from "@/components/room213/scene-debug";
 
+const noop = () => {};
+
 export type SceneCallbacks = {
   onProgress: (p: ModelProgress) => void;
   onError: (message: string) => void;
@@ -29,6 +31,7 @@ export type SceneCallbacks = {
 
 export function Room213Scene({
   modelUrl,
+  walkOnlyUrl,
   profile,
   view,
   resetNonce,
@@ -43,6 +46,8 @@ export function Room213Scene({
   debug,
 }: {
   modelUrl: string;
+  /** Presentation complement shown only in Walk (faint wall splats that streak outside in exterior views). */
+  walkOnlyUrl?: string;
   profile: SparkRenderProfile;
   view: Room213View;
   resetNonce: number;
@@ -112,6 +117,9 @@ export function Room213Scene({
         </group>
       </group>
       <Room213Model url={modelUrl} parent={room} onProgress={onProgress} onLoaded={onLoaded} onError={onError} />
+      {walkOnlyUrl ? (
+        <Room213Model url={walkOnlyUrl} parent={room} onLoaded={noop} onError={onError} visible={view === "walk"} timed={false} />
+      ) : null}
       <RoomCrop parent={room} box={box} />
       {view === "walk" ? (
         <WalkRig pose={walkPose} input={walkInput} keyTarget={keyTarget} pickPin={pickPin} onPin={onPin} onActivity={onActivity} accent={accent} />

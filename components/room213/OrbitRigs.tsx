@@ -102,7 +102,9 @@ export function DollhouseRig({
       rotateSpeed={0.6}
       zoomSpeed={0.8}
       minDistance={ROOM_RADIUS * 0.45}
-      maxDistance={ROOM_RADIUS * 2.6}
+      // Never below the hero's own distance: portrait heroes sit farther out, and a smaller cap silently pulled the
+      // camera in (clipping the room on phones).
+      maxDistance={Math.max(ROOM_RADIUS * 2.6, home.position.distanceTo(home.target) * 1.3)}
       minPolarAngle={THREE.MathUtils.degToRad(8)}
       maxPolarAngle={THREE.MathUtils.degToRad(78)}
       screenSpacePanning={false}

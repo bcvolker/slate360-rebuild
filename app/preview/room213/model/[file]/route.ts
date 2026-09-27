@@ -1,12 +1,12 @@
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { NextResponse, type NextRequest } from "next/server";
 import { BUCKET, s3 } from "@/lib/s3";
-import { GOLDEN_FILE, GOLDEN_KEYS } from "@/lib/room213/provenance.server";
+import { MODEL_FILES } from "@/lib/room213/provenance.server";
 
 /**
- * Fallback delivery for the Room 213 golden PLY when no public media host is configured (ROOM213_MEDIA_BASE):
- * streams the one pinned object under a content-hashed name, with immutable caching and byte-range support.
- * Only that exact file name is served — nothing from the request reaches a storage key. Not served on production.
+ * Fallback delivery for the Room 213 model files (golden + presentation pair) when no public media host is configured (ROOM213_MEDIA_BASE):
+ * streams only the pinned objects, each under its content-hashed name, with immutable caching and byte-range support.
+ * Only those exact file names are served — nothing from the request reaches a storage key. Not served on production.
  */
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -23,11 +23,12 @@ const HEADERS = {
 export async function GET(request: NextRequest, { params }: { params: Promise<{ file: string }> }) {
   if (process.env.VERCEL_ENV === "production") return NextResponse.json({ error: "not found" }, { status: 404 });
   const { file } = await params;
-  if (file !== GOLDEN_FILE) return NextResponse.json({ error: "not found" }, { status: 404 });
+  const key = Object.hasOwn(MODEL_FILES, file) ? MODEL_FILES[file] : null;
+  if (!key) return NextResponse.json({ error: "not found" }, { status: 404 });
 
   const range = request.headers.get("range");
   const valid = range && /^bytes=\d*-\d*$/.test(range) ? range : undefined;
-  const object = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: GOLDEN_KEYS.ply, Range: valid }));
+  const object = await s3.send(new GetObjectCommand({ Bucket: BUCKET, Key: key, Range: valid }));
   const stream = (object.Body as { transformToWebStream?: () => ReadableStream<Uint8Array> } | undefined)?.transformToWebStream?.();
   if (!stream) return NextResponse.json({ error: "empty object" }, { status: 502 });
   const headers = new Headers(HEADERS);

@@ -19,16 +19,29 @@ export function Room213Model({
   onProgress,
   onLoaded,
   onError,
+  visible = true,
+  timed = true,
 }: {
   url: string;
   parent: THREE.Object3D | null;
-  onProgress: (p: ModelProgress) => void;
+  onProgress?: (p: ModelProgress) => void;
   onLoaded: (mesh: SplatMesh) => void;
   onError: (message: string) => void;
+  /** Toggled without reloading (e.g. the Walk-only perimeter complement). */
+  visible?: boolean;
+  /** Record load-phase timings (the main model only). */
+  timed?: boolean;
 }) {
+  const meshRef = useRef<SplatMesh | null>(null);
   const invalidate = useThree((s) => s.invalidate);
   const cb = useRef({ onProgress, onLoaded, onError });
   cb.current = { onProgress, onLoaded, onError };
+  const visibleRef = useRef(visible);
+  visibleRef.current = visible;
+  useEffect(() => {
+    if (meshRef.current) meshRef.current.visible = visible;
+    invalidate();
+  }, [visible, invalidate]);
 
   useEffect(() => {
     if (!parent) return;
@@ -37,10 +50,10 @@ export function Room213Model({
     let disposed = false;
 
     (async () => {
-      markTiming("modelRequest");
+      if (timed) markTiming("modelRequest");
       const res = await fetch(url, { signal: abort.signal });
       if (!res.ok || !res.body) throw new Error(`HTTP ${res.status}`);
-      markTiming("modelFirstByte");
+      if (timed) markTiming("modelFirstByte");
       const lengthHeader = Number(res.headers.get("content-length"));
       const encoded = res.headers.get("content-encoding");
       // Content-Length is the ENCODED size when the transfer is compressed; only trust it for identity bodies.
@@ -54,13 +67,13 @@ export function Room213Model({
             const now = performance.now();
             if (now - lastReport > 150) {
               lastReport = now;
-              cb.current.onProgress({ loaded, total, phase: "transfer" });
+              cb.current.onProgress?.({ loaded, total, phase: "transfer" });
             }
             controller.enqueue(chunk);
           },
           flush() {
-            markTiming("modelTransferred");
-            cb.current.onProgress({ loaded, total, phase: "preparing" });
+            if (timed) markTiming("modelTransferred");
+            cb.current.onProgress?.({ loaded, total, phase: "preparing" });
           },
         }),
       );
@@ -74,7 +87,9 @@ export function Room213Model({
       mesh.rotation.set(Math.PI, 0, 0);
       await mesh.initialized;
       if (disposed) return;
-      markTiming("modelDecoded");
+      if (timed) markTiming("modelDecoded");
+      mesh.visible = visibleRef.current;
+      meshRef.current = mesh;
       parent.add(mesh);
       invalidate();
       cb.current.onLoaded(mesh);
@@ -86,12 +101,13 @@ export function Room213Model({
     return () => {
       disposed = true;
       abort.abort();
+      meshRef.current = null;
       if (mesh) {
         mesh.removeFromParent();
         mesh.dispose();
       }
     };
-  }, [url, parent, invalidate]);
+  }, [url, parent, invalidate, timed]);
 
   return null;
 }

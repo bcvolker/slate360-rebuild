@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Room213Experience } from "@/components/room213/Room213Experience";
-import { GOLDEN_BYTES, GOLDEN_FILE, goldenTrainingRasterizer } from "@/lib/room213/provenance.server";
+import { GOLDEN_BYTES, GOLDEN_FILE, PRES_MAIN_FILE, PRES_WALK_FILE, PRESENTATION, goldenTrainingRasterizer } from "@/lib/room213/provenance.server";
 import { GOLDEN_SHA256 } from "@/lib/room213/scene-config";
 
 export const dynamic = "force-dynamic";
@@ -39,13 +39,26 @@ export default async function Room213Page({ searchParams }: { searchParams: Prom
   const flag = (k: string) => (Array.isArray(p[k]) ? p[k]?.[0] : p[k]) === "1";
   const trainingRasterizer = await goldenTrainingRasterizer();
   const base = process.env.ROOM213_MEDIA_BASE?.replace(/\/$/, "");
-  const modelUrl = base ? `${base}/room213/${GOLDEN_FILE}` : `/preview/room213/model/${GOLDEN_FILE}`;
+  const at = (file: string) => (base ? `${base}/room213/${file}` : `/preview/room213/model/${file}`);
+  // Default: the derived presentation pair. `?probe=1&asset=golden` renders the untouched golden model (A/B).
+  const asset = Array.isArray(p.asset) ? p.asset[0] : p.asset;
+  const golden = asset === "golden" && (flag("probe") || flag("internal"));
+  let modelUrl = golden ? at(GOLDEN_FILE) : at(PRES_MAIN_FILE);
+  let walkOnlyUrl: string | undefined = golden ? undefined : at(PRES_WALK_FILE);
+  // Local development only (never on Vercel): A/B a candidate from public/preview/room213/_local.
+  if (!process.env.VERCEL && process.env.NODE_ENV !== "production" && asset && asset !== "golden" && /^[a-zA-Z0-9-]+$/.test(asset)) {
+    modelUrl = `/preview/room213/_local/${asset}.ply`;
+    walkOnlyUrl = `/preview/room213/_local/${asset}-perimeter.ply`;
+  }
   return (
     <Room213Experience
       modelUrl={modelUrl}
-      modelBytes={GOLDEN_BYTES}
+      walkOnlyUrl={walkOnlyUrl}
+      fallback={base && !modelUrl.startsWith("/") ? { modelUrl: modelUrl.replace(`${base}/room213/`, "/preview/room213/model/"), walkOnlyUrl: walkOnlyUrl?.replace(`${base}/room213/`, "/preview/room213/model/") } : undefined}
+      modelBytes={golden ? GOLDEN_BYTES : PRESENTATION.main.bytes}
       manifest={{ version: 1, training_rasterizer: trainingRasterizer ?? undefined }}
       sourceSha={GOLDEN_SHA256}
+      assetSha={golden ? GOLDEN_SHA256 : PRESENTATION.main.sha256}
       internal={flag("internal")}
       probe={flag("probe") || flag("internal")}
       posterMode={flag("poster")}
