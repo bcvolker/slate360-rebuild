@@ -17,6 +17,9 @@ function resolveDeployBuildId(): string {
 
 export function SWRegistrar() {
   useEffect(() => {
+    // The shareable Room 213 preview needs no PWA service worker, and the first-visit cache-nuke reload below would
+    // restart its 247 MB model download for every new recipient. Skip the whole flow on that route only.
+    if (window.location.pathname.startsWith("/preview/room213")) return;
     if ("serviceWorker" in navigator) {
       const checkAndClearCache = async () => {
         const buildId = resolveDeployBuildId();
