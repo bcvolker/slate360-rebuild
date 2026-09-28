@@ -38,7 +38,7 @@ export function NavHints({ view, coarse, landscape }: { view: Room213View; coars
       }
     } else if (!seen("room213.hint.walk")) {
       key = "room213.hint.walk";
-      text = !coarse ? "Drag to look · Click the floor to move" : landscape ? "Left stick moves · right stick looks" : "Drag to look · Tap the floor to move";
+      text = !coarse ? "Drag to look · Click the floor to move" : landscape ? "Left stick moves · right stick looks · tap to show controls" : "Drag to look · Tap the floor to move";
     }
     if (!key || !text) return;
     setHint(text);

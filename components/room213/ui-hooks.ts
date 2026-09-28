@@ -147,3 +147,27 @@ export function useOutsidePressDismiss(active: boolean, dismiss: () => void): vo
   }, [active]);
 }
 
+
+/** A plain tap (no drag) anywhere on `root` calls `reveal` — used to bring tucked controls back in landscape. */
+export function useTapToReveal(root: HTMLElement | null, enabled: boolean, reveal: () => void): void {
+  const ref = useRef(reveal);
+  ref.current = reveal;
+  useEffect(() => {
+    if (!root || !enabled) return;
+    let start: { x: number; y: number; t: number } | null = null;
+    const down = (e: PointerEvent) => {
+      const onStick = e.target instanceof Element && e.target.closest("[role=application]"); // joysticks never reveal
+      start = onStick ? null : { x: e.clientX, y: e.clientY, t: performance.now() };
+    };
+    const up = (e: PointerEvent) => {
+      if (start && Math.hypot(e.clientX - start.x, e.clientY - start.y) < 10 && performance.now() - start.t < 400) ref.current();
+      start = null;
+    };
+    root.addEventListener("pointerdown", down, true);
+    root.addEventListener("pointerup", up, true);
+    return () => {
+      root.removeEventListener("pointerdown", down, true);
+      root.removeEventListener("pointerup", up, true);
+    };
+  }, [root, enabled]);
+}

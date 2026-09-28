@@ -27,6 +27,7 @@ export function ControlStrip({
   root,
   onActivity,
   sheetOpen = false,
+  tuckWhenQuiet = false,
 }: {
   view: Room213View;
   quiet: boolean;
@@ -41,6 +42,9 @@ export function ControlStrip({
   onActivity: () => void;
   /** A content sheet is open: in landscape / wide layouts it docks right, so centre the strip in the room area. */
   sheetOpen?: boolean;
+  /** Landscape phones (full-screen navigation): after inactivity the strip slides fully out of view and comes
+   *  back on the next touch, instead of only dimming. */
+  tuckWhenQuiet?: boolean;
 }) {
   const [fsSupported, setFsSupported] = useState(false);
   const [isFs, setIsFs] = useState(false);
@@ -77,9 +81,10 @@ export function ControlStrip({
   };
 
   const emphasised = !quiet || menuOpen || focusWithin;
+  const tucked = tuckWhenQuiet && !emphasised;
   return (
     <div
-      className={`absolute inset-x-0 z-30 flex flex-col items-center gap-2 ${sheetOpen ? "landscape:right-[min(42%,380px)] sm:right-[min(42%,380px)]" : ""}`}
+      className={`absolute inset-x-0 z-30 flex flex-col items-center gap-2 transition-transform duration-500 ${tucked ? "pointer-events-none translate-y-[calc(100%+2rem)]" : ""} ${sheetOpen ? "landscape:right-[min(42%,380px)] sm:right-[min(42%,380px)]" : ""}`}
       style={{ bottom: "max(1rem, calc(env(safe-area-inset-bottom) + 0.5rem))" }}
       onFocus={() => setFocusWithin(true)}
       onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setFocusWithin(false)}

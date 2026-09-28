@@ -26,7 +26,7 @@ import { ROOM213_PINS } from "@/lib/room213/pins";
 import { pinViewPose } from "@/lib/room213/pin-focus";
 import { useViewTransition } from "@/components/room213/useViewTransition";
 import { Identity, InternalPanel, PinHoverLabel } from "@/components/room213/ExperienceChrome";
-import { useClearOnLifecycle, useOutsidePressDismiss, useQuietControls, useMedia, useSessionBool } from "@/components/room213/ui-hooks";
+import { useClearOnLifecycle, useOutsidePressDismiss, useTapToReveal, useQuietControls, useMedia, useSessionBool } from "@/components/room213/ui-hooks";
 import type { SceneDebug } from "@/components/room213/scene-debug";
 
 type Phase = "loading" | "preparing" | "ready" | "error";
@@ -86,6 +86,7 @@ export function Room213Experience({
   }, []);
 
   useClearOnLifecycle(() => clearWalkInput(walkInput));
+  useTapToReveal(root, coarse && landscape, poke);
   // Tap/click outside the sheet or menu closes it (the press is consumed, never also moves the camera).
   useOutsidePressDismiss(sheet !== null || menuOpen, () => (setSheet(null), setMenuOpen(false)));
 
@@ -187,7 +188,7 @@ export function Room213Experience({
       }}
       tabIndex={-1}
       onPointerDown={() => {
-        poke();
+        if (!(coarse && landscape)) poke(); // landscape phones: only a plain tap reveals the controls (useTapToReveal)
         if (document.activeElement === document.body) rootRef.current?.focus({ preventScroll: true });
       }}
       className="fixed inset-0 overflow-hidden bg-[var(--graphite-canvas)] outline-none"
@@ -249,7 +250,7 @@ export function Room213Experience({
             onProfileCheck: setCheck,
             onPin: openPin,
             onPinHover: setHoverPin,
-            onActivity: poke,
+            onActivity: () => !(coarse && landscape) && poke(),
           }}
         />
       </Canvas>
@@ -277,6 +278,7 @@ export function Room213Experience({
             root={root}
             onActivity={poke}
             sheetOpen={sheet !== null}
+            tuckWhenQuiet={coarse && landscape}
           />
           <NavHints view={view} coarse={coarse} landscape={landscape} />
           <OrientationTips coarse={coarse} landscape={landscape} hidden={sheet !== null || menuOpen} onFirstLandscape={() => view === "dollhouse" && goView("walk")} />

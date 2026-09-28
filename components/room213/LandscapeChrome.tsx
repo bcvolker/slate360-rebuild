@@ -19,6 +19,8 @@ function iosBarsHidden(): boolean {
   return window.innerHeight >= Math.min(screen.width, screen.height) - 30;
 }
 
+const noop = () => {};
+
 const EXIT =
   "absolute right-0 top-0 z-40 m-[max(0.75rem,env(safe-area-inset-top))] mr-[max(0.75rem,env(safe-area-inset-right))] flex min-h-[44px] items-center gap-1 rounded-xl bg-[var(--mkt-surface)] px-3 text-[13px] font-semibold text-[var(--mkt-ink)] shadow-md";
 
@@ -109,8 +111,9 @@ export function LandscapeChrome({
     <>
       {walkSticks ? (
         <>
-          <WalkJoystick input={input} onActivity={onActivity} kind="move" />
-          <WalkJoystick input={input} onActivity={onActivity} kind="look" />
+          {/* Driving the sticks must not bring the tucked control strip back over the view. */}
+          <WalkJoystick input={input} onActivity={noop} kind="move" />
+          <WalkJoystick input={input} onActivity={noop} kind="look" />
         </>
       ) : null}
       {active && !sheetOpen && !(iosMode && !full) ? (
