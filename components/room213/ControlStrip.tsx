@@ -26,6 +26,7 @@ export function ControlStrip({
   onReset,
   root,
   onActivity,
+  sheetOpen = false,
 }: {
   view: Room213View;
   quiet: boolean;
@@ -38,6 +39,8 @@ export function ControlStrip({
   onReset: () => void;
   root: HTMLElement | null;
   onActivity: () => void;
+  /** A content sheet is open: in landscape / wide layouts it docks right, so centre the strip in the room area. */
+  sheetOpen?: boolean;
 }) {
   const [fsSupported, setFsSupported] = useState(false);
   const [isFs, setIsFs] = useState(false);
@@ -76,7 +79,7 @@ export function ControlStrip({
   const emphasised = !quiet || menuOpen || focusWithin;
   return (
     <div
-      className="absolute inset-x-0 z-30 flex flex-col items-center gap-2"
+      className={`absolute inset-x-0 z-30 flex flex-col items-center gap-2 ${sheetOpen ? "landscape:right-[min(42%,380px)] sm:right-[min(42%,380px)]" : ""}`}
       style={{ bottom: "max(1rem, calc(env(safe-area-inset-bottom) + 0.5rem))" }}
       onFocus={() => setFocusWithin(true)}
       onBlur={(e) => !e.currentTarget.contains(e.relatedTarget as Node | null) && setFocusWithin(false)}
@@ -135,11 +138,6 @@ export function ControlStrip({
           •••
         </button>
       </div>
-      {view === "plan" ? (
-        <p className="pointer-events-none fixed left-1/2 top-[max(1rem,env(safe-area-inset-top))] -translate-x-1/2 rounded-md bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] px-2.5 py-1 font-mono text-[11px] tracking-wide text-[var(--mkt-surface)]">
-          Plan view · Captured layout
-        </p>
-      ) : null}
     </div>
   );
 }

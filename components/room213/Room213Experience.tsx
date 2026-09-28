@@ -17,7 +17,6 @@ import type { WalkPose } from "@/components/room213/WalkRig";
 import { cssColor } from "@/components/room213/plaque-texture";
 import { CanvasBoundary, webgl2Available } from "@/components/room213/CanvasBoundary";
 import { goldenFidelity } from "@/lib/room213/fidelity";
-import { InternalDiagnostics, type DprChoice } from "@/components/room213/InternalDiagnostics";
 import { ControlStrip } from "@/components/room213/ControlStrip";
 import { ContentSheet, type SheetState } from "@/components/room213/ContentSheet";
 import { LoadingPoster } from "@/components/room213/LoadingPoster";
@@ -27,7 +26,7 @@ import { ROOM213_PINS } from "@/lib/room213/pins";
 import { pinViewPose } from "@/lib/room213/pin-focus";
 import { useViewTransition } from "@/components/room213/useViewTransition";
 import { Identity, InternalPanel, PinHoverLabel } from "@/components/room213/ExperienceChrome";
-import { useClearOnLifecycle, useQuietControls, useMedia, useSessionBool } from "@/components/room213/ui-hooks";
+import { useClearOnLifecycle, useQuietControls, useMedia, useSessionBool, useVisualViewportBox } from "@/components/room213/ui-hooks";
 import type { SceneDebug } from "@/components/room213/scene-debug";
 
 type Phase = "loading" | "preparing" | "ready" | "error";
@@ -70,11 +69,11 @@ export function Room213Experience({
   const [sheet, setSheet] = useState<SheetState>(null);
   const [check, setCheck] = useState<SparkProfileCheck | null>(null);
   const [debug, setDebug] = useState<SceneDebug>({});
-  const [dprChoice, chooseDpr] = useState<DprChoice>("auto"); // ?internal=1 resolution A/B only
   const [hoverPin, setHoverPin] = useState<{ id: string; x: number; y: number } | null>(null);
   const reducedMotion = useMedia("(prefers-reduced-motion: reduce)");
   const coarse = useMedia("(pointer: coarse)");
   const landscape = useMedia("(orientation: landscape)");
+  const viewportBox = useVisualViewportBox();
   const walkInput = useMemo(() => createWalkInput(), []);
   const walkPose = useMemo<WalkPose>(() => walkEntryPose(), []);
   const dollhousePose = useRef<SavedOrbitPose | null>(null);
@@ -92,6 +91,8 @@ export function Room213Experience({
   const { view, goView, fade, slow: slowSwitch, settleToken, onSettled, transitions } = useViewTransition(reducedMotion, () => {
     clearWalkInput(walkInput);
     setMenuOpen(false);
+    setSheet(null);
+    setHoverPin(null);
   });
 
   // Reset re-homes the current view's camera only (rigs remount on resetNonce); the model is never reloaded.
@@ -189,15 +190,15 @@ export function Room213Experience({
         poke();
         if (document.activeElement === document.body) rootRef.current?.focus({ preventScroll: true });
       }}
-      className="fixed inset-0 overflow-hidden bg-[var(--graphite-canvas)] outline-none"
-      style={{ touchAction: "none" }}
+      className="fixed inset-x-0 top-0 h-[100dvh] overflow-hidden bg-[var(--graphite-canvas)] outline-none"
+      style={{ touchAction: "none", ...viewportBox }}
     >
       {webgl ? (
       <CanvasBoundary key={`b${canvasKey}-${attempt}`} onError={startFailed}>
       <Canvas
         key={canvasKey}
         className="absolute inset-0"
-        dpr={internal && dprChoice !== "auto" ? dprChoice : (probeDpr ?? [1, 2])}
+        dpr={probeDpr ?? [1, 2]}
         gl={{ antialias: false, alpha: false, powerPreference: "high-performance" }}
         camera={{ fov: 45, near: 0.05, far: 500, position: [8, 6, 8] }}
         onCreated={({ gl }) => {
@@ -275,6 +276,7 @@ export function Room213Experience({
             onReset={resetView}
             root={root}
             onActivity={poke}
+            sheetOpen={sheet !== null}
           />
           {view === "walk" && coarse && landscape && !sheet ? <WalkJoystick input={walkInput} onActivity={poke} /> : null}
           <NavHints view={view} coarse={coarse} landscape={landscape} />
@@ -288,7 +290,6 @@ export function Room213Experience({
       {!posterMode ? <Identity /> : null}
       {hoverPin && !sheet ? <PinHoverLabel {...hoverPin} /> : null}
       <ContentSheet state={sheet} onClose={() => setSheet(null)} onOpenPin={openPin} onViewInRoom={viewInRoom} />
-      {internal && ready ? <InternalDiagnostics choice={dprChoice} onChoice={chooseDpr} /> : null}
       {internal && phase !== "loading" ? <InternalPanel check={check} fidelity={fidelity} sourceSha={sourceSha} phase={phase} transitions={transitions} /> : null}
     </div>
   );

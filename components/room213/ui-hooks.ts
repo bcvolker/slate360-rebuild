@@ -74,3 +74,28 @@ export function useClearOnLifecycle(clear: () => void): void {
     };
   }, []);
 }
+
+/**
+ * The area the browser actually shows (iOS Safari's toolbars shrink it, especially in landscape): the viewer is
+ * sized to window.visualViewport so the canvas and every control sit inside the visible region. Falls back to
+ * 100dvh (CSS) until measured. Pinch-zoom (scale != 1) is ignored so the layout doesn't chase the zoom.
+ */
+export function useVisualViewportBox(): { top?: number; height?: number } {
+  const [box, setBox] = useState<{ top?: number; height?: number }>({});
+  useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      if (Math.abs(vv.scale - 1) > 0.01) return;
+      setBox((b) => (b.top === vv.offsetTop && b.height === vv.height ? b : { top: vv.offsetTop, height: vv.height }));
+    };
+    update();
+    vv.addEventListener("resize", update);
+    vv.addEventListener("scroll", update);
+    return () => {
+      vv.removeEventListener("resize", update);
+      vv.removeEventListener("scroll", update);
+    };
+  }, []);
+  return box;
+}

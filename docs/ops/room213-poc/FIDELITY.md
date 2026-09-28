@@ -106,3 +106,21 @@ was not an FOV effect. FOV is unchanged in this pass.
 - MIN size is 40 px.
 - The selected scale is applied inside the clamp.
 - Off-screen pins are no longer hittable.
+
+## 8. Real iPhone result (Brian, 899fa6b3) and post-POC items
+
+The DPR question is closed. On Brian's iPhone:
+- native DPR 3; AUTO → renderer DPR 2;
+- buffer ≈ 880×1584 in portrait and 1912×610 in landscape;
+- fidelity VERIFIED; 996,092 / 996,092 splats; accumExt true; blur 0; preBlur 0.
+
+The `719×980@1.25` reading came from the desktop browser pane (Windows 125% scaling), not from the phone.
+The temporary DPR selector was removed after the test; product behaviour is fixed at min(native, 2).
+
+Post-POC optimisation items (deliberately not addressed in the POC):
+- **Cold load.** On the iPhone: request ~7.1 s, first byte ~8.5 s, transfer complete ~30.6 s, first frame
+  ~31 s. The poster and byte progress cover the wait. Next steps are model-delivery work (compression, progressive
+  or streamed ordering), without RAD/LoD quality loss.
+- **Frame rate and sort.** ~20–40 fps in portrait and ~21 fps in landscape at DPR 2. Sorts take tens to hundreds
+  of ms, with occasional 1–2 s maxima. Quality settles once movement stops, and transitions wait for the settled
+  frame.

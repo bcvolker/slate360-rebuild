@@ -12,6 +12,10 @@ import { plaqueTexture } from "@/components/room213/plaque-texture";
 const TARGET_PX = 50; // plaque size on screen
 const MIN_PX = 40;
 const MAX_PX = 64;
+// Dollhouse / Plan show the whole room: keep plaques findable but a notch smaller than in Walk.
+const ORBIT_TARGET_PX = 40;
+const ORBIT_MIN_PX = 32;
+const ORBIT_MAX_PX = 44;
 const SELECTED_SCALE = 1.15; // applied INSIDE the clamp: a selected plaque never exceeds MAX_PX
 // Stand-off from the surface. This capture's walls are semi-transparent layers several cm deep; at 3 cm the wall
 // splats in front of the plane drew over the plaque (measured ~20 px visible, washed out). 10 cm clears them.
@@ -117,7 +121,10 @@ export function PinLayer({ view, selected, accent, camera }: { view: Room213View
       const wpp = worldPerPixel(camera, p.world, height);
       const dist = camera.position.distanceTo(p.world);
       const sel = selected === p.pin.pin_id ? SELECTED_SCALE : 1;
-      const px = THREE.MathUtils.clamp(TARGET_PX * sel * THREE.MathUtils.clamp(3 / Math.max(dist, 0.5), 0.72, 1.28), MIN_PX, MAX_PX);
+      const px =
+        view === "walk"
+          ? THREE.MathUtils.clamp(TARGET_PX * sel * THREE.MathUtils.clamp(3 / Math.max(dist, 0.5), 0.72, 1.28), MIN_PX, MAX_PX)
+          : THREE.MathUtils.clamp(ORBIT_TARGET_PX * sel, ORBIT_MIN_PX, ORBIT_MAX_PX);
       m.scale.setScalar(px * wpp);
       const mat = m.material as THREE.MeshBasicMaterial;
       const tex = selected === p.pin.pin_id ? textures[p.pin.pin_id].on : textures[p.pin.pin_id].idle;

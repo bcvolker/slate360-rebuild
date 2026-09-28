@@ -48,8 +48,8 @@ export function ContentSheet({
       role="dialog"
       aria-modal="false"
       aria-label={title}
-      className="absolute inset-x-0 bottom-0 z-40 max-h-[72dvh] overflow-y-auto rounded-t-2xl bg-[var(--mkt-surface)] text-[var(--mkt-ink)] shadow-2xl sm:inset-x-auto sm:bottom-auto sm:right-0 sm:top-0 sm:h-full sm:max-h-none sm:w-[380px] sm:rounded-none sm:rounded-l-2xl"
-      style={{ touchAction: "auto", paddingBottom: "env(safe-area-inset-bottom)" }}
+      className="absolute inset-x-0 bottom-0 z-40 max-h-[72%] overflow-y-auto overscroll-contain rounded-t-2xl bg-[var(--mkt-surface)] text-[var(--mkt-ink)] shadow-2xl landscape:inset-x-auto landscape:bottom-0 landscape:right-0 landscape:top-0 landscape:max-h-none landscape:w-[min(42%,380px)] landscape:rounded-none landscape:rounded-l-2xl sm:inset-x-auto sm:bottom-0 sm:right-0 sm:top-0 sm:max-h-none sm:w-[min(42%,380px)] sm:rounded-none sm:rounded-l-2xl"
+      style={{ touchAction: "auto", paddingBottom: "env(safe-area-inset-bottom)", paddingRight: "env(safe-area-inset-right)" }}
       onPointerDown={(e) => e.stopPropagation()}
       onWheel={(e) => e.stopPropagation()}
     >

@@ -118,7 +118,7 @@ describe("no million-splat scans in the Room 213 viewer", () => {
     const page = readFileSync(join(process.cwd(), "app/preview/room213/page.tsx"), "utf8");
     expect(page).not.toMatch(/PRES_|_local|\.rad/);
     const exp = readFileSync(join(process.cwd(), "components/room213/Room213Experience.tsx"), "utf8");
-    expect(exp).toMatch(/dpr=\{internal && dprChoice !== "auto" \? dprChoice : \(probeDpr \?\? \[1, 2\]\)\}/);
+    expect(exp).toMatch(/dpr=\{probeDpr \?\? \[1, 2\]\}/);
     expect(exp).not.toMatch(/AdaptiveDpr|setDpr/);
     const model = readFileSync(join(process.cwd(), "components/room213/Room213Model.tsx"), "utf8");
     expect(model).toMatch(/extSplats: true/);

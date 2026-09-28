@@ -32,7 +32,7 @@ export function NavHints({ view, coarse, landscape }: { view: Room213View; coars
     let text: string | null = null;
     if (!seen("room213.hint.walk")) {
       key = "room213.hint.walk";
-      text = coarse ? "Drag to look · Tap the floor to move" : "Drag to look · Click the floor to move";
+      text = !coarse ? "Drag to look · Click the floor to move" : landscape ? "Drag to look · Joystick to move" : "Drag to look · Tap the floor to move";
     } else if (coarse && !landscape && !seen("room213.hint.rotate")) {
       key = "room213.hint.rotate";
       text = "Rotate for a movement control";
