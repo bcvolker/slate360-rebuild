@@ -124,3 +124,36 @@ Post-POC optimisation items (deliberately not addressed in the POC):
 - **Frame rate and sort.** ~20–40 fps in portrait and ~21 fps in landscape at DPR 2. Sorts take tens to hundreds
   of ms, with occasional 1–2 s maxima. Quality settles once movement stops, and transitions wait for the settled
   frame.
+
+## 9. Motion repair pass (2026-09-28): tap speed, input arbitration, near plane
+
+**Tap-to-walk.** Commit 04e1e897 replaces the old tap step with a bounded glide.
+
+| | Before | After |
+|---|---|---|
+| Mechanism | 260–700 ms cubic tween | Glide: max 1.0 units/s, accel/decel 2.5 units/s², dt capped at 1/30 s |
+| Max tap distance | 2.6 units | 1.6 units |
+| Speed | peak ≈ 12.5 units/s (≈17× the joystick) | measured peak 1.09 units/s; max single-frame step 0.033, also across a forced 400 ms stall |
+
+The joystick top speed stays at 0.715 units/s.
+
+**Cancellation.** There is one stop mechanism: `clearWalkInput` bumps `stopToken`, which ends any glide in flight.
+Verified mid-glide with zero drift afterwards:
+- left stick, right stick, keyboard, wheel, drag-look;
+- Reset, View in room;
+- opening •••, opening a pin;
+- window blur, `visibilitychange` (hidden), `orientationchange`.
+
+A landscape tap while the controls are tucked now only reveals them; the next floor tap walks.
+
+**Near plane.** Commit 2 adds a matched A/B switch, `?probe=1&diag=near05`, which sets only the Walk near plane to
+0.05; the Spark `near` uniform was confirmed at 0.05. At six close-range reachable poses the two settings render
+pixel-identically (0.00 % of pixels changed): whiteboard wall, both table-row edges, window wall, floor at the feet,
+table end.
+
+The reason: collision keeps the eye ≥ 0.35 from walls and ≥ 0.25 from table-row footprints, so no splat falls
+inside 0.2. The near plane is therefore neither a fidelity loss nor a fix. Kept at 0.2, unchanged.
+
+**Collision** is a navigation aid, not metric clearance. Scene units are not calibrated metres, and the table-row
+boxes are approximate footprints of tables plus chairs. The walkable area is one connected region, and every aisle
+between rows is 0.3–0.6 units wide.

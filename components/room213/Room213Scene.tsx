@@ -235,7 +235,7 @@ export function Room213Scene({
       <Room213Model url={modelUrl} parent={room} onProgress={onProgress} onLoaded={onLoaded} onError={onError} />
       <RoomCrop parent={room} box={box} />
       {view === "walk" ? (
-        <WalkRig camera={persp} pose={walkPose} input={walkInput} keyTarget={keyTarget} pickPin={pickPin} onPin={onPin} onActivity={onActivity} accent={accent} />
+        <WalkRig near={debug?.diag?.includes("near05") ? 0.05 : 0.2} camera={persp} pose={walkPose} input={walkInput} keyTarget={keyTarget} pickPin={pickPin} onPin={onPin} onActivity={onActivity} accent={accent} />
       ) : view === "plan" ? (
         <PlanRig key={resetNonce} camera={ortho} pickPin={pickPin} onPin={onPin} onActivity={onActivity} />
       ) : (

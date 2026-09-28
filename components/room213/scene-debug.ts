@@ -4,6 +4,6 @@ import type * as THREE from "three";
 export type SceneDebug = {
   /** Replace the composed presentation crop with an explicit V-frame box (frame / band tests). */
   cropOverride?: THREE.Box3 | null;
-  /** On-device A/B switches for the motion-artefact investigation (?probe=1&diag=bg,px,alpha). */
+  /** On-device A/B switches for the motion-artefact investigation (?probe=1&diag=bg,px,alpha,near05). */
   diag?: string[];
 };
