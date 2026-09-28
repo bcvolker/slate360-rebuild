@@ -58,6 +58,9 @@ export default async function Room213Page({ searchParams }: { searchParams: Prom
   const probeOn = flag("probe") || flag("internal");
   const dprParam = Number(Array.isArray(p.dpr) ? p.dpr[0] : p.dpr);
   const probeDpr = probeOn && dprParam >= 0.5 && dprParam <= 3 ? dprParam : undefined;
+  // Probe-only maxPixelRadius sweep (`?probe=1&px=64`): integer 8..2048, anything else ignored.
+  const pxRaw = Number(Array.isArray(p.px) ? p.px[0] : p.px);
+  const pxParam = probeOn && Number.isInteger(pxRaw) && pxRaw >= 8 && pxRaw <= 2048 ? pxRaw : undefined;
   return (
     <Room213Experience
       modelUrl={modelUrl}
@@ -69,7 +72,7 @@ export default async function Room213Page({ searchParams }: { searchParams: Prom
       probe={probeOn}
       posterMode={flag("poster")}
       probeDpr={probeDpr}
-      diag={probeOn ? String((Array.isArray(p.diag) ? p.diag[0] : p.diag) ?? "").split(",").filter(Boolean) : undefined}
+      diag={probeOn ? [...String((Array.isArray(p.diag) ? p.diag[0] : p.diag) ?? "").split(",").filter(Boolean), ...(pxParam ? [`px:${pxParam}`] : [])] : undefined}
     />
   );
 }

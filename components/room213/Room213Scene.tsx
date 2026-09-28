@@ -15,6 +15,7 @@ import { RoomCrop } from "@/components/room213/RoomCrop";
 import { WalkRig, type WalkPose } from "@/components/room213/WalkRig";
 import { DollhouseRig, PlanRig, type SavedOrbitPose } from "@/components/room213/OrbitRigs";
 import { PinLayer, usePinPicker } from "@/components/room213/PinLayer";
+import { useSortTrace } from "@/components/room213/sort-trace";
 import type { WalkInput } from "@/components/room213/walk-input";
 import type { SceneDebug } from "@/components/room213/scene-debug";
 
@@ -77,7 +78,10 @@ export function Room213Scene({
   useEffect(() => {
     const s = new SparkRenderer(sparkRendererArgsFor(gl, profile, { enableLod: false }));
     // Probe-only A/B switches for the on-device motion-artefact investigation (never set for recipients).
-    if (debug?.diag?.includes("px")) s.maxPixelRadius = 96;
+    // px:N (probe `?px=N`) sets ONLY Spark's maxPixelRadius (default 512); legacy `diag=px` = 96.
+    const pxArg = debug?.diag?.find((d) => d.startsWith("px:"));
+    if (pxArg) s.maxPixelRadius = Number(pxArg.slice(3));
+    else if (debug?.diag?.includes("px")) s.maxPixelRadius = 96;
     if (debug?.diag?.includes("alpha")) s.minAlpha = 0.02;
     setSpark(s);
     return () => {
@@ -141,6 +145,8 @@ export function Room213Scene({
       };
     };
   });
+
+  useSortTrace(spark, active); // read-only, probe/internal only
 
   const aspect = size.width / Math.max(1, size.height);
   const aspectClass = aspect >= 1 ? "landscape" : "portrait";

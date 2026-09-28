@@ -6,6 +6,8 @@ import { SlateIcon } from "@/components/shared/SlateIcon";
 import { ROOM213_PINS } from "@/lib/room213/pins";
 import type { Fidelity } from "@/lib/room213/fidelity";
 import type { TransitionOutcome } from "@/components/room213/useViewTransition";
+import { useEffect, useState } from "react";
+import { summarizeTrace, type SortSample } from "@/components/room213/sort-trace";
 
 type Phase = "loading" | "preparing" | "ready" | "error";
 
@@ -43,13 +45,22 @@ export function InternalPanel({
   phase: Phase;
   transitions: () => TransitionOutcome[];
 }) {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    const iv = window.setInterval(() => tick((n) => n + 1), 250); // internal-only live readout
+    return () => window.clearInterval(iv);
+  }, []);
   const t = getTiming();
   const last = transitions().slice(-3);
+  const trace = (window as unknown as { __r213?: { sortTrace?: () => SortSample[] } }).__r213?.sortTrace?.() ?? [];
+  const tr = summarizeTrace(trace);
   const sort = typeof window === "undefined" ? undefined : (window as unknown as { __r213?: { sortStats?: () => { last: number; max: number; count: number } } }).__r213?.sortStats?.();
   return (
     <pre className="pointer-events-none absolute right-2 top-2 z-40 max-w-[70vw] whitespace-pre-wrap rounded-md bg-black/70 p-2 font-mono text-[10px] leading-tight text-white">
       {[
         `phase ${phase} · golden ${sourceSha.slice(0, 12)}`,
+        tr ? `px ${tr.now.maxPixelRadius} · fps ${tr.fps} · sort age ${tr.now.sortAgeMs}ms (last ${tr.now.lastSortMs}ms${tr.now.sorting ? ", sorting" : ""})` : "",
+        tr ? `off-sort now ${tr.now.dPos.toFixed(2)}u ${tr.now.dAngDeg}° · max 2s ${tr.maxDPos.toFixed(2)}u ${tr.maxDAng}° age ${tr.maxAge}ms` : "",
         `fidelity ${fidelity.state.toUpperCase()}${fidelity.reasons.length ? ` — ${fidelity.reasons.join("; ")}` : ""}`,
         check ? `accumExt ${check.effective.accumExtSplats} blur ${check.effective.uniformBlurAmount} preBlur ${check.effective.uniformPreBlurAmount}` : "",
         check ? `splats ${check.effective.activeSplats}/${check.effective.modelSplats} acc ${(check.effective.accumulatorBytes / 1048576).toFixed(1)}MB buf ${check.effective.drawingBuffer.join("x")}@${check.effective.pixelRatio}` : "",
