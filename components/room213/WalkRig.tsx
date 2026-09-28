@@ -8,7 +8,7 @@ import { EYE_Y, FLOOR_Y } from "@/lib/room213/scene-config";
 import { slideMove, walkableAlong } from "@/lib/room213/walk-area";
 import { rehomeWalk, walkEntryPose } from "@/components/room213/walk-entry";
 import {
-  MAX_TAP_STEP, PITCH_LIMIT, TURN_SPEED, WALK_KEYS, WALK_SPEED, WHEEL_UNITS_PER_NOTCH,
+  LOOK_STICK_PITCH, LOOK_STICK_YAW, MAX_TAP_STEP, PITCH_LIMIT, TURN_SPEED, WALK_KEYS, WALK_SPEED, WHEEL_UNITS_PER_NOTCH,
   clearWalkInput, groundForward, walkAxes, type WalkInput,
 } from "@/components/room213/walk-input";
 
@@ -126,7 +126,7 @@ export function WalkRig({
       const wasTap = !drag.moved;
       drag = null;
       canvas.style.cursor = "grab";
-      if (!wasTap || input.stick.active) return;
+      if (!wasTap || input.stick.active || input.look.active) return;
       const pin = cb.current.pickPin(e.clientX, e.clientY);
       if (pin) {
         cb.current.onPin(pin);
@@ -218,6 +218,11 @@ export function WalkRig({
     if (!tween.current.isRunning()) {
       const { forward, strafe, turn } = walkAxes(input);
       pose.yaw += turn * TURN_SPEED * dt;
+      if (input.look.active) {
+        // Right joystick: right = turn right (yaw decreases), up = look up; eased (squared) for fine aiming.
+        pose.yaw -= Math.sign(input.look.x) * input.look.x ** 2 * LOOK_STICK_YAW * dt;
+        pose.pitch = THREE.MathUtils.clamp(pose.pitch + Math.sign(input.look.y) * input.look.y ** 2 * LOOK_STICK_PITCH * dt, -PITCH_LIMIT, PITCH_LIMIT);
+      }
       const w = input.wheel * Math.min(1, dt * 9);
       input.wheel -= w;
       if (Math.abs(input.wheel) < 1e-3) input.wheel = 0;

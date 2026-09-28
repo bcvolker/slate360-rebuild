@@ -76,26 +76,34 @@ export function useClearOnLifecycle(clear: () => void): void {
 }
 
 /**
- * While the viewer is mounted the document itself must never scroll or show its own background: iOS Safari
- * otherwise lets the page slide under the fixed viewer (a white band below the toolbar, and a shorter viewer).
- * Locks html/body scrolling and paints them in the canvas colour; restored on unmount.
+ * The document behind the fixed viewer. Locked (default): no scroll, canvas-coloured — iOS Safari otherwise lets
+ * the page slide under the viewer (a white band, a shorter viewer). Unlocked (iPhone landscape only): the page is
+ * taller than the screen so one upward swipe scrolls it, which is what makes Safari collapse its bars.
  */
-export function useLockedDocument(): void {
+export function useLockedDocument(locked = true): void {
   useEffect(() => {
-    const els = [document.documentElement, document.body];
-    const prev = els.map((el) => [el.style.overflow, el.style.overscrollBehavior, el.style.background, el.style.height] as const);
+    const html = document.documentElement;
+    const body = document.body;
+    const els = [html, body];
+    const keys = ["overflow", "overscrollBehavior", "background", "height", "minHeight"] as const;
+    const prev = els.map((el) => keys.map((k) => el.style[k]));
     for (const el of els) {
-      el.style.overflow = "hidden";
-      el.style.overscrollBehavior = "none";
       el.style.background = "var(--graphite-canvas)";
-      el.style.height = "100%";
+      el.style.overscrollBehavior = "none";
     }
-    window.scrollTo(0, 0);
-    return () =>
-      els.forEach((el, i) => {
-        [el.style.overflow, el.style.overscrollBehavior, el.style.background, el.style.height] = prev[i];
-      });
-  }, []);
+    if (locked) {
+      for (const el of els) {
+        el.style.overflow = "hidden";
+        el.style.height = "100%";
+      }
+      window.scrollTo(0, 0);
+    } else {
+      html.style.overflow = "auto";
+      body.style.overflow = "visible";
+      body.style.minHeight = "calc(100vh + 480px)";
+    }
+    return () => els.forEach((el, i) => keys.forEach((k, j) => (el.style[k] = prev[i][j])));
+  }, [locked]);
 }
 
 /**
@@ -139,24 +147,3 @@ export function useOutsidePressDismiss(active: boolean, dismiss: () => void): vo
   }, [active]);
 }
 
-/**
- * Landscape on a touch phone → full screen, where the browser allows it (Android Chrome and most non-iOS
- * browsers). Browsers only grant full screen inside a user gesture, so it engages on the first touch after
- * rotating (that touch still does its normal job). Returning to portrait exits it again. iPhone Safari has no
- * element full screen API, so this is a no-op there.
- */
-export function useLandscapeFullscreen(root: HTMLElement | null, active: boolean): void {
-  useEffect(() => {
-    if (!root || !document.fullscreenEnabled || typeof root.requestFullscreen !== "function") return;
-    let entered = false;
-    const onTouch = () => {
-      if (!active || document.fullscreenElement) return;
-      void root.requestFullscreen({ navigationUI: "hide" }).then(() => (entered = true)).catch(() => undefined);
-    };
-    root.addEventListener("pointerdown", onTouch, { capture: true });
-    return () => {
-      root.removeEventListener("pointerdown", onTouch, { capture: true });
-      if (entered && document.fullscreenElement === root) void document.exitFullscreen().catch(() => undefined);
-    };
-  }, [root, active]);
-}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Maximize, RotateCw, X } from "lucide-react";
+import { RotateCw, X } from "lucide-react";
 import type { Room213View } from "@/lib/room213/edit-state";
 
 function seen(key: string): boolean {
@@ -38,7 +38,7 @@ export function NavHints({ view, coarse, landscape }: { view: Room213View; coars
       }
     } else if (!seen("room213.hint.walk")) {
       key = "room213.hint.walk";
-      text = !coarse ? "Drag to look · Click the floor to move" : landscape ? "Drag to look · Joystick to move" : "Drag to look · Tap the floor to move";
+      text = !coarse ? "Drag to look · Click the floor to move" : landscape ? "Left stick moves · right stick looks" : "Drag to look · Tap the floor to move";
     }
     if (!key || !text) return;
     setHint(text);
@@ -100,44 +100,10 @@ export function LandscapeTip({ coarse, landscape, hidden, onFirstLandscape }: { 
   );
 }
 
-/** iPhone/iPad Safari (not already launched full screen from the home screen). */
-function isIosBrowser(): boolean {
-  const n = navigator as Navigator & { standalone?: boolean };
-  const ios = /iPhone|iPad|iPod/.test(n.userAgent) || (n.platform === "MacIntel" && n.maxTouchPoints > 1);
-  return ios && !n.standalone && !matchMedia("(display-mode: standalone), (display-mode: fullscreen)").matches;
-}
-
-/**
- * iPhone Safari cannot be put into full screen by a web page. In landscape, show once (closable, top-right, small)
- * how to get it: Safari's own "Hide Toolbar". Never shown on other browsers, in portrait, or once closed.
- */
-export function IosFullscreenTip({ landscape, hidden }: { landscape: boolean; hidden: boolean }) {
-  const [show, setShow] = useState(false);
-  useEffect(() => setShow(landscape && isIosBrowser() && !seen("room213.tip.iosfull")), [landscape]);
-  if (!show || hidden) return null;
-  return (
-    <div className="absolute right-0 top-0 z-20 pr-[max(0.75rem,env(safe-area-inset-right))] pt-[max(0.75rem,env(safe-area-inset-top))]">
-      <div className="flex max-w-[260px] items-center gap-1 rounded-lg bg-[color-mix(in_srgb,var(--graphite-canvas)_75%,transparent)] py-1 pl-2.5 pr-1 text-[11.5px] font-medium leading-snug text-[var(--mkt-surface)]">
-        <Maximize className="size-3.5 shrink-0" aria-hidden />
-        <span>Full screen: tap the page icon left of the address, then Hide Toolbar</span>
-        <button
-          type="button"
-          aria-label="Dismiss tip"
-          onClick={() => (markSeen("room213.tip.iosfull"), setShow(false))}
-          className="flex size-8 shrink-0 items-center justify-center rounded-md hover:bg-white/10"
-        >
-          <X className="size-3.5" aria-hidden />
-        </button>
-      </div>
-    </div>
-  );
-}
-
-/** The two orientation tips (portrait "turn sideways", iPhone landscape "Hide Toolbar"). */
+/** Orientation tip wrapper (portrait "turn sideways"); landscape full screen lives in LandscapeChrome. */
 export function OrientationTips(p: { coarse: boolean; landscape: boolean; hidden: boolean; onFirstLandscape: () => void }) {
   return (
     <>
-      <IosFullscreenTip landscape={p.landscape} hidden={p.hidden} />
       <LandscapeTip {...p} />
     </>
   );

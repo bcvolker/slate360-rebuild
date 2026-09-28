@@ -49,12 +49,15 @@ describe("walkable area", () => {
     expect(isWalkable(ROOM.max.x + 0.5, 0)).toBe(false);
     expect(isWalkable(ROOM.min.x + 0.05, 0.36)).toBe(false);
   });
-  it("never steps across a table row", () => {
-    // From the centre aisle toward the far side of the near-window block: must stop before the furniture.
+  it("lets you walk between and through table rows; only the walls stop you", () => {
+    // Physical test: the old furniture mask left 10–20 cm gaps and dead-ended the joystick.
     const end = walkableAlong(-3.2, 0.36, -3.2, -3.0)!;
-    expect(end.z).toBeGreaterThan(-0.6);
+    expect(end.z).toBeCloseTo(-3.0);
     const s = slideMove(-3.2, 0.36, 0, -5);
-    expect(s.z).toBe(0.36);
+    expect(s.z).toBe(0.36); // a 5-unit jump would cross the wall: refused
+    const toWall = walkableAlong(0, 0.36, 0, -10)!;
+    expect(toWall.z).toBeGreaterThan(ROOM.min.z); // stops inside the wall
+    expect(isWalkable(ROOM.max.x - 0.05, 0)).toBe(false);
   });
   it("keeps eye height above the floor", () => {
     expect(EYE_Y).toBeGreaterThan(ROOM.min.y);

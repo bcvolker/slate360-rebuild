@@ -20,13 +20,13 @@ import { goldenFidelity } from "@/lib/room213/fidelity";
 import { ControlStrip } from "@/components/room213/ControlStrip";
 import { ContentSheet, type SheetState } from "@/components/room213/ContentSheet";
 import { LoadingPoster } from "@/components/room213/LoadingPoster";
-import { WalkJoystick } from "@/components/room213/WalkJoystick";
+import { LandscapeChrome } from "@/components/room213/LandscapeChrome";
 import { NavHints, OrientationTips } from "@/components/room213/NavHints";
 import { ROOM213_PINS } from "@/lib/room213/pins";
 import { pinViewPose } from "@/lib/room213/pin-focus";
 import { useViewTransition } from "@/components/room213/useViewTransition";
 import { Identity, InternalPanel, PinHoverLabel } from "@/components/room213/ExperienceChrome";
-import { useClearOnLifecycle, useLandscapeFullscreen, useOutsidePressDismiss, useQuietControls, useMedia, useSessionBool, useLockedDocument } from "@/components/room213/ui-hooks";
+import { useClearOnLifecycle, useOutsidePressDismiss, useQuietControls, useMedia, useSessionBool } from "@/components/room213/ui-hooks";
 import type { SceneDebug } from "@/components/room213/scene-debug";
 
 type Phase = "loading" | "preparing" | "ready" | "error";
@@ -73,7 +73,6 @@ export function Room213Experience({
   const reducedMotion = useMedia("(prefers-reduced-motion: reduce)");
   const coarse = useMedia("(pointer: coarse)");
   const landscape = useMedia("(orientation: landscape)");
-  useLockedDocument();
   const walkInput = useMemo(() => createWalkInput(), []);
   const walkPose = useMemo<WalkPose>(() => walkEntryPose(), []);
   const dollhousePose = useRef<SavedOrbitPose | null>(null);
@@ -87,7 +86,6 @@ export function Room213Experience({
   }, []);
 
   useClearOnLifecycle(() => clearWalkInput(walkInput));
-  useLandscapeFullscreen(root, coarse && landscape);
   // Tap/click outside the sheet or menu closes it (the press is consumed, never also moves the camera).
   useOutsidePressDismiss(sheet !== null || menuOpen, () => (setSheet(null), setMenuOpen(false)));
 
@@ -280,7 +278,6 @@ export function Room213Experience({
             onActivity={poke}
             sheetOpen={sheet !== null}
           />
-          {view === "walk" && coarse && landscape && !sheet ? <WalkJoystick input={walkInput} onActivity={poke} /> : null}
           <NavHints view={view} coarse={coarse} landscape={landscape} />
           <OrientationTips coarse={coarse} landscape={landscape} hidden={sheet !== null || menuOpen} onFirstLandscape={() => view === "dollhouse" && goView("walk")} />
           {fidelity.state === "degraded" ? (
@@ -291,6 +288,7 @@ export function Room213Experience({
         </>
       ) : null}
       {!posterMode ? <Identity /> : null}
+      <LandscapeChrome root={root} ready={ready && !posterMode} view={view} coarse={coarse} landscape={landscape} sheetOpen={sheet !== null} input={walkInput} onActivity={poke} />
       {hoverPin && !sheet ? <PinHoverLabel {...hoverPin} /> : null}
       <ContentSheet state={sheet} onClose={() => setSheet(null)} onOpenPin={openPin} onViewInRoom={viewInRoom} />
       {internal && phase !== "loading" ? <InternalPanel check={check} fidelity={fidelity} sourceSha={sourceSha} phase={phase} transitions={transitions} /> : null}

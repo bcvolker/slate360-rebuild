@@ -14,7 +14,8 @@ const KNOB = 50;
 const DEADZONE = 0.15;
 const RADIUS = (SIZE - KNOB) / 2;
 
-export function WalkJoystick({ input, onActivity }: { input: WalkInput; onActivity: () => void }) {
+/** `move` (left thumb) walks/strafes; `look` (right thumb) turns and tilts the view. */
+export function WalkJoystick({ input, onActivity, kind = "move" }: { input: WalkInput; onActivity: () => void; kind?: "move" | "look" }) {
   const knob = useRef<HTMLDivElement>(null);
   const pad = useRef<HTMLDivElement>(null);
   const pointer = useRef<number | null>(null);
@@ -22,15 +23,16 @@ export function WalkJoystick({ input, onActivity }: { input: WalkInput; onActivi
   useEffect(() => {
     const el = pad.current;
     if (!el) return;
+    const stick = kind === "look" ? input.look : input.stick;
     const center = () => {
       const r = el.getBoundingClientRect();
       return { x: r.left + r.width / 2, y: r.top + r.height / 2 };
     };
     const release = () => {
       pointer.current = null;
-      input.stick.x = 0;
-      input.stick.y = 0;
-      input.stick.active = false;
+      stick.x = 0;
+      stick.y = 0;
+      stick.active = false;
       if (knob.current) knob.current.style.transform = "translate(-50%, -50%)";
     };
     const moveTo = (cx: number, cy: number) => {
@@ -46,8 +48,8 @@ export function WalkJoystick({ input, onActivity }: { input: WalkInput; onActivi
       let ny = dy / RADIUS;
       if (Math.abs(nx) < DEADZONE) nx = 0;
       if (Math.abs(ny) < DEADZONE) ny = 0;
-      input.stick.x = nx;
-      input.stick.y = -ny; // screen up = forward
+      stick.x = nx;
+      stick.y = -ny; // screen up = forward / look up
       if (knob.current) knob.current.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
     };
     const down = (e: PointerEvent) => {
@@ -56,7 +58,7 @@ export function WalkJoystick({ input, onActivity }: { input: WalkInput; onActivi
       e.stopPropagation();
       pointer.current = e.pointerId;
       el.setPointerCapture(e.pointerId);
-      input.stick.active = true;
+      stick.active = true;
       moveTo(e.clientX, e.clientY);
       onActivity();
     };
@@ -81,18 +83,20 @@ export function WalkJoystick({ input, onActivity }: { input: WalkInput; onActivi
       el.removeEventListener("lostpointercapture", up);
       release();
     };
-  }, [input, onActivity]);
+  }, [input, onActivity, kind]);
 
   return (
     <div
       ref={pad}
-      aria-label="Move"
+      aria-label={kind === "look" ? "Look around" : "Move"}
       role="application"
       className="absolute z-30 rounded-[40px] border border-[color-mix(in_srgb,var(--mkt-surface)_45%,transparent)] bg-[color-mix(in_srgb,var(--graphite-canvas)_28%,transparent)] backdrop-blur-[2px]"
       style={{
         width: SIZE,
         height: SIZE,
-        left: "max(1.25rem, calc(env(safe-area-inset-left) + 0.75rem))",
+        ...(kind === "look"
+          ? { right: "max(1.25rem, calc(env(safe-area-inset-right) + 0.75rem))" }
+          : { left: "max(1.25rem, calc(env(safe-area-inset-left) + 0.75rem))" }),
         bottom: "max(1.25rem, calc(env(safe-area-inset-bottom) + 0.75rem))",
         touchAction: "none",
       }}

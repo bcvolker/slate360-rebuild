@@ -5,12 +5,14 @@ export type WalkInput = {
   keys: Set<string>;
   /** Joystick axes in -1..1: x = strafe right, y = forward. */
   stick: { x: number; y: number; active: boolean };
+  /** Right (look) joystick axes in -1..1: x = turn right, y = look up. */
+  look: { x: number; y: number; active: boolean };
   /** Pending wheel travel in scene units (+ forward), drained smoothly by the frame loop. */
   wheel: number;
 };
 
 export function createWalkInput(): WalkInput {
-  return { keys: new Set(), stick: { x: 0, y: 0, active: false }, wheel: 0 };
+  return { keys: new Set(), stick: { x: 0, y: 0, active: false }, look: { x: 0, y: 0, active: false }, wheel: 0 };
 }
 
 export function clearWalkInput(input: WalkInput): void {
@@ -18,11 +20,16 @@ export function clearWalkInput(input: WalkInput): void {
   input.stick.x = 0;
   input.stick.y = 0;
   input.stick.active = false;
+  input.look.x = 0;
+  input.look.y = 0;
+  input.look.active = false;
   input.wheel = 0;
 }
 
 export const WALK_SPEED = 1.3; // scene units / s at full input (≈1.4 m/s at the solve's unvalidated scale)
 export const TURN_SPEED = Math.PI * 0.55; // rad / s for Left/Right
+export const LOOK_STICK_YAW = Math.PI * 0.6; // rad / s at full right-stick deflection
+export const LOOK_STICK_PITCH = Math.PI * 0.35;
 export const WHEEL_UNITS_PER_NOTCH = 0.3;
 export const MAX_TAP_STEP = 2.6; // bounded click/tap step, scene units
 export const PITCH_LIMIT = THREE.MathUtils.degToRad(70);
