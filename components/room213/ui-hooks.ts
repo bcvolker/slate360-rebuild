@@ -99,3 +99,44 @@ export function useVisualViewportBox(): { top?: number; height?: number } {
   }, []);
   return box;
 }
+
+/**
+ * While a transient surface (content sheet, ••• menu) is open, a press anywhere outside the viewer UI
+ * (`[data-r213-ui]`) closes it — and that press is consumed, so it never also steps, orbits or opens a pin.
+ * Capture-phase on window: runs before the canvas's own pointer listeners.
+ */
+export function useOutsidePressDismiss(active: boolean, dismiss: () => void): void {
+  const ref = useRef(dismiss);
+  ref.current = dismiss;
+  useEffect(() => {
+    if (!active) return;
+    let pressing = false;
+    const outside = (t: EventTarget | null) => !(t instanceof Element && t.closest("[data-r213-ui]"));
+    const down = (e: PointerEvent) => {
+      if (!outside(e.target)) return;
+      pressing = true;
+      e.stopPropagation();
+    };
+    const move = (e: PointerEvent) => pressing && e.stopPropagation();
+    const up = (e: PointerEvent) => {
+      if (!pressing) return;
+      pressing = false;
+      e.stopPropagation();
+      ref.current();
+    };
+    const cancel = () => (pressing = false);
+    const wheel = (e: WheelEvent) => outside(e.target) && ref.current();
+    window.addEventListener("pointerdown", down, true);
+    window.addEventListener("pointermove", move, true);
+    window.addEventListener("pointerup", up, true);
+    window.addEventListener("pointercancel", cancel, true);
+    window.addEventListener("wheel", wheel, { capture: true, passive: true });
+    return () => {
+      window.removeEventListener("pointerdown", down, true);
+      window.removeEventListener("pointermove", move, true);
+      window.removeEventListener("pointerup", up, true);
+      window.removeEventListener("pointercancel", cancel, true);
+      window.removeEventListener("wheel", wheel, true);
+    };
+  }, [active]);
+}

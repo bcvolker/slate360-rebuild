@@ -27,10 +27,15 @@ function markSeen(key: string) {
 export function NavHints({ view, coarse, landscape }: { view: Room213View; coarse: boolean; landscape: boolean }) {
   const [hint, setHint] = useState<string | null>(null);
   useEffect(() => {
-    if (view !== "walk") return;
+    if (view === "plan") return;
     let key: string | null = null;
     let text: string | null = null;
-    if (!seen("room213.hint.walk")) {
+    if (view === "dollhouse") {
+      if (!seen("room213.hint.dollhouse")) {
+        key = "room213.hint.dollhouse";
+        text = coarse ? "Drag to turn · Pinch to zoom · Tap a plaque for details" : "Drag to turn · Scroll to zoom · Click a plaque for details";
+      }
+    } else if (!seen("room213.hint.walk")) {
       key = "room213.hint.walk";
       text = !coarse ? "Drag to look · Click the floor to move" : landscape ? "Drag to look · Joystick to move" : "Drag to look · Tap the floor to move";
     } else if (coarse && !landscape && !seen("room213.hint.rotate")) {

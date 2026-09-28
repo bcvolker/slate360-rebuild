@@ -26,7 +26,7 @@ import { ROOM213_PINS } from "@/lib/room213/pins";
 import { pinViewPose } from "@/lib/room213/pin-focus";
 import { useViewTransition } from "@/components/room213/useViewTransition";
 import { Identity, InternalPanel, PinHoverLabel } from "@/components/room213/ExperienceChrome";
-import { useClearOnLifecycle, useQuietControls, useMedia, useSessionBool, useVisualViewportBox } from "@/components/room213/ui-hooks";
+import { useClearOnLifecycle, useOutsidePressDismiss, useQuietControls, useMedia, useSessionBool, useVisualViewportBox } from "@/components/room213/ui-hooks";
 import type { SceneDebug } from "@/components/room213/scene-debug";
 
 type Phase = "loading" | "preparing" | "ready" | "error";
@@ -87,6 +87,8 @@ export function Room213Experience({
   }, []);
 
   useClearOnLifecycle(() => clearWalkInput(walkInput));
+  // Tap/click outside the sheet or menu closes it (the press is consumed, never also moves the camera).
+  useOutsidePressDismiss(sheet !== null || menuOpen, () => (setSheet(null), setMenuOpen(false)));
 
   const { view, goView, fade, slow: slowSwitch, settleToken, onSettled, transitions } = useViewTransition(reducedMotion, () => {
     clearWalkInput(walkInput);
@@ -268,7 +270,7 @@ export function Room213Experience({
             view={view}
             quiet={quiet}
             menuOpen={menuOpen}
-            onMenu={setMenuOpen}
+            onMenu={(open) => (open && setSheet(null), setMenuOpen(open))}
             onView={goView}
             ceilingHidden={ceilingHidden}
             onCeiling={(hidden) => setCeilingHidden(hidden)}

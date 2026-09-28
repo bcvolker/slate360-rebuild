@@ -45,6 +45,7 @@ export function ContentSheet({
 
   return (
     <aside
+      data-r213-ui
       role="dialog"
       aria-modal="false"
       aria-label={title}

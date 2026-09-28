@@ -89,7 +89,7 @@ export function ControlStrip({
       }}
     >
       {menuOpen ? (
-        <div ref={menuRef} role="menu" aria-label="More" className="w-[min(86vw,260px)] rounded-xl bg-[var(--mkt-surface)] p-1.5 shadow-lg">
+        <div data-r213-ui ref={menuRef} role="menu" aria-label="More" className="w-[min(86vw,260px)] rounded-xl bg-[var(--mkt-surface)] p-1.5 shadow-lg">
           <button type="button" role="menuitemcheckbox" aria-checked={view === "plan"} className={ITEM} onClick={() => onView(view === "plan" ? lastView.current : "plan")}>
             Plan view {view === "plan" ? <Check className="size-4 text-[var(--mkt-brand-green)]" aria-hidden /> : null}
           </button>
@@ -114,6 +114,7 @@ export function ControlStrip({
       <div
         className={`flex overflow-hidden rounded-xl bg-[var(--mkt-surface)] shadow-md transition-opacity duration-500 ${emphasised ? "opacity-100" : "opacity-60"}`}
         role="toolbar"
+        data-r213-ui
         aria-label="View"
       >
         {(["dollhouse", "walk"] as const).map((v) => (
