@@ -76,28 +76,26 @@ export function useClearOnLifecycle(clear: () => void): void {
 }
 
 /**
- * The area the browser actually shows (iOS Safari's toolbars shrink it, especially in landscape): the viewer is
- * sized to window.visualViewport so the canvas and every control sit inside the visible region. Falls back to
- * 100dvh (CSS) until measured. Pinch-zoom (scale != 1) is ignored so the layout doesn't chase the zoom.
+ * While the viewer is mounted the document itself must never scroll or show its own background: iOS Safari
+ * otherwise lets the page slide under the fixed viewer (a white band below the toolbar, and a shorter viewer).
+ * Locks html/body scrolling and paints them in the canvas colour; restored on unmount.
  */
-export function useVisualViewportBox(): { top?: number; height?: number } {
-  const [box, setBox] = useState<{ top?: number; height?: number }>({});
+export function useLockedDocument(): void {
   useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return;
-    const update = () => {
-      if (Math.abs(vv.scale - 1) > 0.01) return;
-      setBox((b) => (b.top === vv.offsetTop && b.height === vv.height ? b : { top: vv.offsetTop, height: vv.height }));
-    };
-    update();
-    vv.addEventListener("resize", update);
-    vv.addEventListener("scroll", update);
-    return () => {
-      vv.removeEventListener("resize", update);
-      vv.removeEventListener("scroll", update);
-    };
+    const els = [document.documentElement, document.body];
+    const prev = els.map((el) => [el.style.overflow, el.style.overscrollBehavior, el.style.background, el.style.height] as const);
+    for (const el of els) {
+      el.style.overflow = "hidden";
+      el.style.overscrollBehavior = "none";
+      el.style.background = "var(--graphite-canvas)";
+      el.style.height = "100%";
+    }
+    window.scrollTo(0, 0);
+    return () =>
+      els.forEach((el, i) => {
+        [el.style.overflow, el.style.overscrollBehavior, el.style.background, el.style.height] = prev[i];
+      });
   }, []);
-  return box;
 }
 
 /**

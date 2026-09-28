@@ -25,6 +25,9 @@ export async function generateMetadata(): Promise<Metadata> {
     alternates: { canonical: "/preview/room213" },
     openGraph: { type: "website", siteName: "Slate360", title: TITLE, description: DESCRIPTION, url: "/preview/room213" },
     twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
+    // "Add to Home Screen" opens this room full screen (no browser bars) — the only true full screen on iPhone.
+    manifest: "/preview/room213/manifest.webmanifest",
+    appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Room 213" },
   };
 }
 
