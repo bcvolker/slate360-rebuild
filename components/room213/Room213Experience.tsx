@@ -21,6 +21,8 @@ import { ContentSheet, type SheetState } from "@/components/room213/ContentSheet
 import { LoadingPoster } from "@/components/room213/LoadingPoster";
 import { WalkJoystick } from "@/components/room213/WalkJoystick";
 import { NavHints } from "@/components/room213/NavHints";
+import { ROOM213_PINS } from "@/lib/room213/pins";
+import { pinViewPose } from "@/lib/room213/pin-focus";
 import { useViewTransition } from "@/components/room213/useViewTransition";
 import { Identity, InternalPanel, PinHoverLabel } from "@/components/room213/ExperienceChrome";
 import { useQuietControls, useMedia, useSessionBool } from "@/components/room213/ui-hooks";
@@ -114,6 +116,25 @@ export function Room213Experience({
     setResetNonce((n) => n + 1);
   }, [view, walkInput, walkPose]);
 
+  // "View in room": walk to a spot facing the pin (under the transition cover) and highlight it briefly.
+  const [focusPin, setFocusPin] = useState<string | null>(null);
+  const viewInRoom = useCallback(
+    (id: string) => {
+      const pin = ROOM213_PINS.find((p) => p.pin_id === id);
+      if (!pin) return;
+      setSheet(null);
+      goView("walk", () => {
+        const pose = pinViewPose(pin);
+        walkPose.position.copy(pose.position);
+        walkPose.yaw = pose.yaw;
+        walkPose.pitch = pose.pitch;
+      });
+      setFocusPin(id);
+      window.setTimeout(() => setFocusPin((f) => (f === id ? null : f)), 3500);
+    },
+    [goView, walkPose],
+  );
+
   const openPin = useCallback((id: string) => {
     clearWalkInput(walkInput);
     setMenuOpen(false);
@@ -202,7 +223,7 @@ export function Room213Experience({
           dollhousePose={dollhousePose}
           walkInput={walkInput}
           keyTarget={root}
-          selectedPin={sheet?.kind === "pin" ? sheet.id : null}
+          selectedPin={sheet?.kind === "pin" ? sheet.id : focusPin}
           accent={accent}
           debug={debug}
           callbacks={{
@@ -266,7 +287,7 @@ export function Room213Experience({
       ) : null}
       {!posterMode ? <Identity /> : null}
       {hoverPin && !sheet ? <PinHoverLabel {...hoverPin} /> : null}
-      <ContentSheet state={sheet} onClose={() => setSheet(null)} onOpenPin={openPin} />
+      <ContentSheet state={sheet} onClose={() => setSheet(null)} onOpenPin={openPin} onViewInRoom={viewInRoom} />
       {internal ? <InternalPanel check={check} sourceSha={sourceSha} assetSha={assetSha} phase={phase} /> : null}
     </div>
   );

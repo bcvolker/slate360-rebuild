@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { SparkRenderer, type SplatMesh } from "@sparkjsdev/spark";
@@ -97,9 +97,59 @@ export function Room213Scene({
   const sparkRef = useMemo(() => ({ current: spark }), [spark]);
   useSparkProfileCheck(sparkRef, profile, mesh, (c) => cb.current.onProfileCheck(c));
 
-  const home = useMemo(() => heroPoseFor(size.width / Math.max(1, size.height)), [size.width, size.height]);
+  // Camera director: the scene OWNS both cameras and switches the default explicitly per view (no library
+  // `makeDefault` races). Perspective = Dollhouse + Walk (world-up enforced by the rigs); orthographic = Plan.
+  const set = useThree((s) => s.set);
+  const persp = useMemo(() => new THREE.PerspectiveCamera(45, 1, 0.05, 500), []);
+  const ortho = useMemo(() => {
+    const c = new THREE.OrthographicCamera(-1, 1, 1, -1, 0.1, 200);
+    c.up.set(0, 0, -1);
+    return c;
+  }, []);
+  const active = view === "plan" ? ortho : persp;
+  useLayoutEffect(() => {
+    persp.aspect = size.width / Math.max(1, size.height);
+    persp.updateProjectionMatrix();
+    ortho.left = -size.width / 2;
+    ortho.right = size.width / 2;
+    ortho.top = size.height / 2;
+    ortho.bottom = -size.height / 2;
+    ortho.updateProjectionMatrix();
+  }, [persp, ortho, size.width, size.height]);
+  useLayoutEffect(() => {
+    set({ camera: active as THREE.PerspectiveCamera });
+  }, [set, active]);
+
+  // Probe-only readout (window.__r213 exists only with ?probe=1 / ?internal=1): the camera actually rendering.
+  const defaultCam = useThree((s) => s.camera);
+  useEffect(() => {
+    const w = window as unknown as { __r213?: Record<string, unknown> };
+    if (!w.__r213) return;
+    w.__r213.cam = () => {
+      const c = defaultCam;
+      const right = new THREE.Vector3(1, 0, 0).applyQuaternion(c.quaternion);
+      const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(c.quaternion);
+      return {
+        view,
+        type: (c as THREE.OrthographicCamera).isOrthographicCamera ? "ortho" : "persp",
+        isIntended: c === active,
+        rollDeg: +THREE.MathUtils.radToDeg(Math.asin(THREE.MathUtils.clamp(right.y, -1, 1))).toFixed(2),
+        pitchDeg: +THREE.MathUtils.radToDeg(Math.asin(THREE.MathUtils.clamp(fwd.y, -1, 1))).toFixed(1),
+        up: c.up.toArray(),
+        pos: c.position.toArray().map((v) => +v.toFixed(2)),
+        spark: spark && (() => {
+          const k = spark as unknown as { sorting?: boolean; sortDirty?: boolean; sortedCenter?: THREE.Vector3; sortedDir?: THREE.Vector3; display?: unknown; current?: { viewOrigin?: THREE.Vector3 } };
+          return { sorting: k.sorting, sortDirty: k.sortDirty, sortedCenter: k.sortedCenter?.toArray().map((v) => +v.toFixed(2)), viewOrigin: k.current?.viewOrigin?.toArray().map((v) => +v.toFixed(2)), displayIsCurrent: k.display === k.current };
+        })(),
+      };
+    };
+  });
+
+  const aspect = size.width / Math.max(1, size.height);
+  const aspectClass = aspect >= 1 ? "landscape" : "portrait";
+  const home = useMemo(() => heroPoseFor(aspect), [aspect]);
   const box = useMemo(() => debug?.cropOverride ?? cropBoxFor(view, walkCeilingHidden), [view, walkCeilingHidden, debug?.cropOverride]);
-  const { pickPin, fileFrameRef } = usePinPicker(view);
+  const { pickPin, fileFrameRef } = usePinPicker(view, active);
   const canvasEl = useThree((s) => s.gl.domElement);
   useEffect(() => {
     let last = 0;
@@ -140,14 +190,28 @@ export function Room213Scene({
   // displayed accumulator is current again so the transition cover can lift on a correct frame.
   // Settled = an accumulator generated AFTER the switch is the one on screen (while a sort is in flight Spark
   // skips generating, so `display === current` alone can still be the pre-switch result).
-  const settle = useRef<{ token: number; frames: number; start: unknown }>({ token: -1, frames: 0, start: null });
+  const settlePos = useMemo(() => new THREE.Vector3(), []);
+  const settle = useRef<{ token: number; frames: number; start: unknown; at: THREE.Vector3 }>({ token: -1, frames: 0, start: null, at: new THREE.Vector3() });
   useFrame(() => {
     if (!spark || !mesh || settle.current.token === settleToken) return;
-    const s = spark as unknown as { display?: unknown; current?: unknown };
-    if (settle.current.frames === 0) settle.current.start = s.current;
+    const s = spark as unknown as { display?: unknown; current?: unknown; sorting?: boolean; sortDirty?: boolean; sortedCenter?: THREE.Vector3 };
+    if (settle.current.frames === 0) {
+      settle.current.start = s.current;
+      active.getWorldPosition(settle.current.at); // the viewpoint the switch landed on
+    }
     settle.current.frames += 1;
-    if (settle.current.frames >= 3 && s.current !== settle.current.start && s.display === s.current) {
-      settle.current = { token: settleToken, frames: 0, start: null };
+    // ...and the depth sort on screen was computed from THIS viewpoint: after a camera jump Spark re-sorts
+    // asynchronously, and until then dense layers (the ceiling) blend in the old order and look washed/streaky.
+    // Either the landing viewpoint or wherever the user has already moved to (interaction must not hold the cover).
+    const sortedHere =
+      !!s.sortedCenter &&
+      !s.sorting &&
+      (s.sortedCenter.distanceTo(settle.current.at) < 0.05 || (!s.sortDirty && s.sortedCenter.distanceTo(active.getWorldPosition(settlePos)) < 0.05));
+    // (No "a new accumulator appeared since the switch" test: a camera jump applied under the cover can be generated
+    // and sorted before this loop starts, and waiting for another generation then stalls. A completed sort taken
+    // from the camera's current position already proves the new view is on screen.)
+    if (settle.current.frames >= 3 && s.display === s.current && sortedHere) {
+      settle.current = { token: settleToken, frames: 0, start: null, at: settle.current.at };
       cb.current.onSettled?.(settleToken);
     }
   });
@@ -163,7 +227,7 @@ export function Room213Scene({
       {spark ? <primitive object={spark} /> : null}
       <group ref={setRoom} quaternion={CORRECTION_QUATERNION}>
         <group ref={fileFrameRef} rotation={[Math.PI, 0, 0]}>
-          <PinLayer view={view} selected={selectedPin} accent={accent} />
+          <PinLayer view={view} selected={selectedPin} accent={accent} camera={active} />
         </group>
       </group>
       <Room213Model url={modelUrl} parent={room} onProgress={onProgress} onLoaded={onLoaded} onError={onError} paged={pagedRad} />
@@ -172,11 +236,11 @@ export function Room213Scene({
       ) : null}
       <RoomCrop parent={room} box={box} />
       {view === "walk" ? (
-        <WalkRig pose={walkPose} input={walkInput} keyTarget={keyTarget} pickPin={pickPin} onPin={onPin} onActivity={onActivity} accent={accent} />
+        <WalkRig camera={persp} pose={walkPose} input={walkInput} keyTarget={keyTarget} pickPin={pickPin} onPin={onPin} onActivity={onActivity} accent={accent} />
       ) : view === "plan" ? (
-        <PlanRig key={resetNonce} pickPin={pickPin} onPin={onPin} onActivity={onActivity} />
+        <PlanRig key={resetNonce} camera={ortho} pickPin={pickPin} onPin={onPin} onActivity={onActivity} />
       ) : (
-        <DollhouseRig key={resetNonce} home={home} pickPin={pickPin} onPin={onPin} onActivity={onActivity} poseOut={dollhousePose} />
+        <DollhouseRig key={resetNonce} camera={persp} home={home} aspectClass={aspectClass} pickPin={pickPin} onPin={onPin} onActivity={onActivity} poseOut={dollhousePose} />
       )}
     </>
   );

@@ -28,7 +28,11 @@ describe("crop edit states", () => {
       expect(b.max.z).toBeCloseTo(ROOM.max.z + OPEN_WALL_MARGIN);
       expect(b.min.y).toBe(PRESENTATION.min.y); // floor never clipped
     }
-    expect(cropBoxFor("walk", false).equals(PRESENTATION)).toBe(true);
+    // Walk removes nothing: exterior splats carry the walls' interior appearance.
+    const walk = cropBoxFor("walk", false);
+    expect(walk.min.x).toBeLessThan(-100);
+    expect(walk.max.y).toBeGreaterThan(100);
+    expect(PRESENTATION.containsBox(ROOM)).toBe(true);
   });
   it("ceiling choice only affects walk, and survives view changes", () => {
     expect(cropBoxFor("walk", true).max.y).toBe(WALK_CEILING_CUT_Y);
@@ -119,5 +123,30 @@ describe("no million-splat scans in the Room 213 viewer", () => {
     const model = readFileSync(join(process.cwd(), "components/room213/Room213Model.tsx"), "utf8");
     expect(model).toMatch(/extSplats: true/);
     expect(model).toMatch(/stream: counted/);
+  });
+});
+
+describe("view in room", () => {
+  it("stands on walkable floor at eye height, facing each pin, a sensible distance away", async () => {
+    const { pinViewPose, pinToRoom } = await import("./pin-focus");
+    for (const pin of ROOM213_PINS) {
+      const pose = pinViewPose(pin);
+      const { position: p } = pinToRoom(pin);
+      expect(isWalkable(pose.position.x, pose.position.z), pin.pin_id).toBe(true);
+      expect(pose.position.y).toBeCloseTo(EYE_Y, 5);
+      const fwd = new THREE.Vector3(-Math.sin(pose.yaw), 0, -Math.cos(pose.yaw));
+      const to = new THREE.Vector3(p.x - pose.position.x, 0, p.z - pose.position.z);
+      const dist = to.length();
+      expect(fwd.dot(to.normalize()), pin.pin_id).toBeGreaterThan(0.99); // looking straight at it
+      expect(dist, pin.pin_id).toBeGreaterThan(0.6);
+      expect(dist, pin.pin_id).toBeLessThan(4);
+    }
+  });
+  it("walk never crops unless the ceiling is hidden", () => {
+    const shown = cropBoxFor("walk", false);
+    const hidden = cropBoxFor("walk", true);
+    expect(shown.max.y).toBeGreaterThan(100);
+    expect(hidden.max.y).toBe(WALK_CEILING_CUT_Y);
+    expect(hidden.min.x).toBeLessThan(-100); // only the ceiling plane, never the walls
   });
 });

@@ -40,13 +40,14 @@ export default async function Room213Page({ searchParams }: { searchParams: Prom
   const trainingRasterizer = await goldenTrainingRasterizer();
   const base = process.env.ROOM213_MEDIA_BASE?.replace(/\/$/, "");
   const at = (file: string) => (base ? `${base}/room213/${file}` : `/preview/room213/model/${file}`);
-  // Default: the derived presentation pair. `?probe=1&asset=golden` renders the untouched golden model (A/B).
+  // The untouched golden model in every view (Walk must keep every splat — see lib/room213/edit-state.ts).
+  // `?probe=1&asset=pres` keeps the retired presentation pair reachable for A/B only.
   const asset = Array.isArray(p.asset) ? p.asset[0] : p.asset;
-  const golden = asset === "golden" && (flag("probe") || flag("internal"));
+  const golden = !(asset === "pres" && (flag("probe") || flag("internal")));
   let modelUrl = golden ? at(GOLDEN_FILE) : at(PRES_MAIN_FILE);
   let walkOnlyUrl: string | undefined = golden ? undefined : at(PRES_WALK_FILE);
   // Local development only (never on Vercel): A/B a candidate from public/preview/room213/_local.
-  if (!process.env.VERCEL && process.env.NODE_ENV !== "production" && asset && asset !== "golden" && /^[a-zA-Z0-9-]+$/.test(asset)) {
+  if (!process.env.VERCEL && process.env.NODE_ENV !== "production" && asset && asset !== "golden" && asset !== "pres" && /^[a-zA-Z0-9-]+$/.test(asset)) {
     modelUrl = asset === "rad" ? "/preview/room213/_local/rad/room213-pres-v1-lod.rad" : `/preview/room213/_local/${asset}.ply`;
     walkOnlyUrl = asset === "rad" ? at(PRES_WALK_FILE) : `/preview/room213/_local/${asset}-perimeter.ply`;
   }

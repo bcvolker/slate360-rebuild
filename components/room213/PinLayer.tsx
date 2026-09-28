@@ -8,10 +8,11 @@ import { OPEN_TOP_Y, PLAN_TOP_Y } from "@/lib/room213/scene-config";
 import type { Room213View } from "@/lib/room213/edit-state";
 import { plaqueTexture } from "@/components/room213/plaque-texture";
 
-const TARGET_PX = 30; // plaque size on screen
-const MIN_PX = 22;
-const MAX_PX = 40;
-const HIT_RADIUS_PX = 24; // ≈ 44–48 CSS px touch target
+// ~1.65× the first release (physical test: too easy to miss), still clamped so plaques never dominate the room.
+const TARGET_PX = 50; // plaque size on screen
+const MIN_PX = 36;
+const MAX_PX = 64;
+const HIT_RADIUS_PX = 30; // ≈ 60 CSS px touch target
 const tmpN = new THREE.Vector3();
 const tmpP = new THREE.Vector3();
 const tmpToCam = new THREE.Vector3();
@@ -50,8 +51,7 @@ function worldPerPixel(camera: THREE.Camera, at: THREE.Vector3, heightPx: number
 }
 
 /** Screen-space picking for the four pins (no splat raycast; hidden/back-facing pins are not hittable). */
-export function usePinPicker(view: Room213View) {
-  const camera = useThree((s) => s.camera);
+export function usePinPicker(view: Room213View, camera: THREE.Camera) {
   const canvas = useThree((s) => s.gl.domElement);
   const fileFrameRef = useRef<THREE.Group>(null);
   const pickPin = useCallback(
@@ -93,8 +93,7 @@ export function usePinPicker(view: Room213View) {
  * opaque geometry with depth testing, so splats in front of a plaque cover it naturally (walls, furniture).
  * Screen size is clamped (MIN_PX..MAX_PX) — not physical centimetres, since the metric scale is unvalidated.
  */
-export function PinLayer({ view, selected, accent }: { view: Room213View; selected: string | null; accent: THREE.Color }) {
-  const camera = useThree((s) => s.camera);
+export function PinLayer({ view, selected, accent, camera }: { view: Room213View; selected: string | null; accent: THREE.Color; camera: THREE.Camera }) {
   const height = useThree((s) => s.size.height);
   const refs = useRef<Record<string, THREE.Mesh | null>>({});
   const textures = useMemo(
@@ -110,8 +109,11 @@ export function PinLayer({ view, selected, accent }: { view: Room213View; select
       if (!m) continue;
       m.visible = pinLive(p, camera, view);
       if (!m.visible) continue;
-      const px = THREE.MathUtils.clamp(TARGET_PX, MIN_PX, MAX_PX) * (selected === p.pin.pin_id ? 1.2 : 1);
-      m.scale.setScalar(px * worldPerPixel(camera, p.world, height));
+      // Constant apparent size, eased slightly with distance (farther = a little smaller), clamped MIN..MAX px.
+      const wpp = worldPerPixel(camera, p.world, height);
+      const dist = camera.position.distanceTo(p.world);
+      const px = THREE.MathUtils.clamp(TARGET_PX * THREE.MathUtils.clamp(3 / Math.max(dist, 0.5), 0.72, 1.28), MIN_PX, MAX_PX);
+      m.scale.setScalar(px * (selected === p.pin.pin_id ? 1.15 : 1) * wpp);
       const mat = m.material as THREE.MeshBasicMaterial;
       const tex = selected === p.pin.pin_id ? textures[p.pin.pin_id].on : textures[p.pin.pin_id].idle;
       if (mat.map !== tex) {
@@ -138,7 +140,7 @@ export function PinLayer({ view, selected, accent }: { view: Room213View; select
             renderOrder={-1}
           >
             <planeGeometry args={[1, 1]} />
-            <meshBasicMaterial map={textures[p.pin_id].idle} toneMapped={false} transparent alphaTest={0.5} />
+            <meshBasicMaterial map={textures[p.pin_id].idle} toneMapped={false} transparent alphaTest={0.02} />
           </mesh>
         );
       })}

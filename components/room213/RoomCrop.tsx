@@ -12,7 +12,7 @@ import { SplatEdit, SplatEditRgbaBlendMode, SplatEditSdf, SplatEditSdfType } fro
  */
 export function RoomCrop({ parent, box }: { parent: THREE.Object3D | null; box: THREE.Box3 }) {
   const edit = useMemo(() => {
-    const e = new SplatEdit({ rgbaBlendMode: SplatEditRgbaBlendMode.MULTIPLY, sdfSmooth: 0.02, softEdge: 0.02, invert: false });
+    const e = new SplatEdit({ rgbaBlendMode: SplatEditRgbaBlendMode.MULTIPLY, sdfSmooth: 0, softEdge: 0.02, invert: false });
     e.name = "room213-crop";
     const sdf = new SplatEditSdf({ type: SplatEditSdfType.BOX, opacity: 0, invert: true, radius: 0 });
     e.addSdf(sdf);
@@ -28,26 +28,14 @@ export function RoomCrop({ parent, box }: { parent: THREE.Object3D | null; box: 
   }, [parent, edit]);
 
   // Layout effect: the new crop is in place before the next rendered frame, so the first generation after a view
-  // switch already uses it (a post-paint effect let one frame generate with the previous view's crop).
+  // switch already uses it. Applied once per change — every extra SDF write bumps Spark's version and restarts its
+  // full depth sort.
   useLayoutEffect(() => {
-    const apply = (nudge: number) => {
-      box.getCenter(edit.sdf.position);
-      box.getSize(edit.sdf.scale).multiplyScalar(0.5);
-      edit.sdf.position.y += nudge;
-      edit.sdf.updateMatrixWorld(true);
-    };
-    apply(0);
-    // Re-assert shortly after a change: a crop change landing in the same frames as other Spark work (camera or
-    // mesh-visibility switches) was occasionally not regenerated (measured intermittently on Walk → Plan). A
-    // negligible nudge forces a fresh edit version once any pending generation has finished.
-    const t1 = window.setTimeout(() => apply(1e-5), 120);
-    const t2 = window.setTimeout(() => apply(0), 600);
+    box.getCenter(edit.sdf.position);
+    box.getSize(edit.sdf.scale).multiplyScalar(0.5);
+    edit.sdf.updateMatrixWorld(true);
     const w = window as unknown as { __r213?: Record<string, unknown> };
     if (w.__r213) w.__r213.crop = { center: edit.sdf.position.toArray(), half: edit.sdf.scale.toArray() };
-    return () => {
-      window.clearTimeout(t1);
-      window.clearTimeout(t2);
-    };
   }, [box, edit]);
 
   return null;

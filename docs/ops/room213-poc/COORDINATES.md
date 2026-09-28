@@ -41,3 +41,28 @@ were quoted side by side:
 
 - "~11,500 shell" was Report 2's shell quoted against my box. That was a mixing error. Astra's 10,421 is right for that box.
 - **Wall intrusion:** the old live crop's +z edge was 4.375 against the +z wall peak at 4.39. That is **0.015**, not ~0.2; the 0.2 figure was a frame slip. It is obsolete now: the POC crop is rebuilt from the authoritative shell.
+
+## 2026-09-28 correction — Walk keeps every splat (physical test)
+
+Brian's iPhone test found dark ghosting and smears on the walls in Walk. The decisive A/B, at identical poses and
+motion paths through the whiteboard/door area, crossed golden vs the presentation PLY with the crop on vs off:
+
+| | no crop | tier-1 crop (room + 1.0) |
+|---|---|---|
+| golden | **clean** (matches the earlier verified viewer) | dark smears |
+| presentation PLY (tier-1 physically removed) | dark smears | dark smears |
+
+The tier-1 "exterior" splats are not debris for Walk. This reconstruction's walls are semi-transparent, and splats
+behind the wall surfaces carry the walls' interior appearance; removing them lets the dark canvas show through.
+
+On the live-motion gate (dark-neutral pixels on the wall band across screencast frames), the median fell from
+26.0% to 3.8–7.5%.
+
+Retained architecture:
+- **One mesh: the untouched golden PLY in every view.**
+- **Walk: no crop.** Only the optional Ceiling-off cut applies, a top plane with side walls untouched.
+- **Dollhouse/Plan:** the exterior crop (walls + 0.2, top cut) applies only in those views, so some perimeter fuzz
+  is accepted.
+
+The presentation PLY and its Walk-only complement are retired from the viewer. The files stay in storage and are
+reachable only via `?probe=1&asset=pres`, for A/B.

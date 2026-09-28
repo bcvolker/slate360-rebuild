@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Check } from "lucide-react";
 import type { Room213View } from "@/lib/room213/edit-state";
+import { ROOM213_PINS } from "@/lib/room213/pins";
 
 const PRIMARY =
   "min-h-[44px] min-w-[76px] px-4 text-[13px] font-semibold tracking-wide transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-3px] focus-visible:outline-[var(--mkt-brand-green)]";
@@ -94,7 +95,9 @@ export function ControlStrip({
               Ceiling {!ceilingHidden ? <Check className="size-4 text-[var(--mkt-brand-green)]" aria-hidden /> : null}
             </button>
           ) : null}
-          <button type="button" role="menuitem" className={ITEM} onClick={onRoomInfo}>Room information</button>
+          <button type="button" role="menuitem" className={ITEM} onClick={onRoomInfo}>
+            Room information <span className="text-[12px] text-[var(--mkt-ink-muted)]">{ROOM213_PINS.length} items</span>
+          </button>
           <button type="button" role="menuitem" className={ITEM} onClick={onReset}>Reset view</button>
           {fsSupported ? (
             <button type="button" role="menuitem" className={ITEM} onClick={() => (onMenu(false), isFs ? void document.exitFullscreen() : void root?.requestFullscreen())}>

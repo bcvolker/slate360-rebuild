@@ -6,6 +6,7 @@ import * as THREE from "three";
 import { CameraTweenRunner, type CameraTweenTarget } from "@/lib/digital-twin/camera-tween";
 import { EYE_Y, FLOOR_Y } from "@/lib/room213/scene-config";
 import { slideMove, walkableAlong } from "@/lib/room213/walk-area";
+import { walkEntryPose } from "@/components/room213/walk-entry";
 import {
   MAX_TAP_STEP, PITCH_LIMIT, TURN_SPEED, WALK_KEYS, WALK_SPEED, WHEEL_UNITS_PER_NOTCH,
   clearWalkInput, groundForward, walkAxes, type WalkInput,
@@ -29,6 +30,7 @@ const right = new THREE.Vector3();
  * horizontal (yaw only) at eye height, so looking up never flies. Any direct input cancels a running step.
  */
 export function WalkRig({
+  camera,
   pose,
   input,
   keyTarget,
@@ -37,6 +39,8 @@ export function WalkRig({
   onActivity,
   accent,
 }: {
+  /** The scene's perspective camera (explicit). Walk writes yaw/pitch/position only; roll is always 0. */
+  camera: THREE.PerspectiveCamera;
   pose: WalkPose;
   input: WalkInput;
   keyTarget: HTMLElement | null;
@@ -45,7 +49,6 @@ export function WalkRig({
   onActivity: () => void;
   accent: THREE.Color;
 }) {
-  const camera = useThree((s) => s.camera) as THREE.PerspectiveCamera;
   const canvas = useThree((s) => s.gl.domElement);
   const tween = useRef(new CameraTweenRunner());
   const scratch = useRef<CameraTweenTarget>({ position: new THREE.Vector3(), yaw: 0, pitch: 0 });
@@ -55,6 +58,7 @@ export function WalkRig({
   cb.current = { pickPin, onPin, onActivity };
 
   useEffect(() => {
+    camera.up.set(0, 1, 0);
     camera.fov = WALK_FOV;
     camera.near = 0.05;
     camera.updateProjectionMatrix();
@@ -219,8 +223,13 @@ export function WalkRig({
       }
       pose.position.y = EYE_Y;
     }
+    if (!Number.isFinite(pose.yaw) || !Number.isFinite(pose.pitch) || !Number.isFinite(pose.position.x) || !Number.isFinite(pose.position.z)) {
+      Object.assign(pose, walkEntryPose()); // never let a bad value strand the camera
+    }
+    pose.position.y = EYE_Y;
+    camera.up.set(0, 1, 0);
     camera.position.copy(pose.position);
-    camera.rotation.set(pose.pitch, pose.yaw, 0, "YXZ");
+    camera.rotation.set(pose.pitch, pose.yaw, 0, "YXZ"); // world-up, zero roll, every frame
     if (marker.current?.visible && now > markerUntil.current) marker.current.visible = false;
   });
 
