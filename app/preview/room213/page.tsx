@@ -69,6 +69,7 @@ export default async function Room213Page({ searchParams }: { searchParams: Prom
       probe={probeOn}
       posterMode={flag("poster")}
       probeDpr={probeDpr}
+      diag={probeOn ? String((Array.isArray(p.diag) ? p.diag[0] : p.diag) ?? "").split(",").filter(Boolean) : undefined}
     />
   );
 }

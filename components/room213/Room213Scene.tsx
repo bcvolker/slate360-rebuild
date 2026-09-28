@@ -76,13 +76,16 @@ export function Room213Scene({
   const [spark, setSpark] = useState<SparkRenderer | null>(null);
   useEffect(() => {
     const s = new SparkRenderer(sparkRendererArgsFor(gl, profile, { enableLod: false }));
+    // Probe-only A/B switches for the on-device motion-artefact investigation (never set for recipients).
+    if (debug?.diag?.includes("px")) s.maxPixelRadius = 96;
+    if (debug?.diag?.includes("alpha")) s.minAlpha = 0.02;
     setSpark(s);
     return () => {
       setSpark(null);
       s.removeFromParent();
       s.dispose();
     };
-  }, [gl, profile]);
+  }, [gl, profile, debug?.diag]);
   const sparkRef = useMemo(() => ({ current: spark }), [spark]);
   useSparkProfileCheck(sparkRef, profile, mesh, (c) => cb.current.onProfileCheck(c));
 

@@ -41,6 +41,7 @@ export function Room213Experience({
   probe,
   posterMode,
   probeDpr,
+  diag,
 }: {
   modelUrl: string;
   /** The same file from this deployment's own route: used automatically if the media host fails (e.g. CORS). */
@@ -53,8 +54,9 @@ export function Room213Experience({
   /** Test hooks on window.__r213 (verification probes); implied by `internal`. */
   probe: boolean;
   posterMode: boolean;
-  /** Probe-only fixed pixel ratio; otherwise min(devicePixelRatio, 2), fixed for the session (no adaptive drop). */
+  /** Probe-only: fixed pixel ratio (else min(devicePixelRatio, 2), fixed) and A/B switches (scene-debug.ts). */
   probeDpr?: number;
+  diag?: string[];
 }) {
   const profile = useMemo(() => resolveSparkRenderProfile(manifest), [manifest]);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -68,7 +70,7 @@ export function Room213Experience({
   const [menuOpen, setMenuOpen] = useState(false);
   const [sheet, setSheet] = useState<SheetState>(null);
   const [check, setCheck] = useState<SparkProfileCheck | null>(null);
-  const [debug, setDebug] = useState<SceneDebug>({});
+  const [debug, setDebug] = useState<SceneDebug>(() => ({ diag }));
   const [hoverPin, setHoverPin] = useState<{ id: string; x: number; y: number } | null>(null);
   const reducedMotion = useMedia("(prefers-reduced-motion: reduce)");
   const coarse = useMedia("(pointer: coarse)");
@@ -80,10 +82,7 @@ export function Room213Experience({
   const [canvasBg, setCanvasBg] = useState(() => new THREE.Color());
   const { quiet, poke } = useQuietControls(4000, menuOpen || sheet !== null);
 
-  useEffect(() => {
-    setAccent(cssColor("--mkt-brand-green"));
-    setCanvasBg(cssColor("--graphite-canvas"));
-  }, []);
+  useEffect(() => (setAccent(cssColor("--mkt-brand-green")), setCanvasBg(cssColor("--graphite-canvas"))), []);
 
   useClearOnLifecycle(() => clearWalkInput(walkInput));
   useTapToReveal(root, coarse && landscape, poke);
@@ -123,11 +122,7 @@ export function Room213Experience({
     [goView, walkPose],
   );
 
-  const openPin = useCallback((id: string) => {
-    clearWalkInput(walkInput);
-    setMenuOpen(false);
-    setSheet({ kind: "pin", id });
-  }, [walkInput]);
+  const openPin = useCallback((id: string) => (clearWalkInput(walkInput), setMenuOpen(false), setSheet({ kind: "pin", id })), [walkInput]);
 
   const [contextLost, setContextLost] = useState(false);
   const retry = useCallback(() => {
@@ -156,7 +151,7 @@ export function Room213Experience({
     if (!probe) return;
     const w = window as unknown as { __r213?: Record<string, unknown> };
     w.__r213 = Object.assign(w.__r213 ?? {}, {
-      check, phase, view, timing: getTiming(), transitions, setView: goView, resetView, setCropOverride: (b: THREE.Box3 | null) => setDebug({ cropOverride: b }),
+      check, phase, view, timing: getTiming(), transitions, setView: goView, resetView, setCropOverride: (b: THREE.Box3 | null) => setDebug((d) => ({ ...d, cropOverride: b })),
       THREE, walkPose, dollhousePose, openPin, setCeilingHidden,
     });
   }, [probe, check, phase, view, goView, resetView, transitions, walkPose, openPin, setCeilingHidden]);
@@ -211,7 +206,7 @@ export function Room213Experience({
           });
         }}
       >
-        <color attach="background" args={[canvasBg]} />
+        <color attach="background" args={[debug.diag?.includes("bg") && view === "walk" ? cssColor("--mkt-canvas-alt") : canvasBg]} />
         <Room213Scene
           key={attempt}
           resetNonce={resetNonce}
