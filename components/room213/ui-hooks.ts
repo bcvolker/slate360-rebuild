@@ -76,34 +76,24 @@ export function useClearOnLifecycle(clear: () => void): void {
 }
 
 /**
- * The document behind the fixed viewer. Locked (default): no scroll, canvas-coloured — iOS Safari otherwise lets
- * the page slide under the viewer (a white band, a shorter viewer). Unlocked (iPhone landscape only): the page is
- * taller than the screen so one upward swipe scrolls it, which is what makes Safari collapse its bars.
+ * While the viewer is mounted the document itself must never scroll or show its own background: iOS Safari
+ * otherwise lets the page slide under the fixed viewer (a white band below the toolbar, and a shorter viewer).
+ * Locks html/body scrolling and paints them in the canvas colour; restored on unmount.
  */
-export function useLockedDocument(locked = true): void {
+export function useLockedDocument(): void {
   useEffect(() => {
-    const html = document.documentElement;
-    const body = document.body;
-    const els = [html, body];
-    const keys = ["overflow", "overscrollBehavior", "background", "height", "minHeight"] as const;
+    const els = [document.documentElement, document.body];
+    const keys = ["overflow", "overscrollBehavior", "background", "height"] as const;
     const prev = els.map((el) => keys.map((k) => el.style[k]));
     for (const el of els) {
-      el.style.background = "var(--graphite-canvas)";
+      el.style.overflow = "hidden";
       el.style.overscrollBehavior = "none";
+      el.style.background = "var(--graphite-canvas)";
+      el.style.height = "100%";
     }
-    if (locked) {
-      for (const el of els) {
-        el.style.overflow = "hidden";
-        el.style.height = "100%";
-      }
-      window.scrollTo(0, 0);
-    } else {
-      html.style.overflow = "auto";
-      body.style.overflow = "visible";
-      body.style.minHeight = "calc(100vh + 480px)";
-    }
+    window.scrollTo(0, 0);
     return () => els.forEach((el, i) => keys.forEach((k, j) => (el.style[k] = prev[i][j])));
-  }, [locked]);
+  }, []);
 }
 
 /**

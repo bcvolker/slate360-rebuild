@@ -8,7 +8,7 @@ import { EYE_Y, FLOOR_Y } from "@/lib/room213/scene-config";
 import { slideMove, walkableAlong } from "@/lib/room213/walk-area";
 import { rehomeWalk, walkEntryPose } from "@/components/room213/walk-entry";
 import {
-  LOOK_STICK_PITCH, LOOK_STICK_YAW, MAX_TAP_STEP, PITCH_LIMIT, TURN_SPEED, WALK_KEYS, WALK_SPEED, WHEEL_UNITS_PER_NOTCH,
+  LOOK_STICK_PITCH, LOOK_STICK_YAW, STICK_EASE, MAX_TAP_STEP, PITCH_LIMIT, TURN_SPEED, WALK_KEYS, WALK_SPEED, WHEEL_UNITS_PER_NOTCH,
   clearWalkInput, groundForward, walkAxes, type WalkInput,
 } from "@/components/room213/walk-input";
 
@@ -216,13 +216,21 @@ export function WalkRig({
       }
     }
     if (!tween.current.isRunning()) {
+      // Ease both sticks toward the thumb (smooth start/stop, no jerks); released sticks glide to rest.
+      const k = 1 - Math.exp(-STICK_EASE * dt);
+      const se = (input.stickEased ??= { x: 0, y: 0 });
+      const le = (input.lookEased ??= { x: 0, y: 0 });
+      se.x += ((input.stick.active ? input.stick.x : 0) - se.x) * k;
+      se.y += ((input.stick.active ? input.stick.y : 0) - se.y) * k;
+      le.x += ((input.look.active ? input.look.x : 0) - le.x) * k;
+      le.y += ((input.look.active ? input.look.y : 0) - le.y) * k;
+      if (Math.abs(se.x) + Math.abs(se.y) < 1e-3) se.x = se.y = 0;
+      if (Math.abs(le.x) + Math.abs(le.y) < 1e-3) le.x = le.y = 0;
       const { forward, strafe, turn } = walkAxes(input);
       pose.yaw += turn * TURN_SPEED * dt;
-      if (input.look.active) {
-        // Right joystick: right = turn right (yaw decreases), up = look up; eased (squared) for fine aiming.
-        pose.yaw -= Math.sign(input.look.x) * input.look.x ** 2 * LOOK_STICK_YAW * dt;
-        pose.pitch = THREE.MathUtils.clamp(pose.pitch + Math.sign(input.look.y) * input.look.y ** 2 * LOOK_STICK_PITCH * dt, -PITCH_LIMIT, PITCH_LIMIT);
-      }
+      // Right joystick: right = turn right (yaw decreases), up = look up; squared response for fine aiming.
+      pose.yaw -= Math.sign(le.x) * le.x ** 2 * LOOK_STICK_YAW * dt;
+      pose.pitch = THREE.MathUtils.clamp(pose.pitch + Math.sign(le.y) * le.y ** 2 * LOOK_STICK_PITCH * dt, -PITCH_LIMIT, PITCH_LIMIT);
       const w = input.wheel * Math.min(1, dt * 9);
       input.wheel -= w;
       if (Math.abs(input.wheel) < 1e-3) input.wheel = 0;

@@ -7,6 +7,9 @@ export type WalkInput = {
   stick: { x: number; y: number; active: boolean };
   /** Right (look) joystick axes in -1..1: x = turn right, y = look up. */
   look: { x: number; y: number; active: boolean };
+  /** Eased copies the frame loop actually applies (set by the Walk rig). */
+  stickEased?: { x: number; y: number };
+  lookEased?: { x: number; y: number };
   /** Pending wheel travel in scene units (+ forward), drained smoothly by the frame loop. */
   wheel: number;
 };
@@ -23,13 +26,19 @@ export function clearWalkInput(input: WalkInput): void {
   input.look.x = 0;
   input.look.y = 0;
   input.look.active = false;
+  input.stickEased = { x: 0, y: 0 };
+  input.lookEased = { x: 0, y: 0 };
   input.wheel = 0;
 }
 
 export const WALK_SPEED = 1.3; // scene units / s at full input (≈1.4 m/s at the solve's unvalidated scale)
 export const TURN_SPEED = Math.PI * 0.55; // rad / s for Left/Right
-export const LOOK_STICK_YAW = Math.PI * 0.6; // rad / s at full right-stick deflection
-export const LOOK_STICK_PITCH = Math.PI * 0.35;
+// Joysticks (physical test: "too fast, out of control"): slower tops, a squared response so small pushes are fine,
+// and eased onset/stop in the rig (STICK_EASE).
+export const MOVE_STICK_SPEED = 0.55; // fraction of WALK_SPEED at full left-stick deflection (≈0.7 units/s)
+export const LOOK_STICK_YAW = Math.PI * 0.28; // rad / s at full right-stick deflection (~50°/s)
+export const LOOK_STICK_PITCH = Math.PI * 0.16;
+export const STICK_EASE = 6; // 1/s — exponential approach of the applied stick value to the thumb position
 export const WHEEL_UNITS_PER_NOTCH = 0.3;
 export const MAX_TAP_STEP = 2.6; // bounded click/tap step, scene units
 export const PITCH_LIMIT = THREE.MathUtils.degToRad(70);
@@ -49,9 +58,10 @@ export function walkAxes(input: WalkInput): { forward: number; strafe: number; t
       strafe += m[1];
     }
   }
-  if (input.stick.active) {
-    forward += input.stick.y;
-    strafe += input.stick.x;
+  if (input.stick.active || input.stickEased) {
+    const e = input.stickEased ?? input.stick;
+    forward += Math.sign(e.y) * e.y ** 2 * MOVE_STICK_SPEED;
+    strafe += Math.sign(e.x) * e.x ** 2 * MOVE_STICK_SPEED;
   }
   const turn = (input.keys.has("arrowleft") ? 1 : 0) - (input.keys.has("arrowright") ? 1 : 0);
   return { forward: THREE.MathUtils.clamp(forward, -1, 1), strafe: THREE.MathUtils.clamp(strafe, -1, 1), turn };
