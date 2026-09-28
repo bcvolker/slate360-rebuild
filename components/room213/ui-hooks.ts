@@ -138,19 +138,26 @@ export function useOutsidePressDismiss(active: boolean, dismiss: () => void): vo
 }
 
 
-/** A plain tap (no drag) anywhere on `root` calls `reveal` — used to bring tucked controls back in landscape. */
-export function useTapToReveal(root: HTMLElement | null, enabled: boolean, reveal: () => void): void {
-  const ref = useRef(reveal);
-  ref.current = reveal;
+/**
+ * A plain tap (no drag) anywhere on `root` calls `reveal` — used to bring tucked controls back in landscape. When
+ * the controls were hidden at pointer-down, `onRevealOnly` runs too (before the canvas sees the pointer-up), so the
+ * same tap is consumed as "show controls" and does not also walk. The next tap acts normally.
+ */
+export function useTapToReveal(root: HTMLElement | null, enabled: boolean, reveal: () => void, hidden: () => boolean, onRevealOnly: () => void): void {
+  const ref = useRef({ reveal, hidden, onRevealOnly });
+  ref.current = { reveal, hidden, onRevealOnly };
   useEffect(() => {
     if (!root || !enabled) return;
-    let start: { x: number; y: number; t: number } | null = null;
+    let start: { x: number; y: number; t: number; hidden: boolean } | null = null;
     const down = (e: PointerEvent) => {
       const onStick = e.target instanceof Element && e.target.closest("[role=application]"); // joysticks never reveal
-      start = onStick ? null : { x: e.clientX, y: e.clientY, t: performance.now() };
+      start = onStick ? null : { x: e.clientX, y: e.clientY, t: performance.now(), hidden: ref.current.hidden() };
     };
     const up = (e: PointerEvent) => {
-      if (start && Math.hypot(e.clientX - start.x, e.clientY - start.y) < 10 && performance.now() - start.t < 400) ref.current();
+      if (start && Math.hypot(e.clientX - start.x, e.clientY - start.y) < 10 && performance.now() - start.t < 400) {
+        if (start.hidden) ref.current.onRevealOnly();
+        ref.current.reveal();
+      }
       start = null;
     };
     root.addEventListener("pointerdown", down, true);

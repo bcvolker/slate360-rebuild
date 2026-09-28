@@ -181,3 +181,21 @@ describe("view in room", () => {
     expect(hidden.min.x).toBeLessThan(-100); // only the ceiling plane, never the walls
   });
 });
+
+describe("walk motion bounds", () => {
+  it("tap glide is in the joystick's speed family and every stop cancels it", async () => {
+    const m = await import("../../components/room213/walk-input");
+    const joystickTop = m.WALK_SPEED * m.MOVE_STICK_SPEED;
+    expect(m.TAP_MAX_SPEED).toBeGreaterThanOrEqual(joystickTop);
+    expect(m.TAP_MAX_SPEED).toBeLessThanOrEqual(2 * joystickTop); // was ~17x (cubic tween peak ~12.5 units/s)
+    expect(m.TAP_MAX_SPEED * m.MAX_FRAME_DT).toBeLessThan(0.05); // no single-frame jump, even after a stall
+    const input = m.createWalkInput();
+    const t0 = input.stopToken;
+    input.look.active = true;
+    input.keys.add("w");
+    m.clearWalkInput(input);
+    expect(input.stopToken).toBe(t0 + 1);
+    expect(input.look.active).toBe(false);
+    expect(input.keys.size).toBe(0);
+  });
+});

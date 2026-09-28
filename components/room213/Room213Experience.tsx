@@ -85,7 +85,8 @@ export function Room213Experience({
   useEffect(() => (setAccent(cssColor("--mkt-brand-green")), setCanvasBg(cssColor("--graphite-canvas"))), []);
 
   useClearOnLifecycle(() => clearWalkInput(walkInput));
-  useTapToReveal(root, coarse && landscape, poke);
+  // Landscape: a tap while the controls are tucked only reveals them (never also steps); see useTapToReveal.
+  useTapToReveal(root, coarse && landscape, poke, () => quiet && !menuOpen && !sheet, () => (walkInput.suppressTap = true));
   // Tap/click outside the sheet or menu closes it (the press is consumed, never also moves the camera).
   useOutsidePressDismiss(sheet !== null || menuOpen, () => (setSheet(null), setMenuOpen(false)));
 
@@ -152,9 +153,9 @@ export function Room213Experience({
     const w = window as unknown as { __r213?: Record<string, unknown> };
     w.__r213 = Object.assign(w.__r213 ?? {}, {
       check, phase, view, timing: getTiming(), transitions, setView: goView, resetView, setCropOverride: (b: THREE.Box3 | null) => setDebug((d) => ({ ...d, cropOverride: b })),
-      THREE, walkPose, dollhousePose, openPin, setCeilingHidden,
+      THREE, walkPose, walkInput, dollhousePose, openPin, setCeilingHidden,
     });
-  }, [probe, check, phase, view, goView, resetView, transitions, walkPose, openPin, setCeilingHidden]);
+  }, [probe, check, phase, view, goView, resetView, transitions, walkPose, walkInput, openPin, setCeilingHidden]);
 
   // WebGL2 is required; without it (or if the renderer fails to start) show the bounded start-failure state.
   const startFailed = useCallback((detail: string) => {
@@ -264,11 +265,11 @@ export function Room213Experience({
             view={view}
             quiet={quiet}
             menuOpen={menuOpen}
-            onMenu={(open) => (open && setSheet(null), setMenuOpen(open))}
+            onMenu={(open) => (open && (setSheet(null), clearWalkInput(walkInput)), setMenuOpen(open))}
             onView={goView}
             ceilingHidden={ceilingHidden}
             onCeiling={(hidden) => setCeilingHidden(hidden)}
-            onRoomInfo={() => (setMenuOpen(false), setSheet({ kind: "room" }))}
+            onRoomInfo={() => (clearWalkInput(walkInput), setMenuOpen(false), setSheet({ kind: "room" }))}
             onReset={resetView}
             root={root}
             onActivity={poke}

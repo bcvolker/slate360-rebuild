@@ -3,12 +3,11 @@
 import { useEffect, useMemo, useRef } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { CameraTweenRunner, type CameraTweenTarget } from "@/lib/digital-twin/camera-tween";
 import { EYE_Y, FLOOR_Y } from "@/lib/room213/scene-config";
-import { slideMove, walkableAlong } from "@/lib/room213/walk-area";
+import { isWalkable, slideMove, walkableAlong } from "@/lib/room213/walk-area";
 import { rehomeWalk, walkEntryPose } from "@/components/room213/walk-entry";
 import {
-  LOOK_STICK_PITCH, LOOK_STICK_YAW, STICK_EASE, MAX_TAP_STEP, PITCH_LIMIT, TURN_SPEED, WALK_KEYS, WALK_SPEED, WHEEL_UNITS_PER_NOTCH,
+  LOOK_STICK_PITCH, LOOK_STICK_YAW, MAX_FRAME_DT, STICK_EASE, MAX_TAP_STEP, PITCH_LIMIT, TAP_ACCEL, TAP_MAX_SPEED, TURN_SPEED, WALK_KEYS, WALK_SPEED, WHEEL_UNITS_PER_NOTCH,
   clearWalkInput, groundForward, walkAxes, type WalkInput,
 } from "@/components/room213/walk-input";
 
@@ -39,6 +38,7 @@ export function WalkRig({
   onPin,
   onActivity,
   accent,
+  near = 0.2,
 }: {
   /** The scene's perspective camera (explicit). Walk writes yaw/pitch/position only; roll is always 0. */
   camera: THREE.PerspectiveCamera;
@@ -49,10 +49,17 @@ export function WalkRig({
   onPin: (id: string) => void;
   onActivity: () => void;
   accent: THREE.Color;
+  /** Walk near plane (probe A/B `diag=near05` passes 0.05). */
+  near?: number;
 }) {
   const canvas = useThree((s) => s.gl.domElement);
-  const tween = useRef(new CameraTweenRunner());
-  const scratch = useRef<CameraTweenTarget>({ position: new THREE.Vector3(), yaw: 0, pitch: 0 });
+  /** Tap glide in flight: target on the floor, current speed, and the stop token it was started under. */
+  const glide = useRef<{ x: number; z: number; v: number; token: number } | null>(null);
+  const cancelGlide = () => (glide.current = null);
+  useEffect(() => {
+    const w = window as unknown as { __r213?: Record<string, unknown> };
+    if (w.__r213) w.__r213.glide = () => (glide.current ? { ...glide.current } : null); // probe-only readout
+  }, []);
   const marker = useRef<THREE.Mesh>(null);
   const markerUntil = useRef(0);
   const seenEpoch = useRef(pose.epoch);
@@ -62,9 +69,9 @@ export function WalkRig({
   useEffect(() => {
     camera.up.set(0, 1, 0);
     camera.fov = WALK_FOV;
-    camera.near = 0.2; // splats closer than this to the eye render as huge dark smears; cull them in Walk
+    camera.near = near; // 0.2: splats at the eye render as huge dark smears (A/B vs 0.05 in FIDELITY.md)
     camera.updateProjectionMatrix();
-  }, [camera]);
+  }, [camera, near]);
 
   const floorTarget = useMemo(
     () => (clientX: number, clientY: number) => {
@@ -96,6 +103,7 @@ export function WalkRig({
     let drag: { id: number; x: number; y: number; moved: boolean; touch: boolean } | null = null;
     const down = (e: PointerEvent) => {
       if (e.button !== 0 || drag) return;
+      input.suppressTap = false; // a reveal-only flag is valid for the tap that set it, never a later gesture
       drag = { id: e.pointerId, x: e.clientX, y: e.clientY, moved: false, touch: e.pointerType !== "mouse" };
       canvas.setPointerCapture(e.pointerId);
       cb.current.onActivity();
@@ -107,7 +115,7 @@ export function WalkRig({
         if (!drag.moved && Math.hypot(dx, dy) < (drag.touch ? 10 : 5)) return;
         if (!drag.moved) canvas.style.cursor = "grabbing";
         drag.moved = true;
-        tween.current.cancel();
+        cancelGlide();
         const s = drag.touch ? LOOK_TOUCH : LOOK_MOUSE;
         pose.yaw += dx * s;
         pose.pitch = THREE.MathUtils.clamp(pose.pitch + dy * s, -PITCH_LIMIT, PITCH_LIMIT);
@@ -129,18 +137,18 @@ export function WalkRig({
       if (!wasTap || input.stick.active || input.look.active) return;
       const pin = cb.current.pickPin(e.clientX, e.clientY);
       if (pin) {
+        input.suppressTap = false;
         cb.current.onPin(pin);
+        return;
+      }
+      if (input.suppressTap) {
+        input.suppressTap = false; // this tap only revealed the hidden controls: one gesture, one action
         return;
       }
       const t = floorTarget(e.clientX, e.clientY);
       if (!t) return;
-      showMarker(t.x, t.z, 700);
-      const dist = Math.hypot(t.x - pose.position.x, t.z - pose.position.z);
-      tween.current.start(
-        { position: pose.position, yaw: pose.yaw, pitch: pose.pitch },
-        { position: new THREE.Vector3(t.x, EYE_Y, t.z), yaw: pose.yaw, pitch: pose.pitch },
-        THREE.MathUtils.clamp(dist * 240, 260, 700),
-      );
+      showMarker(t.x, t.z, 900);
+      glide.current = { x: t.x, z: t.z, v: 0, token: input.stopToken };
     };
     const cancel = (e: PointerEvent) => {
       if (drag && e.pointerId === drag.id) drag = null;
@@ -148,7 +156,7 @@ export function WalkRig({
     const wheel = (e: WheelEvent) => {
       if (e.ctrlKey || e.metaKey) return; // browser zoom
       e.preventDefault();
-      tween.current.cancel();
+      cancelGlide();
       const notches = e.deltaMode === 1 ? e.deltaY / 3 : e.deltaY / 100;
       input.wheel = THREE.MathUtils.clamp(input.wheel - notches * WHEEL_UNITS_PER_NOTCH, -1.5, 1.5);
       cb.current.onActivity();
@@ -177,7 +185,7 @@ export function WalkRig({
       const k = e.key.toLowerCase();
       if (!WALK_KEYS.has(k)) return;
       e.preventDefault();
-      tween.current.cancel();
+      cancelGlide();
       input.keys.add(k);
       cb.current.onActivity();
     };
@@ -197,25 +205,33 @@ export function WalkRig({
   }, [keyTarget, input]);
 
   useFrame((_, rawDt) => {
-    const dt = Math.min(rawDt, 0.1);
+    const dt = Math.min(rawDt, MAX_FRAME_DT);
     const now = performance.now();
     if (pose.epoch !== seenEpoch.current) {
       // A jump happened (Reset / View in room): it wins over any step tween or held input.
       seenEpoch.current = pose.epoch;
-      tween.current.cancel();
+      cancelGlide();
       clearWalkInput(input);
       if (marker.current) marker.current.visible = false;
     }
-    if (tween.current.isRunning()) {
-      if (input.stick.active) tween.current.cancel();
+    const g = glide.current;
+    // Any direct control or any stop (sheet, menu, blur, orientation, Reset…) ends a tap glide where it is.
+    if (g && (g.token !== input.stopToken || input.stick.active || input.look.active || input.keys.size > 0 || input.wheel !== 0)) cancelGlide();
+    if (glide.current) {
+      // Bounded glide: accelerate to TAP_MAX_SPEED, decelerate to stop exactly on the target, collision-checked.
+      const dx = g!.x - pose.position.x;
+      const dz = g!.z - pose.position.z;
+      const remaining = Math.hypot(dx, dz);
+      g!.v = Math.min(TAP_MAX_SPEED, g!.v + TAP_ACCEL * dt, Math.sqrt(2 * TAP_ACCEL * remaining));
+      const step = Math.min(remaining, g!.v * dt);
+      const nx = pose.position.x + (dx / Math.max(remaining, 1e-6)) * step;
+      const nz = pose.position.z + (dz / Math.max(remaining, 1e-6)) * step;
+      if (remaining < 0.005 || !isWalkable(nx, nz)) cancelGlide();
       else {
-        tween.current.step(now, scratch.current);
-        pose.position.copy(scratch.current.position);
-        pose.yaw = scratch.current.yaw;
-        pose.pitch = scratch.current.pitch;
+        pose.position.x = nx;
+        pose.position.z = nz;
       }
-    }
-    if (!tween.current.isRunning()) {
+    } else {
       // Ease both sticks toward the thumb (smooth start/stop, no jerks); released sticks glide to rest.
       const k = 1 - Math.exp(-STICK_EASE * dt);
       const se = (input.stickEased ??= { x: 0, y: 0 });

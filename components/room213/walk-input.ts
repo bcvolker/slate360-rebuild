@@ -7,6 +7,10 @@ export type WalkInput = {
   stick: { x: number; y: number; active: boolean };
   /** Right (look) joystick axes in -1..1: x = turn right, y = look up. */
   look: { x: number; y: number; active: boolean };
+  /** Incremented by every stop (clearWalkInput / cancelWalkMotion): any tap glide started before it is dropped. */
+  stopToken: number;
+  /** Set by a tap that only revealed hidden controls: the Walk rig must not also step on that same tap. */
+  suppressTap: boolean;
   /** Eased copies the frame loop actually applies (set by the Walk rig). */
   stickEased?: { x: number; y: number };
   lookEased?: { x: number; y: number };
@@ -15,10 +19,15 @@ export type WalkInput = {
 };
 
 export function createWalkInput(): WalkInput {
-  return { keys: new Set(), stick: { x: 0, y: 0, active: false }, look: { x: 0, y: 0, active: false }, wheel: 0 };
+  return { keys: new Set(), stick: { x: 0, y: 0, active: false }, look: { x: 0, y: 0, active: false }, wheel: 0, stopToken: 0, suppressTap: false };
 }
 
+/**
+ * Stop ALL Walk motion: held keys, wheel travel, both sticks and any tap glide in flight (via stopToken). Used for
+ * Reset / View in room / opening a sheet or menu / blur / backgrounding / orientation change.
+ */
 export function clearWalkInput(input: WalkInput): void {
+  input.stopToken += 1;
   input.keys.clear();
   input.stick.x = 0;
   input.stick.y = 0;
@@ -40,7 +49,13 @@ export const LOOK_STICK_YAW = Math.PI * 0.28; // rad / s at full right-stick def
 export const LOOK_STICK_PITCH = Math.PI * 0.16;
 export const STICK_EASE = 6; // 1/s — exponential approach of the applied stick value to the thumb position
 export const WHEEL_UNITS_PER_NOTCH = 0.3;
-export const MAX_TAP_STEP = 2.6; // bounded click/tap step, scene units
+export const MAX_TAP_STEP = 1.6; // bounded click/tap step, scene units
+// Tap glide (physical test + review: the old 260–700 ms cubic tween peaked at ~12.5 units/s, ~17x the joystick).
+// A bounded controller instead: top speed 1.0 units/s (~1.4x the joystick's 0.715), accelerate/decelerate at
+// 2.5 units/s², and never integrate more than 1/30 s per frame (no jump after a stall).
+export const TAP_MAX_SPEED = 1.0;
+export const TAP_ACCEL = 2.5;
+export const MAX_FRAME_DT = 1 / 30;
 export const PITCH_LIMIT = THREE.MathUtils.degToRad(70);
 
 const MOVE_KEYS: Record<string, [number, number]> = {
