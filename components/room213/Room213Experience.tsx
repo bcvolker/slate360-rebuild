@@ -17,6 +17,7 @@ import type { WalkPose } from "@/components/room213/WalkRig";
 import { cssColor } from "@/components/room213/plaque-texture";
 import { CanvasBoundary, webgl2Available } from "@/components/room213/CanvasBoundary";
 import { goldenFidelity } from "@/lib/room213/fidelity";
+import { InternalDiagnostics, type DprChoice } from "@/components/room213/InternalDiagnostics";
 import { ControlStrip } from "@/components/room213/ControlStrip";
 import { ContentSheet, type SheetState } from "@/components/room213/ContentSheet";
 import { LoadingPoster } from "@/components/room213/LoadingPoster";
@@ -69,6 +70,7 @@ export function Room213Experience({
   const [sheet, setSheet] = useState<SheetState>(null);
   const [check, setCheck] = useState<SparkProfileCheck | null>(null);
   const [debug, setDebug] = useState<SceneDebug>({});
+  const [dprChoice, chooseDpr] = useState<DprChoice>("auto"); // ?internal=1 resolution A/B only
   const [hoverPin, setHoverPin] = useState<{ id: string; x: number; y: number } | null>(null);
   const reducedMotion = useMedia("(prefers-reduced-motion: reduce)");
   const coarse = useMedia("(pointer: coarse)");
@@ -195,7 +197,7 @@ export function Room213Experience({
       <Canvas
         key={canvasKey}
         className="absolute inset-0"
-        dpr={probeDpr ?? [1, 2]}
+        dpr={internal && dprChoice !== "auto" ? dprChoice : (probeDpr ?? [1, 2])}
         gl={{ antialias: false, alpha: false, powerPreference: "high-performance" }}
         camera={{ fov: 45, near: 0.05, far: 500, position: [8, 6, 8] }}
         onCreated={({ gl }) => {
@@ -286,6 +288,7 @@ export function Room213Experience({
       {!posterMode ? <Identity /> : null}
       {hoverPin && !sheet ? <PinHoverLabel {...hoverPin} /> : null}
       <ContentSheet state={sheet} onClose={() => setSheet(null)} onOpenPin={openPin} onViewInRoom={viewInRoom} />
+      {internal && ready ? <InternalDiagnostics choice={dprChoice} onChoice={chooseDpr} /> : null}
       {internal && phase !== "loading" ? <InternalPanel check={check} fidelity={fidelity} sourceSha={sourceSha} phase={phase} transitions={transitions} /> : null}
     </div>
   );
