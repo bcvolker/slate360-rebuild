@@ -16,12 +16,15 @@ export function LoadingPoster({
   phase,
   progress,
   error,
+  errorTitle,
   onRetry,
   posterMode,
 }: {
   phase: "loading" | "preparing" | "ready" | "error";
   progress: ModelProgress;
   error: string | null;
+  /** Headline for the error state (default: the capture didn't load). */
+  errorTitle?: string;
   onRetry?: () => void;
   posterMode: boolean;
 }) {
@@ -59,7 +62,7 @@ export function LoadingPoster({
         <div className="mx-auto max-w-sm text-center" role="status" aria-live="polite">
           {phase === "error" ? (
             <>
-              <p className="text-[15px] font-semibold text-[var(--mkt-surface)]">The 3D capture didn&apos;t load</p>
+              <p className="text-[15px] font-semibold text-[var(--mkt-surface)]">{errorTitle ?? "The 3D capture didn’t load"}</p>
               <p className="mt-1 text-[12px] text-[var(--mkt-canvas-deep)]">{error ?? "Check your connection and try again."}</p>
               {onRetry ? (
                 <button

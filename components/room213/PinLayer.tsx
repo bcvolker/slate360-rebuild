@@ -10,8 +10,12 @@ import { plaqueTexture } from "@/components/room213/plaque-texture";
 
 // ~1.65× the first release (physical test: too easy to miss), still clamped so plaques never dominate the room.
 const TARGET_PX = 50; // plaque size on screen
-const MIN_PX = 36;
+const MIN_PX = 40;
 const MAX_PX = 64;
+const SELECTED_SCALE = 1.15; // applied INSIDE the clamp: a selected plaque never exceeds MAX_PX
+// Stand-off from the surface. This capture's walls are semi-transparent layers several cm deep; at 3 cm the wall
+// splats in front of the plane drew over the plaque (measured ~20 px visible, washed out). 10 cm clears them.
+const SURFACE_OFFSET = 0.1;
 const HIT_RADIUS_PX = 30; // ≈ 60 CSS px touch target
 const tmpN = new THREE.Vector3();
 const tmpP = new THREE.Vector3();
@@ -61,7 +65,7 @@ export function usePinPicker(view: Room213View, camera: THREE.Camera) {
       for (const p of pinWorlds(fileFrameRef.current)) {
         if (!pinLive(p, camera, view)) continue;
         const q = tmpP.copy(p.world).project(camera);
-        if (q.z > 1) continue;
+        if (q.z > 1 || Math.abs(q.x) > 1 || Math.abs(q.y) > 1) continue; // off-screen pins never take a tap
         const sx = r.left + ((q.x + 1) / 2) * r.width;
         const sy = r.top + ((1 - q.y) / 2) * r.height;
         const d = Math.hypot(sx - clientX, sy - clientY);
@@ -112,8 +116,9 @@ export function PinLayer({ view, selected, accent, camera }: { view: Room213View
       // Constant apparent size, eased slightly with distance (farther = a little smaller), clamped MIN..MAX px.
       const wpp = worldPerPixel(camera, p.world, height);
       const dist = camera.position.distanceTo(p.world);
-      const px = THREE.MathUtils.clamp(TARGET_PX * THREE.MathUtils.clamp(3 / Math.max(dist, 0.5), 0.72, 1.28), MIN_PX, MAX_PX);
-      m.scale.setScalar(px * (selected === p.pin.pin_id ? 1.15 : 1) * wpp);
+      const sel = selected === p.pin.pin_id ? SELECTED_SCALE : 1;
+      const px = THREE.MathUtils.clamp(TARGET_PX * sel * THREE.MathUtils.clamp(3 / Math.max(dist, 0.5), 0.72, 1.28), MIN_PX, MAX_PX);
+      m.scale.setScalar(px * wpp);
       const mat = m.material as THREE.MeshBasicMaterial;
       const tex = selected === p.pin.pin_id ? textures[p.pin.pin_id].on : textures[p.pin.pin_id].idle;
       if (mat.map !== tex) {
@@ -128,7 +133,7 @@ export function PinLayer({ view, selected, accent, camera }: { view: Room213View
       {ROOM213_PINS.map((p) => {
         const n = tmpN.set(...p.normal).normalize();
         const q = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 0, 1), n);
-        const pos = new THREE.Vector3(...p.position).addScaledVector(n, 0.03);
+        const pos = new THREE.Vector3(...p.position).addScaledVector(n, SURFACE_OFFSET);
         return (
           <mesh
             key={p.pin_id}

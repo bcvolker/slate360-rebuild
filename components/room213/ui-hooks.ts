@@ -56,3 +56,21 @@ export function useQuietControls(ms: number, hold: boolean) {
   }, [poke]);
   return { quiet: quiet && !hold, poke };
 }
+
+/** Backgrounding / orientation change / page hide: run `clear` (drop held movement; never reloads anything). */
+export function useClearOnLifecycle(clear: () => void): void {
+  const ref = useRef(clear);
+  ref.current = clear;
+  useEffect(() => {
+    const run = () => ref.current();
+    const vis = () => document.visibilityState === "hidden" && run();
+    window.addEventListener("orientationchange", run);
+    window.addEventListener("pagehide", run);
+    document.addEventListener("visibilitychange", vis);
+    return () => {
+      window.removeEventListener("orientationchange", run);
+      window.removeEventListener("pagehide", run);
+      document.removeEventListener("visibilitychange", vis);
+    };
+  }, []);
+}

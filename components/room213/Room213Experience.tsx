@@ -12,10 +12,11 @@ import { markTiming, getTiming } from "@/lib/room213/timing";
 import { Room213Scene } from "@/components/room213/Room213Scene";
 import type { ModelProgress } from "@/components/room213/Room213Model";
 import { createWalkInput, clearWalkInput } from "@/components/room213/walk-input";
-import { walkEntryPose } from "@/components/room213/walk-entry";
+import { rehomeWalk, walkEntryPose } from "@/components/room213/walk-entry";
 import type { WalkPose } from "@/components/room213/WalkRig";
 import { cssColor } from "@/components/room213/plaque-texture";
-import { AdaptiveDpr } from "@/components/room213/AdaptiveDpr";
+import { CanvasBoundary, webgl2Available } from "@/components/room213/CanvasBoundary";
+import { goldenFidelity } from "@/lib/room213/fidelity";
 import { ControlStrip } from "@/components/room213/ControlStrip";
 import { ContentSheet, type SheetState } from "@/components/room213/ContentSheet";
 import { LoadingPoster } from "@/components/room213/LoadingPoster";
@@ -25,45 +26,42 @@ import { ROOM213_PINS } from "@/lib/room213/pins";
 import { pinViewPose } from "@/lib/room213/pin-focus";
 import { useViewTransition } from "@/components/room213/useViewTransition";
 import { Identity, InternalPanel, PinHoverLabel } from "@/components/room213/ExperienceChrome";
-import { useQuietControls, useMedia, useSessionBool } from "@/components/room213/ui-hooks";
+import { useClearOnLifecycle, useQuietControls, useMedia, useSessionBool } from "@/components/room213/ui-hooks";
 import type { SceneDebug } from "@/components/room213/scene-debug";
 
 type Phase = "loading" | "preparing" | "ready" | "error";
 
 export function Room213Experience({
   modelUrl,
-  walkOnlyUrl,
-  pagedRad = false,
-  fallback,
+  fallbackUrl,
   modelBytes,
   manifest,
   sourceSha,
-  assetSha,
   internal,
   probe,
   posterMode,
+  probeDpr,
 }: {
   modelUrl: string;
-  walkOnlyUrl?: string;
-  pagedRad?: boolean;
-  /** Same files from this deployment's own route: used automatically if the media host fails (e.g. CORS). */
-  fallback?: { modelUrl: string; walkOnlyUrl?: string };
+  /** The same file from this deployment's own route: used automatically if the media host fails (e.g. CORS). */
+  fallbackUrl?: string;
   modelBytes: number;
   manifest: SplatManifest;
+  /** The golden model's sha256 (the only asset; pins are bound to it). */
   sourceSha: string;
-  /** Hash of the asset actually loaded (presentation main or golden); pins stay bound to sourceSha. */
-  assetSha: string;
   internal: boolean;
   /** Test hooks on window.__r213 (verification probes); implied by `internal`. */
   probe: boolean;
   posterMode: boolean;
+  /** Probe-only fixed pixel ratio; otherwise min(devicePixelRatio, 2), fixed for the session (no adaptive drop). */
+  probeDpr?: number;
 }) {
   const profile = useMemo(() => resolveSparkRenderProfile(manifest), [manifest]);
   const rootRef = useRef<HTMLDivElement>(null);
   const [root, setRoot] = useState<HTMLDivElement | null>(null);
   const [phase, setPhase] = useState<Phase>("loading");
   const [progress, setProgress] = useState<ModelProgress>({ loaded: 0, total: modelBytes, phase: "transfer" });
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<{ title?: string; detail: string } | null>(null);
   const [attempt, setAttempt] = useState(0);
   const [canvasKey, setCanvasKey] = useState(0);
   const [ceilingHidden, setCeilingHidden] = useSessionBool("room213.walkCeilingHidden", false);
@@ -87,34 +85,25 @@ export function Room213Experience({
     setCanvasBg(cssColor("--graphite-canvas"));
   }, []);
 
-  // Lifecycle: backgrounding / orientation / blur clear held movement (never reloads the model).
-  useEffect(() => {
-    const clear = () => clearWalkInput(walkInput);
-    const vis = () => document.visibilityState === "hidden" && clear();
-    window.addEventListener("orientationchange", clear);
-    window.addEventListener("pagehide", clear);
-    document.addEventListener("visibilitychange", vis);
-    return () => {
-      window.removeEventListener("orientationchange", clear);
-      window.removeEventListener("pagehide", clear);
-      document.removeEventListener("visibilitychange", vis);
-    };
-  }, [walkInput]);
+  useClearOnLifecycle(() => clearWalkInput(walkInput));
 
-  const { view, goView, fade, slow: slowSwitch, settleToken, onSettled } = useViewTransition(reducedMotion, () => {
+  const { view, goView, fade, slow: slowSwitch, settleToken, onSettled, transitions } = useViewTransition(reducedMotion, () => {
     clearWalkInput(walkInput);
     setMenuOpen(false);
   });
 
   // Reset re-homes the current view's camera only (rigs remount on resetNonce); the model is never reloaded.
   const [resetNonce, setResetNonce] = useState(0);
+  // Reset is authoritative and stays in the current mode: under the cover, Walk returns to the curated entry (the
+  // epoch bump cancels any step in flight), Dollhouse to its hero orbit, Plan to its fitted plan.
   const resetView = useCallback(() => {
-    setMenuOpen(false);
-    clearWalkInput(walkInput);
-    if (view === "walk") Object.assign(walkPose, walkEntryPose());
-    else dollhousePose.current = null;
-    setResetNonce((n) => n + 1);
-  }, [view, walkInput, walkPose]);
+    setSheet(null);
+    goView(view, () => {
+      if (view === "walk") rehomeWalk(walkPose, walkEntryPose());
+      if (view === "dollhouse") dollhousePose.current = null;
+      setResetNonce((n) => n + 1);
+    });
+  }, [goView, view, walkPose]);
 
   // "View in room": walk to a spot facing the pin (under the transition cover) and highlight it briefly.
   const [focusPin, setFocusPin] = useState<string | null>(null);
@@ -123,12 +112,7 @@ export function Room213Experience({
       const pin = ROOM213_PINS.find((p) => p.pin_id === id);
       if (!pin) return;
       setSheet(null);
-      goView("walk", () => {
-        const pose = pinViewPose(pin);
-        walkPose.position.copy(pose.position);
-        walkPose.yaw = pose.yaw;
-        walkPose.pitch = pose.pitch;
-      });
+      goView("walk", () => rehomeWalk(walkPose, pinViewPose(pin)));
       setFocusPin(id);
       window.setTimeout(() => setFocusPin((f) => (f === id ? null : f)), 3500);
     },
@@ -168,16 +152,29 @@ export function Room213Experience({
     if (!probe) return;
     const w = window as unknown as { __r213?: Record<string, unknown> };
     w.__r213 = Object.assign(w.__r213 ?? {}, {
-      check, phase, view, timing: getTiming(), setView: goView, setCropOverride: (b: THREE.Box3 | null) => setDebug({ cropOverride: b }),
+      check, phase, view, timing: getTiming(), transitions, setView: goView, resetView, setCropOverride: (b: THREE.Box3 | null) => setDebug({ cropOverride: b }),
       THREE, walkPose, dollhousePose, openPin, setCeilingHidden,
     });
-  }, [probe, check, phase, view, goView, walkPose, openPin, setCeilingHidden]);
+  }, [probe, check, phase, view, goView, resetView, transitions, walkPose, openPin, setCeilingHidden]);
+
+  // WebGL2 is required; without it (or if the renderer fails to start) show the bounded start-failure state.
+  const startFailed = useCallback((detail: string) => {
+    console.error("[room213] 3D start failure:", detail);
+    setError({ title: "3D view couldn\u2019t start.", detail: "This browser or device couldn\u2019t open the 3D view. Try again, or open the link in Safari or Chrome." });
+    setPhase("error");
+  }, []);
+  const [webgl, setWebgl] = useState<boolean | null>(null);
+  useEffect(() => {
+    const ok = webgl2Available();
+    setWebgl(ok);
+    if (!ok) startFailed("webgl2 unavailable");
+  }, [attempt, startFailed]);
 
   const [useFallback, setUseFallback] = useState(false);
-  const src = useFallback && fallback ? fallback : { modelUrl, walkOnlyUrl };
-  const url = attempt === 0 ? src.modelUrl : `${src.modelUrl}${src.modelUrl.includes("?") ? "&" : "?"}attempt=${attempt}`;
+  const src = useFallback && fallbackUrl ? fallbackUrl : modelUrl;
+  const url = attempt === 0 ? src : `${src}${src.includes("?") ? "&" : "?"}attempt=${attempt}`;
   const ready = phase === "ready";
-  const reduced = check !== null && !check.ok;
+  const fidelity = useMemo(() => goldenFidelity(profile, check), [profile, check]);
 
   return (
     <div
@@ -193,17 +190,19 @@ export function Room213Experience({
       className="fixed inset-0 overflow-hidden bg-[var(--graphite-canvas)] outline-none"
       style={{ touchAction: "none" }}
     >
+      {webgl ? (
+      <CanvasBoundary key={`b${canvasKey}-${attempt}`} onError={startFailed}>
       <Canvas
         key={canvasKey}
         className="absolute inset-0"
-        dpr={[1, 2]}
+        dpr={probeDpr ?? [1, 2]}
         gl={{ antialias: false, alpha: false, powerPreference: "high-performance" }}
         camera={{ fov: 45, near: 0.05, far: 500, position: [8, 6, 8] }}
         onCreated={({ gl }) => {
           gl.domElement.addEventListener("webglcontextlost", (e) => {
             e.preventDefault();
             setContextLost(true);
-            setError("The 3D view was interrupted by the device.");
+            setError({ detail: "The 3D view was interrupted by the device." });
             setPhase("error");
           });
         }}
@@ -214,8 +213,6 @@ export function Room213Experience({
           resetNonce={resetNonce}
           settleToken={settleToken}
           modelUrl={url}
-          walkOnlyUrl={src.walkOnlyUrl}
-          pagedRad={pagedRad}
           profile={profile}
           view={view}
           walkCeilingHidden={ceilingHidden}
@@ -233,13 +230,13 @@ export function Room213Experience({
               if (p.phase === "preparing") setPhase("preparing");
             },
             onError: (m) => {
-              if (fallback && !useFallback) {
+              if (fallbackUrl && !useFallback) {
                 setUseFallback(true); // one silent retry from this deployment's own route
                 setAttempt((a) => a + 1);
                 return;
               }
               console.error("[room213] model load failed:", m);
-              setError("The connection was interrupted before the 3D capture finished loading.");
+              setError({ detail: "The connection was interrupted before the 3D capture finished loading." });
               setPhase("error");
             },
             onFirstFrame: () => {
@@ -252,14 +249,15 @@ export function Room213Experience({
             onActivity: poke,
           }}
         />
-        <AdaptiveDpr enabled={ready} />
       </Canvas>
+      </CanvasBoundary>
+      ) : null}
 
       <div className={`pointer-events-none absolute inset-0 bg-[var(--graphite-canvas)] transition-opacity ${reducedMotion ? "duration-0" : "duration-150"} ${fade ? "opacity-100" : "opacity-0"}`} aria-hidden>
         {fade && slowSwitch ? <p className="absolute inset-x-0 top-1/2 text-center text-[13px] text-[var(--mkt-canvas-deep)]">Preparing view…</p> : null}
       </div>
 
-      <LoadingPoster phase={phase} progress={progress} error={error} onRetry={error ? retry : undefined} posterMode={posterMode} />
+      <LoadingPoster phase={phase} progress={progress} error={error?.detail ?? null} errorTitle={error?.title} onRetry={error ? retry : undefined} posterMode={posterMode} />
 
       {!posterMode && ready ? (
         <>
@@ -278,7 +276,7 @@ export function Room213Experience({
           />
           {view === "walk" && coarse && landscape && !sheet ? <WalkJoystick input={walkInput} onActivity={poke} /> : null}
           <NavHints view={view} coarse={coarse} landscape={landscape} />
-          {reduced ? (
+          {fidelity.state === "degraded" ? (
             <p role="status" className="pointer-events-none absolute inset-x-0 top-[max(4.5rem,env(safe-area-inset-top))] z-20 mx-auto w-fit rounded-md bg-[var(--mkt-surface)] px-3 py-1 text-[11px] text-[var(--mkt-ink)]">
               This device is showing a reduced-quality view of the model.
             </p>
@@ -288,7 +286,7 @@ export function Room213Experience({
       {!posterMode ? <Identity /> : null}
       {hoverPin && !sheet ? <PinHoverLabel {...hoverPin} /> : null}
       <ContentSheet state={sheet} onClose={() => setSheet(null)} onOpenPin={openPin} onViewInRoom={viewInRoom} />
-      {internal ? <InternalPanel check={check} sourceSha={sourceSha} assetSha={assetSha} phase={phase} /> : null}
+      {internal && phase !== "loading" ? <InternalPanel check={check} fidelity={fidelity} sourceSha={sourceSha} phase={phase} transitions={transitions} /> : null}
     </div>
   );
 }

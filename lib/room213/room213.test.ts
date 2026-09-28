@@ -111,18 +111,46 @@ describe("no million-splat scans in the Room 213 viewer", () => {
       expect(src, f).not.toMatch(/getSplatSceneBounds|computePercentileSplatBounds|forEachSplat|raycastSplatMesh/);
     }
   });
-  it("builds the renderer from the verified profile, never Spark defaults", () => {
+  it("builds the renderer from the verified profile, LoD off, one golden asset, fixed pixel ratio", () => {
     const scene = readFileSync(join(process.cwd(), "components/room213/Room213Scene.tsx"), "utf8");
-    // LoD stays off for the canonical PLY: only the local-only paged-RAD experiment turns it on.
-    expect(scene).toMatch(/sparkRendererArgsFor\(gl, profile, \{ enableLod: pagedRad \}\)/);
-    expect(scene).toMatch(/pagedRad = false,/);
-    const page = readFileSync(join(process.cwd(), "app/preview/room213/page.tsx"), "utf8");
-    expect(page).toMatch(/const pagedRad = modelUrl\.endsWith\("\.rad"\);/);
-    expect(page).toMatch(/!process\.env\.VERCEL && process\.env\.NODE_ENV !== "production"/);
+    expect(scene).toMatch(/sparkRendererArgsFor\(gl, profile, \{ enableLod: false \}\)/);
     expect(scene).toMatch(/useSparkProfileCheck\(/);
+    const page = readFileSync(join(process.cwd(), "app/preview/room213/page.tsx"), "utf8");
+    expect(page).not.toMatch(/PRES_|_local|\.rad/);
+    const exp = readFileSync(join(process.cwd(), "components/room213/Room213Experience.tsx"), "utf8");
+    expect(exp).toMatch(/dpr=\{probeDpr \?\? \[1, 2\]\}/);
+    expect(exp).not.toMatch(/AdaptiveDpr|setDpr/);
     const model = readFileSync(join(process.cwd(), "components/room213/Room213Model.tsx"), "utf8");
     expect(model).toMatch(/extSplats: true/);
     expect(model).toMatch(/stream: counted/);
+  });
+});
+
+describe("golden fidelity validation", () => {
+  const eff = (o: Record<string, unknown>) =>
+    ({ expected: "spirula-3dgut", ok: true, mismatches: [], effective: { accumExtSplats: true, uniformEnableExtSplats: true, uniformBlurAmount: 0, uniformPreBlurAmount: 0, ...o } }) as never;
+  it("verifies only the corrected Spirula profile with the three live uniforms", async () => {
+    const { goldenFidelity } = await import("./fidelity");
+    const { SPIRULA_3DGUT_PROFILE, SPARK_DEFAULT_PROFILE } = await import("../digital-twin/spark-render-profile");
+    expect(goldenFidelity(SPIRULA_3DGUT_PROFILE, null).state).toBe("pending");
+    expect(goldenFidelity(SPIRULA_3DGUT_PROFILE, eff({})).state).toBe("verified");
+    // A fallback to Spark defaults must NOT validate against itself.
+    const fallback = goldenFidelity(SPARK_DEFAULT_PROFILE, eff({ accumExtSplats: false, uniformBlurAmount: 0.3 }));
+    expect(fallback.state).toBe("degraded");
+    expect(fallback.reasons.join(" ")).toMatch(/lineage/);
+    expect(goldenFidelity(SPIRULA_3DGUT_PROFILE, eff({ uniformBlurAmount: 0.3 })).state).toBe("degraded");
+    expect(goldenFidelity(SPIRULA_3DGUT_PROFILE, eff({ uniformPreBlurAmount: 0.1 })).state).toBe("degraded");
+    expect(goldenFidelity(SPIRULA_3DGUT_PROFILE, eff({ accumExtSplats: false })).state).toBe("degraded");
+  });
+  it("rehoming a walk pose bumps its epoch and keeps eye height", async () => {
+    const { rehomeWalk, walkEntryPose } = await import("../../components/room213/walk-entry");
+    const { EYE_Y } = await import("./scene-config");
+    const pose = walkEntryPose();
+    pose.position.set(0, 5, 0);
+    rehomeWalk(pose, walkEntryPose());
+    expect(pose.epoch).toBe(1);
+    expect(pose.position.y).toBeCloseTo(EYE_Y);
+    expect(pose.position.x).toBeCloseTo(walkEntryPose().position.x);
   });
 });
 

@@ -12,7 +12,7 @@ export type SheetState = { kind: "pin"; id: string } | { kind: "room" } | null;
  * pinch-zoom inside (touch-action restored). The camera is untouched while it is open.
  */
 const ACTION =
-  "inline-flex min-h-[40px] items-center gap-1 rounded-lg px-2.5 text-[13px] font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--mkt-brand-green)]";
+  "inline-flex min-h-[44px] items-center gap-1 rounded-lg px-2.5 text-[13px] font-semibold focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--mkt-brand-green)]";
 
 export function ContentSheet({
   state,

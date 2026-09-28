@@ -18,10 +18,8 @@ import { PinLayer, usePinPicker } from "@/components/room213/PinLayer";
 import type { WalkInput } from "@/components/room213/walk-input";
 import type { SceneDebug } from "@/components/room213/scene-debug";
 
-const noop = () => {};
-
 export type SceneCallbacks = {
-  /** Spark's displayed result has caught up with the current view (crop + visible meshes) after a switch. */
+  /** The frame on screen is the finished render for the current viewpoint (after a switch or jump). */
   onSettled?: (token: number) => void;
   onProgress: (p: ModelProgress) => void;
   onError: (message: string) => void;
@@ -35,8 +33,6 @@ export type SceneCallbacks = {
 
 export function Room213Scene({
   modelUrl,
-  walkOnlyUrl,
-  pagedRad = false,
   profile,
   view,
   settleToken = 0,
@@ -52,10 +48,6 @@ export function Room213Scene({
   debug,
 }: {
   modelUrl: string;
-  /** Presentation complement shown only in Walk (faint wall splats that streak outside in exterior views). */
-  walkOnlyUrl?: string;
-  /** Experiment only: modelUrl is a paged RAD (LoD on, 16-bit paged ext splats). */
-  pagedRad?: boolean;
   profile: SparkRenderProfile;
   view: Room213View;
   /** Incremented on each view switch; onSettled(token) fires once the new view is really on screen. */
@@ -83,17 +75,14 @@ export function Room213Scene({
   // must never outlive its cleanup.
   const [spark, setSpark] = useState<SparkRenderer | null>(null);
   useEffect(() => {
-    const s = new SparkRenderer({
-      ...sparkRendererArgsFor(gl, profile, { enableLod: pagedRad }),
-      ...(pagedRad ? { pagedExtSplats: true, lodSplatCount: 1_500_000 } : {}),
-    });
+    const s = new SparkRenderer(sparkRendererArgsFor(gl, profile, { enableLod: false }));
     setSpark(s);
     return () => {
       setSpark(null);
       s.removeFromParent();
       s.dispose();
     };
-  }, [gl, profile, pagedRad]);
+  }, [gl, profile]);
   const sparkRef = useMemo(() => ({ current: spark }), [spark]);
   useSparkProfileCheck(sparkRef, profile, mesh, (c) => cb.current.onProfileCheck(c));
 
@@ -125,6 +114,7 @@ export function Room213Scene({
   useEffect(() => {
     const w = window as unknown as { __r213?: Record<string, unknown> };
     if (!w.__r213) return;
+    w.__r213.spark = spark;
     w.__r213.cam = () => {
       const c = defaultCam;
       const right = new THREE.Vector3(1, 0, 0).applyQuaternion(c.quaternion);
@@ -137,6 +127,10 @@ export function Room213Scene({
         pitchDeg: +THREE.MathUtils.radToDeg(Math.asin(THREE.MathUtils.clamp(fwd.y, -1, 1))).toFixed(1),
         up: c.up.toArray(),
         pos: c.position.toArray().map((v) => +v.toFixed(2)),
+        fov: (c as THREE.PerspectiveCamera).fov,
+        dpr: gl.getPixelRatio(),
+        buffer: [gl.getContext().drawingBufferWidth, gl.getContext().drawingBufferHeight],
+        css: [size.width, size.height],
         spark: spark && (() => {
           const k = spark as unknown as { sorting?: boolean; sortDirty?: boolean; sortedCenter?: THREE.Vector3; sortedDir?: THREE.Vector3; display?: unknown; current?: { viewOrigin?: THREE.Vector3 } };
           return { sorting: k.sorting, sortDirty: k.sortDirty, sortedCenter: k.sortedCenter?.toArray().map((v) => +v.toFixed(2)), viewOrigin: k.current?.viewOrigin?.toArray().map((v) => +v.toFixed(2)), displayIsCurrent: k.display === k.current };
@@ -185,35 +179,40 @@ export function Room213Scene({
     }
   });
 
-  // A view switch changes the crop and which meshes are visible; Spark keeps DISPLAYING its previous accumulator
-  // until the re-sort for the new mapping finishes (spark.module.js prepareGenerate/display swap). Report when the
-  // displayed accumulator is current again so the transition cover can lift on a correct frame.
-  // Settled = an accumulator generated AFTER the switch is the one on screen (while a sort is in flight Spark
-  // skips generating, so `display === current` alone can still be the pre-switch result).
-  const settlePos = useMemo(() => new THREE.Vector3(), []);
-  const settle = useRef<{ token: number; frames: number; start: unknown; at: THREE.Vector3 }>({ token: -1, frames: 0, start: null, at: new THREE.Vector3() });
+  // Spark draws the newest splat buffer immediately but its depth ORDER only after an asynchronous sort (GPU depth
+  // readback + worker) finishes; until then a new viewpoint is blended in the previous viewpoint's order, which
+  // reads as ghosting/softness. "Settled" = no sort pending AND the displayed buffer and its order were both taken
+  // from where the camera is now. No timers: this is the actual renderer state. (Measured: control == viewer once
+  // settled, docs/ops/room213-poc/FIDELITY.md.)
+  const camPos = useMemo(() => new THREE.Vector3(), []);
+  const settle = useRef({ token: -1, frames: 0 });
+  const sortStats = useRef({ sorting: false, since: 0, last: 0, max: 0, count: 0 });
   useFrame(() => {
-    if (!spark || !mesh || settle.current.token === settleToken) return;
-    const s = spark as unknown as { display?: unknown; current?: unknown; sorting?: boolean; sortDirty?: boolean; sortedCenter?: THREE.Vector3 };
-    if (settle.current.frames === 0) {
-      settle.current.start = s.current;
-      active.getWorldPosition(settle.current.at); // the viewpoint the switch landed on
+    if (!spark || !mesh) return;
+    const s = spark as unknown as { display?: unknown; current?: { viewOrigin?: THREE.Vector3 }; sorting?: boolean; sortDirty?: boolean; sortedCenter?: THREE.Vector3 };
+    const st = sortStats.current;
+    if (s.sorting && !st.sorting) st.since = performance.now();
+    if (!s.sorting && st.sorting) {
+      st.last = Math.round(performance.now() - st.since);
+      st.max = Math.max(st.max, st.last);
+      st.count += 1;
     }
-    settle.current.frames += 1;
-    // ...and the depth sort on screen was computed from THIS viewpoint: after a camera jump Spark re-sorts
-    // asynchronously, and until then dense layers (the ceiling) blend in the old order and look washed/streaky.
-    // Either the landing viewpoint or wherever the user has already moved to (interaction must not hold the cover).
-    const sortedHere =
-      !!s.sortedCenter &&
-      !s.sorting &&
-      (s.sortedCenter.distanceTo(settle.current.at) < 0.05 || (!s.sortDirty && s.sortedCenter.distanceTo(active.getWorldPosition(settlePos)) < 0.05));
-    // (No "a new accumulator appeared since the switch" test: a camera jump applied under the cover can be generated
-    // and sorted before this loop starts, and waiting for another generation then stalls. A completed sort taken
-    // from the camera's current position already proves the new view is on screen.)
-    if (settle.current.frames >= 3 && s.display === s.current && sortedHere) {
-      settle.current = { token: settleToken, frames: 0, start: null, at: settle.current.at };
+    st.sorting = !!s.sorting;
+    if (settle.current.token === settleToken) return;
+    active.getWorldPosition(camPos);
+    const settled =
+      !s.sorting && !s.sortDirty && s.display === s.current &&
+      !!s.current?.viewOrigin && s.current.viewOrigin.distanceTo(camPos) < 0.02 &&
+      !!s.sortedCenter && s.sortedCenter.distanceTo(camPos) < 0.02;
+    settle.current.frames = settled ? settle.current.frames + 1 : 0;
+    if (settle.current.frames >= 2) {
+      settle.current = { token: settleToken, frames: 0 };
       cb.current.onSettled?.(settleToken);
     }
+  });
+  useEffect(() => {
+    const w = window as unknown as { __r213?: Record<string, unknown> };
+    if (w.__r213) w.__r213.sortStats = () => ({ ...sortStats.current });
   });
 
   const onLoaded = useCallback((m: SplatMesh) => setMesh(m), []);
@@ -230,10 +229,7 @@ export function Room213Scene({
           <PinLayer view={view} selected={selectedPin} accent={accent} camera={active} />
         </group>
       </group>
-      <Room213Model url={modelUrl} parent={room} onProgress={onProgress} onLoaded={onLoaded} onError={onError} paged={pagedRad} />
-      {walkOnlyUrl ? (
-        <Room213Model url={walkOnlyUrl} parent={room} onLoaded={noop} onError={onError} visible={view === "walk"} timed={false} />
-      ) : null}
+      <Room213Model url={modelUrl} parent={room} onProgress={onProgress} onLoaded={onLoaded} onError={onError} />
       <RoomCrop parent={room} box={box} />
       {view === "walk" ? (
         <WalkRig camera={persp} pose={walkPose} input={walkInput} keyTarget={keyTarget} pickPin={pickPin} onPin={onPin} onActivity={onActivity} accent={accent} />

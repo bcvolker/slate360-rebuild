@@ -4,7 +4,7 @@ import { BUCKET, s3 } from "@/lib/s3";
 import { MODEL_FILES } from "@/lib/room213/provenance.server";
 
 /**
- * Fallback delivery for the Room 213 model files (golden + presentation pair) when no public media host is configured (ROOM213_MEDIA_BASE):
+ * Fallback delivery for the Room 213 golden model when no public media host is configured (ROOM213_MEDIA_BASE):
  * streams only the pinned objects, each under its content-hashed name, with immutable caching and byte-range support.
  * Only those exact file names are served — nothing from the request reaches a storage key. Not served on production.
  */
