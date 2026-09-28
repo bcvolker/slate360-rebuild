@@ -7,7 +7,7 @@ import { GOLDEN_SHA256 } from "@/lib/room213/scene-config";
 export const dynamic = "force-dynamic";
 
 const TITLE = "Payne Hall — Room 213";
-const DESCRIPTION = "Interactive Spatial Capture";
+const DESCRIPTION = "Interactive 3D room — look around in Dollhouse or Walk, and tap the plaques for photos and drawings.";
 
 function siteOrigin(): URL {
   const host = process.env.ROOM213_SHARE_HOST ?? process.env.VERCEL_BRANCH_URL ?? process.env.VERCEL_URL;

@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef } from "react";
-import { ExternalLink, MapPin, X } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Maximize2, MapPin, X } from "lucide-react";
+import { MediaViewer } from "@/components/room213/MediaViewer";
 import { ROOM213_PINS } from "@/lib/room213/pins";
 
 export type SheetState = { kind: "pin"; id: string } | { kind: "room" } | null;
@@ -27,6 +28,8 @@ export function ContentSheet({
   onViewInRoom: (id: string) => void;
 }) {
   const closeRef = useRef<HTMLButtonElement>(null);
+  const [viewing, setViewing] = useState<{ url: string; title: string } | null>(null);
+  const [broken, setBroken] = useState<Record<string, boolean>>({});
   const returnFocus = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -39,11 +42,14 @@ export function ContentSheet({
     }
   }, [state]);
 
+  useEffect(() => setViewing(null), [state]);
+
   if (!state) return null;
   const pin = state.kind === "pin" ? ROOM213_PINS.find((p) => p.pin_id === state.id) : null;
   const title = pin ? pin.title : "Room information";
 
   return (
+    <>
     <aside
       data-r213-ui
       role="dialog"
@@ -75,22 +81,29 @@ export function ContentSheet({
           <>
             {/* Media first: the photo/drawing is what the pin is about, so it is on screen the moment the sheet opens
                 (sized to fit — portrait bottom sheet or short landscape side sheet — never pushed below the fold).
-                Tap it for the full-size original. */}
+                Tap it (or Expand) to inspect it full screen with zoom. */}
             {pin.content.map((c) => (
               <figure key={c.url} className="space-y-1">
-                <a href={c.url} target="_blank" rel="noopener" aria-label={`Open ${c.title} full size`} className="block">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={c.url}
-                    alt={c.title}
-                    className="mx-auto max-h-[38dvh] w-full rounded-lg border border-[var(--mkt-line)] bg-[var(--mkt-canvas-alt)] object-contain landscape:max-h-[52dvh]"
-                  />
-                </a>
+                <button type="button" onClick={() => setViewing(c)} aria-label={`Expand ${c.title}`} className="block w-full cursor-zoom-in">
+                  {broken[c.url] ? (
+                    <span className="flex h-28 items-center justify-center rounded-lg border border-[var(--mkt-line)] bg-[var(--mkt-canvas-alt)] text-[12px] text-[var(--mkt-ink-muted)]">
+                      Preview unavailable — tap to open
+                    </span>
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={c.url}
+                      alt={c.title}
+                      onError={() => setBroken((m) => ({ ...m, [c.url]: true }))}
+                      className="mx-auto max-h-[38dvh] w-full rounded-lg border border-[var(--mkt-line)] bg-[var(--mkt-canvas-alt)] object-contain landscape:max-h-[52dvh]"
+                    />
+                  )}
+                </button>
                 <figcaption className="flex items-center justify-between gap-2 text-[12px] text-[var(--mkt-ink-muted)]">
                   <span>{c.title}</span>
-                  <a href={c.url} target="_blank" rel="noopener" className="inline-flex min-h-[44px] shrink-0 items-center gap-1 font-semibold text-[var(--mkt-brand-green)]">
-                    Full size <ExternalLink className="size-3.5" aria-hidden />
-                  </a>
+                  <button type="button" onClick={() => setViewing(c)} className="inline-flex min-h-[44px] shrink-0 items-center gap-1 font-semibold text-[var(--mkt-brand-green)]">
+                    <Maximize2 className="size-3.5" aria-hidden /> Expand
+                  </button>
                 </figcaption>
               </figure>
             ))}
@@ -144,5 +157,7 @@ export function ContentSheet({
         )}
       </div>
     </aside>
+    {viewing ? <MediaViewer src={viewing.url} title={viewing.title} onClose={() => setViewing(null)} /> : null}
+    </>
   );
 }

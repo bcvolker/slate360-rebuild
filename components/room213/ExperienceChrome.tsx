@@ -2,18 +2,29 @@
 
 import type { SparkProfileCheck } from "@/components/digital-twin/use-spark-profile-check";
 import { getTiming } from "@/lib/room213/timing";
+import { SlateIcon } from "@/components/shared/SlateIcon";
 import { ROOM213_PINS } from "@/lib/room213/pins";
 import type { Fidelity } from "@/lib/room213/fidelity";
 import type { TransitionOutcome } from "@/components/room213/useViewTransition";
 
 type Phase = "loading" | "preparing" | "ready" | "error";
 
+/**
+ * Brand + place, legible over any part of the capture (dark exterior in Dollhouse, bright ceiling in Walk): the
+ * homepage logo lockup (emblem + SLATE/360 wordmark) on a light surface badge.
+ */
 export function Identity() {
   return (
-    <div className="pointer-events-none absolute left-0 top-0 z-20 pl-[max(1rem,env(safe-area-inset-left))] pt-[max(0.9rem,env(safe-area-inset-top))]">
-      <div className="rounded-lg bg-[color-mix(in_srgb,var(--graphite-canvas)_55%,transparent)] px-2.5 py-1.5 backdrop-blur-sm">
-        <p className="font-mono text-[10px] font-semibold tracking-[0.2em] text-[var(--mkt-brand-green)]">SLATE360</p>
-        <p className="text-[13px] font-semibold leading-tight text-[var(--mkt-surface)]">Payne Hall — Room 213</p>
+    <div className="pointer-events-none absolute left-0 top-0 z-20 pl-[max(0.75rem,env(safe-area-inset-left))] pt-[max(0.75rem,env(safe-area-inset-top))]">
+      <div className="flex items-center gap-2.5 rounded-xl bg-[var(--mkt-surface)] py-1.5 pl-1.5 pr-3.5 shadow-md">
+        <SlateIcon className="h-9 w-auto shrink-0" aria-hidden />
+        <div className="leading-tight">
+          <p className="text-[13px] font-semibold tracking-[0.13em]">
+            <span className="text-[var(--mkt-ink)]">SLATE</span>
+            <span className="text-[var(--mkt-brand-green)]">360</span>
+          </p>
+          <p className="text-[13px] font-semibold text-[var(--mkt-ink)]">Payne Hall — Room 213</p>
+        </div>
       </div>
     </div>
   );
