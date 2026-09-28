@@ -21,12 +21,12 @@ import { ControlStrip } from "@/components/room213/ControlStrip";
 import { ContentSheet, type SheetState } from "@/components/room213/ContentSheet";
 import { LoadingPoster } from "@/components/room213/LoadingPoster";
 import { WalkJoystick } from "@/components/room213/WalkJoystick";
-import { NavHints } from "@/components/room213/NavHints";
+import { LandscapeTip, NavHints } from "@/components/room213/NavHints";
 import { ROOM213_PINS } from "@/lib/room213/pins";
 import { pinViewPose } from "@/lib/room213/pin-focus";
 import { useViewTransition } from "@/components/room213/useViewTransition";
 import { Identity, InternalPanel, PinHoverLabel } from "@/components/room213/ExperienceChrome";
-import { useClearOnLifecycle, useOutsidePressDismiss, useQuietControls, useMedia, useSessionBool, useVisualViewportBox } from "@/components/room213/ui-hooks";
+import { useClearOnLifecycle, useLandscapeFullscreen, useOutsidePressDismiss, useQuietControls, useMedia, useSessionBool, useVisualViewportBox } from "@/components/room213/ui-hooks";
 import type { SceneDebug } from "@/components/room213/scene-debug";
 
 type Phase = "loading" | "preparing" | "ready" | "error";
@@ -87,6 +87,7 @@ export function Room213Experience({
   }, []);
 
   useClearOnLifecycle(() => clearWalkInput(walkInput));
+  useLandscapeFullscreen(root, coarse && landscape);
   // Tap/click outside the sheet or menu closes it (the press is consumed, never also moves the camera).
   useOutsidePressDismiss(sheet !== null || menuOpen, () => (setSheet(null), setMenuOpen(false)));
 
@@ -97,10 +98,9 @@ export function Room213Experience({
     setHoverPin(null);
   });
 
-  // Reset re-homes the current view's camera only (rigs remount on resetNonce); the model is never reloaded.
   const [resetNonce, setResetNonce] = useState(0);
-  // Reset is authoritative and stays in the current mode: under the cover, Walk returns to the curated entry (the
-  // epoch bump cancels any step in flight), Dollhouse to its hero orbit, Plan to its fitted plan.
+  // Reset (never reloads the model) is authoritative and stays in the mode: under the cover Walk returns to the
+  // curated entry (the epoch bump cancels any step in flight), Dollhouse to its hero orbit, Plan to its fitted plan.
   const resetView = useCallback(() => {
     setSheet(null);
     goView(view, () => {
@@ -282,6 +282,7 @@ export function Room213Experience({
           />
           {view === "walk" && coarse && landscape && !sheet ? <WalkJoystick input={walkInput} onActivity={poke} /> : null}
           <NavHints view={view} coarse={coarse} landscape={landscape} />
+          <LandscapeTip coarse={coarse} landscape={landscape} hidden={sheet !== null || menuOpen} onFirstLandscape={() => view === "dollhouse" && goView("walk")} />
           {fidelity.state === "degraded" ? (
             <p role="status" className="pointer-events-none absolute inset-x-0 top-[max(4.5rem,env(safe-area-inset-top))] z-20 mx-auto w-fit rounded-md bg-[var(--mkt-surface)] px-3 py-1 text-[11px] text-[var(--mkt-ink)]">
               This device is showing a reduced-quality view of the model.

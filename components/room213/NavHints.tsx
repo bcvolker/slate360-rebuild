@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { RotateCw, X } from "lucide-react";
 import type { Room213View } from "@/lib/room213/edit-state";
 
 function seen(key: string): boolean {
@@ -38,9 +39,6 @@ export function NavHints({ view, coarse, landscape }: { view: Room213View; coars
     } else if (!seen("room213.hint.walk")) {
       key = "room213.hint.walk";
       text = !coarse ? "Drag to look · Click the floor to move" : landscape ? "Drag to look · Joystick to move" : "Drag to look · Tap the floor to move";
-    } else if (coarse && !landscape && !seen("room213.hint.rotate")) {
-      key = "room213.hint.rotate";
-      text = "Rotate for a movement control";
     }
     if (!key || !text) return;
     setHint(text);
@@ -58,5 +56,46 @@ export function NavHints({ view, coarse, landscape }: { view: Room213View; coars
     <p role="status" className="pointer-events-none absolute inset-x-0 top-[max(4.5rem,calc(env(safe-area-inset-top)+3.5rem))] z-20 mx-auto w-fit rounded-lg bg-[color-mix(in_srgb,var(--graphite-canvas)_68%,transparent)] px-3 py-1.5 text-[12px] font-medium text-[var(--mkt-surface)]">
       {hint}
     </p>
+  );
+}
+
+/**
+ * Portrait phones: a small, closable tip in the top-right corner (below the identity badge, clear of the
+ * controls and the model's centre) saying landscape has the joystick. It stays until closed or until the phone is
+ * rotated; the first rotation after seeing it calls `onFirstLandscape` (the viewer enters Walk so the promised
+ * joystick is actually there). Never shown again after either.
+ */
+export function LandscapeTip({ coarse, landscape, hidden, onFirstLandscape }: { coarse: boolean; landscape: boolean; hidden: boolean; onFirstLandscape: () => void }) {
+  const [show, setShow] = useState(false);
+  const cb = useRef(onFirstLandscape);
+  cb.current = onFirstLandscape;
+  useEffect(() => {
+    if (!coarse || seen("room213.tip.landscape")) return setShow(false);
+    if (landscape) {
+      if (show) {
+        markSeen("room213.tip.landscape");
+        setShow(false);
+        cb.current();
+      }
+      return;
+    }
+    setShow(true);
+  }, [coarse, landscape, show]);
+  if (!show || hidden) return null;
+  return (
+    <div className="absolute right-0 top-0 z-20 pr-[max(0.75rem,env(safe-area-inset-right))] pt-[max(7.25rem,calc(env(safe-area-inset-top)+6.5rem))]">
+      <div className="flex max-w-[210px] items-center gap-1 rounded-lg bg-[color-mix(in_srgb,var(--graphite-canvas)_70%,transparent)] py-1 pl-2.5 pr-1 text-[11.5px] font-medium leading-snug text-[var(--mkt-surface)]">
+        <RotateCw className="size-3.5 shrink-0" aria-hidden />
+        <span>Turn sideways to walk with a joystick</span>
+        <button
+          type="button"
+          aria-label="Dismiss tip"
+          onClick={() => (markSeen("room213.tip.landscape"), setShow(false))}
+          className="flex size-8 shrink-0 items-center justify-center rounded-md hover:bg-white/10"
+        >
+          <X className="size-3.5" aria-hidden />
+        </button>
+      </div>
+    </div>
   );
 }

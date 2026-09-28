@@ -140,3 +140,25 @@ export function useOutsidePressDismiss(active: boolean, dismiss: () => void): vo
     };
   }, [active]);
 }
+
+/**
+ * Landscape on a touch phone → full screen, where the browser allows it (Android Chrome and most non-iOS
+ * browsers). Browsers only grant full screen inside a user gesture, so it engages on the first touch after
+ * rotating (that touch still does its normal job). Returning to portrait exits it again. iPhone Safari has no
+ * element full screen API, so this is a no-op there.
+ */
+export function useLandscapeFullscreen(root: HTMLElement | null, active: boolean): void {
+  useEffect(() => {
+    if (!root || !document.fullscreenEnabled || typeof root.requestFullscreen !== "function") return;
+    let entered = false;
+    const onTouch = () => {
+      if (!active || document.fullscreenElement) return;
+      void root.requestFullscreen({ navigationUI: "hide" }).then(() => (entered = true)).catch(() => undefined);
+    };
+    root.addEventListener("pointerdown", onTouch, { capture: true });
+    return () => {
+      root.removeEventListener("pointerdown", onTouch, { capture: true });
+      if (entered && document.fullscreenElement === root) void document.exitFullscreen().catch(() => undefined);
+    };
+  }, [root, active]);
+}
