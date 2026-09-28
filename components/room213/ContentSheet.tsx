@@ -73,24 +73,31 @@ export function ContentSheet({
       <div className="space-y-4 px-5 pb-6">
         {pin ? (
           <>
-            <p className="text-[14px] leading-relaxed text-[var(--mkt-ink-muted)]">{pin.description}</p>
-            <button type="button" onClick={() => onViewInRoom(pin.pin_id)} className={`${ACTION} border border-[var(--mkt-accent-line)] text-[var(--mkt-brand-green)] hover:bg-[var(--mkt-accent-soft)]`}>
-              <MapPin className="size-4" aria-hidden /> View in room
-            </button>
+            {/* Media first: the photo/drawing is what the pin is about, so it is on screen the moment the sheet opens
+                (sized to fit — portrait bottom sheet or short landscape side sheet — never pushed below the fold).
+                Tap it for the full-size original. */}
             {pin.content.map((c) => (
-              <figure key={c.url} className="space-y-2">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={c.url} alt={c.title} className="w-full rounded-lg border border-[var(--mkt-line)] bg-[var(--mkt-canvas-alt)]" />
-                <figcaption className="flex items-center justify-between text-[12px] text-[var(--mkt-ink-muted)]">
+              <figure key={c.url} className="space-y-1">
+                <a href={c.url} target="_blank" rel="noopener" aria-label={`Open ${c.title} full size`} className="block">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={c.url}
+                    alt={c.title}
+                    className="mx-auto max-h-[38dvh] w-full rounded-lg border border-[var(--mkt-line)] bg-[var(--mkt-canvas-alt)] object-contain landscape:max-h-[52dvh]"
+                  />
+                </a>
+                <figcaption className="flex items-center justify-between gap-2 text-[12px] text-[var(--mkt-ink-muted)]">
                   <span>{c.title}</span>
-                  {c.type === "drawing" ? (
-                    <a href={c.url} target="_blank" rel="noopener" className="inline-flex min-h-[44px] items-center gap-1 font-semibold text-[var(--mkt-brand-green)]">
-                      Open original <ExternalLink className="size-3.5" aria-hidden />
-                    </a>
-                  ) : null}
+                  <a href={c.url} target="_blank" rel="noopener" className="inline-flex min-h-[44px] shrink-0 items-center gap-1 font-semibold text-[var(--mkt-brand-green)]">
+                    Full size <ExternalLink className="size-3.5" aria-hidden />
+                  </a>
                 </figcaption>
               </figure>
             ))}
+            <button type="button" onClick={() => onViewInRoom(pin.pin_id)} className={`${ACTION} border border-[var(--mkt-accent-line)] text-[var(--mkt-brand-green)] hover:bg-[var(--mkt-accent-soft)]`}>
+              <MapPin className="size-4" aria-hidden /> View in room
+            </button>
+            <p className="text-[14px] leading-relaxed text-[var(--mkt-ink-muted)]">{pin.description}</p>
           </>
         ) : (
           <>
@@ -114,7 +121,13 @@ export function ContentSheet({
               <ul className="divide-y divide-[var(--mkt-line)]">
                 {ROOM213_PINS.map((p) => (
                   <li key={p.pin_id} className="flex min-h-[52px] items-center justify-between gap-2 py-1">
-                    <span className="text-[14px] leading-snug">{p.title}</span>
+                    <button type="button" onClick={() => onOpenPin(p.pin_id)} className="flex min-w-0 items-center gap-2.5 text-left" aria-hidden tabIndex={-1}>
+                      {p.content[0]?.thumbnail ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={p.content[0].thumbnail} alt="" className="size-11 shrink-0 rounded-md border border-[var(--mkt-line)] bg-[var(--mkt-canvas-alt)] object-cover" />
+                      ) : null}
+                      <span className="text-[14px] leading-snug">{p.title}</span>
+                    </button>
                     <span className="flex shrink-0 items-center gap-1">
                       <button type="button" onClick={() => onOpenPin(p.pin_id)} className={`${ACTION} text-[var(--mkt-ink)] hover:bg-[var(--mkt-canvas-alt)]`} aria-label={`Open ${p.title}`}>
                         Open
