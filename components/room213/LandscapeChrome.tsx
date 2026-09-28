@@ -27,9 +27,8 @@ const CHIP =
  * Full screen / Exit full screen toggle.
  * - Where the browser allows it (Fullscreen API): the viewer goes full screen on the first touch after rotating
  *   or on the toggle; Exit leaves it until the next rotation.
- * - iPhone Safari has no full-screen capability for web pages (Apple allows it only for video), so no gesture or
- *   code can hide its bars. The toggle there opens a short card with the two real options: Add to Home Screen
- *   (this route's manifest launches full screen) or Safari's own Hide Toolbar.
+ * - iPhone Safari has no full-screen capability for web pages (Apple allows it only for video), so no button is
+ *   shown there (it could do nothing). Launching from the home screen (this route's manifest) is full screen.
  * The document behind the viewer is always locked (no scroll, canvas-coloured).
  */
 export function LandscapeChrome({
@@ -56,14 +55,12 @@ export function LandscapeChrome({
   const [supported, setSupported] = useState(false);
   const [full, setFull] = useState(false);
   const [userExited, setUserExited] = useState(false);
-  const [help, setHelp] = useState(false);
   const [standalone, setStandalone] = useState(false);
   useEffect(() => setSupported(canFullscreen(root)), [root]);
   useEffect(() => setStandalone(isStandalone()), []);
   useEffect(() => {
     if (!active) {
       setUserExited(false);
-      setHelp(false);
     }
   }, [active]);
 
@@ -90,7 +87,7 @@ export function LandscapeChrome({
   }, [supported, root, active, userExited]);
 
   const toggle = () => {
-    if (!supported) return setHelp((h) => !h);
+    if (!supported) return;
     if (document.fullscreenElement) {
       setUserExited(true);
       void document.exitFullscreen().catch(() => undefined);
@@ -110,35 +107,11 @@ export function LandscapeChrome({
           <WalkJoystick input={input} onActivity={noop} kind="look" />
         </>
       ) : null}
-      {active && !sheetOpen && !standalone ? (
+      {active && supported && !sheetOpen && !standalone ? (
         <button type="button" data-r213-ui onClick={toggle} className={CHIP} aria-label={full ? "Exit full screen" : "Full screen"}>
           {full ? <X className="size-4" aria-hidden /> : <Maximize className="size-4" aria-hidden />}
           {full ? "Exit full screen" : "Full screen"}
         </button>
-      ) : null}
-      {active && help && !sheetOpen ? (
-        <div
-          data-r213-ui
-          role="dialog"
-          aria-label="Full screen on iPhone"
-          className="absolute right-0 top-0 z-40 mr-[max(0.75rem,env(safe-area-inset-right))] mt-[calc(max(0.75rem,env(safe-area-inset-top))+3.25rem)] w-[min(300px,70vw)] rounded-xl bg-[var(--mkt-surface)] p-3 text-[13px] leading-snug text-[var(--mkt-ink)] shadow-lg"
-        >
-          <div className="mb-1 flex items-start justify-between gap-2">
-            <p className="font-semibold">Full screen on iPhone</p>
-            <button type="button" aria-label="Close" onClick={() => setHelp(false)} className="-m-1 flex size-9 shrink-0 items-center justify-center rounded-lg hover:bg-[var(--mkt-canvas-alt)]">
-              <X className="size-4" aria-hidden />
-            </button>
-          </div>
-          <p className="text-[var(--mkt-ink-muted)]">Safari doesn&apos;t let websites go full screen. Two ways to get it:</p>
-          <ol className="mt-1.5 list-decimal space-y-1 pl-4">
-            <li>
-              Tap <span className="font-semibold">Share</span> → <span className="font-semibold">Add to Home Screen</span>, then open Room 213 from your home screen.
-            </li>
-            <li>
-              Or tap the page icon left of the address → <span className="font-semibold">Hide Toolbar</span>.
-            </li>
-          </ol>
-        </div>
       ) : null}
     </>
   );

@@ -1,18 +1,26 @@
 import data from "./presentation-data.json";
 
 /**
- * Walk navigation bounds (V frame, x/z). Only the WALLS limit movement: the room interior inset by a body margin.
- * Furniture is deliberately NOT an obstacle — the baked furniture mask (walk_grid in presentation-data.json)
- * left 10–20 cm gaps between table rows, so the joystick / taps dead-ended everywhere except the centre aisle and
- * the perimeter (physical test). Walking "through" a table at eye height is far better than being stuck.
+ * Walk navigation bounds (V frame, x/z): inside the walls (body margin), and outside the table rows.
+ * Each table row (tables + their chairs, baked as `table_blobs_V`) blocks only its own footprint plus a small
+ * margin. History: the first mask dilated every row by a 0.3 body radius, which closed the ~0.5 aisles (joystick
+ * dead-ended); walls-only then let the eye pass through chairs/tables, whose near splats smear dark across the
+ * view (both from physical tests). Footprint + 0.08 keeps every aisle open and the camera out of the furniture.
  */
 const W = data.walls_V;
 const MARGIN = 0.35; // keep the eye this far inside the walls
+const FURNITURE_MARGIN = 0.08;
 const CELL = 0.1;
 const X0 = W.x_min + MARGIN;
 const X1 = W.x_max - MARGIN;
 const Z0 = W.z_min + MARGIN;
 const Z1 = W.z_max - MARGIN;
+const ROWS = data.table_blobs_V.map((r) => ({
+  x0: r.x[0] - FURNITURE_MARGIN,
+  x1: r.x[1] + FURNITURE_MARGIN,
+  z0: r.z[0] - FURNITURE_MARGIN,
+  z1: r.z[1] + FURNITURE_MARGIN,
+}));
 
 export const WALK_GRID = { x0: W.x_min, z0: W.z_min, cell: CELL, nx: Math.ceil((W.x_max - W.x_min) / CELL), nz: Math.ceil((W.z_max - W.z_min) / CELL) };
 
@@ -21,7 +29,8 @@ function cellWalkable(ix: number, iz: number): boolean {
 }
 
 export function isWalkable(x: number, z: number): boolean {
-  return x >= X0 && x <= X1 && z >= Z0 && z <= Z1;
+  if (x < X0 || x > X1 || z < Z0 || z > Z1) return false;
+  return !ROWS.some((r) => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1);
 }
 
 /**

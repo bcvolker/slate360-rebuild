@@ -7,6 +7,14 @@ import { GOLDEN_SHA256 } from "@/lib/room213/scene-config";
 export const dynamic = "force-dynamic";
 
 const TITLE = "Payne Hall — Room 213";
+/** Dollhouse render + brand panel (1200×630), shown by iMessage/WhatsApp/Slack link previews. */
+const SHARE_IMAGE = {
+  url: "/preview/room213/share-dollhouse-v2.jpg",
+  width: 1200,
+  height: 630,
+  type: "image/jpeg",
+  alt: "Payne Hall Room 213 — Slate360 interactive 3D room, dollhouse view",
+};
 const DESCRIPTION = "Interactive 3D room — look around in Dollhouse or Walk, and tap the plaques for photos and drawings.";
 
 function siteOrigin(): URL {
@@ -14,7 +22,7 @@ function siteOrigin(): URL {
   return new URL(host ? `https://${host}` : "http://localhost:3000");
 }
 
-/** Server-rendered link-preview metadata (no client JS needed); the OG image is the co-located opengraph-image.jpg. */
+/** Server-rendered link-preview metadata (no client JS needed). */
 export async function generateMetadata(): Promise<Metadata> {
   return {
     metadataBase: siteOrigin(),
@@ -23,8 +31,9 @@ export async function generateMetadata(): Promise<Metadata> {
     applicationName: "Slate360",
     robots: { index: false, follow: false },
     alternates: { canonical: "/preview/room213" },
-    openGraph: { type: "website", siteName: "Slate360", title: TITLE, description: DESCRIPTION, url: "/preview/room213" },
-    twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
+    // Explicit, query-free image URL (a new file name so message apps don't reuse a cached preview).
+    openGraph: { type: "website", siteName: "Slate360", title: TITLE, description: DESCRIPTION, url: "/preview/room213", images: [SHARE_IMAGE] },
+    twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION, images: [SHARE_IMAGE] },
     // "Add to Home Screen" opens this room full screen (no browser bars) — the only true full screen on iPhone.
     manifest: "/preview/room213/manifest.webmanifest",
     appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Room 213" },

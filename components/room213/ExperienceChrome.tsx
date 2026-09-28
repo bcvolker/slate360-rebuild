@@ -13,9 +13,9 @@ type Phase = "loading" | "preparing" | "ready" | "error";
  * Brand + place, legible over any part of the capture (dark exterior in Dollhouse, bright ceiling in Walk): the
  * homepage logo lockup (emblem + SLATE/360 wordmark) on a light surface badge.
  */
-export function Identity() {
+export function Identity({ hidden = false }: { hidden?: boolean }) {
   return (
-    <div className="pointer-events-none absolute left-0 top-0 z-20 pl-[max(0.75rem,env(safe-area-inset-left))] pt-[max(0.75rem,env(safe-area-inset-top))]">
+    <div className={`pointer-events-none absolute left-0 top-0 z-20 transition-opacity duration-500 ${hidden ? "opacity-0" : "opacity-100"} pl-[max(0.75rem,env(safe-area-inset-left))] pt-[max(0.75rem,env(safe-area-inset-top))]`}>
       <div className="flex items-center gap-2.5 rounded-xl bg-[var(--mkt-surface)] py-1.5 pl-1.5 pr-3.5 shadow-md">
         <SlateIcon className="h-9 w-auto shrink-0" aria-hidden />
         <div className="leading-tight">

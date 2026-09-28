@@ -6,7 +6,8 @@
  *
  * Usage: node scripts/ops/room213-posters.mjs [baseUrl=http://127.0.0.1:3215]
  * Writes: public/preview/room213/poster-landscape.jpg (1600×1000), poster-portrait.jpg (1080×2160),
- *         app/preview/room213/opengraph-image.jpg + twitter-image.jpg (1200×630), and their .alt.txt files.
+ *         public/preview/room213/share-dollhouse-v2.jpg (1200×630 link preview, referenced from page.tsx metadata;
+ *         the shipped file also carries a brand panel composited afterwards).
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
@@ -57,10 +58,6 @@ await compose(land, { width: 1600, height: 1000, html: plain, out: "public/previ
 const port = await render({ width: 540, height: 1080, dpr: 2 });
 await compose(port, { width: 1080, height: 2160, html: plain, out: "public/preview/room213/poster-portrait.jpg", quality: 82 });
 const card = await render({ width: 1200, height: 630, dpr: 1 });
-await compose(card, { width: 1200, height: 630, html: og, out: "app/preview/room213/opengraph-image.jpg", quality: 86 });
-writeFileSync("app/preview/room213/twitter-image.jpg", readFileSync("app/preview/room213/opengraph-image.jpg"));
-const alt = "Payne Hall Room 213 — Slate360 interactive spatial capture, dollhouse view";
-writeFileSync("app/preview/room213/opengraph-image.alt.txt", alt);
-writeFileSync("app/preview/room213/twitter-image.alt.txt", alt);
+await compose(card, { width: 1200, height: 630, html: og, out: "public/preview/room213/share-dollhouse-v2.jpg", quality: 86 });
 await browser.close();
 console.log("posters written");

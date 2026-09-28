@@ -289,7 +289,7 @@ export function Room213Experience({
           ) : null}
         </>
       ) : null}
-      {!posterMode ? <Identity /> : null}
+      {!posterMode ? <Identity hidden={ready && coarse && landscape && quiet && !menuOpen && !sheet} /> : null}
       <LandscapeChrome root={root} ready={ready && !posterMode} view={view} coarse={coarse} landscape={landscape} sheetOpen={sheet !== null} input={walkInput} onActivity={poke} />
       {hoverPin && !sheet ? <PinHoverLabel {...hoverPin} /> : null}
       <ContentSheet state={sheet} onClose={() => setSheet(null)} onOpenPin={openPin} onViewInRoom={viewInRoom} />

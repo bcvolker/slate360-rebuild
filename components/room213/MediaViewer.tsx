@@ -122,7 +122,8 @@ export function MediaViewer({ src, title, onClose }: { src: string; title: strin
       aria-modal="true"
       aria-label={title}
       className="fixed inset-0 z-50 flex flex-col bg-[var(--graphite-canvas)]"
-      style={{ touchAction: "none", paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)" }}
+      // All four safe areas: in landscape the camera cutout sits on a side edge and must not cover the title/Close.
+      style={{ touchAction: "none", paddingTop: "env(safe-area-inset-top)", paddingBottom: "env(safe-area-inset-bottom)", paddingLeft: "env(safe-area-inset-left)", paddingRight: "env(safe-area-inset-right)" }}
       onPointerDown={(e) => e.stopPropagation()}
       // A plain tap outside the image and controls closes — never after a pan/pinch, never while zoomed in.
       onClick={(e) => view.z === 1 && !moved.current && !(e.target as Element).closest("button, a, img, [data-stage]") && onClose()}

@@ -62,7 +62,7 @@ export function WalkRig({
   useEffect(() => {
     camera.up.set(0, 1, 0);
     camera.fov = WALK_FOV;
-    camera.near = 0.05;
+    camera.near = 0.2; // splats closer than this to the eye render as huge dark smears; cull them in Walk
     camera.updateProjectionMatrix();
   }, [camera]);
 
