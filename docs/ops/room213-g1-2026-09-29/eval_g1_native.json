@@ -1,0 +1,142 @@
+{
+ "models": {
+  "g1": {
+   "ply_sha256": "02ced090ce04c56dd966fc9787b9e4d8473b44d17627e4308965af85d8013808",
+   "exit": -11,
+   "render_s": 271,
+   "n_mapped": 836,
+   "max_thumb_err": 0.0,
+   "heldout": {
+    "camera1/frame_00115_eval.png": {
+     "psnr": 20.000203828170704,
+     "ssim": 0.7157899141311646,
+     "lpips_1280_masked": 0.3783470392227173
+    },
+    "camera1/frame_00015_eval.png": {
+     "psnr": 19.750193647844835,
+     "ssim": 0.7532171607017517,
+     "lpips_1280_masked": 0.28913208842277527
+    },
+    "camera2/frame_00075_eval.png": {
+     "psnr": 17.25732023745649,
+     "ssim": 0.7482702732086182,
+     "lpips_1280_masked": 0.31209132075309753
+    },
+    "camera1/frame_00075_eval.png": {
+     "psnr": 18.41606715811915,
+     "ssim": 0.7514201998710632,
+     "lpips_1280_masked": 0.3437914252281189
+    },
+    "camera1/frame_00035_eval.png": {
+     "psnr": 19.566573145519772,
+     "ssim": 0.714268684387207,
+     "lpips_1280_masked": 0.3335673213005066
+    },
+    "camera2/frame_00025_eval.png": {
+     "psnr": 18.42887219731462,
+     "ssim": 0.725612998008728,
+     "lpips_1280_masked": 0.32483401894569397
+    },
+    "camera1/frame_00005_eval.png": {
+     "psnr": 19.733760827618188,
+     "ssim": 0.6891101598739624,
+     "lpips_1280_masked": 0.3866319954395294
+    },
+    "camera1/frame_00025_eval.png": {
+     "psnr": 19.880480678656813,
+     "ssim": 0.696118950843811,
+     "lpips_1280_masked": 0.3427245318889618
+    },
+    "camera2/frame_00055_eval.png": {
+     "psnr": 19.238331811737652,
+     "ssim": 0.7204877734184265,
+     "lpips_1280_masked": 0.3314301371574402
+    },
+    "camera2/frame_00085_eval.png": {
+     "psnr": 18.467790982268518,
+     "ssim": 0.7377712726593018,
+     "lpips_1280_masked": 0.34424135088920593
+    },
+    "camera2/frame_00095_eval.png": {
+     "psnr": 17.940942163289176,
+     "ssim": 0.7332661747932434,
+     "lpips_1280_masked": 0.3207506835460663
+    },
+    "camera1/frame_00045_eval.png": {
+     "psnr": 21.36742903309068,
+     "ssim": 0.7058284282684326,
+     "lpips_1280_masked": 0.2890010178089142
+    },
+    "camera1/frame_00055_eval.png": {
+     "psnr": 20.197070473416836,
+     "ssim": 0.6916443109512329,
+     "lpips_1280_masked": 0.3006138801574707
+    },
+    "camera2/frame_00005_eval.png": {
+     "psnr": 17.510393691759532,
+     "ssim": 0.6789175271987915,
+     "lpips_1280_masked": 0.3876008987426758
+    },
+    "camera2/frame_00045_eval.png": {
+     "psnr": 19.651990247923138,
+     "ssim": 0.701912522315979,
+     "lpips_1280_masked": 0.33019009232521057
+    },
+    "camera2/frame_00015_eval.png": {
+     "psnr": 17.970976208360817,
+     "ssim": 0.7408660650253296,
+     "lpips_1280_masked": 0.2986127436161041
+    },
+    "camera2/frame_00115_eval.png": {
+     "psnr": 18.351375542485464,
+     "ssim": 0.7054663896560669,
+     "lpips_1280_masked": 0.33778998255729675
+    },
+    "camera2/frame_00035_eval.png": {
+     "psnr": 18.35405838584497,
+     "ssim": 0.7137383818626404,
+     "lpips_1280_masked": 0.3166884481906891
+    },
+    "camera1/frame_00085_eval.png": {
+     "psnr": 18.745513216143074,
+     "ssim": 0.7180638909339905,
+     "lpips_1280_masked": 0.31317630410194397
+    },
+    "camera2/frame_00105_eval.png": {
+     "psnr": 18.613236431195794,
+     "ssim": 0.7177479863166809,
+     "lpips_1280_masked": 0.30823183059692383
+    },
+    "camera2/frame_00065_eval.png": {
+     "psnr": 18.331221788319713,
+     "ssim": 0.7410401701927185,
+     "lpips_1280_masked": 0.36905017495155334
+    },
+    "camera1/frame_00105_eval.png": {
+     "psnr": 20.013651102103882,
+     "ssim": 0.7045866250991821,
+     "lpips_1280_masked": 0.33465850353240967
+    },
+    "camera1/frame_00095_eval.png": {
+     "psnr": 20.273957346415884,
+     "ssim": 0.7367702722549438,
+     "lpips_1280_masked": 0.285893052816391
+    },
+    "camera1/frame_00065_eval.png": {
+     "psnr": 20.715572905051943,
+     "ssim": 0.7358742952346802,
+     "lpips_1280_masked": 0.3306922912597656
+    }
+   },
+   "heldout_mean": {
+    "psnr": 19.11570762708782,
+    "ssim": 0.7199079344669977,
+    "lpips_1280_masked": 0.32957254722714424
+   },
+   "walk_frames": 800,
+   "log_tail": "Devices:\n  * [0] NVIDIA L40S (discrete, 45457 MB)\nCameras: 2 (2 after splitting), seed points: 56674 (train_frame_scale=5.866)\nOutput directory: /tmp/ev/g1/r\nSeeded from /vol/room213/2026-09-28/g1/runs/room213_g1/step-000030000.ckpt/splat.ply: 996140 splats from the PLY, 0 from the point cloud\nCheckpoint saved to: /tmp/ev/g1/r\nTraining complete. Steps: 0   Time: 00:00:00.000\nEval: views to score: 836\n  cc_l1: 0.060402\n  cc_psnr: inf\n  cc_ssim: 0.882746\n  l1: 0.414472\n  psnr: 6.717107\n  ssim: 0.405541\nEval metrics written to /tmp/ev/g1/r/metrics.json\n\n=== Spirula Studio crash report ===\ntime:    2026-09-29T07:40:43Z\nversion: 2026.9.20 (fd1afca)\nbuild:   Jan  1 2022 05:00:00\npid:     71\ndoing:   /tmp/spirula train\ncause:   SIGSEGV at 0x559a70520e3a\nstack:\n  #0 spirula+0x1636c6\n  #1 spirula+0x1645ff\n  #2 libc.so.6+0x42520\n  #3 spirula+0x27b3b6\n  #4 libc.so.6+0x45495\n  #5 libc.so.6+0x45610  on_exit\n  #6 libc.so.6+0x29d97\n  #7 libc.so.6+0x29e40  __libc_start_main\n  #8 spirula+0x13f9a5\nResolve a frame with: addr2line -f -C -e <module> <offset>\n  (Windows: the offset is an RVA; open it against the matching .pdb)\n"
+  }
+ },
+ "n_eval_inputs": 838,
+ "elapsed_s": 513
+}

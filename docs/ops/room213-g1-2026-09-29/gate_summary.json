@@ -1,0 +1,30 @@
+{
+ "dataset_id": "room213-golden-v1+normals-moge2b-v1",
+ "dataset_hash": "c72f08106b53027db0764d5225049b536d55e0c8bc746e8e1ce072cf7bc93b44",
+ "normals_map_set_hash": "6394f2900081808e4aa925f984da219ed1bb3798af4000c0bc3c37acd63cdc37",
+ "golden_dataset_manifest_sha256": "945216bfad0c5ea3947d322c059eba1802c7ac939c2f495da0c76046af74ec98",
+ "sparse_sha256": {
+  "cameras.txt": "51d167db6b7e6983e5b38e9d33ac8914b521532851b6659af0e7dd493f71ad00",
+  "images.txt": "b78bdfd2e70c4eee48acdbeda2f7e80f02af6bc580d7d297ee07b2784d025fb2",
+  "points3D.txt": "4937447176b32f31816011eae0e0912e4a31f0f4f3ecd412989c6604ba543560"
+ },
+ "frames_total": 242,
+ "frames_pass": 181,
+ "train_frames": 218,
+ "train_pass": 162,
+ "train_black": 56,
+ "fail_A": 61,
+ "fail_B": 1,
+ "B_not_evaluable": 0,
+ "guided_px_pct_of_train_circle": 52.547076996934805,
+ "guided_px_pct_within_passing": 70.71149867488758,
+ "median_plane_error_deg_passing": 2.9505684135536203,
+ "median_adjacent_disagreement_deg_passing": 2.3036317171959686,
+ "mask_fracs_mean": {
+  "dsmask": 0.03576254040649575,
+  "radius": 0.08329517802109923,
+  "face_dis": 0.13846449652054546,
+  "highlight": 0.09327139227469287,
+  "moge_invalid": 0.016065909860138408
+ }
+}

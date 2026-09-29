@@ -1,0 +1,244 @@
+{
+ "golden": {
+  "n": 996092,
+  "n_in_room_box": 551036,
+  "scale_max": {
+   "p10": 0.0038576009683310986,
+   "p50": 0.010712971910834312,
+   "p90": 0.06038239225745201,
+   "p99": 1.258978009223938
+  },
+  "scale_min": {
+   "p10": 4.080636644498633e-18,
+   "p50": 0.0019667968153953552,
+   "p90": 0.007911448366940022,
+   "p99": 0.31076323986053467
+  },
+  "anisotropy_max_over_min": {
+   "p10": 2.402818202972412,
+   "p50": 5.301574230194092,
+   "p90": 1193700.875,
+   "p99": 48605220.0
+  },
+  "flatness_mid_over_min": {
+   "p10": 1.2436907291412354,
+   "p50": 3.147310972213745,
+   "p90": 1096140.25,
+   "p99": 44183176.0
+  },
+  "opacity": {
+   "p10": 0.0487862303853035,
+   "p50": 0.1362282633781433,
+   "p90": 0.5180301666259766,
+   "p99": 0.954700767993927
+  },
+  "opacity_frac_gt_0.9": 0.019702999321347826,
+  "opacity_frac_lt_0.1": 0.35493307847066335,
+  "surfaces": {
+   "floor": {
+    "n_band_0.3": 517074,
+    "opacity_mass_band": 74982.46875,
+    "thickness_opw_std_within_0.1": 0.030684784601388893,
+    "opacity_mass_frac_behind_0.03": 0.12387324869632721,
+    "opacity_mass_frac_front_0.03": 0.637243926525116,
+    "lum_front_opw": 0.6066314363768768,
+    "lum_behind_opw": 0.6090671481828797,
+    "large_splats_scale_gt_0.05_within_0.1": 6256,
+    "large_splats_lum_mean": 0.5097714311619064,
+    "scale_max_p50_within_0.1": 0.00804919470101595,
+    "flatness_p50_within_0.1": 2.392030954360962
+   },
+   "ceiling": {
+    "n_band_0.3": 154301,
+    "opacity_mass_band": 46641.2265625,
+    "thickness_opw_std_within_0.1": 0.035097675654928426,
+    "opacity_mass_frac_behind_0.03": 0.35993221402168274,
+    "opacity_mass_frac_front_0.03": 0.5554722547531128,
+    "lum_front_opw": 0.5720522568302823,
+    "lum_behind_opw": 0.6387966758576992,
+    "large_splats_scale_gt_0.05_within_0.1": 23907,
+    "large_splats_lum_mean": 0.7232549646272465,
+    "scale_max_p50_within_0.1": 0.01978999376296997,
+    "flatness_p50_within_0.1": 10.278820037841797
+   },
+   "u_lo": {
+    "n_band_0.3": 14630,
+    "opacity_mass_band": 3450.28125,
+    "thickness_opw_std_within_0.1": 0.045330745052924934,
+    "opacity_mass_frac_behind_0.03": 0.06627967208623886,
+    "opacity_mass_frac_front_0.03": 0.22246237099170685,
+    "lum_front_opw": 0.31733009095282727,
+    "lum_behind_opw": 0.646446578712838,
+    "large_splats_scale_gt_0.05_within_0.1": 1601,
+    "large_splats_lum_mean": 0.6469620771460984,
+    "scale_max_p50_within_0.1": 0.022535517811775208,
+    "flatness_p50_within_0.1": 3.6568737030029297
+   },
+   "u_hi": {
+    "n_band_0.3": 11178,
+    "opacity_mass_band": 2181.90380859375,
+    "thickness_opw_std_within_0.1": 0.051444607014915954,
+    "opacity_mass_frac_behind_0.03": 0.3244514465332031,
+    "opacity_mass_frac_front_0.03": 0.2294028252363205,
+    "lum_front_opw": 0.7257556951022367,
+    "lum_behind_opw": 0.8416362803417484,
+    "large_splats_scale_gt_0.05_within_0.1": 2296,
+    "large_splats_lum_mean": 0.7845280582139948,
+    "scale_max_p50_within_0.1": 0.03499855101108551,
+    "flatness_p50_within_0.1": 4.808021545410156
+   },
+   "v_lo": {
+    "n_band_0.3": 26334,
+    "opacity_mass_band": 7129.009765625,
+    "thickness_opw_std_within_0.1": 0.061254856643028266,
+    "opacity_mass_frac_behind_0.03": 0.1699858158826828,
+    "opacity_mass_frac_front_0.03": 0.08557234704494476,
+    "lum_front_opw": 0.7920576964188072,
+    "lum_behind_opw": 0.8171999220968879,
+    "large_splats_scale_gt_0.05_within_0.1": 3653,
+    "large_splats_lum_mean": 0.7793627853492532,
+    "scale_max_p50_within_0.1": 0.04055218771100044,
+    "flatness_p50_within_0.1": 4.319478511810303
+   },
+   "v_hi": {
+    "n_band_0.3": 12287,
+    "opacity_mass_band": 3447.56689453125,
+    "thickness_opw_std_within_0.1": 0.03764190839930811,
+    "opacity_mass_frac_behind_0.03": 0.21006663143634796,
+    "opacity_mass_frac_front_0.03": 0.4750846028327942,
+    "lum_front_opw": 0.27172385117924575,
+    "lum_behind_opw": 0.4048806783769736,
+    "large_splats_scale_gt_0.05_within_0.1": 2426,
+    "large_splats_lum_mean": 0.5966308435025017,
+    "scale_max_p50_within_0.1": 0.02253711223602295,
+    "flatness_p50_within_0.1": 2.8249504566192627
+   }
+  },
+  "floaters": {
+   "n_free_space_candidates": 186149,
+   "n_op_gt_0.2_dist_gt_0.3": 35,
+   "n_op_gt_0.2_dist_gt_0.5": 10
+  }
+ },
+ "g1": {
+  "n": 996140,
+  "n_in_room_box": 518808,
+  "scale_max": {
+   "p10": 0.00440407358109951,
+   "p50": 0.011974749155342579,
+   "p90": 0.0673462450504303,
+   "p99": 0.422727108001709
+  },
+  "scale_min": {
+   "p10": 2.950792499234467e-09,
+   "p50": 0.0022834811825305223,
+   "p90": 0.009995526634156704,
+   "p99": 0.09940394014120102
+  },
+  "anisotropy_max_over_min": {
+   "p10": 2.4289169311523438,
+   "p50": 4.997819900512695,
+   "p90": 24803.92578125,
+   "p99": 39699844.0
+  },
+  "flatness_mid_over_min": {
+   "p10": 1.2341729402542114,
+   "p50": 2.919515609741211,
+   "p90": 15989.228515625,
+   "p99": 35515232.0
+  },
+  "opacity": {
+   "p10": 0.054913610219955444,
+   "p50": 0.1622597873210907,
+   "p90": 0.5892435312271118,
+   "p99": 0.9747416973114014
+  },
+  "opacity_frac_gt_0.9": 0.02914750938623085,
+  "opacity_frac_lt_0.1": 0.27708053084907747,
+  "surfaces": {
+   "floor": {
+    "n_band_0.3": 568390,
+    "opacity_mass_band": 102504.71875,
+    "thickness_opw_std_within_0.1": 0.02997763173066468,
+    "opacity_mass_frac_behind_0.03": 0.15046410262584686,
+    "opacity_mass_frac_front_0.03": 0.670975387096405,
+    "lum_front_opw": 0.6422707328739868,
+    "lum_behind_opw": 0.6195313271673603,
+    "large_splats_scale_gt_0.05_within_0.1": 17741,
+    "large_splats_lum_mean": 0.5243072971316283,
+    "scale_max_p50_within_0.1": 0.009138530120253563,
+    "flatness_p50_within_0.1": 2.401196002960205
+   },
+   "ceiling": {
+    "n_band_0.3": 131982,
+    "opacity_mass_band": 47559.58984375,
+    "thickness_opw_std_within_0.1": 0.03838192656367434,
+    "opacity_mass_frac_behind_0.03": 0.42704904079437256,
+    "opacity_mass_frac_front_0.03": 0.5037330985069275,
+    "lum_front_opw": 0.5805933149119598,
+    "lum_behind_opw": 0.6439252357246962,
+    "large_splats_scale_gt_0.05_within_0.1": 25005,
+    "large_splats_lum_mean": 0.7169404489211475,
+    "scale_max_p50_within_0.1": 0.02392030693590641,
+    "flatness_p50_within_0.1": 6.78010368347168
+   },
+   "u_lo": {
+    "n_band_0.3": 14752,
+    "opacity_mass_band": 3778.755126953125,
+    "thickness_opw_std_within_0.1": 0.04656683578733378,
+    "opacity_mass_frac_behind_0.03": 0.1595020592212677,
+    "opacity_mass_frac_front_0.03": 0.2438497692346573,
+    "lum_front_opw": 0.452824628585245,
+    "lum_behind_opw": 0.6588850736563125,
+    "large_splats_scale_gt_0.05_within_0.1": 2497,
+    "large_splats_lum_mean": 0.6617484958422031,
+    "scale_max_p50_within_0.1": 0.03423776850104332,
+    "flatness_p50_within_0.1": 3.3031327724456787
+   },
+   "u_hi": {
+    "n_band_0.3": 11929,
+    "opacity_mass_band": 2526.727783203125,
+    "thickness_opw_std_within_0.1": 0.053253565807750466,
+    "opacity_mass_frac_behind_0.03": 0.4131371080875397,
+    "opacity_mass_frac_front_0.03": 0.20945246517658234,
+    "lum_front_opw": 0.7374411572110732,
+    "lum_behind_opw": 0.8051249606622518,
+    "large_splats_scale_gt_0.05_within_0.1": 3539,
+    "large_splats_lum_mean": 0.7697921087286471,
+    "scale_max_p50_within_0.1": 0.04828178137540817,
+    "flatness_p50_within_0.1": 3.286273717880249
+   },
+   "v_lo": {
+    "n_band_0.3": 23998,
+    "opacity_mass_band": 6634.4970703125,
+    "thickness_opw_std_within_0.1": 0.06137761148824,
+    "opacity_mass_frac_behind_0.03": 0.20099571347236633,
+    "opacity_mass_frac_front_0.03": 0.09268194437026978,
+    "lum_front_opw": 0.8057480747982306,
+    "lum_behind_opw": 0.8196897857013661,
+    "large_splats_scale_gt_0.05_within_0.1": 4319,
+    "large_splats_lum_mean": 0.7775720508463558,
+    "scale_max_p50_within_0.1": 0.04823322594165802,
+    "flatness_p50_within_0.1": 3.601740837097168
+   },
+   "v_hi": {
+    "n_band_0.3": 11221,
+    "opacity_mass_band": 3205.25927734375,
+    "thickness_opw_std_within_0.1": 0.03783783906578429,
+    "opacity_mass_frac_behind_0.03": 0.27353546023368835,
+    "opacity_mass_frac_front_0.03": 0.4360903799533844,
+    "lum_front_opw": 0.28646761043612384,
+    "lum_behind_opw": 0.5133515906765617,
+    "large_splats_scale_gt_0.05_within_0.1": 2470,
+    "large_splats_lum_mean": 0.6063036706268425,
+    "scale_max_p50_within_0.1": 0.025461331009864807,
+    "flatness_p50_within_0.1": 2.8201711177825928
+   }
+  },
+  "floaters": {
+   "n_free_space_candidates": 165067,
+   "n_op_gt_0.2_dist_gt_0.3": 3,
+   "n_op_gt_0.2_dist_gt_0.5": 0
+  }
+ }
+}

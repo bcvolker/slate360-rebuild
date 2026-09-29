@@ -1,0 +1,398 @@
+{
+ "1_white_wall": {
+  "view": "carpet_a0_indep_f1280",
+  "roi": [
+   20,
+   330,
+   340,
+   570
+  ],
+  "segment": null,
+  "panels": {
+   "SOURCE": {
+    "fine_std": 1.5116117493561005
+   },
+   "GOLDEN native": {
+    "fine_std": 0.45939392619326797,
+    "fine": {
+     "energyRatio": 0.30390999963380505,
+     "ncc": 0.24725410652058571,
+     "coherentGain": 0.075142995422128,
+     "incoherentRatio": 0.29447379869253126
+    },
+    "mid": {
+     "energyRatio": 0.5094372518413907,
+     "ncc": 0.4871601511342067,
+     "coherentGain": 0.24817752860044678,
+     "incoherentRatio": 0.4448979971425842
+    }
+   },
+   "G1 native": {
+    "fine_std": 0.45402542970827037,
+    "fine": {
+     "energyRatio": 0.3003584947667091,
+     "ncc": 0.2032178908695485,
+     "coherentGain": 0.06103821981124294,
+     "incoherentRatio": 0.29409107620054986
+    },
+    "mid": {
+     "energyRatio": 0.5015270498473934,
+     "ncc": 0.4581549635714558,
+     "coherentGain": 0.2297771072529322,
+     "incoherentRatio": 0.44579352026594593
+    }
+   }
+  }
+ },
+ "2_ceiling_grid": {
+  "view": "chair_slats_a2_fixed_f640",
+  "roi": [
+   360,
+   0,
+   680,
+   240
+  ],
+  "segment": [
+   400,
+   96,
+   560,
+   132
+  ],
+  "panels": {
+   "SOURCE": {
+    "fine_std": 8.146745813496645,
+    "edge": {
+     "width10_90px": 6.380912819877267,
+     "contrast": 53.02197265625,
+     "profiles": 82
+    }
+   },
+   "GOLDEN native": {
+    "fine_std": 4.300068636748459,
+    "fine": {
+     "energyRatio": 0.5278265377599693,
+     "ncc": 0.511909030606268,
+     "coherentGain": 0.2701991712729686,
+     "incoherentRatio": 0.4534239316655852
+    },
+    "mid": {
+     "energyRatio": 0.6532987264148516,
+     "ncc": 0.7416299476832946,
+     "coherentGain": 0.48450590029260937,
+     "incoherentRatio": 0.43823881448009055
+    },
+    "edge": {
+     "width10_90px": 4.7826158702373505,
+     "contrast": 32.33111572265625,
+     "profiles": 82
+    }
+   },
+   "G1 native": {
+    "fine_std": 4.31195573979566,
+    "fine": {
+     "energyRatio": 0.5292856606194929,
+     "ncc": 0.45355259767052136,
+     "coherentGain": 0.24005888628372896,
+     "incoherentRatio": 0.47171500045433007
+    },
+    "mid": {
+     "energyRatio": 0.6420593407572748,
+     "ncc": 0.6973834096054641,
+     "coherentGain": 0.4477615322263447,
+     "incoherentRatio": 0.4601628052243926
+    },
+    "edge": {
+     "width10_90px": 6.973242036998272,
+     "contrast": 55.23219299316406,
+     "profiles": 82
+    }
+   }
+  }
+ },
+ "3_window_recess": {
+  "view": "carpet_a0_indep_f640",
+  "roi": [
+   330,
+   40,
+   650,
+   280
+  ],
+  "segment": null,
+  "panels": {
+   "SOURCE": {
+    "fine_std": 3.7997677663402825
+   },
+   "GOLDEN native": {
+    "fine_std": 1.6248429313875408,
+    "fine": {
+     "energyRatio": 0.4276163785010724,
+     "ncc": 0.013956312109102729,
+     "coherentGain": 0.005967947641325172,
+     "incoherentRatio": 0.427574731203006
+    },
+    "mid": {
+     "energyRatio": 0.7246777831973563,
+     "ncc": 0.5860147982942483,
+     "coherentGain": 0.4246719049487218,
+     "incoherentRatio": 0.5872066609014739
+    }
+   },
+   "G1 native": {
+    "fine_std": 1.4381998274807977,
+    "fine": {
+     "energyRatio": 0.3784967703081467,
+     "ncc": -0.004054650599141858,
+     "coherentGain": -0.0015346721565031851,
+     "incoherentRatio": 0.3784936590156697
+    },
+    "mid": {
+     "energyRatio": 0.6666830858158879,
+     "ncc": 0.5429621492059791,
+     "coherentGain": 0.36198368111386864,
+     "incoherentRatio": 0.5598519014170155
+    }
+   }
+  }
+ },
+ "4_chair_slats": {
+  "view": "chair_slats_a2_fixed_f1280",
+  "roi": [
+   650,
+   440,
+   970,
+   680
+  ],
+  "segment": [
+   725,
+   530,
+   790,
+   523,
+   6
+  ],
+  "panels": {
+   "SOURCE": {
+    "fine_std": 11.132836386492068,
+    "edge": {
+     "width10_90px": 4.247936338186264,
+     "contrast": 160.85101318359375,
+     "profiles": 32
+    }
+   },
+   "GOLDEN native": {
+    "fine_std": 8.689278848179681,
+    "fine": {
+     "energyRatio": 0.7805089867953816,
+     "ncc": 0.7305911710018166,
+     "coherentGain": 0.5702329746402793,
+     "incoherentRatio": 0.5329433676304189
+    },
+    "mid": {
+     "energyRatio": 0.875469496211966,
+     "ncc": 0.9140506522464448,
+     "coherentGain": 0.8002234640344139,
+     "incoherentRatio": 0.3550904763667937
+    },
+    "edge": {
+     "width10_90px": 4.4813854694366455,
+     "contrast": 138.76507568359375,
+     "profiles": 32
+    }
+   },
+   "G1 native": {
+    "fine_std": 8.857488640781986,
+    "fine": {
+     "energyRatio": 0.7956183252211578,
+     "ncc": 0.7398874911267588,
+     "coherentGain": 0.5886680465423562,
+     "incoherentRatio": 0.5352368171265189
+    },
+    "mid": {
+     "energyRatio": 0.8789195133065549,
+     "ncc": 0.9168044406779696,
+     "coherentGain": 0.8057973127979694,
+     "incoherentRatio": 0.3509846172677697
+    },
+    "edge": {
+     "width10_90px": 4.122561261057854,
+     "contrast": 143.78814697265625,
+     "profiles": 32
+    }
+   }
+  }
+ },
+ "5_table_edge": {
+  "view": "table_edges_a4_indep_f1280",
+  "roi": [
+   760,
+   360,
+   1080,
+   600
+  ],
+  "segment": [
+   925,
+   535,
+   985,
+   475
+  ],
+  "panels": {
+   "SOURCE": {
+    "fine_std": 7.809908094307688,
+    "edge": {
+     "width10_90px": 10.167142048478127,
+     "contrast": 45.638572692871094,
+     "profiles": 42
+    }
+   },
+   "GOLDEN native": {
+    "fine_std": 6.105113226339843,
+    "fine": {
+     "energyRatio": 0.7817138374252576,
+     "ncc": 0.616041329007218,
+     "coherentGain": 0.481568031310788,
+     "incoherentRatio": 0.615766802321767
+    },
+    "mid": {
+     "energyRatio": 0.9046861189145801,
+     "ncc": 0.8956622305970334,
+     "coherentGain": 0.8102931872572058,
+     "incoherentRatio": 0.40234552867067414
+    },
+    "edge": {
+     "width10_90px": 8.902842000126839,
+     "contrast": 35.59532165527344,
+     "profiles": 42
+    }
+   },
+   "G1 native": {
+    "fine_std": 6.282449169747924,
+    "fine": {
+     "energyRatio": 0.8044203713904055,
+     "ncc": 0.6103679167403292,
+     "coherentGain": 0.4909923862690437,
+     "incoherentRatio": 0.6371958965135511
+    },
+    "mid": {
+     "energyRatio": 0.9159241864925012,
+     "ncc": 0.8906519441434115,
+     "coherentGain": 0.8157696573875188,
+     "incoherentRatio": 0.4164576586974962
+    },
+    "edge": {
+     "width10_90px": 9.538510784506798,
+     "contrast": 33.11042785644531,
+     "profiles": 42
+    }
+   }
+  }
+ },
+ "6_carpet": {
+  "view": "carpet_a0_indep_f1280",
+  "roi": [
+   560,
+   440,
+   880,
+   700
+  ],
+  "segment": null,
+  "panels": {
+   "SOURCE": {
+    "fine_std": 2.3863598477438233
+   },
+   "GOLDEN native": {
+    "fine_std": 1.8178050372663632,
+    "fine": {
+     "energyRatio": 0.7617480821197196,
+     "ncc": 0.5395091836057686,
+     "coherentGain": 0.4109700858976699,
+     "incoherentRatio": 0.6413764332358437
+    },
+    "mid": {
+     "energyRatio": 0.9742862547215666,
+     "ncc": 0.8409796449596532,
+     "coherentGain": 0.8193549085848132,
+     "incoherentRatio": 0.5271539053420264
+    }
+   },
+   "G1 native": {
+    "fine_std": 1.6620258082074415,
+    "fine": {
+     "energyRatio": 0.696469063447744,
+     "ncc": 0.539062325395826,
+     "coherentGain": 0.375440232908394,
+     "incoherentRatio": 0.5866121272642328
+    },
+    "mid": {
+     "energyRatio": 0.9151838519119556,
+     "ncc": 0.8353177190113452,
+     "coherentGain": 0.7644692876551114,
+     "incoherentRatio": 0.5031383418429674
+    }
+   }
+  }
+ },
+ "6b_baseboard": {
+  "view": "carpet_a0_indep_f1280",
+  "roi": [
+   360,
+   300,
+   600,
+   500
+  ],
+  "segment": [
+   420,
+   468,
+   540,
+   343
+  ],
+  "panels": {
+   "SOURCE": {
+    "fine_std": 4.584661638348452,
+    "edge": {
+     "width10_90px": 2.621547246351838,
+     "contrast": 148.22825622558594,
+     "profiles": 86
+    }
+   },
+   "GOLDEN native": {
+    "fine_std": 3.4008401673028765,
+    "fine": {
+     "energyRatio": 0.7417865124127181,
+     "ncc": 0.41427117966902993,
+     "coherentGain": 0.3073007735597923,
+     "incoherentRatio": 0.6751395889495571
+    },
+    "mid": {
+     "energyRatio": 0.9396673160046528,
+     "ncc": 0.8383439947300938,
+     "coherentGain": 0.787764451416646,
+     "incoherentRatio": 0.5122517289884134
+    },
+    "edge": {
+     "width10_90px": 3.8379341484978795,
+     "contrast": 140.39291381835938,
+     "profiles": 86
+    }
+   },
+   "G1 native": {
+    "fine_std": 3.1018589330669277,
+    "fine": {
+     "energyRatio": 0.6765731427421808,
+     "ncc": 0.28293454740162033,
+     "coherentGain": 0.19142591592585081,
+     "incoherentRatio": 0.6489278358893079
+    },
+    "mid": {
+     "energyRatio": 0.8642708302645851,
+     "ncc": 0.8230637207605264,
+     "coherentGain": 0.7113499653023586,
+     "incoherentRatio": 0.4908617879918628
+    },
+    "edge": {
+     "width10_90px": 3.7650139406323433,
+     "contrast": 133.22705078125,
+     "profiles": 86
+    }
+   }
+  }
+ }
+}
