@@ -112,26 +112,40 @@ Send a note with any station that had to move. We upload, hash and process them.
 **Question.** Can the X4 video remain the fast primary capture while a small detail-photo pass restores fine texture?
 Set D uses only material already captured in A and B/C; the physical plan is not expanded.
 
-**Inputs.** Set A's X4 video (official workflow, as in Phase 1) plus a **deliberately small detail subset** of the
-high-resolution stills. Start with the minimum useful subset, the iPhone close detail passes, in this order:
-1. chair slats;
-2. window reveal;
-3. table edge;
-4. baseboard / carpet;
-5. ceiling grid.
+**Purpose.** Find the **minimum supplemental-photo burden** that materially improves the X4-video reconstruction.
 
-That is about 15 photos (3 angles per feature), not all ~120.
+**Inputs.** Set A's X4 video (official workflow, as in Phase 1) plus a small subset of Set C iPhone photos, chosen
+from the close detail passes. Where a target has no close pass (ceiling grid, carpet), use Set C's tilted-up or
+tilted-down views.
 
-**Prerequisite — check it first, and ABORT D if it fails.** Joint SfM (Spirula `sfm auto`, official flags) must show
-all three of:
-1. **separate cameras / intrinsics** for the iPhone images (their own folder camera, not an X4 fisheye model);
-2. **joint registration** of the detail photos into the X4 model (all or nearly all registered, sensible reprojection
-   error);
-3. the **X4 rig solution uncorrupted**: dual-fisheye rig relative pose, camera count, per-lens intrinsics and X4
-   reprojection error unchanged within tolerance vs the video-only Set A solve, and the X4 camera centres aligned to
-   Set A within ~1 cm.
+Two conditions:
+- **D1 (minimal)** = Set A + **about 5 photos**: one carefully chosen photo each for chair slats, window reveal,
+  table edge, carpet/baseboard and ceiling grid. Pick the sharpest, most frontal close shot per target.
+- **D2 (expanded)** = Set A + **about 15 photos**: 3 angles per target, including D1's five.
 
-Training: same `360-camera` recipe, same 1 M cap and 30 k iterations.
+**Run order:**
+1. Run **D1 first**.
+2. Run **D2 only if** D1 gives a visible or measurable improvement over A but stays meaningfully below the best B/C
+   detail result.
+3. If D1 gives **no credible improvement**, diagnose registration and usage first: were the photos registered, and
+   did they receive training weight or render coverage? Do not spend on D2 until that is understood.
+
+**Prerequisite — check it for each condition before training, and ABORT that condition if it fails.** The joint SfM
+(Spirula `sfm auto`, official flags) must show all of:
+1. **separate, correct camera/intrinsics models:** the X4 dual fisheye stays thin-prism fisheye per lens; the iPhone
+   gets its own camera (its own folder camera, not an X4 fisheye model);
+2. **successful registration** of the selected iPhone photos into the X4 reconstruction, with sensible reprojection
+   error;
+3. **no material worsening** of X4 reprojection error or dual-fisheye rig consistency (rig relative pose, per-lens
+   intrinsics) against the video-only Set A solve;
+4. **no new duplicated surfaces, discontinuities or obvious geometric corruption** in the sparse model or the
+   trained result.
+
+**Also measure:** X4 camera displacement relative to the A-only solve, after a similarity alignment. Report it, but
+**do not treat displacement alone as a failure**. Joint bundle adjustment may legitimately improve the camera
+solution.
+
+**Training:** the same `360-camera` recipe, the same 1 M cap and 30 k iterations.
 
 **Decision criterion (A/B/C/D alike):** visible photographic fidelity and temporal stability at ordinary viewing
 scale, plus preservation of genuine source detail at 1:1. Not Gaussian count or training PSNR.
