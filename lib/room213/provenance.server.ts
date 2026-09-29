@@ -4,6 +4,7 @@ import { unstable_cache } from "next/cache";
 import { BUCKET, s3 } from "@/lib/s3";
 import type { TrainingRasterizer } from "@/lib/digital-twin/twin-manifest";
 import { GOLDEN_SHA256 } from "./scene-config";
+import { OFFICIAL_FILE, OFFICIAL_KEY } from "./official-ref";
 
 /** Pinned golden Room 213 artefacts (read-only; nothing from a request reaches a storage key). */
 const DIAG = "experimental/spirula-hardened/detail-diag-2026-09-25/models/golden";
@@ -19,6 +20,8 @@ export const GOLDEN_FILE = `golden-${GOLDEN_SHA256.slice(0, 16)}.ply`;
 /** Every file the model route may serve: content-hashed public name → pinned private key. */
 export const MODEL_FILES: Record<string, string> = {
   [GOLDEN_FILE]: GOLDEN_KEYS.ply,
+  // A/B page (/preview/room213/official): the frozen official Spirula Studio reference, served as trained.
+  [OFFICIAL_FILE]: OFFICIAL_KEY,
 };
 
 async function readJson(key: string): Promise<Record<string, unknown>> {

@@ -28,6 +28,7 @@ import { useViewTransition } from "@/components/room213/useViewTransition";
 import { Identity, InternalPanel, PinHoverLabel } from "@/components/room213/ExperienceChrome";
 import { useClearOnLifecycle, useOutsidePressDismiss, useTapToReveal, useQuietControls, useMedia, useSessionBool } from "@/components/room213/ui-hooks";
 import type { SceneDebug } from "@/components/room213/scene-debug";
+import type { Room213Variant } from "@/lib/room213/official-ref";
 
 type Phase = "loading" | "preparing" | "ready" | "error";
 
@@ -42,6 +43,7 @@ export function Room213Experience({
   posterMode,
   probeDpr,
   diag,
+  variant,
 }: {
   modelUrl: string;
   /** The same file from this deployment's own route: used automatically if the media host fails (e.g. CORS). */
@@ -57,8 +59,9 @@ export function Room213Experience({
   /** Probe-only: fixed pixel ratio (else min(devicePixelRatio, 2), fixed) and A/B switches (scene-debug.ts). */
   probeDpr?: number;
   diag?: string[];
+  variant?: Room213Variant;
 }) {
-  const profile = useMemo(() => resolveSparkRenderProfile(manifest), [manifest]);
+  const profile = useMemo(() => variant?.profile ?? resolveSparkRenderProfile(manifest), [manifest, variant?.profile]);
   const rootRef = useRef<HTMLDivElement>(null);
   const [root, setRoot] = useState<HTMLDivElement | null>(null);
   const [phase, setPhase] = useState<Phase>("loading");
@@ -213,6 +216,7 @@ export function Room213Experience({
           resetNonce={resetNonce}
           settleToken={settleToken}
           modelUrl={url}
+          modelTransform={variant?.modelTransform}
           profile={profile}
           view={view}
           walkCeilingHidden={ceilingHidden}
@@ -257,7 +261,7 @@ export function Room213Experience({
         {fade && slowSwitch ? <p className="absolute inset-x-0 top-1/2 text-center text-[13px] text-[var(--mkt-canvas-deep)]">Preparing view…</p> : null}
       </div>
 
-      <LoadingPoster phase={phase} progress={progress} error={error?.detail ?? null} errorTitle={error?.title} onRetry={error ? retry : undefined} posterMode={posterMode} />
+      <LoadingPoster phase={phase} progress={progress} error={error?.detail ?? null} errorTitle={error?.title} onRetry={error ? retry : undefined} posterMode={posterMode} poster={variant?.poster} />
 
       {!posterMode && ready ? (
         <>

@@ -19,6 +19,7 @@ export function LoadingPoster({
   errorTitle,
   onRetry,
   posterMode,
+  poster,
 }: {
   phase: "loading" | "preparing" | "ready" | "error";
   progress: ModelProgress;
@@ -27,6 +28,8 @@ export function LoadingPoster({
   errorTitle?: string;
   onRetry?: () => void;
   posterMode: boolean;
+  /** A/B page only: that model's own posters (default: the golden ones). */
+  poster?: { portrait: string; landscape: string };
 }) {
   const [gone, setGone] = useState(false);
   // The poster usually finishes before hydration (it is in the server HTML), so onLoad never fires: take its real
@@ -47,10 +50,10 @@ export function LoadingPoster({
   return (
     <div className={`absolute inset-0 z-20 transition-opacity duration-700 ${phase === "ready" ? "pointer-events-none opacity-0" : "opacity-100"}`}>
       <picture>
-        <source media="(orientation: portrait)" srcSet="/preview/room213/poster-portrait.jpg" />
+        <source media="(orientation: portrait)" srcSet={poster?.portrait ?? "/preview/room213/poster-portrait.jpg"} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/preview/room213/poster-landscape.jpg"
+          src={poster?.landscape ?? "/preview/room213/poster-landscape.jpg"}
           alt="Payne Hall Room 213 — preview image of the 3D capture"
           fetchPriority="high"
           className="absolute inset-0 h-full w-full object-cover"

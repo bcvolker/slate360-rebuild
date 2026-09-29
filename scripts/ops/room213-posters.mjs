@@ -13,12 +13,15 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
 
 const base = process.argv[2] ?? "http://127.0.0.1:3215";
+// A/B page support: [route=/preview/room213] [prefix=""] -> <prefix>poster-*.jpg and <prefix>share.jpg (golden defaults unchanged).
+const route = process.argv[3] ?? "/preview/room213";
+const prefix = process.argv[4] ?? "";
 const browser = await chromium.launch({ headless: true, args: ["--enable-gpu", "--use-angle=d3d11", "--ignore-gpu-blocklist"] });
 
 async function render({ width, height, dpr }) {
   const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: dpr });
   const page = await ctx.newPage();
-  await page.goto(`${base}/preview/room213?poster=1&probe=1`, { waitUntil: "domcontentloaded", timeout: 240_000 });
+  await page.goto(`${base}${route}?poster=1&probe=1`, { waitUntil: "domcontentloaded", timeout: 240_000 });
   await page.waitForFunction(() => window.__r213?.phase === "ready", undefined, { timeout: 600_000 });
   await page.addStyleTag({ content: "nextjs-portal{display:none!important}" }); // dev-server badge, never in a poster
   await page.waitForTimeout(4000); // let the sort settle after the first frame
@@ -54,10 +57,10 @@ const og = (src) => `<html><body style="margin:0;position:relative;width:1200px;
 </body></html>`;
 
 const land = await render({ width: 1600, height: 1000, dpr: 1 });
-await compose(land, { width: 1600, height: 1000, html: plain, out: "public/preview/room213/poster-landscape.jpg", quality: 84 });
+await compose(land, { width: 1600, height: 1000, html: plain, out: `public/preview/room213/${prefix}poster-landscape.jpg`, quality: 84 });
 const port = await render({ width: 540, height: 1080, dpr: 2 });
-await compose(port, { width: 1080, height: 2160, html: plain, out: "public/preview/room213/poster-portrait.jpg", quality: 82 });
+await compose(port, { width: 1080, height: 2160, html: plain, out: `public/preview/room213/${prefix}poster-portrait.jpg`, quality: 82 });
 const card = await render({ width: 1200, height: 630, dpr: 1 });
-await compose(card, { width: 1200, height: 630, html: og, out: "public/preview/room213/share-dollhouse-v2.jpg", quality: 86 });
+await compose(card, { width: 1200, height: 630, html: og, out: prefix ? `public/preview/room213/${prefix}share.jpg` : "public/preview/room213/share-dollhouse-v2.jpg", quality: 86 });
 await browser.close();
 console.log("posters written");

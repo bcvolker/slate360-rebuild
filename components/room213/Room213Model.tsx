@@ -2,9 +2,10 @@
 
 import { useEffect, useRef } from "react";
 import { useThree } from "@react-three/fiber";
-import type * as THREE from "three";
+import * as THREE from "three";
 import { SplatFileType, SplatMesh } from "@sparkjsdev/spark";
 import { markTiming } from "@/lib/room213/timing";
+import type { ModelTransform } from "@/lib/room213/official-ref";
 
 export type ModelProgress = { loaded: number; total: number | null; phase: "transfer" | "preparing" };
 
@@ -19,8 +20,11 @@ export function Room213Model({
   onProgress,
   onLoaded,
   onError,
+  transform,
 }: {
   url: string;
+  /** A/B page only: places a model from another reconstruction frame into the golden file frame (splats untouched). */
+  transform?: ModelTransform;
   parent: THREE.Object3D | null;
   onProgress?: (p: ModelProgress) => void;
   onLoaded: (mesh: SplatMesh) => void;
@@ -29,6 +33,8 @@ export function Room213Model({
   const meshRef = useRef<SplatMesh | null>(null);
   const invalidate = useThree((s) => s.invalidate);
   const cb = useRef({ onProgress, onLoaded, onError });
+  // Keyed by VALUE: a new-but-equal transform object on re-render must not restart the 247 MB load.
+  const transformKey = transform ? JSON.stringify(transform) : "";
   cb.current = { onProgress, onLoaded, onError };
 
   useEffect(() => {
@@ -76,6 +82,13 @@ export function Room213Model({
         lod: false,
       });
       mesh.rotation.set(Math.PI, 0, 0);
+      if (transformKey) {
+        // Scene-graph placement only: mesh = FLIP · [position + quaternion · (scale · x)]
+        const t = JSON.parse(transformKey) as ModelTransform;
+        mesh.quaternion.multiply(new THREE.Quaternion(...t.quaternion));
+        mesh.position.set(t.position[0], -t.position[1], -t.position[2]);
+        mesh.scale.setScalar(t.scale);
+      }
       await mesh.initialized;
       if (disposed) return;
       markTiming("modelDecoded");
@@ -97,7 +110,7 @@ export function Room213Model({
         mesh.dispose();
       }
     };
-  }, [url, parent, invalidate]);
+  }, [url, parent, invalidate, transformKey]);
 
   return null;
 }

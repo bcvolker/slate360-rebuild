@@ -5,6 +5,7 @@ import { useFrame, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { SparkRenderer, type SplatMesh } from "@sparkjsdev/spark";
 import { sparkRendererArgsFor, type SparkRenderProfile } from "@/lib/digital-twin/spark-render-profile";
+import type { ModelTransform } from "@/lib/room213/official-ref";
 import { useSparkProfileCheck, type SparkProfileCheck } from "@/components/digital-twin/use-spark-profile-check";
 import { CORRECTION_QUATERNION } from "@/lib/room213/scene-config";
 import { cropBoxFor, type Room213View } from "@/lib/room213/edit-state";
@@ -47,8 +48,11 @@ export function Room213Scene({
   accent,
   callbacks,
   debug,
+  modelTransform,
 }: {
   modelUrl: string;
+  /** A/B page only (lib/room213/official-ref.ts): scene-graph placement of a model from another SfM frame. */
+  modelTransform?: ModelTransform;
   profile: SparkRenderProfile;
   view: Room213View;
   /** Incremented on each view switch; onSettled(token) fires once the new view is really on screen. */
@@ -240,7 +244,7 @@ export function Room213Scene({
           <PinLayer view={view} selected={selectedPin} accent={accent} camera={active} />
         </group>
       </group>
-      <Room213Model url={modelUrl} parent={room} onProgress={onProgress} onLoaded={onLoaded} onError={onError} />
+      <Room213Model url={modelUrl} transform={modelTransform} parent={room} onProgress={onProgress} onLoaded={onLoaded} onError={onError} />
       <RoomCrop parent={room} box={box} />
       {view === "walk" ? (
         <WalkRig near={debug?.diag?.includes("near05") ? 0.05 : 0.2} camera={persp} pose={walkPose} input={walkInput} keyTarget={keyTarget} pickPin={pickPin} onPin={onPin} onActivity={onActivity} accent={accent} />
