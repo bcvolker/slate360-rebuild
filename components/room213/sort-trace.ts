@@ -10,6 +10,11 @@ export type SortSample = {
   t: number; // ms since page start
   dt: number; // frame interval, ms
   pos: [number, number, number];
+  /** Camera heading/tilt (deg) and the pose/direction the displayed order was computed for. */
+  yawDeg: number;
+  pitchDeg: number;
+  shownPos: [number, number, number] | null;
+  sortRadial: boolean;
   /** How far the camera is from the position the DISPLAYED splat order (last completed sort) was computed for. */
   dPos: number;
   /** Angle between the camera's view direction and the sorted direction (degrees). */
@@ -26,6 +31,7 @@ type SparkSortState = {
   sortedCenter?: THREE.Vector3;
   sortedDir?: THREE.Vector3;
   maxPixelRadius?: number;
+  sortRadial?: boolean;
 };
 
 const SIZE = 900; // ~15–30 s of frames
@@ -69,6 +75,10 @@ export function useSortTrace(spark: SparkRenderer | null, camera: THREE.Camera) 
       t: Math.round(now),
       dt: k.lastT ? Math.round(now - k.lastT) : 0,
       pos: [+tmpPos.x.toFixed(3), +tmpPos.y.toFixed(3), +tmpPos.z.toFixed(3)],
+      yawDeg: +THREE.MathUtils.radToDeg(Math.atan2(-tmpDir.x, -tmpDir.z)).toFixed(1),
+      pitchDeg: +THREE.MathUtils.radToDeg(Math.asin(THREE.MathUtils.clamp(tmpDir.y, -1, 1))).toFixed(1),
+      shownPos: Number.isFinite(c.x) ? [+c.x.toFixed(3), +c.y.toFixed(3), +c.z.toFixed(3)] : null,
+      sortRadial: s.sortRadial ?? true,
       dPos: +dPos.toFixed(3),
       dAngDeg: +THREE.MathUtils.radToDeg(Math.acos(dot)).toFixed(1),
       sortAgeMs: k.completedAt ? Math.round(now - k.completedAt) : -1,
@@ -98,4 +108,16 @@ export function summarizeTrace(samples: SortSample[], ms = 2000) {
     maxAge: Math.max(...win.map((x) => x.sortAgeMs)),
     fps: win.length > 1 ? Math.round((1000 * (win.length - 1)) / Math.max(1, end - win[0].t)) : 0,
   };
+}
+
+/** Internal-only: copy (clipboard) or download the trace as JSON for lining up with a screen recording. */
+export function exportTrace(mode: "copy" | "download") {
+  const w = window as unknown as { __r213?: { sortTrace?: () => SortSample[] } };
+  const json = JSON.stringify({ exportedAt: Math.round(performance.now()), ua: navigator.userAgent, samples: w.__r213?.sortTrace?.() ?? [] });
+  if (mode === "copy") return navigator.clipboard?.writeText(json);
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([json], { type: "application/json" }));
+  a.download = `room213-sort-trace-${Date.now()}.json`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }

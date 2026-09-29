@@ -7,7 +7,7 @@ import { ROOM213_PINS } from "@/lib/room213/pins";
 import type { Fidelity } from "@/lib/room213/fidelity";
 import type { TransitionOutcome } from "@/components/room213/useViewTransition";
 import { useEffect, useState } from "react";
-import { summarizeTrace, type SortSample } from "@/components/room213/sort-trace";
+import { exportTrace, summarizeTrace, type SortSample } from "@/components/room213/sort-trace";
 
 type Phase = "loading" | "preparing" | "ready" | "error";
 
@@ -56,6 +56,11 @@ export function InternalPanel({
   const tr = summarizeTrace(trace);
   const sort = typeof window === "undefined" ? undefined : (window as unknown as { __r213?: { sortStats?: () => { last: number; max: number; count: number } } }).__r213?.sortStats?.();
   return (
+    <>
+    <div data-r213-ui className="absolute right-2 top-[45%] z-40 flex flex-col gap-1">
+      <button type="button" onClick={() => void exportTrace("copy")} className="rounded bg-black/70 px-2 py-1.5 font-mono text-[10px] text-white">Copy trace</button>
+      <button type="button" onClick={() => exportTrace("download")} className="rounded bg-black/70 px-2 py-1.5 font-mono text-[10px] text-white">Download trace</button>
+    </div>
     <pre className="pointer-events-none absolute right-2 top-2 z-40 max-w-[70vw] whitespace-pre-wrap rounded-md bg-black/70 p-2 font-mono text-[10px] leading-tight text-white">
       {[
         `phase ${phase} · golden ${sourceSha.slice(0, 12)}`,
@@ -69,6 +74,7 @@ export function InternalPanel({
         Object.entries(t).map(([k, v]) => `${k} ${v}`).join(" · "),
       ].join("\n")}
     </pre>
+    </>
   );
 }
 

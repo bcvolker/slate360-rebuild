@@ -82,6 +82,8 @@ export function Room213Scene({
     const pxArg = debug?.diag?.find((d) => d.startsWith("px:"));
     if (pxArg) s.maxPixelRadius = Number(pxArg.slice(3));
     else if (debug?.diag?.includes("px")) s.maxPixelRadius = 96;
+    // sortz (probe `?sort=z`): ONLY Spark's sort metric — view-depth instead of radial distance (default true).
+    if (debug?.diag?.includes("sortz")) s.sortRadial = false;
     if (debug?.diag?.includes("alpha")) s.minAlpha = 0.02;
     setSpark(s);
     return () => {
