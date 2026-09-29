@@ -1,0 +1,881 @@
+{
+ "camera1/frame_00036.png": {
+  "scale_colmap_units_per_moge_unit": 1.0403479735226855,
+  "sfm_obs_used": 1732,
+  "face_scales": [
+   0.9999999999999987,
+   0.8414130884469312,
+   1.0907742313132163,
+   1.5485831061501618,
+   0.9697545495382819,
+   0.5879025886219147,
+   0.9191771131953785,
+   0.9194084081026239,
+   0.9742494070237371
+  ],
+  "seam_log_mismatch_median_before_after": [
+   0.15063114574014402,
+   0.014582084803384961
+  ],
+  "per_class_sfm": {
+   "floor": {
+    "n": 1570,
+    "median_rel_err": -0.004739349358093571,
+    "mad_rel": 0.015598623428406646,
+    "frac_within_5pct": 0.9942675159235669
+   },
+   "ceiling": {
+    "n": 17,
+    "median_rel_err": 0.0062880355352453515,
+    "mad_rel": 0.05176511546014579,
+    "frac_within_5pct": 0.47058823529411764
+   },
+   "wall": {
+    "n": 43,
+    "median_rel_err": 0.05405255044902903,
+    "mad_rel": 0.05405255044902903,
+    "frac_within_5pct": 0.37209302325581395
+   },
+   "table": {
+    "n": 16,
+    "median_rel_err": 0.07018059700303779,
+    "mad_rel": 0.07018059700303779,
+    "frac_within_5pct": 0.375
+   },
+   "chair": {
+    "n": 30,
+    "median_rel_err": 0.18446098506790584,
+    "mad_rel": 0.18446098506790584,
+    "frac_within_5pct": 0.13333333333333333
+   },
+   "other": {
+    "n": 56,
+    "median_rel_err": 0.05553168986240395,
+    "mad_rel": 0.06707346165123587,
+    "frac_within_5pct": 0.32142857142857145
+   }
+  },
+  "thin_merge": {
+   "chair": {
+    "n": 30,
+    "frac_nearer_background": 0.0
+   },
+   "table": {
+    "n": 16,
+    "frac_nearer_background": 0.0
+   }
+  },
+  "planes": {
+   "floor": {
+    "pixels": 263233,
+    "median_rel_err": 0.0025186379934415467,
+    "p25_p75": [
+     -0.019148129572611465,
+     0.027470612705700576
+    ],
+    "frac_within_5pct": 0.7402301383185239,
+    "normal_err_deg_median": 3.983534591808378,
+    "normal_err_deg_p90": 47.12503412030999,
+    "by_sensor_radius": {
+     "0-800": {
+      "median_rel_err": 0.0270257134050088,
+      "normal_err_deg_median": 2.0405451805763226
+     },
+     "800-1300": {
+      "median_rel_err": -0.001278878898893671,
+      "normal_err_deg_median": 3.7501111249930292
+     },
+     "1300-1700": {
+      "median_rel_err": -0.0006189722396093539,
+      "normal_err_deg_median": 5.536392358296472
+     },
+     "1700-1880": {
+      "median_rel_err": -0.0013408283008306387,
+      "normal_err_deg_median": 5.51431902972792
+     }
+    }
+   },
+   "ceiling": {
+    "pixels": 170846,
+    "median_rel_err": -0.029347896457744743,
+    "p25_p75": [
+     -0.044742238553916354,
+     -0.0015860411564427588
+    ],
+    "frac_within_5pct": 0.8182456715404516,
+    "normal_err_deg_median": 3.9251387335913424,
+    "normal_err_deg_p90": 14.146390455435334,
+    "by_sensor_radius": {
+     "800-1300": {
+      "median_rel_err": -0.0400042965141936,
+      "normal_err_deg_median": 3.225262401826998
+     },
+     "1300-1700": {
+      "median_rel_err": -0.023244004010148693,
+      "normal_err_deg_median": 4.399371733506049
+     },
+     "1700-1880": {
+      "median_rel_err": -0.014217553157828937,
+      "normal_err_deg_median": 3.9100137610935253
+     }
+    }
+   }
+  },
+  "walls": {
+   "v_lo": {
+    "pixels": 75688,
+    "plane_rms_units": 0.11875080899661289,
+    "plane_p95_abs_units": 0.25111646269295046,
+    "plane_offset_vs_sfm_units": -0.02775775371785283,
+    "normal_vs_wall_axis_deg": 2.5743938648186084,
+    "normal_vs_horizontal_deg": 2.5404677648569196,
+    "pred_normal_vs_wall_axis_deg_median": 2.926545935627966
+   },
+   "u_hi": {
+    "pixels": 103158,
+    "plane_rms_units": 0.08998391353457043,
+    "plane_p95_abs_units": 0.22461682047762208,
+    "plane_offset_vs_sfm_units": -0.11410894761374646,
+    "normal_vs_wall_axis_deg": 1.9936400981266647,
+    "normal_vs_horizontal_deg": 0.9717875070041476,
+    "pred_normal_vs_wall_axis_deg_median": 3.7490371454877893
+   }
+  }
+ },
+ "camera1/frame_00037.png": {
+  "scale_colmap_units_per_moge_unit": 0.9615467516280699,
+  "sfm_obs_used": 2259,
+  "face_scales": [
+   0.999999999999999,
+   0.8590216128064446,
+   1.0371097760772183,
+   1.4325639351640054,
+   1.099421438370377,
+   0.7733612116591131,
+   0.9929702348023277,
+   1.0308028005784673,
+   1.0310490181917893
+  ],
+  "seam_log_mismatch_median_before_after": [
+   0.15688810483244406,
+   0.030384487821110754
+  ],
+  "per_class_sfm": {
+   "floor": {
+    "n": 1977,
+    "median_rel_err": -0.0009102644887484881,
+    "mad_rel": 0.007588456146508641,
+    "frac_within_5pct": 0.9802731411229135
+   },
+   "ceiling": {
+    "n": 67,
+    "median_rel_err": 0.02501639888127247,
+    "mad_rel": 0.04541129346326315,
+    "frac_within_5pct": 0.5373134328358209
+   },
+   "wall": {
+    "n": 51,
+    "median_rel_err": 0.052821224892453424,
+    "mad_rel": 0.052821224892453424,
+    "frac_within_5pct": 0.47058823529411764
+   },
+   "table": {
+    "n": 17,
+    "median_rel_err": 0.05497471520167913,
+    "mad_rel": 0.07632584422555377,
+    "frac_within_5pct": 0.4117647058823529
+   },
+   "chair": {
+    "n": 39,
+    "median_rel_err": 0.08112966120467084,
+    "mad_rel": 0.08112966120467084,
+    "frac_within_5pct": 0.1794871794871795
+   },
+   "other": {
+    "n": 108,
+    "median_rel_err": 0.05693655444970261,
+    "mad_rel": 0.061963173944334975,
+    "frac_within_5pct": 0.32407407407407407
+   }
+  },
+  "thin_merge": {
+   "chair": {
+    "n": 39,
+    "frac_nearer_background": 0.0
+   },
+   "table": {
+    "n": 17,
+    "frac_nearer_background": 0.0
+   }
+  },
+  "planes": {
+   "floor": {
+    "pixels": 288854,
+    "median_rel_err": -0.0016613857690429092,
+    "p25_p75": [
+     -0.040851947671557545,
+     0.013143721035682378
+    ],
+    "frac_within_5pct": 0.7591586060778109,
+    "normal_err_deg_median": 2.9253085969301003,
+    "normal_err_deg_p90": 28.399865139271313,
+    "by_sensor_radius": {
+     "0-800": {
+      "median_rel_err": 0.01553225116463616,
+      "normal_err_deg_median": 1.7543075155916217
+     },
+     "800-1300": {
+      "median_rel_err": 0.007558752093609347,
+      "normal_err_deg_median": 2.210564241396414
+     },
+     "1300-1700": {
+      "median_rel_err": -0.01668587090954586,
+      "normal_err_deg_median": 4.027763366096778
+     },
+     "1700-1880": {
+      "median_rel_err": -0.03362507948933413,
+      "normal_err_deg_median": 4.402882103621906
+     }
+    }
+   },
+   "ceiling": {
+    "pixels": 187381,
+    "median_rel_err": 0.013905714673756083,
+    "p25_p75": [
+     -0.0139920191990183,
+     0.03943068317434887
+    ],
+    "frac_within_5pct": 0.745683927399256,
+    "normal_err_deg_median": 3.8444094963552957,
+    "normal_err_deg_p90": 9.553416550673813,
+    "by_sensor_radius": {
+     "0-800": {
+      "median_rel_err": -0.017819822188741452,
+      "normal_err_deg_median": 4.954348672576645
+     },
+     "800-1300": {
+      "median_rel_err": -0.002357987573399436,
+      "normal_err_deg_median": 3.4049560461971886
+     },
+     "1300-1700": {
+      "median_rel_err": 0.025243507732087844,
+      "normal_err_deg_median": 3.8371111650634275
+     },
+     "1700-1880": {
+      "median_rel_err": 0.014056033031885814,
+      "normal_err_deg_median": 4.405689367264148
+     }
+    }
+   }
+  },
+  "walls": {
+   "u_lo": {
+    "pixels": 3445,
+    "plane_rms_units": 0.09531501121366082,
+    "plane_p95_abs_units": 0.17480686314370036,
+    "plane_offset_vs_sfm_units": 0.18111518292086792,
+    "normal_vs_wall_axis_deg": 8.074290057480475,
+    "normal_vs_horizontal_deg": 8.037362906190546,
+    "pred_normal_vs_wall_axis_deg_median": 7.493101551518069
+   },
+   "v_lo": {
+    "pixels": 66075,
+    "plane_rms_units": 0.13323674131370286,
+    "plane_p95_abs_units": 0.2494140987898502,
+    "plane_offset_vs_sfm_units": -0.09438847542204076,
+    "normal_vs_wall_axis_deg": 1.7229208987700668,
+    "normal_vs_horizontal_deg": 1.7229083071119682,
+    "pred_normal_vs_wall_axis_deg_median": 3.659296687104147
+   },
+   "u_hi": {
+    "pixels": 68573,
+    "plane_rms_units": 0.0968774526959832,
+    "plane_p95_abs_units": 0.2236260684641074,
+    "plane_offset_vs_sfm_units": -0.06018206222721556,
+    "normal_vs_wall_axis_deg": 1.6622493544904091,
+    "normal_vs_horizontal_deg": 1.0138291128932537,
+    "pred_normal_vs_wall_axis_deg_median": 2.8458518193268794
+   }
+  }
+ },
+ "camera2/frame_00103.png": {
+  "scale_colmap_units_per_moge_unit": 1.0516275257701777,
+  "sfm_obs_used": 1021,
+  "face_scales": [
+   0.9999999999999998,
+   0.8061206248318765,
+   0.9059979814847975,
+   0.8050794638753459,
+   1.0088605465621117,
+   0.844214446082593,
+   1.0294030138558063,
+   1.0816632833465116,
+   1.0000477288239118
+  ],
+  "seam_log_mismatch_median_before_after": [
+   0.10577244154878129,
+   0.041476378608347325
+  ],
+  "per_class_sfm": {
+   "floor": {
+    "n": 597,
+    "median_rel_err": -0.0023469860197241244,
+    "mad_rel": 0.006555711965199217,
+    "frac_within_5pct": 0.983249581239531
+   },
+   "ceiling": {
+    "n": 86,
+    "median_rel_err": 0.004574424889024582,
+    "mad_rel": 0.052185935858606106,
+    "frac_within_5pct": 0.4883720930232558
+   },
+   "wall": {
+    "n": 95,
+    "median_rel_err": -0.0031246518979227175,
+    "mad_rel": 0.04022095698193936,
+    "frac_within_5pct": 0.8315789473684211
+   },
+   "table": {
+    "n": 38,
+    "median_rel_err": 0.05390503099652119,
+    "mad_rel": 0.05390503099652119,
+    "frac_within_5pct": 0.47368421052631576
+   },
+   "chair": {
+    "n": 60,
+    "median_rel_err": 0.05355430832839887,
+    "mad_rel": 0.07695472684342819,
+    "frac_within_5pct": 0.3333333333333333
+   },
+   "other": {
+    "n": 145,
+    "median_rel_err": 0.0459472985583713,
+    "mad_rel": 0.06793634166015904,
+    "frac_within_5pct": 0.4068965517241379
+   }
+  },
+  "thin_merge": {
+   "chair": {
+    "n": 60,
+    "frac_nearer_background": 0.0
+   },
+   "table": {
+    "n": 38,
+    "frac_nearer_background": 0.07894736842105263
+   }
+  },
+  "planes": {
+   "floor": {
+    "pixels": 143724,
+    "median_rel_err": -0.048055483987796285,
+    "p25_p75": [
+     -0.5629753646628832,
+     0.012265979828612073
+    ],
+    "frac_within_5pct": 0.5031657899863627,
+    "normal_err_deg_median": 4.2186557061319485,
+    "normal_err_deg_p90": 71.34544985345141,
+    "by_sensor_radius": {
+     "800-1300": {
+      "median_rel_err": -0.36904949173444856,
+      "normal_err_deg_median": 51.36562298973599
+     },
+     "1300-1700": {
+      "median_rel_err": -0.0025277534288132225,
+      "normal_err_deg_median": 2.0423435214100296
+     },
+     "1700-1880": {
+      "median_rel_err": -0.03288752088054038,
+      "normal_err_deg_median": 4.037012516985228
+     }
+    }
+   },
+   "ceiling": {
+    "pixels": 357586,
+    "median_rel_err": 0.06649380181605821,
+    "p25_p75": [
+     0.04043486910587395,
+     0.11303566015471725
+    ],
+    "frac_within_5pct": 0.31735023183234246,
+    "normal_err_deg_median": 4.032592753988675,
+    "normal_err_deg_p90": 15.691520223736118,
+    "by_sensor_radius": {
+     "0-800": {
+      "median_rel_err": 0.05327544232596083,
+      "normal_err_deg_median": 2.807391122501142
+     },
+     "800-1300": {
+      "median_rel_err": 0.0782759817859077,
+      "normal_err_deg_median": 3.7880954488717733
+     },
+     "1300-1700": {
+      "median_rel_err": 0.06430254106973403,
+      "normal_err_deg_median": 4.875606027829228
+     },
+     "1700-1880": {
+      "median_rel_err": 0.06206387352047894,
+      "normal_err_deg_median": 4.526346946505739
+     }
+    }
+   }
+  },
+  "walls": {
+   "u_lo": {
+    "pixels": 2626,
+    "plane_rms_units": 0.03719289575847929,
+    "plane_p95_abs_units": 0.0580032860946743,
+    "plane_offset_vs_sfm_units": 0.2856059840023599,
+    "normal_vs_wall_axis_deg": 1.3725248822999783,
+    "normal_vs_horizontal_deg": 0.5166043061141432,
+    "pred_normal_vs_wall_axis_deg_median": 3.1253998413843096
+   },
+   "v_lo": {
+    "pixels": 57412,
+    "plane_rms_units": 0.16117821855036968,
+    "plane_p95_abs_units": 0.33747622032815267,
+    "plane_offset_vs_sfm_units": -0.05237126982365359,
+    "normal_vs_wall_axis_deg": 2.971214945149936,
+    "normal_vs_horizontal_deg": 2.966429289979526,
+    "pred_normal_vs_wall_axis_deg_median": 2.2147391732183026
+   },
+   "u_hi": {
+    "pixels": 48416,
+    "plane_rms_units": 0.08326981010107178,
+    "plane_p95_abs_units": 0.1811841002517705,
+    "plane_offset_vs_sfm_units": -0.08123750731262813,
+    "normal_vs_wall_axis_deg": 3.119872323249451,
+    "normal_vs_horizontal_deg": 1.2238519835943704,
+    "pred_normal_vs_wall_axis_deg_median": 4.439599730859458
+   }
+  }
+ },
+ "camera2/frame_00104.png": {
+  "scale_colmap_units_per_moge_unit": 1.0764155405397071,
+  "sfm_obs_used": 1428,
+  "face_scales": [
+   0.9999999999999996,
+   0.7745663942073742,
+   0.8852456374368359,
+   0.8148310952734106,
+   0.9550489074874318,
+   0.8766548602126067,
+   1.10364667545923,
+   1.0877809726369987,
+   0.8490961924268582
+  ],
+  "seam_log_mismatch_median_before_after": [
+   0.10739466794333957,
+   0.03253897853499353
+  ],
+  "per_class_sfm": {
+   "floor": {
+    "n": 868,
+    "median_rel_err": -0.0027431926544610645,
+    "mad_rel": 0.006954714420389873,
+    "frac_within_5pct": 0.9366359447004609
+   },
+   "ceiling": {
+    "n": 126,
+    "median_rel_err": 0.03968277559474464,
+    "mad_rel": 0.05528985385583962,
+    "frac_within_5pct": 0.4444444444444444
+   },
+   "wall": {
+    "n": 112,
+    "median_rel_err": 0.02036243603407105,
+    "mad_rel": 0.025422490309953492,
+    "frac_within_5pct": 0.6964285714285714
+   },
+   "table": {
+    "n": 42,
+    "median_rel_err": 0.05100084762535561,
+    "mad_rel": 0.05732855880248876,
+    "frac_within_5pct": 0.40476190476190477
+   },
+   "chair": {
+    "n": 86,
+    "median_rel_err": 0.03832627341291727,
+    "mad_rel": 0.04942159158800313,
+    "frac_within_5pct": 0.5116279069767442
+   },
+   "other": {
+    "n": 194,
+    "median_rel_err": 0.05282465502536629,
+    "mad_rel": 0.07087647665953871,
+    "frac_within_5pct": 0.3556701030927835
+   }
+  },
+  "thin_merge": {
+   "chair": {
+    "n": 86,
+    "frac_nearer_background": 0.011627906976744186
+   },
+   "table": {
+    "n": 42,
+    "frac_nearer_background": 0.07142857142857142
+   }
+  },
+  "planes": {
+   "floor": {
+    "pixels": 151281,
+    "median_rel_err": -0.022602190204702815,
+    "p25_p75": [
+     -0.5295915357046593,
+     0.009650473968109788
+    ],
+    "frac_within_5pct": 0.5308531805051526,
+    "normal_err_deg_median": 3.2592288278472856,
+    "normal_err_deg_p90": 71.52649168820722,
+    "by_sensor_radius": {
+     "800-1300": {
+      "median_rel_err": -0.3393833978605374,
+      "normal_err_deg_median": 49.80071968225805
+     },
+     "1300-1700": {
+      "median_rel_err": -0.004680414351968313,
+      "normal_err_deg_median": 1.9762185636493055
+     },
+     "1700-1880": {
+      "median_rel_err": -0.019515248810329722,
+      "normal_err_deg_median": 5.126485102984424
+     }
+    }
+   },
+   "ceiling": {
+    "pixels": 366411,
+    "median_rel_err": 0.11106333844458365,
+    "p25_p75": [
+     0.08293457072352908,
+     0.14043945757164697
+    ],
+    "frac_within_5pct": 0.11005946873865687,
+    "normal_err_deg_median": 3.604747516705798,
+    "normal_err_deg_p90": 14.039846718315493,
+    "by_sensor_radius": {
+     "0-800": {
+      "median_rel_err": 0.08240630025420898,
+      "normal_err_deg_median": 3.172857771608427
+     },
+     "800-1300": {
+      "median_rel_err": 0.12967660654808197,
+      "normal_err_deg_median": 3.8751329569675756
+     },
+     "1300-1700": {
+      "median_rel_err": 0.1141180721741148,
+      "normal_err_deg_median": 3.3685400096424436
+     },
+     "1700-1880": {
+      "median_rel_err": 0.11801514915893536,
+      "normal_err_deg_median": 4.4753311215284794
+     }
+    }
+   }
+  },
+  "walls": {
+   "u_lo": {
+    "pixels": 17298,
+    "plane_rms_units": 0.12984031709353394,
+    "plane_p95_abs_units": 0.28635460677166963,
+    "plane_offset_vs_sfm_units": 0.19598870629535803,
+    "normal_vs_wall_axis_deg": 1.226136878399409,
+    "normal_vs_horizontal_deg": 1.1871369788654595,
+    "pred_normal_vs_wall_axis_deg_median": 2.273909839414382
+   },
+   "v_lo": {
+    "pixels": 51921,
+    "plane_rms_units": 0.14386141047709144,
+    "plane_p95_abs_units": 0.3416310870310045,
+    "plane_offset_vs_sfm_units": -0.12960035256603453,
+    "normal_vs_wall_axis_deg": 0.61635149945839,
+    "normal_vs_horizontal_deg": 0.6096481259112617,
+    "pred_normal_vs_wall_axis_deg_median": 2.765670152564118
+   },
+   "u_hi": {
+    "pixels": 30378,
+    "plane_rms_units": 0.09043064897151878,
+    "plane_p95_abs_units": 0.18102522041779345,
+    "plane_offset_vs_sfm_units": -0.002821572012054574,
+    "normal_vs_wall_axis_deg": 6.742788695007379,
+    "normal_vs_horizontal_deg": 1.399532071955056,
+    "pred_normal_vs_wall_axis_deg_median": 6.7613185911541995
+   }
+  }
+ },
+ "camera1/frame_00103.png": {
+  "scale_colmap_units_per_moge_unit": 0.9181703039704034,
+  "sfm_obs_used": 1860,
+  "face_scales": [
+   0.9999999999999996,
+   0.9247405479257382,
+   1.21755958118812,
+   1.4304332446055825,
+   1.0082922458874382,
+   0.8307365878444516,
+   1.0123293123129193,
+   0.8125062811659164,
+   0.8046293045865461
+  ],
+  "seam_log_mismatch_median_before_after": [
+   0.19704944009534783,
+   0.012729569074431
+  ],
+  "per_class_sfm": {
+   "floor": {
+    "n": 1666,
+    "median_rel_err": 0.00026013061179168233,
+    "mad_rel": 0.009199675136842073,
+    "frac_within_5pct": 0.9519807923169268
+   },
+   "ceiling": {
+    "n": 40,
+    "median_rel_err": -0.01197853378271281,
+    "mad_rel": 0.03004845513822871,
+    "frac_within_5pct": 0.65
+   },
+   "wall": {
+    "n": 38,
+    "median_rel_err": -0.0051793563200228845,
+    "mad_rel": 0.03102175407639183,
+    "frac_within_5pct": 0.7894736842105263
+   },
+   "chair": {
+    "n": 45,
+    "median_rel_err": 0.029861309383192872,
+    "mad_rel": 0.05690153857564751,
+    "frac_within_5pct": 0.4
+   },
+   "other": {
+    "n": 65,
+    "median_rel_err": -0.018863566610764926,
+    "mad_rel": 0.03260742430147866,
+    "frac_within_5pct": 0.6461538461538462
+   }
+  },
+  "thin_merge": {
+   "chair": {
+    "n": 45,
+    "frac_nearer_background": 0.0
+   },
+   "table": {
+    "n": 6,
+    "frac_nearer_background": 0.0
+   }
+  },
+  "planes": {
+   "floor": {
+    "pixels": 229879,
+    "median_rel_err": 0.00019475677812074566,
+    "p25_p75": [
+     -0.022895908760265135,
+     0.01120699365382228
+    ],
+    "frac_within_5pct": 0.7709055633615945,
+    "normal_err_deg_median": 2.936119283891338,
+    "normal_err_deg_p90": 37.40255863213575,
+    "by_sensor_radius": {
+     "0-800": {
+      "median_rel_err": -0.01647936145914894,
+      "normal_err_deg_median": 2.56473305054716
+     },
+     "800-1300": {
+      "median_rel_err": 0.0026420509709473732,
+      "normal_err_deg_median": 2.855054883029103
+     },
+     "1300-1700": {
+      "median_rel_err": 0.004789857659025451,
+      "normal_err_deg_median": 3.0554251105769334
+     },
+     "1700-1880": {
+      "median_rel_err": 0.007558583500936476,
+      "normal_err_deg_median": 3.382823575939744
+     }
+    }
+   },
+   "ceiling": {
+    "pixels": 187855,
+    "median_rel_err": 0.012619655726342344,
+    "p25_p75": [
+     0.0003237459705457522,
+     0.029054978501896554
+    ],
+    "frac_within_5pct": 0.8794548987250805,
+    "normal_err_deg_median": 1.7946648847559457,
+    "normal_err_deg_p90": 10.218228239725685,
+    "by_sensor_radius": {
+     "0-800": {
+      "median_rel_err": 0.02149634797717928,
+      "normal_err_deg_median": 1.6180297215027055
+     },
+     "800-1300": {
+      "median_rel_err": 0.005977551459628752,
+      "normal_err_deg_median": 1.505502061891132
+     },
+     "1300-1700": {
+      "median_rel_err": 0.017682314785732258,
+      "normal_err_deg_median": 1.8313138073286026
+     },
+     "1700-1880": {
+      "median_rel_err": 0.015416670077625587,
+      "normal_err_deg_median": 2.297637673629733
+     }
+    }
+   }
+  },
+  "walls": {
+   "v_hi": {
+    "pixels": 51215,
+    "plane_rms_units": 0.06428289372626604,
+    "plane_p95_abs_units": 0.12767919112096782,
+    "plane_offset_vs_sfm_units": -0.07591412158017707,
+    "normal_vs_wall_axis_deg": 2.369563411860478,
+    "normal_vs_horizontal_deg": 2.3100943808753254,
+    "pred_normal_vs_wall_axis_deg_median": 3.7354884959991304
+   },
+   "u_hi": {
+    "pixels": 138676,
+    "plane_rms_units": 0.06936290438443228,
+    "plane_p95_abs_units": 0.1615630298253159,
+    "plane_offset_vs_sfm_units": -0.092031840814216,
+    "normal_vs_wall_axis_deg": 2.067015841225458,
+    "normal_vs_horizontal_deg": 1.3577786242202659,
+    "pred_normal_vs_wall_axis_deg_median": 4.634335800829957
+   }
+  }
+ },
+ "camera1/frame_00060.png": {
+  "scale_colmap_units_per_moge_unit": 1.2830119056947498,
+  "sfm_obs_used": 501,
+  "face_scales": [
+   0.9999999999999993,
+   0.7612204206798417,
+   0.7514638112742679,
+   0.9956194915671508,
+   0.6994897143952798,
+   0.5499829065665651,
+   0.6993059540768202,
+   0.5702495453038222,
+   0.6416295495658392
+  ],
+  "seam_log_mismatch_median_before_after": [
+   0.25134269029870177,
+   0.014877015273466798
+  ],
+  "per_class_sfm": {
+   "floor": {
+    "n": 303,
+    "median_rel_err": -0.005610457251019976,
+    "mad_rel": 0.018828397301095756,
+    "frac_within_5pct": 0.9174917491749175
+   },
+   "ceiling": {
+    "n": 34,
+    "median_rel_err": 0.09332590198854553,
+    "mad_rel": 0.09419588988615003,
+    "frac_within_5pct": 0.17647058823529413
+   },
+   "wall": {
+    "n": 54,
+    "median_rel_err": 0.07751434950674302,
+    "mad_rel": 0.07906958849694934,
+    "frac_within_5pct": 0.2777777777777778
+   },
+   "table": {
+    "n": 12,
+    "median_rel_err": -0.058639629284988955,
+    "mad_rel": 0.08837197177107857,
+    "frac_within_5pct": 0.3333333333333333
+   },
+   "chair": {
+    "n": 27,
+    "median_rel_err": 0.06194790977199631,
+    "mad_rel": 0.06561235717934943,
+    "frac_within_5pct": 0.25925925925925924
+   },
+   "other": {
+    "n": 71,
+    "median_rel_err": 0.02629221115891757,
+    "mad_rel": 0.06821074435740274,
+    "frac_within_5pct": 0.30985915492957744
+   }
+  },
+  "thin_merge": {
+   "chair": {
+    "n": 27,
+    "frac_nearer_background": 0.0
+   },
+   "table": {
+    "n": 12,
+    "frac_nearer_background": 0.08333333333333333
+   }
+  },
+  "planes": {
+   "floor": {
+    "pixels": 176043,
+    "median_rel_err": -0.11562468930813932,
+    "p25_p75": [
+     -0.4032624640254955,
+     -0.008985255422402525
+    ],
+    "frac_within_5pct": 0.43234891475378173,
+    "normal_err_deg_median": 6.636981917572672,
+    "normal_err_deg_p90": 70.81102459260539,
+    "by_sensor_radius": {
+     "800-1300": {
+      "median_rel_err": -0.024890816100419016,
+      "normal_err_deg_median": 5.842953578974122
+     },
+     "1300-1700": {
+      "median_rel_err": -0.23079916140731221,
+      "normal_err_deg_median": 7.700513348999378
+     },
+     "1700-1880": {
+      "median_rel_err": -0.25627926851953653,
+      "normal_err_deg_median": 8.611352880211667
+     }
+    }
+   },
+   "ceiling": {
+    "pixels": 58253,
+    "median_rel_err": 0.0919129731002305,
+    "p25_p75": [
+     0.07252598441149043,
+     0.10781382850045049
+    ],
+    "frac_within_5pct": 0.06770466757076889,
+    "normal_err_deg_median": 6.146718558743901,
+    "normal_err_deg_p90": 24.172166516533125,
+    "by_sensor_radius": {
+     "1300-1700": {
+      "median_rel_err": 0.08935135171747698,
+      "normal_err_deg_median": 6.868795591393493
+     },
+     "1700-1880": {
+      "median_rel_err": 0.1000208671660722,
+      "normal_err_deg_median": 5.192152499792243
+     }
+    }
+   }
+  },
+  "walls": {
+   "u_lo": {
+    "pixels": 14283,
+    "plane_rms_units": 0.04327644183769341,
+    "plane_p95_abs_units": 0.07605851939133786,
+    "plane_offset_vs_sfm_units": 0.24580548106168543,
+    "normal_vs_wall_axis_deg": 3.858832806508793,
+    "normal_vs_horizontal_deg": 1.835571621050693,
+    "pred_normal_vs_wall_axis_deg_median": 8.287639575555104
+   },
+   "v_lo": {
+    "pixels": 286674,
+    "plane_rms_units": 0.08194563153737885,
+    "plane_p95_abs_units": 0.19669372450126718,
+    "plane_offset_vs_sfm_units": 0.022528392533702313,
+    "normal_vs_wall_axis_deg": 4.15528996976483,
+    "normal_vs_horizontal_deg": 4.15502805483986,
+    "pred_normal_vs_wall_axis_deg_median": 5.814083696372196
+   }
+  }
+ }
+}
