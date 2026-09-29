@@ -107,6 +107,35 @@ Put the three sets in one folder, with the originals untouched:
 
 Send a note with any station that had to move. We upload, hash and process them.
 
+## Set D — HYBRID processing condition (added 2026-09-29; no extra capture)
+
+**Question.** Can the X4 video remain the fast primary capture while a small detail-photo pass restores fine texture?
+Set D uses only material already captured in A and B/C; the physical plan is not expanded.
+
+**Inputs.** Set A's X4 video (official workflow, as in Phase 1) plus a **deliberately small detail subset** of the
+high-resolution stills. Start with the minimum useful subset, the iPhone close detail passes, in this order:
+1. chair slats;
+2. window reveal;
+3. table edge;
+4. baseboard / carpet;
+5. ceiling grid.
+
+That is about 15 photos (3 angles per feature), not all ~120.
+
+**Prerequisite — check it first, and ABORT D if it fails.** Joint SfM (Spirula `sfm auto`, official flags) must show
+all three of:
+1. **separate cameras / intrinsics** for the iPhone images (their own folder camera, not an X4 fisheye model);
+2. **joint registration** of the detail photos into the X4 model (all or nearly all registered, sensible reprojection
+   error);
+3. the **X4 rig solution uncorrupted**: dual-fisheye rig relative pose, camera count, per-lens intrinsics and X4
+   reprojection error unchanged within tolerance vs the video-only Set A solve, and the X4 camera centres aligned to
+   Set A within ~1 cm.
+
+Training: same `360-camera` recipe, same 1 M cap and 30 k iterations.
+
+**Decision criterion (A/B/C/D alike):** visible photographic fidelity and temporal stability at ordinary viewing
+scale, plus preservation of genuine source detail at 1:1. Not Gaussian count or training PSNR.
+
 ## Processing (Phase 4 — defined now, run only after the capture)
 
 - **Workflow:** all three sets go through the **same reference workflow** as the Phase 1 run: official Spirula

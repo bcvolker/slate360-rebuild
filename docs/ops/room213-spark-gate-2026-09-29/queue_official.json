@@ -1,0 +1,5 @@
+[
+"file=/d/official_export.ply&poses=/d/poses_official.json&tag=spk_official_combined_lod0&cond=combined&lod=0&timing=0",
+"file=/d/golden_export.ply&poses=/d/poses_goldwalk.json&tag=spk_golden_walk_combined_lod0&cond=combined&lod=0&timing=0",
+"file=/d/golden_export.ply&poses=/d/poses_main.json&tag=spk_golden_recheck_combined_lod0&cond=combined&lod=0&timing=0"
+]
