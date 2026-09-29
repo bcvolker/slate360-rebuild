@@ -1,0 +1,6 @@
+# What this model's frame means, from spirula sfm.
+oriented 1
+metric 1
+up sensors
+scale imu
+scale_sigma 0.0163232

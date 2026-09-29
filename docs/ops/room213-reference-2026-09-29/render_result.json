@@ -1,0 +1,61 @@
+{
+ "icp": [
+  {
+   "thr": 0.1,
+   "n": 16918,
+   "median_d": 0.010334866001049305
+  },
+  {
+   "thr": 0.06,
+   "n": 16823,
+   "median_d": 0.009701654629918042
+  },
+  {
+   "thr": 0.04,
+   "n": 16531,
+   "median_d": 0.008656417753513076
+  },
+  {
+   "thr": 0.03,
+   "n": 16097,
+   "median_d": 0.0073294171859885375
+  },
+  {
+   "thr": 0.02,
+   "n": 15134,
+   "median_d": 0.006034100587490007
+  },
+  {
+   "thr": 0.02,
+   "n": 15132,
+   "median_d": 0.00554805873413579
+  },
+  {
+   "thr": 0.015,
+   "n": 14150,
+   "median_d": 0.0050850143601784215
+  },
+  {
+   "thr": 0.015,
+   "n": 14148,
+   "median_d": 0.005042808019085464
+  }
+ ],
+ "align_after_icp": null,
+ "align": {
+  "pairs": 10,
+  "inliers": 10,
+  "scale_ref_per_golden_unit": 1.0293482762152228,
+  "centre_resid_ref_units_median": 0.014674837695850262,
+  "centre_resid_p90": 0.02582365210271716,
+  "rotation_disagreement_deg_median": 0.19463253109830642,
+  "rotation_disagreement_deg_p90": 0.5373787050042556
+ },
+ "render": {
+  "exit": 0,
+  "seconds": 461,
+  "mapped": 812,
+  "max_thumb_err": 0.0,
+  "log_tail": "Devices:\n  * [0] NVIDIA L40S (discrete, 46068 MB)\n      UUID: uuid:2c55f384d93893d5fe85401b7fd08058\n    [1] llvmpipe (LLVM 20.1.2, 256 bits) (cpu, 1048576 MB)\n      UUID: uuid:6d65736132352e322e382d3075627500\nCameras: 2 (10 after splitting), seed points: 200000 (train_frame_scale=5.623)\nOutput directory: /tmp/ev/ref/r\nSeeded from /vol/room213/2026-09-29/ref/ws/outputs/ref/step-000030000.ckpt/splat.ply: 997559 splats from the PLY, 0 from the point cloud\nCheckpoint saved to: /tmp/ev/ref/r\nTraining complete. Steps: 0   Time: 00:00:00.000\nEval: views to score: 812\n  cc_l1: 0.061383\n  cc_psnr: inf\n  cc_ssim: 0.889779\n  l1: 0.433379\n  psnr: 6.241226\n  ssim: 0.400802\nEval metrics written to /tmp/ev/ref/r/metrics.json\n"
+ }
+}

@@ -1,0 +1,43 @@
+image_dir: /vol/room213/2026-09-29/ref/ws/images
+mask_dir: /vol/room213/2026-09-29/ref/ws/masks
+mask_flipped: false
+cameras:
+  - prefix: VID_20260921_105956_00_020
+    model: thin-prism-fisheye
+  - prefix: VID_20260921_110203_00_021
+    model: thin-prism-fisheye
+  - prefix: VID_20260921_111410_00_075
+    model: thin-prism-fisheye
+rigs:
+  - name: VID_20260921_105956_00_020
+    kind: dual-fisheye
+    members:
+      - VID_20260921_105956_00_020/cam0
+      - VID_20260921_105956_00_020/cam1
+  - name: VID_20260921_110203_00_021
+    kind: dual-fisheye
+    members:
+      - VID_20260921_110203_00_021/cam0
+      - VID_20260921_110203_00_021/cam1
+  - name: VID_20260921_111410_00_075
+    kind: dual-fisheye
+    members:
+      - VID_20260921_111410_00_075/cam0
+      - VID_20260921_111410_00_075/cam1
+sequences:
+  - members:
+      - VID_20260921_105956_00_020/cam0
+      - VID_20260921_105956_00_020/cam1
+  - members:
+      - VID_20260921_110203_00_021/cam0
+      - VID_20260921_110203_00_021/cam1
+  - members:
+      - VID_20260921_111410_00_075/cam0
+      - VID_20260921_111410_00_075/cam1
+captures:
+  - prefix: VID_20260921_105956_00_020
+    telemetry: /vol/room213/2026-09-21/raw-capture-test/VID_20260921_105956_00_020.insv
+  - prefix: VID_20260921_110203_00_021
+    telemetry: /vol/room213/2026-09-21/raw-capture-test/VID_20260921_110203_00_021.insv
+  - prefix: VID_20260921_111410_00_075
+    telemetry: /vol/room213/2026-09-21/raw-capture-test/VID_20260921_111410_00_075.insv

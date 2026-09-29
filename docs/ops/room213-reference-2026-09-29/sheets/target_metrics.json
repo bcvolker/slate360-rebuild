@@ -1,0 +1,496 @@
+{
+ "1_white_wall": {
+  "view": "carpet_a0_indep_f1280",
+  "roi": [
+   20,
+   330,
+   340,
+   570
+  ],
+  "segment": null,
+  "panels": {
+   "SOURCE": {
+    "fine_std": 1.5116117493561005
+   },
+   "GOLDEN native": {
+    "fine_std": 0.45939392619326797,
+    "fine": {
+     "energyRatio": 0.30390999963380505,
+     "ncc": 0.24725410652058571,
+     "coherentGain": 0.075142995422128,
+     "incoherentRatio": 0.29447379869253126
+    },
+    "mid": {
+     "energyRatio": 0.5094372518413907,
+     "ncc": 0.4871601511342067,
+     "coherentGain": 0.24817752860044678,
+     "incoherentRatio": 0.4448979971425842
+    },
+    "shift": {
+     "peakNcc": 0.5376,
+     "peakShiftPx": [
+      -2,
+      1
+     ]
+    }
+   },
+   "OFFICIAL native": {
+    "fine_std": 0.4221276849264403,
+    "fine": {
+     "energyRatio": 0.2792566842023116,
+     "ncc": 0.14294618799321646,
+     "coherentGain": 0.03991867847834591,
+     "incoherentRatio": 0.27638884706191025
+    },
+    "mid": {
+     "energyRatio": 0.4860169676345068,
+     "ncc": 0.4350391726894279,
+     "coherentGain": 0.21143641951274028,
+     "incoherentRatio": 0.43761528004889605
+    },
+    "shift": {
+     "peakNcc": 0.5374,
+     "peakShiftPx": [
+      -3,
+      1
+     ]
+    }
+   }
+  }
+ },
+ "2_ceiling_grid": {
+  "view": "chair_slats_a2_fixed_f640",
+  "roi": [
+   360,
+   0,
+   680,
+   240
+  ],
+  "segment": [
+   400,
+   96,
+   560,
+   132
+  ],
+  "panels": {
+   "SOURCE": {
+    "fine_std": 8.146745813496645,
+    "edge": {
+     "width10_90px": 6.380912819877267,
+     "contrast": 53.02197265625,
+     "profiles": 82
+    }
+   },
+   "GOLDEN native": {
+    "fine_std": 4.300068636748459,
+    "fine": {
+     "energyRatio": 0.5278265377599693,
+     "ncc": 0.511909030606268,
+     "coherentGain": 0.2701991712729686,
+     "incoherentRatio": 0.4534239316655852
+    },
+    "mid": {
+     "energyRatio": 0.6532987264148516,
+     "ncc": 0.7416299476832946,
+     "coherentGain": 0.48450590029260937,
+     "incoherentRatio": 0.43823881448009055
+    },
+    "shift": {
+     "peakNcc": 0.8296,
+     "peakShiftPx": [
+      -1,
+      1
+     ]
+    },
+    "edge": {
+     "width10_90px": 4.7826158702373505,
+     "contrast": 32.33111572265625,
+     "profiles": 82
+    }
+   },
+   "OFFICIAL native": {
+    "fine_std": 4.242251626365723,
+    "fine": {
+     "energyRatio": 0.5207295923407381,
+     "ncc": 0.5928720078332669,
+     "coherentGain": 0.308725998949252,
+     "incoherentRatio": 0.4193418246635288
+    },
+    "mid": {
+     "energyRatio": 0.7010577787417855,
+     "ncc": 0.9004705829739862,
+     "coherentGain": 0.6312819067220633,
+     "incoherentRatio": 0.304901891400697
+    },
+    "shift": {
+     "peakNcc": 0.9053,
+     "peakShiftPx": [
+      -1,
+      -1
+     ]
+    },
+    "edge": {
+     "width10_90px": 5.945739507675171,
+     "contrast": 75.97929382324219,
+     "profiles": 82
+    }
+   }
+  }
+ },
+ "3_window_recess": {
+  "view": "carpet_a0_indep_f640",
+  "roi": [
+   330,
+   40,
+   650,
+   280
+  ],
+  "segment": null,
+  "panels": {
+   "SOURCE": {
+    "fine_std": 3.7997677663402825
+   },
+   "GOLDEN native": {
+    "fine_std": 1.6248429313875408,
+    "fine": {
+     "energyRatio": 0.4276163785010724,
+     "ncc": 0.013956312109102729,
+     "coherentGain": 0.005967947641325172,
+     "incoherentRatio": 0.427574731203006
+    },
+    "mid": {
+     "energyRatio": 0.7246777831973563,
+     "ncc": 0.5860147982942483,
+     "coherentGain": 0.4246719049487218,
+     "incoherentRatio": 0.5872066609014739
+    },
+    "shift": {
+     "peakNcc": 0.7973,
+     "peakShiftPx": [
+      -2,
+      1
+     ]
+    }
+   },
+   "OFFICIAL native": {
+    "fine_std": 1.6276166170530966,
+    "fine": {
+     "energyRatio": 0.42834634039246117,
+     "ncc": -0.04450947422487116,
+     "coherentGain": -0.01906547039701614,
+     "incoherentRatio": 0.427921833009435
+    },
+    "mid": {
+     "energyRatio": 0.7537168549373877,
+     "ncc": 0.34709140723380233,
+     "coherentGain": 0.26160864383605353,
+     "incoherentRatio": 0.7068592610180389
+    },
+    "shift": {
+     "peakNcc": 0.8253,
+     "peakShiftPx": [
+      -2,
+      3
+     ]
+    }
+   }
+  }
+ },
+ "4_chair_slats": {
+  "view": "chair_slats_a2_fixed_f1280",
+  "roi": [
+   650,
+   440,
+   970,
+   680
+  ],
+  "segment": [
+   725,
+   530,
+   790,
+   523,
+   6
+  ],
+  "panels": {
+   "SOURCE": {
+    "fine_std": 11.132836386492068,
+    "edge": {
+     "width10_90px": 4.247936338186264,
+     "contrast": 160.85101318359375,
+     "profiles": 32
+    }
+   },
+   "GOLDEN native": {
+    "fine_std": 8.689278848179681,
+    "fine": {
+     "energyRatio": 0.7805089867953816,
+     "ncc": 0.7305911710018166,
+     "coherentGain": 0.5702329746402793,
+     "incoherentRatio": 0.5329433676304189
+    },
+    "mid": {
+     "energyRatio": 0.875469496211966,
+     "ncc": 0.9140506522464448,
+     "coherentGain": 0.8002234640344139,
+     "incoherentRatio": 0.3550904763667937
+    },
+    "shift": {
+     "peakNcc": 0.9256,
+     "peakShiftPx": [
+      1,
+      0
+     ]
+    },
+    "edge": {
+     "width10_90px": 4.4813854694366455,
+     "contrast": 138.76507568359375,
+     "profiles": 32
+    }
+   },
+   "OFFICIAL native": {
+    "fine_std": 7.772853508427853,
+    "fine": {
+     "energyRatio": 0.6981916592126494,
+     "ncc": 0.6167439048602665,
+     "coherentGain": 0.4306054502436779,
+     "incoherentRatio": 0.549591247396237
+    },
+    "mid": {
+     "energyRatio": 0.8556609866123942,
+     "ncc": 0.8475014745212818,
+     "coherentGain": 0.7251739478443389,
+     "incoherentRatio": 0.4541788957870588
+    },
+    "shift": {
+     "peakNcc": 0.9234,
+     "peakShiftPx": [
+      2,
+      -1
+     ]
+    },
+    "edge": {
+     "width10_90px": 4.229581490159035,
+     "contrast": 161.73129272460938,
+     "profiles": 32
+    }
+   }
+  }
+ },
+ "5_table_edge": {
+  "view": "table_edges_a4_indep_f1280",
+  "roi": [
+   760,
+   360,
+   1080,
+   600
+  ],
+  "segment": [
+   925,
+   535,
+   985,
+   475
+  ],
+  "panels": {
+   "SOURCE": {
+    "fine_std": 7.809908094307688,
+    "edge": {
+     "width10_90px": 10.167142048478127,
+     "contrast": 45.638572692871094,
+     "profiles": 42
+    }
+   },
+   "GOLDEN native": {
+    "fine_std": 6.105113226339843,
+    "fine": {
+     "energyRatio": 0.7817138374252576,
+     "ncc": 0.616041329007218,
+     "coherentGain": 0.481568031310788,
+     "incoherentRatio": 0.615766802321767
+    },
+    "mid": {
+     "energyRatio": 0.9046861189145801,
+     "ncc": 0.8956622305970334,
+     "coherentGain": 0.8102931872572058,
+     "incoherentRatio": 0.40234552867067414
+    },
+    "shift": {
+     "peakNcc": 0.9247,
+     "peakShiftPx": [
+      1,
+      0
+     ]
+    },
+    "edge": {
+     "width10_90px": 8.902842000126839,
+     "contrast": 35.59532165527344,
+     "profiles": 42
+    }
+   },
+   "OFFICIAL native": {
+    "fine_std": 5.508905861036997,
+    "fine": {
+     "energyRatio": 0.7053739678514533,
+     "ncc": 0.21481987620547388,
+     "coherentGain": 0.15152834845241314,
+     "incoherentRatio": 0.688906085136274
+    },
+    "mid": {
+     "energyRatio": 0.8965133114896808,
+     "ncc": 0.7054977125500962,
+     "coherentGain": 0.6324880905266818,
+     "incoherentRatio": 0.6353699182524347
+    },
+    "shift": {
+     "peakNcc": 0.9003,
+     "peakShiftPx": [
+      2,
+      -2
+     ]
+    },
+    "edge": {
+     "width10_90px": 8.01254166662693,
+     "contrast": 34.47880554199219,
+     "profiles": 42
+    }
+   }
+  }
+ },
+ "6_carpet": {
+  "view": "carpet_a0_indep_f1280",
+  "roi": [
+   560,
+   440,
+   880,
+   700
+  ],
+  "segment": null,
+  "panels": {
+   "SOURCE": {
+    "fine_std": 2.3863598477438233
+   },
+   "GOLDEN native": {
+    "fine_std": 1.8178050372663632,
+    "fine": {
+     "energyRatio": 0.7617480821197196,
+     "ncc": 0.5395091836057686,
+     "coherentGain": 0.4109700858976699,
+     "incoherentRatio": 0.6413764332358437
+    },
+    "mid": {
+     "energyRatio": 0.9742862547215666,
+     "ncc": 0.8409796449596532,
+     "coherentGain": 0.8193549085848132,
+     "incoherentRatio": 0.5271539053420264
+    },
+    "shift": {
+     "peakNcc": 0.8559,
+     "peakShiftPx": [
+      -1,
+      0
+     ]
+    }
+   },
+   "OFFICIAL native": {
+    "fine_std": 2.019636068581068,
+    "fine": {
+     "energyRatio": 0.8463250295174581,
+     "ncc": 0.42783145909704273,
+     "coherentGain": 0.3620844722488019,
+     "incoherentRatio": 0.7649580972471842
+    },
+    "mid": {
+     "energyRatio": 1.0373092083385733,
+     "ncc": 0.7287245343469733,
+     "coherentGain": 0.7559126698203543,
+     "incoherentRatio": 0.7103565508313847
+    },
+    "shift": {
+     "peakNcc": 0.8713,
+     "peakShiftPx": [
+      -2,
+      1
+     ]
+    }
+   }
+  }
+ },
+ "6b_baseboard": {
+  "view": "carpet_a0_indep_f1280",
+  "roi": [
+   360,
+   300,
+   600,
+   500
+  ],
+  "segment": [
+   420,
+   468,
+   540,
+   343
+  ],
+  "panels": {
+   "SOURCE": {
+    "fine_std": 4.584661638348452,
+    "edge": {
+     "width10_90px": 2.621547246351838,
+     "contrast": 148.22825622558594,
+     "profiles": 86
+    }
+   },
+   "GOLDEN native": {
+    "fine_std": 3.4008401673028765,
+    "fine": {
+     "energyRatio": 0.7417865124127181,
+     "ncc": 0.41427117966902993,
+     "coherentGain": 0.3073007735597923,
+     "incoherentRatio": 0.6751395889495571
+    },
+    "mid": {
+     "energyRatio": 0.9396673160046528,
+     "ncc": 0.8383439947300938,
+     "coherentGain": 0.787764451416646,
+     "incoherentRatio": 0.5122517289884134
+    },
+    "shift": {
+     "peakNcc": 0.9259,
+     "peakShiftPx": [
+      -2,
+      1
+     ]
+    },
+    "edge": {
+     "width10_90px": 3.8379341484978795,
+     "contrast": 140.39291381835938,
+     "profiles": 86
+    }
+   },
+   "OFFICIAL native": {
+    "fine_std": 3.0546892434800554,
+    "fine": {
+     "energyRatio": 0.6662845558610202,
+     "ncc": 0.5653614351204509,
+     "coherentGain": 0.3766915927001786,
+     "incoherentRatio": 0.5495803429598984
+    },
+    "mid": {
+     "energyRatio": 0.903937843120372,
+     "ncc": 0.8680927424710388,
+     "coherentGain": 0.7847018812577194,
+     "incoherentRatio": 0.44871659404985925
+    },
+    "shift": {
+     "peakNcc": 0.9384,
+     "peakShiftPx": [
+      -2,
+      1
+     ]
+    },
+    "edge": {
+     "width10_90px": 4.28904290497303,
+     "contrast": 144.52565002441406,
+     "profiles": 86
+    }
+   }
+  }
+ }
+}
