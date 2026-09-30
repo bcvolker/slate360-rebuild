@@ -188,3 +188,22 @@ def native_orthos_v6(run: str, cond: str = "AX6c", up: int = 4, ws: str = "") ->
             np.save(O / name / f"{o['tag']}_ortho_native.npy", cv2.resize(t, (nt, nt), interpolation=cv2.INTER_AREA).astype(np.float32)); n_ok += 1
     vol.commit()
     return {"native_orthos": n_ok}
+
+
+@app.function(image=image, cpu=8.0, memory=32768, timeout=3600, volumes={"/vol": vol})
+def mask_cover_v1(run: str, cond: str) -> dict:
+    """Fraction of each observation's target patch that the ACTUAL training mask keeps (after the 0.005*sqrt(WH) erosion)."""
+    import json, numpy as np, cv2, pycolmap
+    from pathlib import Path
+    from forensic_geom import ortho_from_source
+    vol.reload(); P = json.load(open(f"{OUT}/{run}/prep.json")); WS = f"{COND}/{cond}/ws"; rec = pycolmap.Reconstruction(f"{WS}/sparse/0"); out = {}
+    for name, T in P["targets"].items():
+        nt, tex = T["nt"], T["texel_mm"] / 1000; X, u, v = (np.array(T[k]) for k in ("X", "u", "v"))
+        a = (np.arange(nt) - nt / 2 + 0.5) * tex; A_, B_ = np.meshgrid(a, a); G = X + A_.reshape(-1, 1) * u + B_.reshape(-1, 1) * v
+        for o in T["observations"]:
+            mk = cv2.imread(f"{WS}/masks/{o['image'].rsplit('.', 1)[0]}.png", 0)
+            if mk is None: out[f"{name}/{o['tag']}"] = None; continue
+            dt = cv2.distanceTransform((mk > 0).astype(np.uint8), cv2.DIST_L2, 5); keep = (dt > 0.005 * np.sqrt(mk.size)).astype(np.float32)
+            im = rec.images[o["image_id"]]; cam = rec.cameras[im.camera_id]
+            out[f"{name}/{o['tag']}"] = float((ortho_from_source(im, cam, keep, G, (nt, nt)) > 0.5).mean())
+    return out
