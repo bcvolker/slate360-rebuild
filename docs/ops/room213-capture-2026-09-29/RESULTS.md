@@ -117,3 +117,65 @@ AX6 training was spawned with the same `360-camera` defaults.
   - 100% of each photo's observations are shared with video tracks.
 - **Stability of A's video cameras.** Median shift 0.8 mm, maximum 5 mm.
 - **Verdict: HEALTHY.** Training spawned. The chairs are known to differ between days, and the lighting too; this is what D1 tests.
+
+### Alignment caveat (applies to every condition)
+- **Bay slips.** The room repeats every window bay (about 1.5–2.2 m). The occupancy + ICP aligner slipped a bay on three conditions:
+  - C: 1.5 m;
+  - A+: 2.2 m;
+  - D1: 0.26 m.
+- **How they were caught.** Each condition's shared frames or anchors were checked against A's verified cameras.
+- **Fix.** Every condition that contains A's frames is now aligned through those frames (`eval/align_via_A.py`) and then ICP-refined.
+- **Residual against A's cameras:** A+ 6 mm, D1 about 1 cm, AX6c 1.3 mm (AX6c was already correct).
+- The slipped fits are kept as `*_bayslip.json` / `*_slip.json`. Every render below uses the corrected fits.
+
+### A+: 079 + 077 + 078 + 080, official workflow
+- **SfM.** 1794/1794 registered: 4 sub-models merged into 1, with 8 cameras. 598k points, 1.263 px mean. Trained 1M splats in 3301 s.
+- **Measured pass heights** (correction to Stage 1):
+
+  | Pass | Height |
+  |---|---|
+  | 077 | 2.06 m |
+  | 078 | 1.15 m |
+  | 079 | 1.19 m |
+  | 080 | 1.99 m |
+
+  080 is a high pass, not low.
+- **9/21 walk** (`walk_official_A_Aplus_AX6c_D1.jpg`, `walk_crop5_*`): A+ is visibly better than A.
+  - Chairs are less smeared and table edges straighter, with fewer streaks.
+  - The high passes sit near the 9/21 pole height (1.92 m).
+- **A+ vs Official.** Comparable class, and not a material win. The furniture differs between days, and Official remains cleaner on table edges and floor texture.
+- **Lineage at its own source frames:** mid-band NCC 0.89–0.93.
+- **Stations:** median NCC 0.62, the same as A.
+
+### D1: A + 5 iPhone photos from 9/21
+- **Trained:** 1714 s.
+- **At the 5 iPhone photo positions** (`D1/photo_positions_*`, compared to the photo itself):
+
+  | Model | Median NCC |
+  |---|---|
+  | D1 | 0.53 |
+  | A | 0.35 |
+  | A+ | 0.34 |
+  | Official | 0.28 |
+  | Golden | 0.25 |
+
+  D1 is best there, but only because it was trained on those exact photos.
+- **On the 9/21 walk it is WORSE than A.** The photos carry the 9/21 chair layout and light, which conflicts with the 9/29 video. The result is translucent ghost chairs and smeared table ends (w00200, w00400, w00600).
+- **Verdict:** D1 < A. Cross-day detail photos hurt. **D2 not run** (gate: only if D1 improves).
+- **E (timelapse):** held; not meaningful after these results.
+
+## Conclusions
+
+| Condition | Result vs R213-OFFICIAL-REF |
+|---|---|
+| A (079 alone) | Below |
+| A+ (4 passes, multi-height) | Best new condition. Better than A; comparable to Official, not materially better |
+| AX6c (A + 6 × 72MP panoramas) | ≈ A. Panoramas register natively but add no visible detail |
+| B (panoramas alone) | Not trainable: 4/11 registered |
+| C (iPhone only) | Clearly below: coverage holes, smears |
+| D1 (A + 5 cross-day iPhone) | Below A: ghosting |
+
+- **Multi-height coverage** is the only lever that visibly improved the new capture.
+- **Resolution levers** (72MP panoramas, 12MP iPhone stills) did not raise fine detail. This matches PROCESSING_LIMIT_CONFIRMED: fine-band energy stays at about 60% of source in every condition.
+- **Spark 2.1.0 check / temporary viewer:** not triggered. No condition materially beats Official.
+- **Golden and Official** are untouched; their URLs are unchanged.

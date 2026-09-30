@@ -1,0 +1,976 @@
+{
+ "locked": {
+  "white_wall": {
+   "SOURCE_9-21": {
+    "fine_std": 1.5116117493561005
+   },
+   "GOLDEN": {
+    "fine_std": 0.45939392619326797,
+    "fine": {
+     "energyRatio": 0.30390999963380505,
+     "ncc": 0.24725410652058571,
+     "coherentGain": 0.075142995422128,
+     "incoherentRatio": 0.29447379869253126
+    },
+    "mid": {
+     "energyRatio": 0.5094372518413907,
+     "ncc": 0.4871601511342067,
+     "coherentGain": 0.24817752860044678,
+     "incoherentRatio": 0.4448979971425842
+    },
+    "shift": {
+     "peakNcc": 0.5376,
+     "peakShiftPx": [
+      -2,
+      1
+     ]
+    }
+   },
+   "OFFICIAL": {
+    "fine_std": 0.4221276849264403,
+    "fine": {
+     "energyRatio": 0.2792566842023116,
+     "ncc": 0.14294618799321646,
+     "coherentGain": 0.03991867847834591,
+     "incoherentRatio": 0.27638884706191025
+    },
+    "mid": {
+     "energyRatio": 0.4860169676345068,
+     "ncc": 0.4350391726894279,
+     "coherentGain": 0.21143641951274028,
+     "incoherentRatio": 0.43761528004889605
+    },
+    "shift": {
+     "peakNcc": 0.5374,
+     "peakShiftPx": [
+      -3,
+      1
+     ]
+    }
+   },
+   "Aplus": {
+    "fine_std": 1.04090263963083,
+    "fine": {
+     "energyRatio": 0.6886044912486438,
+     "ncc": -0.005151586855129573,
+     "coherentGain": -0.0035474058454996993,
+     "incoherentRatio": 0.6885953538033572
+    },
+    "mid": {
+     "energyRatio": 1.039767272441646,
+     "ncc": 0.004827408404270422,
+     "coherentGain": 0.005019381269470135,
+     "incoherentRatio": 1.0397551570693997
+    },
+    "shift": {
+     "peakNcc": 0.0218,
+     "peakShiftPx": [
+      -2,
+      -4
+     ]
+    }
+   }
+  },
+  "ceiling_grid": {
+   "SOURCE_9-21": {
+    "fine_std": 8.146745813496645,
+    "edge": {
+     "width10_90px": 6.380912819877267,
+     "contrast": 53.02197265625,
+     "profiles": 82
+    }
+   },
+   "GOLDEN": {
+    "fine_std": 4.300068636748459,
+    "fine": {
+     "energyRatio": 0.5278265377599693,
+     "ncc": 0.511909030606268,
+     "coherentGain": 0.2701991712729686,
+     "incoherentRatio": 0.4534239316655852
+    },
+    "mid": {
+     "energyRatio": 0.6532987264148516,
+     "ncc": 0.7416299476832946,
+     "coherentGain": 0.48450590029260937,
+     "incoherentRatio": 0.43823881448009055
+    },
+    "shift": {
+     "peakNcc": 0.8296,
+     "peakShiftPx": [
+      -1,
+      1
+     ]
+    },
+    "edge": {
+     "width10_90px": 4.7826158702373505,
+     "contrast": 32.33111572265625,
+     "profiles": 82
+    }
+   },
+   "OFFICIAL": {
+    "fine_std": 4.242251626365723,
+    "fine": {
+     "energyRatio": 0.5207295923407381,
+     "ncc": 0.5928720078332669,
+     "coherentGain": 0.308725998949252,
+     "incoherentRatio": 0.4193418246635288
+    },
+    "mid": {
+     "energyRatio": 0.7010577787417855,
+     "ncc": 0.9004705829739862,
+     "coherentGain": 0.6312819067220633,
+     "incoherentRatio": 0.304901891400697
+    },
+    "shift": {
+     "peakNcc": 0.9053,
+     "peakShiftPx": [
+      -1,
+      -1
+     ]
+    },
+    "edge": {
+     "width10_90px": 5.945739507675171,
+     "contrast": 75.97929382324219,
+     "profiles": 82
+    }
+   },
+   "Aplus": {
+    "fine_std": 6.950494001749867,
+    "fine": {
+     "energyRatio": 0.8531620061393154,
+     "ncc": -0.10065283885576315,
+     "coherentGain": -0.08587317792180013,
+     "incoherentRatio": 0.8488293150176143
+    },
+    "mid": {
+     "energyRatio": 1.1150033596506197,
+     "ncc": 0.044686794807164115,
+     "coherentGain": 0.04982592634200585,
+     "incoherentRatio": 1.113889522841619
+    },
+    "shift": {
+     "peakNcc": 0.6192,
+     "peakShiftPx": [
+      -5,
+      3
+     ]
+    },
+    "edge": {
+     "width10_90px": 7.052422314882278,
+     "contrast": 124.44022369384766,
+     "profiles": 82
+    }
+   }
+  },
+  "window_reveal": {
+   "SOURCE_9-21": {
+    "fine_std": 3.7997677663402825
+   },
+   "GOLDEN": {
+    "fine_std": 1.6248429313875408,
+    "fine": {
+     "energyRatio": 0.4276163785010724,
+     "ncc": 0.013956312109102729,
+     "coherentGain": 0.005967947641325172,
+     "incoherentRatio": 0.427574731203006
+    },
+    "mid": {
+     "energyRatio": 0.7246777831973563,
+     "ncc": 0.5860147982942483,
+     "coherentGain": 0.4246719049487218,
+     "incoherentRatio": 0.5872066609014739
+    },
+    "shift": {
+     "peakNcc": 0.7973,
+     "peakShiftPx": [
+      -2,
+      1
+     ]
+    }
+   },
+   "OFFICIAL": {
+    "fine_std": 1.6276166170530966,
+    "fine": {
+     "energyRatio": 0.42834634039246117,
+     "ncc": -0.04450947422487116,
+     "coherentGain": -0.01906547039701614,
+     "incoherentRatio": 0.427921833009435
+    },
+    "mid": {
+     "energyRatio": 0.7537168549373877,
+     "ncc": 0.34709140723380233,
+     "coherentGain": 0.26160864383605353,
+     "incoherentRatio": 0.7068592610180389
+    },
+    "shift": {
+     "peakNcc": 0.8253,
+     "peakShiftPx": [
+      -2,
+      3
+     ]
+    }
+   },
+   "Aplus": {
+    "fine_std": 3.3018757502423144,
+    "fine": {
+     "energyRatio": 0.8689677773182678,
+     "ncc": -0.10073395900163082,
+     "coherentGain": -0.08753456445411666,
+     "incoherentRatio": 0.8645476840772165
+    },
+    "mid": {
+     "energyRatio": 1.0386259465060204,
+     "ncc": -0.3395616351004109,
+     "coherentGain": -0.3526775246532962,
+     "incoherentRatio": 0.9769147456968547
+    },
+    "shift": {
+     "peakNcc": 0.5654,
+     "peakShiftPx": [
+      6,
+      -3
+     ]
+    }
+   }
+  },
+  "chair_slats": {
+   "SOURCE_9-21": {
+    "fine_std": 11.132836386492068,
+    "edge": {
+     "width10_90px": 4.247936338186264,
+     "contrast": 160.85101318359375,
+     "profiles": 32
+    }
+   },
+   "GOLDEN": {
+    "fine_std": 8.689278848179681,
+    "fine": {
+     "energyRatio": 0.7805089867953816,
+     "ncc": 0.7305911710018166,
+     "coherentGain": 0.5702329746402793,
+     "incoherentRatio": 0.5329433676304189
+    },
+    "mid": {
+     "energyRatio": 0.875469496211966,
+     "ncc": 0.9140506522464448,
+     "coherentGain": 0.8002234640344139,
+     "incoherentRatio": 0.3550904763667937
+    },
+    "shift": {
+     "peakNcc": 0.9256,
+     "peakShiftPx": [
+      1,
+      0
+     ]
+    },
+    "edge": {
+     "width10_90px": 4.4813854694366455,
+     "contrast": 138.76507568359375,
+     "profiles": 32
+    }
+   },
+   "OFFICIAL": {
+    "fine_std": 7.772853508427853,
+    "fine": {
+     "energyRatio": 0.6981916592126494,
+     "ncc": 0.6167439048602665,
+     "coherentGain": 0.4306054502436779,
+     "incoherentRatio": 0.549591247396237
+    },
+    "mid": {
+     "energyRatio": 0.8556609866123942,
+     "ncc": 0.8475014745212818,
+     "coherentGain": 0.7251739478443389,
+     "incoherentRatio": 0.4541788957870588
+    },
+    "shift": {
+     "peakNcc": 0.9234,
+     "peakShiftPx": [
+      2,
+      -1
+     ]
+    },
+    "edge": {
+     "width10_90px": 4.229581490159035,
+     "contrast": 161.73129272460938,
+     "profiles": 32
+    }
+   },
+   "Aplus": {
+    "fine_std": 9.863722299907966,
+    "fine": {
+     "energyRatio": 0.8860026283936077,
+     "ncc": -0.014144056124349965,
+     "coherentGain": -0.012531670902320774,
+     "incoherentRatio": 0.8859139996324572
+    },
+    "mid": {
+     "energyRatio": 0.7798850215714909,
+     "ncc": -0.011063323725256953,
+     "coherentGain": -0.008628120462124408,
+     "incoherentRatio": 0.7798372922660571
+    },
+    "shift": {
+     "peakNcc": 0.0598,
+     "peakShiftPx": [
+      6,
+      -3
+     ]
+    },
+    "edge": {
+     "width10_90px": NaN,
+     "contrast": 4.909111022949219,
+     "profiles": 32
+    }
+   }
+  },
+  "table_edge": {
+   "SOURCE_9-21": {
+    "fine_std": 7.809908094307688,
+    "edge": {
+     "width10_90px": 10.167142048478127,
+     "contrast": 45.638572692871094,
+     "profiles": 42
+    }
+   },
+   "GOLDEN": {
+    "fine_std": 6.105113226339843,
+    "fine": {
+     "energyRatio": 0.7817138374252576,
+     "ncc": 0.616041329007218,
+     "coherentGain": 0.481568031310788,
+     "incoherentRatio": 0.615766802321767
+    },
+    "mid": {
+     "energyRatio": 0.9046861189145801,
+     "ncc": 0.8956622305970334,
+     "coherentGain": 0.8102931872572058,
+     "incoherentRatio": 0.40234552867067414
+    },
+    "shift": {
+     "peakNcc": 0.9247,
+     "peakShiftPx": [
+      1,
+      0
+     ]
+    },
+    "edge": {
+     "width10_90px": 8.902842000126839,
+     "contrast": 35.59532165527344,
+     "profiles": 42
+    }
+   },
+   "OFFICIAL": {
+    "fine_std": 5.508905861036997,
+    "fine": {
+     "energyRatio": 0.7053739678514533,
+     "ncc": 0.21481987620547388,
+     "coherentGain": 0.15152834845241314,
+     "incoherentRatio": 0.688906085136274
+    },
+    "mid": {
+     "energyRatio": 0.8965133114896808,
+     "ncc": 0.7054977125500962,
+     "coherentGain": 0.6324880905266818,
+     "incoherentRatio": 0.6353699182524347
+    },
+    "shift": {
+     "peakNcc": 0.9003,
+     "peakShiftPx": [
+      2,
+      -2
+     ]
+    },
+    "edge": {
+     "width10_90px": 8.01254166662693,
+     "contrast": 34.47880554199219,
+     "profiles": 42
+    }
+   },
+   "Aplus": {
+    "fine_std": 7.1378023036240315,
+    "fine": {
+     "energyRatio": 0.9139419078217417,
+     "ncc": 0.009185101340812107,
+     "coherentGain": 0.008394649042957855,
+     "incoherentRatio": 0.9139033541574791
+    },
+    "mid": {
+     "energyRatio": 0.7059192732809411,
+     "ncc": 0.04211738873702022,
+     "coherentGain": 0.02973147644972821,
+     "incoherentRatio": 0.7052928893003327
+    },
+    "shift": {
+     "peakNcc": 0.0498,
+     "peakShiftPx": [
+      -3,
+      -1
+     ]
+    },
+    "edge": {
+     "width10_90px": 8.442253686487675,
+     "contrast": 17.710304260253906,
+     "profiles": 42
+    }
+   }
+  },
+  "carpet": {
+   "SOURCE_9-21": {
+    "fine_std": 2.3863598477438233
+   },
+   "GOLDEN": {
+    "fine_std": 1.8178050372663632,
+    "fine": {
+     "energyRatio": 0.7617480821197196,
+     "ncc": 0.5395091836057686,
+     "coherentGain": 0.4109700858976699,
+     "incoherentRatio": 0.6413764332358437
+    },
+    "mid": {
+     "energyRatio": 0.9742862547215666,
+     "ncc": 0.8409796449596532,
+     "coherentGain": 0.8193549085848132,
+     "incoherentRatio": 0.5271539053420264
+    },
+    "shift": {
+     "peakNcc": 0.8559,
+     "peakShiftPx": [
+      -1,
+      0
+     ]
+    }
+   },
+   "OFFICIAL": {
+    "fine_std": 2.019636068581068,
+    "fine": {
+     "energyRatio": 0.8463250295174581,
+     "ncc": 0.42783145909704273,
+     "coherentGain": 0.3620844722488019,
+     "incoherentRatio": 0.7649580972471842
+    },
+    "mid": {
+     "energyRatio": 1.0373092083385733,
+     "ncc": 0.7287245343469733,
+     "coherentGain": 0.7559126698203543,
+     "incoherentRatio": 0.7103565508313847
+    },
+    "shift": {
+     "peakNcc": 0.8713,
+     "peakShiftPx": [
+      -2,
+      1
+     ]
+    }
+   },
+   "Aplus": {
+    "fine_std": 3.427936390164348,
+    "fine": {
+     "energyRatio": 1.4364708631036012,
+     "ncc": -0.000538536113464854,
+     "coherentGain": -0.0007735914357213178,
+     "incoherentRatio": 1.4364706548001234
+    },
+    "mid": {
+     "energyRatio": 1.229957190073783,
+     "ncc": -0.02340827792510907,
+     "coherentGain": -0.028791179741233307,
+     "incoherentRatio": 1.2296201679312615
+    },
+    "shift": {
+     "peakNcc": 0.0482,
+     "peakShiftPx": [
+      1,
+      6
+     ]
+    }
+   }
+  }
+ },
+ "lineage": {
+  "white_wall": {
+   "SOURCE_cond": {
+    "fine_std": 4.884613797113052
+   },
+   "GOLDEN": {
+    "fine_std": 2.5452608877848104,
+    "fine": {
+     "energyRatio": 0.5210772014952612,
+     "ncc": -0.0068481463481990775,
+     "coherentGain": -0.0035684129345495675,
+     "incoherentRatio": 0.5210649828450014
+    },
+    "mid": {
+     "energyRatio": 0.9092686765018216,
+     "ncc": 0.038153170610790474,
+     "coherentGain": 0.03469148294562166,
+     "incoherentRatio": 0.9086066404547173
+    },
+    "shift": {
+     "peakNcc": 0.0913,
+     "peakShiftPx": [
+      3,
+      -4
+     ]
+    }
+   },
+   "OFFICIAL": {
+    "fine_std": 2.464223512553648,
+    "fine": {
+     "energyRatio": 0.5044868673159125,
+     "ncc": -0.011766524457384417,
+     "coherentGain": -0.005936057062701932,
+     "incoherentRatio": 0.5044519427267294
+    },
+    "mid": {
+     "energyRatio": 0.9068210617469037,
+     "ncc": 0.049219072958619964,
+     "coherentGain": 0.04463289199853408,
+     "incoherentRatio": 0.9057220009360648
+    },
+    "shift": {
+     "peakNcc": 0.0897,
+     "peakShiftPx": [
+      2,
+      -3
+     ]
+    }
+   },
+   "Aplus": {
+    "fine_std": 3.8784785286214194,
+    "fine": {
+     "energyRatio": 0.7940194843886558,
+     "ncc": 0.5816547945466732,
+     "coherentGain": 0.46184524005813893,
+     "incoherentRatio": 0.6458838253312021
+    },
+    "mid": {
+     "energyRatio": 1.024397839482166,
+     "ncc": 0.8852815602194837,
+     "coherentGain": 0.9068805176222402,
+     "incoherentRatio": 0.47640178451906234
+    },
+    "shift": {
+     "peakNcc": 0.8853,
+     "peakShiftPx": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "ceiling_grid": {
+   "SOURCE_cond": {
+    "fine_std": 11.52771080401772
+   },
+   "GOLDEN": {
+    "fine_std": 9.130830227949005,
+    "fine": {
+     "energyRatio": 0.7920766215584332,
+     "ncc": -0.0004942986746097871,
+     "coherentGain": -0.00039152242422573147,
+     "incoherentRatio": 0.7920765247939193
+    },
+    "mid": {
+     "energyRatio": 0.8876738378677586,
+     "ncc": 0.1761127093422524,
+     "coherentGain": 0.15633064459912624,
+     "incoherentRatio": 0.8737995033153184
+    },
+    "shift": {
+     "peakNcc": 0.3028,
+     "peakShiftPx": [
+      -5,
+      -1
+     ]
+    }
+   },
+   "OFFICIAL": {
+    "fine_std": 7.468409645505757,
+    "fine": {
+     "energyRatio": 0.6478658054904373,
+     "ncc": 0.027257260227808597,
+     "coherentGain": 0.017659046852951676,
+     "incoherentRatio": 0.6476250921544181
+    },
+    "mid": {
+     "energyRatio": 0.906120820060616,
+     "ncc": 0.203881593427199,
+     "coherentGain": 0.18474135663151867,
+     "incoherentRatio": 0.8870882547397803
+    },
+    "shift": {
+     "peakNcc": 0.3124,
+     "peakShiftPx": [
+      -4,
+      -1
+     ]
+    }
+   },
+   "Aplus": {
+    "fine_std": 9.09668380393965,
+    "fine": {
+     "energyRatio": 0.789114504917074,
+     "ncc": 0.6682557728130439,
+     "coherentGain": 0.5273303233213419,
+     "incoherentRatio": 0.5870472144353706
+    },
+    "mid": {
+     "energyRatio": 0.9665991550238892,
+     "ncc": 0.9324315848065413,
+     "coherentGain": 0.9012875819915888,
+     "incoherentRatio": 0.3492772838886776
+    },
+    "shift": {
+     "peakNcc": 0.9324,
+     "peakShiftPx": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "window_reveal": {
+   "SOURCE_cond": {
+    "fine_std": 7.134100529011128
+   },
+   "GOLDEN": {
+    "fine_std": 4.2166072954575,
+    "fine": {
+     "energyRatio": 0.591049604404996,
+     "ncc": -0.01734321269320689,
+     "coherentGain": -0.01025069900143164,
+     "incoherentRatio": 0.5909607076932308
+    },
+    "mid": {
+     "energyRatio": 1.1098100654374048,
+     "ncc": 0.016907998846292346,
+     "coherentGain": 0.01876466730601927,
+     "incoherentRatio": 1.1096514176114367
+    },
+    "shift": {
+     "peakNcc": 0.2696,
+     "peakShiftPx": [
+      -6,
+      -4
+     ]
+    }
+   },
+   "OFFICIAL": {
+    "fine_std": 4.2220559967768825,
+    "fine": {
+     "energyRatio": 0.5918133588961508,
+     "ncc": -0.007799783497186655,
+     "coherentGain": -0.004616016070132801,
+     "incoherentRatio": 0.5917953566593646
+    },
+    "mid": {
+     "energyRatio": 1.1690561818690088,
+     "ncc": 0.04955353681675694,
+     "coherentGain": 0.05793086854910322,
+     "incoherentRatio": 1.1676199599335786
+    },
+    "shift": {
+     "peakNcc": 0.224,
+     "peakShiftPx": [
+      -6,
+      -3
+     ]
+    }
+   },
+   "Aplus": {
+    "fine_std": 6.179902258433274,
+    "fine": {
+     "energyRatio": 0.8662482724069325,
+     "ncc": 0.6716732850697299,
+     "coherentGain": 0.5818358228135426,
+     "incoherentRatio": 0.6417578552217986
+    },
+    "mid": {
+     "energyRatio": 1.1780792583496633,
+     "ncc": 0.9189661293113813,
+     "coherentGain": 1.0826149360676125,
+     "incoherentRatio": 0.4645596185173776
+    },
+    "shift": {
+     "peakNcc": 0.919,
+     "peakShiftPx": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "chair_slats": {
+   "SOURCE_cond": {
+    "fine_std": 6.622764360329581
+   },
+   "GOLDEN": {
+    "fine_std": 6.205697163912465,
+    "fine": {
+     "energyRatio": 0.9370252097575217,
+     "ncc": 0.049404986962670094,
+     "coherentGain": 0.04629371827176357,
+     "incoherentRatio": 0.9358809408090873
+    },
+    "mid": {
+     "energyRatio": 0.8452675370065531,
+     "ncc": 0.051823131232319866,
+     "coherentGain": 0.04380441049671038,
+     "incoherentRatio": 0.8441317330477277
+    },
+    "shift": {
+     "peakNcc": 0.311,
+     "peakShiftPx": [
+      -5,
+      0
+     ]
+    }
+   },
+   "OFFICIAL": {
+    "fine_std": 5.528912332559007,
+    "fine": {
+     "energyRatio": 0.8348345240361023,
+     "ncc": 0.08807962789288275,
+     "coherentGain": 0.07353191422923176,
+     "incoherentRatio": 0.8315898869709579
+    },
+    "mid": {
+     "energyRatio": 0.8382385515290818,
+     "ncc": 0.14612964790061456,
+     "coherentGain": 0.12249150439166585,
+     "incoherentRatio": 0.8292404359541564
+    },
+    "shift": {
+     "peakNcc": 0.3751,
+     "peakShiftPx": [
+      -4,
+      0
+     ]
+    }
+   },
+   "Aplus": {
+    "fine_std": 7.286707047313286,
+    "fine": {
+     "energyRatio": 1.1002515944792974,
+     "ncc": 0.5943845332611194,
+     "coherentGain": 0.6539725304543795,
+     "incoherentRatio": 0.8848013904630415
+    },
+    "mid": {
+     "energyRatio": 0.9183683885854915,
+     "ncc": 0.8847818066201915,
+     "coherentGain": 0.8125556419955452,
+     "incoherentRatio": 0.4279647483313545
+    },
+    "shift": {
+     "peakNcc": 0.9207,
+     "peakShiftPx": [
+      1,
+      -1
+     ]
+    }
+   }
+  },
+  "table_edge": {
+   "SOURCE_cond": {
+    "fine_std": 8.080831215269754
+   },
+   "GOLDEN": {
+    "fine_std": 8.163997350566017,
+    "fine": {
+     "energyRatio": 1.010291779778683,
+     "ncc": -0.014713182385463486,
+     "coherentGain": -0.014864607218418278,
+     "incoherentRatio": 1.0101824210213821
+    },
+    "mid": {
+     "energyRatio": 1.0998866456716299,
+     "ncc": -0.01275660094648453,
+     "coherentGain": -0.014030815025200406,
+     "incoherentRatio": 1.0997971492764103
+    },
+    "shift": {
+     "peakNcc": 0.0103,
+     "peakShiftPx": [
+      6,
+      6
+     ]
+    }
+   },
+   "OFFICIAL": {
+    "fine_std": 7.17703636957483,
+    "fine": {
+     "energyRatio": 0.8881557080431169,
+     "ncc": -0.008299057887642595,
+     "coherentGain": -0.007370855634290025,
+     "incoherentRatio": 0.8881251219376631
+    },
+    "mid": {
+     "energyRatio": 1.0837321026933462,
+     "ncc": -0.010831446435215055,
+     "coherentGain": -0.011738386220445958,
+     "incoherentRatio": 1.0836685289778794
+    },
+    "shift": {
+     "peakNcc": 0.0084,
+     "peakShiftPx": [
+      6,
+      5
+     ]
+    }
+   },
+   "Aplus": {
+    "fine_std": 7.946942552150517,
+    "fine": {
+     "energyRatio": 0.9834313253732813,
+     "ncc": 0.7506289758966748,
+     "coherentGain": 0.7381920486296558,
+     "incoherentRatio": 0.6497766316707616
+    },
+    "mid": {
+     "energyRatio": 0.8677072516337682,
+     "ncc": 0.9017437598410512,
+     "coherentGain": 0.7824495995295792,
+     "incoherentRatio": 0.3750846554230507
+    },
+    "shift": {
+     "peakNcc": 0.9017,
+     "peakShiftPx": [
+      0,
+      0
+     ]
+    }
+   }
+  },
+  "carpet": {
+   "SOURCE_cond": {
+    "fine_std": 4.884613797113052
+   },
+   "GOLDEN": {
+    "fine_std": 2.5452608877848104,
+    "fine": {
+     "energyRatio": 0.5210772014952612,
+     "ncc": -0.0068481463481990775,
+     "coherentGain": -0.0035684129345495675,
+     "incoherentRatio": 0.5210649828450014
+    },
+    "mid": {
+     "energyRatio": 0.9092686765018216,
+     "ncc": 0.038153170610790474,
+     "coherentGain": 0.03469148294562166,
+     "incoherentRatio": 0.9086066404547173
+    },
+    "shift": {
+     "peakNcc": 0.0913,
+     "peakShiftPx": [
+      3,
+      -4
+     ]
+    }
+   },
+   "OFFICIAL": {
+    "fine_std": 2.464223512553648,
+    "fine": {
+     "energyRatio": 0.5044868673159125,
+     "ncc": -0.011766524457384417,
+     "coherentGain": -0.005936057062701932,
+     "incoherentRatio": 0.5044519427267294
+    },
+    "mid": {
+     "energyRatio": 0.9068210617469037,
+     "ncc": 0.049219072958619964,
+     "coherentGain": 0.04463289199853408,
+     "incoherentRatio": 0.9057220009360648
+    },
+    "shift": {
+     "peakNcc": 0.0897,
+     "peakShiftPx": [
+      2,
+      -3
+     ]
+    }
+   },
+   "Aplus": {
+    "fine_std": 3.8784785286214194,
+    "fine": {
+     "energyRatio": 0.7940194843886558,
+     "ncc": 0.5816547945466732,
+     "coherentGain": 0.46184524005813893,
+     "incoherentRatio": 0.6458838253312021
+    },
+    "mid": {
+     "energyRatio": 1.024397839482166,
+     "ncc": 0.8852815602194837,
+     "coherentGain": 0.9068805176222402,
+     "incoherentRatio": 0.47640178451906234
+    },
+    "shift": {
+     "peakNcc": 0.8853,
+     "peakShiftPx": [
+      0,
+      0
+     ]
+    }
+   }
+  }
+ },
+ "walk": {
+  "00000": {
+   "GOLDEN": {
+    "fine_std": 2.1023874795791557,
+    "mid_std": 4.016379554728919
+   },
+   "OFFICIAL": {
+    "fine_std": 2.229664197464859,
+    "mid_std": 4.101104765649924
+   },
+   "Aplus": {
+    "fine_std": 2.3606683388906333,
+    "mid_std": 3.6754538807844495
+   }
+  },
+  "00200": {
+   "GOLDEN": {
+    "fine_std": 4.946657700008989,
+    "mid_std": 6.4080216757723
+   },
+   "OFFICIAL": {
+    "fine_std": 4.286887845341322,
+    "mid_std": 6.327631630440063
+   },
+   "Aplus": {
+    "fine_std": 4.454777563989526,
+    "mid_std": 5.303204829743183
+   }
+  },
+  "00400": {
+   "GOLDEN": {
+    "fine_std": 3.53457885547878,
+    "mid_std": 4.796561345349386
+   },
+   "OFFICIAL": {
+    "fine_std": 3.1861392955707255,
+    "mid_std": 4.925382998845797
+   },
+   "Aplus": {
+    "fine_std": 3.4282600391645284,
+    "mid_std": 4.460478518009239
+   }
+  },
+  "00600": {
+   "GOLDEN": {
+    "fine_std": 5.106272308419656,
+    "mid_std": 7.314913021627089
+   },
+   "OFFICIAL": {
+    "fine_std": 4.585112488739926,
+    "mid_std": 7.254597336609491
+   },
+   "Aplus": {
+    "fine_std": 4.415343616591443,
+    "mid_std": 5.754463906341341
+   }
+  }
+ }
+}
