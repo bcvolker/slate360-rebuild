@@ -79,3 +79,41 @@ The panoramas were added as a third camera (`EQUIRECTANGULAR` 11904×5952) throu
 **Verdict: HEALTHY.** The stills tie into the video tracks rather than forming a separate island, and A's geometry did not move.
 
 AX6 training was spawned with the same `360-camera` defaults.
+
+### AX6c: the trained X4-only hybrid (clean rerun)
+- **Why a rerun.** The first AX6 train failed at startup: linking A's frame folders (instead of copying them) dropped `.jpg` from the SfM image names. AX6c copies the frames byte-for-byte and runs the unchanged official workflow.
+- **SfM.** 1024/1026 images registered: video 1018/1020, stills 6/6. 668k points, 1.137 / 0.977 px (mean / median). Trained 1M splats in 1749 s.
+- **Alignment.** 504k points within 3 cm of the official reference, median 1.4 cm, which is the same as A.
+- **9/21 walk path** (`walk_official_golden_A_AX6c_C.jpg`, `AX6c/walk_crop_00200_*`): visually the same as A. No visible gain.
+- **Lineage at A's own source frames.** Same as A (mid-band NCC: ceiling 0.90, chairs 0.91, table 0.88).
+- **At the 6 panorama stations** (`stations/`): 5 views per station (4 headings + 1 looking 25° down), 1280×720, each compared to the rectified 72MP panorama.
+
+  | Model | Median mid-band NCC | Median fine-band energy |
+  |---|---|---|
+  | A | 0.63 | 0.60 |
+  | AX6c | 0.68 | 0.60 |
+  | Official | 0.28 | — |
+  | Golden | 0.26 | — |
+
+  - AX6c is slightly better on structure; visually it is indistinguishable from A. Fine-band energy is unchanged at about 60% of the panorama. AX6c was trained on these exact panoramas, so this is a best-case view for it.
+  - Official and Golden score low mainly because of the day change (furniture, light). The stations also sit about 0.85 m high, below the 9/21 pole height, so they are off Official/Golden's trajectory.
+  - A and AX6c are visibly sharper than Official at these low positions (carpet, door). That reflects capture viewpoint, not the method.
+- **Verdict: AX6c ≈ A.** The 72MP panoramas register natively and do no harm, but they add no visible detail.
+
+### Condition C: 419 iPhone photos (9/21), official `--data-type individual`, default opencv lens
+- **SfM.** 419/419 registered, 412k points, 0.95 px mean. Trained 1M splats in 1515 s.
+- **Frame is not metric.** No telemetry: gauge "metric 0, up cameras+exif". Needed a non-metric alignment.
+- **First alignment slipped one window bay** (about 1.5 m; `C/C_align_bayslip.json`, `C/C_topdown.jpg`).
+  - Found with the D1 photos, which register independently against metric A.
+  - Re-anchored on those 5 photos and ICP-refined (`eval/align_C_anchor.py`): 82% of points within 3 cm, median 1.8 cm.
+- **Verdict: C < Official, clearly.** On the 9/21 walk it shows large black holes where the iPhone walk didn't cover, plus smeared chairs and floaters.
+- It fits its own photos well (lineage NCC 0.84–0.92), but it isn't a candidate.
+
+### D1 registration gate: A + 5 iPhone photos from 9/21, official workflow, iPhone camera = opencv
+- **Photo selection.** The first target-based picks were near-duplicates and were replaced by 5 spread-out photos (`D1_pick.json`), chosen by farthest-point sampling over position and heading among the photos with the most points.
+- **Registration.**
+  - 1021/1025 images registered, including the iPhone photos at 5/5.
+  - The iPhone focal length was estimated from scratch at 2761 px (C found 2860).
+  - 100% of each photo's observations are shared with video tracks.
+- **Stability of A's video cameras.** Median shift 0.8 mm, maximum 5 mm.
+- **Verdict: HEALTHY.** Training spawned. The chairs are known to differ between days, and the lighting too; this is what D1 tests.

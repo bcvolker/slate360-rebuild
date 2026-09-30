@@ -110,7 +110,7 @@ def render_golden_v2(views: list, tag: str) -> dict:
 
 
 @app.function(image=rimage, cpu=8.0, memory=32768, timeout=3600, volumes={"/vol": vol})
-def rectify(sparse_dir: str, images_dir: str, picks: list, tag: str) -> dict:
+def rectify_v2(sparse_dir: str, images_dir: str, picks: list, tag: str) -> dict:
     """picks: [{name, image (sparse image name), R, t, f, W, H}] — pinhole view in the SAME frame as sparse_dir."""
     import numpy as np, cv2, pycolmap
     from pathlib import Path
@@ -122,7 +122,8 @@ def rectify(sparse_dir: str, images_dir: str, picks: list, tag: str) -> dict:
         dv = np.stack([(xx + 0.5 - W / 2) / f, (yy + 0.5 - H / 2) / f, np.ones_like(xx)], -1).reshape(-1, 3)
         Rv = np.array(p["R"]); dw = dv @ Rv                                   # view cam -> world (R^T d)
         cw = im.cam_from_world(); Rs = np.asarray(cw.rotation.matrix()); ds = dw @ Rs.T
-        ok = ds[:, 2] > 1e-3; uv = np.full((len(ds), 2), -1.0); uv[ok] = np.asarray(cam.img_from_cam(ds[ok]))
+        ok = np.ones(len(ds), bool) if "EQUIRECT" in str(cam.model) else ds[:, 2] > 1e-3   # panoramas cover every direction
+        uv = np.full((len(ds), 2), -1.0); uv[ok] = np.asarray(cam.img_from_cam(ds[ok]))
         m = cv2.remap(src, uv[:, 0].reshape(H, W).astype(np.float32) - 0.5, uv[:, 1].reshape(H, W).astype(np.float32) - 0.5, cv2.INTER_LINEAR)  # COLMAP pixel centres at +0.5
         cv2.imwrite(str(d / f"{p['name']}.png"), m); done.append(p["name"])
     vol.commit()

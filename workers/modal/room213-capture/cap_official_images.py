@@ -68,8 +68,8 @@ def pipeline_hybrid(cond: str, base_cond: str, stills: list, stills_model: str =
     if "prep" in stages:
         for sub in ("images", "masks"):
             Path(f"{WS}/{sub}").mkdir(parents=True, exist_ok=True)
-            for d in Path(f"{B_}/{sub}").iterdir():
-                if not Path(f"{WS}/{sub}/{d.name}").exists(): os.symlink(str(d), f"{WS}/{sub}/{d.name}")
+            for d in Path(f"{B_}/{sub}").iterdir():   # real byte copies: symlinked frame dirs lose the .jpg in SfM image names
+                if not Path(f"{WS}/{sub}/{d.name}").exists(): shutil.copytree(str(d), f"{WS}/{sub}/{d.name}")
         d = Path(f"{WS}/images/x4stills"); d.mkdir(parents=True, exist_ok=True)
         for f in stills:
             if not (d / Path(f).name).exists(): shutil.copyfile(f, d / Path(f).name)
