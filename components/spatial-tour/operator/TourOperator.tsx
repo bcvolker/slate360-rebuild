@@ -23,7 +23,7 @@ export function TourOperator({ projectId, urls: urlsProp }: { projectId: string;
   const [playerReady, setPlayerReady] = useState(false);
   const onView = useCallback((v: PlayerView | null) => {
     viewRef.current = v;
-    setPlayerReady((was) => was || Boolean(v));
+    setPlayerReady(Boolean(v));
   }, []);
 
   const report = (r: TourCallResult) => setMessage(r.ok ? null : r.error);

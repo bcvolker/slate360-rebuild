@@ -30,6 +30,8 @@ export function TourMarkPlayer({
   const playable = clips.filter((c) => c.hasPublicProxy);
   const [clipId, setClipId] = useState(playable[0]?.id ?? "");
   const [handle, setHandle] = useState<WalkthroughPlayerHandle | null>(null);
+  // Marking needs a decoded frame, not just a mounted player.
+  const [hasFrame, setHasFrame] = useState(false);
   const [now, setNow] = useState(0);
   const pendingSeek = useRef<PlayerView | null>(null);
   const clip = playable.find((c) => c.id === clipId) ?? playable[0];
@@ -40,6 +42,7 @@ export function TourMarkPlayer({
     if (seekRequest.clipId !== clipId) {
       pendingSeek.current = seekRequest;
       setHandle(null);
+      setHasFrame(false);
       setClipId(seekRequest.clipId);
     } else {
       handle?.seekTo(seekRequest.t, seekRequest.yaw, seekRequest.pitch, { pause: true });
@@ -48,7 +51,10 @@ export function TourMarkPlayer({
   }, [seekRequest]);
 
   useEffect(() => {
-    if (!handle) return;
+    if (!handle || !hasFrame) {
+      onView(null);
+      return;
+    }
     const pending = pendingSeek.current;
     if (pending && pending.clipId === clipId) {
       handle.seekTo(pending.t, pending.yaw, pending.pitch, { pause: true });
@@ -60,7 +66,7 @@ export function TourMarkPlayer({
       onView({ clipId, t: v.t, yaw: v.yaw, pitch: v.pitch });
     }, 250);
     return () => window.clearInterval(id);
-  }, [handle, clipId, onView]);
+  }, [handle, hasFrame, clipId, onView]);
 
   if (!clip) {
     return (
@@ -85,6 +91,7 @@ export function TourMarkPlayer({
           clipId={clip.id}
           autoRotate={false}
           onReady={setHandle}
+          onFirstFrame={() => setHasFrame(true)}
         />
       </div>
       <div className="flex items-center gap-2">
@@ -115,6 +122,7 @@ export function TourMarkPlayer({
           value={clip.id}
           onChange={(e) => {
             setHandle(null);
+            setHasFrame(false);
             setClipId(e.target.value);
           }}
           aria-label="Clip"

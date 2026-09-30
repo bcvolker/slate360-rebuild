@@ -43,14 +43,21 @@ Neither failure is caused by these PRs. The local gates (scoped `tsc`, three gua
 | V13: regression | Green so far | Homepage and iOS byte-identical to main in PR-0; legacy portal behaviour holds with the flag off; Room 213 branches untouched |
 | Stills pipeline | Green (real) | Trigger run `COMPLETED`; the mark went to `ready`; 3840×1920 equirect from the operator-free proxy |
 
-## Craft evidence folders
-- `docs/qa/pr-a-additional-services/` (375, 768, desktop)
-- `docs/qa/pr-b-packaging/`
-  - Real AOB205 portal in full-package and empty-package states, at 375 / 768 / desktop
-  - Client portal panel: clean and dirty states
-- `docs/qa/pr-c1-tour-operator/`
-  - Operator flow 01–06 in Chrome: create → mark → publish-locked → visit B at 375
-  - Capture card on screen and in print, plus `capture-card.pdf`
+## Craft evidence folders (labelled by audience)
+- **PUBLIC:** `docs/qa/pr-a-additional-services/` (375, 768, desktop)
+- **OPERATOR PREVIEW of the client portal, current Graphite theme, placeholder AOB205 data:** `docs/qa/operator-preview-pr-b/`
+  - Proves packaging behaviour, not the final client look. The portal goes light before C2.
+- **OPERATOR TOOLING, harness with a mocked API; not a client deliverable and not pilot acceptance:** `docs/qa/operator-harness-pr-c1/`
+- **No client Tour screenshots exist yet.** The client Tour viewer (C2) is not built.
+
+## Update: Scout craft audit response (C1.1, same day)
+- **Theme: Brian chose B, a light client portal.** Scope: `docs/design/LIGHT_CLIENT_PORTAL_SCOPE.md` (slices L1–L5). C2 is built light, after L1–L3. The operator dashboard stays Graphite.
+- **Pilot:** AOB205, as a **placeholder only** (Brian: the existing video isn't a directed walk; replace it when a real candidate exists).
+  - Visit 1's video was ingested through the real pipeline (upload → Trigger → Modal ingest → privacy bake). AOB205 now has one ready clip (45 s proxy) with an operator-free public derivative.
+  - **Two-visit acceptance is still blocked:** there is no second real capture.
+  - AOB205's saved operator mask blacks out **everything below the horizon** (pitch −88°…+4°). Brian decides whether to narrow it; the publish checklist's privacy review is where it gets confirmed.
+- **Demo data:** the AOB205 pin "west wall coordination" (demo body text) is set to `internal`. That's reversible, and nothing was deleted. The client portal no longer shows it or its three attached documents.
+- **Copy for Brian:** `docs/ops/DIRECTED_TOUR_COPY_REVIEW.md`
 
 ## Pre-existing problems found and fixed along the way
 - `/digital-twins` and `/site-walks` dashboard pages threw a ReferenceError (a lost import) on the AOB205 branch.
