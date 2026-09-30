@@ -1,0 +1,935 @@
+{
+ "capture": "room213-2026-09-29",
+ "source_folder": "C:/Users/bcvol/OneDrive/Desktop/Insta360/213test",
+ "cloud_ingest_verified": true,
+ "files": [
+  {
+   "file": "IMG_20260929_153551_00_081.dng",
+   "ext": "dng",
+   "bytes": 141968259,
+   "sha256": "97d7da58d6112676d1481b55105b694e9cff0596f9564c9c940a3062ed66a949",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_153551_00_081.dng",
+   "capture_time": "2026:09:29 15:35:53",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997019314,
+   "iso": 134,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_raw",
+   "note": "11904x5952 Bayer RGBG raw of the STITCHED equirect (not per-lens fisheye); not directly ingestible by Spirula"
+  },
+  {
+   "file": "IMG_20260929_153551_00_081.jpg",
+   "ext": "jpg",
+   "bytes": 24242631,
+   "sha256": "4ac07c17ff28d47b937d8600d0807b1b7d2e02d7ac7f19af260a19007fc22b1c",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_153551_00_081.jpg",
+   "capture_time": "2026:09:29 15:35:59",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997,
+   "iso": 134,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_equirect",
+   "note": "11904x5952 equirectangular, stitched in-camera (X4 FW); stationary (tripod or desk)"
+  },
+  {
+   "file": "IMG_20260929_153608_00_082.dng",
+   "ext": "dng",
+   "bytes": 141965101,
+   "sha256": "83a0a1b61522dcc299bbb9aa203c18c78d521de58c1beb483e1852942ed2c6e0",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_153608_00_082.dng",
+   "capture_time": "2026:09:29 15:36:11",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997019314,
+   "iso": 130,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_raw",
+   "note": "11904x5952 Bayer RGBG raw of the STITCHED equirect (not per-lens fisheye); not directly ingestible by Spirula"
+  },
+  {
+   "file": "IMG_20260929_153608_00_082.jpg",
+   "ext": "jpg",
+   "bytes": 24278767,
+   "sha256": "5027c4f6d94d05e0cf353b195514705fc44879a6b8254742b831ed1671a3fbe7",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_153608_00_082.jpg",
+   "capture_time": "2026:09:29 15:36:17",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997,
+   "iso": 130,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_equirect",
+   "note": "11904x5952 equirectangular, stitched in-camera (X4 FW); stationary (tripod or desk)"
+  },
+  {
+   "file": "IMG_20260929_153643_00_083.dng",
+   "ext": "dng",
+   "bytes": 141973935,
+   "sha256": "bfebbb8ce891c66f101231d78efa7bb98344dd3e2998c3db51f7925c4c7b11a8",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_153643_00_083.dng",
+   "capture_time": "2026:09:29 15:36:46",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997019314,
+   "iso": 134,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_raw",
+   "note": "11904x5952 Bayer RGBG raw of the STITCHED equirect (not per-lens fisheye); not directly ingestible by Spirula"
+  },
+  {
+   "file": "IMG_20260929_153643_00_083.jpg",
+   "ext": "jpg",
+   "bytes": 22652721,
+   "sha256": "7d1ee129a5ac3055ea46c1f73a2299f2c5be48f47e2b47d4d23da2ebeeb5a3a7",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_153643_00_083.jpg",
+   "capture_time": "2026:09:29 15:36:52",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997,
+   "iso": 134,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_equirect",
+   "note": "11904x5952 equirectangular, stitched in-camera (X4 FW); stationary (tripod or desk)"
+  },
+  {
+   "file": "IMG_20260929_153718_00_084.dng",
+   "ext": "dng",
+   "bytes": 141968260,
+   "sha256": "7148d811c4d0177462e2ba9ab94504be39d7911c942491d46b3fa11d075692d2",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_153718_00_084.dng",
+   "capture_time": "2026:09:29 15:37:21",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997019314,
+   "iso": 138,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_raw",
+   "note": "11904x5952 Bayer RGBG raw of the STITCHED equirect (not per-lens fisheye); not directly ingestible by Spirula"
+  },
+  {
+   "file": "IMG_20260929_153718_00_084.jpg",
+   "ext": "jpg",
+   "bytes": 22130991,
+   "sha256": "2cbc7620ca8b198dc76af232edbe6e123da84ddfbab474f26529b7a1136c43f2",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_153718_00_084.jpg",
+   "capture_time": "2026:09:29 15:37:27",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997,
+   "iso": 138,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_equirect",
+   "note": "11904x5952 equirectangular, stitched in-camera (X4 FW); stationary (tripod or desk)"
+  },
+  {
+   "file": "IMG_20260929_153750_00_085.dng",
+   "ext": "dng",
+   "bytes": 141966048,
+   "sha256": "b49974dd5c437029528e2f19c3a0e326326461d4ac8e2729734d952b5e9f9cc7",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_153750_00_085.dng",
+   "capture_time": "2026:09:29 15:37:52",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997019314,
+   "iso": 140,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_raw",
+   "note": "11904x5952 Bayer RGBG raw of the STITCHED equirect (not per-lens fisheye); not directly ingestible by Spirula"
+  },
+  {
+   "file": "IMG_20260929_153750_00_085.jpg",
+   "ext": "jpg",
+   "bytes": 21898661,
+   "sha256": "dc220a424798d7a9d38790e85ba19ddab55f73a7fd13ad06f09194d56bc47e0f",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_153750_00_085.jpg",
+   "capture_time": "2026:09:29 15:37:58",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997,
+   "iso": 140,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_equirect",
+   "note": "11904x5952 equirectangular, stitched in-camera (X4 FW); stationary (tripod or desk)"
+  },
+  {
+   "file": "IMG_20260929_153822_00_086.dng",
+   "ext": "dng",
+   "bytes": 141966416,
+   "sha256": "125f9f0bd75e61ecfa969c59b5678e98e870772dea6612d9080f9777954ab359",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_153822_00_086.dng",
+   "capture_time": "2026:09:29 15:38:24",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997019314,
+   "iso": 199,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_raw",
+   "note": "11904x5952 Bayer RGBG raw of the STITCHED equirect (not per-lens fisheye); not directly ingestible by Spirula"
+  },
+  {
+   "file": "IMG_20260929_153822_00_086.jpg",
+   "ext": "jpg",
+   "bytes": 22883846,
+   "sha256": "6e18b64f4f9a6860632051547c31b3a1835d1bebb333d54276d42238e1d327f3",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_153822_00_086.jpg",
+   "capture_time": "2026:09:29 15:38:30",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997,
+   "iso": 199,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_equirect",
+   "note": "11904x5952 equirectangular, stitched in-camera (X4 FW); stationary (tripod or desk)"
+  },
+  {
+   "file": "IMG_20260929_153912_00_087.dng",
+   "ext": "dng",
+   "bytes": 141971418,
+   "sha256": "31ec89d22773a32cedd7d17bf8a342a4a2e8828449e55c6ec5c4fb20fb81d6ce",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_153912_00_087.dng",
+   "capture_time": "2026:09:29 15:39:14",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997019314,
+   "iso": 194,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_raw",
+   "note": "11904x5952 Bayer RGBG raw of the STITCHED equirect (not per-lens fisheye); not directly ingestible by Spirula"
+  },
+  {
+   "file": "IMG_20260929_153912_00_087.jpg",
+   "ext": "jpg",
+   "bytes": 25299635,
+   "sha256": "d1f7835795bbf11657c88f114b6daa14bdfd94b1e4da762bb4d71197c8a89322",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_153912_00_087.jpg",
+   "capture_time": "2026:09:29 15:39:20",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997,
+   "iso": 194,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_equirect",
+   "note": "11904x5952 equirectangular, stitched in-camera (X4 FW); stationary (tripod or desk)"
+  },
+  {
+   "file": "IMG_20260929_153944_00_088.dng",
+   "ext": "dng",
+   "bytes": 141971432,
+   "sha256": "b915359dc3eada264c26d7f6428b8ff1c68b232b3fa6f2469393a77b35851409",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_153944_00_088.dng",
+   "capture_time": "2026:09:29 15:39:46",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997019314,
+   "iso": 198,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_raw",
+   "note": "11904x5952 Bayer RGBG raw of the STITCHED equirect (not per-lens fisheye); not directly ingestible by Spirula"
+  },
+  {
+   "file": "IMG_20260929_153944_00_088.jpg",
+   "ext": "jpg",
+   "bytes": 25540736,
+   "sha256": "2c15537e6b0e95ee27e06c6de285a82312bcd590757c78a4920bcd15f7c5c12f",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_153944_00_088.jpg",
+   "capture_time": "2026:09:29 15:39:52",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997,
+   "iso": 198,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_equirect",
+   "note": "11904x5952 equirectangular, stitched in-camera (X4 FW); stationary (tripod or desk)"
+  },
+  {
+   "file": "IMG_20260929_154012_00_089.dng",
+   "ext": "dng",
+   "bytes": 141970792,
+   "sha256": "fee46aceb4bfefc49553dd3bc8fbd1b52387cc8b7092beb3531224211771bf45",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_154012_00_089.dng",
+   "capture_time": "2026:09:29 15:40:14",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997019314,
+   "iso": 196,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_raw",
+   "note": "11904x5952 Bayer RGBG raw of the STITCHED equirect (not per-lens fisheye); not directly ingestible by Spirula"
+  },
+  {
+   "file": "IMG_20260929_154012_00_089.jpg",
+   "ext": "jpg",
+   "bytes": 25601943,
+   "sha256": "faebb24ab6f0934e80dc584418540d7b23a53e81ac9e667f652fdd1ba19f6f73",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_154012_00_089.jpg",
+   "capture_time": "2026:09:29 15:40:20",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997,
+   "iso": 196,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_equirect",
+   "note": "11904x5952 equirectangular, stitched in-camera (X4 FW); stationary (tripod or desk)"
+  },
+  {
+   "file": "IMG_20260929_154040_00_090.dng",
+   "ext": "dng",
+   "bytes": 141974270,
+   "sha256": "29239c4f503ba1b0feb345baf61e5957aa8c7e14dd5fc4e4b544c892ac4d7e75",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_154040_00_090.dng",
+   "capture_time": "2026:09:29 15:40:42",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997019314,
+   "iso": 184,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_raw",
+   "note": "11904x5952 Bayer RGBG raw of the STITCHED equirect (not per-lens fisheye); not directly ingestible by Spirula"
+  },
+  {
+   "file": "IMG_20260929_154040_00_090.jpg",
+   "ext": "jpg",
+   "bytes": 25965320,
+   "sha256": "fb0e7b5d032be5c06650d4c9260c19a28ac4c8a3f867631867e708794e13375b",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_154040_00_090.jpg",
+   "capture_time": "2026:09:29 15:40:48",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997,
+   "iso": 184,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_equirect",
+   "note": "11904x5952 equirectangular, stitched in-camera (X4 FW); stationary (tripod or desk)"
+  },
+  {
+   "file": "IMG_20260929_154112_00_091.dng",
+   "ext": "dng",
+   "bytes": 141964796,
+   "sha256": "f36d4d49d5ceab9304e19aff9954df801eede10ca196c39249db923adb0245df",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_154112_00_091.dng",
+   "capture_time": "2026:09:29 15:41:15",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997019314,
+   "iso": 139,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_raw",
+   "note": "11904x5952 Bayer RGBG raw of the STITCHED equirect (not per-lens fisheye); not directly ingestible by Spirula"
+  },
+  {
+   "file": "IMG_20260929_154112_00_091.jpg",
+   "ext": "jpg",
+   "bytes": 24507294,
+   "sha256": "ba3d8c04db5a18cdc04dd56a26155c5bbf2cf22db9b74d7fd6765f4fc9017203",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/IMG_20260929_154112_00_091.jpg",
+   "capture_time": "2026:09:29 15:41:21",
+   "width": 11904,
+   "height": 5952,
+   "exposure_s": 0.009997,
+   "iso": 139,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_72mp_still_equirect",
+   "note": "11904x5952 equirectangular, stitched in-camera (X4 FW); stationary (tripod or desk)"
+  },
+  {
+   "file": "LRV_20260929_152020_01_077.lrv",
+   "ext": "lrv",
+   "bytes": 104515813,
+   "sha256": "2bb208ccb4eb8e5780c79e93503f4c84340d4bee4663225113c83047b657efca",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/LRV_20260929_152020_01_077.lrv",
+   "capture_time": "2026:09:29 22:20:20",
+   "width": 1664,
+   "height": 832,
+   "exposure_s": "0.00499303173273802",
+   "iso": null,
+   "fps": 29.97002997003,
+   "duration_s": 81.9819,
+   "class": "x4_proxy_lrv",
+   "note": "1664x832 H.264 low-res proxy of the matching .insv"
+  },
+  {
+   "file": "LRV_20260929_152149_01_078.lrv",
+   "ext": "lrv",
+   "bytes": 88525029,
+   "sha256": "0ccc72b753dc0998928f7ca0f37bc0800d85af0734e1f936efc021f6a9f68b21",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/LRV_20260929_152149_01_078.lrv",
+   "capture_time": "2026:09:29 22:21:49",
+   "width": 1664,
+   "height": 832,
+   "exposure_s": "0.00499303173273802",
+   "iso": null,
+   "fps": 29.97002997003,
+   "duration_s": 67.6008666666667,
+   "class": "x4_proxy_lrv",
+   "note": "1664x832 H.264 low-res proxy of the matching .insv"
+  },
+  {
+   "file": "LRV_20260929_152303_01_079.lrv",
+   "ext": "lrv",
+   "bytes": 296143080,
+   "sha256": "c72185b53510fc5212518942f9a5e5a9b93cea182377476a0d2b5030501ce9f2",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/LRV_20260929_152303_01_079.lrv",
+   "capture_time": "2026:09:29 22:23:03",
+   "width": 1664,
+   "height": 832,
+   "exposure_s": "0.00783370621502399",
+   "iso": null,
+   "fps": 29.97002997003,
+   "duration_s": 255.6554,
+   "class": "x4_proxy_lrv",
+   "note": "1664x832 H.264 low-res proxy of the matching .insv"
+  },
+  {
+   "file": "LRV_20260929_152815_01_080.lrv",
+   "ext": "lrv",
+   "bytes": 63359208,
+   "sha256": "4b05f4022eff8007ce56509fd7faa6d5141886f934edd5816e09d6717951817f",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/LRV_20260929_152815_01_080.lrv",
+   "capture_time": "2026:09:29 22:28:15",
+   "width": 1664,
+   "height": 832,
+   "exposure_s": "0.00499303173273802",
+   "iso": null,
+   "fps": 29.97002997003,
+   "duration_s": 44.6446,
+   "class": "x4_proxy_lrv",
+   "note": "1664x832 H.264 low-res proxy of the matching .insv"
+  },
+  {
+   "file": "LRV_20260929_154244_01_092.lrv",
+   "ext": "lrv",
+   "bytes": 18794733,
+   "sha256": "df1696b61f9685c7b26dde56af7dd1a2886eef036d2b76b0d9c40743c24423f1",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/LRV_20260929_154244_01_092.lrv",
+   "capture_time": "2026:09:29 22:42:44",
+   "width": 1664,
+   "height": 832,
+   "exposure_s": "0.00850142352283001",
+   "iso": null,
+   "fps": 29.97002997003,
+   "duration_s": 1.86853333333333,
+   "class": "x4_proxy_lrv",
+   "note": "1664x832 H.264 low-res proxy of the matching .insv"
+  },
+  {
+   "file": "VID_20260929_152020_00_077.insv",
+   "ext": "insv",
+   "bytes": 2181744876,
+   "sha256": "1c5a5ee3b68038cf6ddae38c60759348607edb8c3ae051fc42c08ac08da98fbc",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/VID_20260929_152020_00_077.insv",
+   "capture_time": "2026:09:29 22:20:20",
+   "width": 3840,
+   "height": 3840,
+   "exposure_s": "0.00499303173273802",
+   "iso": null,
+   "fps": 29.97002997003,
+   "duration_s": 81.9819,
+   "class": "x4_360_video",
+   "note": "normal-height whole-room pass incl. close window/whiteboard/door passes",
+   "streams": "2x HEVC 3840x3840 29.97fps (both lens tracks intact) + AAC",
+   "source_probe": {
+    "track0": {
+     "frames": 82,
+     "fine_std": {
+      "p10": 4.066863441467285,
+      "p50": 6.9010937213897705,
+      "p90": 8.103837394714356
+     },
+     "mid_std": {
+      "p10": 3.764165687561035,
+      "p50": 7.2491350173950195,
+      "p90": 8.176102638244629
+     },
+     "grad_p90": {
+      "p10": 42.2884464263916,
+      "p50": 83.4382553100586,
+      "p90": 99.82581939697266
+     },
+     "noise_flat_mad": {
+      "p10": 1.2111989617347718,
+      "p50": 1.5138885378837585,
+      "p90": 1.8796687602996829
+     },
+     "clip250": {
+      "p10": 0.012112299601236979,
+      "p50": 0.02980783250596788,
+      "p90": 0.04203754001193576
+     },
+     "mean": {
+      "p10": 100.92879943847656,
+      "p50": 108.70014572143555,
+      "p90": 119.02600936889648
+     }
+    },
+    "track1": {
+     "frames": 82,
+     "fine_std": {
+      "p10": 3.3423489570617675,
+      "p50": 5.757869243621826,
+      "p90": 7.963450336456299
+     },
+     "mid_std": {
+      "p10": 3.010207748413086,
+      "p50": 6.492642164230347,
+      "p90": 8.371654605865478
+     },
+     "grad_p90": {
+      "p10": 41.12175254821777,
+      "p50": 66.22688293457031,
+      "p90": 99.22295761108398
+     },
+     "noise_flat_mad": {
+      "p10": 1.2458604335784913,
+      "p50": 1.4728524088859558,
+      "p90": 1.9122764825820924
+     },
+     "clip250": {
+      "p10": 0.009910837809244791,
+      "p50": 0.030402501424153648,
+      "p90": 0.04675555759006077
+     },
+     "mean": {
+      "p10": 99.28810272216796,
+      "p50": 109.5129280090332,
+      "p90": 117.77173233032227
+     }
+    },
+    "motion_native_px_per_frame": {
+     "p50": 1.6042523384094238,
+     "p90": 4.453701400756836,
+     "n": 12
+    },
+    "duration_s": 81.9819
+   }
+  },
+  {
+   "file": "VID_20260929_152149_00_078.insv",
+   "ext": "insv",
+   "bytes": 1805043948,
+   "sha256": "c675f9319f43b66519fe5748bd0d175ae5d77a908f181452adb40f4a1e0f55d0",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/VID_20260929_152149_00_078.insv",
+   "capture_time": "2026:09:29 22:21:49",
+   "width": 3840,
+   "height": 3840,
+   "exposure_s": "0.00499303173273802",
+   "iso": null,
+   "fps": 29.97002997003,
+   "duration_s": 67.6008666666667,
+   "class": "x4_360_video",
+   "note": "normal-height whole-room pass",
+   "streams": "2x HEVC 3840x3840 29.97fps (both lens tracks intact) + AAC",
+   "source_probe": {
+    "track0": {
+     "frames": 68,
+     "fine_std": {
+      "p10": 3.5751444339752196,
+      "p50": 6.498302698135376,
+      "p90": 7.847773122787475
+     },
+     "mid_std": {
+      "p10": 3.245323061943054,
+      "p50": 7.224277496337891,
+      "p90": 8.420397758483887
+     },
+     "grad_p90": {
+      "p10": 44.58187141418457,
+      "p50": 87.78942108154297,
+      "p90": 102.50552597045899
+     },
+     "noise_flat_mad": {
+      "p10": 1.1487921476364136,
+      "p50": 1.478793740272522,
+      "p90": 1.9352656841278078
+     },
+     "clip250": {
+      "p10": 0.0038306342230902783,
+      "p50": 0.029590818617078993,
+      "p90": 0.042142995198567706
+     },
+     "mean": {
+      "p10": 100.31524124145508,
+      "p50": 110.37460708618164,
+      "p90": 127.5585792541504
+     }
+    },
+    "track1": {
+     "frames": 68,
+     "fine_std": {
+      "p10": 2.939983940124512,
+      "p50": 4.101485252380371,
+      "p90": 5.506356430053712
+     },
+     "mid_std": {
+      "p10": 2.4979269981384276,
+      "p50": 4.064804792404175,
+      "p90": 5.537392234802247
+     },
+     "grad_p90": {
+      "p10": 39.40930404663086,
+      "p50": 47.434165954589844,
+      "p90": 64.4674072265625
+     },
+     "noise_flat_mad": {
+      "p10": 1.5740657448768616,
+      "p50": 1.9682742357254028,
+      "p90": 2.620461082458496
+     },
+     "clip250": {
+      "p10": 0.0,
+      "p50": 0.010563320583767362,
+      "p90": 0.017791069878472225
+     },
+     "mean": {
+      "p10": 52.495785522460935,
+      "p50": 57.28888511657715,
+      "p90": 65.9457908630371
+     }
+    },
+    "motion_native_px_per_frame": {
+     "p50": 0.3719426139305142,
+     "p90": 8.298349618911745,
+     "n": 12
+    },
+    "duration_s": 67.600867
+   }
+  },
+  {
+   "file": "VID_20260929_152303_00_079.insv",
+   "ext": "insv",
+   "bytes": 6742001902,
+   "sha256": "bf6b1ba653ca6ad5d85e0e2e1a02be36a83a3185869ccba4f0b91cf97c990a9d",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/VID_20260929_152303_00_079.insv",
+   "capture_time": null,
+   "width": null,
+   "height": null,
+   "exposure_s": "0.00783370621502399",
+   "iso": null,
+   "fps": null,
+   "duration_s": null,
+   "class": "x4_360_video",
+   "note": "long comprehensive slow pass incl. between rows (primary candidate, A)",
+   "streams": "2x HEVC 3840x3840 29.97fps (both lens tracks intact) + AAC",
+   "source_probe": {
+    "track0": {
+     "frames": 256,
+     "fine_std": {
+      "p10": 3.511964440345764,
+      "p50": 5.569818496704102,
+      "p90": 6.951942443847656
+     },
+     "mid_std": {
+      "p10": 3.13486111164093,
+      "p50": 6.152565240859985,
+      "p90": 7.69599986076355
+     },
+     "grad_p90": {
+      "p10": 39.623226165771484,
+      "p50": 61.19640350341797,
+      "p90": 90.58144760131836
+     },
+     "noise_flat_mad": {
+      "p10": 1.1646268963813782,
+      "p50": 1.4344815611839294,
+      "p90": 1.8864883780479431
+     },
+     "clip250": {
+      "p10": 0.0,
+      "p50": 0.017286512586805556,
+      "p90": 0.03932529025607639
+     },
+     "mean": {
+      "p10": 97.41542053222656,
+      "p50": 109.74723815917969,
+      "p90": 126.38351440429688
+     }
+    },
+    "track1": {
+     "frames": 256,
+     "fine_std": {
+      "p10": 3.7191691398620605,
+      "p50": 4.945985317230225,
+      "p90": 5.7218711376190186
+     },
+     "mid_std": {
+      "p10": 3.7798428535461426,
+      "p50": 5.22190260887146,
+      "p90": 6.13657546043396
+     },
+     "grad_p90": {
+      "p10": 42.953195571899414,
+      "p50": 52.95280838012695,
+      "p90": 64.07806015014648
+     },
+     "noise_flat_mad": {
+      "p10": 1.4262256622314453,
+      "p50": 1.7828453183174133,
+      "p90": 2.44951069355011
+     },
+     "clip250": {
+      "p10": 0.005410512288411459,
+      "p50": 0.013609144422743056,
+      "p90": 0.024150212605794273
+     },
+     "mean": {
+      "p10": 61.575958251953125,
+      "p50": 70.56340026855469,
+      "p90": 81.43941879272461
+     }
+    },
+    "motion_native_px_per_frame": {
+     "p50": 1.5621688856381297,
+     "p90": 11.966106605529786,
+     "n": 12
+    },
+    "duration_s": 255.6554
+   }
+  },
+  {
+   "file": "VID_20260929_152815_00_080.insv",
+   "ext": "insv",
+   "bytes": 1202112751,
+   "sha256": "7e06d04d963d1a17c5aeb0b995a5fe8c80b6ac914a2dbce09066480446a59a60",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/VID_20260929_152815_00_080.insv",
+   "capture_time": "2026:09:29 22:28:15",
+   "width": 3840,
+   "height": 3840,
+   "exposure_s": "0.00499303173273802",
+   "iso": null,
+   "fps": 29.97002997003,
+   "duration_s": 44.6446,
+   "class": "x4_360_video",
+   "note": "low-viewpoint pass (table-top height)",
+   "streams": "2x HEVC 3840x3840 29.97fps (both lens tracks intact) + AAC",
+   "source_probe": {
+    "track0": {
+     "frames": 45,
+     "fine_std": {
+      "p10": 4.751773548126221,
+      "p50": 7.138923168182373,
+      "p90": 8.077023315429688
+     },
+     "mid_std": {
+      "p10": 5.303257465362549,
+      "p50": 7.686855792999268,
+      "p90": 8.26530876159668
+     },
+     "grad_p90": {
+      "p10": 54.58108596801758,
+      "p50": 87.8179931640625,
+      "p90": 103.99307403564453
+     },
+     "noise_flat_mad": {
+      "p10": 1.2567238330841064,
+      "p50": 1.5341118574142456,
+      "p90": 1.905309295654297
+     },
+     "clip250": {
+      "p10": 0.013313039143880209,
+      "p50": 0.02618196275499132,
+      "p90": 0.03785391913519966
+     },
+     "mean": {
+      "p10": 101.50087890625,
+      "p50": 107.58096313476562,
+      "p90": 119.4960693359375
+     }
+    },
+    "track1": {
+     "frames": 45,
+     "fine_std": {
+      "p10": 4.05127592086792,
+      "p50": 4.378875732421875,
+      "p90": 6.366052150726319
+     },
+     "mid_std": {
+      "p10": 4.324863719940185,
+      "p50": 4.648458480834961,
+      "p90": 7.44821538925171
+     },
+     "grad_p90": {
+      "p10": 44.725341796875,
+      "p50": 55.226806640625,
+      "p90": 71.22099914550783
+     },
+     "noise_flat_mad": {
+      "p10": 1.1025706291198731,
+      "p50": 1.3921092748641968,
+      "p90": 2.073018026351929
+     },
+     "clip250": {
+      "p10": 0.02357423570421007,
+      "p50": 0.032015482584635414,
+      "p90": 0.05016157362196181
+     },
+     "mean": {
+      "p10": 108.80273132324218,
+      "p50": 112.60089111328125,
+      "p90": 120.84484405517578
+     }
+    },
+    "motion_native_px_per_frame": {
+     "p50": 5.027531385421753,
+     "p90": 11.696263504028321,
+     "n": 12
+    },
+    "duration_s": 44.6446
+   }
+  },
+  {
+   "file": "VID_20260929_154244_00_092.insv",
+   "ext": "insv",
+   "bytes": 66242803,
+   "sha256": "b4ce3c45c8da66b1d870ce54421c503595890fba9b6d6c518afb988afa52a51c",
+   "cloud_verified": true,
+   "r2_key": "experimental/spirula-hardened/room213-capture-2026-09-29/raw/VID_20260929_154244_00_092.insv",
+   "capture_time": "2026:09:29 22:42:44",
+   "width": 3840,
+   "height": 3840,
+   "exposure_s": "0.00850142352283001",
+   "iso": null,
+   "fps": 29.97002997003,
+   "duration_s": 1.86853333333333,
+   "class": "x4_timelapse",
+   "note": "walking timelapse, 56 frames (E candidate)",
+   "streams": "2x HEVC 3840x3840 29.97fps (both lens tracks intact) + AAC",
+   "source_probe": {
+    "track0": {
+     "frames": 2,
+     "fine_std": {
+      "p10": 5.893315744400025,
+      "p50": 6.230159044265747,
+      "p90": 6.5670023441314695
+     },
+     "mid_std": {
+      "p10": 6.336382007598877,
+      "p50": 6.684177875518799,
+      "p90": 7.031973743438721
+     },
+     "grad_p90": {
+      "p10": 75.38613739013672,
+      "p50": 83.2097396850586,
+      "p90": 91.03334197998046
+     },
+     "noise_flat_mad": {
+      "p10": 0.23538219779729844,
+      "p50": 0.3723580166697502,
+      "p90": 0.509333835542202
+     },
+     "clip250": {
+      "p10": 0.01625133090549045,
+      "p50": 0.026786168416341145,
+      "p90": 0.03732100592719184
+     },
+     "mean": {
+      "p10": 127.75430145263672,
+      "p50": 141.8692855834961,
+      "p90": 155.98426971435546
+     }
+    },
+    "track1": {
+     "frames": 2,
+     "fine_std": {
+      "p10": 3.457359504699707,
+      "p50": 4.065117835998535,
+      "p90": 4.672876167297363
+     },
+     "mid_std": {
+      "p10": 4.478970146179199,
+      "p50": 5.037264823913574,
+      "p90": 5.59555950164795
+     },
+     "grad_p90": {
+      "p10": 22.24914417266846,
+      "p50": 36.841416358947754,
+      "p90": 51.43368854522705
+     },
+     "noise_flat_mad": {
+      "p10": 0.13044237047433854,
+      "p50": 0.18518925458192825,
+      "p90": 0.23993613868951796
+     },
+     "clip250": {
+      "p10": 0.00498763190375434,
+      "p50": 0.007978863186306424,
+      "p90": 0.010970094468858507
+     },
+     "mean": {
+      "p10": 131.13848266601562,
+      "p50": 146.51913452148438,
+      "p90": 161.89978637695313
+     }
+    },
+    "motion_native_px_per_frame": {
+     "p50": 0.035292969580041245,
+     "p90": 40.877234649658206,
+     "n": 12
+    },
+    "duration_s": 1.868533
+   }
+  }
+ ],
+ "supplemental_iphone": {
+  "capture_id": "2a44da14-a327-43d9-9e8b-083ee2c93514",
+  "date": "2026-09-21",
+  "photos": 419,
+  "format": "JPEG 4032x3024 (EXIF stripped, stored rotated)",
+  "exposure": "locked 1/250 s, ISO 666 (capture_bundle.json)",
+  "volume": "/vol/room213/2026-09-29/capture/iphone_2a44da14 (sha256 per file in manifest.json)",
+  "note": "different day (9/21): some chairs may have moved"
+ }
+}
