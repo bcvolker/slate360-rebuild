@@ -61,6 +61,8 @@ export type PortalLandingData = {
     items: boolean;
   };
   brandName?: string | null;
+  /** Operator "Preview as client" token: shows a preview banner, never on real client links. */
+  operatorPreview?: boolean;
 };
 
 const HOUSEWALK_THEME = resolveBrandTheme({

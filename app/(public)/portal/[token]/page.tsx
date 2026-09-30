@@ -35,6 +35,7 @@ export default async function DeliverableSharePage({ params }: PageProps) {
       orgId: walk.row.org_id,
       walkthroughId: walk.row.walkthrough_id,
       token,
+      share: walk.row,
     });
     if (data) return <AecPortalLanding data={data} />;
   }

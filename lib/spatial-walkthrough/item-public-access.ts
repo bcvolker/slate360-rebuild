@@ -1,4 +1,5 @@
 import "server-only";
+import { resolveShareDeliverables } from "@/lib/spatial-experience/portal-package-load";
 
 import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
@@ -26,6 +27,9 @@ export async function resolveShareAudience(req: NextRequest, token: string) {
   const unlocked = sessionUnlocksShare({ req, tokenHash: row.token_hash ?? "", passwordHash: row.password_hash });
   const password = req.headers.get("x-walkthrough-pass") || req.nextUrl.searchParams.get("code");
   if (!unlocked && !passwordOk(row, password)) return { ok: false as const, admin };
+  // Items, comments and Ask belong to the "issues" deliverable.
+  const allowed = await resolveShareDeliverables(admin, row);
+  if (allowed && !allowed.has("issues")) return { ok: false as const, admin };
   const audience: ItemAudience = audienceFromSharePolicy(row.policy);
   return { ok: true as const, admin, row, audience };
 }

@@ -36,6 +36,8 @@ export type SharePayload = {
   attachments: Array<Record<string, unknown>>;
   redactions: RedactionRule[];
   profile: ExperienceProfile;
+  /** Items, comments and Ask are packaged for this link. Missing = legacy (on). */
+  issuesEnabled: boolean;
 };
 
 function rec(value: unknown): Record<string, unknown> {
@@ -91,6 +93,7 @@ export function normalizeSharePayload(raw: unknown): SharePayload {
     attachments: arr<Record<string, unknown>>(o.attachments),
     redactions: arr<RedactionRule>(o.redactions),
     profile: parseExperienceProfile(o.profile ?? o.experienceProfile),
+    issuesEnabled: o.issuesEnabled !== false,
   };
 }
 

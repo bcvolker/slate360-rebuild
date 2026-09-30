@@ -6,6 +6,7 @@ import { resolveBrandTheme } from "@/lib/spatial-walkthrough/theme";
 import { orgThemeFromRow } from "@/lib/spatial-walkthrough/org-theme";
 import { publicMediaContract } from "@/lib/spatial-walkthrough/derivatives";
 import type { WalkBoot } from "@/lib/spatial-walkthrough/share-payload";
+import { shareServesWalkthrough } from "@/lib/spatial-experience/portal-package-load";
 
 type CookieReader = { get(name: string): { value: string } | undefined };
 
@@ -27,6 +28,7 @@ export async function loadPublicWalkBoot(token: string, cookies: CookieReader): 
     if (!cookieUnlocksShare(row.token_hash ?? "", row.password_hash, proof)) {
       return { ...DENIED, accessState: "password" };
     }
+    if (!(await shareServesWalkthrough(admin, row))) return DENIED;
     const { data: wt } = await admin
       .from("spatial_walkthroughs")
       .select("id, title, brand_theme, captured_at")

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { resolveShareDeliverables, shareServesWalkthrough } from "@/lib/spatial-experience/portal-package-load";
 import { loadShareRow, shareDenied, passwordOk, filterRuntime } from "@/lib/spatial-walkthrough/share-resolve";
 import { resolveBrandTheme } from "@/lib/spatial-walkthrough/theme";
 import { orgThemeFromRow } from "@/lib/spatial-walkthrough/org-theme";
@@ -52,6 +53,8 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
   if (!unlocked && !passwordOk(row, passwordFrom(req))) {
     return NextResponse.json({ ...publicShareDenial(), needsPassword: true }, { status: 401 });
   }
+
+  if (!(await shareServesWalkthrough(admin, row))) return NextResponse.json(publicShareDenial(), { status: 404 });
 
   const { data: wt } = await admin.from("spatial_walkthroughs").select("*").eq("id", row.walkthrough_id).maybeSingle();
   if (!wt) return NextResponse.json(publicShareDenial(), { status: 404 });
@@ -158,5 +161,9 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
     redactions: runtime.redactions,
     profile: "marketing",
     presentation: HOUSEWALK_PRESENTATION,
+    issuesEnabled: await (async () => {
+      const allowed = await resolveShareDeliverables(admin, row);
+      return allowed == null || allowed.has("issues");
+    })(),
   });
 };

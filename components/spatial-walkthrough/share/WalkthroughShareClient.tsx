@@ -111,12 +111,11 @@ export function WalkthroughShareClient({ token, boot }: { token: string; boot?: 
           lockedChapterId={payload.lockedChapterId}
           shareBasePath={`/w/${token}`}
           selectedId={locator.pinId}
-          collaboration={{
-            shareToken: token,
-            audience: "client",
-            canManage: false,
-            projectId: null,
-          }}
+          collaboration={
+            payload.issuesEnabled
+              ? { shareToken: token, audience: "client", canManage: false, projectId: null }
+              : null
+          }
         />
       </div>
     </ShareErrorBoundary>

@@ -264,6 +264,7 @@ export function WalkthroughExperience({
           onTogglePath={nav.togglePath}
           playing={playing}
           publicChrome
+          askEnabled={Boolean(collaboration)}
         />
       )}
       <PinDrawer pin={selected} onClose={() => setSelectedId(null)} allowDownload={allowDownload} />

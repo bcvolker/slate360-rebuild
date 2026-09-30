@@ -1,5 +1,6 @@
 import { GetObjectCommand } from "@aws-sdk/client-s3";
 import { NextRequest, NextResponse } from "next/server";
+import { shareServesWalkthrough } from "@/lib/spatial-experience/portal-package-load";
 
 import { loadShareRow, shareDenied, passwordOk } from "@/lib/spatial-walkthrough/share-resolve";
 import { selectDerivativeKey, type MediaKind } from "@/lib/spatial-walkthrough/derivatives";
@@ -25,6 +26,7 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
   const pass = req.headers.get("x-walkthrough-pass") || req.nextUrl.searchParams.get("code");
   if (!unlocked && !passwordOk(row, pass)) return NextResponse.json(publicShareDenial(), { status: 401 });
   if (kind === "master") return NextResponse.json(publicShareDenial(), { status: 404 });
+  if (!(await shareServesWalkthrough(admin, row))) return NextResponse.json(publicShareDenial(), { status: 404 });
 
   const clip = await loadClipMediaKeys(admin, { id: clipId });
   if (!clip || clip.walkthrough_id !== row.walkthrough_id) {

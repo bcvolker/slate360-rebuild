@@ -4,11 +4,15 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveBrandTheme } from "./theme";
 import { orgThemeFromRow } from "./org-theme";
 import type { PortalLandingData } from "./portal-fixtures";
+import { applyPortalCapabilities, gatePortalCapabilities } from "./portal-gating";
+import { resolveShareDeliverables } from "@/lib/spatial-experience/portal-package-load";
 
 export async function loadClientPortalLanding(args: {
   orgId: string;
   walkthroughId: string;
   token: string;
+  /** Share row fields that decide packaging and operator preview. */
+  share: { org_id: string; walkthrough_id: string; deliverables?: unknown; purpose?: string | null };
 }): Promise<PortalLandingData | null> {
   const admin = createAdminClient();
   const { data: walk } = await admin
@@ -20,18 +24,9 @@ export async function loadClientPortalLanding(args: {
   if (!walk) return null;
 
   const projectId = walk.project_id as string | null;
-  const { data: walks } = projectId
-    ? await admin
-        .from("spatial_walkthroughs")
-        .select("id, title, captured_at, building, floor, status")
-        .eq("project_id", projectId)
-        .eq("org_id", args.orgId)
-        .in("status", ["ready", "published"])
-        .order("captured_at", { ascending: false })
-        .limit(12)
-    : { data: [walk] };
-
-  const rows = walks ?? [walk];
+  // Only this share's own walkthrough: the token cannot serve another visit's media,
+  // and unpublished visits must never reach a client. Visits return with the Tour.
+  const rows = [walk];
   const clips = await Promise.all(
     rows.map(async (w) => {
       const { data: clip } = await admin
@@ -53,7 +48,7 @@ export async function loadClientPortalLanding(args: {
         kind: "walkthrough",
         status: w.status,
         posterUrl,
-        href: w.id === args.walkthroughId ? href : href,
+        href,
       };
     }),
   );
@@ -131,7 +126,8 @@ export async function loadClientPortalLanding(args: {
     locatorHref: `/w/${args.token}?pin=${p.id}&t=${p.t_seconds ?? 0}&yaw=${p.yaw_deg ?? 0}&pitch=${p.pitch_deg ?? 0}`,
   }));
 
-  return {
+  const allowed = await resolveShareDeliverables(admin, args.share);
+  const landing: PortalLandingData = {
     profile: "construction",
     projectName: project?.name || walk.building || walk.title,
     location: project?.location || [walk.building, walk.floor].filter(Boolean).join(" · ") || null,
@@ -147,7 +143,8 @@ export async function loadClientPortalLanding(args: {
         title: d.title || "Document",
         kind: d.kind || "file",
         href: `/portal/${args.token}/item/${d.pin_id}`,
-        thumbUrl: hero?.posterUrl ?? null,
+        // The walkthrough poster is not a picture of the document.
+        thumbUrl: null,
         locatorHref: pin
           ? `/w/${args.token}?pin=${d.pin_id}&t=${pin.t_seconds ?? 0}&yaw=${pin.yaw_deg ?? 0}&pitch=${pin.pitch_deg ?? 0}`
           : `/w/${args.token}?pin=${d.pin_id}`,
@@ -186,7 +183,8 @@ export async function loadClientPortalLanding(args: {
     planHref: planSet ? `/portal/${args.token}/plan` : null,
     visitLabel: walk.captured_at ? walk.captured_at.slice(0, 10) : null,
     capabilities: {
-      walkthrough: Boolean(clientClips[0]),
+      // A walkthrough row without a ready clip would open an empty player.
+      walkthrough: Boolean(clientClips[0]?.posterUrl),
       stations: Boolean(stationTour?.viewer_slug),
       plan: Boolean(planSet),
       twin: Boolean(twinShare?.token),
@@ -196,5 +194,7 @@ export async function loadClientPortalLanding(args: {
       items: items.length > 0,
     },
     brandName: brand.companyName ?? project?.name ?? null,
+    operatorPreview: args.share.purpose === "preview",
   };
+  return applyPortalCapabilities(landing, gatePortalCapabilities(landing.capabilities!, allowed));
 }

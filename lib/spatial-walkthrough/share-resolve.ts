@@ -21,6 +21,10 @@ export type ShareRow = {
   branding_snapshot: unknown;
   /** Optional chapter lock for the share (20260829210000). */
   chapter_id?: string | null;
+  /** Packaging override (subset of the project package) and link purpose (20260930120000). */
+  deliverables?: string[] | null;
+  audience?: string | null;
+  purpose?: string | null;
 };
 
 export async function loadShareRow(token: string): Promise<{ admin: ReturnType<typeof createAdminClient>; row: ShareRow | null }> {
