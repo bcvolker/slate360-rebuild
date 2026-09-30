@@ -21,11 +21,11 @@ from forensic_geom import face_plan, project, face_of, face_pixels, plane_frame,
 
 
 @app.function(image=image, cpu=16.0, memory=65536, timeout=3 * 3600, volumes={"/vol": vol})
-def prep_v5(spec: dict) -> dict:
+def prep_v6(spec: dict) -> dict:
     """spec = {run, cond, targets: [{name, pano_image, pano_px, depth|floor_z, plane: 'fit'|'z', fit_r, vis_r, texel_mm, patch_mm}]}"""
     import json, numpy as np, cv2, pycolmap
     from pathlib import Path
-    vol.reload(); run = spec["run"]; WS = f"{COND}/{spec['cond']}/ws"; O = Path(f"{OUT}/{run}"); O.mkdir(parents=True, exist_ok=True)
+    vol.reload(); run = spec["run"]; WS = spec.get("ws") or f"{COND}/{spec['cond']}/ws"; O = Path(f"{OUT}/{run}"); O.mkdir(parents=True, exist_ok=True)
     rec = pycolmap.Reconstruction(f"{WS}/sparse/0"); ims = list(rec.images.values())
     pid = np.array(list(rec.points3D.keys())); P = np.array([rec.points3D[i].xyz for i in pid]); E = np.array([rec.points3D[i].error for i in pid])
     res = {"run": run, "cond": spec["cond"], "targets": {}}; renders = []
@@ -57,6 +57,7 @@ def prep_v5(spec: dict) -> dict:
         G = X + A_.reshape(-1, 1) * u + B_.reshape(-1, 1) * v                       # ortho grid (row = +v, col = +u)
         ref_dir = (X - Cp) / np.linalg.norm(X - Cp); obs = []
         for im in ims:
+            if spec.get("allow") and im.name.startswith(T.get("still_prefix", "x4stills")) and im.name not in spec["allow"]: continue
             cam = rec.cameras[im.camera_id]; equi = still(im); c = cnt.get(im.image_id, 0)
             if not equi and c < 1: continue
             C = np.asarray(im.projection_center()); dist = float(np.linalg.norm(C - X))
@@ -167,14 +168,14 @@ def ortho_renders_v3(run: str, model: str) -> dict:
 
 
 @app.function(image=image, cpu=16.0, memory=65536, timeout=3600, volumes={"/vol": vol})
-def native_orthos_v3(run: str, cond: str = "AX6c", up: int = 4) -> dict:
+def native_orthos_v6(run: str, cond: str = "AX6c", up: int = 4, ws: str = "") -> dict:
     """Control for the projection stage: each observation's ortho texture sampled from the ORIGINAL decoded source at
     native resolution (supersampled `up`x per texel then box-averaged, i.e. band-limited, no face warp), next to the
     exact training-face ortho written by prep. Same grid, same plane."""
     import json, numpy as np, cv2, pycolmap
     from pathlib import Path
     from forensic_geom import ortho_from_source
-    vol.reload(); O = Path(f"{OUT}/{run}"); P = json.load(open(O / "prep.json")); WS = f"{COND}/{cond}/ws"
+    vol.reload(); O = Path(f"{OUT}/{run}"); P = json.load(open(O / "prep.json")); WS = ws or f"{COND}/{cond}/ws"
     rec = pycolmap.Reconstruction(f"{WS}/sparse/0"); n_ok = 0
     for name, T in P["targets"].items():
         nt, tex = T["nt"], T["texel_mm"] / 1000; X, u, v = (np.array(T[k]) for k in ("X", "u", "v"))
