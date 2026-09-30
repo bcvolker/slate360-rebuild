@@ -21,7 +21,7 @@ from forensic_geom import face_plan, project, face_of, face_pixels, plane_frame,
 
 
 @app.function(image=image, cpu=16.0, memory=65536, timeout=3 * 3600, volumes={"/vol": vol})
-def prep_v3(spec: dict) -> dict:
+def prep_v5(spec: dict) -> dict:
     """spec = {run, cond, targets: [{name, pano_image, pano_px, depth|floor_z, plane: 'fit'|'z', fit_r, vis_r, texel_mm, patch_mm}]}"""
     import json, numpy as np, cv2, pycolmap
     from pathlib import Path
@@ -31,16 +31,20 @@ def prep_v3(spec: dict) -> dict:
     res = {"run": run, "cond": spec["cond"], "targets": {}}; renders = []
     for T in spec["targets"]:
         name = T["name"]; D = O / name; D.mkdir(exist_ok=True)
-        pim = next(i for i in ims if i.name.endswith(T["pano_image"])); pc = rec.cameras[pim.camera_id]
-        Rp = np.asarray(pim.cam_from_world().rotation.matrix()); Cp = np.asarray(pim.projection_center())
-        dc = np.asarray(pc.cam_from_img(np.array([[T["pano_px"][0] + 0.5, T["pano_px"][1] + 0.5]])))[0]
-        dc = np.append(dc, 1.0) if len(dc) == 2 else dc; dw = Rp.T @ (dc / np.linalg.norm(dc))
-        if "floor_z" in T:
-            X = Cp + (T["floor_z"] - Cp[2]) / dw[2] * dw; n = np.array([0, 0, 1.0])
-        else:                                                # depth along the panorama ray; plane facing the ray
-            X = Cp + T["depth"] * dw                         # (SfM is too sparse on the door/chair for a stable plane fit)
-            n = -dw.copy()
-            if T.get("normal") == "ray_h": n[2] = 0.0         # vertical architectural surface
+        still = lambda im_: "EQUIRECT" in str(rec.cameras[im_.camera_id].model) or im_.name.startswith(T.get("still_prefix", "x4stills"))
+        if "X" in T:                                         # explicit target (e.g. transferred from another frame)
+            X, n, Cp = np.array(T["X"]), np.array(T["n"]), np.array(T["ref_C"])
+        else:
+          pim = next(i for i in ims if i.name.endswith(T["pano_image"])); pc = rec.cameras[pim.camera_id]
+          Rp = np.asarray(pim.cam_from_world().rotation.matrix()); Cp = np.asarray(pim.projection_center())
+          dc = np.asarray(pc.cam_from_img(np.array([[T["pano_px"][0] + 0.5, T["pano_px"][1] + 0.5]])))[0]
+          dc = np.append(dc, 1.0) if len(dc) == 2 else dc; dw = Rp.T @ (dc / np.linalg.norm(dc))
+          if "floor_z" in T:
+              X = Cp + (T["floor_z"] - Cp[2]) / dw[2] * dw; n = np.array([0, 0, 1.0])
+          else:                                                # depth along the panorama ray; plane facing the ray
+              X = Cp + T["depth"] * dw                         # (SfM is too sparse on the door/chair for a stable plane fit)
+              n = -dw.copy()
+              if T.get("normal") == "ray_h": n[2] = 0.0         # vertical architectural surface
         n, u, v = plane_frame(n)
         # candidates: X inside a face of the image, with SfM evidence (>=1 track hit within vis_r) or a panorama
         # (panoramas are too sparse in SfM for track evidence; occlusion is then checked on the crops and flagged).
@@ -53,12 +57,12 @@ def prep_v3(spec: dict) -> dict:
         G = X + A_.reshape(-1, 1) * u + B_.reshape(-1, 1) * v                       # ortho grid (row = +v, col = +u)
         ref_dir = (X - Cp) / np.linalg.norm(X - Cp); obs = []
         for im in ims:
-            cam = rec.cameras[im.camera_id]; equi = "EQUIRECT" in str(cam.model); c = cnt.get(im.image_id, 0)
+            cam = rec.cameras[im.camera_id]; equi = still(im); c = cnt.get(im.image_id, 0)
             if not equi and c < 1: continue
             C = np.asarray(im.projection_center()); dist = float(np.linalg.norm(C - X))
             if dist > T.get("max_dist", 8.0) or np.degrees(np.arccos(np.clip(((X - C) / dist) @ ref_dir, -1, 1))) > T.get("max_ang", 60): continue
             g = geom(im, cam, X, n, u, v)
-            if g: obs.append(dict(image=im.name, image_id=int(im.image_id), camera_id=int(im.camera_id), pano=bool(equi), track_hits=int(c), **g))
+            if g: obs.append(dict(image=im.name, image_id=int(im.image_id), camera_id=int(im.camera_id), pano=bool(equi), track_hits=int(c), **g))  # pano = high-res still
         vid = sorted([o for o in obs if not o["pano"]], key=lambda o: -o["px_per_mm_train"])
         pan = sorted([o for o in obs if o["pano"]], key=lambda o: -o["px_per_mm_train"])
         sel = []; nvid = 0                                   # pass 1: loss-visible observations (eroded mask), images cached
@@ -98,7 +102,9 @@ def prep_v3(spec: dict) -> dict:
             np.save(D / f"{tag}_ortho_gt.npy", ortho.astype(np.float32))
             # native source crop around the target (for the lineage sheet), source pixel grid, no resampling
             sx, sy = [int(round(x)) for x in o["src_px"]]; hw = int(min(900, max(96, 0.6 * T["patch_mm"] * o["px_per_mm_native"])))
-            cv2.imwrite(str(D / f"{tag}_src_native.png"), img[max(0, sy - hw):sy + hw, max(0, sx - hw):sx + hw, ::-1])
+            crop = img[max(0, sy - hw):max(0, sy + hw), max(0, sx - hw):max(0, sx + hw), ::-1]
+            if crop.size == 0 or not (0 <= sx < img.shape[1] and 0 <= sy < img.shape[0]): continue   # target outside the source frame
+            cv2.imwrite(str(D / f"{tag}_src_native.png"), crop)
             cv2.imwrite(str(D / f"{tag}_train_face.png"), np.clip(fc[..., ::-1] * 255 + 0.5, 0, 255).astype(np.uint8))
             # the exact face camera for rendering (world->cam = M R, t -> M t)
             cw = im.cam_from_world(); Rf = np.array(axes[o["face"]], float) @ np.asarray(cw.rotation.matrix()); tf = np.array(axes[o["face"]], float) @ np.asarray(cw.translation)
