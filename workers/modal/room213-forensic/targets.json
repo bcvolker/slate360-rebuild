@@ -1,0 +1,54 @@
+{
+ "run": "f4",
+ "cond": "AX6c",
+ "targets": [
+  {
+   "name": "T1_door_frame",
+   "pano_image": "_089.jpg",
+   "pano_px": [
+    6678,
+    2976
+   ],
+   "depth": 6.18,
+   "normal": "ray_h",
+   "vis_r": 0.15,
+   "max_dist": 8.0,
+   "max_ang": 60,
+   "texel_mm": 1.0,
+   "patch_mm": 300,
+   "max_video": 10,
+   "sweep_m": 0.8
+  },
+  {
+   "name": "T2_carpet",
+   "pano_image": "_089.jpg",
+   "pano_px": [
+    5952,
+    4880
+   ],
+   "floor_z": -0.0039,
+   "vis_r": 0.05,
+   "max_dist": 3.0,
+   "max_ang": 75,
+   "texel_mm": 0.5,
+   "patch_mm": 160,
+   "max_video": 10
+  },
+  {
+   "name": "T3_chair_slats",
+   "pano_image": "_089.jpg",
+   "pano_px": [
+    7559,
+    3244
+   ],
+   "depth": 2.49,
+   "normal": "ray",
+   "vis_r": 0.1,
+   "max_dist": 4.0,
+   "max_ang": 35,
+   "texel_mm": 0.75,
+   "patch_mm": 240,
+   "max_video": 10
+  }
+ ]
+}
