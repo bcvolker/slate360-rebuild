@@ -11,7 +11,8 @@ from pathlib import Path
 import cv2, numpy as np
 
 RUN, OUT = Path(sys.argv[1]), Path(sys.argv[2]); OUT.mkdir(parents=True, exist_ok=True)
-P = json.load(open(RUN / "prep.json")); MODELS = ["A", "Aplus"]; K = 4
+import os
+P = json.load(open(RUN / "prep.json")); MODELS = os.environ.get("MODELS", "A,Aplus").split(","); K = 4
 
 
 def gray(x): return cv2.cvtColor(np.ascontiguousarray(x, np.float32), cv2.COLOR_RGB2GRAY) * 255.0

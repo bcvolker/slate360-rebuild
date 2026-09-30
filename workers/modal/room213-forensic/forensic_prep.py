@@ -207,3 +207,38 @@ def mask_cover_v1(run: str, cond: str) -> dict:
             im = rec.images[o["image_id"]]; cam = rec.cameras[im.camera_id]
             out[f"{name}/{o['tag']}"] = float((ortho_from_source(im, cam, keep, G, (nt, nt)) > 0.5).mean())
     return out
+
+
+@app.function(image=image, cpu=4.0, memory=16384, timeout=1800, volumes={"/vol": vol})
+def gauss_census_v2(ply: str, targets: dict, radii: list = [0.03, 0.06, 0.12]) -> dict:
+    """Gaussians near each target point (model frame): count, size (largest axis, mm), opacity. Reads the PLY only."""
+    import numpy as np
+    vol.reload(); f = open(ply, "rb"); hdr = b""
+    while not hdr.endswith(b"end_header\n"): hdr += f.readline()
+    lines = hdr.decode().splitlines(); n = int(next(l.split()[-1] for l in lines if l.startswith("element vertex")))
+    props = [l.split()[-1] for l in lines if l.startswith("property")]
+    a = np.frombuffer(f.read(n * 4 * len(props)), dtype="<f4").reshape(n, len(props)); col = {p: i for i, p in enumerate(props)}
+    xyz = a[:, [col["x"], col["y"], col["z"]]]; sc = np.exp(a[:, [col["scale_0"], col["scale_1"], col["scale_2"]]]); op = 1 / (1 + np.exp(-a[:, col["opacity"]]))
+    out = {"n_total": int(n)}
+    for name, X in targets.items():
+        d = np.linalg.norm(xyz - np.array(X), axis=1); r = {}
+        for rad in radii:
+            m = d < rad; big = sc[m].max(1) * 1000 if m.any() else np.array([0.0]); small = sc[m].min(1) * 1000 if m.any() else np.array([0.0])
+            r[f"r{int(rad * 100)}cm"] = {"count": int(m.sum()), "size_mm_p10_p50": np.percentile(big, [10, 50]).round(2).tolist(),
+                                         "frac_under_2mm": float((big < 2).mean()), "minor_mm_p10_p50": np.percentile(small, [10, 50]).round(2).tolist(), "opacity_p50": float(np.median(op[m])) if m.any() else None}
+        out[name] = r
+    return out
+
+
+@app.function(image=image, cpu=4.0, memory=16384, timeout=1800, volumes={"/vol": vol})
+def gauss_global_v1(ply: str) -> dict:
+    """Whole-model budget use: opacity and size distributions (reads the PLY only)."""
+    import numpy as np
+    vol.reload(); f = open(ply, "rb"); hdr = b""
+    while not hdr.endswith(b"end_header\n"): hdr += f.readline()
+    lines = hdr.decode().splitlines(); n = int(next(l.split()[-1] for l in lines if l.startswith("element vertex")))
+    props = [l.split()[-1] for l in lines if l.startswith("property")]
+    a = np.frombuffer(f.read(n * 4 * len(props)), dtype="<f4").reshape(n, len(props)); col = {p: i for i, p in enumerate(props)}
+    sc = np.exp(a[:, [col["scale_0"], col["scale_1"], col["scale_2"]]]).max(1) * 1000; op = 1 / (1 + np.exp(-a[:, col["opacity"]]))
+    return {"n": int(n), "opacity_lt_0.02": float((op < 0.02).mean()), "opacity_lt_0.05": float((op < 0.05).mean()), "opacity_p10_p50_p90": np.percentile(op, [10, 50, 90]).round(3).tolist(),
+            "major_mm_p10_p50_p90": np.percentile(sc, [10, 50, 90]).round(2).tolist(), "frac_major_lt_3mm": float((sc < 3).mean()), "frac_major_gt_30mm": float((sc > 30).mean())}

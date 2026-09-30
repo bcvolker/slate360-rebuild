@@ -11,6 +11,7 @@ from pathlib import Path
 import cv2, numpy as np, pycolmap
 
 RUN, SP, OUTJ = Path(sys.argv[1]), sys.argv[2], sys.argv[3]
+import os; MODEL = os.environ.get("MODEL", "A")
 P = json.load(open(RUN / "prep.json")); rec = pycolmap.Reconstruction(SP)
 
 
@@ -67,7 +68,7 @@ for tn, T in P["targets"].items():
         gt = gray(np.load(f)); cy, cx = int(o["face_px"][1] - o["face_bbox"][1]), int(o["face_px"][0] - o["face_bbox"][0]); H = 56
         m = np.zeros(gt.shape, bool); m[max(10, cy - H):min(gt.shape[0] - 10, cy + H), max(10, cx - H):min(gt.shape[1] - 10, cx + H)] = True
         if m.sum() < 400: continue
-        rd = cv2.imread(str(RUN / tn / "A" / f"{o['render_view']}_face_crop.png"), 0)
+        rd = cv2.imread(str(RUN / tn / MODEL / f"{o['render_view']}_face_crop.png"), 0)
         if rd is None or rd.shape != gt.shape: continue
         rd = rd.astype(np.float32); sa = reg(rd, gt, m.astype(np.float32), 3.0); rda = shift(rd, *sa)
         nbs = []

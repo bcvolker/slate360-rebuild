@@ -23,7 +23,7 @@ for tn, T in P['targets'].items():
         adj = [sh(a, *reg(a, gt)) for a in adj]
         Rk = np.mean([[ncc(band(gt, k), band(a, k), m) for k in range(K)] for a in adj], 0)
         row = {"tag": o['tag'], "grp": "CLOSE" if o['px_per_mm_train'] >= 0.9 else ("FAR" if o['px_per_mm_train'] <= 0.55 else "MID"), "px_mm": o['px_per_mm_train'], "R_adjacent": Rk, "sharp_trained_vs_neighbours": row_sharp[0] / np.mean(row_sharp[1:])}
-        for M in ("A", "Aplus"):
+        for M in __import__("os").environ.get("MODELS", "A,Aplus").split(","):
             rd = cv2.imread(f"{R}/{tn}/{M}/{o['render_view']}_face_crop.png", 0)
             if rd is None or rd.shape != gt.shape: continue
             rd = rd.astype(np.float32); rd = sh(rd, *reg(rd, gt, 3 if M == "A" else 40))
@@ -39,6 +39,6 @@ for tn, T in P['targets'].items():
         print(f"{tn} {g} n={len(rr)} px/mm {np.median([r['px_mm'] for r in rr]):.2f}  (bands 1-2/2-4/4-8/8-16 train px)")
         print(f"   trained frame sharper than its neighbours by x{np.median([r['sharp_trained_vs_neighbours'] for r in rr]):.2f} (sharpest-of-3 selection)")
         print(f"   neighbour repeatability R      {med(lambda r: r['R_adjacent'])}  -> sqrt(R) = ceiling for a noise-free render {med(lambda r: np.sqrt(np.clip(r['R_adjacent'], 0, None)))}")
-        for M in ("A", "Aplus"):
+        for M in __import__("os").environ.get("MODELS", "A,Aplus").split(","):
             if all(M in r for r in rr):
                 print(f"   {M:5s} render vs never-trained neighbour {med(lambda r: r[M]['ncc_vs_neighbour'])}  retained {med(lambda r: r[M]['retained_corr'])}  energy/repeatable {med(lambda r: r[M]['energy_vs_repeatable'])}")
