@@ -1,0 +1,15 @@
+{
+  "fixture": "KitchenAprilTags Route C",
+  "run": "2026-08-31T16-45-route-c-iphone-metric",
+  "filtered_points": 9381038,
+  "filtered_points_025_5": 9380987,
+  "voxel_mm": 15,
+  "floor_rms_m": 0.008,
+  "holdout_psnr": 23.46,
+  "holdout_ssim": 0.8,
+  "frames": 225,
+  "pose_opt": false,
+  "centered": false,
+  "scaled": false,
+  "preview_ply_is_master": false
+}

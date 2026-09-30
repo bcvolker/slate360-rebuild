@@ -56,6 +56,8 @@ export const SplatViewerCore = forwardRef<
     onManifestChange?: (manifest: SplatManifest | null) => void;
     /** D2: live orbit-camera pose changes, for progression-compare sync. */
     onCameraChange?: (pose: SplatCameraPose) => void;
+    /** Client surfaces: no byte counts or point-cap notices. */
+    quiet?: boolean;
   }
 >(function SplatViewerCore(
   {
@@ -70,6 +72,7 @@ export const SplatViewerCore = forwardRef<
     repositionMode = false,
     onManifestChange,
     onCameraChange,
+    quiet = false,
   },
   ref,
 ) {
@@ -232,9 +235,9 @@ export const SplatViewerCore = forwardRef<
 
   return (
     <div className={cn(SPLAT_VIEWER_SURFACE, "absolute inset-0", className)}>
-      {loadState === "loading" ? <SplatLoadingOverlay bytesLoaded={bytesLoaded} bytesTotal={bytesTotal} /> : null}
+      {loadState === "loading" ? <SplatLoadingOverlay bytesLoaded={bytesLoaded} bytesTotal={bytesTotal} quiet={quiet} /> : null}
 
-      {downsampleNotice ? (
+      {downsampleNotice && !quiet ? (
         <p className="pointer-events-none absolute left-2 top-2 z-10 max-w-[80%] rounded-md border border-white/10 bg-[color-mix(in_srgb,var(--graphite-canvas)_80%,transparent)] px-2 py-1 font-mono text-[10px] tracking-wide text-zinc-400 backdrop-blur-sm">
           {downsampleNotice}
         </p>

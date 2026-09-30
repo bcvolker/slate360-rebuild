@@ -27,6 +27,8 @@ export type MeshDisplay = "shown" | "collision";
 export type MeshAppearance = {
   opacity?: number;
   wireframe?: boolean;
+  /** Lambert + vertex colours when the GLB has COLOR_0 and no atlas. */
+  finish?: "gltf" | "architectural";
 };
 
 type BodyProps = {
@@ -175,43 +177,44 @@ function GlbBody({ url, ceilingCutY, ceilingState, display, appearance }: BodyPr
     const source = (
       Array.isArray(found.material) ? found.material[0] : found.material
     ) as THREE.MeshStandardMaterial;
+    if (!found.geometry.getAttribute("normal")) found.geometry.computeVertexNormals();
+    const colorAttr = found.geometry.getAttribute("color");
+    const architectural = appearance?.finish === "architectural" && !source.map;
+
+    if (architectural) {
+      const lambert = new THREE.MeshLambertMaterial({
+        color: colorAttr
+          ? new THREE.Color(1, 1, 1)
+          : cssColor("--muted-foreground", MESH_SURFACE_FALLBACK),
+        vertexColors: Boolean(colorAttr),
+        // Interior human-eye: FrontSide. DoubleSide made TSDF sheets read as fins.
+        side: THREE.FrontSide,
+        polygonOffset: true,
+        polygonOffsetFactor: 1,
+        polygonOffsetUnits: 1,
+      });
+      return { geometry: found.geometry, material: lambert };
+    }
+
     // Keep the glTF material. Rebuilding it (MeshBasic, dropped map, UV channel)
     // is how this preview went to a flat sticker for days while the JPEG sat
     // inside the GLB unused.
     source.side = THREE.DoubleSide;
     source.roughness = 0.95;
     source.metalness = 0;
-    if (!found.geometry.getAttribute("normal")) found.geometry.computeVertexNormals();
     if (source.map) {
       source.map.colorSpace = THREE.SRGBColorSpace;
       source.map.generateMipmaps = false;
       source.map.minFilter = THREE.LinearFilter;
       source.map.magFilter = THREE.LinearFilter;
       source.map.needsUpdate = true;
-    } else if (typeof console !== "undefined") {
-      console.error("[twin] GLB carries no baseColorTexture — mesh will render untextured");
+    } else if (colorAttr) {
+      source.vertexColors = true;
+      source.color.setRGB(1, 1, 1);
     }
     source.needsUpdate = true;
-
-    const uvAttr = found.geometry.getAttribute("uv");
-    console.warn("[twin/diag]", JSON.stringify({
-      hasMap: Boolean(source.map),
-      mapImage: source.map?.image
-        ? [
-            (source.map.image as { width?: number }).width ?? 0,
-            (source.map.image as { height?: number }).height ?? 0,
-          ]
-        : null,
-      hasUv: Boolean(uvAttr),
-      uvCount: uvAttr ? uvAttr.count : 0,
-      positionCount: found.geometry.getAttribute("position")?.count ?? 0,
-      hasNormal: Boolean(found.geometry.getAttribute("normal")),
-      materialType: source.type,
-      mapFlipY: source.map?.flipY ?? null,
-    }));
-
     return { geometry: found.geometry, material: source };
-  }, [gltf]);
+  }, [gltf, appearance?.finish]);
 
   return (
     <Surface

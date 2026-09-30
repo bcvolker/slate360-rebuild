@@ -21,6 +21,7 @@ import { MobileAppLauncherUpsellSheet } from "./MobileAppLauncherUpsellSheet";
 const LAUNCHER_ICONS: Record<string, AppIcon> = {
   "site-walk": Camera,
   "twin-360": AppWindow,
+  "spatial-walkthrough": Compass,
   "360-tours": Compass,
   "design-studio": Box,
   "content-studio": Brush,

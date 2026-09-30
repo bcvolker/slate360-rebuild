@@ -1,0 +1,168 @@
+import type { AccessPolicy, SharePolicy } from "./types";
+
+export type MediaKind = "proxy" | "poster" | "hero" | "master";
+
+export type ClipKeys = {
+  master_key?: string | null;
+  proxy_key?: string | null;
+  poster_key?: string | null;
+  public_proxy_key?: string | null;
+  client_poster_key?: string | null;
+  public_poster_key?: string | null;
+  capture_meta?: Record<string, unknown> | null;
+};
+
+export type MediaBootState = "UNPUBLISHED" | "PROCESSING" | "READY" | "FAILED";
+
+export function mediaBootState(
+  clip: ClipKeys & { status?: string | null },
+  policy: AccessPolicy,
+  allowMaster = false,
+): MediaBootState {
+  if (clip.status === "failed") return "FAILED";
+  if (clip.status === "processing") return "PROCESSING";
+  const poster = selectDerivativeKey(clip, "poster", policy, allowMaster);
+  const proxy = selectDerivativeKey(clip, "proxy", policy, allowMaster);
+  if (isSharePolicy(policy) && !(poster && proxy)) {
+    return clip.status === "ready" ? "PROCESSING" : "UNPUBLISHED";
+  }
+  if (poster && proxy) return "READY";
+  if (allowMaster && proxy) return "READY";
+  if (clip.status === "ready") return "PROCESSING";
+  return "UNPUBLISHED";
+}
+
+function metaKey(clip: ClipKeys, name: string): string | null {
+  const meta = clip.capture_meta;
+  if (!meta || typeof meta !== "object") return null;
+  const value = meta[name];
+  return typeof value === "string" && value.length > 0 ? value : null;
+}
+
+/** MASTER is never a share policy. Shares are CLIENT or PUBLIC only. */
+export function isSharePolicy(policy: AccessPolicy): policy is SharePolicy {
+  return policy === "client" || policy === "public";
+}
+
+/**
+ * Derivative selection. Missing proxy/poster must NOT fall through to master.
+ * Master media is only addressable under MASTER policy.
+ */
+export function allowedMediaKind(policy: AccessPolicy, kind: MediaKind, allowMaster = false): boolean {
+  if (kind === "master") return policy === "master" && allowMaster;
+  return kind === "proxy" || kind === "poster" || kind === "hero";
+}
+
+export function selectDerivativeKey(
+  clip: ClipKeys,
+  kind: MediaKind,
+  policy: AccessPolicy,
+  allowMaster = false,
+): string | null {
+  if (!allowedMediaKind(policy, kind, allowMaster)) return null;
+  if (kind === "master") return clip.master_key ?? null;
+  if (kind === "poster" || kind === "hero") {
+    if (policy === "master" && allowMaster) return clip.poster_key ?? null;
+    if (policy === "public") {
+      return clip.public_poster_key ?? metaKey(clip, "public_poster_key") ?? null;
+    }
+    return (
+      clip.client_poster_key ??
+      clip.public_poster_key ??
+      metaKey(clip, "client_poster_key") ??
+      metaKey(clip, "public_poster_key") ??
+      null
+    );
+  }
+  if (policy === "public" || policy === "client") return clip.public_proxy_key ?? null;
+  return clip.proxy_key ?? null;
+}
+
+export function stripMasterKeys<T extends Record<string, unknown>>(row: T): Omit<T, "master_key" | "master_sha256" | "master_bytes"> {
+  const {
+    master_key: _k,
+    master_sha256: _h,
+    master_bytes: _b,
+    ...rest
+  } = row as T & { master_key?: unknown; master_sha256?: unknown; master_bytes?: unknown };
+  return rest;
+}
+
+/** Callback / PATCH must never write master object fields after ingest. */
+export const FORBIDDEN_MASTER_UPDATE_KEYS = ["master_key", "master_bytes"] as const;
+
+export function clipReadyPatch(body: {
+  proxyKey?: string;
+  posterKey?: string;
+  manifestKey?: string;
+  masterSha256?: string;
+  durationSec?: number | null;
+  width?: number | null;
+  height?: number | null;
+  fps?: number | null;
+  captureMeta?: Record<string, unknown> | null;
+  publicProxyKey?: string | null;
+}): Record<string, unknown> {
+  return {
+    status: "ready",
+    proxy_key: body.proxyKey ?? null,
+    poster_key: body.posterKey ?? null,
+    manifest_key: body.manifestKey ?? null,
+    master_sha256: body.masterSha256 ?? null,
+    duration_s: body.durationSec ?? null,
+    width: body.width ?? null,
+    height: body.height ?? null,
+    fps: body.fps ?? null,
+    processing_error: null,
+    ...(body.captureMeta ? { capture_meta: body.captureMeta } : {}),
+    ...(body.publicProxyKey ? { public_proxy_key: body.publicProxyKey } : {}),
+  };
+}
+
+export function rejectsMasterFallthrough(clip: ClipKeys, policy: SharePolicy): boolean {
+  return selectDerivativeKey(clip, "proxy", policy) == null && clip.master_key != null;
+}
+
+export function publicMediaContract(
+  token: string,
+  clipId: string,
+  clip: ClipKeys,
+  policy: AccessPolicy,
+): {
+  proxyUrl: string;
+  posterUrl: string | null;
+  gatePosterUrl: string | null;
+  publicMediaReady: boolean;
+  mediaState: MediaBootState;
+} {
+  const proxyKey = selectDerivativeKey(clip, "proxy", policy);
+  const posterKey = selectDerivativeKey(clip, "poster", policy);
+  const path = `/api/spatial-walkthrough/public/${token}/media?clip=${clipId}`;
+  const mediaState = mediaBootState(clip, policy);
+  return {
+    proxyUrl: proxyKey && mediaState === "READY" ? `${path}&kind=proxy` : "",
+    posterUrl: posterKey && mediaState === "READY" ? `${path}&kind=poster` : null,
+    gatePosterUrl: posterKey && mediaState === "READY" ? `${path}&kind=hero` : null,
+    publicMediaReady: mediaState === "READY",
+    mediaState,
+  };
+}
+
+export function studioMediaContract(
+  walkthroughId: string,
+  clipId: string,
+  clip: ClipKeys,
+  policy: AccessPolicy,
+  allowMaster = false,
+): { videoUrl: string; posterUrl: string | null; mediaState: MediaBootState } {
+  const proxyKey = selectDerivativeKey(clip, "proxy", policy, allowMaster);
+  const posterKey = selectDerivativeKey(clip, "poster", policy, allowMaster);
+  const path = `/api/spatial-walkthrough/${walkthroughId}/media?clip=${clipId}&policy=${policy}`;
+  const mediaState = mediaBootState(clip, policy, allowMaster);
+  const ready = mediaState === "READY" || (allowMaster && Boolean(proxyKey));
+  return {
+    videoUrl: ready && proxyKey ? `${path}&kind=proxy` : "",
+    posterUrl: posterKey ? `${path}&kind=poster` : null,
+    mediaState: ready ? "READY" : mediaState,
+  };
+}

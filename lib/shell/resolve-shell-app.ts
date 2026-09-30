@@ -12,6 +12,9 @@ export function resolveShellApp(pathname: string): ShellApp {
   // Exact-or-boundary match so sibling-prefix routes (e.g. a future /site-walks-archive) don't
   // silently inherit the wrong accent — startsWith("/site-walks") alone would match it.
   const inApp = (base: string) => pathname === base || pathname.startsWith(`${base}/`);
+  if (inApp("/spatial-walkthrough") || /^\/projects\/[^/]+\/walkthroughs/.test(pathname)) {
+    return "spatial-walkthrough";
+  }
   if (inApp("/digital-twins") || pathname.startsWith("/digital-twin/")) {
     return "twin360";
   }

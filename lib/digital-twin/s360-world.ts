@@ -119,6 +119,24 @@ export function uniformScaleSim3(scale: number): Sim3 {
   return { matrix: [...I16], scale };
 }
 
+/** Row-major 4×4 → column-major (three.js / this module). */
+export function rowMajor4ToColumnMajor(rowMajor: readonly (readonly number[])[]): number[] {
+  if (rowMajor.length !== 4 || rowMajor.some((r) => r.length !== 4)) {
+    throw new Error("expected a 4×4 row-major matrix");
+  }
+  const out = new Array<number>(16);
+  for (let row = 0; row < 4; row += 1) {
+    for (let col = 0; col < 4; col += 1) {
+      out[col * 4 + row] = rowMajor[row][col];
+    }
+  }
+  return out;
+}
+
+export function sim3FromRowMajor4(rowMajor: readonly (readonly number[])[], scale: number): Sim3 {
+  return { matrix: rowMajor4ToColumnMajor(rowMajor), scale };
+}
+
 /** Rotate about Y (radians), then translate. Scale stays 1. */
 export function yawTranslationSim3(yawRad: number, tx: number, ty: number, tz: number): Sim3 {
   const c = Math.cos(yawRad);

@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveProjectScope } from "@/lib/projects/access";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { forbidden, unauthorized } from "@/lib/server/api-response";
+import { rejectUnpurchasedProductApi } from "@/lib/spatial-walkthrough/api-product-guard";
 
 export type ThermalOpsContext = {
   req: NextRequest;
@@ -38,6 +39,8 @@ export async function withThermalOpsAuth(
     if (!allowed) return forbidden("Operations Console access required");
 
     const { admin, orgId } = await resolveProjectScope(user.id);
+    const blocked = await rejectUnpurchasedProductApi(req, orgId);
+    if (blocked) return blocked;
     return await handler({ req, user, admin, orgId });
   } catch (err) {
     console.error("[withThermalOpsAuth]", err);

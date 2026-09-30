@@ -1,0 +1,98 @@
+{
+  "source": {
+    "triangles": 3316842,
+    "vertices": 1768725,
+    "components": 13343,
+    "largest": 2973191
+  },
+  "measurement": {
+    "triangles": 3316842,
+    "vertices": 1768725,
+    "components": 13343,
+    "largest": 2973191,
+    "bytes": 103477204,
+    "glb": {
+      "ok": true,
+      "bytes": 103477204,
+      "version": 2,
+      "chunks": [
+        {
+          "type": "JSON",
+          "length": 972
+        },
+        {
+          "type": "BIN\u0000",
+          "length": 103476204
+        }
+      ],
+      "bufferUri": null,
+      "bufferByteLength": 103476204
+    }
+  },
+  "display": {
+    "triangles": 742509,
+    "vertices": 388325,
+    "components": 431,
+    "largest": 690012,
+    "bytes": 22890796,
+    "beforeFilter": {
+      "triangles": 3316842,
+      "vertices": 1768725,
+      "components": 13343,
+      "largest": 2973191
+    },
+    "glb": {
+      "ok": true,
+      "bytes": 22890796,
+      "version": 2,
+      "chunks": [
+        {
+          "type": "JSON",
+          "length": 960
+        },
+        {
+          "type": "BIN\u0000",
+          "length": 22889808
+        }
+      ],
+      "bufferUri": null,
+      "bufferByteLength": 22889808
+    }
+  },
+  "nav": {
+    "triangles": 195441,
+    "vertices": 94658,
+    "components": 1,
+    "largest": 195441,
+    "bytes": 5753964,
+    "beforeFilter": {
+      "triangles": 3316842,
+      "vertices": 1768725,
+      "components": 13343,
+      "largest": 2973191
+    },
+    "glb": {
+      "ok": true,
+      "bytes": 5753964,
+      "version": 2,
+      "chunks": [
+        {
+          "type": "JSON",
+          "length": 956
+        },
+        {
+          "type": "BIN\u0000",
+          "length": 5752980
+        }
+      ],
+      "bufferUri": null,
+      "bufferByteLength": 5752980
+    }
+  },
+  "paths": {
+    "geometry.glb": "/mnt/c/s360/tmp/kitchen-proof/products/geometry.glb",
+    "geometry-measurement.glb": "/mnt/c/s360/tmp/kitchen-proof/products/geometry-measurement.glb",
+    "geometry-display.glb": "/mnt/c/s360/tmp/kitchen-proof/products/geometry-display.glb",
+    "geometry-nav.glb": "/mnt/c/s360/tmp/kitchen-proof/products/geometry-nav.glb"
+  }
+}

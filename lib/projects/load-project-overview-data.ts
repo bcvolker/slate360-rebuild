@@ -8,68 +8,27 @@ import { loadProjectPeople } from "@/lib/server/collaborator-data";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveNamespace } from "@/lib/slatedrop/storage";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
+import { resolveClientSurfaceFlags } from "@/lib/spatial-walkthrough/access";
+import { isSpatialOnlyPortal } from "@/lib/spatial-walkthrough/client-surface";
+import {
+  escapeLike,
+  formatStatusLabel,
+  mapOverviewPins,
+  mapOverviewWalkthroughs,
+  readMetaDate,
+  type ProjectMetadata,
+  type ProjectOverviewActivity,
+  type ProjectOverviewData,
+  type ProjectOverviewPin,
+  type ProjectOverviewWalkthrough,
+} from "@/lib/projects/spatial-overview-slices";
 
-export type ProjectOverviewActivity = {
-  id: string;
-  kind: "walk" | "twin" | "file";
-  title: string;
-  meta: string;
-  href: string;
-  occurredAt: string;
+export type {
+  ProjectOverviewActivity,
+  ProjectOverviewData,
+  ProjectOverviewPin,
+  ProjectOverviewWalkthrough,
 };
-
-export type ProjectOverviewData = {
-  projectId: string;
-  name: string;
-  status: string;
-  locationLabel: string;
-  description: string | null;
-  startDate: string | null;
-  endDate: string | null;
-  counts: {
-    walks: number;
-    twins: number;
-    files: number;
-    deliverables: number;
-    teamMembers: number;
-  };
-  lastFileUploadAt: string | null;
-  recentActivity: ProjectOverviewActivity[];
-  showTwins: boolean;
-};
-
-type ProjectMetadata = {
-  address?: string;
-  city?: string;
-  state?: string;
-  region?: string;
-  start_date?: string;
-  end_date?: string;
-  startDate?: string;
-  endDate?: string;
-};
-
-function escapeLike(value: string): string {
-  return value.replace(/[\\%_]/g, "\\$&");
-}
-
-function formatStatusLabel(status: string | null | undefined): string {
-  const raw = (status ?? "active").trim();
-  if (!raw) return "Active";
-  return raw
-    .split(/[-_\s]+/)
-    .filter(Boolean)
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(" ");
-}
-
-function readMetaDate(metadata: ProjectMetadata, ...keys: Array<keyof ProjectMetadata>): string | null {
-  for (const key of keys) {
-    const value = metadata[key];
-    if (typeof value === "string" && value.trim()) return value.trim();
-  }
-  return null;
-}
 
 export async function loadProjectOverviewData(projectId: string): Promise<ProjectOverviewData> {
   const context = await resolveServerOrgContext();
@@ -94,7 +53,10 @@ export async function loadProjectOverviewData(projectId: string): Promise<Projec
 
   const orgId = project.org_id ?? context.orgId;
   const admin = createAdminClient();
-  const showTwins = !APP_STORE_MODE;
+  const flags = await resolveClientSurfaceFlags(orgId, Boolean(context.isSlateCeo));
+  const showTwins = !APP_STORE_MODE && flags.twin360;
+  const showSiteWalk = flags.siteWalk;
+  const showWalkthroughs = flags.spatialWalkthrough;
   const metadata = project.metadata ?? {};
   const location = resolveProjectLocation(metadata, {
     fallbackAddress: metadata.address,
@@ -111,6 +73,7 @@ export async function loadProjectOverviewData(projectId: string): Promise<Projec
     recentWalksRes,
     recentTwinsRes,
     people,
+    walkthroughCountRes,
   ] = await Promise.all([
     admin
       .from("site_walk_sessions")
@@ -148,6 +111,12 @@ export async function loadProjectOverviewData(projectId: string): Promise<Projec
           .limit(5)
       : Promise.resolve({ data: [], error: null }),
     loadProjectPeople(projectId, orgId ?? null),
+    showWalkthroughs
+      ? admin
+          .from("spatial_walkthroughs")
+          .select("id", { count: "exact", head: true })
+          .eq("project_id", projectId)
+      : Promise.resolve({ count: 0, data: null, error: null }),
   ]);
 
   const folderIds = (foldersRes.data ?? []).map((folder) => folder.id).filter(Boolean);
@@ -189,26 +158,30 @@ export async function loadProjectOverviewData(projectId: string): Promise<Projec
     people.members.length + people.pendingInvites.length;
 
   const activity: ProjectOverviewActivity[] = [
-    ...((recentWalksRes.data ?? []) as Array<{ id: string; title: string; status: string; updated_at: string }>).map(
-      (walk) => ({
-        id: `walk:${walk.id}`,
-        kind: "walk" as const,
-        title: walk.title || "Site Walk",
-        meta: formatStatusLabel(walk.status),
-        href: `/site-walk/capture-v2?session=${encodeURIComponent(walk.id)}`,
-        occurredAt: walk.updated_at,
-      }),
-    ),
-    ...((recentTwinsRes.data ?? []) as Array<{ id: string; title: string; status: string; updated_at: string }>).map(
-      (twin) => ({
-        id: `twin:${twin.id}`,
-        kind: "twin" as const,
-        title: twin.title || "Digital Twin",
-        meta: formatStatusLabel(twin.status),
-        href: `/digital-twin/twins/${encodeURIComponent(twin.id)}`,
-        occurredAt: twin.updated_at,
-      }),
-    ),
+    ...(showSiteWalk
+      ? ((recentWalksRes.data ?? []) as Array<{ id: string; title: string; status: string; updated_at: string }>).map(
+          (walk) => ({
+            id: `walk:${walk.id}`,
+            kind: "walk" as const,
+            title: walk.title || "Site Walk",
+            meta: formatStatusLabel(walk.status),
+            href: `/site-walk/capture-v2?session=${encodeURIComponent(walk.id)}`,
+            occurredAt: walk.updated_at,
+          }),
+        )
+      : []),
+    ...(showTwins
+      ? ((recentTwinsRes.data ?? []) as Array<{ id: string; title: string; status: string; updated_at: string }>).map(
+          (twin) => ({
+            id: `twin:${twin.id}`,
+            kind: "twin" as const,
+            title: twin.title || "Digital Twin",
+            meta: formatStatusLabel(twin.status),
+            href: `/digital-twin/twins/${encodeURIComponent(twin.id)}`,
+            occurredAt: twin.updated_at,
+          }),
+        )
+      : []),
     ...recentFiles.map((file) => ({
       id: `file:${file.id}`,
       kind: "file" as const,
@@ -221,6 +194,47 @@ export async function loadProjectOverviewData(projectId: string): Promise<Projec
     .sort((a, b) => b.occurredAt.localeCompare(a.occurredAt))
     .slice(0, 5);
 
+  const fileActivities: ProjectOverviewActivity[] = recentFiles.map((file) => ({
+    id: `file:${file.id}`,
+    kind: "file",
+    title: file.file_name,
+    meta: "File uploaded",
+    href: `/projects/${projectId}/slatedrop`,
+    occurredAt: file.created_at,
+  }));
+
+  let recentWalkthroughs: ProjectOverviewWalkthrough[] = [];
+  let recentPins: ProjectOverviewPin[] = [];
+  if (showWalkthroughs) {
+    const [{ data: wtRows }, { data: pinRows }] = await Promise.all([
+      admin
+        .from("spatial_walkthroughs")
+        .select("id, title, captured_at, building, floor")
+        .eq("project_id", projectId)
+        .order("captured_at", { ascending: false })
+        .limit(5),
+      admin
+        .from("spatial_pins")
+        .select("id, label, pin_type, walkthrough_id")
+        .eq("project_id", projectId)
+        .order("created_at", { ascending: false })
+        .limit(5),
+    ]);
+    recentWalkthroughs = mapOverviewWalkthroughs(projectId, (wtRows ?? []) as Array<{
+      id: string;
+      title: string;
+      captured_at: string | null;
+      building: string | null;
+      floor: string | null;
+    }>);
+    recentPins = mapOverviewPins(projectId, (pinRows ?? []) as Array<{
+      id: string;
+      label: string;
+      pin_type: string;
+      walkthrough_id: string;
+    }>);
+  }
+
   return {
     projectId: project.id,
     name: project.name,
@@ -230,14 +244,22 @@ export async function loadProjectOverviewData(projectId: string): Promise<Projec
     startDate: readMetaDate(metadata, "start_date", "startDate"),
     endDate: readMetaDate(metadata, "end_date", "endDate"),
     counts: {
-      walks: walkCountRes.count ?? 0,
-      twins: twinCountRes.count ?? 0,
+      walks: showSiteWalk ? (walkCountRes.count ?? 0) : 0,
+      twins: showTwins ? (twinCountRes.count ?? 0) : 0,
       files: filesCount,
-      deliverables: deliverableCountRes.count ?? 0,
+      deliverables: showSiteWalk ? (deliverableCountRes.count ?? 0) : 0,
       teamMembers,
+      walkthroughs: walkthroughCountRes.count ?? 0,
     },
     lastFileUploadAt,
     recentActivity: activity,
+    latestWalkthrough: recentWalkthroughs[0] ?? null,
+    recentWalkthroughs,
+    recentFiles: fileActivities,
+    recentPins,
     showTwins,
+    showSiteWalk,
+    showWalkthroughs,
+    spatialOnly: isSpatialOnlyPortal(flags),
   };
 }

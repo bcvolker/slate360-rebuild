@@ -64,6 +64,7 @@ export type WalkthroughNavigation = {
    *  destination stays near the walked path; otherwise a jump to the next
    *  station. Pass jump=true to force the station jump. */
   step: (direction: 1 | -1, jump?: boolean, metres?: number) => void;
+  goToStationId: (id: string) => void;
 };
 
 export function useWalkthroughNavigation(options: {
@@ -278,6 +279,14 @@ export function useWalkthroughNavigation(options: {
     camera.rotation.set(pose.pitch, pose.yaw, 0, "YXZ");
   }, []);
 
+  const goToStationId = useCallback(
+    (id: string) => {
+      const station = stations.find((s) => s.id === id);
+      if (station) goToStation(station);
+    },
+    [goToStation, stations],
+  );
+
   return {
     mode,
     setMode,
@@ -289,5 +298,6 @@ export function useWalkthroughNavigation(options: {
     isTransitioning,
     handleLookDrag,
     step,
+    goToStationId,
   };
 }

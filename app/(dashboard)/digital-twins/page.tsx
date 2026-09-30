@@ -3,6 +3,7 @@ import { DashboardTwinsContent } from "@/components/dashboard-desktop/DashboardT
 import { APP_STORE_MODE } from "@/lib/app-store-mode";
 import { loadDigitalTwinHubData } from "@/lib/digital-twin/load-hub-data";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
+import { requireClientAppPage } from "@/lib/spatial-walkthrough/require-client-app";
 
 export const metadata = {
   title: "Digital Twins — Slate360",
@@ -14,6 +15,7 @@ export default async function DashboardDigitalTwinsPage() {
 
   const { user, orgId } = await resolveServerOrgContext();
   if (!user) redirect("/login?redirectTo=/digital-twins");
+  await requireClientAppPage("twin360");
 
   const { twins } = await loadDigitalTwinHubData(orgId);
 

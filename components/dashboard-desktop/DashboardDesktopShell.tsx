@@ -10,6 +10,9 @@ import { DashboardDesktopSidebar } from "./DashboardDesktopSidebar";
 import { DashboardDesktopTopBar } from "./DashboardDesktopTopBar";
 import { resolveDashboardNav } from "./dashboard-nav-config";
 import { dashboardDesktopTokens as t } from "./dashboard-tokens";
+import { isSpatialOnlyAppList } from "@/lib/spatial-walkthrough/nav-filter";
+import { MobileBottomNav } from "@/components/mobile-system/MobileBottomNav";
+import { resolveMainMobileTabKey, spatialOnlyMobileTabs } from "@/components/mobile-system/mainMobileTabs";
 
 const InviteShareModal = dynamic(
   () => import("@/components/shared/InviteShareModal").then((mod) => mod.InviteShareModal),
@@ -24,10 +27,11 @@ type DashboardDesktopShellProps = {
   inviteShareData: InviteShareData;
   showOpsConsole?: boolean;
   isCeo?: boolean;
+  visibleApps?: import("@/lib/spatial-walkthrough/client-surface").ClientSurfaceApp[] | null;
   children: ReactNode;
 };
 
-function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, children }: DashboardDesktopShellProps) {
+function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, visibleApps, children }: DashboardDesktopShellProps) {
   const { open: inviteOpen, setOpen: setInviteOpen } = useInviteShare();
   const pathname = usePathname() ?? "";
   // Unified-shell accent: data-app flips --app-accent (green platform/Site Walk → blue Twin).
@@ -36,11 +40,16 @@ function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, children
   const shellApp = resolveShellApp(pathname);
   // Single gating source: Twin switcher visibility falls out of resolveDashboardNav
   // (APP_STORE_MODE + CEO/staff) — no separate flag.
-  const twinVisible = resolveDashboardNav(Boolean(showOpsConsole), Boolean(isCeo)).some(
+  const twinVisible = resolveDashboardNav(Boolean(showOpsConsole), Boolean(isCeo), visibleApps).some(
     (item) => item.href === "/digital-twins",
+  );
+  const siteWalkVisible = resolveDashboardNav(Boolean(showOpsConsole), Boolean(isCeo), visibleApps).some(
+    (item) => item.href === "/site-walks",
   );
   const [collapsed, setCollapsed] = useState(false);
   const [commandOpen, setCommandOpen] = useState(false);
+  const spatialOnly = isSpatialOnlyAppList(visibleApps, Boolean(isCeo));
+  const viewerRoute = pathname.includes("/spatial-walkthrough/") && pathname.split("/").filter(Boolean).length >= 2;
 
   useEffect(() => {
     setCollapsed(localStorage.getItem("s360.sidebarCollapsed") === "1");
@@ -59,26 +68,47 @@ function ShellInner({ userName, inviteShareData, showOpsConsole, isCeo, children
   };
 
   return (
-    <div data-app={shellApp} className={`flex min-h-[100dvh] ${t.canvas}`}>
+    <div data-app={shellApp} className={`flex min-h-[100dvh] overflow-x-hidden ${t.canvas}`}>
       <DashboardDesktopSidebar
         showOpsConsole={showOpsConsole}
         isCeo={isCeo}
+        visibleApps={visibleApps}
         collapsed={collapsed}
         onToggleCollapse={toggleCollapse}
       />
       <div className={t.main}>
+        {spatialOnly ? (
+          <header className="flex h-12 shrink-0 items-center justify-between border-b border-white/10 px-4 lg:hidden" style={{ paddingTop: "env(safe-area-inset-top, 0px)" }}>
+            <span className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">Spatial Walkthrough</span>
+            <span className="truncate text-sm text-[var(--graphite-text-header)]">{userName}</span>
+          </header>
+        ) : null}
         <DashboardDesktopTopBar
           userName={userName}
           shellApp={shellApp}
           twinVisible={twinVisible}
+          siteWalkVisible={siteWalkVisible}
+          spatialWalkthroughVisible={
+            Boolean(visibleApps?.includes("spatial-walkthrough")) || Boolean(isCeo)
+          }
+          spatialOnly={spatialOnly}
           onOpenCommand={() => setCommandOpen(true)}
         />
-        <main className={t.content}>{children}</main>
+        <main className={viewerRoute ? "min-h-0 flex-1 overflow-hidden p-0" : `${t.content} ${spatialOnly ? "max-lg:p-0" : ""}`}>
+          {children}
+        </main>
+        {spatialOnly && !viewerRoute ? (
+          <div className="lg:hidden" style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}>
+            <MobileBottomNav items={spatialOnlyMobileTabs} activeKey={resolveMainMobileTabKey(pathname)} />
+          </div>
+        ) : null}
       </div>
       <CommandPalette
         open={commandOpen}
         onOpenChange={setCommandOpen}
         hasOperationsConsoleAccess={Boolean(showOpsConsole)}
+        visibleApps={visibleApps}
+        spatialOnly={spatialOnly}
       />
       {inviteOpen ? (
         <InviteShareModal open={inviteOpen} onOpenChange={setInviteOpen} {...inviteShareData} />

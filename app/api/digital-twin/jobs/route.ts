@@ -9,6 +9,13 @@ import { assertDigitalTwinProcessingEntitlement } from "@/lib/twin/processing-en
 import { isOwnerEmail } from "@/lib/server/beta-access";
 import { assertTwinGpuHoldClear, TwinGpuHoldError } from "@/lib/twin/gpu-dispatch-hold";
 import type { TwinProcessingQuality } from "@/lib/twin/processing-estimate-types";
+import {
+  METRIC_PROCESSOR_JOB_TYPE,
+  METRIC_PROCESSOR_OUTPUT_FORMAT,
+  metricProcessorInputAssets,
+  metricProcessorMissingRequirements,
+  twinJobTriggerTaskId,
+} from "@/lib/twin/metric-processor-contract";
 
 export const runtime = "nodejs";
 
@@ -44,7 +51,7 @@ const triggerRequestOptions = { clientConfig: { previewBranch: "" } };
 type JobBody = {
   capture_id: string;
   output_format?: "spz" | "ply" | "glb" | "lidar_potree";
-  job_type?: "gaussian_splat" | "photogrammetry_mesh" | "lidar_scan";
+  job_type?: "gaussian_splat" | "photogrammetry_mesh" | "lidar_scan" | "metric_processor";
   lidar_prior_asset_id?: string | null;
   quality?: string;
   align_backend?: "colmap_vanilla" | "colmap_pose_prior";
@@ -53,7 +60,7 @@ type JobBody = {
 };
 
 const OUTPUT_FORMATS = new Set(["spz", "ply", "glb", "lidar_potree"]);
-const JOB_TYPES = new Set(["gaussian_splat", "photogrammetry_mesh", "lidar_scan"]);
+const JOB_TYPES = new Set(["gaussian_splat", "photogrammetry_mesh", "lidar_scan", "metric_processor"]);
 
 export const POST = (req: NextRequest) =>
   withAuth(req, async ({ user, admin, orgId }) => {
@@ -62,8 +69,9 @@ export const POST = (req: NextRequest) =>
     const body = (await req.json().catch(() => null)) as JobBody | null;
     if (!body?.capture_id) return badRequest("capture_id is required");
 
-    const outputFormat = body.output_format ?? "spz";
     const jobType = body.job_type ?? "gaussian_splat";
+    const outputFormat =
+      body.output_format ?? (jobType === METRIC_PROCESSOR_JOB_TYPE ? METRIC_PROCESSOR_OUTPUT_FORMAT : "spz");
     const quality = parseQuality(body.quality);
 
     // A capture must never turn into GPU spend as a side effect of uploading.
@@ -96,6 +104,9 @@ export const POST = (req: NextRequest) =>
     }
     if (jobType === "lidar_scan" && outputFormat !== "lidar_potree") {
       return badRequest("LiDAR scan jobs currently support only lidar_potree output");
+    }
+    if (jobType === METRIC_PROCESSOR_JOB_TYPE && outputFormat !== METRIC_PROCESSOR_OUTPUT_FORMAT) {
+      return badRequest("Metric processor jobs currently support only glb output (geometry master)");
     }
     if (!QUALITY_TIERS.has(quality)) return badRequest("Invalid quality");
 
@@ -162,9 +173,15 @@ export const POST = (req: NextRequest) =>
       const inputAssets =
         jobType === "lidar_scan"
           ? assets.filter((row) => row.asset_kind === "lidar_scan")
-          : assets;
+          : jobType === METRIC_PROCESSOR_JOB_TYPE
+            ? metricProcessorInputAssets(assets)
+            : assets;
       if (jobType === "lidar_scan" && !inputAssets.length) {
         return badRequest("No ready LiDAR scan assets on capture");
+      }
+      if (jobType === METRIC_PROCESSOR_JOB_TYPE) {
+        const missing = metricProcessorMissingRequirements(assets);
+        if (missing) return badRequest(missing);
       }
       const inputAssetIds = inputAssets.map((row) => row.id);
 
@@ -194,12 +211,7 @@ export const POST = (req: NextRequest) =>
 
       try {
         const { tasks } = await import("@trigger.dev/sdk/v3");
-        const taskId =
-          job.job_type === "photogrammetry_mesh"
-            ? "twin.photogrammetry_mesh"
-            : job.job_type === "lidar_scan"
-              ? "twin.lidar_scan"
-            : "twin.gaussian_splat";
+        const taskId = twinJobTriggerTaskId(job.job_type);
         const handle = await tasks.trigger(
           taskId,
           {

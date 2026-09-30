@@ -4,6 +4,9 @@ import { getScopedProjectForUser } from "@/lib/projects/access";
 import { resolveProjectLocation } from "@/lib/projects/location";
 import { resolveServerOrgContext } from "@/lib/server/org-context";
 import { ProjectDetailShell } from "@/components/projects/ProjectDetailShell";
+import { PROJECT_DETAIL_TABS, type ProjectDetailTabId } from "@/components/projects/projectDetailTabs";
+import { resolveClientSurfaceFlags } from "@/lib/spatial-walkthrough/access";
+import { projectTabIdsForSurface, projectTabLabel, isSpatialOnlyPortal } from "@/lib/spatial-walkthrough/client-surface";
 
 type ProjectMetadata = {
   address?: string;
@@ -31,7 +34,7 @@ export default async function ProjectDetailLayout({
   params: Promise<{ projectId: string }>;
 }) {
   const { projectId } = await params;
-  const { user } = await resolveServerOrgContext();
+  const { user, orgId, isSlateCeo } = await resolveServerOrgContext();
 
   if (!user) {
     redirect(`/login?redirectTo=${encodeURIComponent(`/projects/${projectId}`)}`);
@@ -61,13 +64,22 @@ export default async function ProjectDetailLayout({
     region: metadata.region,
   });
 
+  const flags = await resolveClientSurfaceFlags(orgId, Boolean(isSlateCeo));
+  const allowed = new Set(projectTabIdsForSurface(flags));
+  const hiddenTabIds = PROJECT_DETAIL_TABS.map((tab) => tab.id).filter((id) => !allowed.has(id)) as ProjectDetailTabId[];
+  const tabLabels = isSpatialOnlyPortal(flags)
+    ? Object.fromEntries(PROJECT_DETAIL_TABS.map((tab) => [tab.id, projectTabLabel(tab.id, flags) ?? tab.label]))
+    : undefined;
+
   return (
     <ProjectDetailShell
       projectId={project.id}
       projectName={project.name}
       status={formatStatusLabel(project.status)}
       locationLabel={location.label || "Location not set"}
-      showTwins={!APP_STORE_MODE}
+      showTwins={!APP_STORE_MODE && flags.twin360}
+      hiddenTabIds={hiddenTabIds}
+      tabLabels={tabLabels}
     >
       {children}
     </ProjectDetailShell>
