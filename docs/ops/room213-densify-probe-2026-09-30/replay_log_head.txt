@@ -1,0 +1,3 @@
+Devices:
+  * [0] NVIDIA L40S (discrete, 45457 MB)
+Cameras: 1016 (5080 after splitting), seed points: 665307 (train_frame_scale=5.468)

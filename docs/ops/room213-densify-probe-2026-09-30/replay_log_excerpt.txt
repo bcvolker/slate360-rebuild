@@ -1,0 +1,16 @@
+step      1/30000 (  0%)  splats 665307  [elapsed 00:00:00.535 | ETA 04:27:35.024]  rgb_loss=0.2  ssim=0  psnr=0
+step    501/30000 (  1%)  splats 665307  [elapsed 00:00:26.148 | ETA 00:25:25.586]  rgb_loss=0.08859  ssim=0.8043  psnr=20.97
+step    601/30000 (  2%)  splats 698572  [elapsed 00:00:31.472 | ETA 00:26:05.045]  rgb_loss=0.07094  ssim=0.8186  psnr=23.39
+step    701/30000 (  2%)  splats 733500  [elapsed 00:00:36.767 | ETA 00:25:51.164]  rgb_loss=0.08892  ssim=0.802  psnr=20.87
+step    801/30000 (  2%)  splats 770174  [elapsed 00:00:42.058 | ETA 00:25:45.007]  rgb_loss=0.07279  ssim=0.8143  psnr=23.63
+step    901/30000 (  3%)  splats 808682  [elapsed 00:00:47.234 | ETA 00:25:06.070]  rgb_loss=0.07709  ssim=0.8281  psnr=22.37
+step   1001/30000 (  3%)  splats 849116  [elapsed 00:00:52.509 | ETA 00:25:29.427]  rgb_loss=0.0802  ssim=0.8151  psnr=21.72
+step   1101/30000 (  3%)  splats 891571  [elapsed 00:00:57.628 | ETA 00:24:39.324]  rgb_loss=0.08079  ssim=0.7945  psnr=22.33
+step   1201/30000 (  4%)  splats 936149  [elapsed 00:01:02.834 | ETA 00:24:59.052]  rgb_loss=0.08454  ssim=0.8152  psnr=21.05
+step   1301/30000 (  4%)  splats 982956  [elapsed 00:01:07.981 | ETA 00:24:37.119]  rgb_loss=0.07352  ssim=0.8151  psnr=23.01
+step   1401/30000 (  4%)  splats 1000000  [elapsed 00:01:13.202 | ETA 00:24:52.721]  rgb_loss=0.06734  ssim=0.8303  psnr=24.04
+step   2001/30000 (  6%)  splats 1000000  [elapsed 00:01:44.233 | ETA 00:25:57.656]  rgb_loss=0.06571  ssim=0.8392  psnr=24.26
+step   4001/30000 ( 13%)  splats 1000000  [elapsed 00:03:27.198 | ETA 00:24:04.810]  rgb_loss=0.05094  ssim=0.8834  psnr=25.17
+step   7001/30000 ( 23%)  splats 1000000  [elapsed 00:06:00.891 | ETA 00:23:28.167]  rgb_loss=0.05828  ssim=0.8666  psnr=24.32
+step  10001/30000 ( 33%)  splats 1000000  [elapsed 00:08:36.398 | ETA 00:20:18.837]  rgb_loss=0.05615  ssim=0.8516  psnr=25.56
+step  14001/30000 ( 46%)  splats 1000000  [elapsed 00:12:01.464 | ETA 00:14:51.250]  rgb_loss=0.04416  ssim=0.891  psnr=25.96
