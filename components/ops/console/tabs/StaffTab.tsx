@@ -4,29 +4,21 @@ import { useState } from "react";
 import { useOpsConsoleStore } from "@/lib/stores/useOpsConsoleStore";
 import { opsConsoleTokens as t } from "@/components/ops/console/ops-console-tokens";
 
-const SCOPES = ["market", "athlete360"] as const;
-
 export function StaffTab() {
   const { staff, busy, grantStaff, revokeStaff } = useOpsConsoleStore();
   const [email, setEmail] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [scopes, setScopes] = useState<string[]>(["market"]);
 
   const active = staff.filter((s) => !s.revokedAt);
   const revoked = staff.filter((s) => s.revokedAt);
 
   async function handleGrant() {
     if (!email.includes("@")) return;
-    const ok = await grantStaff({ email, displayName: displayName || undefined, accessScope: scopes });
+    const ok = await grantStaff({ email, displayName: displayName || undefined, accessScope: [] });
     if (ok) {
       setEmail("");
       setDisplayName("");
-      setScopes(["market"]);
     }
-  }
-
-  function toggleScope(scope: string) {
-    setScopes((prev) => (prev.includes(scope) ? prev.filter((s) => s !== scope) : [...prev, scope]));
   }
 
   return (
@@ -37,18 +29,8 @@ export function StaffTab() {
           <input className={t.input} placeholder="email@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
           <input className={t.input} placeholder="Display name (optional)" value={displayName} onChange={(e) => setDisplayName(e.target.value)} />
         </div>
-        <div className="mt-3 flex flex-wrap items-center gap-2">
-          {SCOPES.map((scope) => (
-            <button
-              key={scope}
-              type="button"
-              onClick={() => toggleScope(scope)}
-              className={scopes.includes(scope) ? t.badgeInfo : t.badgeMuted}
-            >
-              {scope}
-            </button>
-          ))}
-          <button type="button" className={`${t.primaryButton} ml-auto`} disabled={busy || !email.includes("@")} onClick={handleGrant}>
+        <div className="mt-3 flex justify-end">
+          <button type="button" className={t.primaryButton} disabled={busy || !email.includes("@")} onClick={handleGrant}>
             Grant access
           </button>
         </div>
@@ -62,7 +44,7 @@ export function StaffTab() {
               <li key={s.id} className={t.row}>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-medium text-[var(--graphite-text-header)]">{s.displayName ?? s.email}</p>
-                  <p className="truncate text-xs text-[var(--graphite-muted)]">{s.email} · {s.accessScope.join(", ") || "no scopes"}</p>
+                  <p className="truncate text-xs text-[var(--graphite-muted)]">{s.email}</p>
                 </div>
                 <button type="button" className={t.secondaryButton} disabled={busy} onClick={() => revokeStaff(s.id)}>
                   Revoke
