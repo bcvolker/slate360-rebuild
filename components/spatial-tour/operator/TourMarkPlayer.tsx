@@ -7,6 +7,9 @@ import { formatClock } from "@/lib/spatial-tour/format";
 import type { TourClip } from "@/lib/spatial-tour/types";
 import type { TourUrls } from "@/lib/spatial-tour/urls";
 
+const nudge =
+  "inline-flex h-9 items-center rounded-lg border border-[var(--mobile-app-card-border)] px-2.5 text-xs font-semibold text-[var(--graphite-text-body)]";
+
 export type PlayerView = { clipId: string; t: number; yaw: number; pitch: number };
 
 /**
@@ -81,8 +84,9 @@ export function TourMarkPlayer({
   const seek = (next: number) => handle?.seekTo(Math.min(Math.max(next, 0), duration || next), undefined, undefined, { pause: true });
 
   return (
-    <div className="space-y-3" data-testid="tour-mark-player">
-      <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas)]">
+    <div className="space-y-2 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:gap-2 lg:space-y-0" data-testid="tour-mark-player">
+      {/* Desktop: the player takes the pane's remaining height (no blank space below it). */}
+      <div className="relative aspect-video w-full overflow-hidden rounded-xl border border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas)] lg:aspect-auto lg:min-h-[240px] lg:flex-1">
         <WalkthroughPlayer
           key={clip.id}
           videoUrl={urls.media(walkthroughId, clip.id, "proxy")}
@@ -95,7 +99,7 @@ export function TourMarkPlayer({
         />
       </div>
       <div className="flex items-center gap-2">
-        <button type="button" className={t.secondaryButton} onClick={() => seek(now - 1)} aria-label="Back one second">
+        <button type="button" className={nudge} onClick={() => seek(now - 1)} aria-label="Back one second">
           −1s
         </button>
         <input
@@ -105,11 +109,11 @@ export function TourMarkPlayer({
           step={0.1}
           value={Math.min(now, duration || now)}
           onChange={(e) => seek(Number(e.target.value))}
-          className="h-12 flex-1 accent-[var(--graphite-primary)]"
+          className="h-9 flex-1 accent-[var(--graphite-primary)]"
           aria-label="Scrub the visit"
           data-testid="tour-scrub"
         />
-        <button type="button" className={t.secondaryButton} onClick={() => seek(now + 1)} aria-label="Forward one second">
+        <button type="button" className={nudge} onClick={() => seek(now + 1)} aria-label="Forward one second">
           +1s
         </button>
         <span className="w-20 text-right font-mono text-xs tabular-nums text-[var(--graphite-muted)]">

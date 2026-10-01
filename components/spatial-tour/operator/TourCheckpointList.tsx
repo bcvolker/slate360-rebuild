@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { projectDetailTokens as t } from "@/components/projects/project-detail-tokens";
 import { formatClock } from "@/lib/spatial-tour/format";
 import type { CheckpointMark, MatchQuality, RouteChapter, RouteCheckpoint } from "@/lib/spatial-tour/types";
 
-const chip = "shrink-0 rounded-lg px-2 py-0.5 font-mono text-[10px] uppercase tracking-wide";
-// The shared button tokens have no disabled look; marking buttons are disabled while video loads.
-const dis = "disabled:cursor-not-allowed disabled:opacity-40";
+// Dense operator controls (desktop tool): 36px buttons, one row per checkpoint.
+const btn =
+  "inline-flex h-8 items-center rounded-lg border border-[var(--mobile-app-card-border)] px-2 text-[11px] font-semibold text-[var(--graphite-text-body)] transition-colors hover:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] disabled:cursor-not-allowed disabled:opacity-40";
+const input =
+  "h-9 min-w-0 flex-1 rounded-lg border border-[var(--mobile-app-card-border)] bg-transparent px-2.5 text-sm text-[var(--graphite-text-header)]";
 
 function markLabel(mark: CheckpointMark | undefined): { text: string; tone: "set" | "unset" | "warn" } {
   if (!mark) return { text: "Not set", tone: "unset" };
@@ -17,6 +18,8 @@ function markLabel(mark: CheckpointMark | undefined): { text: string; tone: "set
   if (mark.stillStatus === "queued") return { text: `Extracting still · ${when}`, tone: "unset" };
   return { text: `${mark.match === "matched" ? "Matched" : "Approximate"} · ${when}`, tone: "set" };
 }
+
+const toneClass = { set: "text-[var(--graphite-text-header)]", warn: "text-[var(--destructive)]", unset: "text-[var(--graphite-muted)]" };
 
 export function TourCheckpointList({
   stillUrl,
@@ -52,71 +55,83 @@ export function TourCheckpointList({
   const [chapterName, setChapterName] = useState("");
   const byCheckpoint = new Map(marks.map((m) => [m.checkpointId, m]));
   const live = chapters.filter((c) => !c.retiredAt);
+  const active = checkpoints.filter((c) => !c.retiredAt);
+  const resolved = active.filter((c) => byCheckpoint.has(c.id)).length;
+  const blocked = Boolean(markBlocked);
 
   return (
-    <div className="space-y-4" data-testid="tour-checkpoints">
+    <section
+      className="flex flex-col overflow-hidden rounded-2xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_76%,transparent)] lg:min-h-0"
+      data-testid="tour-checkpoints"
+    >
+      <header className="flex items-center justify-between gap-2 border-b border-[var(--mobile-app-card-border)] px-4 py-2.5">
+        <p className="font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--graphite-muted)]">Checkpoints</p>
+        <span className="font-mono text-[11px] tabular-nums text-[var(--graphite-muted)]">
+          {resolved}/{active.length} set
+        </span>
+      </header>
       {!locked && markBlocked ? (
-        <p className="text-xs text-[var(--graphite-muted)]" role="status">{markBlocked}</p>
+        <p className="border-b border-[var(--mobile-app-card-border)] px-4 py-2 text-xs text-[var(--graphite-muted)]" role="status">
+          {markBlocked}
+        </p>
       ) : null}
-      {live.map((chapter) => {
-        const points = checkpoints.filter((c) => c.chapterId === chapter.id && !c.retiredAt);
-        return (
-          <section key={chapter.id} className={t.sectionCard}>
-            <p className={t.eyebrow}>{chapter.name}</p>
-            {points.length === 0 ? (
-              <p className="mt-2 text-sm text-[var(--graphite-muted)]">No checkpoints yet. Scrub to a spot you will return to on every visit and add one.</p>
-            ) : (
-              <ul className="mt-2 space-y-2">
+      <div className="lg:min-h-0 lg:flex-1 lg:overflow-y-auto" data-testid="tour-checkpoint-scroll">
+        {live.map((chapter) => {
+          const points = active.filter((c) => c.chapterId === chapter.id);
+          return (
+            <div key={chapter.id}>
+              <p className="sticky top-0 z-10 border-b border-[var(--mobile-app-card-border)] bg-[var(--graphite-canvas)] px-4 py-1.5 text-xs font-semibold text-[var(--graphite-text-header)]">
+                {chapter.name}
+                <span className="ml-2 font-normal text-[var(--graphite-muted)]">{points.length}</span>
+              </p>
+              <ul>
                 {points.map((cp) => {
                   const mark = byCheckpoint.get(cp.id);
                   const label = markLabel(mark);
-                  const hasFrame = mark && mark.match !== "not_captured";
+                  const hasFrame = Boolean(mark && mark.match !== "not_captured");
                   return (
-                    <li key={cp.id} className="rounded-xl border border-[var(--mobile-app-card-border)] p-3" data-testid="tour-checkpoint">
-                      <div className="flex items-start gap-3">
-                        {hasFrame && mark.stillStatus === "ready" ? (
-                          <button type="button" onClick={() => onSelect(mark)} className="shrink-0" aria-label={`Go to ${cp.label}`}>
-                            {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={stillUrl(mark.id)} alt="" className="h-12 w-20 rounded-lg object-cover" />
-                          </button>
+                    <li key={cp.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-[var(--mobile-app-card-border)] px-4 py-2" data-testid="tour-checkpoint">
+                      <button
+                        type="button"
+                        className="h-9 w-16 shrink-0 overflow-hidden rounded-md border border-[var(--mobile-app-card-border)] disabled:cursor-default"
+                        disabled={!hasFrame}
+                        onClick={() => mark && hasFrame && onSelect(mark)}
+                        aria-label={hasFrame ? `Go to ${cp.label}` : `${cp.label}: no still yet`}
+                      >
+                        {hasFrame && mark?.stillStatus === "ready" ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={stillUrl(mark.id)} alt="" className="h-full w-full object-cover" />
                         ) : null}
-                        <div className="min-w-0 flex-1">
-                          <button
-                            type="button"
-                            className="block max-w-full truncate text-left text-sm font-semibold text-[var(--graphite-text-header)] disabled:cursor-default"
-                            onClick={() => hasFrame && onSelect(mark)}
-                            disabled={!hasFrame}
-                          >
-                            {cp.label}
-                          </button>
-                          {cp.captureNote ? <p className="truncate text-xs text-[var(--graphite-muted)]">{cp.captureNote}</p> : null}
-                          {mark?.stillError ? <p className="text-xs text-[var(--destructive)]">{mark.stillError}</p> : null}
-                        </div>
-                        <span
-                          className={`${chip} ${
-                            label.tone === "set"
-                              ? "text-[var(--graphite-text-header)]"
-                              : label.tone === "warn"
-                                ? "text-[var(--destructive)]"
-                                : "text-[var(--graphite-muted)]"
-                          }`}
-                        >
-                          {label.text}
-                        </span>
+                      </button>
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-semibold text-[var(--graphite-text-header)]" title={cp.label}>{cp.label}</p>
+                        <p className="flex min-w-0 items-center gap-2">
+                          <span className={`truncate font-mono text-[10px] uppercase tracking-wide ${toneClass[label.tone]}`} title={mark?.stillError ?? label.text}>
+                            {mark?.stillError ? `${label.text} · ${mark.stillError}` : label.text}
+                          </span>
+                          {locked ? null : (
+                            <button
+                              type="button"
+                              className="shrink-0 text-[10px] font-semibold text-[var(--graphite-muted)] underline-offset-2 hover:text-[var(--graphite-text-header)] hover:underline disabled:opacity-40"
+                              disabled={busy}
+                              onClick={() => onRetire(cp.id)}
+                              aria-label={`Retire ${cp.label}`}
+                            >
+                              Retire
+                            </button>
+                          )}
+                        </p>
                       </div>
                       {locked ? null : (
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          <button type="button" className={`${t.primaryButton} ${dis}`} disabled={busy || Boolean(markBlocked)} onClick={() => onMark(cp.id, "matched")}>
-                            Matched here
+                        <div className="flex shrink-0 gap-1.5">
+                          <button type="button" className={`${btn} text-[var(--graphite-primary)]`} disabled={busy || blocked} onClick={() => onMark(cp.id, "matched")}>
+                            Match here
                           </button>
-                          <button type="button" className={`${t.secondaryButton} ${dis}`} disabled={busy || Boolean(markBlocked)} onClick={() => onMark(cp.id, "same_chapter")}>
-                            Approximate
+                          <button type="button" className={btn} disabled={busy || blocked} onClick={() => onMark(cp.id, "same_chapter")}>
+                            Approx.
                           </button>
-                          <button type="button" className={`${t.secondaryButton} ${dis}`} disabled={busy || Boolean(markBlocked)} onClick={() => onMark(cp.id, "not_captured")}>
+                          <button type="button" className={btn} disabled={busy || blocked} onClick={() => onMark(cp.id, "not_captured")}>
                             Not captured
-                          </button>
-                          <button type="button" className={`${t.secondaryButton} ${dis}`} disabled={busy} onClick={() => onRetire(cp.id)}>
-                            Retire
                           </button>
                         </div>
                       )}
@@ -124,38 +139,47 @@ export function TourCheckpointList({
                   );
                 })}
               </ul>
-            )}
-            {locked ? null : adding?.chapterId === chapter.id ? (
-              <form
-                className="mt-3 flex flex-wrap gap-2"
-                onSubmit={(e) => {
-                  e.preventDefault();
-                  if (adding.label.trim()) onAddCheckpoint(chapter.id, adding.label.trim());
-                  setAdding(null);
-                }}
-              >
-                <input
-                  autoFocus
-                  className="min-h-11 flex-1 rounded-xl border border-[var(--mobile-app-card-border)] bg-transparent px-3 text-sm text-[var(--graphite-text-header)]"
-                  placeholder="Checkpoint name, e.g. Corridor at door 104"
-                  value={adding.label}
-                  onChange={(e) => setAdding({ chapterId: chapter.id, label: e.target.value })}
-                />
-                <button type="submit" className={`${t.primaryButton} ${dis}`} disabled={busy || Boolean(markBlocked) || !adding.label.trim()}>
-                  Add and mark here
+              {locked ? null : adding?.chapterId === chapter.id ? (
+                <form
+                  className="flex gap-2 border-b border-[var(--mobile-app-card-border)] px-4 py-2"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (adding.label.trim()) onAddCheckpoint(chapter.id, adding.label.trim());
+                    setAdding(null);
+                  }}
+                >
+                  <input
+                    autoFocus
+                    className={input}
+                    placeholder="Checkpoint name, e.g. Corridor at door 104"
+                    value={adding.label}
+                    onChange={(e) => setAdding({ chapterId: chapter.id, label: e.target.value })}
+                  />
+                  <button type="submit" className={`${btn} text-[var(--graphite-primary)]`} disabled={busy || blocked || !adding.label.trim()}>
+                    Add and mark here
+                  </button>
+                </form>
+              ) : (
+                <button
+                  type="button"
+                  className="w-full border-b border-[var(--mobile-app-card-border)] px-4 py-2 text-left text-xs font-semibold text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"
+                  onClick={() => setAdding({ chapterId: chapter.id, label: "" })}
+                >
+                  + Add checkpoint to {chapter.name}
                 </button>
-              </form>
-            ) : (
-              <button type="button" className={`${t.secondaryButton} mt-3`} onClick={() => setAdding({ chapterId: chapter.id, label: "" })}>
-                Add checkpoint
-              </button>
-            )}
-          </section>
-        );
-      })}
+              )}
+            </div>
+          );
+        })}
+        {active.length === 0 ? (
+          <p className="px-4 py-3 text-sm text-[var(--graphite-muted)]">
+            No checkpoints yet. Scrub to a spot you will return to on every visit and add one.
+          </p>
+        ) : null}
+      </div>
       {locked ? null : (
         <form
-          className="flex flex-wrap gap-2"
+          className="flex gap-2 border-t border-[var(--mobile-app-card-border)] px-4 py-2.5"
           onSubmit={(e) => {
             e.preventDefault();
             if (chapterName.trim()) onAddChapter(chapterName.trim());
@@ -163,16 +187,17 @@ export function TourCheckpointList({
           }}
         >
           <input
-            className="min-h-11 flex-1 rounded-xl border border-[var(--mobile-app-card-border)] bg-transparent px-3 text-sm text-[var(--graphite-text-header)]"
+            className={input}
             placeholder="New chapter, e.g. Level 2 or Exterior"
             value={chapterName}
             onChange={(e) => setChapterName(e.target.value)}
+            aria-label="New chapter name"
           />
-          <button type="submit" className={`${t.secondaryButton} ${dis}`} disabled={busy || !chapterName.trim()}>
+          <button type="submit" className={btn} disabled={busy || !chapterName.trim()}>
             Add chapter
           </button>
         </form>
       )}
-    </div>
+    </section>
   );
 }

@@ -14,7 +14,16 @@ import { TourPublishPanel } from "./TourPublishPanel";
 import { TourCreateRoute } from "./TourCreateRoute";
 import { TourLookConePanel } from "./TourLookConePanel";
 
-export function TourOperator({ projectId, urls: urlsProp }: { projectId: string; urls?: TourUrls }) {
+export function TourOperator({
+  projectId,
+  urls: urlsProp,
+  fill = "parent",
+}: {
+  projectId: string;
+  urls?: TourUrls;
+  /** "parent": fill the dashboard's scrolling content area; "viewport": standalone pages (harness). */
+  fill?: "parent" | "viewport";
+}) {
   const { bundle, loadError, busy, call } = useTourBundle(projectId);
   const urls = useMemo(() => urlsProp ?? operatorTourUrls(projectId), [urlsProp, projectId]);
   const [visitId, setVisitId] = useState<string | null>(null);
@@ -78,19 +87,20 @@ export function TourOperator({ projectId, urls: urlsProp }: { projectId: string;
     if (created) await mark(created.id, "matched");
   };
 
+  const tabBase = "flex shrink-0 flex-col items-start rounded-lg px-3 py-1.5 text-left text-xs font-semibold transition-colors";
   return (
-    <div className="space-y-5" data-testid="tour-operator">
-      <section className={t.sectionCard}>
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className={t.eyebrow}>Directed Tour route</p>
-            <h2 className="truncate text-lg font-semibold text-[var(--graphite-text-header)]">{route.name}</h2>
-          </div>
-          <Link href={`/tour-card/${projectId}`} className={t.secondaryButton} target="_blank">
-            Capture card
-          </Link>
+    // Desktop: one viewport-height workspace (header + two panes). Only the checkpoint
+    // list scrolls inside its pane; nothing stretches the page into blank space.
+    <div
+      className={`flex flex-col gap-3 lg:min-h-[560px] ${fill === "parent" ? "lg:h-full" : "lg:h-[calc(100dvh-var(--tour-chrome,4rem))]"}`}
+      data-testid="tour-operator"
+    >
+      <header className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-2xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_76%,transparent)] px-4 py-2.5">
+        <div className="min-w-0">
+          <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--graphite-muted)]">Directed Tour route</p>
+          <h2 className="truncate text-base font-semibold text-[var(--graphite-text-header)]">{route.name}</h2>
         </div>
-        <div className="mt-4 flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Visits">
+        <div className="order-last flex min-w-0 basis-full gap-1.5 overflow-x-auto sm:order-none sm:basis-auto sm:flex-1" role="tablist" aria-label="Visits">
           {bundle.visits.map((v) => {
             const active = v.walkthroughId === visit?.walkthroughId;
             const state = v.routeId !== route.id ? "Not on route" : v.clientPublishedAt ? "Published" : "Draft";
@@ -100,7 +110,7 @@ export function TourOperator({ projectId, urls: urlsProp }: { projectId: string;
                 type="button"
                 role="tab"
                 aria-selected={active}
-                className={`${t.tabLink} ${active ? t.tabLinkActive : ""} flex-col items-start py-2`}
+                className={`${tabBase} ${active ? "bg-[color-mix(in_srgb,var(--graphite-primary)_12%,transparent)] text-[var(--graphite-text-header)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--graphite-primary)_30%,transparent)]" : "text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]"}`}
                 onClick={() => {
                   setVisitId(v.walkthroughId);
                   setMessage(null);
@@ -109,25 +119,33 @@ export function TourOperator({ projectId, urls: urlsProp }: { projectId: string;
                 }}
               >
                 <span>{formatVisitDate(v.capturedAt)}</span>
-                <span className="font-mono text-[10px] uppercase tracking-wide text-[var(--graphite-muted)]">{state}</span>
+                <span className="font-mono text-[10px] font-normal uppercase tracking-wide">{state}</span>
               </button>
             );
           })}
         </div>
-      </section>
+        <Link
+          href={`/tour-card/${projectId}`}
+          className="inline-flex h-9 shrink-0 items-center rounded-lg border border-[var(--mobile-app-card-border)] px-3 text-xs font-semibold text-[var(--graphite-text-body)]"
+          target="_blank"
+        >
+          Capture card
+        </Link>
+      </header>
 
       {message ? <p className="text-sm text-[var(--destructive)]" role="alert">{message}</p> : null}
 
       {!visit ? null : !onThisRoute ? (
-        <section className={t.sectionCard}>
+        <section className="flex flex-wrap items-center gap-3 rounded-2xl border border-[var(--mobile-app-card-border)] px-4 py-3">
           <p className="text-sm text-[var(--graphite-muted)]">This visit is not on the route yet.</p>
-          <button type="button" className={`${t.primaryButton} mt-3`} disabled={busy} onClick={async () => report(await call(`/visits/${visit.walkthroughId}`, "POST", { action: "attach" }))}>
+          <button type="button" className={t.primaryButton} disabled={busy} onClick={async () => report(await call(`/visits/${visit.walkthroughId}`, "POST", { action: "attach" }))}>
             Add this visit to the route
           </button>
         </section>
       ) : (
-        <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
-          <div className="space-y-5">
+        <div className="grid gap-3 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1.2fr)_minmax(440px,1fr)]">
+          {/* Left: the player takes whatever height is left, so the pane never ends in blank space. */}
+          <div className="flex flex-col gap-3 lg:min-h-0">
             <TourMarkPlayer walkthroughId={visit.walkthroughId} clips={visit.clips} seekRequest={seek} onView={onView} urls={urls} />
             {activeClip ? (
               <TourLookConePanel
@@ -140,6 +158,26 @@ export function TourOperator({ projectId, urls: urlsProp }: { projectId: string;
                 onSave={async (cone) => report(await call(`/visits/${visit.walkthroughId}`, "POST", { action: "look-cone", clipId: activeClip.id, cone }))}
               />
             ) : null}
+          </div>
+          {/* Right: checkpoints size to their content and scroll inside once long; status sits right under them. */}
+          <div className="flex flex-col gap-3 lg:min-h-0">
+            <TourCheckpointList
+              stillUrl={urls.still}
+              chapters={bundle.chapters}
+              checkpoints={bundle.checkpoints}
+              marks={visitMarks}
+              locked={locked}
+              busy={busy}
+              markBlocked={markBlocked}
+              onMark={mark}
+              onSelect={(m) => m.clipId && m.tSeconds != null && setSeek({ clipId: m.clipId, t: m.tSeconds, yaw: m.yawDeg, pitch: m.pitchDeg })}
+              onAddCheckpoint={addCheckpoint}
+              onAddChapter={async (name) => report(await call("/chapters", "POST", { name }))}
+              onRetire={async (checkpointId) => {
+                if (!window.confirm("Retire this checkpoint? Old links to it keep working, but it leaves the route.")) return;
+                report(await call("/checkpoints", "PATCH", { checkpointId, retire: true }));
+              }}
+            />
             {checklist ? (
               <TourPublishPanel
                 visit={visit}
@@ -151,23 +189,6 @@ export function TourOperator({ projectId, urls: urlsProp }: { projectId: string;
               />
             ) : null}
           </div>
-          <TourCheckpointList
-            stillUrl={urls.still}
-            chapters={bundle.chapters}
-            checkpoints={bundle.checkpoints}
-            marks={visitMarks}
-            locked={locked}
-            busy={busy}
-            markBlocked={markBlocked}
-            onMark={mark}
-            onSelect={(m) => m.clipId && m.tSeconds != null && setSeek({ clipId: m.clipId, t: m.tSeconds, yaw: m.yawDeg, pitch: m.pitchDeg })}
-            onAddCheckpoint={addCheckpoint}
-            onAddChapter={async (name) => report(await call("/chapters", "POST", { name }))}
-            onRetire={async (checkpointId) => {
-              if (!window.confirm("Retire this checkpoint? Old links to it keep working, but it leaves the route.")) return;
-              report(await call("/checkpoints", "PATCH", { checkpointId, retire: true }));
-            }}
-          />
         </div>
       )}
     </div>

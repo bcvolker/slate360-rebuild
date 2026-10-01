@@ -13,7 +13,8 @@ export default async function TourOperatorPreview({
 }) {
   const { token, state } = await searchParams;
   return (
-    <main className="min-h-[100dvh] bg-[var(--graphite-canvas)] p-4 sm:p-8">
+    // --tour-chrome: everything above the workspace on this page (just the padding here).
+    <main className="min-h-[100dvh] bg-[var(--graphite-canvas)] p-4 sm:p-8" style={{ ["--tour-chrome" as string]: "4rem" }}>
       <div className="mx-auto max-w-6xl">
         <TourOperatorHarness
           token={token ?? ""}

@@ -14,7 +14,7 @@ const FLOORS = [
   { deg: -30, label: "Down to the floor ahead" },
   { deg: -45, label: "Steep down" },
 ] as const;
-const field = "min-h-11 w-full rounded-xl border border-[var(--mobile-app-card-border)] bg-transparent px-3 text-sm text-[var(--graphite-text-header)]";
+const field = "h-9 min-w-0 flex-1 rounded-lg border border-[var(--mobile-app-card-border)] bg-transparent px-2 text-xs text-[var(--graphite-text-header)]";
 const dis = "disabled:cursor-not-allowed disabled:opacity-40";
 
 /**
@@ -43,18 +43,18 @@ export function TourLookConePanel({
   const [floor, setFloor] = useState<number>(base.pitchMinDeg);
 
   return (
-    <section className={t.sectionCard} data-testid="tour-look-cone">
+    <section className={`${t.sectionCard} !p-4`} data-testid="tour-look-cone">
       <div className="flex items-center justify-between gap-2">
-        <p className={t.eyebrow}>Published view</p>
+        <p className={t.eyebrow} title="Clients can only look inside this view, and every still is framed inside it.">Published view</p>
         <span className="font-mono text-[10px] uppercase tracking-wide text-[var(--graphite-muted)]">
           {cone ? `${Math.round(cone.halfWidthDeg * 2)}° · down to ${cone.pitchMinDeg}°` : "Not set"}
         </span>
       </div>
-      <p className="mt-2 text-sm text-[var(--graphite-muted)]">
-        Clients can only look inside this view, and every still is framed inside it. Point the player where you walked, so you stay behind and under the camera.
+      <p className="mt-1 text-xs text-[var(--graphite-muted)]">
+        Clients only see inside it. Point the player the way you walked, so you stay behind and under the camera.
       </p>
       {locked ? null : (
-        <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <div className="mt-2 grid grid-cols-2 gap-2 sm:flex">
           <select className={field} value={half} onChange={(e) => setHalf(Number(e.target.value))} aria-label="How wide clients can look">
             {WIDTHS.map((w) => (
               <option key={w.half} value={w.half}>{w.label}</option>
@@ -67,7 +67,11 @@ export function TourLookConePanel({
           </select>
           <button
             type="button"
-            className={`${cone ? t.secondaryButton : t.primaryButton} ${dis} sm:col-span-2`}
+            className={`inline-flex h-9 items-center rounded-lg px-3 text-xs font-semibold ${
+              cone
+                ? "border border-[var(--mobile-app-card-border)] text-[var(--graphite-text-body)]"
+                : "bg-[var(--graphite-primary)] text-[var(--graphite-canvas)]"
+            } ${dis} col-span-2 justify-center sm:col-span-1`}
             disabled={busy || !canUseView}
             onClick={() => {
               const heading = getHeading();
