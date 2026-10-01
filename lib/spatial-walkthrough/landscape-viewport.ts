@@ -10,9 +10,13 @@ export type ViewportSnap = {
 };
 
 export function isLandscapeOrientation(v: ViewportSnap): boolean {
+  // Measured size wins when it disagrees with screen.orientation. Some browsers
+  // update innerWidth on resize before the orientation type, and trusting the
+  // stale label would leave the immersive frame up after a portrait rotation.
+  if (v.width > 0 && v.height > 0 && v.width !== v.height) return v.width > v.height;
   if (v.orientation === "landscape") return true;
   if (v.orientation === "portrait") return false;
-  return v.width > v.height;
+  return false;
 }
 
 /**

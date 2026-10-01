@@ -50,6 +50,13 @@ describe("landscape joystick viewport", () => {
     }))).toBe(true);
   });
 
+  it("trusts the measured viewport when the orientation label is stale", () => {
+    const lagged = snap({ width: 390, height: 844, coarsePointer: true, orientation: "landscape" });
+    expect(isLandscapeOrientation(lagged)).toBe(false);
+    expect(showLandscapeJoystickHud(lagged)).toBe(false);
+    expect(shouldExitImmersiveOnPortrait(lagged)).toBe(true);
+  });
+
   it("exits immersive mode on phone portrait and not on a tall desktop window", () => {
     expect(shouldExitImmersiveOnPortrait(snap({
       width: 390,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { stickFromPointer, type StickVector } from "@/lib/spatial-walkthrough/joystick-map";
 
 const TRAVEL_PX = 36;
@@ -14,25 +14,60 @@ type Props = {
 };
 
 export function VirtualStick({ label, testId, side, onVector, onActive }: Props) {
+  const ref = useRef<HTMLDivElement>(null);
   const [vec, setVec] = useState<StickVector>({ x: 0, y: 0 });
-  const origin = useRef({ x: 0, y: 0 });
-  const dragging = useRef(false);
+  const onVectorRef = useRef(onVector);
+  const onActiveRef = useRef(onActive);
+  onVectorRef.current = onVector;
+  onActiveRef.current = onActive;
 
-  const publish = (next: StickVector) => {
-    setVec(next);
-    onVector(next);
-  };
-
-  const end = (el: HTMLElement, pointerId: number) => {
-    if (!dragging.current) return;
-    dragging.current = false;
-    if (el.hasPointerCapture(pointerId)) el.releasePointerCapture(pointerId);
-    publish({ x: 0, y: 0 });
-    onActive(false);
-  };
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let dragging = false;
+    let originX = 0;
+    let originY = 0;
+    const publish = (next: StickVector) => {
+      setVec(next);
+      onVectorRef.current(next);
+    };
+    const down = (e: PointerEvent) => {
+      e.stopPropagation();
+      e.preventDefault();
+      dragging = true;
+      originX = e.clientX;
+      originY = e.clientY;
+      el.setPointerCapture(e.pointerId);
+      onActiveRef.current(true);
+    };
+    const move = (e: PointerEvent) => {
+      if (!dragging) return;
+      e.stopPropagation();
+      publish(stickFromPointer(e.clientX - originX, e.clientY - originY, TRAVEL_PX));
+    };
+    const up = (e: PointerEvent) => {
+      if (!dragging) return;
+      e.stopPropagation();
+      dragging = false;
+      if (el.hasPointerCapture(e.pointerId)) el.releasePointerCapture(e.pointerId);
+      publish({ x: 0, y: 0 });
+      onActiveRef.current(false);
+    };
+    el.addEventListener("pointerdown", down);
+    el.addEventListener("pointermove", move);
+    el.addEventListener("pointerup", up);
+    el.addEventListener("pointercancel", up);
+    return () => {
+      el.removeEventListener("pointerdown", down);
+      el.removeEventListener("pointermove", move);
+      el.removeEventListener("pointerup", up);
+      el.removeEventListener("pointercancel", up);
+    };
+  }, []);
 
   return (
     <div
+      ref={ref}
       className="sw-joy-stick"
       data-side={side}
       data-testid={testId}
@@ -42,27 +77,6 @@ export function VirtualStick({ label, testId, side, onVector, onActive }: Props)
       aria-valuemax={side === "left" ? 1 : undefined}
       aria-valuenow={side === "left" ? Number(vec.x.toFixed(2)) : undefined}
       aria-orientation={side === "left" ? "horizontal" : undefined}
-      onPointerDown={(e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        dragging.current = true;
-        origin.current = { x: e.clientX, y: e.clientY };
-        e.currentTarget.setPointerCapture(e.pointerId);
-        onActive(true);
-      }}
-      onPointerMove={(e) => {
-        if (!dragging.current) return;
-        e.stopPropagation();
-        publish(stickFromPointer(e.clientX - origin.current.x, e.clientY - origin.current.y, TRAVEL_PX));
-      }}
-      onPointerUp={(e) => {
-        e.stopPropagation();
-        end(e.currentTarget, e.pointerId);
-      }}
-      onPointerCancel={(e) => {
-        e.stopPropagation();
-        end(e.currentTarget, e.pointerId);
-      }}
     >
       <span className="sw-joy-label">{label}</span>
       <span
