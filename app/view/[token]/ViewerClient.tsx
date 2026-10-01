@@ -33,10 +33,7 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
 
   const saveTitle = useCallback(async () => {
     const next = titleDraft.trim();
-    if (!next || next === title) {
-      setEditingTitle(false);
-      return;
-    }
+    if (!next || next === title) return setEditingTitle(false);
     setSavingTitle(true);
     try {
       const res = await fetch(`/api/site-walk/deliverables/${deliverable.id}`, {
@@ -100,6 +97,9 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
     }
   }, [activeIndex, items]);
 
+  // On a phone the details panel covers the photo, so start with the photo.
+  useEffect(() => setPanelOpen(!window.matchMedia("(max-width: 767px)").matches), []);
+
   // Keep the active thumbnail centered in the timeline.
   const activeThumbRef = useRef<HTMLButtonElement | null>(null);
   useEffect(() => {
@@ -158,7 +158,7 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
       {backHref ? (
         <a
           href={backHref}
-          className="mr-1 inline-flex min-h-[48px] items-center gap-1 rounded-lg border border-white/10 px-2.5 text-sm font-medium text-slate-200 transition-colors hover:bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] hover:text-[var(--graphite-primary)]"
+          className="mr-1 inline-flex min-h-[48px] items-center gap-1 rounded-lg border border-[var(--portal-line)] px-2.5 text-sm font-medium text-[var(--portal-ink)] transition-colors hover:bg-[color-mix(in_srgb,var(--portal-accent)_15%,transparent)] hover:text-[var(--portal-accent)]"
           aria-label="Back to deliverables"
         >
           <ChevronLeft size={16} />
@@ -172,20 +172,20 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
             setTitleDraft(title);
             setEditingTitle(true);
           }}
-          className="rounded-lg p-2 text-slate-300 transition-colors hover:bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] hover:text-[var(--graphite-primary)]"
+          className="rounded-lg p-2 text-[var(--portal-ink-muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--portal-accent)_15%,transparent)] hover:text-[var(--portal-accent)]"
           aria-label="Edit the title shown to recipients"
           title="Edit title"
         >
           <Pencil size={16} />
         </button>
       ) : null}
-      <span className="mr-1 hidden text-xs text-slate-400 sm:inline">
+      <span className="mr-1 hidden text-xs text-[var(--portal-ink-muted)] sm:inline">
         {activeIndex + 1} / {items.length}
       </span>
       <button
         type="button"
         onClick={handleShare}
-        className="rounded-lg p-2 text-slate-300 transition-colors hover:bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] hover:text-[var(--graphite-primary)]"
+        className="rounded-lg p-2 text-[var(--portal-ink-muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--portal-accent)_15%,transparent)] hover:text-[var(--portal-accent)]"
         aria-label="Share"
       >
         <Share2 size={16} />
@@ -193,7 +193,7 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
       <button
         type="button"
         onClick={() => window.print()}
-        className="hidden rounded-lg p-2 text-slate-300 transition-colors hover:bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] hover:text-[var(--graphite-primary)] sm:block"
+        className="hidden rounded-lg p-2 text-[var(--portal-ink-muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--portal-accent)_15%,transparent)] hover:text-[var(--portal-accent)] sm:block"
         aria-label="Print"
       >
         <Printer size={16} />
@@ -204,8 +204,8 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
         className={cn(
           "rounded-lg p-2 transition-colors",
           panelOpen
-            ? "bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] text-[var(--graphite-primary)]"
-            : "text-slate-300 hover:bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] hover:text-[var(--graphite-primary)]",
+            ? "bg-[color-mix(in_srgb,var(--portal-accent)_15%,transparent)] text-[var(--portal-accent)]"
+            : "text-[var(--portal-ink-muted)] hover:bg-[color-mix(in_srgb,var(--portal-accent)_15%,transparent)] hover:text-[var(--portal-accent)]",
         )}
         aria-label="Toggle details"
       >
@@ -215,7 +215,7 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
         <button
           type="button"
           onClick={() => setPlanOpen(true)}
-          className="rounded-lg p-2 text-slate-300 transition-colors hover:bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] hover:text-[var(--graphite-primary)]"
+          className="rounded-lg p-2 text-[var(--portal-ink-muted)] transition-colors hover:bg-[color-mix(in_srgb,var(--portal-accent)_15%,transparent)] hover:text-[var(--portal-accent)]"
           aria-label="View plan"
           title="View plan"
         >
@@ -239,7 +239,7 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
       <div className="relative flex h-full min-h-0 w-full flex-1 flex-col">
       {/* Inline title editor (owner only) — change the text stakeholders see before sharing. */}
       {editableTitle && editingTitle ? (
-        <div className="flex items-center gap-2 border-b border-white/10 bg-[var(--graphite-canvas)]/95 px-4 py-2 backdrop-blur-sm">
+        <div className="flex items-center gap-2 border-b border-[var(--portal-line)] bg-[var(--portal-surface)]/95 px-4 py-2 backdrop-blur-sm">
           <input
             autoFocus
             value={titleDraft}
@@ -251,7 +251,7 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
             maxLength={140}
             placeholder="Title shown to recipients"
             aria-label="Deliverable title"
-            className="min-h-[44px] flex-1 rounded-lg border border-white/15 bg-white/5 px-3 text-sm text-white outline-none focus:border-[var(--graphite-primary)]"
+            className="min-h-[44px] flex-1 rounded-lg border border-[var(--portal-line)] bg-[var(--portal-canvas-alt)] px-3 text-sm text-[var(--portal-ink)] outline-none focus:border-[var(--portal-accent)]"
           />
           {titleSaveFailed ? (
             <span className="text-xs font-medium text-[var(--destructive)]">Couldn&apos;t save — retry</span>
@@ -260,14 +260,14 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
             type="button"
             onClick={() => void saveTitle()}
             disabled={savingTitle}
-            className="inline-flex min-h-[44px] items-center gap-1 rounded-lg bg-[var(--graphite-primary)] px-3 text-sm font-black text-[var(--graphite-canvas)] disabled:opacity-60"
+            className="inline-flex min-h-[44px] items-center gap-1 rounded-lg bg-[var(--portal-accent)] px-3 text-sm font-black text-white disabled:opacity-60"
           >
             <Check size={16} /> Save
           </button>
           <button
             type="button"
             onClick={() => setEditingTitle(false)}
-            className="inline-flex min-h-[44px] items-center rounded-lg border border-white/15 px-3 text-sm text-slate-300"
+            className="inline-flex min-h-[44px] items-center rounded-lg border border-[var(--portal-line)] px-3 text-sm text-[var(--portal-ink-muted)]"
           >
             Cancel
           </button>
@@ -294,7 +294,7 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
             onClose={() => setPlanOpen(false)}
           />
         ) : null}
-        <div className="flex-1 relative flex items-center justify-center overflow-hidden bg-black sm:order-2">
+        <div className="flex-1 relative flex items-center justify-center overflow-hidden bg-[var(--portal-canvas-alt)] sm:order-2">
           {/* Keyed wrapper → gentle fade-in on each slide change (crossfade feel) */}
           <div
             key={activeItem.id}
@@ -307,7 +307,7 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
             <button
               type="button"
               onClick={() => navigate(-1)}
-              className="absolute left-3 z-20 rounded-full bg-[#151A23]/80 p-3 text-[#0C0A09] backdrop-blur transition-colors hover:bg-[var(--graphite-primary)]"
+              className="absolute left-3 z-20 rounded-xl border border-[var(--portal-line)] bg-white/90 p-3 text-[var(--portal-ink)] backdrop-blur transition-colors hover:bg-white"
               aria-label="Previous"
             >
               <ChevronLeft size={20} />
@@ -317,28 +317,28 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
             <button
               type="button"
               onClick={() => navigate(1)}
-              className="absolute right-3 z-20 rounded-full bg-[#151A23]/80 p-3 text-[#0C0A09] backdrop-blur transition-colors hover:bg-[var(--graphite-primary)]"
+              className="absolute right-3 z-20 rounded-xl border border-[var(--portal-line)] bg-white/90 p-3 text-[var(--portal-ink)] backdrop-blur transition-colors hover:bg-white"
               aria-label="Next"
             >
               <ChevronRight size={20} />
             </button>
           )}
 
-          <div className="absolute top-2 left-1/2 -translate-x-1/2 sm:hidden text-xs text-slate-300 bg-[#151A23]/80 backdrop-blur px-2 py-0.5 rounded">
+          <div className="absolute top-2 left-1/2 -translate-x-1/2 sm:hidden text-xs text-[var(--portal-ink-muted)] bg-white/90 backdrop-blur px-2 py-0.5 rounded">
             {activeIndex + 1} / {items.length}
           </div>
         </div>
 
         {panelOpen && (
-          <aside className="w-full sm:w-96 absolute sm:relative inset-x-0 bottom-0 sm:inset-auto sm:order-1 bg-[#151A23] border-white/10 sm:border-r flex flex-col shrink-0 max-h-[60vh] sm:max-h-none">
-            <div className="p-4 border-b border-white/10 flex justify-between items-center">
+          <aside className="w-full sm:w-96 absolute sm:relative inset-x-0 bottom-0 sm:inset-auto sm:order-1 bg-[var(--portal-surface)] border-[var(--portal-line)] sm:border-r flex flex-col shrink-0 max-h-[60vh] sm:max-h-none">
+            <div className="p-4 border-b border-[var(--portal-line)] flex justify-between items-center">
               <h2 className="font-semibold text-sm text-foreground truncate">
                 {activeItem.title || "Item details"}
               </h2>
               <button
                 type="button"
                 onClick={() => setPanelOpen(false)}
-                className="text-slate-400 hover:text-foreground"
+                className="text-[var(--portal-ink-muted)] hover:text-foreground"
                 aria-label="Close panel"
               >
                 <X size={18} />
@@ -346,24 +346,24 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
             </div>
             <div className="p-4 overflow-y-auto flex-1">
               {activeItem.notes && (
-                <p className="text-sm text-slate-200 mb-4 leading-relaxed whitespace-pre-wrap">
+                <p className="text-sm text-[var(--portal-ink)] mb-4 leading-relaxed whitespace-pre-wrap">
                   {activeItem.notes}
                 </p>
               )}
 
               {activeItem.metadata?.ai_formatted && (
                 activeItem.metadata?.note_raw ? (
-                  <details className="mb-4 rounded-md border border-white/10 bg-white/[0.04]">
-                    <summary className="cursor-pointer list-none px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-slate-400 select-none">
+                  <details className="mb-4 rounded-md border border-[var(--portal-line)] bg-[var(--portal-canvas-alt)]">
+                    <summary className="cursor-pointer list-none px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-[var(--portal-ink-muted)] select-none">
                       ✦ AI-formatted · view original
                     </summary>
-                    <p className="border-t border-white/10 px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap text-slate-400">
+                    <p className="border-t border-[var(--portal-line)] px-3 py-2 text-xs leading-relaxed whitespace-pre-wrap text-[var(--portal-ink-muted)]">
                       {activeItem.metadata.note_raw}
                     </p>
                   </details>
                 ) : (
                   <p
-                    className="mb-4 inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.04] px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-slate-400"
+                    className="mb-4 inline-flex items-center gap-1.5 rounded-md border border-[var(--portal-line)] bg-[var(--portal-canvas-alt)] px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-[var(--portal-ink-muted)]"
                     title="This note was AI-formatted for clarity from the inspector's original field text, which is preserved on the record."
                   >
                     ✦ AI-formatted · original preserved
@@ -371,7 +371,7 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
                 )
               )}
 
-              <div className="space-y-1.5 mb-6 text-xs text-slate-300 bg-black/30 p-3 rounded">
+              <div className="space-y-1.5 mb-6 text-xs text-[var(--portal-ink-muted)] bg-[var(--portal-canvas-alt)] p-3 rounded">
                 {vis.timestamp && meta.timestamp && (
                   <Row label="Time" value={new Date(meta.timestamp).toLocaleString()} />
                 )}
@@ -403,7 +403,7 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
       </div>
 
       {/* Thumbnail strip */}
-      <footer className="h-20 bg-[#151A23] border-t border-white/10 flex items-center px-3 gap-2 overflow-x-auto shrink-0">
+      <footer className="h-20 bg-[var(--portal-surface)] border-t border-[var(--portal-line)] flex items-center px-3 gap-2 overflow-x-auto shrink-0">
         {items.map((it, idx) => (
           <button
             key={it.id}
@@ -411,9 +411,9 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
             ref={activeIndex === idx ? activeThumbRef : undefined}
             onClick={() => setActiveIndex(idx)}
             className={cn(
-              "h-14 min-w-[88px] bg-black border-2 rounded overflow-hidden relative transition-all",
+              "h-14 min-w-[88px] bg-[var(--portal-canvas-alt)] border-2 rounded overflow-hidden relative transition-all",
               activeIndex === idx
-                ? "border-[var(--graphite-primary)] shadow-[0_0_16px_-2px_color-mix(in_srgb,var(--graphite-primary)_55%,transparent)]"
+                ? "border-[var(--portal-accent)]"
                 : "border-transparent opacity-60 hover:opacity-100"
             )}
             aria-label={`Go to item ${idx + 1}`}
@@ -422,7 +422,7 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
               // eslint-disable-next-line @next/next/no-img-element
               <img src={it.url} className="object-cover w-full h-full" alt="" />
             ) : (
-              <div className="flex items-center justify-center h-full text-[10px] text-slate-500 uppercase">
+              <div className="flex items-center justify-center h-full text-[10px] text-[var(--portal-ink-muted)] uppercase">
                 {it.type.replace("_", " ")}
               </div>
             )}
@@ -437,8 +437,8 @@ export default function ViewerClient({ deliverable, token, backHref, editableTit
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-2">
-      <span className="text-slate-500">{label}</span>
-      <span className="text-slate-200 text-right truncate">{value}</span>
+      <span className="text-[var(--portal-ink-muted)]">{label}</span>
+      <span className="text-[var(--portal-ink)] text-right truncate">{value}</span>
     </div>
   );
 }

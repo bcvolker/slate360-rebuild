@@ -32,6 +32,15 @@ language, nav/login, contact form). Everything else in v10 stands unchanged.
 
 ---
 
+## 0a. 2026-09-30 update: Additional services (supersedes §3.10 and §3.12 placement)
+
+The thermal one-liner and the "we build delivery systems" line were rendering as two separate
+bordered strips on either side of the request form. They are now one quiet **Additional services**
+block (`home-additional-services-light.tsx`) between Pricing and the form, on plain canvas: a muted
+label, two short rows (thermal condition documentation on request; delivery systems for small
+firms), no card and no CTA of its own. Thermal wording stays findings-only with no certification
+mentioned. Page order is now: Who it's for / Pricing → Additional services → Form → Footer.
+
 ## 1. The 60-second test — unchanged, still governs everything
 
 > "This guy visits my job site, captures it himself, and gives me an interactive record I can use

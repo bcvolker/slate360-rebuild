@@ -1,0 +1,30 @@
+{
+  "samples": [
+    {
+      "ms": 500,
+      "bg": "unavailable",
+      "hasCanvas": false
+    },
+    {
+      "ms": 2000,
+      "bg": "rgb(11, 15, 21)",
+      "hasCanvas": false,
+      "w": 0,
+      "h": 0
+    },
+    {
+      "ms": 5000,
+      "bg": "rgb(11, 15, 21)",
+      "hasCanvas": false,
+      "w": 0,
+      "h": 0
+    },
+    {
+      "ms": 10000,
+      "bg": "rgb(11, 15, 21)",
+      "hasCanvas": false,
+      "w": 0,
+      "h": 0
+    }
+  ]
+}

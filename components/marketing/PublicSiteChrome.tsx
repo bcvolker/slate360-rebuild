@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { MarketingHeader } from "@/components/marketing-launchpad/MarketingHeader";
 import { CookieBanner } from "@/components/marketing/CookieBanner";
+import { isProductSurface } from "@/lib/product-shell/product-routes";
 
 /** Routes that ship their own top chrome — skip the shared marketing header. */
 function shouldSkipMarketingHeader(pathname: string): boolean {
@@ -28,7 +29,7 @@ export function PublicSiteChrome({ children }: { children: ReactNode }) {
     <>
       {showHeader ? <MarketingHeader variant="default" /> : null}
       {children}
-      <CookieBanner />
+      {isProductSurface(pathname) ? null : <CookieBanner />}
     </>
   );
 }

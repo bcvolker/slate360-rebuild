@@ -1,0 +1,169 @@
+import { NextRequest, NextResponse } from "next/server";
+import { resolveShareDeliverables, shareServesWalkthrough } from "@/lib/spatial-experience/portal-package-load";
+import { loadShareRow, shareDenied, passwordOk, filterRuntime } from "@/lib/spatial-walkthrough/share-resolve";
+import { resolveBrandTheme } from "@/lib/spatial-walkthrough/theme";
+import { orgThemeFromRow } from "@/lib/spatial-walkthrough/org-theme";
+import { parseOperatorPatch, resolveOperatorPatch } from "@/lib/spatial-walkthrough/operator-patch";
+import { sessionUnlocksShare } from "@/lib/spatial-walkthrough/share-session";
+import { publicShareDenial } from "@/lib/spatial-walkthrough/share-token";
+import { recordWalkthroughAudit } from "@/lib/spatial-walkthrough/audit";
+import { createRateLimiter } from "@/lib/server/rate-limit";
+import type { RedactionRule } from "@/lib/spatial-walkthrough/redaction";
+import { hiddenWaypointIds } from "@/lib/spatial-walkthrough/redaction";
+import { toWaypoint } from "@/lib/spatial-walkthrough/waypoints";
+import { toChapter, visibleChapters } from "@/lib/spatial-walkthrough/chapters";
+import { toClipEdge } from "@/lib/spatial-walkthrough/clip-edges";
+import { HOUSEWALK_PRESENTATION } from "@/lib/spatial-walkthrough/presentation";
+import { publicMediaContract } from "@/lib/spatial-walkthrough/derivatives";
+
+export const runtime = "nodejs";
+type Ctx = { params: Promise<{ token: string }> };
+
+const checkRateLimit = createRateLimiter("spatial-walkthrough:public", 30, 60);
+
+function passwordFrom(req: NextRequest): string | null {
+  return req.headers.get("x-walkthrough-pass") || req.nextUrl.searchParams.get("code");
+}
+
+function mapRules(rows: Array<Record<string, unknown>>): RedactionRule[] {
+  return rows.map((r) => ({
+    id: String(r.id),
+    clipId: String(r.clip_id),
+    tStart: Number(r.t_start),
+    tEnd: Number(r.t_end),
+    yawMin: r.yaw_min == null ? null : Number(r.yaw_min),
+    yawMax: r.yaw_max == null ? null : Number(r.yaw_max),
+    pitchMin: r.pitch_min == null ? null : Number(r.pitch_min),
+    pitchMax: r.pitch_max == null ? null : Number(r.pitch_max),
+    mode: r.mode as RedactionRule["mode"],
+    policy: r.policy as RedactionRule["policy"],
+    reason: (r.reason as string) ?? null,
+    waypointId: (r.waypoint_id as string) ?? null,
+  }));
+}
+
+export const GET = async (req: NextRequest, ctx: Ctx) => {
+  const limited = await checkRateLimit(req);
+  if (limited) return limited;
+  const { token } = await ctx.params;
+  const { admin, row } = await loadShareRow(token);
+  if (shareDenied(row) || !row) return NextResponse.json(publicShareDenial(), { status: 404 });
+
+  const unlocked = sessionUnlocksShare({ req, tokenHash: row.token_hash ?? "", passwordHash: row.password_hash });
+  if (!unlocked && !passwordOk(row, passwordFrom(req))) {
+    return NextResponse.json({ ...publicShareDenial(), needsPassword: true }, { status: 401 });
+  }
+
+  if (!(await shareServesWalkthrough(admin, row))) return NextResponse.json(publicShareDenial(), { status: 404 });
+
+  const { data: wt } = await admin.from("spatial_walkthroughs").select("*").eq("id", row.walkthrough_id).maybeSingle();
+  if (!wt) return NextResponse.json(publicShareDenial(), { status: 404 });
+
+  const [{ data: clips }, { data: waypoints }, { data: pins }, { data: redactions }, { data: chapters }, { data: edges }] = await Promise.all([
+    admin.from("spatial_clips").select("id, title, zone, duration_s, default_yaw, default_pitch, status, sort_order, operator_patch, capture_meta, public_proxy_key, proxy_key").eq("walkthrough_id", wt.id).eq("status", "ready").order("sort_order"),
+    admin.from("spatial_waypoints").select("*").eq("walkthrough_id", wt.id).order("sort_order"),
+    admin.from("spatial_pins").select("*").eq("walkthrough_id", wt.id),
+    admin.from("spatial_redactions").select("*").eq("walkthrough_id", wt.id),
+    admin.from("spatial_chapters").select("*").eq("walkthrough_id", wt.id).order("sort_order"),
+    admin.from("spatial_clip_edges").select("*").eq("walkthrough_id", wt.id),
+  ]);
+  const pinIds = (pins ?? []).map((p) => p.id);
+  const { data: attachments } = pinIds.length
+    ? await admin.from("spatial_pin_attachments").select("*").in("pin_id", pinIds)
+    : { data: [] as never[] };
+
+  const clip = (clips ?? [])[0];
+  const runtime = clip
+    ? filterRuntime({
+        policy: row.policy,
+        waypoints: waypoints ?? [],
+        pins: pins ?? [],
+        attachments: attachments ?? [],
+        redactions: mapRules(redactions ?? []),
+        clipId: clip.id,
+      })
+    : { waypoints: [], pins: [], attachments: [], redactions: [] };
+
+  await admin.from("spatial_share_tokens").update({
+    view_count: row.view_count + 1,
+    last_viewed_at: new Date().toISOString(),
+  }).eq("id", row.id);
+  await recordWalkthroughAudit(admin, {
+    orgId: row.org_id,
+    event: "share_opened",
+    walkthroughId: row.walkthrough_id,
+    resourceId: row.id,
+    metadata: { policy: row.policy },
+  });
+
+  const { data: orgTheme } = await admin.from("spatial_org_themes").select("*").eq("org_id", row.org_id).maybeSingle();
+  const theme = resolveBrandTheme({
+    org: orgThemeFromRow(orgTheme as Record<string, unknown> | null),
+    snapshot: row.branding_snapshot as Record<string, unknown> | null,
+    walkthrough: wt.brand_theme,
+    canHidePoweredBy: true,
+  });
+  if (theme.logoUrl || orgTheme?.logo_display_key || orgTheme?.logo_key) {
+    theme.logoUrl = `/api/spatial-walkthrough/public/${token}/logo`;
+  }
+
+  return NextResponse.json({
+    product: "Spatial Walkthrough",
+    policy: row.policy,
+    allowDownload: row.allow_download,
+    theme,
+    operatorPatch: resolveOperatorPatch(clip?.operator_patch, parseOperatorPatch(wt.operator_patch)),
+    walkthrough: {
+      id: wt.id,
+      title: wt.title,
+      capturedAt: wt.captured_at,
+      building: wt.building,
+      floor: wt.floor,
+      zone: wt.zone,
+      type: wt.walkthrough_type,
+      durationS: wt.duration_s,
+    },
+    clip: clip
+      ? {
+          id: clip.id,
+          title: clip.title,
+          durationS: clip.duration_s,
+          defaultYaw: clip.default_yaw,
+          defaultPitch: clip.default_pitch,
+          ...publicMediaContract(token, clip.id, clip, row.policy),
+          captureMeta: clip.capture_meta ?? {},
+        }
+      : null,
+    clips: (clips ?? []).map((c) => {
+      const media = publicMediaContract(token, c.id, c, row.policy);
+      return {
+        id: c.id,
+        title: c.title,
+        zone: c.zone,
+        durationS: c.duration_s,
+        defaultYaw: c.default_yaw,
+        defaultPitch: c.default_pitch,
+        sortOrder: c.sort_order,
+        videoUrl: media.proxyUrl,
+        posterUrl: media.posterUrl,
+      };
+    }),
+    chapters: visibleChapters((chapters ?? []).map(toChapter), row.policy),
+    edges: (edges ?? []).map(toClipEdge),
+    lockedChapterId: (row.chapter_id as string | null) ?? null,
+    waypoints: (() => {
+      const hidden = new Set<string>();
+      for (const c of clips ?? []) hiddenWaypointIds(runtime.redactions, c.id).forEach((id) => hidden.add(id));
+      return (waypoints ?? []).map(toWaypoint).filter((w) => w.isVisible && !hidden.has(w.id));
+    })(),
+    pins: runtime.pins,
+    attachments: runtime.attachments,
+    redactions: runtime.redactions,
+    profile: "marketing",
+    presentation: HOUSEWALK_PRESENTATION,
+    issuesEnabled: await (async () => {
+      const allowed = await resolveShareDeliverables(admin, row);
+      return allowed == null || allowed.has("issues");
+    })(),
+  });
+};

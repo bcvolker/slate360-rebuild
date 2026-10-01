@@ -4,6 +4,8 @@
  */
 "use client";
 
+import { useEffect, useRef, useState } from "react";
+
 import { Download, ExternalLink, Eye, Lock } from "lucide-react";
 import {
   ExternalPortalShell,
@@ -33,6 +35,13 @@ export default function ShareViewer({
   presignedUrl: string;
   canDownload: boolean;
 }) {
+  const [previewFailed, setPreviewFailed] = useState(false);
+  const imgRef = useRef<HTMLImageElement | null>(null);
+  // The image can fail before hydration attaches onError, so also check once on mount.
+  useEffect(() => {
+    const img = imgRef.current;
+    if (img?.complete && img.naturalWidth === 0) setPreviewFailed(true);
+  }, []);
   const isPdf = fileType.includes("pdf");
   const isImage =
     fileType.startsWith("image/") ||
@@ -73,8 +82,8 @@ export default function ShareViewer({
     >
       <main className="flex flex-1 flex-col overflow-auto p-4 sm:p-6">
         {!canDownload ? (
-          <div className="mb-4 flex items-center gap-2 rounded-xl border border-white/10 bg-white/[0.05] px-3 py-2 text-xs text-[var(--graphite-muted)]">
-            <Lock size={14} className="shrink-0 text-[var(--graphite-muted)]" aria-hidden />
+          <div className="mb-4 flex items-center gap-2 rounded-xl border border-[var(--portal-line)] bg-[var(--portal-canvas-alt)] px-3 py-2 text-xs text-[var(--portal-ink-muted)]">
+            <Lock size={14} className="shrink-0 text-[var(--portal-ink-muted)]" aria-hidden />
             <span>Download is not permitted for this link. You can view or open the file only.</span>
           </div>
         ) : null}
@@ -82,7 +91,7 @@ export default function ShareViewer({
           <PortalGlassCard className="flex flex-1 flex-col overflow-hidden !p-0">
             <iframe
               src={presignedUrl}
-              className="min-h-[calc(100vh-11rem)] w-full flex-1 rounded-xl bg-[#0f141c]"
+              className="min-h-[calc(100vh-11rem)] w-full flex-1 rounded-xl border border-[var(--portal-line)] bg-[var(--portal-canvas-alt)]"
               title={fileName}
             />
           </PortalGlassCard>
@@ -90,12 +99,18 @@ export default function ShareViewer({
 
         {isImage ? (
           <div className="mx-auto flex w-full max-w-5xl flex-1 items-center justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={presignedUrl}
-              alt={fileName}
-              className="max-h-[calc(100vh-11rem)] max-w-full rounded-2xl border border-white/10 object-contain shadow-lg"
-            />
+            {previewFailed ? (
+              <p className="py-16 text-sm text-[var(--portal-ink-muted)]">This file could not be loaded. Ask the sender to share it again.</p>
+            ) : (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                ref={imgRef}
+                src={presignedUrl}
+                alt={fileName}
+                onError={() => setPreviewFailed(true)}
+                className="max-h-[calc(100vh-11rem)] max-w-full rounded-2xl border border-[var(--portal-line)] object-contain shadow-lg"
+              />
+            )}
           </div>
         ) : null}
 
@@ -103,19 +118,19 @@ export default function ShareViewer({
           <video
             src={presignedUrl}
             controls
-            className="mx-auto max-h-[calc(100vh-11rem)] w-full max-w-4xl rounded-2xl border border-white/10 bg-black"
+            className="mx-auto max-h-[calc(100vh-11rem)] w-full max-w-4xl rounded-2xl border border-[var(--portal-line)] bg-black"
           />
         ) : null}
 
         {!isPdf && !isImage && !isVideo ? (
           <div className="mx-auto flex w-full max-w-md flex-1 flex-col items-center justify-center">
             <PortalGlassCard className="w-full text-center">
-              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
-                <Eye size={28} className="text-slate-400" aria-hidden />
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--portal-line)] bg-[var(--portal-canvas-alt)]">
+                <Eye size={28} className="text-[var(--portal-ink-muted)]" aria-hidden />
               </div>
-              <h2 className="text-lg font-bold text-white">{fileName}</h2>
-              <p className="mt-1 text-sm text-slate-400">{formatBytes(fileSize)}</p>
-              <p className="mt-3 text-xs text-slate-500">
+              <h2 className="text-lg font-bold text-[var(--portal-ink)]">{fileName}</h2>
+              <p className="mt-1 text-sm text-[var(--portal-ink-muted)]">{formatBytes(fileSize)}</p>
+              <p className="mt-3 text-xs text-[var(--portal-ink-muted)]">
                 Preview is not available for this file type.
                 {canDownload ? " Download the file to open it locally." : " Open in a new tab if your device supports this format."}
               </p>

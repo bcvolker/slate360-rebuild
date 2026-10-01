@@ -6,7 +6,7 @@ import type { EditorBlock } from "@/lib/types/blocks";
 import { cn } from "@/lib/utils";
 
 /**
- * Cinematic click-through slideshow for a shared deliverable — graphite-glass,
+ * Cinematic click-through slideshow for a shared deliverable — dark full-screen presentation (like a video player; deliberately not the light page chrome),
  * one block per slide, keyboard + tap navigation. Matches the app design system.
  */
 export function DeliverableSlideshow({
@@ -43,19 +43,19 @@ export function DeliverableSlideshow({
   const atEnd = index === count - 1;
 
   return (
-    <div className="fixed inset-0 z-[200] flex flex-col bg-[var(--graphite-canvas)] [-webkit-user-select:none] select-none">
+    <div className="fixed inset-0 z-[200] flex flex-col bg-black [-webkit-user-select:none] select-none">
       {/* Header */}
       <header className="flex shrink-0 items-center justify-between gap-3 border-b border-white/10 px-4 py-3">
-        <p className="truncate text-sm font-semibold text-[var(--graphite-text-header)]">{title}</p>
+        <p className="truncate text-sm font-semibold text-white">{title}</p>
         <div className="flex items-center gap-3">
-          <span className="font-mono text-xs tabular-nums text-[var(--graphite-muted)]">
+          <span className="font-mono text-xs tabular-nums text-white/60">
             {index + 1} / {count}
           </span>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close slideshow"
-            className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-[var(--graphite-muted)] transition-colors hover:text-[var(--graphite-text-header)]"
+            className="flex h-9 w-9 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white/60 transition-colors hover:text-white"
           >
             <X className="h-4 w-4" />
           </button>
@@ -76,7 +76,7 @@ export function DeliverableSlideshow({
           onClick={() => go(-1)}
           disabled={atStart}
           aria-label="Previous slide"
-          className="absolute left-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-[var(--graphite-text-body)] transition-opacity hover:bg-white/10 disabled:opacity-30 sm:flex"
+          className="absolute left-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white/85 transition-opacity hover:bg-white/10 disabled:opacity-30 sm:flex"
         >
           <ChevronLeft className="h-5 w-5" />
         </button>
@@ -85,7 +85,7 @@ export function DeliverableSlideshow({
           onClick={() => go(1)}
           disabled={atEnd}
           aria-label="Next slide"
-          className="absolute right-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-white/10 bg-white/[0.04] text-[var(--graphite-text-body)] transition-opacity hover:bg-white/10 disabled:opacity-30 sm:flex"
+          className="absolute right-3 top-1/2 z-20 hidden h-11 w-11 -translate-y-1/2 items-center justify-center rounded-xl border border-white/10 bg-white/[0.04] text-white/85 transition-opacity hover:bg-white/10 disabled:opacity-30 sm:flex"
         >
           <ChevronRight className="h-5 w-5" />
         </button>
@@ -100,8 +100,8 @@ export function DeliverableSlideshow({
             aria-label={`Go to slide ${i + 1}`}
             onClick={() => setIndex(i)}
             className={cn(
-              "h-1.5 rounded-full transition-all",
-              i === index ? "w-6 bg-[var(--graphite-primary)]" : "w-1.5 bg-white/20 hover:bg-white/40",
+              "h-1.5 rounded-sm transition-all",
+              i === index ? "w-6 bg-[var(--portal-accent)]" : "w-1.5 bg-white/20 hover:bg-white/40",
             )}
           />
         ))}
@@ -120,24 +120,24 @@ function SlideContent({ block }: { block: EditorBlock }) {
             <img src={block.src} alt={block.alt || "Slide"} className="max-h-[78vh] w-auto max-w-full rounded-2xl object-contain" />
           ) : (
             <div className="flex aspect-video w-full max-w-2xl items-center justify-center rounded-2xl bg-white/[0.04]">
-              <span className="text-xs text-[var(--graphite-muted)]">Image unavailable</span>
+              <span className="text-xs text-white/60">Image unavailable</span>
             </div>
           )}
           {block.caption ? (
-            <figcaption className="max-w-2xl text-center text-sm text-[var(--graphite-muted)]">{block.caption}</figcaption>
+            <figcaption className="max-w-2xl text-center text-sm text-white/60">{block.caption}</figcaption>
           ) : null}
         </figure>
       );
     case "heading":
       return (
-        <h2 className="max-w-3xl text-center text-3xl font-bold text-[var(--graphite-text-header)] sm:text-4xl">
+        <h2 className="max-w-3xl text-center text-3xl font-bold text-white sm:text-4xl">
           {block.content}
         </h2>
       );
     case "callout":
     case "text":
       return (
-        <p className="max-w-2xl whitespace-pre-wrap text-center text-lg leading-relaxed text-[var(--graphite-text-body)]">
+        <p className="max-w-2xl whitespace-pre-wrap text-center text-lg leading-relaxed text-white/85">
           {block.content}
         </p>
       );

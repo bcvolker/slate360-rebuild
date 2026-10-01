@@ -39,6 +39,7 @@ import type { CeilingState } from "@/components/digital-twin/mesh-body";
 import { useSplatBytes } from "@/hooks/useSplatBytes";
 import { estimateOrientationFromMesh } from "@/lib/digital-twin/splat-pca-orientation";
 import { applyEditListToMesh, createSweepEdit } from "@/lib/digital-twin/splat-edit-runtime";
+import { readSplatLoadStats, type SplatLoadStats } from "@/lib/digital-twin/spark-appearance-load";
 import { fetchSplatManifest, type SplatManifest } from "@/lib/digital-twin/twin-manifest";
 
 extend({ SparkRenderer: SparkRendererImpl, SplatMesh: SplatMeshImpl });
@@ -67,6 +68,10 @@ export function MeshSplatLayer({
   onProgress,
   onLoaded,
   onManifest,
+  worldMatrix = null,
+  sparkPiFlip = true,
+  lodSplatCount: lodSplatCountProp,
+  onReady,
 }: {
   url: string;
   visible: boolean;
@@ -76,6 +81,13 @@ export function MeshSplatLayer({
   onProgress?: (loaded: number, total: number | null) => void;
   onLoaded?: (mesh: SplatMesh) => void;
   onManifest?: (manifest: SplatManifest | null) => void;
+  /** Column-major 4x4 object transform. When set, replaces the Rx(pi)/manifest/PCA orientation. */
+  worldMatrix?: readonly number[] | null;
+  sparkPiFlip?: boolean;
+  /** Overrides the per-frame LOD budget. */
+  lodSplatCount?: number;
+  /** Fires once the splats are actually decoded (not just when the file arrived). */
+  onReady?: (stats?: SplatLoadStats) => void;
 }): ReactElement {
   const gl = useThree((state) => state.gl);
   const groupRef = useRef<THREE.Group>(null);
@@ -93,16 +105,26 @@ export function MeshSplatLayer({
     () => ({
       renderer: gl,
       enableLod: true,
-      lodSplatCount: maxSplats === MOBILE_MAX_SPLATS ? MOBILE_LOD_SPLATS : DESKTOP_LOD_SPLATS,
+      lodSplatCount:
+        lodSplatCountProp ?? (maxSplats === MOBILE_MAX_SPLATS ? MOBILE_LOD_SPLATS : DESKTOP_LOD_SPLATS),
     }),
-    [gl, maxSplats],
+    [gl, maxSplats, lodSplatCountProp],
   );
+  const onReadyRef = useRef(onReady);
+  onReadyRef.current = onReady;
   const { bytes } = useSplatBytes(url, onProgress);
 
   useEffect(() => {
-    groupRef.current?.quaternion.identity();
-    groupRef.current?.scale.setScalar(1);
-    groupRef.current?.updateMatrixWorld(true);
+    const group = groupRef.current;
+    if (group && worldMatrix) {
+      new THREE.Matrix4()
+        .fromArray(worldMatrix as number[])
+        .decompose(group.position, group.quaternion, group.scale);
+    } else {
+      group?.quaternion.identity();
+      group?.scale.setScalar(1);
+    }
+    group?.updateMatrixWorld(true);
     meshRef.current = null;
     manifestRef.current = null;
     let cancelled = false;
@@ -116,7 +138,7 @@ export function MeshSplatLayer({
     return () => {
       cancelled = true;
     };
-  }, [url, onManifest]);
+  }, [url, onManifest, worldMatrix]);
 
   useEffect(() => {
     if (meshRef.current) meshRef.current.visible = visible;
@@ -173,20 +195,21 @@ export function MeshSplatLayer({
           manifest = await manifestPromiseRef.current;
         }
         const group = groupRef.current;
-        if (group) orientGroup(group, mesh, manifest);
+        if (group && !worldMatrix) orientGroup(group, mesh, manifest);
         // Desktop-editor cleanup (crop / erase) travels with the manifest; honour it here too.
         if (manifest?.edit_list?.length) applyEditListToMesh(mesh, manifest.edit_list);
         meshRef.current = mesh;
         onLoaded?.(mesh);
+        if (onReadyRef.current) onReadyRef.current(await readSplatLoadStats(mesh));
       },
     }),
-    [bytes, maxSplats, onLoaded],
+    [bytes, maxSplats, onLoaded, worldMatrix],
   );
 
   return (
     <group ref={groupRef} visible={visible}>
       <sparkRenderer args={[sparkArgs]}>
-        {bytes ? <splatMesh args={[splatArgs]} rotation={[Math.PI, 0, 0]} /> : null}
+        {bytes ? <splatMesh args={[splatArgs]} rotation={sparkPiFlip ? [Math.PI, 0, 0] : [0, 0, 0]} /> : null}
       </sparkRenderer>
     </group>
   );

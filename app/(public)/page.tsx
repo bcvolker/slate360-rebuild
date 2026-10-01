@@ -12,7 +12,7 @@ import { HomeExamplesLight } from "@/app/(public)/_components/home-examples-ligh
 import { HomeHowItWorksLight } from "@/app/(public)/_components/home-how-it-works-light";
 import { HomeDifferentLight } from "@/app/(public)/_components/home-different-light";
 import { HomeWhoPricingLight } from "@/app/(public)/_components/home-who-pricing-light";
-import { HomeThermalLight, HomeBuildsLineLight } from "@/app/(public)/_components/home-thermal-builds-light";
+import { HomeAdditionalServicesLight } from "@/app/(public)/_components/home-additional-services-light";
 import { HomeContactForm } from "@/app/(public)/_components/home-contact-form";
 import { MKT_L_PAGE } from "@/app/(public)/_components/marketing-styles-light";
 import { assets } from "@/lib/design-system/tokens";
@@ -66,9 +66,8 @@ export default async function RootPage() {
           <HomeHowItWorksLight />
           <HomeDifferentLight />
           <HomeWhoPricingLight />
-          <HomeThermalLight />
+          <HomeAdditionalServicesLight />
           <HomeContactForm />
-          <HomeBuildsLineLight />
         </main>
         <HomeFooterLight />
       </div>

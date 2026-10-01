@@ -8,6 +8,8 @@ import { ProjectDetailEmptyState } from "@/components/projects/ProjectDetailEmpt
 import { projectDetailTokens as t } from "@/components/projects/project-detail-tokens";
 import { startProjectWalk, StartWalkError } from "@/lib/site-walk/start-walk";
 import type { ProjectOverviewData } from "@/lib/projects/load-project-overview-data";
+import { SpatialProjectOverview } from "@/components/spatial-walkthrough/portal/SpatialProjectOverview";
+import { ClientPortalPanel } from "@/components/spatial-walkthrough/portal/ClientPortalPanel";
 
 function formatDate(value: string | null): string {
   if (!value) return "Not set";
@@ -23,6 +25,10 @@ type ProjectOverviewTabProps = {
 };
 
 export function ProjectOverviewTab({ data }: ProjectOverviewTabProps) {
+  if (data.spatialOnly) {
+    return <SpatialProjectOverview data={data} />;
+  }
+
   const hasActivity = data.recentActivity.length > 0;
   const base = `/projects/${data.projectId}`;
   const lastUploadLabel = data.lastFileUploadAt
@@ -60,7 +66,15 @@ export function ProjectOverviewTab({ data }: ProjectOverviewTabProps) {
           <section aria-label="Quick actions">
             <p className={`${t.eyebrow} mb-3`}>Quick actions</p>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <StartWalkTile projectId={data.projectId} projectName={data.name} />
+              {data.showWalkthroughs ? (
+                <ActionTile
+                  label="Spatial Walkthroughs"
+                  hint="Open 360 captures"
+                  href={`${base}/walkthroughs`}
+                  icon={FolderOpen}
+                />
+              ) : null}
+              {data.showSiteWalk ? <StartWalkTile projectId={data.projectId} projectName={data.name} /> : null}
               {data.showTwins ? (
                 <ActionTile
                   label="Start a Twin"
@@ -69,8 +83,12 @@ export function ProjectOverviewTab({ data }: ProjectOverviewTabProps) {
                   icon={Box}
                 />
               ) : null}
-              <ActionTile label="Walk with drawings" hint="Pin photos to the plan" href={`${base}/plans`} icon={Footprints} />
-              <ActionTile label="Upload a drawing" hint="PDF plan set" href={`${base}/plans`} icon={Upload} />
+              {data.showSiteWalk ? (
+                <ActionTile label="Walk with drawings" hint="Pin photos to the plan" href={`${base}/plans`} icon={Footprints} />
+              ) : null}
+              {data.showSiteWalk ? (
+                <ActionTile label="Upload a drawing" hint="PDF plan set" href={`${base}/plans`} icon={Upload} />
+              ) : null}
               <ActionTile label="Invite team" hint="Add collaborators" href={`${base}/team`} icon={UserPlus} />
             </div>
           </section>
@@ -78,11 +96,18 @@ export function ProjectOverviewTab({ data }: ProjectOverviewTabProps) {
           <section aria-label="Project counts">
             <p className={`${t.eyebrow} mb-3`}>Quick stats</p>
             <div className={t.statGrid}>
-              <StatCard label="Walks" value={data.counts.walks} href={`${base}/walks`} icon={MapPin} />
+              {data.showSiteWalk ? (
+                <StatCard label="Walks" value={data.counts.walks} href={`${base}/walks`} icon={MapPin} />
+              ) : null}
+              {data.showWalkthroughs ? (
+                <StatCard label="Walkthroughs" value={data.counts.walkthroughs} href={`${base}/walkthroughs`} icon={FolderOpen} />
+              ) : null}
               {data.showTwins ? (
                 <StatCard label="Digital Twins" value={data.counts.twins} href={`${base}/twins`} icon={Box} />
               ) : null}
-              <StatCard label="Deliverables" value={data.counts.deliverables} href={`${base}/deliverables`} icon={FileCheck} />
+              {data.showSiteWalk ? (
+                <StatCard label="Deliverables" value={data.counts.deliverables} href={`${base}/deliverables`} icon={FileCheck} />
+              ) : null}
               <StatCard label="Files" value={data.counts.files} meta={lastUploadLabel} href={`${base}/slatedrop`} icon={FolderOpen} />
               <StatCard label="Team" value={data.counts.teamMembers} href={`${base}/team`} icon={Users} />
             </div>
@@ -112,7 +137,11 @@ export function ProjectOverviewTab({ data }: ProjectOverviewTabProps) {
             <div className="mt-3 flex-1">
               <ProjectDetailEmptyState
                 title="No activity yet"
-                description="Upload a plan, start a Site Walk, or add files to see activity here."
+                description={
+                  data.showWalkthroughs && !data.showSiteWalk
+                    ? "Open a Spatial Walkthrough or add project files to see activity here."
+                    : "Upload a plan, start a Site Walk, or add files to see activity here."
+                }
                 actionLabel="Upload files"
                 actionHref={`${base}/slatedrop`}
               />
@@ -120,6 +149,7 @@ export function ProjectOverviewTab({ data }: ProjectOverviewTabProps) {
           )}
         </section>
       </div>
+      {data.showWalkthroughs ? <ClientPortalPanel projectId={data.projectId} /> : null}
     </div>
   );
 }

@@ -24,6 +24,8 @@ FILES = %w[
   TwinCaptureHudView.swift
   TwinHudStateModel.swift
   TwinCaptureChromeMetrics.swift
+  CaptureTrajectoryWriter.swift
+  CaptureDataPreservation.swift
 ].freeze
 
 # Frameworks the native capture uses. ARKit is always linked below; these are

@@ -64,5 +64,6 @@
     "components/coordination/contacts/ContactDetail.tsx",
     "components/projects/ChangeHistory.tsx",
     "components/site-walk/ProjectInbox.tsx"
-  ]
+  ],
+  "legacyPortalGraphiteFiles": []
 }

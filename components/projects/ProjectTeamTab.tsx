@@ -9,12 +9,14 @@ import { ProjectDetailEmptyState } from "@/components/projects/ProjectDetailEmpt
 import { projectDetailTokens as t } from "@/components/projects/project-detail-tokens";
 import { COLLABORATOR_UPGRADE_TOOLTIP } from "@/lib/projects/project-collaborator-entitlement";
 import type { ProjectTeamTabData } from "@/lib/projects/team-tab-data";
+import { ProjectSharingBoard } from "@/components/spatial-walkthrough/portal/ProjectSharingBoard";
 
 type ProjectTeamTabProps = {
   data: ProjectTeamTabData;
   canManage: boolean;
   canInviteCollaborators: boolean;
   basePath?: "/projects";
+  showWalkthroughSharing?: boolean;
 };
 
 export function ProjectTeamTab({
@@ -22,6 +24,7 @@ export function ProjectTeamTab({
   canManage,
   canInviteCollaborators,
   basePath = "/projects",
+  showWalkthroughSharing = false,
 }: ProjectTeamTabProps) {
   const [refreshKey, setRefreshKey] = useState(0);
   const refresh = () => setRefreshKey((key) => key + 1);
@@ -122,10 +125,12 @@ export function ProjectTeamTab({
         </div>
       )}
 
+      {showWalkthroughSharing ? <ProjectSharingBoard projectId={data.projectId} /> : null}
+
       <div className="flex justify-end">
         <Link
           href={`${basePath}/${data.projectId}/people`}
-          className="inline-flex items-center gap-1 text-xs font-semibold text-[var(--graphite-primary)] hover:underline"
+          className="inline-flex min-h-11 items-center gap-1 text-xs font-semibold text-[var(--graphite-primary)] hover:underline"
         >
           Manage all people <ArrowRight className="h-3.5 w-3.5" />
         </Link>
