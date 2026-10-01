@@ -1,0 +1,12 @@
+{"which": "control", "exit": 0, "seconds": 1719, "binary_sha256": "1c4d54bbeda9e72bb9277c6525a949164e1bcdf0377d388dbf008419e9351736", "zip_sha256": "123d6d0b826388abb64129b6fcf2a8d34fe0662a57ba34e53212a148c891431d", "version": "2026.9.30 (1943eda)", "cmd": "/opt/spirula/spirula train 360-camera --data /vol/room213/2026-09-29/capture/conditions/A/ws --image-dir images --mask-dir masks --output-dir-prefix /vol/room213/2026-09-29/capture/conditions/ROI930/control --output-dir-name run --disable-viewer 1 --device 0"}
+[elapsed 00:28:05.819 | ETA 00:00:17.614]  rgb_loss=0.04999  ssim=0.8531  psnr=27.86
+step  29801/30000 ( 99%)  splats 1000000  [elapsed 00:28:11.339 | ETA 00:00:12.056]  rgb_loss=0.04298  ssim=0.8898  psnr=26.5
+step  29901/30000 ( 99%)  splats 1000000  [elapsed 00:28:16.885 | ETA 00:00:06.563]  rgb_loss=0.04549  ssim=0.893  psnr=24.22
+step  30000/30000 (100%)  splats 1000000  [elapsed 00:28:22.395 | ETA 00:00:00.000]  rgb_loss=0.05247  ssim=0.8629  psnr=24.98
+Checkpoint saved to: /vol/room213/2026-09-29/capture/conditions/ROI930/control/run
+Training complete. Steps: 30000   Time: 00:28:22.395
+
+{"which": "roi", "exit": 0, "seconds": 1673, "binary_sha256": "1c4d54bbeda9e72bb9277c6525a949164e1bcdf0377d388dbf008419e9351736", "zip_sha256": "123d6d0b826388abb64129b6fcf2a8d34fe0662a57ba34e53212a148c891431d", "version": "2026.9.30 (1943eda)", "cmd": "/opt/spirula/spirula train 360-camera --data /vol/room213/2026-09-29/capture/conditions/A/ws --image-dir images --mask-dir masks --output-dir-prefix /vol/room213/2026-09-29/capture/conditions/ROI930/roi --output-dir-name run --disable-viewer 1 --device 0 --roi-region /vol/room213/2026-09-29/capture/conditions/ROI930/roi/roi.json"}
+000  [elapsed 00:26:34.778 | ETA 00:00:16.851]  rgb_loss=0.028  ssim=0.966  psnr=26.03
+step  29801/30000 ( 99%)  splats 1000000  [elapsed 00:26:40.030 | ETA 00:00:11.536]  rgb_loss=0.03466  ssim=0.9384  psnr=26.29
+step  29901/30000 ( 99%)  splats 1000000  [elapsed 00:26:45.297 | ET

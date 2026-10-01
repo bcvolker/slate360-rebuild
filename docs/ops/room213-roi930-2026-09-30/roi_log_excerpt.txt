@@ -1,0 +1,9 @@
+Cameras: 1016 (5080 after splitting), seed points: 665307 (train_frame_scale=5.468)
+Region of interest: program nodes 1; splats outside draw with weight 0.0001
+Region of interest: 1016 images masked to what they show of it; 69% of pixels left out
+step      1/30000 (  0%)  splats 665307  [elapsed 00:00:03.153 | ETA --:--]  rgb_loss=0.2  ssim=0  psnr=0
+step    601/30000 (  2%)  splats 698572  [elapsed 00:00:36.220 | ETA 00:25:08.072]  rgb_loss=0.04503  ssim=0.9527  psnr=22.35
+step   1001/30000 (  3%)  splats 849116  [elapsed 00:00:59.182 | ETA 00:26:55.494]  rgb_loss=0.05667  ssim=0.9523  psnr=20.82
+step   1401/30000 (  4%)  splats 1000000  [elapsed 00:01:20.085 | ETA 00:28:36.564]  rgb_loss=0.04511  ssim=0.9471  psnr=23.87
+step  14001/30000 ( 46%)  splats 1000000  [elapsed 00:12:40.819 | ETA 00:14:01.753]  rgb_loss=0.028  ssim=0.9469  psnr=28.48
+step  30000/30000 (100%)  splats 1000000  [elapsed 00:26:50.535 | ETA 00:00:00.000]  rgb_loss=0.02606  ssim=0.9703  psnr=26.22

@@ -1,0 +1,410 @@
+{
+ "A": {
+  "n_total": 998762,
+  "inside_box": 1299,
+  "frac_inside_box": 0.001300610155372351,
+  "within_box_plus_20cm": 3489,
+  "frac_near_box": 0.0034933247360231967,
+  "inside_box_longest_mm_p10_p50": [
+   7.14,
+   23.38
+  ],
+  "table": {
+   "r15mm": {
+    "all": 7,
+    "contributing": 7,
+    "longest_mm_p10_p50_p90": [
+     3.2,
+     4.09,
+     5.43
+    ],
+    "shortest_mm_p50": 1.0192636251449585,
+    "opacity_p10_p50_p90": [
+     0.126,
+     0.235,
+     0.298
+    ]
+   },
+   "r30mm": {
+    "all": 23,
+    "contributing": 22,
+    "longest_mm_p10_p50_p90": [
+     3.82,
+     8.41,
+     15.56
+    ],
+    "shortest_mm_p50": 1.7035925388336182,
+    "opacity_p10_p50_p90": [
+     0.114,
+     0.254,
+     0.627
+    ]
+   },
+   "r60mm": {
+    "all": 92,
+    "contributing": 89,
+    "longest_mm_p10_p50_p90": [
+     4.83,
+     10.61,
+     17.73
+    ],
+    "shortest_mm_p50": 2.07002854347229,
+    "opacity_p10_p50_p90": [
+     0.096,
+     0.361,
+     0.879
+    ]
+   }
+  },
+  "armrest": {
+   "r15mm": {
+    "all": 12,
+    "contributing": 12,
+    "longest_mm_p10_p50_p90": [
+     5.22,
+     7.29,
+     11.63
+    ],
+    "shortest_mm_p50": 3.4379701614379883,
+    "opacity_p10_p50_p90": [
+     0.074,
+     0.245,
+     0.614
+    ]
+   },
+   "r30mm": {
+    "all": 43,
+    "contributing": 42,
+    "longest_mm_p10_p50_p90": [
+     4.03,
+     7.18,
+     11.87
+    ],
+    "shortest_mm_p50": 2.307875633239746,
+    "opacity_p10_p50_p90": [
+     0.066,
+     0.2,
+     0.788
+    ]
+   },
+   "r60mm": {
+    "all": 97,
+    "contributing": 90,
+    "longest_mm_p10_p50_p90": [
+     4.85,
+     10.46,
+     15.63
+    ],
+    "shortest_mm_p50": 2.4783620834350586,
+    "opacity_p10_p50_p90": [
+     0.062,
+     0.251,
+     0.811
+    ]
+   }
+  },
+  "cable": {
+   "r15mm": {
+    "all": 4,
+    "contributing": 3,
+    "longest_mm_p10_p50_p90": [
+     4.14,
+     4.65,
+     5.47
+    ],
+    "shortest_mm_p50": 1.3578710556030273,
+    "opacity_p10_p50_p90": [
+     0.082,
+     0.202,
+     0.592
+    ]
+   },
+   "r30mm": {
+    "all": 37,
+    "contributing": 33,
+    "longest_mm_p10_p50_p90": [
+     3.24,
+     4.65,
+     7.05
+    ],
+    "shortest_mm_p50": 1.1085797548294067,
+    "opacity_p10_p50_p90": [
+     0.066,
+     0.207,
+     0.482
+    ]
+   },
+   "r60mm": {
+    "all": 133,
+    "contributing": 119,
+    "longest_mm_p10_p50_p90": [
+     3.74,
+     6.07,
+     11.63
+    ],
+    "shortest_mm_p50": 1.1970999240875244,
+    "opacity_p10_p50_p90": [
+     0.048,
+     0.22,
+     0.563
+    ]
+   }
+  }
+ },
+ "CTRL930": {
+  "n_total": 998737,
+  "inside_box": 1258,
+  "frac_inside_box": 0.0012595908632602978,
+  "within_box_plus_20cm": 3461,
+  "frac_near_box": 0.003465376770861598,
+  "inside_box_longest_mm_p10_p50": [
+   7.53,
+   21.28
+  ],
+  "table": {
+   "r15mm": {
+    "all": 8,
+    "contributing": 8,
+    "longest_mm_p10_p50_p90": [
+     4.69,
+     5.68,
+     9.32
+    ],
+    "shortest_mm_p50": 1.6190391778945923,
+    "opacity_p10_p50_p90": [
+     0.077,
+     0.171,
+     0.416
+    ]
+   },
+   "r30mm": {
+    "all": 24,
+    "contributing": 24,
+    "longest_mm_p10_p50_p90": [
+     5.58,
+     9.73,
+     16.4
+    ],
+    "shortest_mm_p50": 2.643265724182129,
+    "opacity_p10_p50_p90": [
+     0.075,
+     0.236,
+     0.823
+    ]
+   },
+   "r60mm": {
+    "all": 92,
+    "contributing": 84,
+    "longest_mm_p10_p50_p90": [
+     6.09,
+     10.12,
+     17.59
+    ],
+    "shortest_mm_p50": 1.9297595024108887,
+    "opacity_p10_p50_p90": [
+     0.052,
+     0.292,
+     0.886
+    ]
+   }
+  },
+  "armrest": {
+   "r15mm": {
+    "all": 11,
+    "contributing": 10,
+    "longest_mm_p10_p50_p90": [
+     5.62,
+     8.59,
+     10.58
+    ],
+    "shortest_mm_p50": 3.556549072265625,
+    "opacity_p10_p50_p90": [
+     0.065,
+     0.276,
+     0.711
+    ]
+   },
+   "r30mm": {
+    "all": 40,
+    "contributing": 37,
+    "longest_mm_p10_p50_p90": [
+     4.74,
+     8.52,
+     13.87
+    ],
+    "shortest_mm_p50": 2.167546272277832,
+    "opacity_p10_p50_p90": [
+     0.064,
+     0.17,
+     0.76
+    ]
+   },
+   "r60mm": {
+    "all": 112,
+    "contributing": 100,
+    "longest_mm_p10_p50_p90": [
+     5.66,
+     10.2,
+     17.17
+    ],
+    "shortest_mm_p50": 2.4182138442993164,
+    "opacity_p10_p50_p90": [
+     0.049,
+     0.176,
+     0.754
+    ]
+   }
+  },
+  "cable": {
+   "r15mm": {
+    "all": 2,
+    "contributing": 2,
+    "longest_mm_p10_p50_p90": [
+     5.93,
+     7.69,
+     9.45
+    ],
+    "shortest_mm_p50": 1.305027723312378,
+    "opacity_p10_p50_p90": [
+     0.478,
+     0.542,
+     0.605
+    ]
+   },
+   "r30mm": {
+    "all": 21,
+    "contributing": 20,
+    "longest_mm_p10_p50_p90": [
+     5.4,
+     6.72,
+     9.55
+    ],
+    "shortest_mm_p50": 1.3429484367370605,
+    "opacity_p10_p50_p90": [
+     0.08,
+     0.328,
+     0.621
+    ]
+   },
+   "r60mm": {
+    "all": 127,
+    "contributing": 118,
+    "longest_mm_p10_p50_p90": [
+     3.48,
+     6.44,
+     11.45
+    ],
+    "shortest_mm_p50": 1.4207820892333984,
+    "opacity_p10_p50_p90": [
+     0.058,
+     0.246,
+     0.609
+    ]
+   }
+  }
+ },
+ "ROI930": {
+  "n_total": 969957,
+  "inside_box": 1705,
+  "frac_inside_box": 0.0017578098822937512,
+  "within_box_plus_20cm": 12606,
+  "frac_near_box": 0.012996452420055734,
+  "inside_box_longest_mm_p10_p50": [
+   0.0,
+   0.46
+  ],
+  "table": {
+   "r15mm": {
+    "all": 0,
+    "contributing": 0,
+    "longest_mm_p10_p50_p90": null,
+    "shortest_mm_p50": null,
+    "opacity_p10_p50_p90": null
+   },
+   "r30mm": {
+    "all": 0,
+    "contributing": 0,
+    "longest_mm_p10_p50_p90": null,
+    "shortest_mm_p50": null,
+    "opacity_p10_p50_p90": null
+   },
+   "r60mm": {
+    "all": 0,
+    "contributing": 0,
+    "longest_mm_p10_p50_p90": null,
+    "shortest_mm_p50": null,
+    "opacity_p10_p50_p90": null
+   }
+  },
+  "armrest": {
+   "r15mm": {
+    "all": 3,
+    "contributing": 3,
+    "longest_mm_p10_p50_p90": [
+     6.83,
+     6.99,
+     11.84
+    ],
+    "shortest_mm_p50": 4.023759365081787,
+    "opacity_p10_p50_p90": [
+     0.087,
+     0.089,
+     0.618
+    ]
+   },
+   "r30mm": {
+    "all": 12,
+    "contributing": 10,
+    "longest_mm_p10_p50_p90": [
+     6.97,
+     10.69,
+     13.14
+    ],
+    "shortest_mm_p50": 4.184844017028809,
+    "opacity_p10_p50_p90": [
+     0.047,
+     0.088,
+     0.73
+    ]
+   },
+   "r60mm": {
+    "all": 47,
+    "contributing": 37,
+    "longest_mm_p10_p50_p90": [
+     8.32,
+     12.73,
+     22.79
+    ],
+    "shortest_mm_p50": 5.092366695404053,
+    "opacity_p10_p50_p90": [
+     0.03,
+     0.089,
+     0.63
+    ]
+   }
+  },
+  "cable": {
+   "r15mm": {
+    "all": 0,
+    "contributing": 0,
+    "longest_mm_p10_p50_p90": null,
+    "shortest_mm_p50": null,
+    "opacity_p10_p50_p90": null
+   },
+   "r30mm": {
+    "all": 0,
+    "contributing": 0,
+    "longest_mm_p10_p50_p90": null,
+    "shortest_mm_p50": null,
+    "opacity_p10_p50_p90": null
+   },
+   "r60mm": {
+    "all": 0,
+    "contributing": 0,
+    "longest_mm_p10_p50_p90": null,
+    "shortest_mm_p50": null,
+    "opacity_p10_p50_p90": null
+   }
+  }
+ }
+}

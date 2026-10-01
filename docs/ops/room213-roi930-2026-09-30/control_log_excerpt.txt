@@ -1,0 +1,7 @@
+Cameras: 1016 (5080 after splitting), seed points: 665307 (train_frame_scale=5.468)
+step      1/30000 (  0%)  splats 665307  [elapsed 00:00:03.278 | ETA --:--]  rgb_loss=0.2  ssim=0  psnr=0
+step    601/30000 (  2%)  splats 698572  [elapsed 00:00:37.330 | ETA 00:32:41.262]  rgb_loss=0.06504  ssim=0.8543  psnr=23.93
+step   1001/30000 (  3%)  splats 849116  [elapsed 00:01:00.803 | ETA 00:32:04.972]  rgb_loss=0.06719  ssim=0.8517  psnr=22.8
+step   1401/30000 (  4%)  splats 1000000  [elapsed 00:01:22.861 | ETA 00:31:39.506]  rgb_loss=0.06705  ssim=0.8392  psnr=23.91
+step  14001/30000 ( 46%)  splats 1000000  [elapsed 00:13:25.473 | ETA 00:14:55.991]  rgb_loss=0.05049  ssim=0.8458  psnr=28.07
+step  30000/30000 (100%)  splats 1000000  [elapsed 00:28:22.395 | ETA 00:00:00.000]  rgb_loss=0.05247  ssim=0.8629  psnr=24.98

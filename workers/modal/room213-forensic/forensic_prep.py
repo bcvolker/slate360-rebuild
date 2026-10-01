@@ -242,3 +242,29 @@ def gauss_global_v1(ply: str) -> dict:
     sc = np.exp(a[:, [col["scale_0"], col["scale_1"], col["scale_2"]]]).max(1) * 1000; op = 1 / (1 + np.exp(-a[:, col["opacity"]]))
     return {"n": int(n), "opacity_lt_0.02": float((op < 0.02).mean()), "opacity_lt_0.05": float((op < 0.05).mean()), "opacity_p10_p50_p90": np.percentile(op, [10, 50, 90]).round(3).tolist(),
             "major_mm_p10_p50_p90": np.percentile(sc, [10, 50, 90]).round(2).tolist(), "frac_major_lt_3mm": float((sc < 3).mean()), "frac_major_gt_30mm": float((sc > 30).mean())}
+
+
+@app.function(image=image, cpu=4.0, memory=16384, timeout=1800, volumes={"/vol": vol})
+def gauss_census_v3(ply: str, targets: dict, box: dict, radii: list = [0.015, 0.03, 0.06]) -> dict:
+    """Budget inside/near an ROI box + contributors (opacity >= 0.05) near each target: count, longest/shortest axis, opacity."""
+    import numpy as np
+    vol.reload(); f = open(ply, "rb"); hdr = b""
+    while not hdr.endswith(b"end_header\n"): hdr += f.readline()
+    lines = hdr.decode().splitlines(); n = int(next(l.split()[-1] for l in lines if l.startswith("element vertex")))
+    props = [l.split()[-1] for l in lines if l.startswith("property")]
+    a = np.frombuffer(f.read(n * 4 * len(props)), dtype="<f4").reshape(n, len(props)); col = {p: i for i, p in enumerate(props)}
+    xyz = a[:, [col["x"], col["y"], col["z"]]]; sc = np.exp(a[:, [col["scale_0"], col["scale_1"], col["scale_2"]]]) * 1000; op = 1 / (1 + np.exp(-a[:, col["opacity"]]))
+    c, h = np.array(box["center"]), np.array(box["half"])
+    inb = np.all(np.abs(xyz - c) <= h, 1); near = np.all(np.abs(xyz - c) <= h + 0.2, 1)
+    out = {"n_total": int(n), "inside_box": int(inb.sum()), "frac_inside_box": float(inb.mean()), "within_box_plus_20cm": int(near.sum()), "frac_near_box": float(near.mean()),
+           "inside_box_longest_mm_p10_p50": np.percentile(sc[inb].max(1), [10, 50]).round(2).tolist() if inb.any() else None}
+    for name, X in targets.items():
+        d = np.linalg.norm(xyz - np.array(X), axis=1); r = {}
+        for rad in radii:
+            m = d < rad; mc = m & (op >= 0.05)
+            r[f"r{int(rad * 1000)}mm"] = {"all": int(m.sum()), "contributing": int(mc.sum()),
+                                          "longest_mm_p10_p50_p90": np.percentile(sc[mc].max(1), [10, 50, 90]).round(2).tolist() if mc.any() else None,
+                                          "shortest_mm_p50": float(np.median(sc[mc].min(1))) if mc.any() else None,
+                                          "opacity_p10_p50_p90": np.percentile(op[m], [10, 50, 90]).round(3).tolist() if m.any() else None}
+        out[name] = r
+    return out
