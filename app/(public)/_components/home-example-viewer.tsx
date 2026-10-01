@@ -135,7 +135,7 @@ export function HomeExampleViewer() {
         )}
       </div>
 
-      <div className={expanded ? "relative min-h-0 w-full flex-1" : "relative aspect-[3/4] w-full min-h-[280px] sm:aspect-video sm:min-h-[240px]"}>
+      <div className={expanded ? "relative min-h-0 w-full flex-1" : "relative aspect-video w-full min-h-[220px]"}>
         <div ref={hostRef} className="absolute inset-0" data-testid="home-example-sphere" />
         <p className="pointer-events-none absolute bottom-3 left-3 rounded-[8px] bg-[var(--mkt-surface)]/90 px-2.5 py-1 text-[12px] font-medium text-[var(--mkt-ink)]">
           Drag to look around
