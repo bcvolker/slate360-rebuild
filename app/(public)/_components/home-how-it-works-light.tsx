@@ -2,7 +2,7 @@ import { MKT_L_CONTAINER, MKT_L_H2, MKT_L_KICKER } from "@/app/(public)/_compone
 
 const STEPS = [
   { n: "01", title: "Tell us the job", body: "Site, what needs to be on record, and when you need us there." },
-  { n: "02", title: "We visit", body: "Brian captures locally, planned around your schedule." },
+  { n: "02", title: "We visit", body: "We come to the job and capture it on site, planned around your schedule." },
   { n: "03", title: "Deliverables", body: "Walkthroughs, video, photos, and reports are reviewed and published." },
   { n: "04", title: "Your portal", body: "The project, the documents, and your branding, in one place." },
   { n: "05", title: "Your crew and clients", body: "Employees work punch lists in Site Walk. Clients open a link." },
