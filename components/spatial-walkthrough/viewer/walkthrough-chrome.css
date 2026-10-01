@@ -615,3 +615,86 @@
   30% { opacity: 1; }
   to { opacity: 0; }
 }
+
+/* CSS immersive fallback when the Fullscreen API is missing or rejects.
+   API fullscreen does not use this attribute value. */
+.sw-frame[data-sw-immersive="pseudo"] {
+  position: fixed;
+  z-index: 60;
+  left: 0;
+  right: 0;
+  top: var(--sw-vv-offset-top, 0px);
+  width: 100%;
+  height: var(--sw-vv-height, 100dvh);
+  min-height: 0;
+  margin: 0;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top);
+  padding-right: env(safe-area-inset-right);
+  padding-bottom: env(safe-area-inset-bottom);
+  padding-left: env(safe-area-inset-left);
+}
+
+.sw-joy-hud {
+  position: absolute;
+  inset: 0;
+  z-index: 17;
+  pointer-events: none;
+}
+.sw-joy-stick {
+  pointer-events: auto;
+  position: absolute;
+  bottom: calc(4.85rem + var(--sw-chrome-safe));
+  width: 7.25rem;
+  height: 7.25rem;
+  touch-action: none;
+  user-select: none;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  background: color-mix(in srgb, var(--graphite-canvas) 55%, transparent);
+  border-radius: 50%;
+}
+.sw-joy-stick[data-side="left"] { left: max(0.75rem, env(safe-area-inset-left)); }
+.sw-joy-stick[data-side="right"] { right: max(0.75rem, env(safe-area-inset-right)); }
+.sw-joy-knob {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 2.75rem;
+  height: 2.75rem;
+  margin: -1.375rem 0 0 -1.375rem;
+  background: color-mix(in srgb, var(--graphite-primary) 78%, white);
+  border-radius: 50%;
+  pointer-events: none;
+}
+.sw-joy-label {
+  position: absolute;
+  top: -1.15rem;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--font-ibm-plex-mono, ui-monospace, monospace);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--sw-muted, var(--graphite-muted));
+  pointer-events: none;
+}
+.sw-joy-fullscreen {
+  pointer-events: auto;
+  position: absolute;
+  top: calc(3.1rem + env(safe-area-inset-top));
+  left: 50%;
+  transform: translateX(-50%);
+  min-height: 2.75rem;
+  padding: 0 0.9rem;
+  border: 1px solid rgb(255 255 255 / 0.16);
+  background: color-mix(in srgb, var(--graphite-canvas) 72%, transparent);
+  color: var(--graphite-text-header, var(--sw-text));
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.sw-joy-fullscreen[data-offer="true"] {
+  border-color: color-mix(in srgb, var(--graphite-primary) 65%, transparent);
+  color: var(--graphite-primary);
+}
