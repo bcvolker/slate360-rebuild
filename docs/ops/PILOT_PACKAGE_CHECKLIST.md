@@ -2,6 +2,8 @@
 
 The first contractor pilot runs on the **token client portal** (`/portal/<token>`): light, packaged deliverables, no client login. It is not vNext (#39, the authenticated Explore/portfolio track).
 
+Which deliverables a client paid for, how the portal hides the rest, and the ids still to build: `docs/design/CLIENT_PORTAL_DELIVERABLE_MATRIX.md`.
+
 Client words used everywhere: **3D Scan · 360 / Walkthrough · 360 photos · Plans · Documents · Items · Site visit**.
 
 **Prerequisite (once):**
@@ -14,7 +16,7 @@ Client words used everywhere: **3D Scan · 360 / Walkthrough · 360 photos · Pl
 | # | Step | Where | Done when |
 |---|---|---|---|
 | 1 | **Project** exists | Projects → New project | Project page opens |
-| 2 | **Enable what was sold** | Project → Overview → **Client portal** panel | Only sold rows are checked. Each shows Ready or Waiting. **Unchecked = invisible to the client:** no tab, no tile, no locked teaser. |
+| 2 | **Enable what was sold** | Project → Overview → **Client portal** panel | Only sold rows are checked. Each shows Ready or Waiting. **Unchecked = invisible to the client:** no tab, no tile, no locked teaser. A checked row that is Waiting shows a one-line waiting state once that matrix behavior ships; it does not open a blank page. |
 | 3 | **Upload the site visit** | Project → Spatial Walkthroughs → **+ New Walkthrough** → studio **Capture**: upload a stitched 2:1 360 MP4 | Clip shows Ready |
 | 4 | **Privacy: framing first** | Studio → **Privacy**: keep the mask tight (behind and under the camera only), then Save. Saving builds the operator-free version. | Saved without "This mask would black out…". The poster shows no black band. |
 | 5 | **Documents and items** (if sold) | Studio → **Pins**: add the item or document at its spot, visibility *Client* | Contracts, invoices and proposals stay *Internal* unless deliberately shared |
