@@ -5,10 +5,10 @@ import { ClientPortalPanel } from "@/components/spatial-walkthrough/portal/Clien
 
 const ROWS = [
   { id: "walkthrough", label: "Walkthrough", included: true, ready: true, note: "1 walkthrough ready" },
-  { id: "stations", label: "360 stations", included: true, ready: true, note: "Published station tour" },
-  { id: "twin", label: "3D twin", included: true, ready: false, note: "Waiting on QA acceptance" },
+  { id: "stations", label: "360 photos", included: true, ready: true, note: "Published station tour" },
+  { id: "twin", label: "3D Scan", included: true, ready: false, note: "Waiting on QA acceptance" },
   { id: "evidence", label: "Documents", included: true, ready: true, note: "3 documents on client items" },
-  { id: "issues", label: "Items and questions", included: false, ready: true, note: "1 client-visible item" },
+  { id: "issues", label: "Items", included: false, ready: true, note: "1 client-visible item" },
 ];
 
 /** Installs a fetch mock for this harness's fake project before the panel mounts. */

@@ -66,3 +66,17 @@ Client-facing lines will be re-set in the light theme; the words stay unless you
 | Every visit (printed SOP, C1.2) | 1. Mast a couple of feet ahead of you, camera above your head. Use the same heights every visit. 2. Walk the route in the order below, facing the way you walk. Forward is your direction of travel. 3. Keep yourself behind and under the camera, out of the published view (220° forward, down to -30°). No masks: if you are in the view, the take is redone. 4. Pause two seconds at each checkpoint, facing its reference view. 5. Write down anything you could not reach or had to do differently. |
 | Per checkpoint | (number) · (reference still or "No reference still yet") · (checkpoint name) · (note) · Deviation or not accessible: ____ |
 | Empty | Add checkpoints on the route first; they appear here in walking order. |
+
+## L2: client product language (integration lock with vNext, Client)
+| Where | Text |
+|---|---|
+| Portal tabs | Overview · **360 / Walkthrough** or **3D Scan** or **3D Scan & 360** (named after what is shared) · **Plans** · Documents · Items |
+| Header meta | (location) · Site visit Aug 17, 2026 |
+| Overview card | **Latest site visit** · (visit title) · (date) · Open walkthrough (the only walkthrough entry) |
+| Other ways in | **3D Scan**: Look around the scanned site in 3D · **360 photos**: Step between 360 photo points · Walkthrough: Walk the site in 360 (only when there is no capture card) · Aerial: The site from above |
+| Lists | **Items** (was "Project items") · Documents · View all · rows "Note · Open", "File · in the walkthrough" |
+| Counts | Open items · Needs reply · Documents |
+| Client portal panel (Operator) | Walkthrough · **360 photos** · **3D Scan** · Documents · **Items** |
+
+Banned on client surfaces (enforced by a render test): Reality, representation, resolver, twin, SlateDrop, Capture graph, Latest capture.
+
