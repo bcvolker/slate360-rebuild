@@ -25,5 +25,5 @@ export function TourOperatorHarness(props: { token: string; walkthroughId: strin
     };
     return null;
   });
-  return <TourOperator projectId="harness" urls={urls} />;
+  return <TourOperator projectId="harness" urls={urls} fill="viewport" />;
 }
