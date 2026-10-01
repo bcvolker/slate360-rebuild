@@ -82,6 +82,9 @@ export function WalkthroughStudio({ walkthroughId }: { walkthroughId: string }) 
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ clipId: row.id }),
+      }).then(async (res) => {
+        // The bake refuses blackout-sized masks; say why instead of failing silently.
+        if (!res.ok) window.alert(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "The privacy bake did not start.");
       });
     }
   };

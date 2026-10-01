@@ -25,7 +25,7 @@ export function TourCheckpointList({
   marks,
   locked,
   busy,
-  canMarkFrame,
+  markBlocked,
   onMark,
   onSelect,
   onAddCheckpoint,
@@ -40,8 +40,8 @@ export function TourCheckpointList({
   /** Published visits can't be edited until unpublished. */
   locked: boolean;
   busy: boolean;
-  /** The player has a decoded frame; every mark action waits for it. */
-  canMarkFrame: boolean;
+  /** Why marking is not possible yet (no frame, no published view); null when it is. */
+  markBlocked: string | null;
   onMark: (checkpointId: string, match: MatchQuality) => void;
   onSelect: (mark: CheckpointMark) => void;
   onAddCheckpoint: (chapterId: string, label: string) => void;
@@ -55,8 +55,8 @@ export function TourCheckpointList({
 
   return (
     <div className="space-y-4" data-testid="tour-checkpoints">
-      {!locked && !canMarkFrame ? (
-        <p className="text-xs text-[var(--graphite-muted)]" role="status">Marking unlocks once the video has loaded.</p>
+      {!locked && markBlocked ? (
+        <p className="text-xs text-[var(--graphite-muted)]" role="status">{markBlocked}</p>
       ) : null}
       {live.map((chapter) => {
         const points = checkpoints.filter((c) => c.chapterId === chapter.id && !c.retiredAt);
@@ -77,7 +77,7 @@ export function TourCheckpointList({
                         {hasFrame && mark.stillStatus === "ready" ? (
                           <button type="button" onClick={() => onSelect(mark)} className="shrink-0" aria-label={`Go to ${cp.label}`}>
                             {/* eslint-disable-next-line @next/next/no-img-element */}
-                            <img src={stillUrl(mark.id)} alt="" className="h-12 w-24 rounded-lg object-cover" />
+                            <img src={stillUrl(mark.id)} alt="" className="h-12 w-20 rounded-lg object-cover" />
                           </button>
                         ) : null}
                         <div className="min-w-0 flex-1">
@@ -106,13 +106,13 @@ export function TourCheckpointList({
                       </div>
                       {locked ? null : (
                         <div className="mt-2 flex flex-wrap gap-2">
-                          <button type="button" className={`${t.primaryButton} ${dis}`} disabled={busy || !canMarkFrame} onClick={() => onMark(cp.id, "matched")}>
+                          <button type="button" className={`${t.primaryButton} ${dis}`} disabled={busy || Boolean(markBlocked)} onClick={() => onMark(cp.id, "matched")}>
                             Matched here
                           </button>
-                          <button type="button" className={`${t.secondaryButton} ${dis}`} disabled={busy || !canMarkFrame} onClick={() => onMark(cp.id, "same_chapter")}>
+                          <button type="button" className={`${t.secondaryButton} ${dis}`} disabled={busy || Boolean(markBlocked)} onClick={() => onMark(cp.id, "same_chapter")}>
                             Approximate
                           </button>
-                          <button type="button" className={`${t.secondaryButton} ${dis}`} disabled={busy || !canMarkFrame} onClick={() => onMark(cp.id, "not_captured")}>
+                          <button type="button" className={`${t.secondaryButton} ${dis}`} disabled={busy || Boolean(markBlocked)} onClick={() => onMark(cp.id, "not_captured")}>
                             Not captured
                           </button>
                           <button type="button" className={`${t.secondaryButton} ${dis}`} disabled={busy} onClick={() => onRetire(cp.id)}>
@@ -141,7 +141,7 @@ export function TourCheckpointList({
                   value={adding.label}
                   onChange={(e) => setAdding({ chapterId: chapter.id, label: e.target.value })}
                 />
-                <button type="submit" className={`${t.primaryButton} ${dis}`} disabled={busy || !canMarkFrame || !adding.label.trim()}>
+                <button type="submit" className={`${t.primaryButton} ${dis}`} disabled={busy || Boolean(markBlocked) || !adding.label.trim()}>
                   Add and mark here
                 </button>
               </form>

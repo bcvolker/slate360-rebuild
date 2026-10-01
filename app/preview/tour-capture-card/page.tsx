@@ -1,5 +1,6 @@
 import { CaptureCard } from "@/components/spatial-tour/operator/CaptureCard";
 import type { TourBundle } from "@/lib/spatial-tour/types";
+import { DEFAULT_LOOK_CONE } from "@/lib/spatial-tour/look-cone";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,7 @@ const cp = (id: string, chapterId: string, label: string, captureNote: string | 
 });
 const mark = (checkpointId: string, t: number) => ({
   id: `m-${checkpointId}`, checkpointId, walkthroughId: WALK, clipId: CLIP, tSeconds: t, yawDeg: 0, pitchDeg: 0,
-  match: "matched" as const, stillKey: "k", stillStatus: "ready" as const, stillError: null,
+  match: "matched" as const, stillKey: "k", stillStatus: "ready" as const, stillError: null, stillBlackFraction: 0,
 });
 
 /** Unauthenticated harness for the printable capture card. Reference stills use the clip poster via `?token=`. */
@@ -31,7 +32,11 @@ export default async function TourCaptureCardPreview({ searchParams }: { searchP
       cp("c", "c2", "Living room window", "Pause two seconds facing the window wall", 2),
       cp("d", "c2", "Back patio door", "Close-up of the threshold", 3),
     ],
-    visits: [],
+    visits: [{
+      walkthroughId: WALK, title: "Harness visit", capturedAt: "2026-09-10T15:00:00Z", routeId: "r", clientPublishedAt: null,
+      stillsReviewedAt: null, privacyReviewedAt: null,
+      clips: [{ id: CLIP, durationS: 51, sortOrder: 0, hasPublicProxy: true, lookCone: DEFAULT_LOOK_CONE, maskVisible: false, maskCoverage: 0.03 }],
+    }],
     marks: [mark("a", 8), mark("b", 15), mark("c", 24)],
   };
   return (

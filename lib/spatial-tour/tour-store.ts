@@ -2,6 +2,8 @@ import "server-only";
 
 import { tasks } from "@trigger.dev/sdk/v3";
 import type { createAdminClient } from "@/lib/supabase/admin";
+import { resolveOperatorPatch } from "@/lib/spatial-walkthrough/operator-patch";
+import { maxPaintCoverage, paintSectors, paintVisibleInCone, parseLookCone } from "./look-cone";
 import type {
   CheckpointMark,
   RouteChapter,
@@ -30,6 +32,7 @@ export function toMark(r: Row): CheckpointMark {
     stillKey: str(r.still_key),
     stillStatus: (r.still_status as CheckpointMark["stillStatus"]) ?? "none",
     stillError: str(r.still_error),
+    stillBlackFraction: num(r.still_black_fraction),
   };
 }
 
@@ -39,7 +42,7 @@ export async function loadTourBundle(admin: Admin, orgId: string, projectId: str
     admin.from("spatial_routes").select("*").eq("project_id", projectId).eq("org_id", orgId).order("created_at").limit(1).maybeSingle(),
     admin
       .from("spatial_walkthroughs")
-      .select("id, title, captured_at, route_id, client_published_at, stills_reviewed_at, privacy_reviewed_at, spatial_clips(id, duration_s, sort_order, status, public_proxy_key)")
+      .select("id, title, captured_at, route_id, client_published_at, stills_reviewed_at, privacy_reviewed_at, operator_patch, spatial_clips(id, duration_s, sort_order, status, public_proxy_key, look_cone, operator_patch)")
       .eq("project_id", projectId)
       .eq("org_id", orgId)
       .in("status", ["ready", "published"])
@@ -57,12 +60,19 @@ export async function loadTourBundle(admin: Admin, orgId: string, projectId: str
     clips: ((w.spatial_clips as Row[] | null) ?? [])
       .filter((c) => c.status === "ready")
       .sort((a, b) => Number(a.sort_order ?? 0) - Number(b.sort_order ?? 0))
-      .map((c) => ({
-        id: String(c.id),
-        durationS: num(c.duration_s),
-        sortOrder: Number(c.sort_order ?? 0),
-        hasPublicProxy: Boolean(c.public_proxy_key),
-      })),
+      .map((c) => {
+        const lookCone = parseLookCone(c.look_cone);
+        const sectors = paintSectors(resolveOperatorPatch(c.operator_patch, w.operator_patch));
+        return {
+          id: String(c.id),
+          durationS: num(c.duration_s),
+          sortOrder: Number(c.sort_order ?? 0),
+          hasPublicProxy: Boolean(c.public_proxy_key),
+          lookCone,
+          maskVisible: lookCone ? paintVisibleInCone(sectors, lookCone) : false,
+          maskCoverage: maxPaintCoverage(sectors),
+        };
+      }),
   }));
 
   if (!routeRow) return { route: null, chapters: [], checkpoints: [], visits, marks: [] };

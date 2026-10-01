@@ -12,6 +12,7 @@ import { TourMarkPlayer, type PlayerView } from "./TourMarkPlayer";
 import { TourCheckpointList } from "./TourCheckpointList";
 import { TourPublishPanel } from "./TourPublishPanel";
 import { TourCreateRoute } from "./TourCreateRoute";
+import { TourLookConePanel } from "./TourLookConePanel";
 
 export function TourOperator({ projectId, urls: urlsProp }: { projectId: string; urls?: TourUrls }) {
   const { bundle, loadError, busy, call } = useTourBundle(projectId);
@@ -21,9 +22,11 @@ export function TourOperator({ projectId, urls: urlsProp }: { projectId: string;
   const [seek, setSeek] = useState<PlayerView | null>(null);
   const viewRef = useRef<PlayerView | null>(null);
   const [playerReady, setPlayerReady] = useState(false);
+  const [activeClipId, setActiveClipId] = useState<string | null>(null);
   const onView = useCallback((v: PlayerView | null) => {
     viewRef.current = v;
     setPlayerReady(Boolean(v));
+    if (v) setActiveClipId((was) => (was === v.clipId ? was : v.clipId));
   }, []);
 
   const report = (r: TourCallResult) => setMessage(r.ok ? null : r.error);
@@ -41,6 +44,13 @@ export function TourOperator({ projectId, urls: urlsProp }: { projectId: string;
   const onThisRoute = visit?.routeId === route.id;
   const locked = Boolean(visit?.clientPublishedAt);
   const checklist = visit && onThisRoute ? publishChecklist({ visit, checkpoints: bundle.checkpoints, marks: bundle.marks }) : null;
+  const activeClip = visit?.clips.find((c) => c.id === activeClipId) ?? visit?.clips.find((c) => c.hasPublicProxy) ?? null;
+  // Marks need a decoded frame and a published view (framing-first privacy).
+  const markBlocked = !playerReady
+    ? "Marking unlocks once the video has loaded."
+    : !activeClip?.lookCone
+      ? "Set the published view first. Marks are framed inside it."
+      : null;
 
   const mark = async (checkpointId: string, match: MatchQuality) => {
     if (!visit) return;
@@ -119,6 +129,17 @@ export function TourOperator({ projectId, urls: urlsProp }: { projectId: string;
         <div className="grid gap-5 lg:grid-cols-[1.4fr_1fr]">
           <div className="space-y-5">
             <TourMarkPlayer walkthroughId={visit.walkthroughId} clips={visit.clips} seekRequest={seek} onView={onView} urls={urls} />
+            {activeClip ? (
+              <TourLookConePanel
+                key={`${visit.walkthroughId}-${activeClip.id}`}
+                cone={activeClip.lookCone}
+                locked={locked}
+                busy={busy}
+                canUseView={playerReady}
+                getHeading={() => viewRef.current?.yaw ?? null}
+                onSave={async (cone) => report(await call(`/visits/${visit.walkthroughId}`, "POST", { action: "look-cone", clipId: activeClip.id, cone }))}
+              />
+            ) : null}
             {checklist ? (
               <TourPublishPanel
                 visit={visit}
@@ -137,7 +158,7 @@ export function TourOperator({ projectId, urls: urlsProp }: { projectId: string;
             marks={visitMarks}
             locked={locked}
             busy={busy}
-            canMarkFrame={playerReady}
+            markBlocked={markBlocked}
             onMark={mark}
             onSelect={(m) => m.clipId && m.tSeconds != null && setSeek({ clipId: m.clipId, t: m.tSeconds, yaw: m.yawDeg, pitch: m.pitchDeg })}
             onAddCheckpoint={addCheckpoint}
