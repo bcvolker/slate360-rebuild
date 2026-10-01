@@ -116,8 +116,8 @@ export function HomeExampleViewer() {
     >
       <div className="flex items-center justify-between gap-3 border-b border-[var(--mkt-line)] px-3 py-2 sm:px-4">
         <div className="min-w-0">
-          <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[var(--mkt-accent)]">Directed walk</p>
-          <p className="truncate text-[14px] font-medium text-[var(--mkt-ink)]">Drag to look. Move by stop.</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.07em] text-[var(--mkt-accent)]">Interactive site walkthrough</p>
+          <p className="truncate text-[14px] font-medium text-[var(--mkt-ink)]">Drag to look. Click a stop.</p>
         </div>
         {expanded ? (
           <button type="button" onClick={() => setExpanded(false)} className="inline-flex h-12 shrink-0 items-center gap-1.5 rounded-[10px] border border-[var(--mkt-line)] bg-[var(--mkt-surface)] px-3.5 text-[14px] font-semibold text-[var(--mkt-ink)]">

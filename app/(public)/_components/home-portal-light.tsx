@@ -1,7 +1,7 @@
 import { MKT_L_CONTAINER, MKT_L_H2, MKT_L_KICKER } from "@/app/(public)/_components/marketing-styles-light";
 
 const ROWS = [
-  { label: "Walkthrough", meta: "Move through the visit" },
+  { label: "Site walkthrough", meta: "Walk it in the browser" },
   { label: "Open items", meta: "Punches and follow-ups on the spot" },
   { label: "Documents", meta: "Sheets and reports with the work" },
   { label: "Questions", meta: "Asked from the client link" },
@@ -15,8 +15,8 @@ export function HomePortalLight() {
           <div className={MKT_L_KICKER}>Client portal</div>
           <h2 className={MKT_L_H2}>Evidence, items, and questions in one place</h2>
           <p className="mt-3 max-w-[48ch] text-[15.5px] leading-relaxed text-[var(--mkt-ink-muted)]">
-            The walk, the punch list, the documents, and the questions share one project. Your crew
-            works there. The link you send carries your logo and colors.
+            The interactive walkthrough, the punch list, the documents, and the questions share one project.
+            Your crew works there. The link you send carries your logo and colors.
           </p>
           <p className="mt-4 max-w-[48ch] border-l-2 border-[var(--mkt-accent-line)] pl-4 text-[14.5px] leading-relaxed text-[var(--mkt-ink)]">
             White-label is for that client link. This site stays Slate360.

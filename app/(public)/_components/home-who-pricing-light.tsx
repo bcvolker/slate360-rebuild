@@ -8,7 +8,7 @@ export function HomeWhoPricingLight() {
         <div className="max-w-[62ch]">
           <div className={MKT_L_KICKER}>Quote</div>
           <p className="mt-2 font-serif text-2xl font-normal leading-snug text-[var(--mkt-ink)] sm:text-3xl">
-            General contractors in the East Valley. A custom quote for the package, on a purchase order or a monthly invoice.
+            Contractors across greater Phoenix. A custom quote for the work, on a purchase order or a monthly invoice.
           </p>
         </div>
         <Link href="#request-a-visit" className={`${MKT_L_BTN_PRIMARY} shrink-0`}>

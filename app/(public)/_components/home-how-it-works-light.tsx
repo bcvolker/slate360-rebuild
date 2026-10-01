@@ -1,8 +1,8 @@
 import { MKT_L_CONTAINER, MKT_L_H2, MKT_L_KICKER } from "@/app/(public)/_components/marketing-styles-light";
 
 const STEPS = [
-  { n: "01", title: "We visit", body: "East Valley job sites. We capture what you scoped, on your schedule." },
-  { n: "02", title: "It publishes", body: "The walkthrough and the rest of the package land in your portal." },
+  { n: "01", title: "We visit", body: "Greater Phoenix job sites. We capture what you scoped, on your schedule." },
+  { n: "02", title: "It publishes", body: "The interactive walkthrough and the other files land in your portal." },
   { n: "03", title: "The crew works it", body: "Punch lists in Site Walk. Documents and questions stay on the record." },
   { n: "04", title: "You send the link", body: "Your client opens your brand in the browser." },
 ] as const;

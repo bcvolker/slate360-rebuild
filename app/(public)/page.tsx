@@ -16,7 +16,7 @@ import { MKT_L_CONTAINER, MKT_L_PAGE } from "@/app/(public)/_components/marketin
 const SITE_URL = "https://www.slate360.ai";
 const TITLE = "Slate360 — Field documentation and workflow for contractors";
 const DESCRIPTION =
-  "Directed 360 walkthroughs, drone photo and video, commissioning video, thermal reports, and a white-label client portal. Site Walk for punch lists. East Valley, Phoenix.";
+  "Interactive site walkthroughs, aerial photo and video, 3D models, and a client portal for contractors. Serving the greater Phoenix area.";
 const OG_IMAGE = "/uploads/icon-512.png";
 
 export const metadata: Metadata = {
@@ -56,7 +56,7 @@ export default async function RootPage() {
         <HomeNavLight />
         <main className="pt-[78px]">
           <HomeHeroLight />
-          <section className="pb-10 sm:pb-14">
+          <section className="pb-8 sm:pb-10">
             <div className={MKT_L_CONTAINER}>
               <HomeExampleViewer />
             </div>

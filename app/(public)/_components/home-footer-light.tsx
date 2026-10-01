@@ -23,7 +23,7 @@ export function HomeFooterLight() {
             <HomeBrandMark iconClassName="h-[30px]" wordClassName="text-[15.5px]" />
           </Link>
           <p className="mt-3.5 max-w-[64ch] text-xs leading-[1.8] text-[var(--mkt-ink-muted)]">
-            Field documentation and project workflow for contractors in the East Valley, Phoenix.
+            Field documentation and project workflow for contractors across greater Phoenix.
             Measurement tools in the viewer are for general reference. A licensed survey is the
             record when a dimension has to stand on its own.
           </p>

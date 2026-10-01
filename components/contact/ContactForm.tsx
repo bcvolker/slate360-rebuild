@@ -107,7 +107,7 @@ export function ContactPageShell() {
         </div>
         <h1 className="mb-2 text-center text-2xl font-bold text-[var(--mkt-ink)]">Contact Slate360</h1>
         <p className="mb-8 text-center text-sm text-[var(--mkt-ink-muted)]">
-          Tell us about a site in the East Valley, or{" "}
+          Tell us about a site in greater Phoenix, or{" "}
           <Link href="/#request-a-visit" className="font-semibold text-[var(--mkt-accent)]">
             request a site visit
           </Link>
