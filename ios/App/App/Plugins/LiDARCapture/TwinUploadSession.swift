@@ -41,6 +41,9 @@ final class TwinUploadSession: NSObject, URLSessionDataDelegate {
 
     private lazy var session: URLSession = {
         let cfg = URLSessionConfiguration.background(withIdentifier: Self.identifier)
+        // No UIBackgroundModes entry. This session already runs out of process in
+        // nsurlsessiond and wakes the app through handleEventsForBackgroundURLSession.
+        // `fetch` is Background App Refresh — a different mode — and is not required.
         cfg.isDiscretionary = false          // start now, don't let iOS defer to overnight
         cfg.sessionSendsLaunchEvents = true  // relaunch the app when transfers finish
         cfg.httpMaximumConnectionsPerHost = 4 // parallel parts (consensus: 3-4)
