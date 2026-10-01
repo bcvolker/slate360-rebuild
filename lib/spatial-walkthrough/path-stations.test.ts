@@ -5,7 +5,7 @@ import type { WaypointRecord } from "./types";
 
 function wp(id: string, t: number, label: string): WaypointRecord {
   return {
-    id, clipId: "c1", tSeconds: t, label, zone: null, yawDeg: 0, pitchDeg: 0, sortOrder: t, thumbnailKey: null, isVisible: true,
+    id, clipId: "c1", tSeconds: t, label, zone: null, yawDeg: 0, pitchDeg: 0, sortOrder: t, thumbnailKey: null, isVisible: true, xyz: null,
   };
 }
 

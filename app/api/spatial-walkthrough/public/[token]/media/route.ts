@@ -55,7 +55,7 @@ export const GET = async (req: NextRequest, ctx: Ctx) => {
     const width = Math.max(32, Math.floor(w * 0.44));
     const height = Math.max(32, Math.floor(h * 0.46));
     const hero = await sharp(bytes).extract({ left, top, width, height }).jpeg({ quality: 82 }).toBuffer();
-    return new NextResponse(hero, {
+    return new NextResponse(new Uint8Array(hero), {
       headers: {
         "Content-Type": "image/jpeg",
         "Cache-Control": "public, max-age=86400, immutable",
