@@ -1,0 +1,87 @@
+{
+ "T_chair": {
+  "summary": {},
+  "sfm_track_reprojection_near_target": {
+   "far": {
+    "n_obs": 49,
+    "reproj_native_px_median": 1.1975146211509502,
+    "p90": 2.152518760657666
+   },
+   "close": {
+    "n_obs": 132,
+    "reproj_native_px_median": 0.9345487494459597,
+    "p90": 2.6528653493320724
+   }
+  },
+  "per_view": []
+ },
+ "T_table": {
+  "summary": {},
+  "sfm_track_reprojection_near_target": {
+   "far": {
+    "n_obs": 132,
+    "reproj_native_px_median": 1.0000828686898018,
+    "p90": 2.3913309285632116
+   },
+   "close": {
+    "n_obs": 37,
+    "reproj_native_px_median": 1.6365301310738871,
+    "p90": 2.844921159720694
+   }
+  },
+  "per_view": []
+ },
+ "T_mix": {
+  "summary": {
+   "CLOSE": {
+    "n_views": 1,
+    "dist_m": 1.2955048606248547,
+    "px_mm": 1.0060914107364423,
+    "n_edges": 9.0,
+    "align_shift_px": 0.0,
+    "pos_err_unaligned_px_med_abs": 1.8635766543447971,
+    "pos_err_aligned_px_med_abs": 1.8635766543447971,
+    "width_gt_px": 3.704998784696677,
+    "width_render_unaligned_px": 0.8595238095238096,
+    "width_render_aligned_px": 0.8595238095238096,
+    "width_ratio_render_gt": 0.2960298643032482,
+    "width_ratio_of_medians": 0.23199030808701804,
+    "width_ratio_neighbour_gt": 1.0227176204441366,
+    "pos_err_neighbour_px_med_abs": 1.0799228884279728,
+    "contrast_ratio_render_gt": 1.9977422083957372
+   }
+  },
+  "sfm_track_reprojection_near_target": {
+   "far": {
+    "n_obs": 305,
+    "reproj_native_px_median": 0.9629302524079651,
+    "p90": 2.2750633453706905
+   },
+   "close": {
+    "n_obs": 38,
+    "reproj_native_px_median": 1.1486768320918528,
+    "p90": 2.0452825799189807
+   }
+  },
+  "per_view": [
+   {
+    "tag": "o09",
+    "grp": "CLOSE",
+    "dist_m": 1.2955048606248547,
+    "px_mm": 1.0060914107364423,
+    "n_edges": 9,
+    "align_shift_px": 0.0,
+    "pos_err_unaligned_px_med_abs": 1.8635766543447971,
+    "pos_err_aligned_px_med_abs": 1.8635766543447971,
+    "width_gt_px": 3.704998784696677,
+    "width_render_unaligned_px": 0.8595238095238096,
+    "width_render_aligned_px": 0.8595238095238096,
+    "width_ratio_render_gt": 0.2960298643032482,
+    "width_ratio_of_medians": 0.23199030808701804,
+    "width_ratio_neighbour_gt": 1.0227176204441366,
+    "pos_err_neighbour_px_med_abs": 1.0799228884279728,
+    "contrast_ratio_render_gt": 1.9977422083957372
+   }
+  ]
+ }
+}
