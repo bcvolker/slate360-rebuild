@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   MapPin,
   Orbit,
+  Scan,
   Thermometer,
   UserCircle,
   Users,
@@ -18,45 +19,82 @@ import {
 } from "lucide-react";
 
 import { APP_STORE_MODE } from "@/lib/app-store-mode";
+import type { ClientSurfaceApp } from "@/lib/spatial-walkthrough/client-surface";
+import { isNavAppVisible, isSpatialOnlyAppList } from "@/lib/spatial-walkthrough/nav-filter";
+
+export type DashboardNavSection = "primary" | "tools" | "labs" | "account";
+
+export type DashboardNavChild = {
+  label: string;
+  href: string;
+};
 
 export type DashboardNavItem = {
   label: string;
   href: string;
   icon: LucideIcon;
   matchPrefixes: string[];
+  children?: DashboardNavChild[];
+  section?: DashboardNavSection;
   /** Hidden from authenticated nav during the Site-Walk-only release (AGENTS.md). */
   appStoreHidden?: boolean;
   /** Only shown to Slate360 staff/CEO with Operations Console access. */
   staffOnly?: boolean;
   /** Only shown to the Slate360 CEO. */
   ceoOnly?: boolean;
+  /** Hide unless this client-surface app is visible (CEO still sees authoring apps). */
+  requiresApp?: ClientSurfaceApp;
+  hideWhenSpatialOnly?: boolean;
 };
 
 const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
   {
-    label: "Dashboard",
+    label: "Home",
     href: "/dashboard",
     icon: LayoutDashboard,
     matchPrefixes: ["/dashboard"],
+    section: "primary",
+    hideWhenSpatialOnly: true,
   },
   {
     label: "Projects",
     href: "/projects",
     icon: FolderOpen,
     matchPrefixes: ["/projects"],
+    section: "primary",
   },
   {
-    label: "Site Walks",
+    label: "Library",
+    href: "/library",
+    icon: Scan,
+    matchPrefixes: ["/library", "/spatial-walkthrough"],
+    section: "primary",
+    requiresApp: "spatial-walkthrough",
+    children: [
+      { label: "All", href: "/library" },
+      { label: "Walkthroughs", href: "/library?kind=walkthrough" },
+      { label: "Digital Twins", href: "/library?kind=twin" },
+      { label: "Site Walks", href: "/library?kind=site-walk" },
+      { label: "Thermal", href: "/library?kind=thermal" },
+      { label: "360 Tours", href: "/library?kind=tour" },
+    ],
+  },
+  {
+    label: "Site Walk",
     href: "/site-walks",
     icon: MapPin,
     matchPrefixes: ["/site-walks"],
+    section: "tools",
+    requiresApp: "site-walk",
   },
   {
-    label: "Twin 360",
+    label: "Twin",
     href: "/digital-twins",
     icon: Box,
     matchPrefixes: ["/digital-twins", "/digital-twin/twins"],
+    section: "tools",
     appStoreHidden: true,
+    requiresApp: "twin360",
   },
   {
     // F1 (TWIN_SERVICE_STUDIO_PLAN.md Phase F): the operator production cockpit —
@@ -67,6 +105,7 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/twin-studio",
     icon: Boxes,
     matchPrefixes: ["/twin-studio"],
+    section: "labs",
     ceoOnly: true,
   },
   {
@@ -74,12 +113,15 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/slatedrop",
     icon: Cloud,
     matchPrefixes: ["/slatedrop"],
+    section: "tools",
+    requiresApp: "slatedrop",
   },
   {
-    label: "Thermal Studio",
+    label: "Thermal",
     href: "/thermal-studio",
     icon: Thermometer,
     matchPrefixes: ["/thermal-studio"],
+    section: "tools",
     ceoOnly: true,
   },
   {
@@ -91,6 +133,7 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/thermal-studio-v2",
     icon: FlaskConical,
     matchPrefixes: ["/thermal-studio-v2"],
+    section: "labs",
     ceoOnly: true,
   },
   {
@@ -98,6 +141,7 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/tours",
     icon: Orbit,
     matchPrefixes: ["/tours"],
+    section: "labs",
     ceoOnly: true,
   },
   {
@@ -105,6 +149,7 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/unreal-studio",
     icon: Wand2,
     matchPrefixes: ["/unreal-studio"],
+    section: "labs",
     ceoOnly: true,
   },
   {
@@ -112,6 +157,7 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/content-studio-workspace",
     icon: Clapperboard,
     matchPrefixes: ["/content-studio-workspace"],
+    section: "labs",
     ceoOnly: true,
   },
   {
@@ -119,6 +165,7 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/operations-console",
     icon: Wrench,
     matchPrefixes: ["/operations-console"],
+    section: "labs",
     staffOnly: true,
   },
   {
@@ -126,29 +173,38 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     href: "/more/organization",
     icon: Users,
     matchPrefixes: ["/more/organization"],
+    section: "account",
   },
   {
     label: "Billing",
     href: "/more/billing",
     icon: CreditCard,
     matchPrefixes: ["/more/billing"],
+    section: "account",
   },
   {
-    label: "My Account",
+    label: "Account",
     href: "/my-account",
     icon: UserCircle,
     matchPrefixes: ["/my-account"],
+    section: "account",
   },
 ];
 
 /** Resolve the visible nav for the current viewer. App-Store mode hides in-progress
  * modules; Operations Console is staff-only. */
-export function resolveDashboardNav(showOpsConsole: boolean, isCeo = false): DashboardNavItem[] {
+export function resolveDashboardNav(
+  showOpsConsole: boolean,
+  isCeo = false,
+  visibleApps?: ClientSurfaceApp[] | null,
+): DashboardNavItem[] {
+  const spatialOnly = isSpatialOnlyAppList(visibleApps, isCeo);
   return DASHBOARD_DESKTOP_NAV_ALL.filter((item) => {
     if (APP_STORE_MODE && item.appStoreHidden) return false;
     if (item.ceoOnly && !isCeo) return false;
     if (item.staffOnly && !showOpsConsole) return false;
-    return true;
+    if (item.hideWhenSpatialOnly && spatialOnly) return false;
+    return isNavAppVisible(item.requiresApp, isCeo, visibleApps);
   });
 }
 

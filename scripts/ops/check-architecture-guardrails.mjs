@@ -51,6 +51,7 @@ function hasAuthPattern(source) {
     source.includes("withProjectAuth(") ||
     source.includes("withAppAuth(") ||
     source.includes("withThermalOpsAuth(") ||
+    source.includes("withSpatialWalkthroughAuth(") ||
     source.includes("auth.getUser(") ||
     source.includes("resolveServerOrgContext(") ||
     source.includes("getAuthenticatedOrgContext(") ||

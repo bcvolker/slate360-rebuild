@@ -24,6 +24,7 @@ import {
 } from "@/lib/projects/access";
 import { resolveOrgEntitlements } from "@/lib/server/org-feature-flags";
 import type { StandaloneAppId } from "@/lib/billing-apps";
+import { rejectUnpurchasedProductApi } from "@/lib/spatial-walkthrough/api-product-guard";
 
 /* ─── Context types passed to handlers ──────────────────────── */
 
@@ -67,6 +68,9 @@ export async function withAuth(
     }
 
     const { admin, orgId } = await resolveProjectScope(user.id);
+
+    const blocked = await rejectUnpurchasedProductApi(req, orgId);
+    if (blocked) return blocked;
 
     return await handler({ req, user, admin, orgId });
   } catch (err) {
@@ -141,6 +145,10 @@ export async function withProjectAuth(
     }
 
     const { admin, orgId } = await resolveProjectScope(user.id);
+
+    const blocked = await rejectUnpurchasedProductApi(req, orgId);
+    if (blocked) return blocked;
+
     const effectiveSelect = selectClause.includes("org_id") ? selectClause : `${selectClause}, org_id`;
     const { project } = await getScopedProjectForUser(
       user.id,

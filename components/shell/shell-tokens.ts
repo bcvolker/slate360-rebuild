@@ -53,4 +53,4 @@ export const shellTokens = {
     "flex h-9 items-center gap-2 rounded-lg border border-white/10 bg-white/[0.04] px-3 text-[13px] text-[var(--graphite-muted)] transition-colors hover:border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)] hover:text-[var(--graphite-text-body)]",
 } as const;
 
-export type ShellApp = "dashboard" | "site-walk" | "twin360";
+export type ShellApp = "dashboard" | "site-walk" | "twin360" | "spatial-walkthrough";

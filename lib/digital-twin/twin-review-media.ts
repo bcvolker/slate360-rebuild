@@ -46,7 +46,7 @@ export function classifyTwinMedia(
   hint: Twin360Hint = "unknown",
 ): TwinMediaCategory {
   const name = file.name.toLowerCase();
-  if (LIDAR_EXT.test(name) || file.type.includes("ply")) return "lidar";
+  if (LIDAR_EXT.test(name) || /(?:^|[_-])(poses\.json|traj\.jsonl)(\.gz)?$/i.test(file.name) || file.type.includes("ply")) return "lidar";
   if (MESH_EXT.test(name)) return "mesh";
   const isVideo =
     file.type.startsWith("video/") ||
@@ -80,6 +80,8 @@ export function twinMediaToAssetKind(
     return "lidar_scan";
   }
   if (/\.s360depth$/i.test(file.name)) return "lidar_depth";
+  if (/(?:^|[_-])traj\.jsonl(\.gz)?$/i.test(file.name)) return "lidar_traj";
+  if (/(?:^|[_-])poses\.json(\.gz)?$/i.test(file.name)) return "lidar_poses";
   const category = classifyTwinMedia(file, forceDrone, hint);
   switch (category) {
     case "360_video":

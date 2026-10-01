@@ -1,0 +1,33 @@
+{
+  "geometryReadyMs": 1897,
+  "appearanceReadyMs": 7202,
+  "firstUsefulMs": 1121,
+  "displayMs": 780,
+  "navMs": 238,
+  "appearanceMs": 971,
+  "memoryMb": 323.8,
+  "headed": {
+    "fpsGeometry": 59.4,
+    "fpsReality": 17.6,
+    "fpsHybrid": 11.7
+  },
+  "headless": {
+    "fpsGeometry": 0,
+    "fpsReality": 15.3,
+    "fpsHybrid": 11.5
+  },
+  "modeJumpHybridM": 0,
+  "modeJumpGeometryM": 0,
+  "walk": {
+    "hybridJump": 0,
+    "geometryJump": 0,
+    "eyeY": 0.004836011632122217,
+    "floorPlusEye": 0.0048360116321222
+  },
+  "spz": {
+    "kind": "brush_x4_arkit.spz",
+    "primitives": 672348,
+    "bytes": 16105975
+  },
+  "recording": "docs/ops/twin-brush-visual-proof/screenshots/kitchen-brush-walk.webm"
+}

@@ -11,9 +11,12 @@ import { formatTwinBytes } from "@/lib/digital-twin/format-bytes";
 export function SplatLoadingOverlay({
   bytesLoaded,
   bytesTotal,
+  quiet = false,
 }: {
   bytesLoaded: number;
   bytesTotal: number | null;
+  /** Client surfaces show the spinner only, no byte counts. */
+  quiet?: boolean;
 }) {
   const progressPct =
     bytesTotal != null && bytesTotal > 0 ? Math.min(100, Math.round((bytesLoaded / bytesTotal) * 100)) : null;
@@ -22,7 +25,7 @@ export function SplatLoadingOverlay({
     <div className="absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-[var(--graphite-canvas)]/80 backdrop-blur-sm px-6">
       <Loader2 className={cn("size-7 animate-spin", twinAccent.spinner)} aria-hidden />
       <p className="text-xs font-medium tracking-wide text-zinc-300">Loading 3D twin…</p>
-      {progressPct != null ? (
+      {progressPct != null && !quiet ? (
         <div className="mt-1 w-full max-w-[220px]">
           <div className="h-1.5 w-full overflow-hidden rounded-full bg-white/10">
             <div
@@ -34,7 +37,7 @@ export function SplatLoadingOverlay({
             {formatTwinBytes(bytesLoaded)} / {formatTwinBytes(bytesTotal ?? 0)}
           </p>
         </div>
-      ) : bytesLoaded > 0 ? (
+      ) : bytesLoaded > 0 && !quiet ? (
         <p className="mt-1 font-mono text-[10px] tracking-wide text-zinc-500">
           {formatTwinBytes(bytesLoaded)} loaded…
         </p>

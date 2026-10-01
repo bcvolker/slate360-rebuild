@@ -17,6 +17,7 @@ export function shouldWrapDashboardDesktopShell(pathname: string): boolean {
     return false;
   }
 
+  if (pathname === "/spatial-walkthrough" || pathname.startsWith("/spatial-walkthrough/")) return true;
   if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) return true;
   if (pathname === "/projects" || pathname.startsWith("/projects/")) return true;
   if (pathname === "/site-walks" || pathname.startsWith("/site-walks/")) return true;

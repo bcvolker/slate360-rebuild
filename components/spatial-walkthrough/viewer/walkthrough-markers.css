@@ -1,0 +1,188 @@
+.sw-reticle,
+.sw-pin,
+.sw-mark {
+  display: grid;
+  place-items: start center;
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  transform: scale(var(--sw-mark-scale, 1));
+  transform-origin: 50% 80%;
+}
+.sw-mark-leader {
+  width: 1px;
+  height: 14px;
+  background: color-mix(in srgb, white 55%, transparent);
+  opacity: 0.7;
+}
+.sw-mark-core,
+.sw-reticle-ring,
+.sw-pin-core {
+  width: 22px;
+  height: 22px;
+  border: 2px solid color-mix(in srgb, white 70%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--sw-text, white) 88%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, black 35%, transparent);
+}
+.sw-mark--waypoint .sw-mark-core,
+.sw-mark--waypoint .sw-reticle-ring {
+  width: 0;
+  height: 0;
+  border: 6px solid transparent;
+  border-bottom-color: color-mix(in srgb, var(--sw-accent, var(--graphite-primary)) 92%, white);
+  background: transparent;
+  box-shadow: 0 8px 12px color-mix(in srgb, var(--sw-accent, var(--graphite-primary)) 22%, transparent);
+}
+.sw-mark--document .sw-mark-core,
+.sw-mark--document .sw-pin-core {
+  width: 8px;
+  height: 8px;
+  transform: rotate(45deg);
+  background: color-mix(in srgb, var(--sw-text, white) 88%, var(--sw-accent, var(--graphite-primary)));
+}
+.sw-mark--issue .sw-mark-core {
+  width: 0;
+  height: 0;
+  border: 6px solid transparent;
+  border-top-color: color-mix(in srgb, var(--sw-text, white) 90%, var(--graphite-danger, #e85d4c));
+  background: transparent;
+  box-shadow: none;
+}
+.sw-mark--note .sw-mark-core {
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--sw-muted, var(--graphite-muted)) 70%, var(--sw-accent, var(--graphite-primary)));
+}
+.sw-mark-label {
+  margin-top: 4px;
+  padding: 2px 6px;
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+  color: var(--sw-text, white);
+  background: color-mix(in srgb, var(--sw-surface, black) 72%, transparent);
+  opacity: 1;
+  pointer-events: none;
+}
+.sw-mark:hover .sw-mark-label,
+.sw-mark:focus-visible .sw-mark-label,
+.sw-mark.is-selected .sw-mark-label {
+  opacity: 1;
+}
+.sw-nadir,
+.sw-rear {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--sw-primary, var(--graphite-canvas)) 82%, black);
+  opacity: 0.92;
+}
+.sw-nadir-plate {
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  color: var(--sw-text, white);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+.sw-nadir-plate img {
+  height: 18px;
+  width: auto;
+  max-width: 72px;
+  object-fit: contain;
+}
+.sw-nadir--neutral {
+  background: color-mix(in srgb, var(--sw-surface, #12171f) 88%, black);
+}
+.sw-nadir--brand {
+  background: color-mix(in srgb, var(--sw-primary, #12171f) 82%, black);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sw-accent, var(--graphite-primary)) 35%, transparent);
+}
+.sw-nadir-compass {
+  font-family: var(--font-ibm-plex-mono, ui-monospace, monospace);
+  font-size: 9px;
+  color: var(--sw-accent, var(--graphite-primary));
+}
+.sw-rear {
+  border-radius: 8px;
+  opacity: 0.78;
+}
+.sw-privacy {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  background: color-mix(in srgb, black 78%, var(--sw-surface, white));
+  color: var(--sw-text, white);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.sw-patch-blur {
+  filter: blur(8px);
+  background: color-mix(in srgb, var(--sw-primary, var(--graphite-canvas)) 55%, transparent);
+}
+.sw-patch-logo {
+  background: color-mix(in srgb, var(--sw-primary, var(--graphite-canvas)) 88%, black);
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--sw-accent, var(--graphite-primary)) 35%, transparent);
+}
+.sw-path-station {
+  display: grid;
+  place-items: end center;
+  width: 72px;
+  min-height: 56px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+.sw-path-stem {
+  width: 1px;
+  height: 16px;
+  background: color-mix(in srgb, white 45%, transparent);
+}
+.sw-path-disc {
+  width: 26px;
+  height: 26px;
+  border: 2px solid color-mix(in srgb, var(--sw-accent, var(--graphite-primary)) 90%, white);
+  background: color-mix(in srgb, var(--sw-text, white) 88%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, black 35%, transparent);
+}
+.sw-path-station[data-rank="0"] .sw-path-disc {
+  width: 30px;
+  height: 30px;
+}
+.sw-path-name {
+  margin-top: 4px;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--sw-text, white);
+  white-space: nowrap;
+}
+.sw-path-label {
+  display: none;
+  margin-top: 2px;
+  max-width: 110px;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--sw-text, white);
+  white-space: nowrap;
+}
+.sw-path-station:hover .sw-path-label,
+.sw-path-station:focus-visible .sw-path-label {
+  display: block;
+}
+.sw-logo--light { filter: brightness(0) invert(1); }
+.sw-logo--dark { filter: none; }
+.sw-logo--auto { mix-blend-mode: luminosity; }

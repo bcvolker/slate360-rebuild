@@ -35,4 +35,17 @@ describe("Twin source classification", () => {
       ),
     ).toBe("lidar_depth");
   });
+
+  it("classifies high-rate trajectory as lidar_traj, not a preview PLY", () => {
+    expect(
+      twinMediaToAssetKind(
+        new File([], "lidar_traj.jsonl", { type: "application/x-ndjson" }),
+      ),
+    ).toBe("lidar_traj");
+    expect(
+      twinMediaToAssetKind(
+        new File([], "preview_point_cloud.ply", { type: "application/octet-stream" }),
+      ),
+    ).toBe("ply_lidar");
+  });
 });
