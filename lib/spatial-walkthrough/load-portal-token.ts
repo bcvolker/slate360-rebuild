@@ -8,5 +8,6 @@ export async function loadPortalByToken(token: string) {
     orgId: walk.row.org_id,
     walkthroughId: walk.row.walkthrough_id,
     token,
+    share: walk.row,
   });
 }

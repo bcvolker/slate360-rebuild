@@ -1,6 +1,7 @@
 import type { PortalLandingData } from "@/lib/spatial-walkthrough/portal-fixtures";
 import { viewerChromeCopy } from "@/lib/spatial-walkthrough/viewer-title";
 import { PortalChrome } from "./PortalChrome";
+import { portalSections } from "@/lib/spatial-walkthrough/portal-gating";
 import {
   PortalActivityFeed,
   PortalAttention,
@@ -66,6 +67,11 @@ export function AecPortalLanding({
         </section>
       ) : null}
 
+      {!hero && portalSections(data.capabilities).length === 1 ? (
+        <p className="px-4 py-8 text-sm text-[var(--graphite-muted)] sm:px-6" data-testid="portal-nothing-shared">
+          Nothing is shared on this link yet. Ask the sender for an updated link.
+        </p>
+      ) : null}
       {immersive ? null : (
         <div className="flex flex-1 flex-col gap-8 px-4 py-8 sm:px-6">
           {reality && (reality.walkthroughHref || reality.stationsHref || reality.twinHref || reality.aerialHref) ? (
@@ -82,7 +88,7 @@ export function AecPortalLanding({
               )}
             </section>
           ) : null}
-          {data.attention.open || data.attention.questions ? <PortalAttention data={data} /> : null}
+          <PortalAttention data={data} />
           {compact || !data.items.length ? null : <PortalItemsRail data={data} />}
           {data.history.length ? <PortalHistoryRail data={data} /> : null}
           {compact || !data.documents.length ? null : <PortalDocsRail data={data} />}

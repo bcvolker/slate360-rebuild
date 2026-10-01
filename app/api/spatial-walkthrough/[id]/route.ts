@@ -32,6 +32,7 @@ export const GET = (req: NextRequest, ctx: Ctx) =>
           .from("spatial_share_tokens")
           .select("id, token_prefix, policy, expires_at, max_views, view_count, is_revoked, allow_download, created_at")
           .eq("walkthrough_id", id)
+          .neq("purpose", "preview")
           .order("created_at", { ascending: false }),
         admin.from("spatial_chapters").select("*").eq("walkthrough_id", id).order("sort_order"),
         admin.from("spatial_clip_edges").select("*").eq("walkthrough_id", id),

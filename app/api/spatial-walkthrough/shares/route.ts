@@ -26,6 +26,7 @@ export const GET = (req: NextRequest) =>
       .select("id, walkthrough_id, token, policy, is_revoked, allow_download, expires_at")
       .eq("org_id", orgId)
       .in("walkthrough_id", ids)
+      .neq("purpose", "preview")
       .order("created_at", { ascending: false });
     if (error) return serverError(error.message);
 

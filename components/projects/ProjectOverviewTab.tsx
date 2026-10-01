@@ -9,6 +9,7 @@ import { projectDetailTokens as t } from "@/components/projects/project-detail-t
 import { startProjectWalk, StartWalkError } from "@/lib/site-walk/start-walk";
 import type { ProjectOverviewData } from "@/lib/projects/load-project-overview-data";
 import { SpatialProjectOverview } from "@/components/spatial-walkthrough/portal/SpatialProjectOverview";
+import { ClientPortalPanel } from "@/components/spatial-walkthrough/portal/ClientPortalPanel";
 
 function formatDate(value: string | null): string {
   if (!value) return "Not set";
@@ -148,6 +149,7 @@ export function ProjectOverviewTab({ data }: ProjectOverviewTabProps) {
           )}
         </section>
       </div>
+      {data.showWalkthroughs ? <ClientPortalPanel projectId={data.projectId} /> : null}
     </div>
   );
 }

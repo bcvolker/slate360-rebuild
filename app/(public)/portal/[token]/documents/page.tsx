@@ -1,6 +1,8 @@
 import { TokenStatePage } from "@/components/external-portal";
 import { PortalChrome } from "@/components/external-portal/PortalChrome";
+import { redirect } from "next/navigation";
 import { loadPortalByToken } from "@/lib/spatial-walkthrough/load-portal-token";
+import { sectionAllowed } from "@/lib/spatial-walkthrough/portal-gating";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +19,7 @@ export default async function PortalDocumentsPage({
   if (!data) {
     return <TokenStatePage state="unavailable" badge="Client portal" description="This link could not be opened." />;
   }
+  if (!sectionAllowed(data, "documents")) redirect(`/portal/${token}`);
   const kinds = [...new Set(data.documents.map((d) => d.kind))];
   const docs = type ? data.documents.filter((d) => d.kind === type) : data.documents;
 
@@ -37,16 +40,16 @@ export default async function PortalDocumentsPage({
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {docs.map((doc) => (
           <article key={doc.id} className="border border-white/10" data-surface="static">
-            <div className="aspect-[4/3] bg-white/[0.04]">
-              {doc.thumbUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
+            {doc.thumbUrl ? (
+              <div className="aspect-[4/3] bg-white/[0.04]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={doc.thumbUrl} alt="" className="h-full w-full object-cover" />
-              ) : null}
-            </div>
+              </div>
+            ) : null}
             <div className="p-3">
               <p className="text-sm">{doc.title}</p>
               <p className="font-mono text-[10px] uppercase text-[var(--graphite-muted)]">
-                {doc.kind} · {doc.locatorHref ? "1 spatial reference" : "0 spatial references"}
+                {doc.locatorHref ? `${doc.kind} · 1 spatial reference` : doc.kind}
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 <a href={doc.href} className="inline-flex min-h-12 items-center border border-white/20 px-3 text-sm">Open</a>

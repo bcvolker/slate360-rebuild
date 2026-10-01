@@ -9,14 +9,16 @@ function when(iso: string | null): string {
 const btn = "inline-flex min-h-12 items-center border border-white/20 px-4 text-sm";
 
 export function PortalAttention({ data }: { data: PortalLandingData }) {
+  const caps = data.capabilities;
+  const cards: Array<[string, number, string]> = [];
+  if (caps?.items && data.attention.open) cards.push(["Open items", data.attention.open, `/portal/${data.token}/items`]);
+  if (caps?.items && data.attention.questions) cards.push(["Needs reply", data.attention.questions, `/portal/${data.token}/items`]);
+  if (caps?.documents && data.documents.length) cards.push(["Documents", data.documents.length, `/portal/${data.token}/documents`]);
+  if (!cards.length) return null;
   return (
     <section data-testid="portal-attention" className="grid grid-cols-3 gap-3">
-      {[
-        ["Open items", data.attention.open, `/portal/${data.token}#items`],
-        ["Needs reply", data.attention.questions, `/portal/${data.token}#activity`],
-        ["Documents", data.documents.length, `/portal/${data.token}/documents`],
-      ].map(([label, count, href]) => (
-        <a key={String(label)} href={String(href)} className="min-h-12 border border-white/10 px-3 py-3">
+      {cards.map(([label, count, href]) => (
+        <a key={label} href={href} className="min-h-12 border border-white/10 px-3 py-3">
           <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">{label}</p>
           <p className="text-xl font-semibold">{count}</p>
         </a>
@@ -76,23 +78,15 @@ export function PortalDocsRail({ data }: { data: PortalLandingData }) {
           View all
         </a>
       </div>
-      <div className="flex gap-3 overflow-x-auto pb-2 lg:grid lg:grid-cols-3 lg:overflow-visible">
+      {/* Rows, not thumbnail cards: there is no real preview image for a document yet. */}
+      <div className="flex flex-col gap-2">
         {data.documents.map((doc) => (
-          <a key={doc.id} href={doc.href} className="w-40 shrink-0 lg:w-auto">
-            <div className="aspect-[4/3] overflow-hidden bg-white/[0.04]">
-              {doc.thumbUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={doc.thumbUrl} alt="" className="h-full w-full object-cover" />
-              ) : null}
-            </div>
-                    <p className="mt-2 truncate text-sm">{doc.title}</p>
-                    <p className="font-mono text-[10px] uppercase tracking-wide text-[var(--graphite-muted)]">
-                      {doc.kind}
-                      {doc.locatorHref ? " · 1 spatial reference" : ""}
-                    </p>
-                    {doc.locatorHref ? (
-                      <span className="mt-1 block font-mono text-[10px] uppercase text-[var(--graphite-primary)]">View locations</span>
-                    ) : null}
+          <a key={doc.id} href={doc.href} className="flex min-h-12 items-center justify-between gap-3 border border-white/10 px-3">
+            <span className="truncate text-sm">{doc.title}</span>
+            <span className="shrink-0 font-mono text-[10px] uppercase tracking-wide text-[var(--graphite-muted)]">
+              {doc.kind}
+              {doc.locatorHref ? " · 1 spatial reference" : ""}
+            </span>
           </a>
         ))}
       </div>
@@ -109,9 +103,6 @@ export function PortalActivityFeed({ data }: { data: PortalLandingData }) {
           const item = data.items.find((i) => i.id === row.id);
           return (
             <article key={row.id} className="flex min-h-12 items-center gap-3 border border-white/10 px-3 py-3" data-surface="static">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center border border-white/20 font-mono text-[10px] uppercase">
-                {row.kind.slice(0, 3)}
-              </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm">{row.title}</p>
                 <p className="font-mono text-[10px] uppercase text-[var(--graphite-muted)]">

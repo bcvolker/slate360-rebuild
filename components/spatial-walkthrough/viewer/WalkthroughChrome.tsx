@@ -29,6 +29,8 @@ type Props = {
   onTogglePath?: () => void;
   playing?: boolean;
   publicChrome?: boolean;
+  /** Ask a Question only when the collaboration layer that answers it is mounted. */
+  askEnabled?: boolean;
 };
 
 export function WalkthroughChrome({
@@ -48,6 +50,7 @@ export function WalkthroughChrome({
   onTogglePath,
   playing = false,
   publicChrome = false,
+  askEnabled = true,
 }: Props) {
   const inClip = waypoints.filter((w) => w.clipId === clipId);
   const idx = indexAtTime(waypoints, clipId, currentT);
@@ -101,7 +104,7 @@ export function WalkthroughChrome({
         onStation={onStation}
         onSpaces={() => window.dispatchEvent(new Event("sw-open-spaces"))}
         onPins={() => window.dispatchEvent(new Event("sw-open-pins"))}
-        onAsk={() => window.dispatchEvent(new Event("sw-open-ask"))}
+        onAsk={askEnabled ? () => window.dispatchEvent(new Event("sw-open-ask")) : undefined}
         mode={mode}
         onModeChange={(next) => onModeChange(next)}
         onPlaybackRate={(rate) => player?.setPlaybackRate(rate)}

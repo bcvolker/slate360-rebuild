@@ -1,6 +1,8 @@
 import { TokenStatePage } from "@/components/external-portal";
 import { PortalChrome } from "@/components/external-portal/PortalChrome";
+import { redirect } from "next/navigation";
 import { loadPortalByToken } from "@/lib/spatial-walkthrough/load-portal-token";
+import { sectionAllowed } from "@/lib/spatial-walkthrough/portal-gating";
 
 export const dynamic = "force-dynamic";
 
@@ -10,6 +12,7 @@ export default async function PortalRealityPage({ params }: { params: Promise<{ 
   const { token } = await params;
   const data = await loadPortalByToken(token);
   if (!data) return <TokenStatePage state="unavailable" badge="Client portal" description="This link could not be opened." />;
+  if (!sectionAllowed(data, "reality")) redirect(`/portal/${token}`);
   const r = data.reality;
   const rows = [
     ["Walkthrough", r?.walkthroughHref],

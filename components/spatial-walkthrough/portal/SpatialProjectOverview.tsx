@@ -5,6 +5,7 @@ import { ArrowRight } from "lucide-react";
 import { ProjectDetailEmptyState } from "@/components/projects/ProjectDetailEmptyState";
 import { projectDetailTokens as t } from "@/components/projects/project-detail-tokens";
 import type { ProjectOverviewData } from "@/lib/projects/load-project-overview-data";
+import { ClientPortalPanel } from "./ClientPortalPanel";
 
 function formatDate(value: string | null): string {
   if (!value) return "Not set";
@@ -72,6 +73,8 @@ export function SpatialProjectOverview({ data }: { data: ProjectOverviewData }) 
           actionHref={`${base}/walkthroughs`}
         />
       )}
+
+      <ClientPortalPanel projectId={data.projectId} />
 
       <div className="grid gap-5 lg:grid-cols-3">
         <OverviewList
