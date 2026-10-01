@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
 import {
   Shield,
   BarChart3,
@@ -88,6 +89,11 @@ export function OperationsConsoleClient({ initial }: { initial: OpsConsoleInitia
             {initial.isCeo ? "Owner command center" : "Staff workspace"} — staff only
           </p>
         </div>
+        {initial.isCeo ? (
+          <Link href="/digital-twin" className={t.secondaryButton}>
+            Twin 360
+          </Link>
+        ) : null}
       </header>
 
       <nav className={t.tabBar} aria-label="Operations Console sections">

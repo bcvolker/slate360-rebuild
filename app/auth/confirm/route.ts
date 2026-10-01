@@ -5,6 +5,7 @@
  * Verifies the OTP token hash and redirects to the dashboard on success.
  */
 import { NextResponse } from "next/server";
+import { matchesOwnerEmail, resolvePostLoginPath, isSafeInternalPath } from "@/lib/auth/post-login-path";
 import { createClient } from "@/lib/supabase/server";
 import type { EmailOtpType } from "@supabase/supabase-js";
 
@@ -12,29 +13,35 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type") as EmailOtpType | null;
-  const next = searchParams.get("next") ?? "/app";
+  const rawNext = searchParams.get("next") ?? "/app";
+  const next = isSafeInternalPath(rawNext) ? rawNext : "/app";
 
   if (token_hash && type) {
     const supabase = await createClient();
     const { error } = await supabase.auth.verifyOtp({ token_hash, type });
 
     if (!error) {
+      let redirectPath = next;
       // Send branded welcome email after successful verification (non-blocking)
       try {
         const {
           data: { user },
         } = await supabase.auth.getUser();
+        redirectPath = resolvePostLoginPath({
+          isCeo: matchesOwnerEmail(user?.email),
+          requestedPath: next,
+        });
         if (user?.email) {
           const { sendWelcomeEmail } = await import("@/lib/email");
           sendWelcomeEmail({
             to: user.email,
             name: user.user_metadata?.full_name,
-            confirmUrl: `${origin}/app`,
+            confirmUrl: `${origin}${redirectPath}`,
           }).catch(() => {});
         }
       } catch {} // non-blocking — don't fail the redirect
 
-      return NextResponse.redirect(`${origin}${next}`);
+      return NextResponse.redirect(`${origin}${redirectPath}`);
     }
   }
 

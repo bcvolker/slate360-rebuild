@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { matchesOwnerEmail, resolvePostLoginPath, isSafeInternalPath } from "@/lib/auth/post-login-path";
 import { createClient } from "@/lib/supabase/server";
 import { ensureUserOrganization } from "@/lib/server/org-bootstrap";
 import { syncBrandingCookie } from "@/lib/server/branding";
@@ -12,33 +13,39 @@ export async function GET(request: NextRequest) {
   const code = searchParams.get("code");
   const rawNext = searchParams.get("next") ?? "/app";
   // Block open-redirect: only allow relative paths that stay on our origin
-  const next = rawNext.startsWith("/") && !rawNext.startsWith("//") && !rawNext.includes("://")
-    ? rawNext
-    : "/app";
+  const next = isSafeInternalPath(rawNext) ? rawNext : "/app";
 
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
       let redirectPath = next;
-      // Send branded welcome email after successful confirmation (non-blocking)
+      // Org bootstrap and invite redemption must not block the redirect.
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user) {
-          const orgId = await ensureUserOrganization(user);
-          const inviteToken = request.cookies.get(INVITE_COOKIE_NAME)?.value;
+          try {
+            const orgId = await ensureUserOrganization(user);
+            const inviteToken = request.cookies.get(INVITE_COOKIE_NAME)?.value;
 
-          if (inviteToken) {
-            const redemption = await redeemInvitationToken(createAdminClient(), user, inviteToken);
-            if (redemption.redirectPath) {
-              redirectPath = redemption.redirectPath;
+            if (inviteToken) {
+              const redemption = await redeemInvitationToken(createAdminClient(), user, inviteToken);
+              if (redemption.redirectPath) {
+                redirectPath = redemption.redirectPath;
+              }
             }
-          }
 
-          // Sync branding cookie so Root Layout has it on first render (no FOUC)
-          if (orgId) {
-            await syncBrandingCookie(orgId).catch(() => {});
-          }
+            // Sync branding cookie so Root Layout has it on first render (no FOUC)
+            if (orgId) {
+              await syncBrandingCookie(orgId).catch(() => {});
+            }
+          } catch {}
+
+          // Default home (/app) forks for the CEO. Invite and deep-link paths stay.
+          redirectPath = resolvePostLoginPath({
+            isCeo: matchesOwnerEmail(user.email),
+            requestedPath: redirectPath,
+          });
 
           if (user.email) {
             const { sendWelcomeEmail } = await import("@/lib/email");

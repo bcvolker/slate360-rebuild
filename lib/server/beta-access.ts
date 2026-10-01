@@ -3,6 +3,7 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
+import { matchesOwnerEmail } from "@/lib/auth/post-login-path";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 /**
@@ -19,7 +20,7 @@ export function isOwnerEmail(email: string | undefined | null): boolean {
     console.warn("[beta-access] CEO_EMAIL env var is not set — owner access disabled");
     return false;
   }
-  return email.toLowerCase() === ownerEmail.toLowerCase();
+  return matchesOwnerEmail(email, ownerEmail);
 }
 
 /**
