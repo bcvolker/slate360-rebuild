@@ -1,0 +1,408 @@
+{
+ "counts": {
+  "images.bin": 5080,
+  "jpg": 5080,
+  "png": 5080,
+  "names_match": true,
+  "masks_match": true,
+  "jpg_all_1718": true,
+  "png_all_1718": true
+ },
+ "camera": {
+  "model": "CameraModelId.PINHOLE",
+  "w": 1718,
+  "h": 1718,
+  "params": [
+   859.0,
+   859.0,
+   859.0,
+   859.0
+  ]
+ },
+ "points3D": {
+  "A": 665307,
+  "written": 665307
+ },
+ "roundtrip_px": {
+  "faces": 54,
+  "max": 9.549694368615746e-12,
+  "median_of_face_max": 2.7853275241795927e-12,
+  "gate_0p05": true
+ },
+ "mask": {
+  "table_obs": 34,
+  "agree_all": true,
+  "binary_0_255": true,
+  "side_face_far_edge_zero": false,
+  "detail": [
+   {
+    "tag": "o06",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     255
+    ]
+   },
+   {
+    "tag": "o07",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     255
+    ]
+   },
+   {
+    "tag": "o08",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     255
+    ]
+   },
+   {
+    "tag": "o09",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     255
+    ]
+   },
+   {
+    "tag": "o10",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     255
+    ]
+   },
+   {
+    "tag": "o11",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     255
+    ]
+   },
+   {
+    "tag": "o12",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     255
+    ]
+   },
+   {
+    "tag": "o13",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     255
+    ]
+   },
+   {
+    "tag": "o14",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     255
+    ]
+   },
+   {
+    "tag": "o15",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o16",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o17",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o18",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o19",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o20",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o21",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o22",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     255
+    ]
+   },
+   {
+    "tag": "o23",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o24",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o25",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o26",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o27",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o28",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o29",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o30",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o31",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o32",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o33",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o34",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o35",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o36",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o37",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o38",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   },
+   {
+    "tag": "o39",
+    "mask_valid_forensic": true,
+    "export_at_target": 255,
+    "agree": true,
+    "values": [
+     0,
+     255
+    ]
+   }
+  ]
+ },
+ "export_fidelity_table_close": [
+  {
+   "tag": "o06",
+   "lsb_max": 4.000600337982178,
+   "lsb_mean": 0.48728975653648376,
+   "psnr_db": 51.44160461425781,
+   "edges": 181,
+   "width_ref_px": 2.3017750062643434,
+   "width_jpeg_px": 2.3143500227196316
+  },
+  {
+   "tag": "o07",
+   "lsb_max": 4.383049488067627,
+   "lsb_mean": 0.47959133982658386,
+   "psnr_db": 51.57320022583008,
+   "edges": 170,
+   "width_ref_px": 2.089995438853234,
+   "width_jpeg_px": 2.142004895114611
+  },
+  {
+   "tag": "o08",
+   "lsb_max": 4.483827590942383,
+   "lsb_mean": 0.474685400724411,
+   "psnr_db": 51.65761947631836,
+   "edges": 101,
+   "width_ref_px": 2.1267505318684385,
+   "width_jpeg_px": 2.1549317680303033
+  },
+  {
+   "tag": "o09",
+   "lsb_max": 4.475553512573242,
+   "lsb_mean": 0.48702993988990784,
+   "psnr_db": 51.429656982421875,
+   "edges": 86,
+   "width_ref_px": 1.5537957473525115,
+   "width_jpeg_px": 1.5227221996293916
+  }
+ ]
+}

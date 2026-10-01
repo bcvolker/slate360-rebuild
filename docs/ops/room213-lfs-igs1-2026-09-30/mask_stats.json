@@ -1,0 +1,47 @@
+{
+ "f0": {
+  "n": 1016,
+  "white_frac_p5_p50_p95": [
+   0.247,
+   0.774,
+   1.0
+  ],
+  "backward_band_white_max": 0.0
+ },
+ "f1": {
+  "n": 1016,
+  "white_frac_p5_p50_p95": [
+   0.513,
+   0.513,
+   0.636
+  ],
+  "backward_band_white_max": 0.0
+ },
+ "f2": {
+  "n": 1016,
+  "white_frac_p5_p50_p95": [
+   0.325,
+   0.42,
+   0.503
+  ],
+  "backward_band_white_max": 0.0
+ },
+ "f3": {
+  "n": 1016,
+  "white_frac_p5_p50_p95": [
+   0.503,
+   0.561,
+   0.62
+  ],
+  "backward_band_white_max": 0.0
+ },
+ "f4": {
+  "n": 1016,
+  "white_frac_p5_p50_p95": [
+   0.517,
+   0.568,
+   0.601
+  ],
+  "backward_band_white_max": 0.0
+ }
+}
