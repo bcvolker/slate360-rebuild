@@ -69,7 +69,7 @@ export function SharedDeliverableDocument({
           <button
             type="button"
             onClick={() => setSlideshowOpen(true)}
-            className="inline-flex items-center gap-2 rounded-xl bg-[var(--graphite-primary)] px-4 py-2.5 text-sm font-semibold text-[var(--graphite-canvas)] transition-opacity hover:opacity-90"
+            className="inline-flex items-center gap-2 rounded-xl bg-[var(--portal-accent)] px-4 py-2.5 text-sm font-semibold text-white transition-opacity hover:opacity-90"
           >
             <Play className="h-4 w-4" aria-hidden /> Play slideshow
           </button>
@@ -95,7 +95,7 @@ function ViewBlock({ block }: { block: EditorBlock }) {
         <PortalGlassCard className="!p-4">
           <div
             className={cn(
-              "font-bold text-[var(--graphite-text-header)]",
+              "font-bold text-[var(--portal-ink)]",
               block.level === 1 && "text-2xl",
               block.level === 2 && "text-xl",
               block.level === 3 && "text-lg",
@@ -107,13 +107,13 @@ function ViewBlock({ block }: { block: EditorBlock }) {
       );
     case "text":
       return (
-        <p className="whitespace-pre-wrap px-1 text-sm leading-relaxed text-[var(--graphite-text-body)]">
+        <p className="whitespace-pre-wrap px-1 text-sm leading-relaxed text-[var(--portal-ink)]">
           {block.content}
         </p>
       );
     case "image":
       return (
-        <figure className="space-y-2 overflow-hidden rounded-2xl border border-white/10">
+        <figure className="space-y-2 overflow-hidden rounded-2xl border border-[var(--portal-line)]">
           {block.src ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -122,19 +122,19 @@ function ViewBlock({ block }: { block: EditorBlock }) {
               className="max-h-[28rem] w-full object-cover"
             />
           ) : (
-            <div className="flex aspect-video items-center justify-center bg-white/[0.04]">
-              <span className="text-xs text-[var(--graphite-muted)]">Image unavailable</span>
+            <div className="flex aspect-video items-center justify-center bg-[var(--portal-canvas-alt)]">
+              <span className="text-xs text-[var(--portal-ink-muted)]">Image unavailable</span>
             </div>
           )}
           {block.caption ? (
-            <figcaption className="px-3 pb-3 text-center text-xs text-[var(--graphite-muted)]">
+            <figcaption className="px-3 pb-3 text-center text-xs text-[var(--portal-ink-muted)]">
               {block.caption}
             </figcaption>
           ) : null}
         </figure>
       );
     case "divider":
-      return <hr className="border-white/10" />;
+      return <hr className="border-[var(--portal-line)]" />;
     case "callout":
       return <CalloutView block={block} />;
     default:
@@ -148,9 +148,9 @@ function CalloutView({
   block: Extract<EditorBlock, { type: "callout" }>;
 }) {
   const styles = {
-    info: "border-[color-mix(in_srgb,var(--graphite-primary)_30%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] text-[var(--graphite-text-body)]",
-    warning: "border-[color-mix(in_srgb,var(--graphite-muted)_40%,transparent)] bg-[color-mix(in_srgb,var(--graphite-muted)_12%,transparent)] text-[var(--graphite-text-body)]",
-    success: "border-emerald-500/30 bg-emerald-500/10 text-emerald-100",
+    info: "border-[color-mix(in_srgb,var(--portal-accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--portal-accent)_10%,transparent)] text-[var(--portal-ink)]",
+    warning: "border-[color-mix(in_srgb,var(--portal-ink-muted)_40%,transparent)] bg-[color-mix(in_srgb,var(--portal-ink-muted)_12%,transparent)] text-[var(--portal-ink)]",
+    success: "border-emerald-500/30 bg-emerald-500/10 text-emerald-800",
   };
 
   const Icon =

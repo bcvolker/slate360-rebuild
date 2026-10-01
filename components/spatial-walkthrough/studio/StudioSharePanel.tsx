@@ -28,11 +28,15 @@ export function StudioSharePanel({ walkthroughId, status, shares, chapters = [],
   const [allowDownload, setAllowDownload] = useState(false);
   const [chapterId, setChapterId] = useState("");
   const [message, setMessage] = useState<string | null>(null);
+  const [portalUrl, setPortalUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const publish = async () => {
     setBusy(true);
     setMessage(null);
+    setPortalUrl(null);
+    setCopied(false);
     if (status !== "ready" && status !== "published") {
       await fetch(`/api/spatial-walkthrough/${walkthroughId}`, {
         method: "PATCH",
@@ -57,7 +61,8 @@ export function StudioSharePanel({ walkthroughId, status, shares, chapters = [],
       setMessage(json.error || "Could not create share");
       return;
     }
-    setMessage(json.shareUrl);
+    // The client gets the portal link (overview + everything packaged), not the bare walkthrough.
+    setPortalUrl(json.shareUrl);
     onRefresh();
   };
 
@@ -93,12 +98,34 @@ export function StudioSharePanel({ walkthroughId, status, shares, chapters = [],
           Export package
         </button>
       </div>
+      {portalUrl ? (
+        <div className="space-y-1" data-testid="share-portal-link">
+          <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">Client portal link</p>
+          <div className="flex gap-2">
+            <input readOnly value={portalUrl} onFocus={(e) => e.currentTarget.select()} className="h-11 min-w-0 flex-1 border border-white/10 bg-transparent px-3 text-sm text-[var(--graphite-text-header)]" />
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  await navigator.clipboard.writeText(portalUrl);
+                  setCopied(true);
+                } catch {
+                  setCopied(false);
+                }
+              }}
+              className="h-11 shrink-0 border border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] px-4 text-sm text-[var(--graphite-primary)]"
+            >
+              {copied ? "Copied" : "Copy link"}
+            </button>
+          </div>
+        </div>
+      ) : null}
       {message ? <p className="break-all text-sm text-[var(--graphite-text-header)]">{message}</p> : null}
       <ul className="space-y-1 text-sm text-[var(--graphite-muted)]">
         {shares.map((s) => (
           <li key={s.id} className="flex items-center justify-between gap-2">
             <span className="truncate">
-              {s.policy === "public" ? "Public share" : "Guest share"} · {s.is_revoked ? "revoked" : "active"} · /w/{s.token_prefix ?? s.token?.slice(0, 8) ?? "••••"}…
+              {s.policy === "public" ? "Public share" : "Guest share"} · {s.is_revoked ? "revoked" : "active"} · /portal/{s.token_prefix ?? s.token?.slice(0, 8) ?? "••••"}…
             </span>
             {!s.is_revoked ? (
               <button

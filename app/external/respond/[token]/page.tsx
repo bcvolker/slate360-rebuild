@@ -129,7 +129,7 @@ export default function ExternalRespondPage() {
   }
 
   const fieldClass =
-    "w-full rounded-xl border border-white/15 bg-white/[0.04] px-3 py-2.5 text-sm text-white outline-none transition placeholder:text-slate-500 focus:border-[color-mix(in_srgb,var(--graphite-primary)_60%,transparent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)]";
+    "w-full rounded-xl border border-[var(--portal-line)] bg-[var(--portal-canvas-alt)] px-3 py-2.5 text-sm text-[var(--portal-ink)] outline-none transition placeholder:text-[var(--portal-ink-muted)] focus:border-[color-mix(in_srgb,var(--portal-accent)_60%,transparent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--portal-accent)_20%,transparent)]";
 
   return (
     <ExternalPortalShell
@@ -140,18 +140,18 @@ export default function ExternalRespondPage() {
     >
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-6 sm:px-6 sm:py-8">
         <PortalGlassCard>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--portal-ink-muted)]">
             Request details
           </p>
-          <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-slate-200">
+          <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed text-[var(--portal-ink)]">
             {payload.item.body}
           </p>
           <div className="mt-4 flex flex-wrap gap-2 text-[11px]">
-            <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-slate-300">
-              Status: <span className="font-semibold text-white">{payload.item.status}</span>
+            <span className="rounded-lg border border-[var(--portal-line)] bg-[var(--portal-canvas-alt)] px-2.5 py-1 text-[var(--portal-ink-muted)]">
+              Status: <span className="font-semibold text-[var(--portal-ink)]">{payload.item.status}</span>
             </span>
             {payload.item.metadata?.document_type ? (
-              <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 font-medium text-slate-300">
+              <span className="rounded-lg border border-[var(--portal-line)] bg-[var(--portal-canvas-alt)] px-2.5 py-1 font-medium text-[var(--portal-ink-muted)]">
                 {payload.item.metadata.document_type}
                 {payload.item.metadata.document_code
                   ? ` · ${payload.item.metadata.document_code}`
@@ -166,7 +166,7 @@ export default function ExternalRespondPage() {
             ) : null}
           </div>
 
-          <p className="mt-4 text-xs text-slate-500">
+          <p className="mt-4 text-xs text-[var(--portal-ink-muted)]">
             Review the details and submit your decision. No Slate360 account is required.
           </p>
         </PortalGlassCard>
@@ -174,7 +174,7 @@ export default function ExternalRespondPage() {
         <form onSubmit={submit} className="mt-6 space-y-4">
           <PortalGlassCard className="!p-5 space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-400">
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[var(--portal-ink-muted)]">
                 Decision
               </label>
               <select
@@ -190,7 +190,7 @@ export default function ExternalRespondPage() {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-400">
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[var(--portal-ink-muted)]">
                 Your response
               </label>
               <textarea
@@ -204,12 +204,12 @@ export default function ExternalRespondPage() {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-slate-400">
+              <label className="mb-1.5 block text-xs font-bold uppercase tracking-wide text-[var(--portal-ink-muted)]">
                 Attach file (optional)
               </label>
-              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-white/20 bg-white/[0.02] px-4 py-3.5 text-sm text-slate-400 transition hover:border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] hover:bg-white/[0.04]">
-                <UploadCloud size={16} className={file ? "text-[var(--graphite-primary)]" : ""} />
-                <span className={file ? "font-medium text-slate-200" : ""}>
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-[var(--portal-line)] bg-[var(--portal-canvas-alt)] px-4 py-3.5 text-sm text-[var(--portal-ink-muted)] transition hover:border-[color-mix(in_srgb,var(--portal-accent)_40%,transparent)] hover:bg-[var(--portal-canvas-alt)]">
+                <UploadCloud size={16} className={file ? "text-[var(--portal-accent)]" : ""} />
+                <span className={file ? "font-medium text-[var(--portal-ink)]" : ""}>
                   {file ? file.name : "Choose a file to attach"}
                 </span>
                 <input
@@ -221,7 +221,7 @@ export default function ExternalRespondPage() {
             </div>
 
             {error ? (
-              <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+              <p className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-700">
                 {error}
               </p>
             ) : null}

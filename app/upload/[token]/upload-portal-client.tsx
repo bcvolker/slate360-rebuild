@@ -140,14 +140,14 @@ export default function UploadPortalClient({
   return (
     <ExternalPortalShell
       portalLabel="File upload"
-      title="SlateDrop request upload"
+      title="File request"
       subtitle={`Secure delivery for ${projectName}`}
       orgName={projectName}
     >
       <main className="mx-auto flex w-full max-w-2xl flex-1 flex-col px-4 py-8 sm:px-6">
         {partialSuccess ? (
-          <div className="mb-4 rounded-xl border border-white/15 bg-white/[0.05] px-4 py-3 text-sm text-[var(--graphite-text-body)]">
-            <span className="font-semibold text-white">
+          <div className="mb-4 rounded-xl border border-[var(--portal-line)] bg-[var(--portal-canvas-alt)] px-4 py-3 text-sm text-[var(--portal-ink)]">
+            <span className="font-semibold text-[var(--portal-ink)]">
               {successCount} of {results.length} files uploaded.
             </span>{" "}
             Review failed items below, then add any remaining files.
@@ -168,22 +168,22 @@ export default function UploadPortalClient({
             }}
             className={`rounded-2xl border-2 border-dashed p-8 text-center transition ${
               dragOver
-                ? "border-[color-mix(in_srgb,var(--graphite-primary)_60%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_6%,transparent)]"
-                : "border-white/15 bg-white/[0.02]"
+                ? "border-[color-mix(in_srgb,var(--portal-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--portal-accent)_6%,transparent)]"
+                : "border-[var(--portal-line)] bg-[var(--portal-canvas-alt)]"
             }`}
           >
-            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-white/10 bg-white/5">
+            <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl border border-[var(--portal-line)] bg-[var(--portal-canvas-alt)]">
               {uploading ? (
-                <Loader2 size={24} className="animate-spin text-[var(--graphite-primary)]" />
+                <Loader2 size={24} className="animate-spin text-[var(--portal-accent)]" />
               ) : (
-                <UploadCloud size={24} className="text-[var(--graphite-primary)]" />
+                <UploadCloud size={24} className="text-[var(--portal-accent)]" />
               )}
             </div>
 
-            <p className="text-sm font-semibold text-white">
+            <p className="text-sm font-semibold text-[var(--portal-ink)]">
               {uploading ? "Uploading files…" : "Drag and drop files here"}
             </p>
-            <p className="mt-1 text-xs text-slate-400">or</p>
+            <p className="mt-1 text-xs text-[var(--portal-ink-muted)]">or</p>
 
             <PortalPrimaryCta
               type="button"
@@ -207,7 +207,7 @@ export default function UploadPortalClient({
           </div>
 
           {results.length === 0 ? (
-            <p className="mt-4 text-center text-xs text-slate-400">
+            <p className="mt-4 text-center text-xs text-[var(--portal-ink-muted)]">
               No files uploaded yet. Add one or more files to deliver them to the project folder.
             </p>
           ) : (
@@ -217,8 +217,8 @@ export default function UploadPortalClient({
                   key={`${item.name}-${index}`}
                   className={`flex items-center justify-between rounded-xl border px-3 py-2 text-sm ${
                     item.ok
-                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-100"
-                      : "border-red-500/30 bg-red-500/10 text-red-100"
+                      ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-800"
+                      : "border-red-200 bg-red-50 text-red-700"
                   }`}
                 >
                   <span className="truncate pr-3">{item.name}</span>

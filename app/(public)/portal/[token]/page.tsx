@@ -9,7 +9,6 @@ import { ExternalPortalShell, TokenStatePage } from "@/components/external-porta
 import { AecPortalLanding } from "@/components/external-portal/AecPortalLanding";
 import { loadShareRow, shareDenied } from "@/lib/spatial-walkthrough/share-resolve";
 import { loadClientPortalLanding } from "@/lib/spatial-walkthrough/client-portal-load";
-import { resolveBrandTheme } from "@/lib/spatial-walkthrough/theme";
 
 export const dynamic = "force-dynamic";
 
@@ -44,45 +43,28 @@ export default async function DeliverableSharePage({ params }: PageProps) {
   const { data: claimed } = await admin.rpc("claim_deliverable_view", { p_token: token });
   const access = Array.isArray(claimed) ? claimed[0] : claimed;
   if (access && typeof access === "object" && "org_id" in access) {
-    const dat = access as { org_id: string; deliverable_type: string; role: string };
+    const dat = access as { org_id: string };
     let branding = DEFAULT_BRANDING;
     try {
       branding = await getOrgBranding(dat.org_id);
     } catch {
       branding = DEFAULT_BRANDING;
     }
-    const brand = resolveBrandTheme({
-      snapshot: { logoUrl: branding.logo_url, companyName: branding.brand_name, showPoweredBy: true },
-      canHidePoweredBy: true,
-    });
+    // Legacy deliverable tokens carry no packaged content, so show one honest line, not an empty dashboard.
     return (
       <ExternalPortalShell
         portalLabel="Client portal"
         title={branding.brand_name}
-        subtitle={`${dat.deliverable_type} · ${dat.role}`}
         orgName={branding.brand_name}
         orgLogoUrl={branding.logo_url}
         showFooter={false}
       >
-        <AecPortalLanding
-          data={{
-            profile: "construction",
-            projectName: branding.brand_name,
-            location: null,
-            latestCaptureAt: null,
-            brand,
-            hero: null,
-            history: [],
-            attention: { open: 0, urgent: 0, questions: 0 },
-            documents: [],
-            projects: [],
-            compareAvailable: false,
-            shareHref: null,
-            token,
-            items: [],
-            activity: [],
-            captureTree: [],
-          }}
+        <TokenStatePage
+          state="empty"
+          badge="Client portal"
+          title="Nothing is shared on this link yet"
+          description={`Ask ${branding.brand_name} for the current portal link.`}
+          showShell={false}
         />
       </ExternalPortalShell>
     );

@@ -65,11 +65,11 @@ export default function ShareGate({ token, badge }: { token: string; badge?: str
       <div className="mx-auto w-full max-w-md">
         <PortalGlassCard>
           <div className="mb-5 flex flex-col items-center text-center">
-            <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[color-mix(in_srgb,var(--graphite-primary)_14%,transparent)]">
-              <Lock size={22} className="text-[var(--graphite-primary)]" />
+            <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-[color-mix(in_srgb,var(--portal-accent)_14%,transparent)]">
+              <Lock size={22} className="text-[var(--portal-accent)]" />
             </span>
-            <h2 className="text-lg font-bold text-[var(--graphite-text-body)]">This file is protected</h2>
-            <p className="mt-1 text-sm text-[var(--graphite-muted)]">
+            <h2 className="text-lg font-bold text-[var(--portal-ink)]">This file is protected</h2>
+            <p className="mt-1 text-sm text-[var(--portal-ink-muted)]">
               Enter the password the sender shared with you to view this file.
             </p>
           </div>
@@ -80,14 +80,14 @@ export default function ShareGate({ token, badge }: { token: string; badge?: str
               onChange={(event) => setPassword(event.target.value)}
               placeholder="Password"
               autoFocus
-              className="w-full rounded-xl border border-white/10 bg-white/[0.04] px-3.5 py-2.5 text-sm text-[var(--graphite-text-body)] placeholder-[var(--graphite-muted)] outline-none transition-all focus:border-[var(--graphite-primary)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)]"
+              className="w-full rounded-xl border border-[var(--portal-line)] bg-[var(--portal-canvas-alt)] px-3.5 py-2.5 text-sm text-[var(--portal-ink)] placeholder-[var(--portal-ink-muted)] outline-none transition-all focus:border-[var(--portal-accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--portal-accent)_20%,transparent)]"
             />
-            {error && <p className="text-xs font-medium text-red-400">{error}</p>}
+            {error && <p className="text-xs font-medium text-red-700">{error}</p>}
             <button
               type="submit"
               disabled={!password.trim() || loading}
-              className="w-full rounded-xl py-2.5 text-sm font-semibold text-[var(--graphite-canvas)] transition-all hover:opacity-90 disabled:opacity-50"
-              style={{ backgroundColor: "var(--graphite-primary)" }}
+              className="w-full rounded-xl py-2.5 text-sm font-semibold text-white transition-all hover:opacity-90 disabled:opacity-50"
+              style={{ backgroundColor: "var(--portal-accent)" }}
             >
               {loading ? "Unlocking…" : "Unlock"}
             </button>

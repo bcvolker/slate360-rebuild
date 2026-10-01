@@ -78,15 +78,15 @@ export function DeliverableQnA({ token, orgName }: { token: string; orgName: str
   }
 
   const input =
-    "min-h-10 w-full rounded-lg border border-[color-mix(in_srgb,var(--graphite-muted)_30%,transparent)] bg-[color-mix(in_srgb,var(--graphite-canvas)_60%,transparent)] px-3 text-sm text-[var(--graphite-text-header)] outline-none placeholder:text-[var(--graphite-muted)] focus:border-[color-mix(in_srgb,var(--graphite-primary)_45%,transparent)]";
+    "min-h-10 w-full rounded-lg border border-[color-mix(in_srgb,var(--portal-ink-muted)_30%,transparent)] bg-[color-mix(in_srgb,var(--portal-canvas)_60%,transparent)] px-3 text-sm text-[var(--portal-ink)] outline-none placeholder:text-[var(--portal-ink-muted)] focus:border-[color-mix(in_srgb,var(--portal-accent)_45%,transparent)]";
 
   return (
     <PortalGlassCard className="!p-5">
       <div className="flex items-center gap-2">
-        <MessageSquare className="h-4 w-4 text-[var(--graphite-primary)]" aria-hidden />
-        <h2 className="text-sm font-semibold text-[var(--graphite-text-header)]">Questions &amp; answers</h2>
+        <MessageSquare className="h-4 w-4 text-[var(--portal-accent)]" aria-hidden />
+        <h2 className="text-sm font-semibold text-[var(--portal-ink)]">Questions &amp; answers</h2>
       </div>
-      <p className="mt-1 text-xs text-[var(--graphite-muted)]">
+      <p className="mt-1 text-xs text-[var(--portal-ink-muted)]">
         Ask {orgName || "the sender"} a question about this deliverable — replies appear here.
       </p>
 
@@ -98,18 +98,18 @@ export function DeliverableQnA({ token, orgName }: { token: string; orgName: str
               className={cn(
                 "rounded-xl border p-3",
                 item.is_owner_reply
-                  ? "ml-6 border-[color-mix(in_srgb,var(--graphite-primary)_30%,transparent)] bg-[color-mix(in_srgb,var(--graphite-primary)_8%,transparent)]"
-                  : "border-[color-mix(in_srgb,var(--graphite-muted)_25%,transparent)] bg-[color-mix(in_srgb,var(--graphite-canvas)_50%,transparent)]",
+                  ? "ml-6 border-[color-mix(in_srgb,var(--portal-accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--portal-accent)_8%,transparent)]"
+                  : "border-[color-mix(in_srgb,var(--portal-ink-muted)_25%,transparent)] bg-[color-mix(in_srgb,var(--portal-canvas)_50%,transparent)]",
               )}
             >
-              <p className="flex items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--graphite-muted)]">
+              <p className="flex items-center justify-between gap-2 text-[11px] font-semibold uppercase tracking-wide text-[var(--portal-ink-muted)]">
                 <span>
                   {item.is_owner_reply ? orgName || "Sender" : item.author_name || "You"}
                   {item.is_owner_reply ? " · reply" : ""}
                 </span>
                 <span className="font-normal normal-case">{fmt(item.created_at)}</span>
               </p>
-              <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-[var(--graphite-text-body)]">{item.body}</p>
+              <p className="mt-1 whitespace-pre-wrap text-sm leading-relaxed text-[var(--portal-ink)]">{item.body}</p>
             </li>
           ))}
         </ul>
@@ -128,7 +128,7 @@ export function DeliverableQnA({ token, orgName }: { token: string; orgName: str
           className={cn(input, "resize-none py-2 leading-relaxed")}
         />
         {error ? (
-          <p className="flex items-center gap-1.5 text-xs text-red-300">
+          <p className="flex items-center gap-1.5 text-xs text-red-700">
             <AlertTriangle className="h-3.5 w-3.5" aria-hidden /> {error}
           </p>
         ) : null}
@@ -138,7 +138,7 @@ export function DeliverableQnA({ token, orgName }: { token: string; orgName: str
             onClick={submit}
             disabled={busy}
             className={cn(
-              "inline-flex items-center gap-2 rounded-xl bg-[var(--graphite-primary)] px-4 py-2 text-sm font-semibold text-[var(--graphite-canvas)] transition-opacity hover:opacity-90",
+              "inline-flex items-center gap-2 rounded-xl bg-[var(--portal-accent)] px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90",
               busy && "opacity-70",
             )}
           >

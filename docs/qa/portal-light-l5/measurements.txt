@@ -1,0 +1,58 @@
+portal-overview 375 {"status":200,"url":"/portal/<t>","h":1076,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":false,"darkBlocks":[],"banned":""}
+portal-overview 768 {"status":200,"url":"/portal/<t>","h":1252,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":false,"darkBlocks":[],"banned":""}
+portal-overview desktop {"status":200,"url":"/portal/<t>","h":900,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":false,"darkBlocks":[],"banned":""}
+portal-walkthrough 375 {"status":200,"url":"/portal/<t>/reality","h":812,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":false,"darkBlocks":[],"banned":""}
+portal-walkthrough 768 {"status":200,"url":"/portal/<t>/reality","h":1024,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":false,"darkBlocks":[],"banned":""}
+portal-walkthrough desktop {"status":200,"url":"/portal/<t>/reality","h":900,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":false,"darkBlocks":[],"banned":""}
+portal-documents 375 {"status":200,"url":"/portal/<t>/documents","h":812,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":false,"darkBlocks":[],"banned":""}
+portal-documents 768 {"status":200,"url":"/portal/<t>/documents","h":1024,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":false,"darkBlocks":[],"banned":""}
+portal-documents desktop {"status":200,"url":"/portal/<t>/documents","h":900,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":false,"darkBlocks":[],"banned":""}
+portal-items 375 {"status":200,"url":"/portal/<t>/items","h":812,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":false,"darkBlocks":[],"banned":""}
+portal-items 768 {"status":200,"url":"/portal/<t>/items","h":1024,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":false,"darkBlocks":[],"banned":""}
+portal-items desktop {"status":200,"url":"/portal/<t>/items","h":900,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":false,"darkBlocks":[],"banned":""}
+portal-items-closed-empty 375 {"status":200,"url":"/portal/<t>/items?status=closed","h":812,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":false,"darkBlocks":[],"banned":""}
+portal-item-detail 375 {"status":200,"url":"/portal/<t>/item/66e7595a-60e4-4c8f-9d33-59c186b8c9ff","h":812,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":false,"darkBlocks":[],"banned":""}
+portal-item-detail 768 {"status":200,"url":"/portal/<t>/item/66e7595a-60e4-4c8f-9d33-59c186b8c9ff","h":1024,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":false,"darkBlocks":[],"banned":""}
+portal-item-detail desktop {"status":200,"url":"/portal/<t>/item/66e7595a-60e4-4c8f-9d33-59c186b8c9ff","h":900,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":false,"darkBlocks":[],"banned":""}
+share-dialog link value: http://127.0.0.1:3401/portal/Qx7hT2aB-demo-client-token (portal=true)
+share-dialog 375 {"status":200,"url":"/preview/share-panel","h":812,"canvas":"rgb(248, 250, 252)","overflowX":false,"navScroll":null,"darkBlocks":["div.min-h-screen.bg-[var(--graphite-canvas)]"],"banned":""}
+share-dialog link value: http://127.0.0.1:3401/portal/Qx7hT2aB-demo-client-token (portal=true)
+share-dialog 768 {"status":200,"url":"/preview/share-panel","h":1024,"canvas":"rgb(248, 250, 252)","overflowX":false,"navScroll":null,"darkBlocks":["div.min-h-screen.bg-[var(--graphite-canvas)]"],"banned":""}
+share-dialog link value: http://127.0.0.1:3401/portal/Qx7hT2aB-demo-client-token (portal=true)
+share-dialog desktop {"status":200,"url":"/preview/share-panel","h":900,"canvas":"rgb(248, 250, 252)","overflowX":false,"navScroll":null,"darkBlocks":["div.min-h-screen.bg-[var(--graphite-canvas)]"],"banned":""}
+legacy-deliverable-viewer 375 {"status":200,"url":"/preview/deliverable-viewer","h":812,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":null,"darkBlocks":[],"banned":""}
+legacy-deliverable-viewer 768 {"status":200,"url":"/preview/deliverable-viewer","h":1024,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":null,"darkBlocks":[],"banned":""}
+legacy-deliverable-viewer desktop {"status":200,"url":"/preview/deliverable-viewer","h":900,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":null,"darkBlocks":[],"banned":""}
+legacy-deliverable-slideshow 375 {"status":200,"url":"/preview/<t>","h":812,"canvas":"rgb(248, 250, 252)","overflowX":false,"navScroll":null,"darkBlocks":["div.min-h-screen.bg-[var(--graphite-canvas)]","div.fixed.inset-0"],"banned":""}
+legacy-deliverable-slideshow desktop {"status":200,"url":"/preview/<t>","h":900,"canvas":"rgb(248, 250, 252)","overflowX":false,"navScroll":null,"darkBlocks":["div.min-h-screen.bg-[var(--graphite-canvas)]","div.fixed.inset-0"],"banned":""}
+legacy-claim-portal 375 {"status":200,"url":"/portal/<t>","h":812,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":null,"darkBlocks":[],"banned":""}
+legacy-claim-portal 768 {"status":200,"url":"/portal/<t>","h":1024,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":null,"darkBlocks":[],"banned":""}
+legacy-claim-portal desktop {"status":200,"url":"/portal/<t>","h":900,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":null,"darkBlocks":[],"banned":""}
+legacy-file-share 375 {"status":200,"url":"/share/<t>","h":812,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":null,"darkBlocks":[],"banned":""}
+legacy-file-share 768 {"status":200,"url":"/share/<t>","h":1024,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":null,"darkBlocks":[],"banned":""}
+legacy-file-share desktop {"status":200,"url":"/share/<t>","h":900,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":null,"darkBlocks":[],"banned":""}
+legacy-file-share-gate 375 {"status":200,"url":"/share/<t>","h":812,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":null,"darkBlocks":["button.w-full.rounded-xl"],"banned":""}
+legacy-file-share-gate 768 {"status":200,"url":"/share/<t>","h":1024,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":null,"darkBlocks":["button.w-full.rounded-xl"],"banned":""}
+legacy-file-share-gate desktop {"status":200,"url":"/share/<t>","h":900,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":null,"darkBlocks":["button.w-full.rounded-xl"],"banned":""}
+SKIP upload: no folder in org
+SKIP respond: no RFI
+legacy-3d-scan-share 375 {"status":200,"url":"/share/twin/<t>","h":812,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":null,"darkBlocks":["div.relative.h-full"],"banned":""}
+legacy-3d-scan-share desktop {"status":200,"url":"/share/twin/<t>","h":900,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":null,"darkBlocks":["div.relative.h-full","div.min-h-0.w-full"],"banned":""}
+state-invalid-portal 375 {"status":200,"url":"/portal/<t>","h":812,"canvas":"rgb(250, 250, 248)","overflowX":false,"navScroll":null,"darkBlocks":[],"banned":""}
+cleanup digital_twin_share_tokens deleted
+cleanup slate_drop_links deleted
+cleanup slate_drop_links deleted
+cleanup deliverable_access_tokens deleted
+RESTORED pin=internal bodyRestored=true flagBefore=false flagNow=false livePreviews=0
+errors []
+
+# Re-shoots after fixes (final screenshots in this folder are from these runs)
+legacy-deliverable-viewer 375/768/desktop: status 200, light canvas, no dark blocks; at 375 the details panel now starts closed so the photo shows.
+legacy-file-share-gate 375/768/desktop: status 200; the only "dark block" is the Unlock button = brand accent fill (#0C7A52 via --portal-accent inline style), label now white.
+legacy-file-share 375/768/desktop: status 200, no dark blocks; header actions wrap under the title on phones; missing R2 object (404, orphaned row) now shows a one-line message instead of a broken image.
+legacy-upload 375/768/desktop: status 200, light, no dark blocks (project_folders row, link deleted after).
+legacy-respond: NOT CAPTURED - prod has 0 project_rfis, 0 project_submittals, 0 project_external_links; route is light-converted but unreachable with real data.
+legacy-3d-scan-share: dark blocks are the WebGL viewport + its HUD over the 3D model (media stage, intentional).
+legacy-deliverable-slideshow: full-screen presentation mode is intentionally dark (like a video player); --graphite-* removed.
+share-dialog: operator surface (Graphite by design); copy box value = /portal/<token> in all three widths.
+All test rows deleted; preview token revoked; pin restored; spatial_directed_tour false before and after every run.

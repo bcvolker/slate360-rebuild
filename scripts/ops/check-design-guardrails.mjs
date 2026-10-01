@@ -75,7 +75,17 @@ const ruleGroups = [
     allowKey: "legacyPortalGraphiteFiles",
     label: "dark Graphite token in a client portal file",
     exts: new Set([".ts", ".tsx"]),
-    includePaths: ["components/external-portal/", "app/(public)/portal/", "components/spatial-tour/client/"],
+    includePaths: [
+      "components/external-portal/",
+      "app/(public)/portal/",
+      "components/spatial-tour/client/",
+      // Legacy client share surfaces (L5): deliverable viewer, file share, upload, respond, 3D scan share.
+      "app/view/",
+      "app/share/",
+      "app/upload/",
+      "app/external/",
+      "components/digital-twin/TwinShareViewer.tsx",
+    ],
     patterns: [/var\(--graphite-/],
     hint: "Client surfaces are light: use var(--portal-*) (aliases of the marketing palette), not --graphite-*.",
   },
