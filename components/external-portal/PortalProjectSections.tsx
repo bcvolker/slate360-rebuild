@@ -1,13 +1,22 @@
 import type { PortalLandingData } from "@/lib/spatial-walkthrough/portal-fixtures";
 
+/** Light client overview sections (theme B). Palette: --portal-* only. */
+
+export const portalCard = "rounded-2xl border border-[var(--portal-line)] bg-[var(--portal-surface)]";
+export const portalKicker = "text-xs font-semibold uppercase tracking-[0.07em] text-[var(--portal-accent)]";
+const rowLink =
+  "flex min-h-12 items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-[var(--portal-canvas)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--portal-accent)]";
+const meta = "shrink-0 text-xs text-[var(--portal-ink-muted)]";
+
 function when(iso: string | null): string {
   if (!iso) return "";
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? "" : d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
 }
 
-const btn = "inline-flex min-h-12 items-center border border-white/20 px-4 text-sm";
+const sentence = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, " ") : s);
 
+/** Small counts strip; each count links to the list it summarises. */
 export function PortalAttention({ data }: { data: PortalLandingData }) {
   const caps = data.capabilities;
   const cards: Array<[string, number, string]> = [];
@@ -18,9 +27,9 @@ export function PortalAttention({ data }: { data: PortalLandingData }) {
   return (
     <section data-testid="portal-attention" className="grid grid-cols-3 gap-3">
       {cards.map(([label, count, href]) => (
-        <a key={label} href={href} className="min-h-12 border border-white/10 px-3 py-3">
-          <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">{label}</p>
-          <p className="text-xl font-semibold">{count}</p>
+        <a key={label} href={href} className={`${portalCard} px-4 py-3 transition-colors hover:border-[var(--portal-accent-line)]`}>
+          <p className="text-xs font-medium text-[var(--portal-ink-muted)]">{label}</p>
+          <p className="font-serif text-2xl text-[var(--portal-ink)]">{count}</p>
         </a>
       ))}
     </section>
@@ -30,117 +39,76 @@ export function PortalAttention({ data }: { data: PortalLandingData }) {
 export function PortalHistoryRail({ data }: { data: PortalLandingData }) {
   return (
     <section data-testid="portal-history">
-      <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">History</p>
+      <p className={`${portalKicker} mb-3`}>History</p>
       <div className="flex gap-3 overflow-x-auto pb-2">
         {data.history.map((row) => (
-                <a key={row.id} href={row.href} className="w-44 shrink-0 sm:w-56" data-surface="static">
-            <div className="aspect-video overflow-hidden bg-white/[0.04]">
-              {row.posterUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={row.posterUrl} alt="" className="h-full w-full object-cover" />
-              ) : null}
-            </div>
-            <p className="mt-2 truncate text-sm">{when(row.capturedAt)}</p>
-            <p className="truncate font-mono text-[10px] uppercase tracking-wide text-[var(--graphite-muted)]">
-              Visit
-            </p>
+          <a key={row.id} href={row.href} className={`${portalCard} w-44 shrink-0 overflow-hidden sm:w-56`} data-surface="static">
+            {row.posterUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={row.posterUrl} alt="" className="aspect-video w-full object-cover" />
+            ) : null}
+            <p className="px-3 py-2 text-sm text-[var(--portal-ink)]">{when(row.capturedAt)}</p>
           </a>
         ))}
       </div>
+    </section>
+  );
+}
+
+function ListCard({
+  id,
+  title,
+  allHref,
+  children,
+}: {
+  id: string;
+  title: string;
+  allHref?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section id={id} data-testid={`portal-${id}`} className={`${portalCard} overflow-hidden`}>
+      <div className="flex items-center justify-between gap-3 border-b border-[var(--portal-line)] px-4 py-3">
+        <p className={portalKicker}>{title}</p>
+        {allHref ? (
+          <a href={allHref} className="text-xs font-semibold text-[var(--portal-accent)] hover:underline">
+            View all
+          </a>
+        ) : null}
+      </div>
+      <div className="divide-y divide-[var(--portal-line)]">{children}</div>
     </section>
   );
 }
 
 export function PortalItemsRail({ data }: { data: PortalLandingData }) {
   return (
-    <section id="items" data-testid="portal-items">
-      <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">Project items</p>
-      <div className="flex flex-col gap-2">
-        {data.items.map((item) => (
-          <a key={item.id} href={item.href} className="flex min-h-12 items-center justify-between gap-3 border border-white/10 px-3">
-            <span className="line-clamp-2 break-words text-sm">{item.title}</span>
-            <span className="shrink-0 font-mono text-[10px] uppercase text-[var(--graphite-muted)]">
-              {item.type} · {item.status}
-            </span>
-          </a>
-        ))}
-      </div>
-    </section>
+    <ListCard id="items" title="Project items" allHref={`/portal/${data.token}/items`}>
+      {data.items.map((item) => (
+        <a key={item.id} href={item.href} className={rowLink}>
+          <span className="line-clamp-2 break-words text-sm font-medium text-[var(--portal-ink)]">{item.title}</span>
+          <span className={meta}>
+            {sentence(item.type)} · {sentence(item.status)}
+          </span>
+        </a>
+      ))}
+    </ListCard>
   );
 }
 
 export function PortalDocsRail({ data }: { data: PortalLandingData }) {
   return (
-    <section id="documents" data-testid="portal-documents">
-      <div className="mb-3 flex items-center justify-between">
-        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">Documents</p>
-        <a href={`/portal/${data.token}/documents`} className="font-mono text-[10px] uppercase text-[var(--graphite-primary)]">
-          View all
-        </a>
-      </div>
+    <ListCard id="documents" title="Documents" allHref={`/portal/${data.token}/documents`}>
       {/* Rows, not thumbnail cards: there is no real preview image for a document yet. */}
-      <div className="flex flex-col gap-2">
-        {data.documents.map((doc) => (
-          <a key={doc.id} href={doc.href} className="flex min-h-12 items-center justify-between gap-3 border border-white/10 px-3">
-            <span className="line-clamp-2 break-words text-sm">{doc.title}</span>
-            <span className="shrink-0 font-mono text-[10px] uppercase tracking-wide text-[var(--graphite-muted)]">
-              {doc.kind}
-              {doc.locatorHref ? " · 1 spatial reference" : ""}
-            </span>
-          </a>
-        ))}
-      </div>
-    </section>
-  );
-}
-
-export function PortalActivityFeed({ data }: { data: PortalLandingData }) {
-  return (
-    <section id="activity" data-testid="portal-activity">
-      <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">Activity</p>
-      <div className="flex flex-col gap-3">
-        {data.activity.map((row) => {
-          const item = data.items.find((i) => i.id === row.id);
-          return (
-            <article key={row.id} className="flex min-h-12 items-center gap-3 border border-white/10 px-3 py-3" data-surface="static">
-              <div className="min-w-0 flex-1">
-                <p className="line-clamp-2 break-words text-sm">{row.title}</p>
-                <p className="font-mono text-[10px] uppercase text-[var(--graphite-muted)]">
-                  {data.projectName} · {row.kind} · {item?.status ?? "open"}
-                </p>
-              </div>
-              <div className="flex shrink-0 flex-col items-end gap-1 sm:flex-row">
-                <a href={row.href} className={`${btn} min-h-12`}>Open</a>
-                {item?.locatorHref ? (
-                  <a href={item.locatorHref} className={`${btn} min-h-12`}>Open at location</a>
-                ) : null}
-              </div>
-            </article>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
-export function PortalCaptureTree({ data }: { data: PortalLandingData }) {
-  return (
-    <section data-testid="portal-capture-tree">
-      <p className="mb-3 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">Capture graph</p>
-      <ul className="flex flex-col gap-2">
-        {data.captureTree.map((node) => (
-          <li key={node.label}>
-            {node.href ? (
-              <a href={node.href} className={`${btn} w-full justify-between`}>
-                <span>{node.label}</span>
-                <span className="font-mono text-[10px] uppercase text-[var(--graphite-muted)]">{node.status}</span>
-              </a>
-            ) : (
-              <p className="text-sm text-[var(--graphite-muted)]">{node.label} · not captured</p>
-            )}
-          </li>
-        ))}
-      </ul>
-    </section>
+      {data.documents.map((doc) => (
+        <a key={doc.id} href={doc.href} className={rowLink}>
+          <span className="line-clamp-2 break-words text-sm font-medium text-[var(--portal-ink)]">{doc.title}</span>
+          <span className={meta}>
+            {doc.kind === "slatedrop" ? "File" : sentence(doc.kind)}
+            {doc.locatorHref ? " · in the walkthrough" : ""}
+          </span>
+        </a>
+      ))}
+    </ListCard>
   );
 }
