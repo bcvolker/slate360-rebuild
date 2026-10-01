@@ -145,6 +145,21 @@
   --mkt-accent-soft: color-mix(in srgb, var(--mkt-accent) 8%, transparent);
   --mkt-accent-line: color-mix(in srgb, var(--mkt-accent) 30%, transparent);
 
+  /* ── Client portal — light, aliases of the marketing palette (theme B, 2026-09-30) ──
+     Client-facing surfaces (portal, share frame, Tour viewer) use ONLY these, so they
+     match slate360.ai and can diverge from marketing later without a hunt.
+     --portal-accent is overridden inline with the org's brand accent when one is set.
+     See docs/design/LIGHT_CLIENT_PORTAL_SCOPE.md. guard:design blocks --graphite-* there. */
+  --portal-canvas: var(--mkt-canvas);
+  --portal-canvas-alt: var(--mkt-canvas-alt);
+  --portal-surface: var(--mkt-surface);
+  --portal-ink: var(--mkt-ink);
+  --portal-ink-muted: var(--mkt-ink-muted);
+  --portal-line: var(--mkt-line);
+  --portal-accent: var(--mkt-accent);
+  --portal-accent-soft: color-mix(in srgb, var(--portal-accent) 8%, transparent);
+  --portal-accent-line: color-mix(in srgb, var(--portal-accent) 30%, transparent);
+
   /* ── shadcn canonical surface + text (PREMIUM LIGHT 2026-04-23) ──
      Inner-app pages, cards, popovers, and authenticated dashboards now
      render against this light palette by default. Surfaces that must
