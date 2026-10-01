@@ -1,5 +1,5 @@
 import type { PortalLandingData } from "@/lib/spatial-walkthrough/portal-fixtures";
-import { portalSections, type PortalSection } from "@/lib/spatial-walkthrough/portal-gating";
+import { portalSections, realitySectionLabel, type PortalSection } from "@/lib/spatial-walkthrough/portal-gating";
 import { PortalBrandMark, portalAccentStyle } from "./PortalBrandMark";
 
 const LABELS: Record<PortalSection, string> = {
@@ -34,9 +34,7 @@ export function PortalChrome({
   const visit = siteVisitDate(data.visitLabel);
   const meta = [data.location, visit ? `Site visit ${visit}` : null].filter(Boolean).join(" · ");
   // Client product language (vNext): name the scan/360 section after what is actually shared.
-  const caps = data.capabilities;
-  const has360 = Boolean(caps?.walkthrough || caps?.stations);
-  const realityLabel = caps?.twin && has360 ? "3D Scan & 360" : caps?.twin ? "3D Scan" : "360 / Walkthrough";
+  const realityLabel = realitySectionLabel(data.capabilities);
 
   return (
     <div

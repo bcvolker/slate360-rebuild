@@ -1,5 +1,7 @@
 import { TokenStatePage } from "@/components/external-portal";
 import { PortalChrome } from "@/components/external-portal/PortalChrome";
+import { docKindLabel, portalPrimaryBtn, portalSecondaryBtn, sentence } from "@/components/external-portal/PortalPage";
+import { portalCard, portalKicker } from "@/components/external-portal/PortalProjectSections";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { loadPortalByToken } from "@/lib/spatial-walkthrough/load-portal-token";
 import { walkthroughHref } from "@/lib/spatial-walkthrough/project-items";
@@ -43,53 +45,60 @@ export default async function PortalItemPage({
       pitchDeg: pin.pitch_deg,
     },
   });
-  // Only surfaces this link actually serves; nothing greyed out or "not on this visit".
+  // Only surfaces this link actually serves (client words); nothing greyed out or "not on this visit".
   const candidates: Array<[string, string | null | undefined]> = [
-    ["Walkthrough", data.capabilities?.walkthrough ? atLocation : null],
-    ["Plan", data.planHref],
-    ["360 Station", data.reality?.stationsHref],
-    ["Reality Twin", data.reality?.twinHref],
+    ["See in walkthrough", data.capabilities?.walkthrough ? atLocation : null],
+    ["Plans", data.planHref],
+    ["360 photos", data.reality?.stationsHref],
+    ["3D Scan", data.reality?.twinHref],
   ];
   const locators = candidates.filter((row): row is [string, string] => Boolean(row[1]));
+  const back = asItem ? { label: "Items", href: `/portal/${token}/items` } : { label: "Documents", href: `/portal/${token}/documents` };
+  const docs = attachments ?? [];
 
   return (
     <PortalChrome data={data} active={asItem ? "items" : "documents"}>
-      <main className="px-4 py-6 sm:px-8" data-testid="portal-item-page">
-        <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">
-          {pin.pin_type} · {pin.status ?? "open"}
-        </p>
-        <h1 className="text-xl font-semibold">{pin.label}</h1>
-        {pin.body ? <p className="mt-4 max-w-2xl text-sm text-[var(--graphite-text-body)]">{pin.body}</p> : null}
-        {locators.length ? (
-          <section className="mt-8" data-testid="spatial-references">
-            <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">
-              See it in place
+      <main className="mx-auto flex w-full max-w-[1120px] flex-col gap-4 px-4 py-5 sm:px-6 sm:py-6" data-testid="portal-item-page">
+        <a href={back.href} className="text-sm font-medium text-[var(--portal-ink-muted)] hover:text-[var(--portal-ink)]">
+          ← {back.label}
+        </a>
+        <div className={`grid items-start gap-4 ${docs.length ? "lg:grid-cols-[minmax(0,1.4fr)_minmax(300px,1fr)]" : ""}`}>
+          <section className={`${portalCard} p-5`}>
+            <p className={portalKicker}>
+              {sentence(pin.pin_type)} · {sentence(pin.status ?? "open")}
             </p>
-            <div className="flex flex-wrap gap-2">
-              {locators.map(([label, href]) => (
-                <a key={label} href={href} className="inline-flex min-h-12 items-center border border-white/20 px-4 text-sm">
-                  {label}
-                </a>
-              ))}
-            </div>
+            <h1 className="mt-1 break-words font-serif text-2xl text-[var(--portal-ink)] sm:text-[1.7rem]">{pin.label}</h1>
+            {pin.body ? <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-[var(--portal-ink)]">{pin.body}</p> : null}
+            {locators.length ? (
+              <div className="mt-5 flex flex-wrap gap-2" data-testid="spatial-references">
+                {locators.map(([label, href], i) => (
+                  <a key={label} href={href} className={i === 0 ? portalPrimaryBtn : portalSecondaryBtn}>
+                    {label}
+                  </a>
+                ))}
+              </div>
+            ) : null}
           </section>
-        ) : null}
-        {attachments?.length ? (
-          <section className="mt-8" data-testid="portal-item-docs">
-            <p className="mb-2 font-mono text-[10px] uppercase tracking-[0.14em] text-[var(--graphite-muted)]">Documents</p>
-            {attachments.map((doc) =>
-              data.capabilities?.walkthrough ? (
-                <a key={doc.id} href={atLocation} className="mb-2 flex min-h-12 items-center border border-white/10 px-4 text-sm">
-                  {doc.title || doc.kind}
-                </a>
-              ) : (
-                <p key={doc.id} className="mb-2 flex min-h-12 items-center border border-white/10 px-4 text-sm">
-                  {doc.title || doc.kind}
-                </p>
-              ),
-            )}
-          </section>
-        ) : null}
+          {docs.length ? (
+            <section className={`${portalCard} overflow-hidden`} data-testid="portal-item-docs">
+              <p className={`${portalKicker} border-b border-[var(--portal-line)] px-4 py-3`}>Documents</p>
+              <div className="divide-y divide-[var(--portal-line)]">
+                {docs.map((doc) =>
+                  data.capabilities?.walkthrough ? (
+                    <a key={doc.id} href={atLocation} className="flex min-h-12 items-center justify-between gap-3 px-4 py-3 hover:bg-[var(--portal-canvas)]">
+                      <span className="break-words text-sm font-medium text-[var(--portal-ink)]">{doc.title || docKindLabel(doc.kind ?? "file")}</span>
+                      <span className="shrink-0 text-xs text-[var(--portal-ink-muted)]">In the walkthrough</span>
+                    </a>
+                  ) : (
+                    <p key={doc.id} className="px-4 py-3 text-sm font-medium text-[var(--portal-ink)]">
+                      {doc.title || docKindLabel(doc.kind ?? "file")}
+                    </p>
+                  ),
+                )}
+              </div>
+            </section>
+          ) : null}
+        </div>
       </main>
     </PortalChrome>
   );
