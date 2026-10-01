@@ -87,9 +87,6 @@ export default function SignupPage() {
     setLoading(true);
     setError(null);
     try {
-      const redirectAfter = selectedPlan
-        ? `/plans?plan=${selectedPlan}&billing=${selectedBilling}`
-        : undefined;
       const res = await fetch("/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -97,7 +94,6 @@ export default function SignupPage() {
           email,
           password,
           name,
-          redirectAfter,
           orgRequest: orgRequest.trim() || null,
           hp,
           cfToken: cfToken || null,
@@ -135,9 +131,7 @@ export default function SignupPage() {
   async function handleOAuth(provider: "google" | "azure") {
     setOauthLoading(provider);
     setError(null);
-    const callbackUrl = selectedPlan
-      ? `${window.location.origin}/auth/callback?next=${encodeURIComponent(`/plans?plan=${selectedPlan}&billing=${selectedBilling}`)}`
-      : `${window.location.origin}/auth/callback`;
+    const callbackUrl = `${window.location.origin}/auth/callback`;
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {

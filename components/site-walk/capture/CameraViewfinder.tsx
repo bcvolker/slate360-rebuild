@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ChangeEvent, type MouseEvent } from "react";
+import { shouldOpenDeferredCameraPicker } from "@/lib/site-walk/plan-capture-gesture";
 import { Camera, FileImage, Loader2, RotateCcw } from "lucide-react";
 import { isMarkupData, type MarkupData } from "@/lib/site-walk/markup-types";
 import { getItemPhotoAttachmentPins, type PhotoAttachmentPin } from "@/lib/site-walk/photo-attachments";
@@ -73,7 +74,7 @@ export function CameraViewfinder({ sessionId, autoOpenCamera = false, launchId =
   }, []); // stable — reads from ref, never re-registers
 
   useEffect(() => {
-    if (!mounted || !autoOpenCamera || captureCtx) return;
+    if (!shouldOpenDeferredCameraPicker({ mounted, autoOpenCamera, hasCaptureContext: Boolean(captureCtx) })) return;
     const timeout = window.setTimeout(() => cameraInputRef.current?.click(), 350);
     return () => window.clearTimeout(timeout);
   }, [autoOpenCamera, captureCtx, mounted]);

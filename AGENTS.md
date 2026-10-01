@@ -2,6 +2,21 @@
 
 Slate360 is not a demo app. It is a production SaaS product being prepared for iOS and Android app-store submission.
 
+## Phase 1 product homes
+
+Slate360 Phase 1 is service-first. It is not a subscription app marketplace.
+
+- Client home: `/vnext/projects`
+- Operations owner home: `/vnext/ops` (`canAccessOperationsConsole`)
+- Capture and ingest stay on their operational routes (`/app`, `/site-walk/capture-v2`, `/projects/new`, twin and thermal studios)
+- A client sees a source only when it is included, published, and renderable
+- A service that is not included is absent
+- Captured evidence and any future proposed design stay separate
+- vNext has no billing, seat, or upgrade UI
+- `/share/project/[token]` is the vNext portal. `/view`, `/portal`, `/share/twin`, `/share/thermal`, and `/share/deliverable` keep their own tokens
+- Viewer demos are capability references only. See `docs/vnext/VIEWER_SALVAGE.md`
+- Reconstruction is a separate workstream
+
 ## Release Scope
 
 - Site Walk is the only fully visible and usable app for the first app-store release.

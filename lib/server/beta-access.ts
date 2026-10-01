@@ -4,23 +4,9 @@ import { cache } from "react";
 import { redirect } from "next/navigation";
 import type { User } from "@supabase/supabase-js";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isOwnerEmail } from "@/lib/auth/owner-email";
 
-/**
- * Canonical owner email check.
- *
- * Uses `CEO_EMAIL` env var (set in .env / Vercel). Returns `false`
- * when the env var is missing — owner access is never silently granted
- * by a hardcoded fallback.
- */
-export function isOwnerEmail(email: string | undefined | null): boolean {
-  if (!email) return false;
-  const ownerEmail = process.env.CEO_EMAIL;
-  if (!ownerEmail) {
-    console.warn("[beta-access] CEO_EMAIL env var is not set — owner access disabled");
-    return false;
-  }
-  return email.toLowerCase() === ownerEmail.toLowerCase();
-}
+export { isOwnerEmail };
 
 /**
  * Query `profiles.is_beta_approved` for a given user ID.

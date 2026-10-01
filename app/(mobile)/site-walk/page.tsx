@@ -23,7 +23,7 @@ export default async function SiteWalkHomePage() {
 
   const walkStartTier = context.orgId
     ? await loadWalkStartTier(context.orgId, context.tier, context.isSlateCeo)
-    : ("workspace" as const);
+    : "project";
 
   return (
     <Suspense fallback={null}>

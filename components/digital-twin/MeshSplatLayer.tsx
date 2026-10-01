@@ -18,6 +18,7 @@
 
 import { useEffect, useMemo, useRef, type ReactElement } from "react";
 import { extend, useThree } from "@react-three/fiber";
+import "@/types/spark-jsx";
 import * as THREE from "three";
 import {
   SparkRenderer as SparkRendererImpl,

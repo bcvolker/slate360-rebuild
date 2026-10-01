@@ -41,6 +41,14 @@ export default function TourStudioPreview() {
         onRestrictView={(id, v) => console.log("restrict view", id, v)}
         onPublish={() => {}}
         onBack={() => {}}
+        planLoading={false}
+        planSets={[]}
+        activePlanSheetId={null}
+        onSelectPlanSheet={() => {}}
+        planPins={[]}
+        onPlacePin={() => {}}
+        onDeletePin={() => {}}
+        creatingPin={false}
       />
     </div>
   );

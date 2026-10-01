@@ -9,6 +9,9 @@ interface TourPanoViewerProps {
   initialYaw?: number;
   initialPitch?: number;
   onPositionChange?: (yaw: number, pitch: number) => void;
+  /** Fired on the library's own "panorama-error" event (e.g. the image failed to load). Optional
+   *  and additive — existing callers that don't pass it are unaffected. */
+  onError?: () => void;
 }
 
 export function TourPanoViewer({
@@ -16,6 +19,7 @@ export function TourPanoViewer({
   initialYaw = 0,
   initialPitch = 0,
   onPositionChange,
+  onError,
 }: TourPanoViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewerRef = useRef<Viewer | null>(null);
@@ -41,13 +45,17 @@ export function TourPanoViewer({
       });
     }
 
+    if (onError) {
+      viewer.addEventListener("panorama-error", () => onError());
+    }
+
     viewerRef.current = viewer;
 
     return () => {
       viewer.destroy();
       viewerRef.current = null;
     };
-  }, [src, initialYaw, initialPitch, onPositionChange]);
+  }, [src, initialYaw, initialPitch, onPositionChange, onError]);
 
   return (
     <div

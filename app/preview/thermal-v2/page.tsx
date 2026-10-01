@@ -49,11 +49,11 @@ function PreviewThermalV2Inner() {
   // ?empty=1 swaps in zero captures — lets e2e/manual QA reach the W1 "Start
   // strip" empty state without a real upload round trip.
   const searchParams = useSearchParams();
-  const empty = searchParams.get("empty") === "1";
+  const empty = searchParams?.get("empty") === "1";
   const captures = empty ? [] : CAPTURES;
   // ?tab=report (TS-SD) exercises ThermalV2Shell's initialTab prop — the same
   // mechanism the real /thermal-studio-v2/[sessionId]?report=1 route uses.
-  const initialTab = (searchParams.get("tab") as ThermalV2Tab | null) ?? undefined;
+  const initialTab = (searchParams?.get("tab") as ThermalV2Tab | null) ?? undefined;
 
   // Replicates the real embedding chain (dashboard shell → top bar → scroll
   // container → session header → studio shell) so page-level scroll bugs

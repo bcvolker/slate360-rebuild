@@ -85,7 +85,7 @@ function Surface({
       }
       if (appearance?.wireframe) {
         m = m.clone();
-        m.wireframe = true;
+        (m as THREE.Material & { wireframe: boolean }).wireframe = true;
       }
     }
     return m;

@@ -9,6 +9,7 @@ import {
   SplatMesh as SplatMeshImpl,
 } from "@sparkjsdev/spark";
 import { cn } from "@/lib/utils";
+import "@/types/spark-jsx";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { samplePath, segmentDurations } from "@/lib/digital-twin/camera-path-math";
 import type { TwinCameraPath } from "@/lib/digital-twin/camera-path-types";

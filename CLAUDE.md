@@ -105,6 +105,18 @@ misleading. To typecheck a subsystem without tripping the global OOM, write a te
 thermal subsystem (`lib/thermal`, `components/ops/thermal`, thermal routes/pages,
 `src/trigger/thermal-extract.ts`, `hooks/useThermalJobRealtime.ts`) is tsc-clean.
 
+## Phase 1 canonical homes
+
+Phase 1 is service-first, not a subscription marketplace.
+
+- Client home: `/vnext/projects`. Owner home: `/vnext/ops` via `canAccessOperationsConsole`.
+- `/app` remains the field shell. It is not the default desktop home.
+- Project creation stays at `/projects/new`. Site Walk capture, twin ingest, and thermal studio stay.
+- Client visibility is included + published + renderable. Omitted services are absent.
+- Captured and proposed stay separate. vNext has no billing, seat, or upgrade UI.
+- Specialized public tokens stay separate from `/share/project/[token]`.
+- Viewer demos are salvage only (`docs/vnext/VIEWER_SALVAGE.md`). Reconstruction is a separate workstream.
+
 ## What Slate360 is (product map)
 
 A construction field-documentation platform. Two capture apps sit inside one Slate360
@@ -187,8 +199,10 @@ iPhone-verified.
 - **Never `git add .`** — stage explicit file paths only.
 - **Never hardcode hex** — tokens only (enforced by `guard:design`).
 - **Forbidden edit zones** (READ for audit, never edit): entitlements, billing, Stripe,
-  middleware, and **existing** database migrations. (Preparing a NEW *additive* migration for Brian
+  and **existing** database migrations. (Preparing a NEW *additive* migration for Brian
   to apply via the Supabase Management API is the established flow — that's not editing an existing one.)
+  Middleware is a cutover surface only: Phase 1 persona homes and the approved legacy redirects in
+  `lib/vnext/cutover.ts`. Do not grow it into a second router.
 - Treat `components/site-walk/capture/**` (the V1 capture flow) and `components/capture-v2/**`
   (V2 canvas) as distinct — don't cross-wire them (the "capture V1/V2 reuse hazard"). Both are
   live and editable; there is no blanket freeze, but check `guard:architecture` after touching either.

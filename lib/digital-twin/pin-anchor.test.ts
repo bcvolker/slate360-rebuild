@@ -88,7 +88,7 @@ describe("attachment share permissions", () => {
     expect(
       canExposePinAttachmentOnShare({
         shareRole: null,
-        kind: "photo",
+        kind: "image",
         hasStorageKey: false,
         hasUnifiedFileId: false,
         hasExternalUrl: true,

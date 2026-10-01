@@ -22,10 +22,6 @@ const COPY: Record<
   SiteWalkWalkStartTier,
   { title: string; empty: string }
 > = {
-  workspace: {
-    title: "Choose a workspace",
-    empty: "No workspaces yet. Create one in setup, then start your walk.",
-  },
   project: {
     title: "Choose a project",
     empty: "No projects yet. Create a project, then start your walk.",

@@ -115,6 +115,7 @@ const MOCK_SW_ASSIGNMENTS: MobileHomeAssignment[] = [
     title: "Verify fire caulking at stair B",
     status: "open",
     sessionId: "dev-walk-1",
+    flagged: false, isTodo: true,
   },
 ];
 
@@ -191,7 +192,7 @@ const MOCK_APP_HOME_DATA: MobileAppHomeData = {
       title: "Punch item assigned",
       message: "Verify fire caulking at stair B",
       linkPath: "/site-walk/assigned-work",
-      createdAt: NOW,
+      createdAt: NOW, flagged: false, isTodo: true,
     },
   ],
   assignments: MOCK_SW_ASSIGNMENTS,

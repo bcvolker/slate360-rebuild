@@ -1,13 +1,11 @@
 "use client";
 
+import { forwardRef } from "react";
 import { SplatViewerCore } from "@/components/digital-twin/splat-viewer-core";
+import type { SplatViewerHandle } from "@/components/digital-twin/splat-viewer-constants";
 
-export default function SplatViewer({
-  src,
-  className,
-}: {
-  src: string;
-  className?: string;
-}) {
-  return <SplatViewerCore src={src} className={className} />;
-}
+const SplatViewer = forwardRef<SplatViewerHandle, { src: string; className?: string }>(function SplatViewer({ src, className }, ref) {
+  return <SplatViewerCore ref={ref} src={src} className={className} />;
+});
+
+export default SplatViewer;

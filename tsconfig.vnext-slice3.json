@@ -1,0 +1,21 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "incremental": false
+  },
+  "include": [
+    "app/vnext/**/*.ts",
+    "app/vnext/**/*.tsx",
+    "app/preview/vnext/**/*.ts",
+    "app/preview/vnext/**/*.tsx",
+    "components/vnext/**/*.ts",
+    "components/vnext/**/*.tsx",
+    "lib/vnext/**/*.ts",
+    "lib/projects/access.ts",
+    "lib/projects/location.ts",
+    "lib/slatedrop/storage.ts",
+    "lib/server/org-context.ts",
+    "lib/digital-twin/viewer-format.ts",
+    "lib/supabase/admin.ts"
+  ]
+}

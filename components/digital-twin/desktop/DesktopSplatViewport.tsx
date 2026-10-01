@@ -12,6 +12,7 @@ import {
   type SplatMesh,
 } from "@sparkjsdev/spark";
 import { cn } from "@/lib/utils";
+import "@/types/spark-jsx";
 import { twinAccent } from "@/lib/digital-twin/twin-accent";
 import { applyEditListToMesh } from "@/lib/digital-twin/splat-edit-runtime";
 import type { TwinEditList } from "@/lib/digital-twin/edit-list-types";

@@ -883,14 +883,19 @@
       "title": "Plan Viewer + capture flow architecturally broken on mobile — 7 commits failed",
       "module": "site-walk/capture-plans-mobile-desktop",
       "severity": "critical",
-      "status": "open",
-      "rootCause": "React-PDF incompatible with mobile touch wrappers. Fixed 1200x858 surface model fails on phone viewports. Centering effect races with layout. CSS GPU transform overwritten by React state re-renders. See CRITICAL_FAILURE_REPORT_MAY.md",
+      "status": "fixed",
+      "rootCause": "The May 2026 failure was React-PDF plus a fixed 1200x858 canvas on phones, a fit that raced layout, and a React style transform that overwrote gestures. Mobile now waits until the viewport is known, then uses the server raster in Leaflet. Desktop keeps the PDF viewer, with the pan transform owned by the DOM node. Plan-pin capture clicks the file input inside the tap and Save & Next returns to the plan.",
       "verification": [
-        "Create a minimal mobile test proving direct input.click in the tap handler works while state/effect-driven input.click fails or succeeds on the target phone",
-        "Document and instrument capture states: empty, pending upload preview, saving upload, active item ready, saving details, requesting next capture, plan return, and error",
-        "Capture route hides SiteWalkModuleNav/global sticky chrome in task mode and desktop sidebar is contained without overlap",
-        "Pan works while markup tools are visible or an explicit navigation/hand tool is selected",
-        "Phone plan mode no longer crashes with a real project PDF, preferably after testing a non-React-PDF image/tile render path"
+        "choosePlanSurface returns pending until the viewport is known, mobile-raster when a phone has a rasterized sheet, mobile-processing when it does not, and desktop-pdf only for a known desktop viewport",
+        "A 390x844 viewport fit of a 2048x1448 raster stays inside the screen. Pins are stored as x_pct/y_pct",
+        "Leaflet refit depends on padding numbers, not a new padding object, so a React re-render does not refit and wipe pan",
+        "Desktop PlanViewerPdf no longer writes style.transform from React state. applyTransformToDOM owns the live transform",
+        "openNativePickerInGesture clears and clicks the file input synchronously. shouldOpenDeferredCameraPicker is false while CaptureProvider is mounted, so the plan flow does not open a second picker",
+        "walkModeAfterPlanSave returns plan for a plan-pin save, which lets the next pin start without a reload",
+        "A pointer move past 10px cancels a plan pin press so pan does not drop a pin",
+        "Capture task layout is fixed inset-0 z-50 overflow-hidden and does not render SiteWalkModuleNav",
+        "lib/site-walk/bug-079-plan-capture.test.ts covers the cases above",
+        "Physical iPhone was not available in this session. Brian still needs to run the phone checklist before merge"
       ]
     },
     {

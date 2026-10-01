@@ -4,9 +4,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import {
+  Aperture,
   Camera,
   StickyNote,
   FileText,
+  Paperclip,
   Plus,
   CheckCircle,
   Clock,
@@ -30,6 +32,8 @@ const TYPE_ICON: Record<SiteWalkItemType, React.ReactNode> = {
   text_note: <StickyNote className="h-4 w-4" />,
   voice_note: <StickyNote className="h-4 w-4" />,
   annotation: <StickyNote className="h-4 w-4" />,
+  photo_360: <Aperture className="h-4 w-4" />,
+  file_attachment: <Paperclip className="h-4 w-4" />,
 };
 
 type Props = {

@@ -1,0 +1,82 @@
+/* Isolated vNext visual system. Do not apply outside [data-s360-vnext]. */
+
+[data-s360-vnext] {
+  /*
+   * Palette corrected 2026-09-18 after Brian's rendered Slice 3 review: the
+   * original beige/tan canvas + cobalt accent read as off-brand and washed
+   * out. The current marketing homepage (--mkt-*) is now the vNext
+   * visual/brand color reference — canvas/surface/ink/line lift its values
+   * directly, and the interaction accent becomes the homepage's deep green
+   * (--mkt-brand-green) instead of cobalt, so client and owner vNext share
+   * one accent system instead of two competing primaries. The homepage's
+   * LAYOUT (hero sizing, marketing type scale, spacing, motion) is NOT
+   * adopted — this stays working software. See UI_DESIGN_RULES.md.
+   */
+  --vnext-canvas: var(--mkt-canvas, #fafaf8);
+  --vnext-surface: #ffffff;
+  --vnext-ink: var(--mkt-ink, #1a2433);
+  --vnext-ink-secondary: color-mix(in srgb, var(--vnext-ink) 70%, var(--vnext-ink-muted) 30%);
+  --vnext-ink-muted: var(--mkt-ink-muted, #5b6b80);
+  --vnext-line: var(--mkt-line, #e2e4e0);
+  --vnext-accent: var(--mkt-brand-green, #0c7a52);
+  --vnext-accent-hover: color-mix(in srgb, var(--vnext-accent) 85%, black);
+  /* Homepage wordmark “360” color; now the same green as the interaction accent (intentional, see above). */
+  --vnext-brand-360: var(--mkt-brand-green);
+  --vnext-accent-soft: color-mix(in srgb, var(--vnext-accent) 8%, var(--vnext-surface));
+  --vnext-focus: var(--vnext-accent);
+  --vnext-danger: #b42318;
+  --vnext-warning: #8a5a10;
+  --vnext-success: #17663a;
+  --vnext-disabled: #a39f97;
+  --vnext-header-h: 3.5rem;
+  --vnext-sidebar-w: 13.75rem;
+  --vnext-pad-x: 1.25rem;
+  --vnext-pad-y: 1.25rem;
+  --vnext-touch: 2.75rem;
+  --vnext-content-max: 42rem;
+  --vnext-radius: 0.375rem;
+  --vnext-shadow: 0 1px 2px color-mix(in srgb, var(--vnext-ink) 7%, transparent);
+  --vnext-font: var(--font-geist-sans), "Segoe UI", sans-serif;
+  --vnext-title: 1.25rem;
+  --vnext-body: 0.9375rem;
+  --vnext-nav: 0.9375rem;
+  --vnext-meta: 0.8125rem;
+  color: var(--vnext-ink);
+  background: var(--vnext-canvas);
+  font-family: var(--vnext-font);
+  font-size: var(--vnext-body);
+  line-height: 1.45;
+}
+
+[data-s360-vnext] *,
+[data-s360-vnext] *::before,
+[data-s360-vnext] *::after {
+  box-sizing: border-box;
+}
+
+[data-s360-vnext] a:focus-visible,
+[data-s360-vnext] button:focus-visible,
+[data-s360-vnext] input:focus-visible,
+[data-s360-vnext] select:focus-visible,
+[data-s360-vnext] textarea:focus-visible {
+  outline: 2px solid var(--vnext-focus);
+  outline-offset: 2px;
+}
+
+[data-s360-vnext] .vnext-portfolio {
+  max-width: 72rem;
+}
+
+[data-s360-vnext] .vnext-hero {
+  aspect-ratio: 4 / 3;
+  background: color-mix(in srgb, var(--vnext-ink) 7%, var(--vnext-canvas));
+}
+
+[data-s360-vnext] .vnext-search-input {
+  min-height: var(--vnext-touch);
+  border: 1px solid var(--vnext-line);
+  background: var(--vnext-surface);
+  color: var(--vnext-ink);
+  font: inherit;
+  font-size: var(--vnext-body);
+}

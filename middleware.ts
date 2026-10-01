@@ -1,5 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
+import { isOwnerEmail } from "@/lib/auth/owner-email";
 import { resolveMobileLegacyRedirect } from "@/lib/mobile-route-policy";
+import { isSlateInternalOperator, resolvePhase1Cutover, type CutoverTarget } from "@/lib/vnext/cutover";
 import { NextResponse, type NextRequest, userAgent } from "next/server";
 
 const INVITE_COOKIE_NAME = "slate360_invite_token";
@@ -87,8 +89,8 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
 
-  // ── Legacy route redirects ──────────────────────────────────────
-  if (pathname === "/ceo" || pathname.startsWith("/ceo/")) {
+  // Subsections of the old owner shell stay. The exact /ceo home is the vNext owner home.
+  if (pathname.startsWith("/ceo/")) {
     const url = request.nextUrl.clone();
     url.pathname = pathname.replace(/^\/ceo/, "/operations-console");
     return NextResponse.redirect(url);
@@ -110,21 +112,8 @@ export async function middleware(request: NextRequest) {
   }
 
   
-  // Mobile / PWA App Shell Guard
   const { device } = userAgent(request);
-  const isMobile = device.type === 'mobile' || device.type === 'tablet' || device.type === 'wearable';
-  
-  if (pathname === "/dashboard" && isMobile) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/app";
-    return NextResponse.redirect(url);
-  }
-
-  if (pathname === "/app" && !isMobile) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/dashboard";
-    return NextResponse.redirect(url);
-  }
+  const isMobile = device.type === "mobile" || device.type === "tablet" || device.type === "wearable";
 
   // Mobile quarantine: keep users in /app and Site Walk V1 — not legacy desktop UI.
   if (user && isMobile) {
@@ -137,6 +126,26 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(url);
     }
   }
+
+  const isOwner = isOwnerEmail(user?.email);
+  const isNativeApp = request.headers.get("user-agent")?.includes("Slate360App") ?? false;
+  let isSlateStaff = false;
+  if (user && !isOwner && !isNativeApp) {
+    const { data, error } = await supabase.rpc("user_is_slate_staff");
+    isSlateStaff = !error && data === true;
+  }
+  const isInternalUser = isSlateInternalOperator({ isOwner, isSlateStaff, isNativeApp });
+  const cutover = resolvePhase1Cutover({
+    pathname,
+    search: request.nextUrl.search,
+    redirectTo: request.nextUrl.searchParams.get("redirectTo"),
+    hasUser: Boolean(user),
+    canAccessOperationsConsole: isOwner,
+    isMobile,
+    isStandaloneOnly,
+    isInternalUser,
+  });
+  if (cutover) return redirectToCutover(request, cutover);
 
   // Protect authenticated routes — redirect to login if not authenticated
   const isBetaProtectedRoute =
@@ -164,7 +173,8 @@ export async function middleware(request: NextRequest) {
   ) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    url.searchParams.set("redirectTo", pathname);
+    url.search = "";
+    url.searchParams.set("redirectTo", `${pathname}${request.nextUrl.search}`);
     return NextResponse.redirect(url);
   }
 
@@ -173,8 +183,6 @@ export async function middleware(request: NextRequest) {
   // Pending Foundational Verification screen.
   // Owner email (CEO_EMAIL env) and is_app_reviewer accounts bypass.
   // /pending-verification and /beta-pending are exempt to avoid loops.
-  const ownerEmail = process.env.CEO_EMAIL;
-  const isOwner = ownerEmail && user?.email?.toLowerCase() === ownerEmail.toLowerCase();
   const isApprovalBypassRoute =
     pathname.startsWith("/pending-verification") ||
     pathname.startsWith("/beta-pending");
@@ -224,16 +232,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect logged-in users away from /login and /signup
-  if (
-    user &&
-    (pathname === "/login" || pathname === "/signup")
-  ) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/app";
-    return NextResponse.redirect(url);
-  }
-
   // Clickjacking protection for public portal routes
   // frame-ancestors 'none' — prevents embedding the portal page itself
   // frame-src — allows OUR page to embed S3 PDFs in an iframe
@@ -256,6 +254,13 @@ export async function middleware(request: NextRequest) {
   }
 
   return supabaseResponse;
+}
+
+function redirectToCutover(request: NextRequest, target: CutoverTarget) {
+  const url = request.nextUrl.clone();
+  url.pathname = target.pathname;
+  url.search = target.search;
+  return NextResponse.redirect(url);
 }
 
 export const config = {

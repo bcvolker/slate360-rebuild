@@ -61,7 +61,17 @@ const nextConfig: NextConfig = {
           { key: "X-XSS-Protection",        value: "1; mode=block" },
           { key: "Referrer-Policy",         value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy",      value: "camera=(self), microphone=(self), geolocation=(self)" },
-          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+          // Skipped ONLY for scripts/ops/run-vnext-playwright.mjs's local, plain-HTTP production
+          // preview server (VNEXT_E2E_SERVER=1, set for both that build and its `next start`) —
+          // never for a real deploy. Sending this on a plain-HTTP origin makes Chrome remember
+          // "always use HTTPS" for that hostname and silently upgrade every later same-host
+          // request (redirects, RSC prefetches) to HTTPS, which a plain-HTTP test server can't
+          // answer (ERR_SSL_PROTOCOL_ERROR) — a real production issue this header exists to
+          // prevent, just misfiring against a host that is intentionally HTTP-only in this one
+          // local test context. Every other security header here still applies unconditionally.
+          ...(process.env.VNEXT_E2E_SERVER === "1"
+            ? []
+            : [{ key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" }]),
           {
             key: "Content-Security-Policy",
             value: [

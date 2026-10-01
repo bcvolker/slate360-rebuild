@@ -1,0 +1,185 @@
+import { describe, expect, it } from "vitest";
+import {
+  CLIENT_ACCOUNT,
+  CLIENT_HOME,
+  FIELD_HOME,
+  isSlateInternalOperator,
+  OWNER_ACCOUNT,
+  OWNER_HOME,
+  POST_AUTH_RESOLVER,
+  personaDefaultHome,
+  postAuthDestination,
+  resolvePhase1Cutover,
+  safeInternalPath,
+} from "@/lib/vnext/cutover";
+
+const ID = "11111111-1111-4111-8111-111111111111";
+
+function go(overrides: Partial<Parameters<typeof resolvePhase1Cutover>[0]> = {}) {
+  return resolvePhase1Cutover({
+    pathname: "/",
+    search: "",
+    redirectTo: null,
+    hasUser: true,
+    canAccessOperationsConsole: false,
+    isMobile: false,
+    isStandaloneOnly: false,
+    ...overrides,
+  });
+}
+
+describe("phase 1 cutover", () => {
+  it("sends a desktop owner from login to the operations home", () => {
+    expect(go({ pathname: "/login", canAccessOperationsConsole: true })?.pathname).toBe(OWNER_HOME);
+  });
+
+  it("sends a desktop client from login to the portfolio", () => {
+    expect(go({ pathname: "/login" })?.pathname).toBe(CLIENT_HOME);
+  });
+
+  it("sends mobile login without a capture deep link to the persona home", () => {
+    expect(go({ pathname: "/login", isMobile: true })?.pathname).toBe(CLIENT_HOME);
+    expect(go({ pathname: "/login", isMobile: true, canAccessOperationsConsole: true })?.pathname).toBe(OWNER_HOME);
+  });
+
+  it("keeps an explicit deep link ahead of the default home", () => {
+    const deep = `/vnext/projects/${ID}/explore?rep=plan&source=sheet-9`;
+    expect(go({ pathname: "/login", redirectTo: deep })).toEqual({
+      pathname: `/vnext/projects/${ID}/explore`,
+      search: "?rep=plan&source=sheet-9",
+    });
+  });
+
+  it("rejects an external redirectTo", () => {
+    expect(safeInternalPath("https://evil.example/steal")).toBeNull();
+    expect(go({ pathname: "/login", redirectTo: "https://evil.example" })?.pathname).toBe(CLIENT_HOME);
+  });
+
+  it("rejects control-character and protocol-relative open-redirect payloads", () => {
+    for (const payload of [
+      "/\t/evil.com",
+      "/\n/evil.com",
+      "/\r//evil.com",
+      "//evil.com",
+      "\\evil.com",
+      "https://evil.com",
+    ]) {
+      expect(safeInternalPath(payload)).toBeNull();
+    }
+  });
+
+  it("splits /dashboard by persona and does not loop through /app", () => {
+    expect(go({ pathname: "/dashboard" })?.pathname).toBe(CLIENT_HOME);
+    expect(go({ pathname: "/dashboard", canAccessOperationsConsole: true })?.pathname).toBe(OWNER_HOME);
+    expect(go({ pathname: "/dashboard", isMobile: true })?.pathname).toBe(CLIENT_HOME);
+    expect(go({ pathname: "/app", isMobile: true })).toBeNull();
+    expect(go({ pathname: "/app", isMobile: false })).toBeNull();
+  });
+
+  it("keeps standalone-only dashboard users on the field shell", () => {
+    expect(go({ pathname: "/dashboard", isStandaloneOnly: true })?.pathname).toBe("/app");
+    expect(go({ pathname: "/app", isStandaloneOnly: true })).toBeNull();
+  });
+
+  it("redirects approved project tabs and preserves the project id", () => {
+    expect(go({ pathname: "/projects", hasUser: false })?.pathname).toBe(CLIENT_HOME);
+    expect(go({ pathname: `/projects/${ID}`, hasUser: false })?.pathname).toBe(`${CLIENT_HOME}/${ID}`);
+    expect(go({ pathname: `/projects/${ID}/slatedrop` })?.pathname).toBe(`${CLIENT_HOME}/${ID}/documents`);
+    expect(go({ pathname: `/projects/${ID}/twins/model-7` })).toEqual({
+      pathname: `${CLIENT_HOME}/${ID}/explore`,
+      search: "?source=model-7&rep=reality",
+    });
+    expect(go({ pathname: `/projects/${ID}/walks/session-2` })?.pathname).toBe(
+      `${CLIENT_HOME}/${ID}/history/session-2`,
+    );
+    expect(go({ pathname: `/projects/${ID}/punch-list` })?.pathname).toBe(`${CLIENT_HOME}/${ID}/items`);
+    expect(go({ pathname: `/projects/${ID}/plans`, search: "?sheet=sheet-9" })).toEqual({
+      pathname: `${CLIENT_HOME}/${ID}/explore`,
+      search: "?source=sheet-9&rep=plan",
+    });
+    expect(go({ pathname: `/projects/${ID}/plans` })?.pathname).toBe(`${CLIENT_HOME}/${ID}/documents`);
+  });
+
+  it("keeps operational routes for the owner, staff, and the native app, and sends client orgs to vNext", () => {
+    const internal = (flags: { isOwner?: boolean; isSlateStaff?: boolean; isNativeApp?: boolean }) =>
+      isSlateInternalOperator({ isOwner: false, isSlateStaff: false, isNativeApp: false, ...flags });
+
+    expect(internal({ isOwner: true })).toBe(true);
+    expect(internal({ isSlateStaff: true })).toBe(true);
+    expect(internal({ isNativeApp: true })).toBe(true);
+    expect(internal({})).toBe(false);
+    expect(personaDefaultHome({ canAccessOperationsConsole: true, isInternalUser: true })).toBe(OWNER_HOME);
+    expect(personaDefaultHome({ canAccessOperationsConsole: false, isInternalUser: true })).toBe(FIELD_HOME);
+    expect(personaDefaultHome({ canAccessOperationsConsole: false, isInternalUser: false })).toBe(CLIENT_HOME);
+
+    for (const isInternalUser of [true, true, true]) {
+      expect(go({ pathname: "/projects", isInternalUser })).toBeNull();
+      expect(go({ pathname: `/projects/${ID}`, isInternalUser })).toBeNull();
+    }
+    expect(go({ pathname: "/projects", isInternalUser: false })?.pathname).toBe(CLIENT_HOME);
+    expect(go({ pathname: `/projects/${ID}`, isInternalUser: false })?.pathname).toBe(`${CLIENT_HOME}/${ID}`);
+
+    expect(go({ pathname: "/dashboard", canAccessOperationsConsole: true })?.pathname).toBe(OWNER_HOME);
+    expect(go({ pathname: "/dashboard", isInternalUser: true })?.pathname).toBe("/app");
+    expect(go({ pathname: "/dashboard", isMobile: true })?.pathname).toBe(CLIENT_HOME);
+    expect(go({ pathname: "/dashboard", isMobile: true, isInternalUser: true })?.pathname).toBe("/app");
+
+    expect(go({ pathname: "/login", canAccessOperationsConsole: true })?.pathname).toBe(OWNER_HOME);
+    expect(go({ pathname: "/login", isInternalUser: true })?.pathname).toBe("/app");
+    expect(go({ pathname: "/login", isMobile: true })?.pathname).toBe(CLIENT_HOME);
+    expect(go({ pathname: "/login", isMobile: true, isInternalUser: true })?.pathname).toBe("/app");
+    expect(go({ pathname: POST_AUTH_RESOLVER, isInternalUser: true })?.pathname).toBe("/app");
+    expect(go({ pathname: POST_AUTH_RESOLVER })?.pathname).toBe(CLIENT_HOME);
+
+    const operational = `/projects/${ID}/plans`;
+    expect(go({ pathname: "/login", redirectTo: operational, isInternalUser: true })?.pathname).toBe(operational);
+    expect(go({ pathname: "/login", redirectTo: operational, isInternalUser: false })?.pathname).not.toBe(operational);
+    expect(go({ pathname: CLIENT_HOME })).toBeNull();
+    expect(go({ pathname: OWNER_HOME, canAccessOperationsConsole: true })).toBeNull();
+  });
+
+  it("keeps a deep-link redirectTo for an internal user pointed at the operational route, not the vNext client rewrite", () => {
+    const deep = `/projects/${ID}/twins/model-7`;
+    expect(go({ pathname: "/login", redirectTo: deep, isInternalUser: true })).toEqual({
+      pathname: deep,
+      search: "",
+    });
+  });
+
+  it("leaves operational and specialized routes alone", () => {
+    for (const pathname of [
+      "/projects/new",
+      `/projects/${ID}/deliverables`,
+      `/projects/${ID}/team`,
+      `/projects/${ID}/people`,
+      `/projects/${ID}/photos`,
+      "/site-walk/capture-v2",
+      "/app",
+      "/share/project/token",
+      "/share/twin/token",
+      "/share/thermal/token",
+      "/share/deliverable/token",
+      "/view/token",
+      "/portal/token",
+      "/operations-console/feedback",
+      "/preview/vnext/client",
+    ]) {
+      expect(go({ pathname, hasUser: false })).toBeNull();
+    }
+  });
+
+  it("sends the owner console home to /vnext/ops and keeps account persona split", () => {
+    expect(go({ pathname: "/operations-console", hasUser: false })?.pathname).toBe(OWNER_HOME);
+    expect(go({ pathname: "/ceo", hasUser: false })?.pathname).toBe(OWNER_HOME);
+    expect(go({ pathname: "/my-account" })?.pathname).toBe(CLIENT_ACCOUNT);
+    expect(go({ pathname: "/my-account", canAccessOperationsConsole: true })?.pathname).toBe(OWNER_ACCOUNT);
+    expect(go({ pathname: "/my-account", isMobile: true })).toBeNull();
+  });
+
+  it("does not use a billing path as the post-auth home", () => {
+    expect(postAuthDestination(null)).toBe(POST_AUTH_RESOLVER);
+    expect(postAuthDestination("/plans?plan=pro")).toBe(POST_AUTH_RESOLVER);
+    expect(postAuthDestination(`/vnext/projects/${ID}/history`)).toBe(`${CLIENT_HOME}/${ID}/history`);
+    expect(postAuthDestination("/site-walk/capture-v2")).toBe("/site-walk/capture-v2");
+  });
+});

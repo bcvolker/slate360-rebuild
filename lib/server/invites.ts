@@ -135,6 +135,7 @@ export async function redeemInvitationToken(
     if (!invitation.project_id) {
       throw new Error("Collaborator invite missing project scope");
     }
+    await ensureBetaApproved(admin, user);
     await ensureProjectMembership(admin, invitation.project_id, user.id, "collaborator");
     // Mark the matching project_collaborator_invites row as accepted, if one exists.
     // Best-effort — the table may not be present in older deployments.
@@ -149,15 +150,7 @@ export async function redeemInvitationToken(
     }
     // Route invitees with no org of their own into the trapped Collaborator
     // shell so they don't see modules they have no access to.
-    const { data: orgRows } = await admin
-      .from("organization_members")
-      .select("org_id")
-      .eq("user_id", user.id)
-      .limit(1);
-    const hasOrg = (orgRows ?? []).length > 0;
-    redirectPath = hasOrg
-      ? `/projects/${invitation.project_id}`
-      : `/collaborator`;
+    redirectPath = `/vnext/projects/${invitation.project_id}`;
   }
 
   const nextCount = invitation.redeemed_count + 1;

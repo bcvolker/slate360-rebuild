@@ -10,7 +10,7 @@ type ShowToast = (text: string, ok?: boolean) => void;
 type RenameModalState = { id: string; name: string; type: "file" | "folder" } | null;
 type NewFolderModalState = { parentId: string; name: string } | null;
 type DeleteConfirmState = { id: string; name: string; type: "file" | "folder" | "project" } | null;
-type MoveModalState = { id: string; name: string; type: "file" } | null;
+type MoveModalState = { id: string; name: string; type: "file" | "bulk"; ids?: string[] } | null;
 
 type UseSlateDropMutationActionsParams = {
   activeFolderId: string;

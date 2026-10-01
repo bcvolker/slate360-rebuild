@@ -3,7 +3,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  Building2,
   Camera,
   ClipboardList,
   FileText,
@@ -28,7 +27,6 @@ import type { MobileHomeAssignment } from "@/lib/mobile/load-mobile-assignments"
 import { buildCaptureLaunchUrl } from "@/lib/site-walk/capture-v2-config";
 import {
   filterHubProjectsForWalkStart,
-  walkStartCreateRoute,
   type SiteWalkWalkStartTier,
 } from "@/lib/site-walk/resolve-walk-start-tier";
 import { buildSiteWalkDockRows, SiteWalkHomeFill } from "@/components/site-walk/SiteWalkHomeFill";
@@ -77,13 +75,6 @@ const SCOPED_WALK_COPY: Record<
   SiteWalkWalkStartTier,
   { title: string; icon: typeof MapPin; emptySubtext: string; startedFrom: string; ariaLabel: string }
 > = {
-  workspace: {
-    title: "Workspace Walk",
-    icon: Building2,
-    emptySubtext: "Create a workspace to capture on site",
-    startedFrom: "hub_workspace_walk",
-    ariaLabel: "Start a workspace walk",
-  },
   project: {
     title: "Project Walk",
     icon: MapPin,
@@ -116,7 +107,7 @@ export function SiteWalkHomeClient({
 
   const scopedWalkSubtext = useMemo(() => {
     if (walkTargets.length === 1) return `Capture at ${walkTargets[0]!.name}`;
-    if (walkTargets.length > 1) return `Choose from ${walkTargets.length} ${walkStartTier === "project" ? "projects" : "workspaces"}`;
+    if (walkTargets.length > 1) return `Choose from ${walkTargets.length} projects`;
     return scopedCopy.emptySubtext;
   }, [scopedCopy.emptySubtext, walkStartTier, walkTargets]);
 
@@ -215,15 +206,11 @@ export function SiteWalkHomeClient({
     if (walkTargets.length === 0) {
       // No project yet — offer a name-only quick-create that starts the walk
       // immediately (rest of the details filled in later in the project section).
-      if (walkStartTier === "project") {
-        setQuickCreateOpen(true);
-      } else {
-        router.push(walkStartCreateRoute(walkStartTier));
-      }
+      setQuickCreateOpen(true);
       return;
     }
     setTargetSheetOpen(true);
-  }, [router, walkStartTier, walkTargets.length]);
+  }, [walkTargets.length]);
 
   const dockRows = useMemo(
     () => buildSiteWalkDockRows(walks, projects, deliverables, assignments, summary),
