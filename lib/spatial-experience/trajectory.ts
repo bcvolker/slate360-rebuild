@@ -3,11 +3,6 @@
 export type TrajectoryPose = { t: number; x: number; y: number; z: number; yaw: number };
 export type WalkSegment = { id: string; t0: number; t1: number };
 
-export const AOB205_KNOWN_SEGMENTS: WalkSegment[] = [
-  { id: "0", t0: 0, t1: 129.2 },
-  { id: "2", t0: 130, t1: 157.2 },
-];
-
 export function segmentForTime(segments: WalkSegment[], t: number): WalkSegment | null {
   return segments.find((s) => t >= s.t0 && t <= s.t1) ?? null;
 }

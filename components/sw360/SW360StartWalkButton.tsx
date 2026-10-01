@@ -116,7 +116,7 @@ export function SW360StartWalkButton({
             autoFocus
             value={newProjectName}
             onChange={(e) => setNewProjectName(e.target.value)}
-            placeholder="e.g. ASU AOB 205"
+            placeholder="e.g. North lobby renovation"
             className="min-h-[44px] flex-1 rounded-lg border border-[var(--border)] bg-white px-3 text-sm text-[var(--sw360-charcoal)] outline-none focus:border-[var(--sw360-green-light)]"
           />
           <button

@@ -26,7 +26,7 @@ concluded that the splat must NOT be the walkable building, and that we need a *
 for: dollhouse view, floor plan, floor selector, walk collision, and measurement. A separate
 COLMAP dense + Poisson path already exists in an exterior/photogrammetry worker (BSD).
 
-Measured reality on one room (ASU classroom, ~41' × 30', 1,225 sq ft):
+Measured reality on one interior test room (~41' × 30', 1,225 sq ft):
 - **20 stationary 360 stills** → 320 views → PSNR 29.68 but geometrically worthless (the 16
   views per still share one optical centre — zero baseline, degenerate for triangulation).
 - **Walking 360 video, same room** → 573/784 views registered, PSNR **20.97** — 8.7 dB LOWER,

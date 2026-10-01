@@ -76,7 +76,7 @@ const STATIC: Record<TwinGpuJobKind, Omit<TwinGpuUsdEstimate, "kind">> = {
     minutesHigh: 60,
     usdLow: usdFromMinutes(20),
     usdHigh: usdFromMinutes(60),
-    note: "One kitchen/AOB X4 clip, only after the authors' sample succeeds.",
+    note: "One interior X4 clip, only after the authors' sample succeeds.",
   },
   opensfm_plus_odgs: {
     gpu: "A10G",

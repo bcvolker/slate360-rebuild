@@ -1,14 +1,14 @@
 # L5: light client chrome on every client share surface
 
-Captured 2026-09-30 at 375 / 768 / 1280 px with Chrome. The Directed Tour flag (`spatial_directed_tour`) stayed OFF before, during and after every run. The AOB205 data is a placeholder. Raw numbers per shot are in `measurements.txt`: canvas colour, horizontal overflow, nav scroll, dark blocks and banned words.
+Captured 2026-09-30 at 375 / 768 / 1280 px with Chrome. The Directed Tour flag (`spatial_directed_tour`) stayed OFF before, during and after every run. Portal frames used placeholder project data and were removed because they displayed that internal title. Raw numbers per shot are in `measurements.txt`: canvas colour, horizontal overflow, nav scroll, dark blocks and banned words.
 
 | Surface | Route | Shots | Notes |
 |---|---|---|---|
-| Portal overview | `/portal/<token>` | `portal-overview-*` | Real AOB205 data, preview token |
-| 360 / Walkthrough | `/portal/<token>/reality` | `portal-walkthrough-*` | |
-| Documents | `/portal/<token>/documents` | `portal-documents-*` | |
-| Items | `/portal/<token>/items` | `portal-items-*`, `portal-items-closed-empty-375` | Empty filter shows one short line |
-| Item detail | `/portal/<token>/item/<id>` | `portal-item-detail-*` | |
+| Portal overview | `/portal/<token>` | removed | Placeholder project, preview token. Frames removed with the internal title. |
+| 360 / Walkthrough | `/portal/<token>/reality` | removed | |
+| Documents | `/portal/<token>/documents` | removed | |
+| Items | `/portal/<token>/items` | removed | Empty filter shows one short line |
+| Item detail | `/portal/<token>/item/<id>` | removed | |
 | Share dialog (operator) | Studio → Publish | `share-dialog-*` | The copy box shows `/portal/<token>`. The Studio itself stays Graphite (operator surface) |
 | Site Walk deliverable | `/view/<token>` (and `/share/deliverable/<token>`, which redirects there) | `legacy-deliverable-viewer-*` | Mock harness `/preview/deliverable-viewer`. The live route writes chain-of-custody events, so it was not hit on prod |
 | Deliverable slideshow | presentation mode inside the deliverable | `legacy-deliverable-slideshow-*` | Intentionally dark full-screen media mode. No Graphite tokens |

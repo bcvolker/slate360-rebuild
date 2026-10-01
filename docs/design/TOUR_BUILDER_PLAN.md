@@ -312,11 +312,10 @@ premium — never a modal, never bouncy.
 | Active pin | — | — | stronger accent + ring pulse while inside its pano | static |
 
 ### 8.4 Sample assets on hand (local `reference/plan-sets/`, gitignored)
-Five real multi-sheet sets characterizing the ingestion envelope:
+Four real multi-sheet sets characterizing the ingestion envelope:
 
 | Set | Sheets | Sheet size | Text layer |
 |---|---|---|---|
-| ASU West AOB Rm 205 permit | 14 | 42×30 in (Arch E1) | vector text ✅ |
 | Poly Santa Catalina Hall (sealed) | 10 | 24×36 in (Arch D) | none (raster-flattened) |
 | PSF166 Rev 1 (sealed) | 11 | 24×36 in | none |
 | Payne Hall Classroom TI (sealed) | 12 | 24×36 in | none |

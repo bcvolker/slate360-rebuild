@@ -480,7 +480,7 @@ def build_train_args(
         str(max(6_000, int(iterations * 0.57))),
         # Anisotropy ceiling on EVERY profile. This was previously set only on
         # quality/visual, so the promoted `baseline` profile trained with no cap
-        # at all — the direct cause of the needle haze in the AOB205 run. It is a
+        # at all — the direct cause of the needle haze in that interior run. It is a
         # shape constraint, not a quality tier, and the arm that "lost" the A/B
         # lost on train PSNR, which we no longer treat as a quality signal.
         "--pipeline.model.max-gauss-ratio",
@@ -2342,7 +2342,7 @@ SALIENCY_TARGET_COUNTS = [1_500_000, 750_000, 350_000]  # AF5: progressive salie
 MAX_METRIC_GAUSSIAN_EXTENT_M = 0.5
 # Unscaled fallback for the same clamp: a single gaussian may not span more than
 # this fraction of the model's own diagonal. Keeps the ceiling meaningful when
-# metric scale was never recovered (the AOB205 case).
+# metric scale was never recovered (the no-LiDAR case).
 UNSCALED_MAX_EXTENT_FRACTION = 0.05
 # Needle cull: longest/shortest axis ratio above this is a training artifact.
 MAX_ANISOTROPY_RATIO = 12.0
@@ -2562,7 +2562,7 @@ def crop_recenter_and_cap_ply(ply_path: Path, out_path: Path, scale_factor: floa
     prop_names = out_arr.dtype.names or ()
     has_scales = all(f"scale_{i}" in prop_names for i in range(3))
 
-    # AOB205 (2026-08-21): the spike clamp used to live INSIDE `if scale_applied`,
+    # 2026-08-21: the spike clamp used to live INSIDE `if scale_applied`,
     # so on every no-LiDAR run — the runs with the weakest geometry and the most
     # spikes — no size ceiling ran at all. Three independent audits identified this
     # as the wiring error that let needle/black-card gaussians reach a client link.

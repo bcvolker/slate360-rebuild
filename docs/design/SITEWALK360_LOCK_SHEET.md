@@ -101,7 +101,7 @@ revs; the pivot rationale, audits, and business model stay in
   - **Action** (sub, ball-in-court): ONLY their items · **Mark complete requires photo
     proof** · Question · Can't-do with reason chip → GC verifies/closes; link status
     updates live so subs don't re-poke.
-- Owner loop: responses land in Inbox (grouped, digested — "3 new on AOB 205");
+- Owner loop: responses land in Inbox (grouped, digested — "3 new on the project");
   **owner replies from Inbox post back onto the same link's stop thread** (recipient
   gets pinged back to the same URL — never a new portal). Inbox ↔ comments ↔ assignment
   completion = ONE state machine.

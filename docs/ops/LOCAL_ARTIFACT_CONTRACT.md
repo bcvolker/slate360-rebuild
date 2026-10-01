@@ -7,10 +7,10 @@ Desktop workstation processes. This laptop/repo **publishes** approved files. No
 ```json
 {
   "version": 1,
-  "projectKey": "AOB205",
-  "visitDate": "2026-08-17",
-  "title": "AOB205 — August 17 visit",
-  "building": "AOB205",
+  "projectKey": "FIELD",
+  "visitDate": "2026-01-15",
+  "title": "Field visit",
+  "building": "Building A",
   "floor": "Level 1",
   "artifacts": [],
   "planControls": [
@@ -53,7 +53,6 @@ Rejected Gaussians are stored as lineage only. Candidates are not client-visible
 ## Publish command
 
 ```
-node scripts/ops/generate-aob205-manifest.mjs [local-AOB205-folder]
 npx tsx scripts/ops/publish-local-artifacts.mjs --manifest path/to/artifact_manifest.json
 ```
 

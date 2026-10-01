@@ -64,7 +64,7 @@ const s3 = new S3Client({
 const bucket = process.env.R2_BUCKET || "slate360-storage";
 
 const { data: project } = await admin.from("projects").select("id, org_id, name").ilike("name", `%${manifest.projectKey}%`).limit(5);
-const commercial = (project ?? []).find((p) => /aob205/i.test(p.name) && !/housewalk|fixture/i.test(p.name));
+const commercial = (project ?? []).find((p) => !/housewalk|fixture/i.test(p.name));
 if (!commercial) throw new Error(`no commercial project for ${manifest.projectKey}`);
 const orgId = commercial.org_id;
 const projectId = commercial.id;
@@ -74,7 +74,7 @@ const { data: existingWalk } = await admin
   .select("id, created_by")
   .eq("project_id", projectId)
   .eq("org_id", orgId)
-  .ilike("title", "%August 17%")
+  .eq("title", manifest.title)
   .maybeSingle();
 let walkId = existingWalk?.id;
 let createdBy = existingWalk?.created_by;
@@ -88,7 +88,7 @@ if (!walkId) {
     project_id: projectId,
     created_by: createdBy,
     title: manifest.title,
-    captured_at: `${manifest.visitDate}T16:50:04.000Z`,
+    captured_at: `${manifest.visitDate}T12:00:00.000Z`,
     building: manifest.building ?? manifest.projectKey,
     floor: manifest.floor ?? null,
     walkthrough_type: "interior",
@@ -120,7 +120,6 @@ let posterKey = null;
 let proxyKey = null;
 
 const includeLineage = args.includes("--include-lineage");
-const docKeys = [];
 for (const item of manifest.artifacts) {
   if (item.role === "lineage" && !includeLineage) continue;
   if (item.qaStatus === "rejected" && item.role === "client") continue;
@@ -134,7 +133,6 @@ for (const item of manifest.artifacts) {
   uploaded.push({ id: item.id, kind: item.kind, key, role: item.role, bytes: put.bytes });
   if (item.kind === "station_erp" && item.stationId) stations.push({ stationId: item.stationId, key, title: item.stationId, bytes: put.bytes });
   if (item.kind === "plan_pdf") planKey = key;
-  if (item.kind === "document") docKeys.push({ key, title: basename(abs) });
   if (item.kind === "walkthrough_poster") posterKey = key;
   if (item.kind === "walkthrough_proxy") proxyKey = key;
 }
@@ -156,7 +154,7 @@ if (proxyKey) {
   else await admin.from("spatial_clips").insert({ ...row, sort_order: 0 });
 }
 
-let tourSlug = `aob205-${manifest.visitDate.replace(/-/g, "")}`;
+const tourSlug = `${String(manifest.projectKey).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "project"}-${String(manifest.visitDate).replace(/-/g, "")}`;
 if (stations.length) {
   let { data: tour } = await admin.from("project_tours").select("id, viewer_slug").eq("project_id", projectId).eq("viewer_slug", tourSlug).maybeSingle();
   if (!tour) {
@@ -192,13 +190,14 @@ if (stations.length) {
 let planSetId = null;
 if (planKey) {
   const frame = manifest.planControls ? solvePlanFrame(manifest.planControls) : null;
-  const { data: existingSet } = await admin.from("site_walk_plan_sets").select("id").eq("project_id", projectId).ilike("title", "%AOB205%").maybeSingle();
+  const planTitle = `${manifest.projectKey} floor plan`;
+  const { data: existingSet } = await admin.from("site_walk_plan_sets").select("id").eq("project_id", projectId).eq("title", planTitle).maybeSingle();
   const payload = {
     org_id: orgId,
     project_id: projectId,
-    title: "AOB205 floor plan",
+    title: planTitle,
     source_s3_key: planKey,
-    original_file_name: "AOB205-plan.pdf",
+    original_file_name: `${manifest.projectKey}-plan.pdf`,
     mime_type: "application/pdf",
     processing_status: "ready",
     uploaded_by: createdBy,
@@ -216,7 +215,7 @@ if (planKey) {
       project_id: projectId,
       plan_set_id: planSetId,
       sheet_number: 1,
-      sheet_name: "AOB205",
+      sheet_name: manifest.building || manifest.projectKey,
       image_s3_key: planKey,
       metadata: { source: "pdf" },
     });
@@ -243,57 +242,6 @@ if (!shares?.length) {
   }).select("id");
   if (ins.error) throw new Error(ins.error.message);
   shareToken = token;
-}
-
-let { data: pin } = await admin.from("spatial_pins").select("id").eq("project_id", projectId).eq("label", "AOB205 west wall coordination").maybeSingle();
-if (!pin) {
-  const ins = await admin.from("spatial_pins").insert({
-    org_id: orgId,
-    project_id: projectId,
-    walkthrough_id: walkId,
-    created_by: createdBy,
-    label: "AOB205 west wall coordination",
-    pin_type: "note",
-    body: "Demonstration item. Same record from Plan, 360 Documentation, Walkthrough, and Reality Twin when those locators exist.\n\n— Brian: Confirm west-wall clear width against 918A0025.",
-    visibility: "client",
-    status: "open",
-    xyz: { sheetHint: "918A0025", stationHint: stations[0]?.stationId ?? null },
-  }).select("id").single();
-  if (ins.error) throw new Error(ins.error.message);
-  pin = ins.data;
-}
-if (pin && (planKey || docKeys.length)) {
-  const { data: existingAtt } = await admin.from("spatial_pin_attachments").select("id").eq("pin_id", pin.id);
-  if (!existingAtt?.length) {
-    const files = [
-      ...(planKey ? [{ key: planKey, title: "918A0025 floor plan" }] : []),
-      ...docKeys,
-    ];
-    for (const file of files) {
-      const drop = await admin.from("slatedrop_uploads").insert({
-        org_id: orgId,
-        project_id: projectId,
-        file_name: file.title,
-        file_type: "application/pdf",
-        s3_key: file.key,
-        status: "active",
-        uploaded_by: createdBy,
-      }).select("id").single();
-      if (drop.error) {
-        console.warn("slatedrop", file.title, drop.error.message);
-        continue;
-      }
-      const att = await admin.from("spatial_pin_attachments").insert({
-        org_id: orgId,
-        pin_id: pin.id,
-        kind: "slatedrop",
-        slatedrop_id: drop.data.id,
-        title: file.title,
-        visible_on_public: true,
-      });
-      if (att.error) console.warn("pin attachments", att.error.message);
-    }
-  }
 }
 
 console.log(JSON.stringify({

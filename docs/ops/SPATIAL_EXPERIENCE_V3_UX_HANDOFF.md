@@ -1,8 +1,8 @@
 # Spatial Experience V3 — UX handoff (Claude)
 
-Cursor owns application/data/integration on `feature/aob205-spatial-experience-v3`.
-Claude owns visual polish on `C:\s360-ux` / `feature/aob205-ux-polish-v3`.
-Same baseline: `0e4e2e31` / tag `safety/aob205-spatial-v3-baseline`.
+Cursor owns application/data/integration on the spatial-experience branch.
+Claude owns visual polish on the matching UX branch.
+Same baseline: `0e4e2e31`.
 
 Do not redesign IA. Keep Overview / Reality / Plan / History / Documents / Items.
 
@@ -69,11 +69,6 @@ If raster is missing, show the intentional unavailable line — do not draw a PD
 
 ## Screenshot routes
 
-- `/preview/aob205`
-- `/preview/aob205/walk`
-- `/preview/aob205/stations`
-- `/preview/aob205/plan`
-- `/preview/aob205/items`
 - `/portal/{token}`
 - `/portal/{token}/reality`
 - `/w/{token}`

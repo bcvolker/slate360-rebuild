@@ -24,7 +24,7 @@ export default function CreatorHomePreview() {
         <main className={t.content}>
           <CreatorHome
             recentProjects={[
-              { id: "1", name: "AOB205 — ASU", status: "active", createdAt: "2026-08-30T00:00:00.000Z", imageUrl: HERO },
+              { id: "1", name: "HouseWalk", status: "active", createdAt: "2026-08-30T00:00:00.000Z", imageUrl: HERO },
             ]}
             recentWalks={[{ id: "w1", title: "HouseWalk", status: "ready", updatedAt: "2026-08-30T00:00:00.000Z" }]}
             needsAttention={[{ id: "a1", title: "Kitchen spec needs reply", message: "", linkPath: "/portal/S0Ho5PRcBjg6pW2uVrFFvm1EMSQjX269", createdAt: "2026-08-30T00:00:00.000Z" }]}

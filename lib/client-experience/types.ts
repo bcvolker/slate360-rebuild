@@ -1,11 +1,9 @@
 /**
  * Client Experience data contract.
  *
- * Everything the contractor-facing AOB205 views render comes through this
- * shape. `lib/client-experience/aob205-fixture.ts` fills it from real AOB205
- * assets today; the portal-token loader should produce the same shape from
- * spatial_walkthroughs / spatial_pins / spatial_project_items / plan sheets
- * once those are ingested (see AOB205_UX_HANDOFF.md).
+ * Contractor-facing views render through this shape. A portal-token loader
+ * should fill it from spatial_walkthroughs, spatial_pins, spatial_project_items,
+ * and plan sheets.
  *
  * Plan coordinates are fractions of the sheet image (u → x, v → y, 0..1).
  */

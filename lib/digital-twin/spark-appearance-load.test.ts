@@ -11,7 +11,7 @@ import {
 
 // Scope: this module's own load/appearance helpers. The production viewers
 // (MeshSplatLayer, splat-viewer-scene) follow main's memory-cap policy and are
-// not asserted here; see docs/ops/PR0_AOB205_MERGE_NOTES.md.
+// not asserted here.
 describe("spark appearance load", () => {
   it("uses Spark-native LOD flags for appearance", () => {
     const args = sparkRendererAppearanceArgs({}, BRUSH_B_PRIMITIVE_COUNT);
