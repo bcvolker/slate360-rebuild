@@ -19,7 +19,7 @@ requirements. One benchmark run is proposed below, awaiting approval.
 | VRAM | Not documented. The paper used an RTX A4500 (20 GB) for Mip-NeRF360 at 1M. CPU image cache available (`--no-cpu-cache` to disable). | 5.9 GB (MCMC, measured) to 44 GB (GS, measured) | Moderate |
 | Export | **PLY, SPZ, SOG**, standalone HTML | PLY, USD, NuRec. Default particle kernel is degree 4, measured **1.59× wider** in a degree-2 viewer. NHT is a neural per-primitive feature, **not consumable by Spark**. | PLY |
 | Spark | Yes, directly. Standard 3DGS PLY when `--gut` and `--enable-mip` are off (both default off). | Needs a kernel conversion at export. NHT: no. | Yes |
-| Difference from Spirula | **Large; see below.** | MCMC densification ≈ Spirula's relocation-under-cap. The difference is the renderer. | MCMC ≈ Spirula. ADC is the baseline that Spirula's revised densification already improves on. |
+| Difference from Spirula | **Moderate; verified differences below (long-axis split is shared)** | MCMC densification ≈ Spirula's relocation-under-cap. The difference is the renderer. | MCMC ≈ Spirula. ADC is the baseline that Spirula's revised densification already improves on. |
 | Thin-structure evidence | Paper Fig. 1: an NMS edge map focuses densification on a "thinned structural backbone" (Bicycle). Mip-NeRF360 at a 1M budget: 28.79 dB vs MCMC, in 26.8% less time with 13.3% fewer Gaussians. **Moderate and indirect**: no independent thin-edge benchmark. | Our own 2026-09-23 runs: fine texture absent (GS 78k), and MCMC 1M at native fisheye was too slow to finish. Spirula beat it. | None specific |
 | Effort | About 5–6 h (below) | Already tried. A rerun adds no new information. | About 4 h, but not a materially different method |
 | L40S cost | Est. 40–90 min, **≈$3–5 per run** | — | — |
@@ -27,19 +27,30 @@ requirements. One benchmark run is proposed below, awaiting approval.
 
 ## Why IGS+ is a credible test of "same pixels + same cameras → different algorithm"
 
-The differences sit exactly where our diagnostics located the loss: a reasonably ranked target that still never refines.
+> **Corrected 2026-09-30** after the Spirula reconciliation (`ROOM213_SPIRULA_RECONCILIATION_2026-09-30.md`).
+> The first version of this table said Spirula has no directed split. **That was wrong.** With
+> `use_revised_densification = true` (A), Spirula's relocation and growth both run
+> `*_with_long_axis_split_tensor`, and 15% of growth goes to the oversize-split channel. Long-axis splitting is
+> **shared** by both trainers, and so are the starting means/scales learning rates (1.28e-4 and 0.02). Only the
+> differences verified in source at both commits are listed below.
 
-| Mechanism | Spirula v2026.9.24 `360-camera` (measured) | LichtFeld `igs+` (from source at `c72a0d85`) |
+| Mechanism | Spirula v2026.9.24, A as run (resolved config + source `183b2c6d`) | LichtFeld `igs+` benchmark recipe (`c72a0d85`, `eval/improvedGSplus_optimization_params.json`) |
 |---|---|---|
-| Growth schedule | 1.05× per event, **cap reached at step 1401** (665k → 1M). Afterwards only dead-splat relocation, until step 27,500. | **Taming-3DGS quadratic budget curve over the whole refine window** (`get_count_array`). Growth continues while the reconstruction is informative, not just the first 1.4k steps. |
-| Parent choice | Proportional to the ssim_cs score (power 0.4). **Flat**: top decile only 1.3–1.7× the median, and table parents ≈1 per event. | **Hard filter** to the top 4× budget by error (`ERROR_CANDIDATE_FACTOR`), then weighted by error × (1 + 0.25 × Sobel+NMS edge score). This targets edges explicitly. |
-| Split | Clone or relocate; no directed split | **Long-Axis Split** CUDA kernel: children placed along the principal axis. This addresses the 8 mm Gaussians straddling a 2 px edge. |
-| Optimiser | Spirula defaults | Exponential scale-LR scheduler (0.020 → 0.002) and a higher position LR (1.28e-4) |
-| Appearance | PPISP + bilateral grid per face | Off by default (exposure locked at 1/320 s, so this is a minor confound; noted) |
-| Renderer | Vulkan rasteriser | CUDA rasteriser, standard EWA 3DGS |
+| Population growth timing | 1.05× per 100 steps from step 500. **Cap reached at step 1401** (665k → 1M). After that, relocation of dead splats only, until step 27,500. | **Taming-3DGS quadratic budget curve** (`get_count_array`) spread over the whole refine window (500 → 15,000, every 500 steps, at 1×). The cap is reached at the end of the window, not at step 1.4k. |
+| Candidate-selection concentration | Parents drawn in proportion to score^0.4 (`densify_score_power`). Measured as **flat**: the top decile is only 1.3–1.7× the median. | **Hard filter** to the top 4× budget by error (`ERROR_CANDIDATE_FACTOR = 4`), then a weighted draw among those. |
+| Edge-weighted selection | **Off in A.** `densify_loss_map_mode = ssim_cs` has no edge map and no NMS. Spirula offers `edge_aware`, `robust_edge_aware` and `*_nms` modes, but A did not use them. | **On by default.** Weight = error × (1 + 0.25 × Sobel+NMS edge score). |
+| Long-axis split | **Active** (relocation, growth and the oversize channel) | Active (LAS kernel) |
+| Position noise | SGLD-style `noise_lr` 80 → 0.8 (MCMC family) | None |
+| Opacity reset / pruning | No opacity reset. Dead splats are relocated. | Opacity reset every 3,000 steps until the end of refinement, plus opacity pruning (< 0.005) |
+| Optimiser schedule | means 1.28e-4 → 1.6e-6; scales 0.02 → 0.005 | means and scales decay ×0.1 over the run (1.28e-4 → 1.28e-5; 0.02 → 0.002) |
+| Regularisers | opacity_reg 0.005, scale_reg 0.01, erank_reg 0.01, quat_norm_reg 0.01, dc/sh_reg 0.001; screen-size hinge at 0.3 | opacity_reg 0, scale_reg 0; no screen-size cap |
+| Loss | L1 + 0.2 D-SSIM, plus alpha_loss 0.1 | L1 + 0.2 D-SSIM (λ = 0.2) |
+| Initialisation | SfM seeds (Spirula `scale_init`/`opacity_init` defaults) | SfM seeds, init_opacity 0.3, init_scaling 0.2 |
+| Appearance | PPISP + bilateral grid per face | Off in the recipe (exposure locked at 1/320 s; a known confound, reported) |
+| Renderer | Vulkan rasteriser (3dgs primitive) | CUDA rasteriser, standard EWA 3DGS (no GUT, no mip filter) |
 
 **Caveat:** we have shown the table is *not* under-ranked (83–96th percentile). If the limit is optimisation or the loss
-rather than allocation, the directed split and the schedule change still exercise it. A null result therefore also
+rather than allocation, the different growth timing, selection, optimiser schedule and regularisers still exercise it. A null result therefore also
 narrows the cause.
 
 ## Proposed ONE-RUN benchmark: R213-LFS-IGS-1

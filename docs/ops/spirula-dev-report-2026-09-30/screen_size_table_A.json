@@ -1,0 +1,87 @@
+{
+ "n_total": 998762,
+ "camera_centres": 1016,
+ "observers": 34,
+ "close_observers": 4,
+ "r15mm": {
+  "contributors": 7,
+  "R_extent_mm_p10_p50_p90_max": [
+   8.75,
+   11.96,
+   14.63,
+   17.48
+  ],
+  "longest_sigma_mm_p50": 4.088445735666748,
+  "opacity_p50": 0.23468476634090865,
+  "screen_close_views_p50_p90_max": [
+   0.0064,
+   0.0091,
+   0.0111
+  ],
+  "screen_max_over_observers_per_splat_p50_max": [
+   0.0075,
+   0.0111
+  ],
+  "screen_max_any_camera_centre_per_splat_p50_max": [
+   0.011,
+   0.0162
+  ],
+  "frac_over_0p1_observers": 0.0,
+  "frac_over_0p1_any_camera": 0.0,
+  "frac_over_0p05_any_camera": 0.0
+ },
+ "r30mm": {
+  "contributors": 22,
+  "R_extent_mm_p10_p50_p90_max": [
+   10.94,
+   23.9,
+   47.36,
+   65.8
+  ],
+  "longest_sigma_mm_p50": 8.412983728349486,
+  "opacity_p50": 0.2551761740803677,
+  "screen_close_views_p50_p90_max": [
+   0.014,
+   0.0279,
+   0.0416
+  ],
+  "screen_max_over_observers_per_splat_p50_max": [
+   0.0152,
+   0.0416
+  ],
+  "screen_max_any_camera_centre_per_splat_p50_max": [
+   0.022,
+   0.0605
+  ],
+  "frac_over_0p1_observers": 0.0,
+  "frac_over_0p1_any_camera": 0.0,
+  "frac_over_0p05_any_camera": 0.045454545454545456
+ },
+ "r60mm": {
+  "contributors": 89,
+  "R_extent_mm_p10_p50_p90_max": [
+   14.69,
+   30.68,
+   53.17,
+   80.86
+  ],
+  "longest_sigma_mm_p50": 10.608505585031939,
+  "opacity_p50": 0.3833453950616891,
+  "screen_close_views_p50_p90_max": [
+   0.0172,
+   0.032,
+   0.052
+  ],
+  "screen_max_over_observers_per_splat_p50_max": [
+   0.0191,
+   0.052
+  ],
+  "screen_max_any_camera_centre_per_splat_p50_max": [
+   0.0275,
+   0.073
+  ],
+  "frac_over_0p1_observers": 0.0,
+  "frac_over_0p1_any_camera": 0.0,
+  "frac_over_0p05_any_camera": 0.10112359550561797
+ }
+}
