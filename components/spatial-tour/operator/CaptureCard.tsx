@@ -21,6 +21,7 @@ export function CaptureCard({
       .filter((m) => m.checkpointId === checkpointId && m.match === "matched" && m.stillStatus === "ready")
       .sort((a, b) => (visitOrder.get(a.walkthroughId) ?? 0) - (visitOrder.get(b.walkthroughId) ?? 0))[0];
   const chapters = bundle.chapters.filter((c) => !c.retiredAt);
+  const cone = bundle.visits.flatMap((v) => v.clips).find((c) => c.lookCone)?.lookCone ?? null;
   let n = 0;
 
   return (
@@ -33,6 +34,20 @@ export function CaptureCard({
         <h1 className="text-2xl font-semibold">{route.name}</h1>
         <CaptureCardControls projectId={projectId} notes={route.captureNotes} />
       </header>
+      <section className="break-inside-avoid space-y-2" data-testid="capture-card-sop">
+        <h2 className="border-b border-[var(--mobile-app-card-border)] pb-1 text-lg font-semibold print:border-black">Every visit</h2>
+        <ol className="list-decimal space-y-1 pl-5 text-sm">
+          <li>Mast a couple of feet ahead of you, camera above your head. Use the same heights every visit.</li>
+          <li>Walk the route in the order below, facing the way you walk. Forward is your direction of travel.</li>
+          <li>
+            Keep yourself behind and under the camera, out of the published view
+            {cone ? ` (${Math.round(cone.halfWidthDeg * 2)}° forward, down to ${cone.pitchMinDeg}°)` : ""}. No masks: if you
+            are in the view, the take is redone.
+          </li>
+          <li>Pause two seconds at each checkpoint, facing its reference view.</li>
+          <li>Write down anything you could not reach or had to do differently.</li>
+        </ol>
+      </section>
       {chapters.map((chapter) => {
         const points = bundle.checkpoints.filter((c) => c.chapterId === chapter.id && !c.retiredAt);
         if (!points.length) return null;

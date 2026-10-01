@@ -83,3 +83,10 @@ Neither failure is caused by these PRs. The local gates (scoped `tsc`, three gua
 4. Project → Spatial Walkthroughs → **Directed Tour**: create the route, add checkpoints, mark visit 1.
 5. Print the capture card, shoot visit 2 on the same route, upload it, then mark and publish both visits.
 6. Tell Claude. PR-C2 starts on two real published visits.
+
+## Update: C1.2 framing-first privacy
+- Model and files: `docs/design/TOUR_PRIVACY_FRAMING_FIRST.md`. A published view (look cone) per clip; stills are perspective frames inside it; pure-black share is measured per still; the bake refuses blackout-sized masks; the publish gate blocks masks in view and black stills.
+- Real-data proof: `docs/qa/c1-2-framing/still-gate-real-data.jpg`. AOB205 level 18.1% → blocked; HouseWalk level 2.1% (mask arc) → blocked; HouseWalk tilted up 15° 0.2% → clean.
+- **AOB205's bake is wrong for Tour.** Re-bake it with a tight mask plus a published view, or discard it for Tour.
+- Redeployed: Modal `slate360-spatial-stills` (perspective + black measurement) and Trigger `20261001.1` (14 tasks). Migration `20260930160000` applied (two nullable columns).
+

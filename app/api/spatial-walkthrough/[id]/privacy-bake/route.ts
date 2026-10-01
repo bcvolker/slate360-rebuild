@@ -3,6 +3,7 @@ import { tasks } from "@trigger.dev/sdk/v3";
 import { withSpatialWalkthroughAuth } from "@/lib/spatial-walkthrough/access";
 import { ok, unauthorized, notFound, badRequest } from "@/lib/server/api-response";
 import { parseOperatorPatch, resolveOperatorPatch } from "@/lib/spatial-walkthrough/operator-patch";
+import { MAX_PAINT_COVERAGE, maxPaintCoverage, paintSectors } from "@/lib/spatial-tour/look-cone";
 
 export const runtime = "nodejs";
 type Ctx = { params: Promise<{ id: string }> };
@@ -30,6 +31,12 @@ export const POST = (req: NextRequest, ctx: Ctx) =>
       .eq("id", id)
       .maybeSingle();
     const operatorPatch = resolveOperatorPatch(clip.operator_patch, parseOperatorPatch(wt?.operator_patch));
+    // Framing first: a mask is for a stray limb or reflection, never a blacked-out hemisphere.
+    if (maxPaintCoverage(paintSectors(operatorPatch)) > MAX_PAINT_COVERAGE) {
+      return badRequest(
+        "This mask would black out a large part of the view. Keep it to a stray limb or reflection and frame the operator out instead.",
+      );
+    }
     const { data: redactions } = await admin
       .from("spatial_redactions")
       .select("t_start, t_end, mode, clip_id")

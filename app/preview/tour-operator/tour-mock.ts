@@ -1,12 +1,13 @@
 import { publishChecklist } from "@/lib/spatial-tour/publish-checklist";
-import type { TourBundle } from "@/lib/spatial-tour/types";
+import type { TourBundle, TourClip } from "@/lib/spatial-tour/types";
+import { clampViewIntoCone, parseLookCone } from "@/lib/spatial-tour/look-cone";
 
 /**
  * In-memory stand-in for /api/projects/harness/tour/* so the real operator UI can be
  * exercised without a session. Stills "extract" after 1.5 s. Harness only.
  */
 export function createTourMock(opts: { walkthroughId: string; clipId: string; durationS: number; withRoute: boolean }): (url: string, init?: RequestInit) => Response | Promise<Response> | null {
-  const clip = { id: opts.clipId, durationS: opts.durationS, sortOrder: 0, hasPublicProxy: true };
+  const clip: TourClip = { id: opts.clipId, durationS: opts.durationS, sortOrder: 0, hasPublicProxy: true, lookCone: null, maskVisible: false, maskCoverage: 0.03 };
   const visit = (id: string, title: string, capturedAt: string) => ({
     walkthroughId: id, title, capturedAt, routeId: null as string | null, clientPublishedAt: null as string | null,
     stillsReviewedAt: null as string | null, privacyReviewedAt: null as string | null, clips: [{ ...clip }],
@@ -44,18 +45,28 @@ export function createTourMock(opts: { walkthroughId: string; clipId: string; du
       if (v.clientPublishedAt) return json({ error: "Unpublish this visit before changing its checkpoints." }, 409);
       b.marks = b.marks.filter((m) => !(m.checkpointId === body.checkpointId && m.walkthroughId === body.walkthroughId));
       const frame = body.match !== "not_captured";
+      const vc = v.clips.find((c) => c.id === body.clipId) ?? v.clips[0];
+      if (frame && !vc.lookCone) return json({ error: "Set the published view for this visit before marking it" }, 409);
+      const view = frame && vc.lookCone ? clampViewIntoCone(vc.lookCone, Number(body.yaw ?? 0), Number(body.pitch ?? 0)) : { yaw: 0, pitch: 0 };
       const m: TourBundle["marks"][number] = {
         id: id("mark"), checkpointId: String(body.checkpointId), walkthroughId: String(body.walkthroughId),
-        clipId: frame ? String(body.clipId) : null, tSeconds: frame ? Number(body.t) : null, yawDeg: Number(body.yaw ?? 0), pitchDeg: Number(body.pitch ?? 0),
-        match: body.match as TourBundle["marks"][number]["match"], stillKey: null, stillStatus: frame ? "queued" : "none", stillError: null,
+        clipId: frame ? String(body.clipId) : null, tSeconds: frame ? Number(body.t) : null, yawDeg: view.yaw, pitchDeg: view.pitch,
+        match: body.match as TourBundle["marks"][number]["match"], stillKey: null, stillStatus: frame ? "queued" : "none", stillError: null, stillBlackFraction: null,
       };
       b.marks.push(m);
       v.stillsReviewedAt = null;
-      if (frame) setTimeout(() => { m.stillStatus = "ready"; m.stillKey = "harness"; }, 1500);
+      v.privacyReviewedAt = null;
+      if (frame) setTimeout(() => { m.stillStatus = "ready"; m.stillKey = "harness"; m.stillBlackFraction = 0; }, 1500);
     } else if (path.startsWith("/visits/")) {
       const v = b.visits.find((x) => x.walkthroughId === path.split("/")[2])!;
       const now = new Date().toISOString();
       if (body.action === "attach") v.routeId = "route-1";
+      if (body.action === "look-cone") {
+        const c = v.clips.find((x) => x.id === body.clipId);
+        if (c) c.lookCone = parseLookCone(body.cone);
+        v.stillsReviewedAt = null;
+        v.privacyReviewedAt = null;
+      }
       if (body.action === "review-stills") v.stillsReviewedAt = now;
       if (body.action === "review-privacy") v.privacyReviewedAt = now;
       if (body.action === "unpublish") v.clientPublishedAt = null;

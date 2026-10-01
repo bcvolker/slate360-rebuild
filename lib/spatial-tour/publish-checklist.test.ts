@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { publishChecklist } from "./publish-checklist";
 import type { CheckpointMark, RouteCheckpoint, TourVisit } from "./types";
+import { DEFAULT_LOOK_CONE as cone } from "./look-cone";
 
 const visit = (over: Partial<TourVisit> = {}): TourVisit => ({
   walkthroughId: "v1",
@@ -10,7 +11,7 @@ const visit = (over: Partial<TourVisit> = {}): TourVisit => ({
   clientPublishedAt: null,
   stillsReviewedAt: "2026-09-02T00:00:00Z",
   privacyReviewedAt: "2026-09-02T00:00:00Z",
-  clips: [{ id: "c1", durationS: 60, sortOrder: 0, hasPublicProxy: true }],
+  clips: [{ id: "c1", durationS: 60, sortOrder: 0, hasPublicProxy: true, lookCone: cone, maskVisible: false, maskCoverage: 0.03 }],
   ...over,
 });
 
@@ -38,6 +39,7 @@ const mark = (checkpointId: string, over: Partial<CheckpointMark> = {}): Checkpo
   stillKey: "k",
   stillStatus: "ready",
   stillError: null,
+  stillBlackFraction: 0,
   ...over,
 });
 
@@ -73,7 +75,7 @@ describe("visit publish checklist", () => {
 
   it("blocks when a marked clip has no operator-free video", () => {
     const r = publishChecklist({
-      visit: visit({ clips: [{ id: "c1", durationS: 60, sortOrder: 0, hasPublicProxy: false }] }),
+      visit: visit({ clips: [{ id: "c1", durationS: 60, sortOrder: 0, hasPublicProxy: false, lookCone: cone, maskVisible: false, maskCoverage: 0 }] }),
       checkpoints: [cp("a")],
       marks: [mark("a")],
     });
@@ -82,5 +84,21 @@ describe("visit publish checklist", () => {
 
   it("never passes an empty route", () => {
     expect(publishChecklist({ visit: visit(), checkpoints: [], marks: [] }).canPublish).toBe(false);
+  });
+
+  it("blocks without a published view, with a mask in view, or with a black still", () => {
+    const base = { checkpoints: [cp("a")], marks: [mark("a")] };
+    const clip = { id: "c1", durationS: 60, sortOrder: 0, hasPublicProxy: true, lookCone: cone, maskVisible: false, maskCoverage: 0.03 };
+    expect(ok(publishChecklist({ ...base, visit: visit({ clips: [{ ...clip, lookCone: null }] }) }), "look-cone")).toBe(false);
+    expect(ok(publishChecklist({ ...base, visit: visit({ clips: [{ ...clip, maskVisible: true }] }) }), "mask-out-of-view")).toBe(false);
+    expect(ok(publishChecklist({ ...base, visit: visit({ clips: [{ ...clip, maskCoverage: 0.3 }] }) }), "mask-out-of-view")).toBe(false);
+    expect(ok(publishChecklist({ ...base, visit: visit(), marks: [mark("a", { stillBlackFraction: 0.31 })] }), "stills-clean")).toBe(false);
+    expect(ok(publishChecklist({ ...base, visit: visit(), marks: [mark("a", { stillBlackFraction: null })] }), "stills-clean")).toBe(false);
+    expect(publishChecklist({ ...base, visit: visit() }).canPublish).toBe(true);
+  });
+
+  it("does not show privacy items as passed before anything is marked", () => {
+    const r = publishChecklist({ visit: visit(), checkpoints: [cp("a")], marks: [] });
+    for (const id of ["mask-out-of-view", "stills", "stills-clean"]) expect(ok(r, id), id).toBe(false);
   });
 });

@@ -4,6 +4,7 @@ import { ok, badRequest, conflict, notFound, unauthorized, serverError } from "@
 import { enqueueCheckpointStill, loadOwnedRoute, loadTourBundle } from "@/lib/spatial-tour/tour-store";
 import { loadVisit, PUBLISHED_LOCK } from "@/lib/spatial-tour/route-guard";
 import type { MatchQuality } from "@/lib/spatial-tour/types";
+import { clampViewIntoCone, parseLookCone } from "@/lib/spatial-tour/look-cone";
 
 export const runtime = "nodejs";
 type Ctx = { params: Promise<{ projectId: string }> };
@@ -13,8 +14,9 @@ const finite = (v: unknown): number | null => (typeof v === "number" && Number.i
 
 /**
  * Set where one visit shows one checkpoint. Frames (matched / approximate) must sit on a
- * clip with an operator-free public proxy; the still is re-extracted and the visit's
- * "stills reviewed" confirmation is cleared, because the stills changed.
+ * clip with an operator-free public proxy and a published view (look cone); the view
+ * direction is pulled inside the cone so the still can never include the operator. The
+ * still is re-extracted and the visit's reviews are cleared, because the stills changed.
  */
 export const PUT = (req: NextRequest, ctx: Ctx) =>
   withSpatialWalkthroughAuth(req, async ({ admin, orgId, user }) => {
@@ -53,6 +55,7 @@ export const PUT = (req: NextRequest, ctx: Ctx) =>
       still_key: null,
       still_status: "none",
       still_error: null,
+      still_black_fraction: null,
     };
     if (match !== "not_captured") {
       const clipId = typeof body?.clipId === "string" ? body.clipId : "";
@@ -60,14 +63,17 @@ export const PUT = (req: NextRequest, ctx: Ctx) =>
       if (t == null || t < 0) return badRequest("t (seconds) is required for a frame");
       const { data: clip } = await admin
         .from("spatial_clips")
-        .select("id, duration_s, public_proxy_key")
+        .select("id, duration_s, public_proxy_key, look_cone")
         .eq("id", clipId)
         .eq("walkthrough_id", walkthroughId)
         .maybeSingle();
       if (!clip) return notFound("Clip not found on this visit");
       if (!clip.public_proxy_key) return conflict("Run the privacy bake on this clip before marking it");
       if (clip.duration_s != null && t > Number(clip.duration_s)) return badRequest("t is past the end of the clip");
-      Object.assign(row, { clip_id: clipId, t_seconds: t, yaw_deg: finite(body?.yaw) ?? 0, pitch_deg: finite(body?.pitch) ?? 0 });
+      const cone = parseLookCone(clip.look_cone);
+      if (!cone) return conflict("Set the published view for this visit before marking it");
+      const view = clampViewIntoCone(cone, finite(body?.yaw) ?? cone.headingDeg, finite(body?.pitch) ?? 0);
+      Object.assign(row, { clip_id: clipId, t_seconds: t, yaw_deg: view.yaw, pitch_deg: view.pitch });
     }
 
     const { data: saved, error } = await admin
@@ -76,7 +82,7 @@ export const PUT = (req: NextRequest, ctx: Ctx) =>
       .select("id")
       .single();
     if (error || !saved) return serverError(error?.message ?? "Could not save mark");
-    await admin.from("spatial_walkthroughs").update({ stills_reviewed_at: null }).eq("id", walkthroughId);
+    await admin.from("spatial_walkthroughs").update({ stills_reviewed_at: null, privacy_reviewed_at: null }).eq("id", walkthroughId);
     if (match !== "not_captured") await enqueueCheckpointStill(admin, String(saved.id));
     return ok(await loadTourBundle(admin, orgId, projectId));
   }, "author");

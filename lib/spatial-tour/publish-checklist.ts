@@ -3,6 +3,7 @@
  * published to clients; the server re-checks this on publish, so the UI cannot skip it.
  */
 import type { CheckpointMark, RouteCheckpoint, TourVisit } from "./types";
+import { MAX_PAINT_COVERAGE, MAX_STILL_BLACK_FRACTION } from "./look-cone";
 
 export type ChecklistItem = { id: string; label: string; ok: boolean; detail: string };
 
@@ -24,7 +25,13 @@ export function publishChecklist(args: {
   const withFrames = active.map((c) => marks.get(c.id)).filter((m): m is CheckpointMark => Boolean(m && m.match !== "not_captured"));
   const stillsPending = withFrames.filter((m) => m.stillStatus !== "ready");
   const usedClips = new Set(withFrames.map((m) => m.clipId));
-  const unbaked = visit.clips.filter((c) => usedClips.has(c.id) && !c.hasPublicProxy);
+  const used = visit.clips.filter((c) => usedClips.has(c.id));
+  const unbaked = used.filter((c) => !c.hasPublicProxy);
+  const noCone = used.filter((c) => !c.lookCone);
+  const badMask = used.filter((c) => c.maskVisible || c.maskCoverage > MAX_PAINT_COVERAGE);
+  const blackStills = withFrames.filter(
+    (m) => m.stillStatus === "ready" && (m.stillBlackFraction == null || m.stillBlackFraction > MAX_STILL_BLACK_FRACTION),
+  );
 
   const items: ChecklistItem[] = [
     {
@@ -46,10 +53,42 @@ export function publishChecklist(args: {
       detail: unbaked.length ? "Run the privacy bake first" : "Public derivative ready",
     },
     {
+      id: "look-cone",
+      label: "Published view set",
+      ok: used.length > 0 && noCone.length === 0,
+      detail: noCone.length || !used.length ? "Set the forward view clients are locked to" : "Clients can only look where you are not",
+    },
+    {
+      id: "mask-out-of-view",
+      label: "Privacy mask stays out of view",
+      ok: used.length > 0 && badMask.length === 0,
+      detail: !used.length
+        ? "Checked once a checkpoint is marked"
+        : badMask.length
+          ? "The mask reaches into the published view. Re-bake with a tight mask (stray limb only) and rely on the published view"
+          : "No mask inside the published view",
+    },
+    {
       id: "stills",
       label: "Checkpoint stills extracted",
-      ok: stillsPending.length === 0,
-      detail: stillsPending.length ? `${stillsPending.length} still${stillsPending.length === 1 ? "" : "s"} not ready` : "All ready",
+      ok: withFrames.length > 0 && stillsPending.length === 0,
+      detail: !withFrames.length
+        ? "No stills yet"
+        : stillsPending.length
+          ? `${stillsPending.length} still${stillsPending.length === 1 ? "" : "s"} not ready`
+          : "All ready",
+    },
+    {
+      id: "stills-clean",
+      label: "No blacked-out areas in stills",
+      ok: withFrames.length > 0 && stillsPending.length === 0 && blackStills.length === 0,
+      detail: !withFrames.length
+        ? "No stills yet"
+        : blackStills.length
+          ? `${blackStills.length} still${blackStills.length === 1 ? " shows" : "s show"} a black area. Aim higher or fix the mask, then mark again`
+          : stillsPending.length
+            ? "Checked when the stills are ready"
+            : "Every still is clean",
     },
     {
       id: "stills-reviewed",
@@ -59,9 +98,9 @@ export function publishChecklist(args: {
     },
     {
       id: "privacy-reviewed",
-      label: "Privacy reviewed",
+      label: "No operator or ugly mask in the published view",
       ok: Boolean(visit.privacyReviewedAt),
-      detail: visit.privacyReviewedAt ? "Confirmed" : "Faces, plates and the operator are out of the published frames",
+      detail: visit.privacyReviewedAt ? "Confirmed" : "You checked every still: no operator, no black areas, no faces or plates",
     },
   ];
   return { items, canPublish: items.every((i) => i.ok) };
