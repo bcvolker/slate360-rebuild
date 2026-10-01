@@ -1,60 +1,54 @@
-import { MonitorPlay } from "lucide-react";
-import {
-  MKT_L_CONTAINER,
-  MKT_L_H2,
-  MKT_L_KICKER,
-  MKT_L_LEDE,
-} from "@/app/(public)/_components/marketing-styles-light";
+import { MKT_L_CONTAINER, MKT_L_H2, MKT_L_KICKER, MKT_L_LEDE } from "@/app/(public)/_components/marketing-styles-light";
 
 const LAYERS = [
   {
-    who: "You receive",
-    title: "The record",
-    items: ["Interactive records, per capture date", "Floor plans and exports", "Source capture archive, retained"],
-  },
-  {
-    who: "In your portal",
-    title: "Control",
+    who: "Project management",
+    title: "The job in one place",
     items: [
-      "Every version in one timeline",
-      "Open, review, pin, and annotate",
-      "Download export packages",
-      "Compose share links — scoped, expiring, view-limited",
+      "Visits and deliverables on one timeline",
+      "Punch items and follow-ups your team can track",
+      "A link that opens in the browser",
     ],
   },
   {
-    who: "Your clients get",
-    title: "A link that just opens",
-    items: ["Your branding, not ours", "Opens in any browser — no app, no account", "Share your screen on any call and walk the site together"],
+    who: "Document management",
+    title: "Files with the work they describe",
+    items: [
+      "Plans, submittals, and reports kept with the project",
+      "Pinned to the spot in the record they belong to",
+      "Ready to download when you need to send them on",
+    ],
+  },
+  {
+    who: "White-label branding",
+    title: "Your name on what clients open",
+    items: [
+      "Your logo and colors carry through the portal",
+      "Clients see your project",
+      "Links you can scope and expire",
+    ],
   },
 ] as const;
 
-/**
- * Client portal — co-focal with "What you get" per the locked hierarchy.
- * The preview slot below accepts either a still image or a short screen
- * recording once Brian has one — see docs/design/HOMEPAGE_LIGHT_REBUILD_PLAN.md.
- * Never fabricated; stays a clean placeholder frame until real content exists.
- */
 export function HomePortalLight() {
   return (
-    <section id="portal" className="py-16 sm:py-20 lg:py-24">
+    <section id="portal" className="py-10 sm:py-12">
       <div className={MKT_L_CONTAINER}>
-        <div className={MKT_L_KICKER}>Your client portal</div>
+        <div className={MKT_L_KICKER}>Client portal</div>
         <h2 className={MKT_L_H2}>
-          Delivered to a portal. Shared under <em className="not-italic text-[var(--mkt-accent)]">your</em> brand.
+          One portal for the project, the documents, and <em className="not-italic text-[var(--mkt-accent)]">your</em> brand.
         </h2>
         <p className={MKT_L_LEDE}>
-          Your project record lives in a portal built for handing off — open any version, download
-          exports, and pass deliverables to your own clients to keep them informed as the work moves.
+          Walkthroughs, video, reports, and files live together. Your crew works from it. Your
+          clients open a link and see your branding.
         </p>
-
-        <div className="mt-10 grid gap-8 sm:grid-cols-3 sm:gap-10">
+        <div className="mt-6 grid gap-8 sm:grid-cols-3 sm:gap-8">
           {LAYERS.map((layer) => (
             <div key={layer.title} className="border-t border-[var(--mkt-line)] pt-4">
               <div className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--mkt-accent)]">
                 {layer.who}
               </div>
-              <h3 className="mt-2 font-serif text-xl font-normal text-[var(--mkt-ink)]">{layer.title}</h3>
+              <h3 className="mt-1.5 font-serif text-xl font-normal text-[var(--mkt-ink)]">{layer.title}</h3>
               <ul className="mt-3 space-y-1.5">
                 {layer.items.map((item) => (
                   <li key={item} className="relative pl-4 text-[14px] leading-relaxed text-[var(--mkt-ink-muted)]">
@@ -65,30 +59,6 @@ export function HomePortalLight() {
               </ul>
             </div>
           ))}
-        </div>
-
-        {/* Preview slot — replace with a real screenshot or a short screen
-            recording of a real project being managed once one exists. Dashed
-            outline + icon matches the hero viewer panel's "coming soon"
-            treatment (home-hero-viewer-panel.tsx) so both empty-content slots
-            on the page read as deliberate, not broken. */}
-        <div className="mt-12 overflow-hidden rounded-2xl border border-[var(--mkt-line)] bg-[var(--mkt-surface)] shadow-[0_20px_50px_-24px_rgba(26,36,51,0.18)]">
-          <div className="flex items-center gap-2 border-b border-[var(--mkt-line)] px-4 py-2.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-[var(--mkt-line)]" />
-            <span className="h-2.5 w-2.5 rounded-full bg-[var(--mkt-line)]" />
-            <span className="h-2.5 w-2.5 rounded-full bg-[var(--mkt-line)]" />
-            <span className="ml-2 text-[11.5px] text-[var(--mkt-ink-muted)]">portal.slate360.ai</span>
-          </div>
-          <div className="p-3">
-            <div className="flex aspect-video flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-[var(--mkt-accent-line)] bg-[var(--mkt-canvas-alt)] px-6 text-center">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--mkt-accent-soft)] ring-1 ring-[var(--mkt-accent-line)]">
-                <MonitorPlay className="h-4.5 w-4.5 text-[var(--mkt-accent)]" aria-hidden />
-              </div>
-              <p className="max-w-sm text-sm text-[var(--mkt-ink-muted)]">
-                A look at the portal — reviewing, pinning, and sharing a project.
-              </p>
-            </div>
-          </div>
         </div>
       </div>
     </section>

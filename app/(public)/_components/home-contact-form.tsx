@@ -43,7 +43,7 @@ export function HomeContactForm() {
 
   if (status === "sent") {
     return (
-      <section id="request-a-visit" className="border-y border-[var(--mkt-line)] bg-[var(--mkt-canvas-alt)] py-16 sm:py-20 lg:py-24">
+      <section id="request-a-visit" className="border-y border-[var(--mkt-line)] bg-[var(--mkt-canvas-alt)] py-10 sm:py-12">
         <div className={MKT_L_CONTAINER}>
           <div className="mx-auto max-w-md rounded-2xl border border-[var(--mkt-line)] bg-[var(--mkt-surface)] p-8 text-center">
             <h2 className="font-serif text-2xl font-normal text-[var(--mkt-ink)]">Thanks — request received.</h2>
@@ -55,13 +55,13 @@ export function HomeContactForm() {
   }
 
   return (
-    <section id="request-a-visit" className="border-y border-[var(--mkt-line)] bg-[var(--mkt-canvas-alt)] py-16 sm:py-20 lg:py-24">
+    <section id="request-a-visit" className="border-y border-[var(--mkt-line)] bg-[var(--mkt-canvas-alt)] py-10 sm:py-12">
       <div className={MKT_L_CONTAINER}>
         <div className={MKT_L_KICKER}>Next step</div>
         <h2 className={MKT_L_H2}>Request a site visit</h2>
-        <p className={MKT_L_LEDE}>Tell us about the site and what needs to be documented — we&rsquo;ll follow up with a plan and a quote.</p>
+        <p className={MKT_L_LEDE}>Tell us the site and what needs to be on record. We&rsquo;ll follow up with a plan and a quote.</p>
 
-        <form onSubmit={handleSubmit} className="mt-8 rounded-2xl border border-[var(--mkt-line)] bg-[var(--mkt-surface)] p-6 sm:p-8">
+        <form onSubmit={handleSubmit} className="mt-6 rounded-2xl border border-[var(--mkt-line)] bg-[var(--mkt-surface)] p-5 sm:p-6">
           <div className="grid gap-5 sm:grid-cols-2">
             <Field label="Name"><input name="name" required className={inputClass} autoComplete="name" /></Field>
             <Field label="Company"><input name="company" className={inputClass} autoComplete="organization" /></Field>

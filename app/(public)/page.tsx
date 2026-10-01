@@ -5,22 +5,18 @@ import { MarketingJsonLd } from "@/app/(public)/_components/marketing-json-ld";
 import { HomeNavLight } from "@/app/(public)/_components/home-nav-light";
 import { HomeFooterLight } from "@/app/(public)/_components/home-footer-light";
 import { HomeHeroLight } from "@/app/(public)/_components/home-hero-light";
-import { HomeProblemLight } from "@/app/(public)/_components/home-problem-light";
-import { HomeWhatYouGetLight } from "@/app/(public)/_components/home-what-you-get-light";
+import { HomeCapabilitiesLight } from "@/app/(public)/_components/home-capabilities-light";
 import { HomePortalLight } from "@/app/(public)/_components/home-portal-light";
-import { HomeExamplesLight } from "@/app/(public)/_components/home-examples-light";
 import { HomeHowItWorksLight } from "@/app/(public)/_components/home-how-it-works-light";
-import { HomeDifferentLight } from "@/app/(public)/_components/home-different-light";
 import { HomeWhoPricingLight } from "@/app/(public)/_components/home-who-pricing-light";
-import { HomeAdditionalServicesLight } from "@/app/(public)/_components/home-additional-services-light";
 import { HomeContactForm } from "@/app/(public)/_components/home-contact-form";
 import { MKT_L_PAGE } from "@/app/(public)/_components/marketing-styles-light";
-import { assets } from "@/lib/design-system/tokens";
 
 const SITE_URL = "https://www.slate360.ai";
-const TITLE = "Slate360 — Reality-capture documentation for the building industry";
+const TITLE = "Slate360 — Field documentation and workflow for contractors";
 const DESCRIPTION =
-  "We visit your site, capture it, and deliver an interactive record through your own project portal. Serving the Greater Phoenix area.";
+  "Directed 360 walkthroughs, drone photo and video, commissioning video, thermal reports, and a white-label client portal. Site Walk for punch lists. East Valley, Phoenix.";
+const OG_IMAGE = "/uploads/icon-512.png";
 
 export const metadata: Metadata = {
   title: TITLE,
@@ -35,13 +31,13 @@ export const metadata: Metadata = {
     siteName: "Slate360",
     title: TITLE,
     description: DESCRIPTION,
-    images: [{ url: assets.logoAbsolute, alt: "Slate360" }],
+    images: [{ url: OG_IMAGE, alt: "Slate360" }],
   },
   twitter: {
     card: "summary_large_image",
     title: TITLE,
     description: DESCRIPTION,
-    images: [assets.logoAbsolute],
+    images: [OG_IMAGE],
   },
 };
 
@@ -59,14 +55,10 @@ export default async function RootPage() {
         <HomeNavLight />
         <main className="pt-[78px]">
           <HomeHeroLight />
-          <HomeProblemLight />
-          <HomeWhatYouGetLight />
+          <HomeCapabilitiesLight />
           <HomePortalLight />
-          <HomeExamplesLight />
           <HomeHowItWorksLight />
-          <HomeDifferentLight />
           <HomeWhoPricingLight />
-          <HomeAdditionalServicesLight />
           <HomeContactForm />
         </main>
         <HomeFooterLight />

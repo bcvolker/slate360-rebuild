@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { SlateIcon } from "@/components/shared/SlateIcon";
+import { HomeBrandMark } from "@/components/marketing/HomeBrandMark";
 
 type AuthGlassShellProps = {
   children: React.ReactNode;
@@ -13,7 +13,7 @@ export function AuthGlassShell({ children, footer }: AuthGlassShellProps) {
         <div className="auth-card">
           <div className="mb-8 flex justify-center">
             <Link href="/" aria-label="Slate360 home">
-              <SlateIcon className="h-12 w-12" />
+              <HomeBrandMark iconClassName="h-9" wordClassName="text-[17px]" />
             </Link>
           </div>
           {children}
