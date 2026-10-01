@@ -4,7 +4,7 @@ import { loadOpsConsoleData } from "@/lib/server/ops-console-data";
 import { OperationsConsoleClient } from "@/components/ops/console/OperationsConsoleClient";
 
 export const metadata = {
-  title: "Operations Console — Slate360",
+  title: "CEO Dashboard — Slate360",
 };
 
 export const dynamic = "force-dynamic";

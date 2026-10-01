@@ -2,6 +2,8 @@
 
 import { useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import {
   Shield,
   BarChart3,
@@ -68,7 +70,15 @@ function TabContent({ tab }: { tab: OpsConsoleTab }) {
 }
 
 export function OperationsConsoleClient({ initial }: { initial: OpsConsoleInitialData }) {
+  const router = useRouter();
   const { activeTab, setActiveTab, hydrate, error } = useOpsConsoleStore();
+
+  async function signOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
 
   useEffect(() => {
     hydrate(initial);
@@ -82,21 +92,20 @@ export function OperationsConsoleClient({ initial }: { initial: OpsConsoleInitia
   return (
     <div className={t.page} data-mobile-route="platform">
       <header className={t.header}>
-        <div>
-          <p className={t.eyebrow}>Operations Console</p>
-          <h1 className={t.title}>Internal tools</h1>
-          <p className={t.subtitle}>
-            {initial.isCeo ? "Owner command center" : "Staff workspace"} — staff only
-          </p>
+        <h1 className={t.title}>CEO Dashboard</h1>
+        <div className={t.headerActions}>
+          {initial.isCeo ? (
+            <Link href="/digital-twin" className={t.secondaryButton}>
+              Twin 360
+            </Link>
+          ) : null}
+          <button type="button" onClick={() => void signOut()} className={t.quietAction}>
+            Sign out
+          </button>
         </div>
-        {initial.isCeo ? (
-          <Link href="/digital-twin" className={t.secondaryButton}>
-            Twin 360
-          </Link>
-        ) : null}
       </header>
 
-      <nav className={t.tabBar} aria-label="Operations Console sections">
+      <nav className={t.tabBar} aria-label="CEO Dashboard sections">
         {visibleTabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = effectiveTab === tab.id;
