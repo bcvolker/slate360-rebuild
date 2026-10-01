@@ -1,10 +1,10 @@
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
 
+/** Light card for client share surfaces (the name is kept for callers). */
 export function PortalGlassCard({
   children,
   className,
-  variant = "default",
 }: {
   children: ReactNode;
   className?: string;
@@ -13,10 +13,7 @@ export function PortalGlassCard({
   return (
     <div
       className={cn(
-        "rounded-2xl border p-6 shadow-[0_8px_32px_-4px_rgba(0,0,0,0.45)] backdrop-blur-md",
-        variant === "twin"
-          ? "border-[var(--accent-border-blue)] bg-[color-mix(in_srgb,var(--graphite-canvas)_72%,transparent)] shadow-[0_8px_32px_-4px_rgba(0,0,0,0.45),0_0_24px_0_color-mix(in_srgb,var(--twin360-blue)_8%,transparent)]"
-          : "border-white/10 bg-[rgba(15,23,42,0.55)]",
+        "rounded-2xl border border-[var(--portal-line)] bg-[var(--portal-surface)] p-6 text-[var(--portal-ink)] shadow-[0_10px_30px_-18px_rgba(26,36,51,0.25)]",
         className,
       )}
     >

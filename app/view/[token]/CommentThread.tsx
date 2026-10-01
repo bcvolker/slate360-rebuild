@@ -16,25 +16,25 @@ const INTENT_META: Record<Intent, { label: string; icon: typeof ThumbsUp; tone: 
   approve: {
     label: "Approve",
     icon: ThumbsUp,
-    tone: "bg-emerald-500/15 text-emerald-300 border-emerald-500/40 hover:bg-emerald-500/25",
+    tone: "bg-emerald-50 text-emerald-800 border-emerald-300 hover:bg-emerald-100",
     defaultBody: "Approved.",
   },
   needs_change: {
     label: "Needs change",
     icon: AlertTriangle,
-    tone: "bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] text-[var(--graphite-primary)] border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)]",
+    tone: "bg-[color-mix(in_srgb,var(--portal-accent)_15%,transparent)] text-[var(--portal-accent)] border-[color-mix(in_srgb,var(--portal-accent)_40%,transparent)] hover:bg-[color-mix(in_srgb,var(--portal-accent)_25%,transparent)]",
     defaultBody: "Needs change: ",
   },
   question: {
     label: "Question",
     icon: HelpCircle,
-    tone: "bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] text-[var(--graphite-primary)] border-[color-mix(in_srgb,var(--graphite-primary)_40%,transparent)] hover:bg-[color-mix(in_srgb,var(--graphite-primary)_25%,transparent)]",
+    tone: "bg-[color-mix(in_srgb,var(--portal-accent)_15%,transparent)] text-[var(--portal-accent)] border-[color-mix(in_srgb,var(--portal-accent)_40%,transparent)] hover:bg-[color-mix(in_srgb,var(--portal-accent)_25%,transparent)]",
     defaultBody: "Question: ",
   },
   comment: {
     label: "Comment",
     icon: MessageSquare,
-    tone: "bg-slate-500/15 text-slate-300 border-slate-500/40 hover:bg-slate-500/25",
+    tone: "bg-slate-500/15 text-[var(--portal-ink-muted)] border-slate-500/40 hover:bg-slate-500/25",
     defaultBody: "",
   },
 };
@@ -141,31 +141,31 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
 
   if (linkClosed) {
     return (
-      <div className="mt-6 rounded-lg border border-white/10 bg-white/[0.05] px-3 py-3 text-xs text-[var(--graphite-muted)]">
+      <div className="mt-6 rounded-lg border border-[var(--portal-line)] bg-[var(--portal-canvas-alt)] px-3 py-3 text-xs text-[var(--portal-ink-muted)]">
         Feedback is closed because this review link has expired or been revoked.
       </div>
     );
   }
 
   return (
-    <div className="mt-6 flex flex-col gap-4 border-t border-white/10 pt-6">
+    <div className="mt-6 flex flex-col gap-4 border-t border-[var(--portal-line)] pt-6">
       <h3 className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-foreground">
         Feedback ({comments.length})
         {comments.some((c) => c.comment_intent === "approve") && (
-          <CheckCircle2 size={14} className="text-emerald-400" aria-label="Has approval" />
+          <CheckCircle2 size={14} className="text-emerald-700" aria-label="Has approval" />
         )}
       </h3>
 
       <form
         onSubmit={submit}
-        className="flex flex-col gap-3 bg-black/40 p-3 rounded-lg border border-white/5"
+        className="flex flex-col gap-3 bg-[var(--portal-canvas-alt)] p-3 rounded-lg border border-[var(--portal-line)]"
       >
         <div className="grid grid-cols-2 gap-2">
           <input
             placeholder="Your name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="border-b border-white/10 bg-transparent pb-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-slate-500 focus:border-[var(--graphite-primary)]"
+            className="border-b border-[var(--portal-line)] bg-transparent pb-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-[var(--portal-ink-muted)] focus:border-[var(--portal-accent)]"
             required
             maxLength={120}
           />
@@ -174,7 +174,7 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
             placeholder="Email (optional)"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="border-b border-white/10 bg-transparent pb-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-slate-500 focus:border-[var(--graphite-primary)]"
+            className="border-b border-[var(--portal-line)] bg-transparent pb-1.5 text-sm text-foreground outline-none transition-colors placeholder:text-[var(--portal-ink-muted)] focus:border-[var(--portal-accent)]"
           />
         </div>
 
@@ -189,7 +189,7 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
                 type="button"
                 onClick={() => chooseIntent(key)}
                 className={`inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-md border transition-colors ${
-                  active ? meta.tone : "border-white/10 text-slate-400 hover:text-foreground hover:border-white/20"
+                  active ? meta.tone : "border-[var(--portal-line)] text-[var(--portal-ink-muted)] hover:text-foreground hover:border-[var(--portal-line)]"
                 }`}
               >
                 <Icon size={12} /> {meta.label}
@@ -218,20 +218,20 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
           <button
             type="submit"
             disabled={submitting || !body.trim() || !name.trim()}
-            className="rounded-lg p-2 text-[var(--graphite-primary)] transition-colors hover:bg-[color-mix(in_srgb,var(--graphite-primary)_15%,transparent)] hover:text-[var(--graphite-primary)] disabled:opacity-40"
+            className="rounded-lg p-2 text-[var(--portal-accent)] transition-colors hover:bg-[color-mix(in_srgb,var(--portal-accent)_15%,transparent)] hover:text-[var(--portal-accent)] disabled:opacity-40"
             aria-label="Send comment"
           >
             {submitting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
           </button>
         </div>
-        {error && <p className="text-xs text-red-400">{error}</p>}
+        {error && <p className="text-xs text-red-700">{error}</p>}
       </form>
 
       <div className="space-y-3">
         {loading ? (
-          <p className="text-xs text-slate-500">Loading…</p>
+          <p className="text-xs text-[var(--portal-ink-muted)]">Loading…</p>
         ) : comments.length === 0 ? (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[var(--portal-ink-muted)]">
             No feedback yet. Be the first to approve, request a change, or ask a question.
           </p>
         ) : (
@@ -239,14 +239,14 @@ export default function CommentThread({ deliverableId, itemId, token }: Props) {
             <div key={c.id} className="text-sm">
               <div className="flex justify-between items-baseline mb-1 gap-2">
                 <div className="flex items-center gap-2 min-w-0">
-                  <span className="truncate font-medium text-[var(--graphite-primary)]">{c.author_name}</span>
+                  <span className="truncate font-medium text-[var(--portal-accent)]">{c.author_name}</span>
                   {intentBadge(c.comment_intent)}
                 </div>
-                <span className="text-[10px] text-slate-500 whitespace-nowrap">
+                <span className="text-[10px] text-[var(--portal-ink-muted)] whitespace-nowrap">
                   {new Date(c.created_at).toLocaleString()}
                 </span>
               </div>
-              <p className="text-slate-200 bg-white/[0.03] p-2.5 rounded whitespace-pre-wrap">
+              <p className="text-[var(--portal-ink)] bg-[var(--portal-canvas-alt)] p-2.5 rounded whitespace-pre-wrap">
                 {c.body}
               </p>
             </div>

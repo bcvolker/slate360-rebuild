@@ -42,12 +42,14 @@ const APP_NAV: Record<ShellApp, { label: string; icon: typeof Box }[]> = {
   dashboard: [],
   "site-walk": [{ label: "Walks", icon: Footprints }, { label: "Deliverables", icon: FileText }],
   twin360: [{ label: "Spaces", icon: Box }, { label: "Models", icon: Box }],
+  "spatial-walkthrough": [{ label: "Walkthroughs", icon: Footprints }],
 };
 
 const APP_NAME: Record<ShellApp, string> = {
   dashboard: "Slate360",
   "site-walk": "Site Walk",
   twin360: "Twin 360",
+  "spatial-walkthrough": "Spatial Walkthrough",
 };
 
 export default function UnifiedShellPreview() {

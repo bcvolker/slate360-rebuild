@@ -72,7 +72,7 @@ export const POST = (req: NextRequest, ctx: Ctx) =>
     for (const wp of waypoints ?? []) hiddenWaypointIds(scoped, String(wp.clip_id)).forEach((x) => hidden.add(x));
 
     const activeShare = (shares ?? []).find((s) => !s.is_revoked);
-    const shareUrl = activeShare?.token ? `${APP_URL}/w/${activeShare.token}` : null;
+    const shareUrl = activeShare?.token ? `${APP_URL}/portal/${activeShare.token}` : null;
 
     const approved: Array<{ id: string; pinId: string; title: string | null; fileName: string | null; bytes: Uint8Array | null; hidden: boolean }> = [];
     for (const att of attachments ?? []) {

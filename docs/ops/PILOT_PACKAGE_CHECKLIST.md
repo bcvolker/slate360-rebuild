@@ -19,7 +19,7 @@ Client words used everywhere: **3D Scan · 360 / Walkthrough · 360 photos · Pl
 | 4 | **Privacy: framing first** | Studio → **Privacy**: keep the mask tight (behind and under the camera only), then Save. Saving builds the operator-free version. | Saved without "This mask would black out…". The poster shows no black band. |
 | 5 | **Documents and items** (if sold) | Studio → **Pins**: add the item or document at its spot, visibility *Client* | Contracts, invoices and proposals stay *Internal* unless deliberately shared |
 | 6 | **Preview as the client** | Client portal panel → **Preview as client** (30-minute link with an operator banner) | Light pages; site-visit date in the header; **one** "Open walkthrough"; only sold sections; no blank or dark areas |
-| 7 | **Share the link** | Studio → **Publish** → Publish secure share (client; optional password and expiry) | Send **`/portal/<token>`**. ⚠ The share dialog still shows the `/w/<token>` (walkthrough-only) address: replace `/w/` with `/portal/`. Fixing the dialog is part of PR-F. |
+| 7 | **Share the link** | Studio → **Publish** → Publish secure share (client; optional password and expiry) | The dialog shows the **Client portal link** (`/portal/<token>`) with **Copy link**. Send that link as is; no hand-editing. Older `/w/<token>` links still open the walkthrough. |
 | 8 | **Check revoke** | Studio → Publish → Revoke on that share | The client link shows "Content unavailable" |
 
 ## Directed Tour (Stage 2: not in the first pilot)
@@ -40,6 +40,5 @@ The client Tour viewer (C2) ships after L3 **and** two real published visits on 
 - Masks inside the published view: blocked at publish.
 
 ## Known gaps before calling the pilot "ready"
-- **L3 sub-pages** (360 / Walkthrough page, Documents, Items, item detail) are still dark-themed until L3.
-- **Share dialog link** shows `/w/` (above).
+- Older share pages (Site Walk deliverable `/view/`, file share `/share/`, upload and respond links, shared 3D scan) are light as of L5. Their media stages stay dark only behind a photo or video.
 - **Scout craft audit** passes before `spatial_directed_tour` stays on.

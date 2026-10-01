@@ -57,7 +57,7 @@ export function TwinShareViewer({
 }) {
   if (tokenState) {
     return (
-      <TokenStatePage state={tokenState} badge="Shared twin" showShell={!embed} />
+      <TokenStatePage state={tokenState} badge="Shared 3D scan" showShell={!embed} />
     );
   }
 
@@ -95,7 +95,7 @@ export function TwinShareViewer({
 
   if (embed) {
     return (
-      <div className="fixed inset-0 bg-[var(--graphite-canvas)]">
+      <div className="fixed inset-0 bg-[var(--portal-canvas)]">
         {viewer}
         {canDownload && shareToken ? (
           <div className="pointer-events-auto absolute right-3 top-3 z-30">
@@ -108,7 +108,7 @@ export function TwinShareViewer({
 
   return (
     <ExternalPortalShell
-      portalLabel="Shared twin"
+      portalLabel="Shared 3D scan"
       title={title}
       subtitle={orgName ? `Shared by ${orgName}` : "Interactive 3D model"}
       orgName={orgName ?? undefined}

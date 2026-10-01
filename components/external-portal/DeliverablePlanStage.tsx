@@ -29,12 +29,12 @@ export function DeliverablePlanStage({ sheets, pins, onSelectItem, onClose }: Pr
   if (!activeSheet) return null;
 
   return (
-    <div className="absolute inset-0 z-30 flex flex-col bg-black">
-      <div className="flex items-center justify-between gap-2 border-b border-white/10 bg-[#151A23] px-4 py-2">
+    <div className="absolute inset-0 z-30 flex flex-col bg-[var(--portal-canvas-alt)]">
+      <div className="flex items-center justify-between gap-2 border-b border-[var(--portal-line)] bg-[var(--portal-surface)] px-4 py-2">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="truncate text-sm font-semibold text-white">{activeSheet.sheetName}</span>
+          <span className="truncate text-sm font-semibold text-[var(--portal-ink)]">{activeSheet.sheetName}</span>
           {sheets.length > 1 ? (
-            <span className="shrink-0 text-xs text-slate-400">
+            <span className="shrink-0 text-xs text-[var(--portal-ink-muted)]">
               {sheetIndex + 1}/{sheets.length}
             </span>
           ) : null}
@@ -46,7 +46,7 @@ export function DeliverablePlanStage({ sheets, pins, onSelectItem, onClose }: Pr
                 type="button"
                 onClick={() => setSheetIndex((i) => Math.max(0, i - 1))}
                 disabled={sheetIndex === 0}
-                className="rounded-lg p-2 text-slate-300 hover:bg-white/10 disabled:opacity-30"
+                className="rounded-lg p-2 text-[var(--portal-ink-muted)] hover:bg-[var(--portal-canvas-alt)] disabled:opacity-30"
                 aria-label="Previous sheet"
               >
                 <ChevronLeft size={16} />
@@ -55,7 +55,7 @@ export function DeliverablePlanStage({ sheets, pins, onSelectItem, onClose }: Pr
                 type="button"
                 onClick={() => setSheetIndex((i) => Math.min(sheets.length - 1, i + 1))}
                 disabled={sheetIndex === sheets.length - 1}
-                className="rounded-lg p-2 text-slate-300 hover:bg-white/10 disabled:opacity-30"
+                className="rounded-lg p-2 text-[var(--portal-ink-muted)] hover:bg-[var(--portal-canvas-alt)] disabled:opacity-30"
                 aria-label="Next sheet"
               >
                 <ChevronRight size={16} />
@@ -65,7 +65,7 @@ export function DeliverablePlanStage({ sheets, pins, onSelectItem, onClose }: Pr
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-slate-300 hover:bg-white/10"
+            className="rounded-lg p-2 text-[var(--portal-ink-muted)] hover:bg-[var(--portal-canvas-alt)]"
             aria-label="Close plan view"
           >
             <X size={18} />
@@ -73,7 +73,7 @@ export function DeliverablePlanStage({ sheets, pins, onSelectItem, onClose }: Pr
         </div>
       </div>
 
-      <div className="relative flex-1 overflow-auto bg-[#0B0F15]">
+      <div className="relative flex-1 overflow-auto bg-[var(--portal-canvas-alt)]">
         <div className="relative mx-auto my-4 w-fit max-w-full">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -98,16 +98,16 @@ export function DeliverablePlanStage({ sheets, pins, onSelectItem, onClose }: Pr
               <span className="relative flex flex-col items-center">
                 <span
                   className={cn(
-                    "flex h-7 w-7 items-center justify-center rounded-full border-2 text-[11px] font-black shadow-xl shadow-black/50",
+                    "flex h-7 w-7 items-center justify-center rounded-md border-2 text-[11px] font-black shadow-md",
                     pin.itemId
-                      ? "border-[color-mix(in_srgb,var(--graphite-primary)_60%,white)] bg-[var(--graphite-primary)] text-[var(--graphite-canvas)]"
-                      : "border-slate-500 bg-slate-700 text-slate-300",
+                      ? "border-[color-mix(in_srgb,var(--portal-accent)_60%,white)] bg-[var(--portal-accent)] text-white"
+                      : "border-[var(--portal-line)] bg-[var(--portal-surface)] text-[var(--portal-ink-muted)]",
                   )}
                 >
                   {pin.pinNumber != null ? String(pin.pinNumber).padStart(2, "0") : "•"}
                 </span>
                 <span
-                  className={cn("h-3 w-0.5", pin.itemId ? "bg-[var(--graphite-primary)]" : "bg-slate-700")}
+                  className={cn("h-3 w-0.5", pin.itemId ? "bg-[var(--portal-accent)]" : "bg-[var(--portal-ink-muted)]")}
                 />
               </span>
             </button>

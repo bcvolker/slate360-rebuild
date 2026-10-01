@@ -118,7 +118,7 @@ function parseGlb(buffer: ArrayBuffer): Promise<THREE.BufferGeometry> {
       buffer,
       "",
       (gltf) => {
-        let found: THREE.Mesh | null = null;
+        let found = null as THREE.Mesh | null;
         gltf.scene.traverse((child) => {
           const mesh = child as THREE.Mesh;
           if (!found && mesh.isMesh) found = mesh;

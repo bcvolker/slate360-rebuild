@@ -55,7 +55,9 @@ export const POST = (req: NextRequest, ctx: Ctx) =>
       token: minted.token,
       tokenPrefix: data.token_prefix,
       policy: data.policy,
-      shareUrl: `${APP_URL}/w/${minted.token}${locator}`,
+      // Clients get the portal (overview + everything packaged); /w/ stays valid as a deep link.
+      shareUrl: `${APP_URL}/portal/${minted.token}`,
+      walkthroughUrl: `${APP_URL}/w/${minted.token}${locator}`,
       expiresAt: data.expires_at,
       allowDownload: data.allow_download,
     }, 201);

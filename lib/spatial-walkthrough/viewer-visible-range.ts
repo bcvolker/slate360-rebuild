@@ -30,7 +30,7 @@ export function applyVisibleRange(
   const keys = operatorKeyframesFromRaw(patch);
   const regard = fieldOfRegardAt(t, keys.length ? keys : HOUSEWALK_OPERATOR_KEYFRAMES, patch);
   const range = allowedVisibleRange(regard);
-  if (!range) {
+  if (!range || !regard) {
     plugin.setHorizontalRange(null);
     plugin.setVerticalRange(["22deg", "72deg"]);
     return;

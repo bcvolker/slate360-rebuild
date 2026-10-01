@@ -260,14 +260,14 @@ export function WalkthroughPlayer({
     videoPlugin.addEventListener("progress", onProgress as never);
     markers.addEventListener("select-marker", onSelect as never);
     const detachRange = attachVisibleRangeSync(
-      viewer,
+      viewer as unknown as Parameters<typeof attachVisibleRangeSync>[0],
       () => videoPlugin.getTime(),
       () => ({ restrictView: liveRef.current.restrictView, operatorPatch: liveRef.current.operatorPatch ?? null }),
       containerRef.current,
     );
     const detachRuntime = attachPlayerRuntime({
       container: containerRef.current,
-      viewer,
+      viewer: viewer as unknown as Parameters<typeof attachPlayerRuntime>[0]["viewer"],
       autoRotate: autoRotate && !restrictView,
       onTick: () => applyMarkers(videoPlugin.getTime()),
     });

@@ -207,7 +207,7 @@ export function WalkthroughExperience({
       ) : (
         <>
           <WalkthroughPlayer
-            videoUrl={videoUrl}
+            videoUrl={videoUrl ?? ""}
             posterUrl={gatePosterUrl || posterUrl || null}
             waypoints={waypoints}
             clipId={clipId}
