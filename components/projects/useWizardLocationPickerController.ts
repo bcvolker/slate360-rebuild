@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
+import { mapClickAction, pinToolFromPicker } from "@/lib/maps/pin-placement";
+import { useMapTapGate } from "@/lib/maps/use-map-tap-gate";
 import type { LatLng, LocationPickerValue } from "./WizardLocationPicker";
 
 type DrawTool = "select" | "marker" | "polygon" | "polygondraw";
@@ -34,6 +36,7 @@ export function useWizardLocationPickerController({
   const toolRef = useRef<DrawTool>("select");
   const drawingVerticesRef = useRef<LatLng[]>([]);
   drawingVerticesRef.current = drawingVertices;
+  const tapGateRef = useMapTapGate(map);
 
   const valueRef = useRef(value);
   useEffect(() => { valueRef.current = value; }, [value]);
@@ -99,11 +102,12 @@ export function useWizardLocationPickerController({
     if (!map) return;
     const listener = map.addListener("click", (event: google.maps.MapMouseEvent) => {
       if (!event.latLng) return;
+      const action = mapClickAction(pinToolFromPicker(toolRef.current), tapGateRef.current?.consumeClick() ?? false);
+      if (action === "ignore") return;
       const latitude = event.latLng.lat();
       const longitude = event.latLng.lng();
-      const currentTool = toolRef.current;
 
-      if (currentTool === "polygondraw") {
+      if (action === "boundary-vertex") {
         const nextVertices = [...drawingVerticesRef.current, { lat: latitude, lng: longitude }];
         setDrawingVertices(nextVertices);
         if (previewPolylineRef.current) {
@@ -133,25 +137,18 @@ export function useWizardLocationPickerController({
         return;
       }
 
-      if (currentTool === "select" || currentTool === "marker") {
-        onChange({ ...valueRef.current, lat: latitude, lng: longitude });
-        if (geocoder) {
-          geocoder
-            .geocode({ location: { lat: latitude, lng: longitude } })
-            .then((response) => {
-              const address =
-                response.results[0]?.formatted_address ??
-                `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
-              setInput(address);
-              onChange({ ...valueRef.current, address, lat: latitude, lng: longitude });
-            })
-            .catch(() => {});
-        }
-        if (currentTool === "marker") {
-          setTool("select");
-          toolRef.current = "select";
-        }
-      }
+      onChange({ ...valueRef.current, lat: latitude, lng: longitude });
+      if (!geocoder) return;
+      geocoder
+        .geocode({ location: { lat: latitude, lng: longitude } })
+        .then((response) => {
+          const address =
+            response.results[0]?.formatted_address ??
+            `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+          setInput(address);
+          onChange({ ...valueRef.current, address, lat: latitude, lng: longitude });
+        })
+        .catch(() => {});
     });
     return () => (listener as google.maps.MapsEventListener).remove();
   }, [geocoder, map, onChange]);

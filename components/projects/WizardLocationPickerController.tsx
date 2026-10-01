@@ -44,7 +44,7 @@ export default function WizardLocationPickerController({
   } = useWizardLocationPickerController({ value, onChange });
 
   const buttonClassName = (active: boolean) =>
-    `px-2 py-1.5 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 ${
+    `inline-flex min-h-11 items-center gap-1 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs font-bold transition-colors ${
       active
         ? "bg-[#3B82F6] text-white"
         : "bg-slate-950/85 text-slate-200 hover:bg-slate-900 border border-white/15"
@@ -105,8 +105,22 @@ export default function WizardLocationPickerController({
 
       <div className="absolute bottom-2 left-2 z-10 pointer-events-auto flex gap-1.5 flex-wrap">
         <div className="flex gap-0.5 rounded-xl border border-white/15 bg-slate-950/90 p-1 shadow backdrop-blur-md">
-          <button type="button" onClick={() => activateTool("select")} title="Select/Pan" className={buttonClassName(!isDrawingPolygon && tool === "select")}><MousePointer2 size={13} /></button>
-          <button type="button" onClick={() => activateTool("marker")} title="Drop pin" className={buttonClassName(tool === "marker")}><MapPin size={13} /></button>
+          <button type="button" onClick={() => activateTool("select")} aria-pressed={!isDrawingPolygon && tool === "select"} title="Pan and zoom" className={buttonClassName(!isDrawingPolygon && tool === "select")}><MousePointer2 size={13} />Pan</button>
+          <button type="button" onClick={() => activateTool(tool === "marker" ? "select" : "marker")} aria-pressed={tool === "marker"} title="Place pin" className={buttonClassName(tool === "marker")}><MapPin size={13} />{tool === "marker" ? "Placing" : "Place pin"}</button>
+          {value.lat !== null && value.lng !== null && !isDrawingPolygon ? (
+            <button
+              type="button"
+              onClick={() => {
+                setInput("");
+                onChange({ ...value, address: "", lat: null, lng: null });
+              }}
+              aria-label="Remove pin"
+              className={buttonClassName(false)}
+            >
+              <X size={13} />
+              Remove pin
+            </button>
+          ) : null}
           <button
             type="button"
             onClick={() => (isDrawingPolygon ? finishPolygon() : activateTool("polygon"))}
@@ -132,7 +146,7 @@ export default function WizardLocationPickerController({
         </div>
       </div>
 
-      {isDrawingPolygon && (
+      {isDrawingPolygon ? (
         <div className="absolute top-14 left-2 right-2 z-10 pointer-events-none">
           <div className="rounded-lg border border-white/10 bg-slate-950/90 px-3 py-1.5 text-center text-[11px] font-semibold text-white backdrop-blur-sm">
             {drawingVertices.length < 3
@@ -140,10 +154,16 @@ export default function WizardLocationPickerController({
               : `${drawingVertices.length} pts — click ⧆ again to close boundary`}
           </div>
         </div>
-      )}
+      ) : tool === "marker" ? (
+        <div className="absolute top-14 left-2 right-2 z-10 pointer-events-none">
+          <div className="rounded-lg border border-white/10 bg-slate-950/90 px-3 py-1.5 text-center text-[11px] font-semibold text-white backdrop-blur-sm">
+            Tap the map to place or move the pin. Pan and pinch still move the map.
+          </div>
+        </div>
+      ) : null}
 
-      {value.lat !== null && value.lng !== null && (
-        <div className="absolute bottom-2 right-2 z-10 pointer-events-none">
+      {value.lat !== null && value.lng !== null && tool !== "marker" && !isDrawingPolygon && (
+        <div className="absolute top-14 left-2 z-10 pointer-events-none">
           <div className="flex items-center gap-1 rounded-lg border border-white/15 bg-slate-950/90 px-2 py-1 text-[10px] text-slate-200 shadow backdrop-blur-sm">
             <MapPin size={9} className="text-[#3B82F6]" />
             {value.lat.toFixed(5)}, {value.lng.toFixed(5)}
@@ -151,7 +171,7 @@ export default function WizardLocationPickerController({
         </div>
       )}
 
-      {!isDrawingPolygon && value.boundary.length > 0 && (
+      {!isDrawingPolygon && tool !== "marker" && value.boundary.length > 0 && (
         <div className="absolute top-14 right-2 z-10 pointer-events-none">
           <div className="bg-[#3B82F6]/10 border border-[#3B82F6]/30 rounded-lg px-2 py-1 text-[10px] text-[#3B82F6] font-semibold">
             Boundary: {value.boundary.length} pts

@@ -8,7 +8,10 @@ import {
   useMap,
   useMapsLibrary,
 } from "@vis.gl/react-google-maps";
-import { Expand, Loader2, MapPin, Minus, Plus, Search, X } from "lucide-react";
+import { Expand, Loader2, MapPin, Search, X } from "lucide-react";
+import { mapClickAction } from "@/lib/maps/pin-placement";
+import { useMapTapGate } from "@/lib/maps/use-map-tap-gate";
+import { ProjectLocationPickerChrome } from "./ProjectLocationPickerChrome";
 
 export type ProjectLatLng = { lat: number; lng: number };
 export type ProjectLocationValue = {
@@ -53,11 +56,14 @@ function PickerSurface({
   onExpand,
   onClose,
 }: Props & { fullscreen?: boolean; onExpand?: () => void; onClose?: () => void }) {
-  const map = useMap();
+  const surfaceId = fullscreen ? "project-loc-full" : "project-loc";
+  const map = useMap(surfaceId);
   const placesLib = useMapsLibrary("places");
   const geocodingLib = useMapsLibrary("geocoding");
   const [mapType, setMapType] = useState<"roadmap" | "satellite">("roadmap");
+  const [placing, setPlacing] = useState(false);
   const [input, setInput] = useState(value.address);
+  const tapGateRef = useMapTapGate(map);
   const [suggestions, setSuggestions] = useState<{ id: string; label: string }[]>([]);
   const [resolving, setResolving] = useState(false);
   const acRef = useRef<google.maps.places.AutocompleteService | null>(null);
@@ -108,6 +114,12 @@ function PickerSurface({
     [applyLatLng],
   );
 
+  const clearPin = useCallback(() => {
+    setInput("");
+    setSuggestions([]);
+    onChange({ ...value, address: "", lat: null, lng: null });
+  }, [onChange, value]);
+
   // Reverse geocode a dropped/dragged pin to an address.
   const reverseGeocode = useCallback(
     (lat: number, lng: number) => {
@@ -125,6 +137,7 @@ function PickerSurface({
   return (
     <div className="relative h-full w-full overflow-hidden">
       <Map
+        id={surfaceId}
         mapId={mapId}
         mapTypeId={mapType}
         defaultCenter={{ lat: value.lat ?? 39.5, lng: value.lng ?? -98.35 }}
@@ -133,6 +146,8 @@ function PickerSurface({
         disableDefaultUI
         className="h-full w-full"
         onClick={(ev) => {
+          const action = mapClickAction(placing ? "place" : "explore", tapGateRef.current?.consumeClick() ?? false);
+          if (action !== "place") return;
           const ll = ev.detail.latLng;
           if (ll) reverseGeocode(ll.lat, ll.lng);
         }}
@@ -140,7 +155,8 @@ function PickerSurface({
         {value.lat !== null && value.lng !== null ? (
           <AdvancedMarker
             position={{ lat: value.lat, lng: value.lng }}
-            draggable
+            clickable={placing}
+            draggable={placing}
             onDragEnd={(ev) => {
               const ll = ev.latLng;
               if (ll) reverseGeocode(ll.lat(), ll.lng());
@@ -188,24 +204,17 @@ function PickerSurface({
         ) : null}
       </div>
 
-      {/* Map type — single segmented, bottom-left edge */}
-      <div className="pointer-events-auto absolute bottom-2 left-2 z-10 inline-flex overflow-hidden rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_88%,transparent)] text-[11px] font-semibold backdrop-blur-md">
-        <button type="button" onClick={() => setMapType("roadmap")} className={`px-2.5 py-1 ${mapType === "roadmap" ? "bg-[var(--graphite-primary)] text-[var(--graphite-canvas)]" : "text-[var(--graphite-muted)]"}`}>Map</button>
-        <button type="button" onClick={() => setMapType("satellite")} className={`px-2.5 py-1 ${mapType === "satellite" ? "bg-[var(--graphite-primary)] text-[var(--graphite-canvas)]" : "text-[var(--graphite-muted)]"}`}>Satellite</button>
-      </div>
-
-      {/* Zoom — single column, right edge */}
-      <div className="pointer-events-auto absolute bottom-2 right-2 z-10 flex flex-col overflow-hidden rounded-lg border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_88%,transparent)] backdrop-blur-md">
-        <button type="button" aria-label="Zoom in" onClick={() => map?.setZoom((map.getZoom() ?? 10) + 1)} className="px-2 py-1.5 text-[var(--graphite-text-body)] hover:text-[var(--graphite-text-header)]"><Plus className="h-4 w-4" /></button>
-        <button type="button" aria-label="Zoom out" onClick={() => map?.setZoom((map.getZoom() ?? 10) - 1)} className="border-t border-[var(--mobile-app-card-border)] px-2 py-1.5 text-[var(--graphite-text-body)] hover:text-[var(--graphite-text-header)]"><Minus className="h-4 w-4" /></button>
-      </div>
-
-      {/* Lat/lng — single line, bottom-center */}
-      {value.lat !== null && value.lng !== null ? (
-        <div className="pointer-events-none absolute bottom-2 left-1/2 z-10 -translate-x-1/2 rounded-full border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_88%,transparent)] px-2.5 py-1 text-[10px] tabular-nums text-[var(--graphite-text-body)] backdrop-blur-md">
-          {value.lat.toFixed(5)}, {value.lng.toFixed(5)}
-        </div>
-      ) : null}
+      <ProjectLocationPickerChrome
+        placing={placing}
+        onTogglePlacing={() => setPlacing((on) => !on)}
+        hasPin={value.lat !== null && value.lng !== null}
+        onRemovePin={clearPin}
+        showHint={placing && suggestions.length === 0}
+        mapType={mapType}
+        onMapType={setMapType}
+        onZoomIn={() => map?.setZoom((map.getZoom() ?? 10) + 1)}
+        onZoomOut={() => map?.setZoom((map.getZoom() ?? 10) - 1)}
+      />
     </div>
   );
 }
