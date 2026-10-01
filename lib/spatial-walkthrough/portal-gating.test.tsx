@@ -80,7 +80,7 @@ describe("portal capability gating", () => {
 describe("portal chrome inventory (rendered)", () => {
   it("a twin-only package shows no walkthrough, documents, items, history or plan chrome", () => {
     const html = overviewMarkup(["twin"]);
-    expect(html).toContain("3D twin");
+    expect(html).toContain("3D Scan");
     for (const absent of ["Open walkthrough", "/w/", "Documents", "Project items", "Open items", "History", "/plan", "Latest capture"]) {
       expect(html, absent).not.toContain(absent);
     }
@@ -98,7 +98,7 @@ describe("portal chrome inventory (rendered)", () => {
   it("the full legacy package keeps the walkthrough, documents and items", () => {
     const html = overviewMarkup(null);
     expect(html).toContain("Open walkthrough");
-    expect(html).toContain("Reality");
+    expect(html).toContain("3D Scan &amp; 360");
     expect(html).not.toContain(">History<");
     expect(html).not.toContain(">Plan<");
   });
@@ -117,5 +117,13 @@ describe("portal chrome inventory (rendered)", () => {
     expect(html.match(/Open walkthrough/g)?.length).toBe(1);
     expect(html).not.toContain(">Walkthrough<");
     expect(html).not.toContain("var(--graphite-");
+  });
+
+  it("speaks the client product language (vNext): no internal or engine words", () => {
+    const html = overviewMarkup(null) + renderToStaticMarkup(<PortalChrome data={landing(null)} active="overview"><div /></PortalChrome>);
+    for (const banned of [/Reality/, /representation/i, /resolver/i, /twin/i, /slatedrop/i, /Capture graph/, /Latest capture/]) {
+      expect(html, String(banned)).not.toMatch(banned);
+    }
+    for (const term of ["3D Scan", "Latest site visit", "Open walkthrough"]) expect(html, term).toContain(term);
   });
 });

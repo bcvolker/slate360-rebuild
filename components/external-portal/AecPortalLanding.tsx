@@ -21,8 +21,8 @@ function realityEntries(data: PortalLandingData, heroOpensWalk: boolean): Array<
   const out: Array<{ label: string; detail: string; href: string }> = [];
   // One walkthrough entry only: skip the tile when the hero already opens it.
   if (r.walkthroughHref && !heroOpensWalk) out.push({ label: "Walkthrough", detail: "Walk the site in 360", href: r.walkthroughHref });
-  if (r.twinHref) out.push({ label: "3D twin", detail: "Look around the site in 3D", href: r.twinHref });
-  if (r.stationsHref) out.push({ label: "360 stations", detail: "Step between 360 photo stations", href: r.stationsHref });
+  if (r.twinHref) out.push({ label: "3D Scan", detail: "Look around the scanned site in 3D", href: r.twinHref });
+  if (r.stationsHref) out.push({ label: "360 photos", detail: "Step between 360 photo points", href: r.stationsHref });
   if (r.aerialHref) out.push({ label: "Aerial", detail: "The site from above", href: r.aerialHref });
   return out;
 }
@@ -65,7 +65,7 @@ export function AecPortalLanding({ data, compact = false }: { data: PortalLandin
                 ) : null}
                 <div className="flex flex-col gap-4 p-5">
                   <div className="min-w-0">
-                    <p className={portalKicker}>Latest capture</p>
+                    <p className={portalKicker}>Latest site visit</p>
                     <h1 className="mt-1 font-serif text-2xl text-[var(--portal-ink)] sm:text-[1.7rem]">
                       {viewerChromeCopy({ title: hero.title, projectName: data.projectName }).title}
                     </h1>

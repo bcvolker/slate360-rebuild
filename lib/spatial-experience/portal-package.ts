@@ -13,10 +13,10 @@ export type PackageDeliverable = (typeof PACKAGE_DELIVERABLES)[number] | "tour" 
 
 export const DELIVERABLE_LABELS: Record<(typeof PACKAGE_DELIVERABLES)[number], string> = {
   walkthrough: "Walkthrough",
-  stations: "360 stations",
-  twin: "3D twin",
+  stations: "360 photos",
+  twin: "3D Scan",
   evidence: "Documents",
-  issues: "Items and questions",
+  issues: "Items",
 };
 
 export type PortalPackage = {

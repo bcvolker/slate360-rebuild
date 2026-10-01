@@ -83,7 +83,7 @@ function ListCard({
 
 export function PortalItemsRail({ data }: { data: PortalLandingData }) {
   return (
-    <ListCard id="items" title="Project items" allHref={`/portal/${data.token}/items`}>
+    <ListCard id="items" title="Items" allHref={`/portal/${data.token}/items`}>
       {data.items.map((item) => (
         <a key={item.id} href={item.href} className={rowLink}>
           <span className="line-clamp-2 break-words text-sm font-medium text-[var(--portal-ink)]">{item.title}</span>

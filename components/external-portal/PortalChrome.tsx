@@ -4,12 +4,19 @@ import { PortalBrandMark, portalAccentStyle } from "./PortalBrandMark";
 
 const LABELS: Record<PortalSection, string> = {
   overview: "Overview",
-  reality: "Reality",
-  plan: "Plan",
+  reality: "3D Scan & 360",
+  plan: "Plans",
   history: "History",
   documents: "Documents",
   items: "Items",
 };
+
+/** "2026-08-17" → "Aug 17, 2026" (the capture date, not a time zone shift). */
+function siteVisitDate(iso: string | null | undefined): string | null {
+  if (!iso) return null;
+  const d = new Date(`${iso.slice(0, 10)}T12:00:00Z`);
+  return Number.isNaN(d.getTime()) ? null : d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" });
+}
 
 /** Light client portal frame (theme B): same palette and wordmark as slate360.ai. */
 export function PortalChrome({
@@ -24,7 +31,12 @@ export function PortalChrome({
   const t = data.token;
   // Fail closed: without resolved capabilities only Overview shows.
   const sections = portalSections(data.capabilities);
-  const meta = [data.location, data.visitLabel].filter(Boolean).join(" · ");
+  const visit = siteVisitDate(data.visitLabel);
+  const meta = [data.location, visit ? `Site visit ${visit}` : null].filter(Boolean).join(" · ");
+  // Client product language (vNext): name the scan/360 section after what is actually shared.
+  const caps = data.capabilities;
+  const has360 = Boolean(caps?.walkthrough || caps?.stations);
+  const realityLabel = caps?.twin && has360 ? "3D Scan & 360" : caps?.twin ? "3D Scan" : "360 / Walkthrough";
 
   return (
     <div
@@ -45,18 +57,18 @@ export function PortalChrome({
           <PortalBrandMark logoUrl={data.brand.logoUrl} name={data.brandName} />
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold text-[var(--portal-ink)]">{data.projectName}</p>
-            {meta ? <p className="truncate text-xs text-[var(--portal-ink-muted)]">{meta}</p> : null}
+            {meta ? <p className="text-xs text-[var(--portal-ink-muted)]">{meta}</p> : null}
           </div>
         </div>
         {sections.length > 1 ? (
-          <nav className="mx-auto flex w-full max-w-[1120px] gap-1 overflow-x-auto px-2 sm:px-4" data-testid="portal-nav" aria-label="Portal sections">
+          <nav className="mx-auto flex w-full max-w-[1120px] flex-wrap px-1 sm:gap-1 sm:px-4" data-testid="portal-nav" aria-label="Portal sections">
             {sections.map((id) => {
               const on = active === id;
               return (
                 <a
                   key={id}
                   href={id === "overview" ? `/portal/${t}` : `/portal/${t}/${id}`}
-                  className={`inline-flex min-h-12 shrink-0 items-center border-b-2 px-3 text-sm font-medium transition-colors ${
+                  className={`inline-flex min-h-12 shrink-0 items-center border-b-2 px-2.5 text-[13px] font-medium transition-colors sm:px-3 sm:text-sm ${
                     on
                       ? "border-[var(--portal-accent)] text-[var(--portal-ink)]"
                       : "border-transparent text-[var(--portal-ink-muted)] hover:text-[var(--portal-ink)]"
@@ -64,7 +76,7 @@ export function PortalChrome({
                   aria-current={on ? "page" : undefined}
                   data-active={on ? "true" : "false"}
                 >
-                  {LABELS[id]}
+                  {id === "reality" ? realityLabel : LABELS[id]}
                 </a>
               );
             })}
