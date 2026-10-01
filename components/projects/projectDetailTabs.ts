@@ -4,12 +4,19 @@
 
 export type ProjectDetailVariant = "worksite" | "project";
 
-export type ProjectDetailTabId = "overview" | "walks" | "plans" | "twins" | "files" | "deliverables" | "team";
+export type ProjectDetailTabId =
+  | "overview"
+  | "walks"
+  | "plans"
+  | "twins"
+  | "orbit"
+  | "files"
+  | "deliverables"
+  | "team";
 
 export type ProjectDetailTabDef = {
   id: ProjectDetailTabId;
   label: string;
-  /** Route segment after `/projects/[projectId]`; empty string = overview root. */
   segment: string;
 };
 
@@ -18,6 +25,7 @@ export const PROJECT_DETAIL_TABS: readonly ProjectDetailTabDef[] = [
   { id: "walks", label: "Site Walks", segment: "walks" },
   { id: "plans", label: "Plans", segment: "plans" },
   { id: "twins", label: "Twins", segment: "twins" },
+  { id: "orbit", label: "Orbit", segment: "orbit" },
   { id: "files", label: "Files", segment: "slatedrop" },
   { id: "deliverables", label: "Deliverables", segment: "deliverables" },
   { id: "team", label: "Team", segment: "team" },
@@ -26,7 +34,6 @@ export const PROJECT_DETAIL_TABS: readonly ProjectDetailTabDef[] = [
 export function resolveProjectDetailVariant(
   _projectType?: string | null,
 ): ProjectDetailVariant {
-  // Simplified model: every project is a full project (no worksite variant).
   return "project";
 }
 
@@ -46,17 +53,10 @@ export function resolveActiveProjectDetailTab(
   projectId: string,
 ): ProjectDetailTabId {
   const prefix = `/projects/${projectId}`;
-
-  if (pathname === prefix || pathname === `${prefix}/`) {
-    return "overview";
-  }
-
+  if (pathname === prefix || pathname === `${prefix}/`) return "overview";
   for (const tab of PROJECT_DETAIL_TABS) {
-    if (tab.segment && pathname.startsWith(`${prefix}/${tab.segment}`)) {
-      return tab.id;
-    }
+    if (tab.segment && pathname.startsWith(`${prefix}/${tab.segment}`)) return tab.id;
   }
-
   const trailing = pathname.slice(prefix.length + 1).split("/")[0];
   return LEGACY_SEGMENT_TAB[trailing] ?? "overview";
 }
