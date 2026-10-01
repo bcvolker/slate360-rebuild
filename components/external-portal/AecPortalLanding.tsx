@@ -5,7 +5,6 @@ import { portalSections } from "@/lib/spatial-walkthrough/portal-gating";
 import {
   PortalActivityFeed,
   PortalAttention,
-  PortalCaptureTree,
   PortalDocsRail,
   PortalHistoryRail,
   PortalItemsRail,
@@ -93,7 +92,6 @@ export function AecPortalLanding({
           {data.history.length ? <PortalHistoryRail data={data} /> : null}
           {compact || !data.documents.length ? null : <PortalDocsRail data={data} />}
           {compact || !data.activity.length ? null : <PortalActivityFeed data={data} />}
-          {compact || !data.captureTree.length ? null : <PortalCaptureTree data={data} />}
         </div>
       )}
     </div>

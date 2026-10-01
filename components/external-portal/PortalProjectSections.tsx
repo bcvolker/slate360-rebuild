@@ -58,7 +58,7 @@ export function PortalItemsRail({ data }: { data: PortalLandingData }) {
       <div className="flex flex-col gap-2">
         {data.items.map((item) => (
           <a key={item.id} href={item.href} className="flex min-h-12 items-center justify-between gap-3 border border-white/10 px-3">
-            <span className="truncate text-sm">{item.title}</span>
+            <span className="line-clamp-2 break-words text-sm">{item.title}</span>
             <span className="shrink-0 font-mono text-[10px] uppercase text-[var(--graphite-muted)]">
               {item.type} · {item.status}
             </span>
@@ -82,7 +82,7 @@ export function PortalDocsRail({ data }: { data: PortalLandingData }) {
       <div className="flex flex-col gap-2">
         {data.documents.map((doc) => (
           <a key={doc.id} href={doc.href} className="flex min-h-12 items-center justify-between gap-3 border border-white/10 px-3">
-            <span className="truncate text-sm">{doc.title}</span>
+            <span className="line-clamp-2 break-words text-sm">{doc.title}</span>
             <span className="shrink-0 font-mono text-[10px] uppercase tracking-wide text-[var(--graphite-muted)]">
               {doc.kind}
               {doc.locatorHref ? " · 1 spatial reference" : ""}
@@ -104,7 +104,7 @@ export function PortalActivityFeed({ data }: { data: PortalLandingData }) {
           return (
             <article key={row.id} className="flex min-h-12 items-center gap-3 border border-white/10 px-3 py-3" data-surface="static">
               <div className="min-w-0 flex-1">
-                <p className="truncate text-sm">{row.title}</p>
+                <p className="line-clamp-2 break-words text-sm">{row.title}</p>
                 <p className="font-mono text-[10px] uppercase text-[var(--graphite-muted)]">
                   {data.projectName} · {row.kind} · {item?.status ?? "open"}
                 </p>

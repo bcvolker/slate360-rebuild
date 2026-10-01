@@ -40,7 +40,7 @@ export function TourCheckpointList({
   /** Published visits can't be edited until unpublished. */
   locked: boolean;
   busy: boolean;
-  /** The player has a frame to mark; until then only "Not captured" works. */
+  /** The player has a decoded frame; every mark action waits for it. */
   canMarkFrame: boolean;
   onMark: (checkpointId: string, match: MatchQuality) => void;
   onSelect: (mark: CheckpointMark) => void;
@@ -112,7 +112,7 @@ export function TourCheckpointList({
                           <button type="button" className={`${t.secondaryButton} ${dis}`} disabled={busy || !canMarkFrame} onClick={() => onMark(cp.id, "same_chapter")}>
                             Approximate
                           </button>
-                          <button type="button" className={`${t.secondaryButton} ${dis}`} disabled={busy} onClick={() => onMark(cp.id, "not_captured")}>
+                          <button type="button" className={`${t.secondaryButton} ${dis}`} disabled={busy || !canMarkFrame} onClick={() => onMark(cp.id, "not_captured")}>
                             Not captured
                           </button>
                           <button type="button" className={`${t.secondaryButton} ${dis}`} disabled={busy} onClick={() => onRetire(cp.id)}>
