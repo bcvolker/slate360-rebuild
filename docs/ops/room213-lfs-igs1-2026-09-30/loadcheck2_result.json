@@ -1,0 +1,163 @@
+{
+ "tag": "loadcheck2",
+ "exit": 0,
+ "commit": "c72a0d8554a33371ccd97df1e9fbe480d0981fdd",
+ "exe_sha256": "12d1e135375d4cc20be28c74fcf91020bf1ceeafc4d52cae6a82674978ca5c40",
+ "gpu": "NVIDIA L40S, 580.95.05, 46068 MiB",
+ "cmd": "/root/LichtFeld-Studio/build-linux-release/LichtFeld-Studio -d /root/data -o /root/out --images images --config /vol/room213/2026-09-29/capture/conditions/LFS_IGS1/runs/loadcheck2/config.json --headless --mask-mode ignore -r 1 --max-width 0 --export ply -i 1100 --steps-scaler 5 --eval-all --eval-steps 1100",
+ "faces": 5080,
+ "copy_s": 16,
+ "train_wall_s": 1102,
+ "vram_peak_mib": 40094,
+ "vram_samples": [
+  [
+   16,
+   "7, 0"
+  ],
+  [
+   47,
+   "2248, 68"
+  ],
+  [
+   77,
+   "4222, 10"
+  ],
+  [
+   107,
+   "4894, 45"
+  ],
+  [
+   137,
+   "5822, 47"
+  ],
+  [
+   167,
+   "6910, 3"
+  ],
+  [
+   197,
+   "7966, 23"
+  ],
+  [
+   228,
+   "8830, 3"
+  ],
+  [
+   258,
+   "9950, 52"
+  ],
+  [
+   288,
+   "10878, 17"
+  ],
+  [
+   318,
+   "11934, 3"
+  ],
+  [
+   348,
+   "12958, 3"
+  ],
+  [
+   379,
+   "13790, 37"
+  ],
+  [
+   409,
+   "14942, 11"
+  ],
+  [
+   439,
+   "15934, 2"
+  ],
+  [
+   469,
+   "16958, 34"
+  ],
+  [
+   499,
+   "18046, 17"
+  ],
+  [
+   529,
+   "19198, 47"
+  ],
+  [
+   560,
+   "20158, 25"
+  ],
+  [
+   590,
+   "21246, 2"
+  ],
+  [
+   620,
+   "22398, 47"
+  ],
+  [
+   650,
+   "23454, 48"
+  ],
+  [
+   680,
+   "24478, 49"
+  ],
+  [
+   711,
+   "25694, 2"
+  ],
+  [
+   741,
+   "26654, 20"
+  ],
+  [
+   771,
+   "27710, 25"
+  ],
+  [
+   801,
+   "28990, 2"
+  ],
+  [
+   831,
+   "29950, 36"
+  ],
+  [
+   861,
+   "31134, 52"
+  ],
+  [
+   892,
+   "32158, 3"
+  ],
+  [
+   922,
+   "33278, 5"
+  ],
+  [
+   952,
+   "34302, 42"
+  ],
+  [
+   982,
+   "35326, 31"
+  ],
+  [
+   1012,
+   "36382, 48"
+  ],
+  [
+   1043,
+   "37534, 16"
+  ],
+  [
+   1073,
+   "38622, 51"
+  ],
+  [
+   1103,
+   "39774, 41"
+  ]
+ ],
+ "log_tail": "  [PipelinedImageLoader] shutdown reconciliation: accepted=5511 succeeded=5503 failed=0 cancelled=8 mask=5503/5503/0 depth=0/0/0 normal=0/0/0\n[05:04:13.585] \u001b[32m[info]\u001b[0m pipelined_image_loader.cpp:654  [PipelinedImageLoader] Done: 5503 loaded, 5511 hits, 0 misses\n[05:04:13.585] \u001b[32m[info]\u001b[0m pipelined_image_loader.cpp:658  [PipelinedImageLoader] compressed run cache: 10160 RAM entries, 13060.5 MiB RAM, 0 spill entries, 0.0 MiB spill\n[05:04:13.599] \u001b[32m[info]\u001b[0m trainer.cpp:8941  Saving final project at iteration 5500...\n[05:04:13.670] \u001b[32m[info]\u001b[0m trainer.cpp:4300  Prepared .licht snapshot 1a6a9671-395e-4bc1-8a12-805546436d3b for iteration 5500 (289878571 checkpoint bytes)\n[05:04:13.847] \u001b[32m[info]\u001b[0m training_snapshot_service.cpp:2396  Training snapshot 1a6a9671-395e-4bc1-8a12-805546436d3b iter 5500: bytes=289878571 device_bytes=289873684 pause=120.222ms prepare_stall=69.774ms cold_path=189.996ms cold_first=true (safe_entry=0.005 sync=0.116 cpu_state=106.510 serialize+issue=13.014 last_d2h_wait=0.576) gate=12.729ms raw_pinned_D2H=23.755GiB/s pause=FAIL cold_path=FAIL host_delta=289882112 host_gate=PASS\n[05:04:13.847] \u001b[32m[info]\u001b[0m training_snapshot_service.cpp:2442  Training snapshot 1a6a9671-395e-4bc1-8a12-805546436d3b CPU value capture in safe point: SCNG=105.800ms SELM=0.104ms PRMS=0.011ms total=106.510ms\n[05:04:13.848] \u001b[32m[info]\u001b[0m training_snapshot_service.cpp:1371  Training snapshot pause metric: p95=120.222ms p95_n=1\n[05:04:15.172] \u001b[32m[info]\u001b[0m trainer.cpp:5114  Embedded dataset image as project preview: /root/data/images/VID_20260929_152303_00_079_cam0_00013_f0.jpg\n[05:04:15.807] \u001b[32m[info]\u001b[0m trainer.cpp:5354  Background .licht append complete: /root/out/project.licht generation=1 snapshot=1a6a9671-395e-4bc1-8a12-805546436d3b rewritten=12 reused=0 final_drain=56.741ms\n[05:04:15.829] \u001b[32m[info]\u001b[0m trainer.cpp:9002  Terminal completion save phase took 2.230s\nEvaluation report saved to: /root/out/metrics_report.txt\nMetrics CSV saved to: /root/out/metrics.csv\nPer-image metrics JSON saved to: /root/out/per_image_metrics.json\n\n\u2713 Training completed in 1097.872s (avg 5.0 iter/s)\n\u2713 Final splats: 726948\n[05:04:16.417] \u001b[32m[info]\u001b[0m memory_arena.cu:2409  Arena stats: committed=0 MB, peak=171 MB (0.0%), frames=10581, reallocs=15, runtime=1095s\n[05:04:16.417] \u001b[32m[info]\u001b[0m memory_arena.cu:1802  Arena growth timing: commit_attempts warmup=11 steady=4 commit_events warmup=11 (2955 us) steady=4 (1420 us); growth_path warmup=27576 us steady=8789 us post_commit_sync warmup=23835 us steady=6886 us; boundary_events B1=2 (887 us) B3=1 (61990 us)\n[05:04:16.418] \u001b[32m[info]\u001b[0m memory_arena.cu:1823  Training churn timing: trims=7 (208248 us); arena_decommit=1 (7264 us) arena_recommit=15 (4375 us); child_alloc=1 (28 us) child_free=0 (0 us)\n[05:04:16.418] \u001b[32m[info]\u001b[0m trainer.cpp:9105  Training completed successfully\n[05:04:16.917] \u001b[32m[info]\u001b[0m training_setup.cpp:1431  Exported final splat: /root/out/splat_5500.ply\n[05:04:16.986] \u001b[32m[info]\u001b[0m application.cpp:1032  Headless training completed\n[05:04:17.094] \u001b[32m[info]\u001b[0m memory_arena.cu:2409  Arena stats: committed=0 MB, peak=171 MB (0.0%), frames=10581, reallocs=15, runtime=1095s\n[05:04:17.094] \u001b[32m[info]\u001b[0m memory_arena.cu:1802  Arena growth timing: commit_attempts warmup=11 steady=4 commit_events warmup=11 (2955 us) steady=4 (1420 us); growth_path warmup=27576 us steady=8789 us post_commit_sync warmup=23835 us steady=6886 us; boundary_events B1=2 (887 us) B3=1 (61990 us)\n[05:04:17.094] \u001b[32m[info]\u001b[0m memory_arena.cu:1823  Training churn timing: trims=7 (208248 us); arena_decommit=1 (7264 us) arena_recommit=15 (4375 us); child_alloc=1 (28 us) child_free=1 (9 us)\n[05:04:17.095] \u001b[32m[info]\u001b[0m memory_pool.hpp:95  Shutting down CudaMemoryPool...\n[05:04:17.149] \u001b[32m[info]\u001b[0m pinned_memory_allocator.cpp:141  Pinned memory stats at shutdown: active=0.00 MiB, cached=140.02 MiB, peak=280.02 MiB, cuda_host=184/175, fallback=0/0, evicted=0.00 MiB/0 blocks\n"
+}

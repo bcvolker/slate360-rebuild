@@ -119,3 +119,36 @@ def _mstat(n):
     # backward band (theta > 120 deg) per side face: face pixel rows/cols whose ray has negative source-z beyond tan(30 deg)
     band = {1: m[:200, :], 2: m[:200, :], 3: m[:200, :], 4: m[:200, :]}.get(k)
     return float(m.mean()), float(band.mean()) if band is not None else 0.0
+
+
+@app.function(image=image, cpu=8.0, memory=32768, timeout=1800, volumes={"/vol": vol})
+def loaded_fidelity_v1(table_obs: list, eval_dir: str) -> dict:
+    """Item 4: the GT that LichtFeld itself loaded (left half of its eval PNG = GT*mask after its JPEG cache + nvJPEG
+    decode) vs A's float training face (Spirula path), on the T_table window of each close view."""
+    import os, cv2, numpy as np, pycolmap
+    from edgekit import gray, edge_points, profile, pos_width
+    vol.reload(); recA = pycolmap.Reconstruction(f"{A}/sparse/0"); byname = {im.name: im for im in recA.images.values()}
+    evs = sorted(os.listdir(eval_dir), key=lambda n: int(n.split(".")[0]) if n.split(".")[0].isdigit() else 1e9)
+    evs = [n for n in evs if n.split(".")[0].isdigit()]
+    lefts = {n: cv2.imread(f"{eval_dir}/{n}")[:, :S, ::-1] for n in evs}
+    out = []; maps = {}
+    for o in [o for o in table_obs if o["dist_m"] < 1.05]:
+        stem = o["image"].replace("/", "_").rsplit(".", 1)[0]; jp = cv2.imread(f"{OUT}/images/{stem}_f{o['face']}.jpg")[..., ::-1]
+        best = min(lefts, key=lambda n: np.abs(lefts[n][::8, ::8].astype(np.int16) - jp[::8, ::8]).mean())
+        L = lefts[best].astype(np.float32) / 255.0
+        im = byname[o["image"]]; cam = recA.cameras[im.camera_id]
+        if im.camera_id not in maps: maps[im.camera_id] = face_maps(list(cam.params))
+        X_, Y_, _ = maps[im.camera_id][o["face"]]; u0, v0, u1, v1 = o["face_bbox"]
+        ref = bilinear(stb_load(f"{A}/images/{o['image']}", cam.width, cam.height, 3), X_[v0:v1, u0:u1], Y_[v0:v1, u0:u1]).astype(np.float32)
+        ld = L[v0:v1, u0:u1]; d = np.abs(ld - ref) * 255
+        g0, g1 = gray(ref), gray(ld); m = np.ones(g0.shape, bool); m[:10] = m[-10:] = False; m[:, :10] = m[:, -10:] = False
+        w0, w1 = [], []
+        for (y, x, dd) in edge_points(g0, m):
+            a, b = pos_width(profile(g0, y, x, dd)), pos_width(profile(g1, y, x, dd))
+            if a and b: w0.append(a[1]); w1.append(b[1])
+        out.append({"tag": o["tag"], "eval_png": best, "match_mean_lsb_vs_export_jpeg": float(np.abs(lefts[best].astype(np.int16) - jp).mean()),
+                    "lsb_max": float(d.max()), "lsb_mean": float(d.mean()), "psnr_db": float(10 * np.log10(1 / max(((ld - ref) ** 2).mean(), 1e-12))),
+                    "edges": len(w0), "width_A_face_px": float(np.median(w0)), "width_loaded_px": float(np.median(w1)),
+                    "width_ratio": float(np.median(w1) / np.median(w0))})
+    json.dump(out, open(f"{OUT}/../loaded_fidelity.json", "w"), indent=1, default=lambda o: o.item()); vol.commit()
+    return {"close_faces": out}

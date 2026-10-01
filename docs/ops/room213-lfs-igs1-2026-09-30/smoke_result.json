@@ -1,0 +1,27 @@
+{
+ "tag": "smoke",
+ "exit": 0,
+ "commit": "c72a0d8554a33371ccd97df1e9fbe480d0981fdd",
+ "exe_sha256": "12d1e135375d4cc20be28c74fcf91020bf1ceeafc4d52cae6a82674978ca5c40",
+ "gpu": "NVIDIA L40S, 580.95.05, 46068 MiB",
+ "cmd": "/root/LichtFeld-Studio/build-linux-release/LichtFeld-Studio -d /root/data -o /root/out --images images --config /vol/room213/2026-09-29/capture/conditions/LFS_IGS1/runs/smoke/config.json --headless --mask-mode ignore -r 1 --max-width 0 --export ply -i 700 --steps-scaler 5 --eval-all --eval-steps 700",
+ "faces": 100,
+ "copy_s": 21,
+ "train_wall_s": 77,
+ "vram_peak_mib": 3930,
+ "vram_samples": [
+  [
+   22,
+   "7, 0"
+  ],
+  [
+   52,
+   "3354, 4"
+  ],
+  [
+   82,
+   "3578, 3"
+  ]
+ ],
+ "log_tail": "fo]\u001b[0m pipelined_image_loader.cpp:1893  [PipelinedImageLoader] shutdown reconciliation: accepted=3511 succeeded=3504 failed=0 cancelled=7 mask=3504/3504/0 depth=0/0/0 normal=0/0/0\n[04:07:30.871] \u001b[32m[info]\u001b[0m pipelined_image_loader.cpp:654  [PipelinedImageLoader] Done: 3504 loaded, 3511 hits, 0 misses\n[04:07:30.871] \u001b[32m[info]\u001b[0m pipelined_image_loader.cpp:658  [PipelinedImageLoader] compressed run cache: 200 RAM entries, 265.5 MiB RAM, 0 spill entries, 0.0 MiB spill\n[04:07:30.873] \u001b[32m[info]\u001b[0m trainer.cpp:8941  Saving final project at iteration 3500...\n[04:07:30.923] \u001b[32m[info]\u001b[0m trainer.cpp:4300  Prepared .licht snapshot 8fb28290-08ee-4183-ace3-9709d95765f3 for iteration 3500 (281988616 checkpoint bytes)\n[04:07:30.949] \u001b[32m[info]\u001b[0m training_snapshot_service.cpp:2396  Training snapshot 8fb28290-08ee-4183-ace3-9709d95765f3 iter 3500: bytes=281988616 device_bytes=281983730 pause=23.984ms prepare_stall=49.936ms cold_path=73.920ms cold_first=true (safe_entry=0.005 sync=0.045 cpu_state=1.713 serialize+issue=9.467 last_d2h_wait=12.754) gate=24.148ms raw_pinned_D2H=12.181GiB/s pause=PASS cold_path=FAIL host_delta=281989120 host_gate=PASS\n[04:07:30.950] \u001b[32m[info]\u001b[0m training_snapshot_service.cpp:2442  Training snapshot 8fb28290-08ee-4183-ace3-9709d95765f3 CPU value capture in safe point: SCNG=1.055ms SELM=0.030ms PRMS=0.007ms total=1.713ms\n[04:07:30.950] \u001b[32m[info]\u001b[0m training_snapshot_service.cpp:1371  Training snapshot pause metric: p95=23.984ms p95_n=1\n[04:07:31.047] \u001b[32m[info]\u001b[0m trainer.cpp:5114  Embedded dataset image as project preview: /root/data/images/VID_20260929_152303_00_079_cam0_00013_f0.jpg\n[04:07:31.239] \u001b[32m[info]\u001b[0m trainer.cpp:5354  Background .licht append complete: /root/out/project.licht generation=1 snapshot=8fb28290-08ee-4183-ace3-9709d95765f3 rewritten=12 reused=0 final_drain=2.662ms\n[04:07:31.241] \u001b[32m[info]\u001b[0m trainer.cpp:9002  Terminal completion save phase took 0.368s\nEvaluation report saved to: /root/out/metrics_report.txt\nMetrics CSV saved to: /root/out/metrics.csv\nPer-image metrics JSON saved to: /root/out/per_image_metrics.json\n\n\u2713 Training completed in 75.331s (avg 46.5 iter/s)\n\u2713 Final splats: 707098\n[04:07:31.264] \u001b[32m[info]\u001b[0m memory_arena.cu:2409  Arena stats: committed=0 MB, peak=148 MB (0.0%), frames=3600, reallocs=10, runtime=72s\n[04:07:31.265] \u001b[32m[info]\u001b[0m memory_arena.cu:1802  Arena growth timing: commit_attempts warmup=9 steady=1 commit_events warmup=9 (3017 us) steady=1 (287 us); growth_path warmup=14265 us steady=413 us post_commit_sync warmup=10161 us steady=32 us; boundary_events B1=1 (34 us) B3=1 (6625 us)\n[04:07:31.265] \u001b[32m[info]\u001b[0m memory_arena.cu:1823  Training churn timing: trims=6 (40191 us); arena_decommit=1 (4035 us) arena_recommit=10 (3304 us); child_alloc=1 (43 us) child_free=0 (0 us)\n[04:07:31.265] \u001b[32m[info]\u001b[0m trainer.cpp:9105  Training completed successfully\n[04:07:31.430] \u001b[32m[info]\u001b[0m training_setup.cpp:1431  Exported final splat: /root/out/splat_3500.ply\n[04:07:31.441] \u001b[32m[info]\u001b[0m application.cpp:1032  Headless training completed\n[04:07:31.442] \u001b[32m[info]\u001b[0m memory_arena.cu:2409  Arena stats: committed=0 MB, peak=148 MB (0.0%), frames=3600, reallocs=10, runtime=72s\n[04:07:31.442] \u001b[32m[info]\u001b[0m memory_arena.cu:1802  Arena growth timing: commit_attempts warmup=9 steady=1 commit_events warmup=9 (3017 us) steady=1 (287 us); growth_path warmup=14265 us steady=413 us post_commit_sync warmup=10161 us steady=32 us; boundary_events B1=1 (34 us) B3=1 (6625 us)\n[04:07:31.442] \u001b[32m[info]\u001b[0m memory_arena.cu:1823  Training churn timing: trims=6 (40191 us); arena_decommit=1 (4035 us) arena_recommit=10 (3304 us); child_alloc=1 (43 us) child_free=1 (6 us)\n[04:07:31.443] \u001b[32m[info]\u001b[0m memory_pool.hpp:95  Shutting down CudaMemoryPool...\n[04:07:31.444] \u001b[32m[info]\u001b[0m pinned_memory_allocator.cpp:141  Pinned memory stats at shutdown: active=0.00 MiB, cached=140.00 MiB, peak=496.02 MiB, cuda_host=147/138, fallback=0/0, evicted=0.00 MiB/0 blocks\n"
+}

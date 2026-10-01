@@ -36,9 +36,19 @@ def _subset(src_names: list, out: str):
     return len(keep)
 
 
-@app.function(image=image, gpu="L40S", cpu=8.0, memory=98304, timeout=12 * 3600, volumes={"/vol": vol}, retries=0,
-              ephemeral_disk=200 * 1024)
-def lfs_run_v1(tag: str, args: list, subset: list = None, json_overlay: dict = None) -> dict:
+def _pcopy(src, dst, workers=64):
+    """Parallel file copy from the volume (single-threaded copytree ran at ~4 MB/s)."""
+    import os, shutil
+    from concurrent.futures import ThreadPoolExecutor
+    files = []
+    for root, _, fs in os.walk(src):
+        rel = os.path.relpath(root, src); os.makedirs(os.path.join(dst, rel), exist_ok=True)
+        files += [(os.path.join(root, f), os.path.join(dst, rel, f)) for f in fs if f != "face_index.json"]
+    with ThreadPoolExecutor(workers) as ex: list(ex.map(lambda p: shutil.copyfile(*p), files))
+
+
+@app.function(image=image, gpu="L40S", cpu=8.0, memory=98304, timeout=12 * 3600, volumes={"/vol": vol}, retries=0)
+def lfs_run_v2(tag: str, args: list, subset: list = None, json_overlay: dict = None) -> dict:
     import hashlib, json, os, shutil, subprocess, threading, time
     from pathlib import Path
     vol.reload(); out = Path(f"{RUNS}/{tag}")
@@ -55,7 +65,7 @@ def lfs_run_v1(tag: str, args: list, subset: list = None, json_overlay: dict = N
     data = "/root/data"
     if subset: n_faces = _subset(subset, data)
     else:
-        shutil.copytree(DATA, data, ignore=shutil.ignore_patterns("face_index.json")); n_faces = len(os.listdir(f"{data}/images"))
+        _pcopy(DATA, data); n_faces = len(os.listdir(f"{data}/images"))
     t_copy = time.time() - t0
     args = list(args)
     for i, a in enumerate(args):          # RUNFILE:<tag>/<path> -> local copy of a previous run's output (resume test)

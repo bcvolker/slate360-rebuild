@@ -3,7 +3,7 @@ Base image: nvidia/cuda:12.8.1-devel-ubuntu24.04 (upstream docker/Dockerfile use
 gcc-14, CMake 4.0.3, vcpkg (baseline from the repo's vcpkg-configuration.json), preset `linux-release`.
 CUDA arch: no nvidia-smi in a CPU container -> upstream CMake falls back to sm_86 SASS (CMakeLists.txt:397-400), which runs on
 the L40S (sm_89, same major). Recorded in build_info.json. Usage:
-  modal deploy lfs_build.py ; python -c "import modal; print(modal.Function.from_name('slate360-lfs-build','build_v2').spawn().object_id)"
+  modal deploy lfs_build.py ; python -c "import modal; print(modal.Function.from_name('slate360-lfs-build','build_v4').spawn().object_id)"
 """
 import modal
 
@@ -28,7 +28,7 @@ OUT = f"/vol/tools/lichtfeld/{COMMIT[:8]}"
 
 
 @app.function(image=image, cpu=32.0, memory=65536, timeout=6 * 3600, volumes={"/vol": vol}, retries=0)
-def build_v2() -> dict:
+def build_v4() -> dict:
     import json, os, subprocess, time, hashlib
     from pathlib import Path
     vol.reload(); Path(OUT).mkdir(parents=True, exist_ok=True)
@@ -50,9 +50,14 @@ def build_v2() -> dict:
     # toolkit's driver STUB on the build-time library path only (never at run time).
     sh("mkdir -p /root/cudastub && ln -sf /usr/local/cuda/lib64/stubs/libcuda.so /root/cudastub/libcuda.so.1")
     os.makedirs("/vol/tools/vcpkg-bincache", exist_ok=True)
+    # SourceForge returned HTTP 522 for libuuid on 2026-09-30; seed vcpkg's download cache with the byte-identical
+    # tarball from the MacPorts distfiles mirror (SHA-512 must equal vcpkg's ports/libuuid pin, else abort).
+    sh("mkdir -p /opt/vcpkg/downloads && wget -q -O /opt/vcpkg/downloads/libuuid-1.0.3.tar.gz "
+       "https://distfiles.macports.org/libuuid/libuuid-1.0.3.tar.gz && echo '77488caccc66503f6f2ded7bdfc4d3bc2c20b24a8dc95b2051633c695e99ec27876ffbafe38269b939826e1fdb06eea328f07b796c9e0aaca12331a787175507  "
+       "/opt/vcpkg/downloads/libuuid-1.0.3.tar.gz' | sha512sum -c -")
     env = "VCPKG_DEFAULT_BINARY_CACHE=/vol/tools/vcpkg-bincache LD_LIBRARY_PATH=/root/cudastub"
     sh(f"{env} cmake {flags}", cwd=src)
-    sh(f"{env} cmake --build --preset linux-release -j 32", cwd=src)
+    sh(f"{env} cmake --build --preset linux-release -j 32 --target LichtFeld-Studio", cwd=src)  # the app only: skips the dev-only committed-stub check
     bdir = f"{src}/build-linux-release"
     exe = f"{bdir}/LichtFeld-Studio"
     sha = hashlib.sha256(open(exe, "rb").read()).hexdigest()

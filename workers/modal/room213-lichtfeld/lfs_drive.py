@@ -10,7 +10,7 @@ import modal
 CLOSE = ["VID_20260929_152303_00_079/cam0/01349.jpg", "VID_20260929_152303_00_079/cam0/01242.jpg",
          "VID_20260929_152303_00_079/cam0/01362.jpg", "VID_20260929_152303_00_079/cam0/01227.jpg"]
 RUNS = "/vol/room213/2026-09-29/capture/conditions/LFS_IGS1/runs"
-run = modal.Function.from_name("slate360-lfs-run", "lfs_run_v1")
+run = modal.Function.from_name("slate360-lfs-run", "lfs_run_v2")
 vol = modal.Volume.from_name("slate360-recon-experiments")
 
 
@@ -26,7 +26,7 @@ if stage == "smoke":
 elif stage == "resume":
     c = run.spawn("smoke_resume", ["--resume", "RUNFILE:smoke/out/project.licht", "-i", "760", "--steps-scaler", "5"], subset20())
 elif stage == "loadcheck":
-    c = run.spawn("loadcheck", ["-i", "1100", "--steps-scaler", "5", "--eval-all", "--eval-steps", "1100"], None,
+    c = run.spawn("loadcheck2", ["-i", "1100", "--steps-scaler", "5", "--eval-all", "--eval-steps", "1100"], None,
                   {"enable_save_eval_images": False})
 elif stage == "full":
     c = run.spawn("full", ["--steps-scaler", "5"], None)
