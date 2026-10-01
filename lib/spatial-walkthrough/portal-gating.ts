@@ -80,3 +80,13 @@ export function applyPortalCapabilities(data: PortalLandingData, caps: PortalCap
     capabilities: caps,
   };
 }
+
+/** Client name for the scan/360 section, from what is actually shared (vNext product language). */
+export function realitySectionLabel(caps: PortalCaps | undefined): string {
+  const c = caps ?? NO_CAPS;
+  const has360 = c.walkthrough || c.stations || c.aerial;
+  if (c.twin && has360) return "3D Scan & 360";
+  if (c.twin) return "3D Scan";
+  return "360 / Walkthrough";
+}
+
