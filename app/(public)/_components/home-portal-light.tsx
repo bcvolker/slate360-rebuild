@@ -1,64 +1,40 @@
-import { MKT_L_CONTAINER, MKT_L_H2, MKT_L_KICKER, MKT_L_LEDE } from "@/app/(public)/_components/marketing-styles-light";
+import { MKT_L_CONTAINER, MKT_L_H2, MKT_L_KICKER } from "@/app/(public)/_components/marketing-styles-light";
 
-const LAYERS = [
-  {
-    who: "Project management",
-    title: "The job in one place",
-    items: [
-      "Visits and deliverables on one timeline",
-      "Punch items and follow-ups your team can track",
-      "A link that opens in the browser",
-    ],
-  },
-  {
-    who: "Document management",
-    title: "Files with the work they describe",
-    items: [
-      "Plans, submittals, and reports kept with the project",
-      "Pinned to the spot in the record they belong to",
-      "Ready to download when you need to send them on",
-    ],
-  },
-  {
-    who: "White-label branding",
-    title: "Your name on what clients open",
-    items: [
-      "Your logo and colors carry through the portal",
-      "Clients see your project",
-      "Links you can scope and expire",
-    ],
-  },
+const ROWS = [
+  { label: "Walkthrough", meta: "Move through the visit" },
+  { label: "Open items", meta: "Punches and follow-ups on the spot" },
+  { label: "Documents", meta: "Sheets and reports with the work" },
+  { label: "Questions", meta: "Asked from the client link" },
 ] as const;
 
 export function HomePortalLight() {
   return (
     <section id="portal" className="py-10 sm:py-12">
-      <div className={MKT_L_CONTAINER}>
-        <div className={MKT_L_KICKER}>Client portal</div>
-        <h2 className={MKT_L_H2}>
-          One portal for the project, the documents, and <em className="not-italic text-[var(--mkt-accent)]">your</em> brand.
-        </h2>
-        <p className={MKT_L_LEDE}>
-          Walkthroughs, video, reports, and files live together. Your crew works from it. Your
-          clients open a link and see your branding.
-        </p>
-        <div className="mt-6 grid gap-8 sm:grid-cols-3 sm:gap-8">
-          {LAYERS.map((layer) => (
-            <div key={layer.title} className="border-t border-[var(--mkt-line)] pt-4">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--mkt-accent)]">
-                {layer.who}
-              </div>
-              <h3 className="mt-1.5 font-serif text-xl font-normal text-[var(--mkt-ink)]">{layer.title}</h3>
-              <ul className="mt-3 space-y-1.5">
-                {layer.items.map((item) => (
-                  <li key={item} className="relative pl-4 text-[14px] leading-relaxed text-[var(--mkt-ink-muted)]">
-                    <span className="absolute left-0 top-[0.65em] h-px w-2.5 bg-[var(--mkt-accent)]" aria-hidden />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+      <div className={`${MKT_L_CONTAINER} grid items-start gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12`}>
+        <div>
+          <div className={MKT_L_KICKER}>Client portal</div>
+          <h2 className={MKT_L_H2}>Evidence, items, and questions in one place</h2>
+          <p className="mt-3 max-w-[48ch] text-[15.5px] leading-relaxed text-[var(--mkt-ink-muted)]">
+            The walk, the punch list, the documents, and the questions share one project. Your crew
+            works there. The link you send carries your logo and colors.
+          </p>
+          <p className="mt-4 max-w-[48ch] border-l-2 border-[var(--mkt-accent-line)] pl-4 text-[14.5px] leading-relaxed text-[var(--mkt-ink)]">
+            White-label is for that client link. This site stays Slate360.
+          </p>
+        </div>
+        <div className="rounded-2xl border border-[var(--mkt-line)] bg-[var(--mkt-surface)]">
+          <div className="border-b border-[var(--mkt-line)] px-4 py-3">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[var(--mkt-accent)]">Project record</p>
+            <p className="mt-0.5 text-[14px] text-[var(--mkt-ink)]">Your branding on the link</p>
+          </div>
+          <ul>
+            {ROWS.map((row) => (
+              <li key={row.label} className="flex items-baseline justify-between gap-4 border-b border-[var(--mkt-line)] px-4 py-3.5 last:border-b-0">
+                <span className="text-[15px] font-semibold text-[var(--mkt-ink)]">{row.label}</span>
+                <span className="text-right text-[13px] text-[var(--mkt-ink-muted)]">{row.meta}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>

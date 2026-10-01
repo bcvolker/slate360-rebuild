@@ -231,7 +231,7 @@ Sequence them **in parallel**, not serially.
   (the worker's own `_log_colmap_version` warns about this). Pin before ANY GPU spend.
   (b) **Do NOT rehabilitate ODM.** An uncommitted +27-line diff on `odm_runner.py`
   is re-investing in it; ODM is AGPL-3.0 (fatal for SaaS per
-  UNIFIED_SITE_MODEL_ARCHITECTURE §6b) AND technically failed on ASU (degenerate
+  UNIFIED_SITE_MODEL_ARCHITECTURE §6b) AND technically failed on an internal still-grid capture (degenerate
   36KB mesh, 37 CPU-hours). Park the diff; benchmark-only forever.
   (c) **TWIN-002 one-liner:** `src/trigger/twin-gaussian-splat.ts:80-81` uses
   `.find()` for `lidar_poses`/`ply_lidar` — first-match-only, silent data loss the
@@ -1193,9 +1193,9 @@ model's edit_list/baked_export reset to clean after verification.
 
 NEXT (per locked order): VALID-1 + GATE-1 (per-job QC + UNSCALED gating).
 
-### 7.25 LOCKED 2026-08-21 — AOB205: stills degenerate, video healthier, PSNR anti-correlated
+### 7.25 LOCKED 2026-08-21 — Still-grid capture: stills degenerate, video healthier, PSNR anti-correlated
 
-AOB205 (ASU classroom, ~41x30 ft). Two runs, same room, same session:
+An internal still-grid room (~41x30 ft). Two runs, same room, same session:
 - **20 stationary 360 stills** -> 320 views, 268 registered, **PSNR 29.68** (highest this
   pipeline has ever scored) and **visually worthless** on the client link: needle haze,
   dark polygonal shards, no walkable interior. Every ready-gate PASSED.

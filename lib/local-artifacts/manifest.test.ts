@@ -3,9 +3,9 @@ import { isClientServing, validateManifest } from "./manifest";
 
 const base = {
   version: 1,
-  projectKey: "AOB205",
+  projectKey: "SITE-01",
   visitDate: "2026-08-17",
-  title: "AOB205 August 17",
+  title: "August 17 visit",
 };
 
 describe("artifact manifest", () => {

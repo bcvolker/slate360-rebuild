@@ -35,7 +35,7 @@ Controls that sit **on** a 360 frame (Play, scrub rail, chapter chip, Before/Aft
 | Slice | Scope | Acceptance |
 |---|---|---|
 | L1 | Portal tokens + aliases + guard ratchet; `PortalChrome`, `TokenStatePage` | Header, nav and all token states render light; no `--graphite-*` in the touched files |
-| L2 | Overview (`AecPortalLanding`, `PortalProjectSections`) | Real AOB205 portal (placeholder data) and the empty-package state screenshotted light; no clipped text; drop the duplicate "Walkthrough" tile when the hero already offers "Open Walkthrough"; one list for items (the Activity feed repeats Project items today) |
+| L2 | Overview (`AecPortalLanding`, `PortalProjectSections`) | Real portal (placeholder data) and the empty-package state screenshotted light; no clipped text; drop the duplicate "Walkthrough" tile when the hero already offers "Open Walkthrough"; one list for items (the Activity feed repeats Project items today) |
 | L3 | Sub-pages: reality, documents, items, item detail, spatial references | Every portal route light; control sweep all 200 or redirect |
 | L4 | `/w/[token]` frame: password gate, error boundary, poster gate | Frame light, over-imagery controls per §3 |
 | L5 | Legacy deliverable portal components | Same as L3 for `/portal/[token]` legacy deliverables |

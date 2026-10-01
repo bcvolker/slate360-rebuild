@@ -5,12 +5,13 @@ import { MarketingJsonLd } from "@/app/(public)/_components/marketing-json-ld";
 import { HomeNavLight } from "@/app/(public)/_components/home-nav-light";
 import { HomeFooterLight } from "@/app/(public)/_components/home-footer-light";
 import { HomeHeroLight } from "@/app/(public)/_components/home-hero-light";
-import { HomeCapabilitiesLight } from "@/app/(public)/_components/home-capabilities-light";
+import { HomeExampleViewer } from "@/app/(public)/_components/home-example-viewer";
+import { HomePackageLight } from "@/app/(public)/_components/home-package-light";
 import { HomePortalLight } from "@/app/(public)/_components/home-portal-light";
 import { HomeHowItWorksLight } from "@/app/(public)/_components/home-how-it-works-light";
 import { HomeWhoPricingLight } from "@/app/(public)/_components/home-who-pricing-light";
 import { HomeContactForm } from "@/app/(public)/_components/home-contact-form";
-import { MKT_L_PAGE } from "@/app/(public)/_components/marketing-styles-light";
+import { MKT_L_CONTAINER, MKT_L_PAGE } from "@/app/(public)/_components/marketing-styles-light";
 
 const SITE_URL = "https://www.slate360.ai";
 const TITLE = "Slate360 — Field documentation and workflow for contractors";
@@ -55,7 +56,12 @@ export default async function RootPage() {
         <HomeNavLight />
         <main className="pt-[78px]">
           <HomeHeroLight />
-          <HomeCapabilitiesLight />
+          <section className="pb-10 sm:pb-14">
+            <div className={MKT_L_CONTAINER}>
+              <HomeExampleViewer />
+            </div>
+          </section>
+          <HomePackageLight />
           <HomePortalLight />
           <HomeHowItWorksLight />
           <HomeWhoPricingLight />

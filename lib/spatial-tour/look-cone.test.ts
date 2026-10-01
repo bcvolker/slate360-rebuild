@@ -49,7 +49,7 @@ describe("operator paint vs the published view", () => {
     expect(maxPaintCoverage(sectors)).toBeLessThan(MAX_PAINT_COVERAGE);
   });
 
-  it("flags a below-the-horizon blackout (the AOB205 bake) as visible and oversized", () => {
+  it("flags a below-the-horizon blackout as visible and oversized", () => {
     const blackout = { enabled: true, rearYawCenter: 0, rearYawWidth: 360, pitchMin: -88, pitchMax: 4 };
     const sectors = paintSectors(blackout);
     expect(paintVisibleInCone(sectors, cone)).toBe(true);
