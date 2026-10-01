@@ -1,6 +1,7 @@
 import type { PortalLandingData } from "@/lib/spatial-walkthrough/portal-fixtures";
 import { viewerChromeCopy } from "@/lib/spatial-walkthrough/viewer-title";
 import { PortalChrome } from "./PortalChrome";
+import { TokenStatePage } from "./TokenStatePage";
 import { portalSections } from "@/lib/spatial-walkthrough/portal-gating";
 import {
   PortalActivityFeed,
@@ -67,9 +68,14 @@ export function AecPortalLanding({
       ) : null}
 
       {!hero && portalSections(data.capabilities).length === 1 ? (
-        <p className="px-4 py-8 text-sm text-[var(--graphite-muted)] sm:px-6" data-testid="portal-nothing-shared">
-          Nothing is shared on this link yet. Ask the sender for an updated link.
-        </p>
+        <div className="flex min-h-[60dvh] flex-col" data-testid="portal-nothing-shared">
+          <TokenStatePage
+            state="empty"
+            showShell={false}
+            title="Nothing shared yet"
+            description="Nothing is shared on this link yet. Ask the sender for an updated link."
+          />
+        </div>
       ) : null}
       {immersive ? null : (
         <div className="flex flex-1 flex-col gap-8 px-4 py-8 sm:px-6">

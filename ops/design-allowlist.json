@@ -64,5 +64,22 @@
     "components/coordination/contacts/ContactDetail.tsx",
     "components/projects/ChangeHistory.tsx",
     "components/site-walk/ProjectInbox.tsx"
+  ],
+  "legacyPortalGraphiteFiles": [
+    "app/(public)/portal/[token]/documents/page.tsx",
+    "app/(public)/portal/[token]/item/[id]/page.tsx",
+    "app/(public)/portal/[token]/plan/page.tsx",
+    "components/external-portal/AecPortalLanding.tsx",
+    "components/external-portal/DeliverablePlanStage.tsx",
+    "components/external-portal/DeliverableQnA.tsx",
+    "components/external-portal/DeliverableSlideshow.tsx",
+    "components/external-portal/ExternalPortalShell.tsx",
+    "components/external-portal/PortalCta.tsx",
+    "components/external-portal/PortalFooter.tsx",
+    "components/external-portal/PortalGlassCard.tsx",
+    "components/external-portal/PortalProjectSections.tsx",
+    "components/external-portal/PublicItemStage.tsx",
+    "components/external-portal/SharedDeliverableDocument.tsx",
+    "components/external-portal/SpatialReferencesIndex.tsx"
   ]
 }

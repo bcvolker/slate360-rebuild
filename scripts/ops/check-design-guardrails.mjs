@@ -31,6 +31,7 @@ const updateMode = process.argv.includes("--update");
  * @property {string} label          human label for messages
  * @property {Set<string>} exts      file extensions this group scans
  * @property {string[]} [excludePaths] path fragments to skip (e.g. token files)
+ * @property {string[]} [includePaths] if set, only files under these path fragments are scanned
  * @property {RegExp[]} patterns      any match = violation
  * @property {string} hint           remediation guidance printed on failure
  */
@@ -67,6 +68,16 @@ const ruleGroups = [
     exts: new Set([".ts", ".tsx"]),
     patterns: [/\borange-(?:50|[1-9]00|950)\b/],
     hint: "Orange is off-brand. Use semantic tokens: red destructive, emerald success, muted-graphite warning.",
+  },
+  {
+    // Client-facing surfaces are light (theme B, docs/design/LIGHT_CLIENT_PORTAL_SCOPE.md).
+    key: "portalGraphite",
+    allowKey: "legacyPortalGraphiteFiles",
+    label: "dark Graphite token in a client portal file",
+    exts: new Set([".ts", ".tsx"]),
+    includePaths: ["components/external-portal/", "app/(public)/portal/", "components/spatial-tour/client/"],
+    patterns: [/var\(--graphite-/],
+    hint: "Client surfaces are light: use var(--portal-*) (aliases of the marketing palette), not --graphite-*.",
   },
 ];
 
@@ -112,6 +123,7 @@ async function main() {
       const ext = path.extname(relPath);
       if (!group.exts.has(ext)) continue;
       if (group.excludePaths?.some((frag) => relPath.includes(frag))) continue;
+      if (group.includePaths && !group.includePaths.some((frag) => relPath.includes(frag))) continue;
       if (group.patterns.some((p) => p.test(source))) hits.push(relPath);
     }
     violationsByGroup[group.key] = hits.sort();
