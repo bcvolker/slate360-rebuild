@@ -27,11 +27,13 @@ export async function sendEmail({
   to,
   subject,
   html,
+  replyTo,
   attachments,
 }: {
   to: string;
   subject: string;
   html: string;
+  replyTo?: string;
   attachments?: Array<{ filename: string; content: Buffer | string }>;
 }) {
   const resend = getResend();
@@ -40,6 +42,7 @@ export async function sendEmail({
     to,
     subject,
     html,
+    ...(replyTo ? { replyTo } : {}),
     ...(attachments && attachments.length > 0 ? { attachments } : {}),
   });
   if (error) {
