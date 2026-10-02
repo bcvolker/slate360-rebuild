@@ -16,7 +16,7 @@ import { MKT_L_CONTAINER, MKT_L_PAGE } from "@/app/(public)/_components/marketin
 const SITE_URL = "https://www.slate360.ai";
 const TITLE = "Slate360 — Field documentation and workflow for contractors";
 const DESCRIPTION =
-  "Interactive site walkthroughs, aerial photo and video, 3D models, and a client portal for contractors. Serving the greater Phoenix area.";
+  "Interactive site walkthroughs, drone exterior 3D digital twins, aerial photo and video, and a client portal for contractors. Serving the greater Phoenix area.";
 const OG_IMAGE = "/uploads/icon-512.png";
 
 export const metadata: Metadata = {
