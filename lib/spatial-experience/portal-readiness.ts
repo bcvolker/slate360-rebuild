@@ -20,7 +20,7 @@ export async function loadPortalReadiness(admin: Admin, projectId: string): Prom
   readiness: Record<Offered, DeliverableReadiness>;
   previewWalkthroughId: string | null;
 }> {
-  const [{ data: walks }, { data: shareable }, { data: tours }, { data: twins }, { data: pins }] = await Promise.all([
+  const [{ data: walks }, { data: shareable }, { data: tours }, { data: twins }, { data: pins }, { data: planSheets }] = await Promise.all([
     // Walkthroughs a client can actually play (at least one ready clip).
     admin
       .from("spatial_walkthroughs")
@@ -45,6 +45,7 @@ export async function loadPortalReadiness(admin: Admin, projectId: string): Prom
       .not("published_model_id", "is", null)
       .is("deleted_at", null),
     admin.from("spatial_pins").select("id").eq("project_id", projectId).in("visibility", ["client", "public"]),
+    admin.from("site_walk_plan_sheets").select("id, rasterized_key, thumbnail_s3_key, image_s3_key").eq("project_id", projectId).limit(8),
   ]);
 
   const pinIds = (pins ?? []).map((p) => p.id as string);
@@ -68,6 +69,9 @@ export async function loadPortalReadiness(admin: Admin, projectId: string): Prom
       stations: tours?.length
         ? { ready: true, note: "Published station tour" }
         : { ready: false, note: "No published station tour" },
+      plan: (planSheets ?? []).some((sheet) => sheet.rasterized_key || sheet.thumbnail_s3_key || sheet.image_s3_key)
+        ? { ready: true, note: "Drawing sheet ready" }
+        : { ready: false, note: "No drawing sheet ready" },
       twin: twinAccepted
         ? { ready: true, note: "Accepted in QA" }
         : { ready: false, note: (twins ?? []).length ? "Waiting on QA acceptance" : "No published twin" },

@@ -1,10 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { PublicPlanTour, SceneRuntime } from "@/lib/types/tours";
 import { usePrefersReducedMotion } from "@/lib/tours/use-prefers-reduced-motion";
+import { buildDirectedWalkOverlay, hitWalkOverlay } from "@/lib/spatial-walkthrough/directed-walk-plan";
 import { PlanPinMarker } from "./PlanPinMarker";
+import { PlanSheetPath } from "./PlanSheetPath";
 import { PlanSheetStrip } from "./PlanSheetStrip";
 import { PublicTourPanoViewer } from "@/components/tours/PublicTourPanoViewer";
 
@@ -48,6 +50,15 @@ export function PlanSheetTourViewer({
 
   const activeSheet = planTour.sheets.find((s) => s.id === activeSheetId) ?? planTour.sheets[0];
   const sheetPins = planTour.pins.filter((p) => p.sheetId === activeSheet?.id);
+  const pinPath = useMemo(
+    () =>
+      buildDirectedWalkOverlay({
+        pins: sheetPins.map((pin) => ({ id: pin.id, u: pin.xPct / 100, v: pin.yPct / 100, t: null, label: pin.title })),
+      }),
+    // sheetPins is derived from the active sheet; the tour pin list is the stable input.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [activeSheet?.id, planTour.pins],
+  );
   const activePin = activePinIndex !== null ? planTour.pins[activePinIndex] : null;
 
   const clearPendingTimeout = () => {
@@ -158,6 +169,18 @@ export function PlanSheetTourViewer({
             // eslint-disable-next-line @next/next/no-img-element
             <img src={activeSheet.imageUrl} alt={activeSheet.sheetName ?? "Plan sheet"} className="h-full w-full object-contain" />
           )}
+          <PlanSheetPath points={pinPath.points} />
+          <button
+            type="button"
+            aria-label="Open the part of the tour nearest this spot"
+            className="absolute inset-0 cursor-crosshair border-0 bg-transparent p-0"
+            onClick={(event) => {
+              const rect = event.currentTarget.getBoundingClientRect();
+              const hit = hitWalkOverlay(pinPath, (event.clientX - rect.left) / rect.width, (event.clientY - rect.top) / rect.height, 0.12);
+              const pin = hit ? sheetPins.find((item) => item.id === hit.pointId) : null;
+              if (pin) handlePinClick(pin);
+            }}
+          />
           {sheetPins.map((pin) => (
             <PlanPinMarker
               key={pin.id}

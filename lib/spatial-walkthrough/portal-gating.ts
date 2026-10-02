@@ -26,8 +26,7 @@ export function gatePortalCapabilities(dataCaps: PortalCaps, allowed: Set<Packag
     walkthrough: dataCaps.walkthrough && (has("walkthrough") || has("tour")),
     stations: dataCaps.stations && has("stations"),
     twin: dataCaps.twin && has("twin"),
-    // The portal Plan page has no plan viewer yet (it only explained what was missing).
-    plan: false,
+    plan: dataCaps.plan && has("plan"),
     aerial: false,
     documents: dataCaps.documents && has("evidence"),
     // The old History rail linked every visit to the same walk and 404'd other visits'

@@ -104,9 +104,14 @@ export async function loadClientPortalLanding(args: {
   const { data: twinShare } = twin
     ? await admin.from("digital_twin_share_tokens").select("token, is_revoked").eq("space_id", twin.id).eq("is_revoked", false).limit(1).maybeSingle()
     : { data: null };
-  const { data: planSet } = projectId
-    ? await admin.from("site_walk_plan_sets").select("id, title").eq("project_id", projectId).limit(1).maybeSingle()
-    : { data: null };
+  const { data: planSets } = projectId
+    ? await admin.from("site_walk_plan_sets").select("id").eq("project_id", projectId).neq("processing_status", "archived").limit(5)
+    : { data: [] as Array<{ id: string }> };
+  const planSetIds = (planSets ?? []).map((set) => set.id);
+  const { data: planSheets } = planSetIds.length
+    ? await admin.from("site_walk_plan_sheets").select("rasterized_key, thumbnail_s3_key, image_s3_key").in("plan_set_id", planSetIds).limit(8)
+    : { data: [] as Array<{ rasterized_key: string | null; thumbnail_s3_key: string | null; image_s3_key: string | null }> };
+  const planReady = (planSheets ?? []).some((sheet) => sheet.rasterized_key || sheet.thumbnail_s3_key || sheet.image_s3_key);
 
   const { data: orgTheme } = await admin.from("spatial_org_themes").select("*").eq("org_id", args.orgId).maybeSingle();
   const brand = resolveBrandTheme({
@@ -180,13 +185,13 @@ export async function loadClientPortalLanding(args: {
       stationsHref: stationTour?.viewer_slug ? `/tours/view/${stationTour.viewer_slug}` : null,
       aerialHref: null,
     },
-    planHref: planSet ? `/portal/${args.token}/plan` : null,
+    planHref: planReady ? `/portal/${args.token}/plan` : null,
     visitLabel: walk.captured_at ? walk.captured_at.slice(0, 10) : null,
     capabilities: {
       // A walkthrough row without a ready clip would open an empty player.
       walkthrough: Boolean(clientClips[0]?.posterUrl),
       stations: Boolean(stationTour?.viewer_slug),
-      plan: Boolean(planSet),
+      plan: planReady,
       twin: Boolean(twinShare?.token),
       aerial: false,
       documents: docs.length > 0,

@@ -5,15 +5,16 @@
  */
 
 /**
- * Deliverables an operator can include today. `tour` joins with PR-C2 and `plan` once
- * the portal has a real plan viewer; both are already valid in the database.
+ * Deliverables an operator can include today. `tour` stays a valid id for shares
+ * that already stored it; Plans is offered once a drawing sheet can be viewed.
  */
-export const PACKAGE_DELIVERABLES = ["walkthrough", "stations", "twin", "evidence", "issues"] as const;
+export const PACKAGE_DELIVERABLES = ["walkthrough", "stations", "plan", "twin", "evidence", "issues"] as const;
 export type PackageDeliverable = (typeof PACKAGE_DELIVERABLES)[number] | "tour" | "plan";
 
 export const DELIVERABLE_LABELS: Record<(typeof PACKAGE_DELIVERABLES)[number], string> = {
   walkthrough: "Walkthrough",
   stations: "360 photos",
+  plan: "Plans",
   twin: "3D Scan",
   evidence: "Documents",
   issues: "Items",
