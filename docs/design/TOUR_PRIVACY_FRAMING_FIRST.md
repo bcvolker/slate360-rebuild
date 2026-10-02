@@ -29,12 +29,12 @@ Changing a mark or the cone clears both review confirmations and re-extracts the
 4. Pause two seconds at each checkpoint, facing its reference view.
 5. Write down anything you could not reach or had to do differently.
 
-## AOB205 placeholder: its bake is wrong for Tour
-AOB205's saved operator patch paints pitch −88°…+4° almost all the way round. That is a below-the-horizon blackout: 18% black in a forward, level still, and blocked by the gate (`docs/qa/c1-2-framing/still-gate-real-data.jpg`). The new bake guard would refuse it today.
+## Internal capture: its bake is wrong for Tour
+That capture's saved operator patch paints pitch −88°…+4° almost all the way round. That is a below-the-horizon blackout: 18% black in a forward, level still, and blocked by the gate (`docs/qa/c1-2-framing/still-gate-real-data.jpg`). The new bake guard would refuse it today.
 
 For Tour use, either:
 - **(a) Re-bake** with a tight patch (or the patch disabled), set a published view, and re-mark, or
-- **(b) Discard** AOB205 for Tour.
+- **(b) Discard** that capture for Tour.
 
 It is a placeholder either way, and not the acceptance project.
 

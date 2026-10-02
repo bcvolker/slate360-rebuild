@@ -11,7 +11,7 @@ const ITEMS: WalkthroughCard[] = [
     id: "7e0575a3-5d55-45d8-807f-9fb959ce2c21",
     title: "HouseWalk",
     captured_at: "2026-08-29T00:00:00.000Z",
-    building: "AOB205 — ASU",
+    building: "Level 2",
     floor: null,
     zone: "Kitchen",
     walkthrough_type: "interior",

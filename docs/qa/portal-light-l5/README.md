@@ -1,10 +1,10 @@
 # L5: light client chrome on every client share surface
 
-Captured 2026-09-30 at 375 / 768 / 1280 px with Chrome. The Directed Tour flag (`spatial_directed_tour`) stayed OFF before, during and after every run. The AOB205 data is a placeholder. Raw numbers per shot are in `measurements.txt`: canvas colour, horizontal overflow, nav scroll, dark blocks and banned words.
+Captured 2026-09-30 at 375 / 768 / 1280 px with Chrome. The Directed Tour flag (`spatial_directed_tour`) stayed OFF before, during and after every run. The capture data is a placeholder. Raw numbers per shot are in `measurements.txt`: canvas colour, horizontal overflow, nav scroll, dark blocks and banned words.
 
 | Surface | Route | Shots | Notes |
 |---|---|---|---|
-| Portal overview | `/portal/<token>` | `portal-overview-*` | Real AOB205 data, preview token |
+| Portal overview | `/portal/<token>` | `portal-overview-*` | Placeholder project data, preview token |
 | 360 / Walkthrough | `/portal/<token>/reality` | `portal-walkthrough-*` | |
 | Documents | `/portal/<token>/documents` | `portal-documents-*` | |
 | Items | `/portal/<token>/items` | `portal-items-*`, `portal-items-closed-empty-375` | Empty filter shows one short line |

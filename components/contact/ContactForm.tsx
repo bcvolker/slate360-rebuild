@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
-import { Slate360Logo } from "@/components/studio-ui/LogoProvider";
+import { HomeBrandMark } from "@/components/marketing/HomeBrandMark";
 import {
   AUTH_CANVAS,
   AUTH_CARD,
@@ -47,7 +47,7 @@ export function ContactForm() {
 
   if (done) {
     return (
-      <p className="text-center text-sm leading-relaxed text-[#F8FAFC]">
+      <p className="text-center text-sm leading-relaxed text-[var(--mkt-ink-muted)]">
         Thank you. Your message was received and routed to the Slate360 team.
       </p>
     );
@@ -102,12 +102,16 @@ export function ContactPageShell() {
       <div className={`${AUTH_CARD} max-w-lg`}>
         <div className="mb-8 flex justify-center">
           <Link href="/" aria-label="Slate360 home">
-            <Slate360Logo variant="dark" />
+            <HomeBrandMark iconClassName="h-9" wordClassName="text-[17px]" />
           </Link>
         </div>
-        <h1 className="mb-2 text-center text-2xl font-bold text-[#FFFFFF]">Contact Slate360</h1>
-        <p className="mb-8 text-center text-sm text-[#A3AED0]">
-          Reach the team for access requests, enterprise pricing, or product feedback.
+        <h1 className="mb-2 text-center text-2xl font-bold text-[var(--mkt-ink)]">Contact Slate360</h1>
+        <p className="mb-8 text-center text-sm text-[var(--mkt-ink-muted)]">
+          Tell us about a site in greater Phoenix, or{" "}
+          <Link href="/#request-a-visit" className="font-semibold text-[var(--mkt-accent)]">
+            request a site visit
+          </Link>
+          .
         </p>
         <ContactForm />
       </div>

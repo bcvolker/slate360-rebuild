@@ -64,7 +64,7 @@ const s3 = new S3Client({
 const bucket = process.env.R2_BUCKET || "slate360-storage";
 
 const { data: project } = await admin.from("projects").select("id, org_id, name").ilike("name", `%${manifest.projectKey}%`).limit(5);
-const commercial = (project ?? []).find((p) => /aob205/i.test(p.name) && !/housewalk|fixture/i.test(p.name));
+const commercial = (project ?? []).find((p) => !/housewalk|fixture/i.test(p.name ?? ""));
 if (!commercial) throw new Error(`no commercial project for ${manifest.projectKey}`);
 const orgId = commercial.org_id;
 const projectId = commercial.id;
@@ -156,7 +156,8 @@ if (proxyKey) {
   else await admin.from("spatial_clips").insert({ ...row, sort_order: 0 });
 }
 
-let tourSlug = `aob205-${manifest.visitDate.replace(/-/g, "")}`;
+const slugBase = String(manifest.projectKey || "visit").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "visit";
+let tourSlug = `${slugBase}-${String(manifest.visitDate).replace(/-/g, "")}`;
 if (stations.length) {
   let { data: tour } = await admin.from("project_tours").select("id, viewer_slug").eq("project_id", projectId).eq("viewer_slug", tourSlug).maybeSingle();
   if (!tour) {
@@ -192,13 +193,14 @@ if (stations.length) {
 let planSetId = null;
 if (planKey) {
   const frame = manifest.planControls ? solvePlanFrame(manifest.planControls) : null;
-  const { data: existingSet } = await admin.from("site_walk_plan_sets").select("id").eq("project_id", projectId).ilike("title", "%AOB205%").maybeSingle();
+  const planTitle = `${manifest.projectKey} floor plan`;
+  const { data: existingSet } = await admin.from("site_walk_plan_sets").select("id").eq("project_id", projectId).ilike("title", `%${manifest.projectKey}%`).maybeSingle();
   const payload = {
     org_id: orgId,
     project_id: projectId,
-    title: "AOB205 floor plan",
+    title: planTitle,
     source_s3_key: planKey,
-    original_file_name: "AOB205-plan.pdf",
+    original_file_name: `${manifest.projectKey}-plan.pdf`,
     mime_type: "application/pdf",
     processing_status: "ready",
     uploaded_by: createdBy,
@@ -216,7 +218,7 @@ if (planKey) {
       project_id: projectId,
       plan_set_id: planSetId,
       sheet_number: 1,
-      sheet_name: "AOB205",
+      sheet_name: String(manifest.projectKey),
       image_s3_key: planKey,
       metadata: { source: "pdf" },
     });
@@ -245,19 +247,19 @@ if (!shares?.length) {
   shareToken = token;
 }
 
-let { data: pin } = await admin.from("spatial_pins").select("id").eq("project_id", projectId).eq("label", "AOB205 west wall coordination").maybeSingle();
+let { data: pin } = await admin.from("spatial_pins").select("id").eq("project_id", projectId).eq("label", "West wall coordination").maybeSingle();
 if (!pin) {
   const ins = await admin.from("spatial_pins").insert({
     org_id: orgId,
     project_id: projectId,
     walkthrough_id: walkId,
     created_by: createdBy,
-    label: "AOB205 west wall coordination",
+    label: "West wall coordination",
     pin_type: "note",
-    body: "Demonstration item. Same record from Plan, 360 Documentation, Walkthrough, and Reality Twin when those locators exist.\n\n— Brian: Confirm west-wall clear width against 918A0025.",
+    body: "Demonstration item. Same record from Plan, 360 Documentation, Walkthrough, and Reality Twin when those locators exist.",
     visibility: "client",
     status: "open",
-    xyz: { sheetHint: "918A0025", stationHint: stations[0]?.stationId ?? null },
+    xyz: { stationHint: stations[0]?.stationId ?? null },
   }).select("id").single();
   if (ins.error) throw new Error(ins.error.message);
   pin = ins.data;
@@ -266,7 +268,7 @@ if (pin && (planKey || docKeys.length)) {
   const { data: existingAtt } = await admin.from("spatial_pin_attachments").select("id").eq("pin_id", pin.id);
   if (!existingAtt?.length) {
     const files = [
-      ...(planKey ? [{ key: planKey, title: "918A0025 floor plan" }] : []),
+      ...(planKey ? [{ key: planKey, title: "Floor plan" }] : []),
       ...docKeys,
     ];
     for (const file of files) {

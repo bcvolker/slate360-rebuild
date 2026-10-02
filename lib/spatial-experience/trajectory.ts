@@ -3,7 +3,8 @@
 export type TrajectoryPose = { t: number; x: number; y: number; z: number; yaw: number };
 export type WalkSegment = { id: string; t0: number; t1: number };
 
-export const AOB205_KNOWN_SEGMENTS: WalkSegment[] = [
+/** Sample time breaks for the path contract. Not a site. */
+export const SAMPLE_WALK_SEGMENTS: WalkSegment[] = [
   { id: "0", t0: 0, t1: 129.2 },
   { id: "2", t0: 130, t1: 157.2 },
 ];

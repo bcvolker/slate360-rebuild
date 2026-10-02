@@ -33,14 +33,14 @@ export function CookieBanner() {
       role="dialog"
       aria-label="Cookie notice"
       className={cn(
-        "fixed inset-x-0 bottom-0 z-[100] border-t border-white/[0.08] bg-[#0B0F15]/95 px-4 py-4 backdrop-blur-xl",
+        "fixed inset-x-0 bottom-0 z-[100] border-t border-[var(--mkt-line)] bg-[var(--mkt-surface)]/95 px-4 py-4 backdrop-blur-xl",
         "pb-[max(1rem,env(safe-area-inset-bottom))]",
       )}
     >
       <div className="mx-auto flex max-w-4xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <p className="text-sm leading-relaxed text-[#A3AED0]">
+        <p className="text-sm leading-relaxed text-[var(--mkt-ink-muted)]">
           Slate360 uses essential cookies for authentication and session management. See our{" "}
-          <Link href="/privacy" className="font-medium text-[#00E699] hover:text-[#00CC88]">
+          <Link href="/privacy" className="font-medium text-[var(--mkt-accent)] underline-offset-2 hover:underline">
             Privacy Policy
           </Link>
           .
@@ -48,7 +48,7 @@ export function CookieBanner() {
         <button
           type="button"
           onClick={accept}
-          className="shrink-0 rounded-xl bg-[#00E699] px-4 py-2.5 text-sm font-semibold text-[#0B0F15] transition-colors hover:bg-[#00CC88]"
+          className="shrink-0 rounded-[10px] bg-[var(--mkt-accent)] px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:brightness-110"
         >
           Accept
         </button>

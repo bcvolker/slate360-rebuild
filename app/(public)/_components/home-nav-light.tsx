@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { IconMenu2, IconX } from "@tabler/icons-react";
-import { SlateIcon } from "@/components/shared/SlateIcon";
+import { HomeBrandMark } from "@/components/marketing/HomeBrandMark";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
-  { label: "What you get", href: "#what-you-get" },
-  { label: "Client portal", href: "#portal" },
-  { label: "How it works", href: "#how-it-works" },
+  { label: "Walk the site", href: "#walk" },
+  { label: "Services", href: "#services" },
+  { label: "Portal", href: "#portal" },
 ] as const;
 
 /**
@@ -40,19 +40,11 @@ export function HomeNavLight() {
           scrolled ? "h-[62px]" : "h-[78px]",
         )}
       >
-        <Link href="/" aria-label="Slate360 home" className="flex shrink-0 items-center gap-2.5">
-          <SlateIcon
-            className={cn("w-auto shrink-0 transition-[height] duration-300", scrolled ? "h-[31px]" : "h-10")}
+        <Link href="/" aria-label="Slate360 home" className="flex shrink-0 items-center">
+          <HomeBrandMark
+            iconClassName={cn("transition-[height] duration-300", scrolled ? "h-[31px]" : "h-10")}
+            wordClassName={cn("transition-[font-size] duration-300", scrolled ? "text-[16.5px]" : "text-[19px]")}
           />
-          <span
-            className={cn(
-              "font-semibold tracking-[0.13em] transition-[font-size] duration-300",
-              scrolled ? "text-[16.5px]" : "text-[19px]",
-            )}
-          >
-            <span className="text-[var(--mkt-ink)]">SLATE</span>
-            <span className="text-[var(--mkt-brand-green)]">360</span>
-          </span>
         </Link>
 
         <nav className="hidden items-center gap-7 md:flex">

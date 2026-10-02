@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { Shield } from "lucide-react";
-import { SlateLogo } from "@/components/shared/SlateLogo";
+import { HomeBrandMark } from "@/components/marketing/HomeBrandMark";
 
 export const metadata = {
   title: "Privacy Policy | Slate360",
@@ -60,41 +59,38 @@ const SECTIONS = [
 
 export default function PrivacyPage() {
   return (
-    <div className="dark min-h-screen bg-[var(--graphite-canvas)] text-[var(--graphite-text-body)]">
-      <header className="border-b border-white/10 px-6 pb-4 pt-[max(env(safe-area-inset-top,0px),1rem)]">
-        <Link href="/">
-          <SlateLogo />
+    <div className="min-h-screen bg-[var(--mkt-canvas)] text-[var(--mkt-ink-muted)]">
+      <header className="border-b border-[var(--mkt-line)] bg-[var(--mkt-canvas)] px-6 pb-4 pt-[max(env(safe-area-inset-top,0px),1rem)]">
+        <Link href="/" aria-label="Slate360 home">
+          <HomeBrandMark iconClassName="h-8" wordClassName="text-[16px]" />
         </Link>
       </header>
 
-      <main className="mx-auto max-w-3xl px-4 py-12">
-        <div className="mb-10 text-center">
-          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[color-mix(in_srgb,var(--graphite-primary)_10%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--graphite-primary)_20%,transparent)]">
-            <Shield className="h-7 w-7 text-[var(--graphite-primary)]" />
-          </div>
-          <h1 className="text-3xl font-black text-[var(--graphite-text-header)] sm:text-4xl">Privacy Policy</h1>
-          <p className="mt-3 text-sm text-[var(--graphite-muted)]">Effective Date: January 1, 2025 · Last Updated: September 2026</p>
+      <main className="mx-auto max-w-3xl px-4 py-10">
+        <div className="mb-8">
+          <h1 className="font-serif text-3xl font-normal text-[var(--mkt-ink)] sm:text-4xl">Privacy Policy</h1>
+          <p className="mt-2 text-sm text-[var(--mkt-ink-muted)]">Effective Date: January 1, 2025 · Last Updated: September 2026</p>
         </div>
 
-        <div className="divide-y divide-white/10 rounded-2xl border border-[var(--mobile-app-card-border)] bg-[color-mix(in_srgb,var(--graphite-canvas)_76%,transparent)] backdrop-blur-md">
+        <div className="divide-y divide-[var(--mkt-line)] rounded-2xl border border-[var(--mkt-line)] bg-[var(--mkt-surface)]">
           {SECTIONS.map((s) => (
-            <div key={s.heading} className="px-6 py-6 sm:px-8">
-              <h2 className="mb-2 text-sm font-black text-[var(--graphite-text-header)]">{s.heading}</h2>
-              <p className="whitespace-pre-line text-sm leading-relaxed text-[var(--graphite-muted)]">{s.body}</p>
+            <div key={s.heading} className="px-6 py-5 sm:px-8">
+              <h2 className="mb-2 text-sm font-semibold text-[var(--mkt-ink)]">{s.heading}</h2>
+              <p className="whitespace-pre-line text-sm leading-relaxed text-[var(--mkt-ink-muted)]">{s.body}</p>
             </div>
           ))}
         </div>
 
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
-          <Link href="/terms" className="text-sm font-semibold text-[var(--graphite-primary)] hover:text-[var(--graphite-text-header)]">
+        <div className="mt-8 flex flex-wrap items-center gap-4">
+          <Link href="/terms" className="text-sm font-semibold text-[var(--mkt-accent)]">
             Terms of Service
           </Link>
-          <span className="text-[var(--graphite-muted)]">·</span>
-          <Link href="/#request-a-visit" className="text-sm font-semibold text-[var(--graphite-primary)] hover:text-[var(--graphite-text-header)]">
+          <span className="text-[var(--mkt-line)]">·</span>
+          <Link href="/#request-a-visit" className="text-sm font-semibold text-[var(--mkt-accent)]">
             Request a site visit
           </Link>
-          <span className="text-[var(--graphite-muted)]">·</span>
-          <Link href="/" className="text-sm font-semibold text-[var(--graphite-muted)] hover:text-[var(--graphite-text-header)]">
+          <span className="text-[var(--mkt-line)]">·</span>
+          <Link href="/" className="text-sm font-semibold text-[var(--mkt-ink-muted)]">
             Back to home
           </Link>
         </div>

@@ -1,6 +1,5 @@
-import { assets } from "@/lib/design-system/tokens";
-
 const SITE_URL = "https://www.slate360.ai";
+const LOGO_URL = `${SITE_URL}/uploads/icon-512.png`;
 
 /**
  * Organization + WebSite only — no SoftwareApplication/app entries and no
@@ -18,7 +17,7 @@ export function MarketingJsonLd() {
         url: SITE_URL,
         logo: {
           "@type": "ImageObject",
-          url: assets.logoAbsolute,
+          url: LOGO_URL,
         },
       },
       {
