@@ -39,10 +39,12 @@ function overviewMarkup(allowed: PackageDeliverable[] | null): string {
 }
 
 describe("portal capability gating", () => {
-  it("never shows Plan (no viewer yet) or the old History rail", () => {
-    const caps = gatePortalCapabilities(ALL_DATA, null);
-    expect(caps.plan).toBe(false);
-    expect(caps.history).toBe(false);
+  it("shows Plans when a sheet exists and the package includes it", () => {
+    expect(gatePortalCapabilities(ALL_DATA, null).plan).toBe(true);
+    expect(gatePortalCapabilities(ALL_DATA, new Set(["plan"])).plan).toBe(true);
+    expect(gatePortalCapabilities(ALL_DATA, new Set(["walkthrough"])).plan).toBe(false);
+    expect(gatePortalCapabilities({ ...ALL_DATA, plan: false }, null).plan).toBe(false);
+    expect(gatePortalCapabilities(ALL_DATA, null).history).toBe(false);
   });
 
   it("requires both data and packaging", () => {
@@ -95,12 +97,12 @@ describe("portal chrome inventory (rendered)", () => {
     expect(html).not.toContain('data-testid="portal-nav"');
   });
 
-  it("the full legacy package keeps the walkthrough, documents and items", () => {
+  it("the full legacy package keeps the walkthrough, documents, items, and plans", () => {
     const html = overviewMarkup(null);
     expect(html).toContain("Open walkthrough");
     expect(html).toContain("3D Scan &amp; 360");
+    expect(html).toContain(">Plans<");
     expect(html).not.toContain(">History<");
-    expect(html).not.toContain(">Plan<");
   });
 
   it("shows the operator banner only on preview tokens", () => {
