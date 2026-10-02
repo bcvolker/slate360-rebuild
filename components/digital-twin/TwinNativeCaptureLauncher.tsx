@@ -60,6 +60,12 @@ export function TwinNativeCaptureLauncher({ spaceId, projectId, title, onUploade
         });
         if (cancelled) return;
 
+        // Native status screen already covered Saved / Uploading / Failed / Done.
+        // Do not chain into Review & Sources or the twin receipt.
+        if (manifest.nativeStatus === "done" || manifest.nativeStatus === "failed") {
+          onCancel();
+          return;
+        }
         if (manifest.cancelled) {
           onCancel();
           return;
