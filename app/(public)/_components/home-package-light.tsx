@@ -7,12 +7,8 @@ const SERVICES = [
     wide: true,
   },
   {
-    name: "3D models",
-    body: "A model of the space your team opens with the project.",
-  },
-  {
-    name: "Gaussian splat",
-    body: "Look around a photoreal view of the space. It ships when it is ready to explore.",
+    name: "3D digital twin",
+    body: "A drone digital twin of the exterior. It pairs with the ground walkthrough so the site can be reviewed from the air and on the ground.",
   },
   {
     name: "Aerial photography",
