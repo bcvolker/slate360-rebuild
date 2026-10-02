@@ -19,7 +19,7 @@ import type {
 } from "@/components/digital-twin/splat-viewer-constants";
 import { buildDownsampleIndices } from "@/components/digital-twin/splat-viewer-constants";
 import { fetchSplatManifest, type SplatManifest } from "@/lib/digital-twin/twin-manifest";
-import { estimateOrientationFromMesh } from "@/lib/digital-twin/splat-pca-orientation";
+import { applyAerialGravity, estimateOrientationFromMesh } from "@/lib/digital-twin/splat-pca-orientation";
 import { applyEditListToMesh } from "@/lib/digital-twin/splat-edit-runtime";
 import { ControlsBridge } from "@/components/digital-twin/splat-viewer-controls-bridge";
 import { useSplatBytes } from "@/hooks/useSplatBytes";
@@ -49,6 +49,9 @@ export function SplatViewerScene({
   repositionMode = false,
   onManifestChange,
   onCameraChange,
+  freeOrbit = false,
+  invertOrbit = false,
+  planView = false,
 }: {
   url: string;
   maxSplats: number;
@@ -75,6 +78,9 @@ export function SplatViewerScene({
   repositionMode?: boolean;
   /** D2: live orbit-camera pose changes, for cross-viewer sync (progression compare). */
   onCameraChange?: (pose: SplatCameraPose) => void;
+  freeOrbit?: boolean;
+  invertOrbit?: boolean;
+  planView?: boolean;
 }) {
   const gl = useThree((state) => state.gl);
   const [loadedMesh, setLoadedMesh] = useState<SplatMesh | null>(null);
@@ -159,6 +165,10 @@ export function SplatViewerScene({
           if (baked) {
             group.quaternion.set(baked[0], baked[1], baked[2], baked[3]);
             group.updateMatrixWorld(true);
+          } else if (/splat-lab|stadium-sep15/i.test(url) || freeOrbit) {
+            mesh.rotation.set(Math.PI, 0, 0);
+            mesh.updateMatrixWorld(true);
+            applyAerialGravity(mesh, group);
           } else {
             const est = estimateOrientationFromMesh(mesh);
             if (est?.apply) {
@@ -178,7 +188,7 @@ export function SplatViewerScene({
         onReady();
       },
     }),
-    [splatBytes, maxSplats, onReady, onDownsampled],
+    [splatBytes, maxSplats, onReady, onDownsampled, url, freeOrbit],
   );
 
   useEffect(() => {
@@ -210,6 +220,9 @@ export function SplatViewerScene({
               onEnterInterior={handleOverviewEnter}
               repositionMode={repositionMode}
               manifest={manifestRef.current}
+              freeOrbit={freeOrbit}
+              invertOrbit={invertOrbit}
+              planView={planView}
             />
           ) : (
             <SplatInteriorNavigation

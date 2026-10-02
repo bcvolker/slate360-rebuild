@@ -42,6 +42,9 @@ export function SplatOverviewNavigation({
   onEnterInterior,
   repositionMode = false,
   manifest = null,
+  freeOrbit = false,
+  invertOrbit = false,
+  planView = false,
 }: {
   mesh: SplatMesh;
   active: boolean;
@@ -49,15 +52,11 @@ export function SplatOverviewNavigation({
   pickEnabled: boolean;
   onPick?: (point: { x: number; y: number; z: number }) => void;
   onEnterInterior: (point: THREE.Vector3) => void;
-  /**
-   * When true, a single-finger / left-drag PANS the model in screen space so the user can
-   * drag it wherever they want (fix for splats that reconstruct off-centre or too high).
-   * When false (default), single-finger / left-drag orbits as usual.
-   */
   repositionMode?: boolean;
-  /** AF11: worker-baked framing (recommended_orbit_camera + core bounds), preferred over
-   * client-computed mesh bounds when present. Null for older models / fetch failures. */
   manifest?: SplatManifest | null;
+  freeOrbit?: boolean;
+  invertOrbit?: boolean;
+  planView?: boolean;
 }) {
   const { camera, gl, size } = useThree();
   const controlsRef = useRef<OrbitControlsImpl>(null);
@@ -65,6 +64,7 @@ export function SplatOverviewNavigation({
   const tweenRef = useRef(new OrbitCameraTweenRunner());
   const initialFramedRef = useRef(false);
   const lastTapRef = useRef({ time: 0, x: 0, y: 0 });
+  const planSnappedRef = useRef(false);
   const tweenPose = useRef({
     position: new THREE.Vector3(),
     target: new THREE.Vector3(),
@@ -155,15 +155,25 @@ export function SplatOverviewNavigation({
     const controls = controlsRef.current;
     if (!controls || !homeRef.current) return;
 
+    // Re-entrancy guard: controls.update() re-dispatches "change" while damping,
+    // which recursed into this handler until the stack overflowed (RangeError
+    // on every drag, so the model would not spin). Only the clamped path needs
+    // the extra update; freeOrbit (aerial) needs neither.
+    let inChange = false;
     const onChange = () => {
-      if (tweenRef.current.isRunning()) return;
-      clampOrbitTargetToBounds(controls.target, homeRef.current!.bounds);
-      controls.update();
+      if (inChange || freeOrbit || tweenRef.current.isRunning()) return;
+      inChange = true;
+      try {
+        clampOrbitTargetToBounds(controls.target, homeRef.current!.bounds);
+        controls.update();
+      } finally {
+        inChange = false;
+      }
     };
 
     const onEnd = () => {
       if (tweenRef.current.isRunning() || !(camera instanceof THREE.PerspectiveCamera)) return;
-      if (!isBoundsVisibleOnScreen(homeRef.current!.bounds, camera, size.width, size.height)) {
+      if (!freeOrbit && !isBoundsVisibleOnScreen(homeRef.current!.bounds, camera, size.width, size.height)) {
         applyHome({ animate: true });
       }
       publishFramingReport();
@@ -175,7 +185,7 @@ export function SplatOverviewNavigation({
       controls.removeEventListener("change", onChange);
       controls.removeEventListener("end", onEnd);
     };
-  }, [active, applyHome, camera, publishFramingReport, size.height, size.width]);
+  }, [active, applyHome, camera, freeOrbit, publishFramingReport, size.height, size.width]);
 
   useEffect(() => {
     if (!active) return;
@@ -189,12 +199,6 @@ export function SplatOverviewNavigation({
         onPick({ x: hit.point.x, y: hit.point.y, z: hit.point.z });
         return;
       }
-      // V2 (Package V): re-target the orbit pivot to the picked point instead
-      // of leaving orbit mode — the control that makes inspecting a specific
-      // spot (a wheel, a wall crack) natural. Preserves the camera's current
-      // offset (direction + distance) from the old target so the transition
-      // reads as "look closer here," not a jump cut. Entering Walk mode is a
-      // separate, explicit control (TwinViewerControlsOverlay's Walk toggle).
       const controls = controlsRef.current;
       if (!controls) return;
       const offset = camera.position.clone().sub(controls.target);
@@ -207,8 +211,17 @@ export function SplatOverviewNavigation({
       );
     };
 
+    const enterWalkAt = (clientX: number, clientY: number) => {
+      const hit = raycastSplatMesh(mesh, camera, clientX, clientY, canvas);
+      if (hit) onEnterInterior(hit.point);
+    };
+
     const onDoubleClick = (event: MouseEvent) => {
       event.preventDefault();
+      if (freeOrbit) {
+        enterWalkAt(event.clientX, event.clientY);
+        return;
+      }
       activateAt(event.clientX, event.clientY);
     };
 
@@ -219,7 +232,9 @@ export function SplatOverviewNavigation({
         Math.hypot(event.clientX - lastTapRef.current.x, event.clientY - lastTapRef.current.y) < 18;
       const isDouble = near && now - lastTapRef.current.time < DOUBLE_TAP_MS;
       lastTapRef.current = { time: now, x: event.clientX, y: event.clientY };
-      if (isDouble) activateAt(event.clientX, event.clientY);
+      if (!isDouble) return;
+      if (freeOrbit) enterWalkAt(event.clientX, event.clientY);
+      else activateAt(event.clientX, event.clientY);
     };
 
     canvas.addEventListener("dblclick", onDoubleClick);
@@ -228,12 +243,19 @@ export function SplatOverviewNavigation({
       canvas.removeEventListener("dblclick", onDoubleClick);
       canvas.removeEventListener("pointerup", onPointerUp);
     };
-  }, [active, camera, gl, mesh, onEnterInterior, onPick, pickEnabled]);
+  }, [active, camera, freeOrbit, gl, mesh, onEnterInterior, onPick, pickEnabled]);
 
   useFrame(() => {
     if (!active || !(camera instanceof THREE.PerspectiveCamera)) return;
     const controls = controlsRef.current;
     if (!controls) return;
+    if (planView && !planSnappedRef.current) {
+      const dist = Math.max(camera.position.distanceTo(controls.target), homeRef.current?.homeDistance ?? 1);
+      camera.position.set(controls.target.x, controls.target.y + dist, controls.target.z);
+      controls.update();
+      planSnappedRef.current = true;
+    }
+    if (!planView) planSnappedRef.current = false;
     if (tweenRef.current.step(performance.now(), tweenPose.current)) {
       camera.position.copy(tweenPose.current.position);
       controls.target.copy(tweenPose.current.target);
@@ -251,13 +273,15 @@ export function SplatOverviewNavigation({
       domElement={gl.domElement}
       enableDamping
       dampingFactor={ORBIT_DAMPING}
-      rotateSpeed={ORBIT_ROTATE_SPEED}
+      rotateSpeed={invertOrbit ? -ORBIT_ROTATE_SPEED : ORBIT_ROTATE_SPEED}
       zoomSpeed={ORBIT_ZOOM_SPEED}
       panSpeed={ORBIT_PAN_SPEED}
       enablePan
       enableZoom
       enableRotate
-      screenSpacePanning={repositionMode}
+      minPolarAngle={planView ? 0 : 0}
+      maxPolarAngle={planView ? 0.22 : Math.PI}
+      screenSpacePanning
       mouseButtons={{
         LEFT: repositionMode ? THREE.MOUSE.PAN : THREE.MOUSE.ROTATE,
         MIDDLE: THREE.MOUSE.DOLLY,
