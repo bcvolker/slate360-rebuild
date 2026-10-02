@@ -28,7 +28,7 @@ A Spatial Walkthrough needs none of this. It is not a reconstruction. The client
 
 ### 2.3 Photogrammetry
 
-Photogrammetry stitches many overlapping still photographs into a 3D mesh or point cloud, using structure-from-motion to solve camera positions. It needs dozens to hundreds of photos with real parallax between them (locked lesson: *"walking parallax is the geometry source; stationary 360 stills are not"* — twenty stationary 360 stills taken from fixed tripod stations produced a mesh that was geometrically worthless even though every automated quality gate passed). Photogrammetry is a reconstruction technique like Gaussian splatting, just older and mesh-first instead of splat-first. Same relationship to a Spatial Walkthrough as splatting has: it's a different, heavier product with a different purpose (measurement and BIM-adjacent geometry), not a competitor to the walkthrough.
+Photogrammetry stitches many overlapping still photographs into a 3D mesh or point cloud, using structure-from-motion to solve camera positions. It needs dozens to hundreds of photos with real parallax between them (the locked lesson: *"walking parallax is the geometry source; stationary 360 stills are not"* — twenty stationary 360 stills taken from fixed tripod stations produced a mesh that was geometrically worthless even though every automated quality gate passed). Photogrammetry is a reconstruction technique like Gaussian splatting, just older and mesh-first instead of splat-first. Same relationship to a Spatial Walkthrough as splatting has: it's a different, heavier product with a different purpose (measurement and BIM-adjacent geometry), not a competitor to the walkthrough.
 
 ### 2.4 Side-by-side
 

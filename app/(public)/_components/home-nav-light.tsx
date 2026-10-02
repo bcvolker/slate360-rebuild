@@ -7,7 +7,7 @@ import { HomeBrandMark } from "@/components/marketing/HomeBrandMark";
 import { cn } from "@/lib/utils";
 
 const NAV_LINKS = [
-  { label: "Walk the site", href: "#walk" },
+  { label: "Deliverables", href: "#examples" },
   { label: "Services", href: "#services" },
   { label: "Portal", href: "#portal" },
 ] as const;

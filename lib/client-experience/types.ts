@@ -1,9 +1,9 @@
 /**
  * Client Experience data contract.
  *
- * Contractor-facing portal views render through this shape. A portal-token
- * loader fills it from spatial_walkthroughs, spatial_pins,
- * spatial_project_items, and plan sheets.
+ * Contractor-facing views render through this shape. A portal-token loader
+ * should fill it from spatial_walkthroughs, spatial_pins, spatial_project_items,
+ * and plan sheets.
  *
  * Plan coordinates are fractions of the sheet image (u → x, v → y, 0..1).
  */

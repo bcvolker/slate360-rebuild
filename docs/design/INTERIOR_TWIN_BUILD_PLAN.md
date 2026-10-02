@@ -109,7 +109,7 @@ guaranteed or exact.
    AE/WB locked, close the loop back through the start. Keep walls within ~5 m (sensor range).
 2. **360 walk second**, same visit, camera high on the pole, two heights, slow, loop closed.
 3. Optional 360 stills every 3–5 m **while walking the route** — texture and pose anchors,
-   never a station grid (that is the still-grid zero-baseline failure).
+   never a station grid (that is the zero-baseline stills failure).
 4. Scale reference when no LiDAR: one tape-measured wall, or an architectural drawing.
 
 ## Progress

@@ -84,7 +84,7 @@ older video-only pipeline. It stays for later parity; the desktop path is the qu
 | Kitchen, iPhone stills 1 s, 1920×1440 (Sep 8) | 183/189, 0.98 px | Brush 30k, 1.75 M splats | **29.8 dB** | Photo-real at the camera path; smears from viewpoints the camera never occupied; floaters outside the rooms |
 | Same room, iPhone fast-shutter video | 64.6 %, 5 fragments | rejected by the gate | — | Stills beat video |
 | Kitchen, Insta360 X4 8K, hand-held, 1/500 (Sep 9) | **572/572 faces, 1.05 px** | 613 k splats | **32.0 dB** | First 360 to pass; dark and noisy (ISO maxed), operator in frame |
-| Internal still-grid, X4 5.7K "low-pass" export, 4 faces at 1600 px | 48 % | fog | ~13 dB | Wrong export, wrong faces — fixed above |
+| Interior test room, X4 5.7K "low-pass" export, 4 faces at 1600 px | 48 % | fog | ~13 dB | Wrong export, wrong faces — fixed above |
 | gsplat trainer A/B on the kitchen solve: AbsGrad / MCMC | same cameras | 1.9 M / 1.5 M | 25.7 / 26.6 dB | Brush kept |
 
 The decisive finding of this week: the "blurry twin" everyone saw was mostly our own doing. The

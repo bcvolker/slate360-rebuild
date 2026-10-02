@@ -1,7 +1,7 @@
 import type { BrandTheme } from "./types";
 import { resolveBrandTheme } from "./theme";
 
-/** Engineering fixture only. Not a public marketing walk. */
+/** Engineering fixture only. Not a commercial client token. */
 const WALK = "S0Ho5PRcBjg6pW2uVrFFvm1EMSQjX269";
 const CLIP = "f278d37f-1c2f-4511-aef5-437b3992d39d";
 const POSTER = `/api/spatial-walkthrough/public/${WALK}/media?clip=${CLIP}&kind=hero`;

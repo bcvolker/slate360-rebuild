@@ -1,7 +1,7 @@
 # Spatial Experience V3 — UX handoff (Claude)
 
 Cursor owns application/data/integration on the spatial-experience branch.
-Claude owns visual polish on the ux-polish branch.
+Claude owns visual polish on the matching UX branch.
 Same baseline: `0e4e2e31`.
 
 Do not redesign IA. Keep Overview / Reality / Plan / History / Documents / Items.

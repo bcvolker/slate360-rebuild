@@ -1,10 +1,10 @@
 # Light client portal, L2 (theme B): content overview. Client-facing.
 
-An internal placeholder project, opened with an operator preview token (the top banner is operator-only; clients never see it).
+Captured with an operator preview token (the top banner is operator-only; clients never see it).
 
-- `overview-full-{375,768,desktop}.png`: overview with content: latest capture, the other way in (360 stations), counts, items and documents. To show items and documents, the quarantined demo item was made client-visible for the capture only, then set back to internal.
-- `overview-sparse-{375,768,desktop}.png`: the same portal with only a capture and one way in. It stays one compact card.
-- `side-by-side-{375,768,desktop}.png`: homepage | portal overview, first screen.
+Portal overview frames from this pass were removed because they displayed an internal placeholder project title. Homepage frames remain:
+
+- `homepage-{375,768,desktop}.png`
 
 Measured on every shot:
 - no horizontal overflow
@@ -13,4 +13,4 @@ Measured on every shot:
 - desktop full overview fits 1280×900 with no scroll
 - the only dark background is the brand-green button
 
-The walk was **re-baked with the standard tight mask** (rear-low sector + nadir, ~5% of the sphere) as a clip-level override, so its poster no longer shows the below-horizon blackout. The walkthrough's original mask is untouched (reversible).
+The placeholder walkthrough was re-baked with the standard tight mask (rear-low sector + nadir, ~5% of the sphere) as a clip-level override, so its poster no longer shows the below-horizon blackout. The walkthrough's original mask is untouched (reversible).

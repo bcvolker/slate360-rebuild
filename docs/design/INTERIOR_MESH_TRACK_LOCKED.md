@@ -60,7 +60,7 @@ aerial scenes and bounded rooms are different geometry problems.
 6. **High-held is the product default.** Operator, hand and pole sit at/below nadir, which
    the ±35° ring geometry already excludes. Low-held puts the torso in the prime 0° ring.
 7. **Stills help texture and pose, not geometry.** ~1 every 3–5 m, taken *while walking the
-   route*, mixed into the same SfM solve. Never a station grid — that is the still-grid failure.
+   route*, mixed into the same SfM solve. Never a station grid — that is the zero-baseline stills failure.
 8. **Face budget ~250–400k per room**, not the exterior's 1.5M.
 9. **Mask, don't cull.** Dropping operator-heavy frames fragments the sequential chain
    (measured: registration 91 → 55). Cull only frames that are mostly operator.
@@ -92,7 +92,7 @@ Unchanged from the locked EXT-SPLAT direction, and consistent with the above:
 ## Build slices (in order)
 
 - **M1** COLMAP CLI interior SfM: masks at feature extraction + `rig.json` + sequential
-  matcher with loop detection. Acceptance: a walking video solves with one 6-DOF pose
+  matcher with loop detection. Acceptance: a walking 360 video solves with one 6-DOF pose
   per timestamp; registration ≥ the 573/784 baseline.
 - **M2** PatchMatch with undistorted masks + `min_triangulation_angle 3`; dump geometric
   depth. Acceptance: no operator-shaped geometry in the fused cloud.

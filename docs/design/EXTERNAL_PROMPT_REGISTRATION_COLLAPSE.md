@@ -61,7 +61,7 @@ small fragment, not a room.
 
 ## The same pattern on a different capture
 
-A ~1,225 sq ft university classroom (41'-3" × 29'-8", so a true diagonal of about **15.4 m**)
+A ~1,225 sq ft interior test room (41'-3" × 29'-8", so a true diagonal of about **15.4 m**)
 captured as 20 stationary 360 stills → 320 unwrapped views, 268 registered, PSNR **29.68**,
 also visually useless. Its exported model had a bbox diagonal of **5.23 units** (that run had
 no metric scale). Measured anisotropy p99 was 10.10 and **zero** gaussians exceeded 5% of the

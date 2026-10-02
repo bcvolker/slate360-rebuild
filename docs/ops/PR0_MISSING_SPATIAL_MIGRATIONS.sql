@@ -1,4 +1,4 @@
--- PR-0: spatial migrations committed on a spatial-experience branch but NOT present in prod
+-- PR-0: spatial migrations committed on the spatial-experience branch but NOT present in prod
 -- (verified 2026-09-30 by read-only query). All statements are idempotent (IF NOT EXISTS / DROP IF EXISTS
 -- + re-add of a widened CHECK that only adds 'voice'). Apply BEFORE merging PR-0; code on the branch reads these.
 

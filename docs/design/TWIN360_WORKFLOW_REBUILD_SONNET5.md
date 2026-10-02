@@ -1193,9 +1193,9 @@ model's edit_list/baked_export reset to clean after verification.
 
 NEXT (per locked order): VALID-1 + GATE-1 (per-job QC + UNSCALED gating).
 
-### 7.25 LOCKED 2026-08-21 — Still-grid capture: stills degenerate, video healthier, PSNR anti-correlated
+### 7.25 LOCKED 2026-08-21 — interior stills degenerate, video healthier, PSNR anti-correlated
 
-An internal still-grid room (~41x30 ft). Two runs, same room, same session:
+One interior test room (~41x30 ft). Two runs, same room, same session:
 - **20 stationary 360 stills** -> 320 views, 268 registered, **PSNR 29.68** (highest this
   pipeline has ever scored) and **visually worthless** on the client link: needle haze,
   dark polygonal shards, no walkable interior. Every ready-gate PASSED.

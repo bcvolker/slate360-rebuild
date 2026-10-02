@@ -48,7 +48,7 @@ export function LocationPickerModal({ open, currentLocation, recentLocations, on
               onChange={(event) => setValue(event.target.value)}
               onKeyDown={(event) => { if (event.key === "Enter") submit(value); }}
               className={darkFieldClass("mt-2 rounded-2xl px-4 py-3 text-base font-bold")}
-              placeholder="Stop 2, Lobby, AOB Room 206"
+              placeholder="Stop 2, Lobby, Room 102"
             />
           </label>
 

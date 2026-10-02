@@ -1,7 +1,7 @@
 # External Audit Prompt V3 — "Why is our twin garbage and Matterport's isn't?"
 
 Self-contained. Copy everything below the line to other AI platforms. Written 2026-08-21.
-Attach: Matterport viewer screenshots. Do not attach an internal capture link.
+Attach: the failure stills described below and the Matterport viewer screenshots.
 
 ---
 
@@ -12,7 +12,7 @@ is below. Do not recommend abandoning self-hosting or switching to a SaaS recons
 # 0. The business context
 
 A one-person construction-documentation company sells interactive digital twins of interiors
-and exteriors to contractors. Deliverables are branded web links
+and exteriors to contractors and institutions. Deliverables are branded web links
 clients can re-share. Positioning: "workflow tool," estimating-grade, never survey-grade.
 Self-hosted only, license-clean OSS only (AGPL is disqualifying — an AGPL segmenter is
 already flagged for removal). Stack: Modal GPU workers · Trigger.dev · Cloudflare R2 ·
@@ -21,7 +21,7 @@ Supabase · Next.js/Vercel · Capacitor iOS with a native Swift ARKit plugin.
 # 1. THE FAILURE (diagnose this first)
 
 ## Input
-An internal still-grid room, ~41'-3" × 29'-8" (~1,225 sq ft).
+An interior test room, ~41'-3" × 29'-8" (~1,225 sq ft).
 Captured with an Insta360 X4:
 - **20 × 360° stills**, 5888×2944 equirectangular, ~13 MB each, shot from ~20 standing
   positions around the room over 13 minutes, consistent morning lighting, tripod-free
@@ -146,7 +146,7 @@ download matches the cleaned view.
 - **Hero: iPhone + LiDAR, one ARSession, ≤2 min clips, slow closed loop → 28.97 and
   visually good.** This is our only genuinely good interior model.
 - Car exterior orbit (phone video, no LiDAR): 158/161 registered, 23.31, visually coherent.
-- Still-grid stills: 29.68 and visually worthless (above).
+- Interior stills: 29.68 and visually worthless (above).
 
 ## Roadmap already locked (trust-first, after two prior audits)
 1. E1 bake — DONE.
@@ -191,12 +191,12 @@ priors" as generic advice is not actionable — say specifically what would be d
   measurement. We verified we can register heterogeneous assets under one capture so one
   COLMAP solve consumes phone frames + 360 views + LiDAR together.
 - Also ingest **360 drone video** (DJI Avata 360) for exteriors and high angles.
-- Scale without LiDAR when necessary: we hold an architectural drawing for that room giving
-  41'-3½" × 29'-8¼", usable as a single scale reference.
+- Scale without LiDAR when necessary: an architectural drawing giving
+  41'-3½" × 29'-8¼" is usable as a single scale reference.
 
 # 6. Deliver these answers
 
-1. **Root cause** of the still-grid failure, at the level of "this specific stage, this specific
+1. **Root cause** of the stills failure, at the level of "this specific stage, this specific
    property." Confirm/refute the zero-baseline hypothesis.
 2. **The metric problem.** PSNR on training views clearly cannot gate 3D quality. What
    *automatable* metric or check would have caught this before a human looked? Candidates

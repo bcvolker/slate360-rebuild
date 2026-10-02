@@ -152,7 +152,7 @@ export function DataContextView({ item, draft, assignees, saveState, aiState, ai
           <div className="grid gap-2 sm:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
             <label className="space-y-1">
               <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-400">Stop / Location</span>
-              <input value={currentLocation} onChange={(event) => onLocationChange(event.target.value)} className={inputClass} placeholder="Stop 1, Lobby, AOB Room 205" />
+              <input value={currentLocation} onChange={(event) => onLocationChange(event.target.value)} className={inputClass} placeholder="Stop 1, Lobby, Room 101" />
             </label>
             <label className="space-y-1">
               <span className="text-[11px] font-black uppercase tracking-[0.12em] text-slate-400">What is this photo about?</span>

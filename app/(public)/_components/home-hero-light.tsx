@@ -18,8 +18,8 @@ export function HomeHeroLight() {
           <Link href="#request-a-visit" className={MKT_L_BTN_PRIMARY}>
             Request a site visit
           </Link>
-          <Link href="#walk" className={MKT_L_BTN_GHOST}>
-            Walk the site
+          <Link href="#examples" className={MKT_L_BTN_GHOST}>
+            See the deliverables
           </Link>
         </div>
       </div>
