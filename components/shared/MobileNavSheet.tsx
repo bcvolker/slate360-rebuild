@@ -37,7 +37,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "SlateDrop", href: "/slatedrop", icon: Cloud },
   { label: "Coordination", href: "/coordination/inbox", icon: MessageSquare },
   { label: "Account", href: "/more", icon: User },
-  { label: "Operations Console", href: "/operations-console", icon: Shield, internalKey: "operationsConsole" },
+  { label: "CEO Dashboard", href: "/operations-console", icon: Shield, internalKey: "operationsConsole" },
 ];
 
 interface MobileNavSheetProps {

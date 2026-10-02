@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
+import { resolveAuthenticatedLanding } from "@/lib/auth/resolve-authenticated-landing";
 import { createClient } from "@/lib/supabase/client";
 import { Eye, EyeOff, ArrowRight, Loader2 } from "lucide-react";
 import { AuthGlassShell } from "@/components/auth/AuthGlassShell";
@@ -53,7 +54,16 @@ function LoginForm() {
       setError(error.message);
       setLoading(false);
     } else {
-      router.push(redirectTo);
+      // Default /app is rewritten server-side for the CEO account only.
+      // Explicit redirectTo deep links are returned unchanged. If the
+      // session cookie is not readable yet, keep the requested path.
+      let destination = redirectTo;
+      try {
+        destination = await resolveAuthenticatedLanding(redirectTo);
+      } catch {
+        destination = redirectTo;
+      }
+      router.push(destination);
       router.refresh();
     }
   }

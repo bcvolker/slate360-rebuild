@@ -29,6 +29,7 @@
 		6F708192A3B4C5D6E7F8091A2 /* TwinUploader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F708192A3B4C5D6E7F8091A3 /* TwinUploader.swift */; };
 		A1B2C3D4E5F6071829304A5B /* TwinUploadSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6071829304A5C /* TwinUploadSupport.swift */; };
 		B2C3D4E5F6071829304A5B6C /* TwinUploadSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2C3D4E5F6071829304A5B6D /* TwinUploadSession.swift */; };
+		E4F2A0014E2F000000000001 /* TwinUploadStatusViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4F2A0014E2F000000000002 /* TwinUploadStatusViewController.swift */; };
 		708192A3B4C5D6E7F8091A2B3 /* SlateBridgeViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 708192A3B4C5D6E7F8091A2B4 /* SlateBridgeViewController.swift */; };
 /* End PBXBuildFile section */
 
@@ -57,6 +58,7 @@
 		6F708192A3B4C5D6E7F8091A3 /* TwinUploader.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TwinUploader.swift; sourceTree = "<group>"; };
 		A1B2C3D4E5F6071829304A5C /* TwinUploadSupport.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TwinUploadSupport.swift; sourceTree = "<group>"; };
 		B2C3D4E5F6071829304A5B6D /* TwinUploadSession.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TwinUploadSession.swift; sourceTree = "<group>"; };
+		E4F2A0014E2F000000000002 /* TwinUploadStatusViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TwinUploadStatusViewController.swift; sourceTree = "<group>"; };
 		708192A3B4C5D6E7F8091A2B4 /* SlateBridgeViewController.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SlateBridgeViewController.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -90,6 +92,7 @@
 				6F708192A3B4C5D6E7F8091A3 /* TwinUploader.swift */,
 				A1B2C3D4E5F6071829304A5C /* TwinUploadSupport.swift */,
 				B2C3D4E5F6071829304A5B6D /* TwinUploadSession.swift */,
+				E4F2A0014E2F000000000002 /* TwinUploadStatusViewController.swift */,
 			);
 			name = LiDARCapture;
 			path = Plugins/LiDARCapture;
@@ -241,6 +244,7 @@
 				6F708192A3B4C5D6E7F8091A2 /* TwinUploader.swift in Sources */,
 				A1B2C3D4E5F6071829304A5B /* TwinUploadSupport.swift in Sources */,
 				B2C3D4E5F6071829304A5B6C /* TwinUploadSession.swift in Sources */,
+				E4F2A0014E2F000000000001 /* TwinUploadStatusViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

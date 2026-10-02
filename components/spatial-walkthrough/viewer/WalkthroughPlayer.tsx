@@ -16,9 +16,12 @@ import { buildViewerMarkers, type MarkerChrome, type PinMarkerInput } from "@/li
 import { operatorKeyframesFromRaw, resolvePatchAtTime } from "@/lib/spatial-walkthrough/housewalk-operator";
 import { attachVisibleRangeSync } from "@/lib/spatial-walkthrough/viewer-visible-range";
 import { attachPlayerRuntime } from "./player-runtime";
+import { createWalkthroughHandle } from "./player-handle";
 
 export type WalkthroughPlayerHandle = {
   seekTo: (t: number, yaw?: number, pitch?: number, opts?: { pause?: boolean }) => void;
+  /** Set yaw/pitch in degrees immediately. Does not move the playhead. */
+  animate: (yaw: number, pitch: number) => void;
   getView: () => { t: number; yaw: number; pitch: number };
   pause: () => void;
   play: () => void;
@@ -175,53 +178,7 @@ export function WalkthroughPlayer({
       );
     };
 
-    const handle: WalkthroughPlayerHandle = {
-      seekTo: (t, yaw, pitch, opts) => {
-        if (opts?.pause !== false) videoPlugin.pause();
-        videoPlugin.setTime(t);
-        if (yaw != null && pitch != null) {
-          void viewer.animate({ yaw: `${yaw}deg`, pitch: `${pitch}deg`, speed: "2.5rpm" });
-        }
-        applyMarkers(t);
-      },
-      getView: () => {
-        const pos = viewer.getPosition();
-        return {
-          t: videoPlugin.getTime(),
-          yaw: (pos.yaw * 180) / Math.PI,
-          pitch: (pos.pitch * 180) / Math.PI,
-        };
-      },
-      pause: () => videoPlugin.pause(),
-      play: () => {
-        void video.play().catch(() => undefined);
-        videoPlugin.play();
-      },
-      setSourceMuted: (muted) => {
-        video.muted = muted;
-      },
-      setSourceVolume: (volume) => {
-        video.volume = Math.min(1, Math.max(0, volume));
-      },
-      isPaused: () => video.paused,
-      setPlaybackRate: (rate) => {
-        video.playbackRate = rate;
-      },
-      setSphereCorrection: (c) => {
-        viewer.setOptions({ sphereCorrection: c });
-      },
-      viewerToSphere: (x, y) => {
-        try {
-          const pos = viewer.dataHelper.viewerCoordsToSphericalCoords({ x, y });
-          return { yaw: (pos.yaw * 180) / Math.PI, pitch: (pos.pitch * 180) / Math.PI };
-        } catch {
-          return null;
-        }
-      },
-      zoomBy: (delta) => {
-        viewer.zoom(Math.min(100, Math.max(0, viewer.getZoomLevel() + delta)));
-      },
-    };
+    const handle = createWalkthroughHandle(viewer, video, videoPlugin, applyMarkers);
 
     const onProgress = (evt: { time?: number }) => {
       const live = liveRef.current;

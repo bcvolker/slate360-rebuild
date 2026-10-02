@@ -43,7 +43,7 @@ export default function WizardLocationPicker({
           style={{ width: "100%", height: "100%" }}
         >
           {value.lat !== null && value.lng !== null && (
-            <AdvancedMarker position={{ lat: value.lat, lng: value.lng }} />
+            <AdvancedMarker position={{ lat: value.lat, lng: value.lng }} clickable={false} />
           )}
         </Map>
         <WizardLocationPickerController value={value} onChange={onChange} />

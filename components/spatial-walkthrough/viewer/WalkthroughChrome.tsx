@@ -11,6 +11,8 @@ import { PrivacyTimeline } from "./PrivacyTimeline";
 import { PublicWalkToolbar } from "./PublicWalkToolbar";
 import { WalkTapLayer } from "./WalkTapLayer";
 import { ShareCurrentView } from "./ShareCurrentView";
+import { LandscapeJoystickHud } from "./LandscapeJoystickHud";
+import { useImmersiveWalk } from "./useImmersiveWalk";
 
 type Props = {
   waypoints: WaypointRecord[];
@@ -52,6 +54,7 @@ export function WalkthroughChrome({
   publicChrome = false,
   askEnabled = true,
 }: Props) {
+  const immersive = useImmersiveWalk();
   const inClip = waypoints.filter((w) => w.clipId === clipId);
   const idx = indexAtTime(waypoints, clipId, currentT);
   const prev = prevWaypoint(waypoints, clipId, idx);
@@ -73,10 +76,7 @@ export function WalkthroughChrome({
       onFullscreen();
       return;
     }
-    const el = document.querySelector(".sw-frame");
-    if (!el) return;
-    if (document.fullscreenElement) void document.exitFullscreen();
-    else void el.requestFullscreen();
+    void immersive.toggle();
   };
 
   useEffect(() => {
@@ -91,6 +91,14 @@ export function WalkthroughChrome({
   if (publicChrome) {
     return (
       <>
+      <LandscapeJoystickHud
+        player={player}
+        duration={duration}
+        visible={immersive.showHud}
+        immersive={immersive.active}
+        offerFullscreen={immersive.offer}
+        onToggleFullscreen={() => void immersive.toggle()}
+      />
       <WalkTapLayer player={player} waypoints={waypoints} clipId={clipId} currentT={currentT} enabled={mode === "explore"} />
       <PublicWalkToolbar
         waypoints={waypoints}
@@ -108,6 +116,8 @@ export function WalkthroughChrome({
         mode={mode}
         onModeChange={(next) => onModeChange(next)}
         onPlaybackRate={(rate) => player?.setPlaybackRate(rate)}
+        onFullscreen={() => void immersive.toggle()}
+        fullscreenActive={immersive.active}
       />
       </>
     );
@@ -169,7 +179,7 @@ export function WalkthroughChrome({
           </button>
         ) : null}
         <ShareCurrentView hrefFor={shareHrefFor} />
-        <button type="button" className="sw-chrome-btn" onClick={fullscreen} aria-label="Full screen">
+        <button type="button" className="sw-chrome-btn" onClick={fullscreen} aria-label={immersive.active ? "Exit full screen" : "Full screen"}>
           <Maximize2 className="h-4 w-4" />
         </button>
         <button type="button" className="sw-chrome-btn sw-station-btn" disabled={!next} onClick={() => go(next)} aria-label="Next station">

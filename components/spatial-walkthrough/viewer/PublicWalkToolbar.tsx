@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronLeft, ChevronRight, Minus, Pause, Play, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Maximize2, Minimize2, Minus, Pause, Play, Plus } from "lucide-react";
 import type { WalkthroughPlayerHandle } from "./WalkthroughPlayer";
 import type { WaypointRecord } from "@/lib/spatial-walkthrough/types";
 import { indexAtTime, nextWaypoint, prevWaypoint } from "@/lib/spatial-walkthrough/waypoints";
@@ -23,6 +23,8 @@ type Props = {
   onModeChange?: (mode: "explore" | "play") => void;
   playbackRate?: number;
   onPlaybackRate?: (rate: number) => void;
+  onFullscreen?: () => void;
+  fullscreenActive?: boolean;
 };
 
 function clock(t: number): string {
@@ -47,6 +49,8 @@ export function PublicWalkToolbar({
   onModeChange,
   playbackRate = 1,
   onPlaybackRate,
+  onFullscreen,
+  fullscreenActive = false,
 }: Props) {
   const idx = indexAtTime(waypoints, clipId, currentT);
   const prev = prevWaypoint(waypoints, clipId, idx);
@@ -108,6 +112,18 @@ export function PublicWalkToolbar({
       {onPins ? <button type="button" className="sw-chrome-btn" data-testid="sw-pins" onClick={onPins}>Pins</button> : null}
       {onAsk ? <button type="button" className="sw-chrome-btn" data-testid="sw-ask" onClick={onAsk}>Ask a Question</button> : null}
       {spaces}
+      {onFullscreen ? (
+        <button
+          type="button"
+          className="sw-chrome-btn"
+          data-testid="sw-fullscreen"
+          aria-pressed={fullscreenActive}
+          aria-label={fullscreenActive ? "Exit full screen" : "Full screen"}
+          onClick={onFullscreen}
+        >
+          {fullscreenActive ? <Minimize2 className="h-4 w-4" /> : <Maximize2 className="h-4 w-4" />}
+        </button>
+      ) : null}
       <button type="button" className="sw-chrome-btn" aria-label="Zoom out" onClick={() => player?.zoomBy?.(-8)}>
         <Minus className="h-4 w-4" />
       </button>

@@ -43,6 +43,26 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
     // ("stuck at Saving…, zero server contact"). Upfront capture removes that dependency.
     private var storedCookieHeader: String = ""
     private weak var captureVC: TwinARKitCaptureViewController?
+    /// Native post-capture status. Owns the screen until the user closes it so the
+    /// WebView review funnel is not the upload UI.
+    private weak var uploadStatusVC: TwinUploadStatusViewController?
+    private var queuedUploadPhase: TwinUploadStatusViewController.Phase?
+    private var queuedUploadNote: String?
+    private var pendingStatusPayload: [String: Any]?
+    private var statusApiBase = "https://www.slate360.ai"
+    /// Files after the on-device copy. Retry reuses these paths; the temp URIs are gone.
+    private var preparedUploadEntries: [TwinUploader.FileEntry]?
+    private var retryUpload: (() -> Void)?
+    /// Live capture close resolves the JS call. A relaunch status screen only dismisses.
+    private var statusCloseMode: StatusCloseMode = .finishCapture
+    private var didOfferRestoreThisLaunch = false
+    private var restoreTimer: Timer?
+    private var restoreHoldFailed = false
+
+    private enum StatusCloseMode {
+        case finishCapture
+        case dismissOnly
+    }
 
     // Serial queue for the native direct-to-storage upload (blocking URLSession calls).
     private let uploadQueue = DispatchQueue(label: "ai.slate360.twin.upload", qos: .userInitiated)
@@ -89,7 +109,13 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
         // resumed until the next cold start. Every return to the foreground retries now.
         NotificationCenter.default.addObserver(
             forName: UIApplication.didBecomeActiveNotification, object: nil, queue: .main
-        ) { _ in TwinUploadSession.shared.resumePendingUploads() }
+        ) { [weak self] _ in
+            TwinUploadSession.shared.resumePendingUploads()
+            self?.restoreUploadStatusIfNeeded()
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) { [weak self] in
+            self?.restoreUploadStatusIfNeeded()
+        }
     }
 
     /// Web-triggered resume (the Saved screen's "Resume upload").
@@ -229,11 +255,10 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
 
     // MARK: - Native upload
 
-    /// Reads the capture's temp files into the native uploader (off the main thread) and
-    /// resolves the pending JS call with `{ captureId, uploaded: true }`. On failure it
-    /// resolves with `{ uploadError, errorCode? }` so the web layer renders a friendly
-    /// message instead of throwing. The local file:// URIs are stripped from the manifest —
-    /// the web layer must never fetch them (that is the crash this whole path avoids).
+    /// Reads the capture's temp files into the native uploader (off the main thread).
+    /// The status screen stays up until the user closes it. Close then resolves the JS
+    /// call with `nativeStatus` and `cancelled: true` (no captureId) so the web layer
+    /// does not open Review & Sources. Local file URIs never cross into JS.
     private func uploadCapture(
         manifest: [String: Any],
         spaceId: String,
@@ -265,17 +290,31 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
         let depthEvidenceUrl = (manifest["depthEvidenceUri"] as? String).flatMap(URL.init(string:))
 
         guard !videoFiles.isEmpty || !photoFiles.isEmpty || plyUrl != nil || posesUrl != nil || depthEvidenceUrl != nil else {
-            resolveCapture(["cancelled": false, "uploadError": "No capture files were produced."])
+            pendingStatusPayload = ["cancelled": true, "nativeStatus": "failed"]
+            statusApiBase = apiBase
+            presentUploadStatus(projectAttached: !projectId.isEmpty, allowsRetry: false)
+            showUploadPhase(.failed(message: "No capture files were produced."))
             return
         }
 
         let pts = (manifest["pointCount"] as? NSNumber)?.intValue ?? 0
+        statusApiBase = apiBase
+        preparedUploadEntries = nil
+        pendingStatusPayload = nil
+        statusCloseMode = .finishCapture
+        restoreHoldFailed = false
+        restoreTimer?.invalidate()
+        restoreTimer = nil
+        presentUploadStatus(projectAttached: !projectId.isEmpty, allowsRetry: true, isResume: false)
+        showUploadPhase(.savedLocally)
 
-        // Tell the web layer we've left capture and started uploading (presentCapture is
-        // still awaiting; native resolves only once the upload completes).
+        // Tell the web layer we've left capture. presentCapture stays pending until the
+        // user closes the native status screen — the WebView is not the status UI.
         notifyListeners("uploadPhase", data: ["phase": "uploading"])
 
-        collectCookieHeader { [weak self] cookieHeader in
+        let startUpload = { [weak self] in
+            guard let self = self else { return }
+            self.collectCookieHeader { [weak self] cookieHeader in
             guard let self = self else { return }
             self.uploadQueue.async {
                 // Build entries here — gzip of the PLY/poses is CPU work that must not
@@ -285,22 +324,28 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                 // they were queued after the photos and never even registered when a
                 // photo upload died. (All files upload via the background engine in
                 // parallel, but registration/start order still follows this list.)
-                var entries: [TwinUploader.FileEntry] = []
+                // Retry reuses the post-move paths. Rebuilding from the temp URIs would
+                // miss files that keepCaptureOnDevice already moved into Documents.
+                let entries: [TwinUploader.FileEntry]
+                if let cached = self.preparedUploadEntries, !cached.isEmpty {
+                    entries = cached
+                } else {
+                var built: [TwinUploader.FileEntry] = []
                 for video in videoFiles {
-                    entries.append(.init(url: video.url, filename: video.filename, contentType: "video/mp4", assetKind: "video"))
+                    built.append(.init(url: video.url, filename: video.filename, contentType: "video/mp4", assetKind: "video"))
                 }
                 if let url = plyUrl {
-                    entries.append(self.gzippedEntry(
+                    built.append(self.gzippedEntry(
                         url: url, filename: "lidar_capture.ply",
                         rawContentType: "application/octet-stream", assetKind: "ply_lidar"))
                 }
                 if let url = posesUrl {
-                    entries.append(self.gzippedEntry(
+                    built.append(self.gzippedEntry(
                         url: url, filename: "lidar_poses.json",
                         rawContentType: "application/json", assetKind: "lidar_poses"))
                 }
                 if let url = depthEvidenceUrl {
-                    entries.append(.init(
+                    built.append(.init(
                         url: url,
                         filename: "lidar_depth.s360depth",
                         contentType: "application/octet-stream",
@@ -308,16 +353,20 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                     ))
                 }
                 for photo in photoFiles {
-                    entries.append(.init(url: photo.url, filename: photo.filename, contentType: "image/jpeg", assetKind: "photo"))
+                    built.append(.init(url: photo.url, filename: photo.filename, contentType: "image/jpeg", assetKind: "photo"))
                 }
                 // Capture bundle: one JSON that lists every file in this capture (name, kind,
                 // bytes) plus the camera settings used, so the desktop Capture Studio and the
                 // cloud worker can treat the upload as one package instead of loose files.
-                if let bundleEntry = self.writeCaptureBundle(entries: entries, manifest: manifest, spaceId: spaceId, projectId: projectId) {
-                    let sidecarSlot = min(entries.count, videoFiles.count + (plyUrl == nil ? 0 : 1) + (posesUrl == nil ? 0 : 1))
-                    entries.insert(bundleEntry, at: sidecarSlot)
+                if let bundleEntry = self.writeCaptureBundle(entries: built, manifest: manifest, spaceId: spaceId, projectId: projectId) {
+                    let sidecarSlot = min(built.count, videoFiles.count + (plyUrl == nil ? 0 : 1) + (posesUrl == nil ? 0 : 1))
+                    built.insert(bundleEntry, at: sidecarSlot)
                 }
-                entries = self.keepCaptureOnDevice(entries: entries, title: title)
+                built = self.keepCaptureOnDevice(entries: built, title: title)
+                self.preparedUploadEntries = built
+                entries = built
+                self.showUploadPhase(.savedLocally)
+                }
                 // Pass spaceId through even if empty — the uploader self-heals by creating a
                 // quick-scan workspace, so a stale web bundle can't strand the capture.
                 let uploader = TwinUploader(
@@ -329,11 +378,19 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                 )
                 // Forward each upload step to the web so the spinner shows live progress
                 // ("Uploading video…", "Finishing up…") instead of a silent "Uploading scan…".
+                uploader.onDestination = { [weak self] projectId, created in
+                    DispatchQueue.main.async {
+                        self?.uploadStatusVC?.noteDestination(attached: !projectId.isEmpty, createdProject: created)
+                    }
+                }
                 uploader.onStep = { [weak self] label in
+                    self?.updateUpload(percent: nil, note: label)
                     self?.notifyListeners("uploadPhase", data: ["phase": "uploading", "label": label])
                 }
+                self.updateUpload(percent: 0, note: nil)
                 uploader.onProgress = { [weak self] frac in
                     let pct = Int((max(0, min(1, frac)) * 100).rounded())
+                    self?.updateUpload(percent: pct, note: nil)
                     self?.notifyListeners("uploadPhase", data: ["phase": "uploading", "progress": pct])
                 }
                 do {
@@ -349,50 +406,216 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
                         // disk); files that never registered with the server will not —
                         // never promise a retry that can't happen.
                         let retryNote = outcome.unregisteredFiles.isEmpty
-                            ? "They'll retry automatically next time you open the app."
-                            : "Some may need the scan re-run — check the capture's files."
-                        self.presentNativeNotice(
-                            "\(failedCount) of \(entries.count) files couldn't upload. \(retryNote) Everything else is up."
-                        )
+                            ? "Tap Retry. Completed files stay put."
+                            : "Some files never registered. Tap Retry, or scan again if they stay failed."
+                        self.pendingStatusPayload = self.statusPayload(nativeStatus: "failed", uploaded: false)
+                        self.showUploadPhase(.failed(message: "\(failedCount) of \(entries.count) files couldn't upload. \(retryNote)"))
+                    } else {
+                        self.pendingStatusPayload = self.statusPayload(nativeStatus: "done", uploaded: true)
+                        self.showUploadPhase(.done)
                     }
-                    var result = manifest
-                    result["cancelled"] = false
-                    result["captureId"] = captureId
-                    result["uploaded"] = true
-                    result["failedFileCount"] = failedCount
-                    result["videoUri"] = NSNull()
-                    result["videoUris"] = NSNull()
-                    result["photoUris"] = NSNull()
-                    result["plyUri"] = NSNull()
-                    result["posesUri"] = NSNull()
-                    result["depthEvidenceUri"] = NSNull()
-                    // Drive the WebView to the per-capture submit funnel (loads by captureId,
-                    // so it survives a fresh WebView load with no in-memory web state). This is
-                    // the "scan ready → cost → process → status → view" screen — NOT the generic
-                    // home/upload page that the earlier "/digital-twin" navigation landed on.
-                    self.navigateWebView(
-                        to: "/digital-twin/capture/submit?captureId=\(captureId)",
-                        apiBase: apiBase
-                    )
-                    self.resolveCapture(result)
                 } catch {
                     NSLog("[Slate360] Twin native upload failed: \(error.localizedDescription)")
-                    self.presentNativeNotice("Scan captured (\(pts) pts) but upload failed:\n\(error.localizedDescription)\n\nYour scan is saved — reopen Twin 360 to retry.")
-                    // Never strand the user on a dead capture screen: land them on My Twins
-                    // so there is always a path forward (the resumable uploader retries the
-                    // large files in the background regardless).
-                    self.navigateWebView(to: "/digital-twin/twins", apiBase: apiBase)
-                    var payload: [String: Any] = [
-                        "cancelled": false,
-                        "uploadError": error.localizedDescription,
-                    ]
+                    var payload = self.statusPayload(nativeStatus: "failed", uploaded: false)
+                    payload["uploadError"] = error.localizedDescription
                     if let ue = error as? TwinUploader.UploadError, let code = ue.statusCode {
                         if code == 402 || code == 403 { payload["errorCode"] = "insufficient" }
                     }
-                    self.resolveCapture(payload)
+                    self.pendingStatusPayload = payload
+                    self.showUploadPhase(.failed(message: "Scan captured (\(pts) pts) but upload failed. \(error.localizedDescription) The scan stays on this phone."))
+                }
+            }
+            }
+        }
+        retryUpload = startUpload
+        startUpload()
+    }
+
+    /// `cancelled: true` is deliberate. Production web still treats a resolved
+    /// `captureId` as "open Review & Sources". Closing this screen must land on
+    /// Twin home instead. `nativeStatus` is the explicit signal for the updated web.
+    private func statusPayload(nativeStatus: String, uploaded: Bool) -> [String: Any] {
+        [
+            "cancelled": true,
+            "nativeStatus": nativeStatus,
+            "uploaded": uploaded,
+        ]
+    }
+
+    private func presentUploadStatus(projectAttached: Bool, allowsRetry: Bool, isResume: Bool = false) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            if self.uploadStatusVC != nil { return }
+            let vc = TwinUploadStatusViewController()
+            vc.projectAttached = projectAttached
+            vc.projectCreated = false
+            vc.isResume = isResume
+            vc.modalPresentationStyle = .fullScreen
+            if allowsRetry {
+                vc.onRetry = { [weak self] in
+                    guard let self = self, let retry = self.retryUpload else { return }
+                    self.restoreHoldFailed = false
+                    self.updateUpload(percent: 0, note: "Continuing upload…")
+                    retry()
+                }
+            }
+            vc.onClose = { [weak self] in
+                self?.uploadStatusVC?.dismiss(animated: true) {
+                    self?.closeUploadStatus()
+                }
+            }
+            guard let presenter = Self.topMostViewController() else {
+                // A live capture with nowhere to present must still resolve the JS call.
+                // A relaunch with no window yet retries on the next activation.
+                if self.statusCloseMode == .finishCapture {
+                    self.closeUploadStatus()
+                }
+                return
+            }
+            self.uploadStatusVC = vc
+            presenter.present(vc, animated: true) { [weak self] in
+                let phase = self?.queuedUploadPhase ?? .savedLocally
+                vc.apply(phase)
+                if case .uploading = phase, let note = self?.queuedUploadNote, !note.isEmpty {
+                    vc.updateUpload(percent: nil, note: note)
                 }
             }
         }
+    }
+
+    private func showUploadPhase(_ phase: TwinUploadStatusViewController.Phase) {
+        DispatchQueue.main.async { [weak self] in
+            self?.queuedUploadPhase = phase
+            self?.uploadStatusVC?.apply(phase)
+        }
+    }
+
+    private func updateUpload(percent: Int?, note: String?) {
+        let phase = TwinUploadStatusViewController.Phase.uploading(percent: percent ?? 0)
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            if let note = note, !note.isEmpty {
+                self.queuedUploadNote = note
+            }
+            if let percent = percent {
+                self.queuedUploadPhase = .uploading(percent: percent)
+            }
+            if let vc = self.uploadStatusVC {
+                vc.updateUpload(percent: percent, note: note)
+            } else if let percent = percent {
+                self.queuedUploadPhase = phase
+            }
+        }
+    }
+
+    private func closeUploadStatus() {
+        restoreTimer?.invalidate()
+        restoreTimer = nil
+        let mode = statusCloseMode
+        let payload = pendingStatusPayload ?? statusPayload(nativeStatus: "done", uploaded: false)
+        pendingStatusPayload = nil
+        preparedUploadEntries = nil
+        retryUpload = nil
+        uploadStatusVC = nil
+        queuedUploadPhase = nil
+        queuedUploadNote = nil
+        statusCloseMode = .finishCapture
+        // Relaunch status is informational. Do not resolve a capture or load a web route.
+        guard mode == .finishCapture else { return }
+        navigateWebView(to: "/digital-twin", apiBase: statusApiBase)
+        resolveCapture(payload)
+    }
+
+    /// One native status screen per launch when a killed app left part manifests on disk.
+    /// Skipped during an in-flight capture (that screen is already up, or about to be).
+    private func restoreUploadStatusIfNeeded() {
+        guard uploadStatusVC == nil, captureVC == nil, pendingCaptureCall == nil else { return }
+        guard !didOfferRestoreThisLaunch else { return }
+        let pending = (TwinUploadSession.shared.pendingUploadReport()["pending"] as? Int) ?? 0
+        guard pending > 0, Self.topMostViewController() != nil else { return }
+        didOfferRestoreThisLaunch = true
+        statusCloseMode = .dismissOnly
+        restoreHoldFailed = false
+        retryUpload = { [weak self] in self?.retryRestoredUpload() }
+        presentUploadStatus(projectAttached: false, allowsRetry: true, isResume: true)
+        updateUpload(percent: restoredPercent(), note: "Continuing upload…")
+        startRestorePoll()
+        collectCookieHeader { [weak self] header in
+            TwinUploadSession.shared.resumePendingUploads(cookieHeader: header) { report in
+                self?.applyRestoreReport(report)
+            }
+        }
+    }
+
+    private func retryRestoredUpload() {
+        restoreHoldFailed = false
+        startRestorePoll()
+        collectCookieHeader { [weak self] header in
+            TwinUploadSession.shared.resumePendingUploads(cookieHeader: header) { report in
+                self?.applyRestoreReport(report)
+            }
+        }
+    }
+
+    private func applyRestoreReport(_ report: [String: Any]) {
+        DispatchQueue.main.async { [weak self] in
+            self?.applyRestoreReportOnMain(report)
+        }
+    }
+
+    private func applyRestoreReportOnMain(_ report: [String: Any]) {
+        let signedIn = (report["signedIn"] as? Bool) ?? false
+        let still = (report["pending"] as? Int) ?? 0
+        if still == 0 {
+            restoreTimer?.invalidate()
+            restoreTimer = nil
+            pendingStatusPayload = statusPayload(nativeStatus: "done", uploaded: true)
+            showUploadPhase(.done)
+            return
+        }
+        if !signedIn {
+            restoreHoldFailed = true
+            restoreTimer?.invalidate()
+            restoreTimer = nil
+            pendingStatusPayload = statusPayload(nativeStatus: "failed", uploaded: false)
+            showUploadPhase(.failed(message: "The scan is still on this phone. Sign in, then tap Retry."))
+        }
+    }
+
+    private func startRestorePoll() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            self.restoreTimer?.invalidate()
+            self.restoreTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
+                self?.refreshRestoredUpload()
+            }
+        }
+    }
+
+    private func refreshRestoredUpload() {
+        guard !restoreHoldFailed else { return }
+        let (done, total, files) = TwinUploadStore.shared.byteProgress()
+        if files == 0 {
+            restoreTimer?.invalidate()
+            restoreTimer = nil
+            pendingStatusPayload = statusPayload(nativeStatus: "done", uploaded: true)
+            showUploadPhase(.done)
+            return
+        }
+        let pct: Int
+        if total > 0 {
+            pct = min(99, Int((Double(done) / Double(total) * 100).rounded()))
+        } else {
+            pct = 0
+        }
+        let note = files == 1 ? "1 file still uploading." : "\(files) files still uploading."
+        updateUpload(percent: pct, note: note)
+    }
+
+    private func restoredPercent() -> Int {
+        let (done, total, _) = TwinUploadStore.shared.byteProgress()
+        guard total > 0 else { return 0 }
+        return min(99, Int((Double(done) / Double(total) * 100).rounded()))
     }
 
     /// Writes `capture_bundle.json` next to the capture files and returns its upload entry.
@@ -456,22 +679,6 @@ public class LiDARCapturePlugin: CAPPlugin, CAPBridgedPlugin, ARSessionDelegate,
         } catch {
             NSLog("[Slate360] gzip failed for \(filename) — uploading raw: \(error.localizedDescription)")
             return .init(url: url, filename: filename, contentType: rawContentType, assetKind: assetKind)
-        }
-    }
-
-    /// Shows a native (UIKit) popup that does not depend on the WebView — used to report the
-    /// capture/upload outcome even when the WebView content process has been reclaimed.
-    /// TEMPORARY diagnostic + confirmation; folds into the capture-screen redesign later.
-    private func presentNativeNotice(_ message: String) {
-        DispatchQueue.main.async {
-            // Present from the key window's TOP-MOST VC, not the bridge VC — if the web
-            // content process was reclaimed the bridge VC's view may be gone, but the
-            // native alert must still reach the user (consensus: never rely on the webview
-            // to show a failure).
-            guard let presenter = Self.topMostViewController() else { return }
-            let alert = UIAlertController(title: "Twin capture", message: message, preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            presenter.present(alert, animated: true)
         }
     }
 
