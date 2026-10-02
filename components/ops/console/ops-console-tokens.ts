@@ -2,8 +2,11 @@
 // palette, no amber) so it stays aligned with the Slate360 app shell.
 
 export const opsConsoleTokens = {
-  page: "mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col px-4 py-6 lg:px-0",
-  header: "mb-5 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between",
+  page: "mx-auto flex min-h-[100dvh] w-full max-w-6xl flex-col px-6 py-8",
+  header: "mb-8 flex flex-col gap-4 border-b border-[var(--mobile-app-card-border)] pb-5 sm:flex-row sm:items-center sm:justify-between",
+  headerActions: "flex flex-wrap items-center gap-4",
+  quietAction:
+    "text-sm text-[var(--graphite-muted)] underline-offset-4 hover:text-[var(--graphite-text-header)] hover:underline",
   eyebrow:
     "font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--graphite-muted)]",
   title: "text-2xl font-bold text-[var(--graphite-text-header)]",

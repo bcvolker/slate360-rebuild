@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
+import { loadCeoDashboardWork } from "@/lib/server/ceo-dashboard-work";
 import { getOperationsConsoleCounts } from "@/lib/server/operations-console-counts";
 import type {
   OpsConsoleInitialData,
@@ -49,7 +50,7 @@ function readHealth(): OpsHealth {
  * Staff (non-CEO) get only the feedback + pending-approval queues; CEO also gets
  * platform overview metrics, the staff roster, and integration health.
  */
-export async function loadOpsConsoleData(isCeo: boolean): Promise<OpsConsoleInitialData> {
+export async function loadOpsConsoleData(isCeo: boolean, orgId: string | null = null): Promise<OpsConsoleInitialData> {
   const admin = createAdminClient();
   const counts = await getOperationsConsoleCounts();
 
@@ -84,7 +85,7 @@ export async function loadOpsConsoleData(isCeo: boolean): Promise<OpsConsoleInit
   }));
 
   if (!isCeo) {
-    return { isCeo, counts, overview: null, feedback, pendingUsers, staff: [], health: null };
+    return { isCeo, counts, overview: null, feedback, pendingUsers, staff: [], health: null, work: null };
   }
 
   const [orgsRes, usersCountRes, staffRes] = await Promise.all([
@@ -118,5 +119,6 @@ export async function loadOpsConsoleData(isCeo: boolean): Promise<OpsConsoleInit
     revokedAt: r.revoked_at,
   }));
 
-  return { isCeo, counts, overview, feedback, pendingUsers, staff, health: readHealth() };
+  const work = await loadCeoDashboardWork(orgId);
+  return { isCeo, counts, overview, feedback, pendingUsers, staff, health: readHealth(), work };
 }

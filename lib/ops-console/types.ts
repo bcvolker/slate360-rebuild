@@ -1,16 +1,24 @@
-// Shared types for the Operations Console. Plain module (no "use client") so it
+import type { CeoDashboardWork } from "@/lib/ops-console/work-types";
+
+// Shared types for the CEO Dashboard. Plain module (no "use client") so it
 // can be imported by both the server data loader and the client Zustand store.
 
 export type OpsConsoleTab =
   | "overview"
+  | "leads"
+  | "portals"
+  | "jobs"
+  | "deliverables"
+  | "commercial"
+  | "contacts"
+  | "feedback"
+  | "health"
   | "revenue"
   | "users"
   | "plans"
-  | "feedback"
   | "communications"
   | "staff"
-  | "content"
-  | "health";
+  | "content";
 
 export interface OpsOverview {
   totalOrgs: number;
@@ -78,6 +86,8 @@ export interface OpsConsoleInitialData {
   pendingUsers: OpsPendingUser[]; // staff + CEO
   staff: OpsStaffGrant[]; // CEO only
   health: OpsHealth | null; // CEO only
+  /** Owner job lists. Null when the viewer is not the CEO. */
+  work: CeoDashboardWork | null;
 }
 
 export interface OpsActionItem {

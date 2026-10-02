@@ -130,7 +130,7 @@ export function SettingsBillingPanel({
         <SettingsBuyCreditsButton disabledReason={billingDisabledReason} />
         {isSlateCeo ? (
           <Link href="/operations-console" className={settingsTokens.ghostButton}>
-            View CEO metrics
+            CEO Dashboard
           </Link>
         ) : null}
       </div>

@@ -62,7 +62,7 @@ const NAV_GROUPS: NavGroup[] = [
     items: [
       { icon: Users, label: "Team Access", href: "#" },
       { icon: CreditCard, label: "Billing & Usage", href: "#" },
-      { icon: Settings2, label: "Ops Console", href: "#" },
+      { icon: Settings2, label: "CEO Dashboard", href: "/operations-console" },
     ],
   },
 ];

@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { matchesOwnerEmail } from "@/lib/auth/post-login-path";
 import { resolveMobileLegacyRedirect } from "@/lib/mobile-route-policy";
 import { NextResponse, type NextRequest, userAgent } from "next/server";
 
@@ -120,6 +121,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  // Device fork is only /app ↔ /dashboard. /operations-console is the CEO
+  // post-login landing and must stick on desktop (do not fold it into /app).
   if (pathname === "/app" && !isMobile) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
@@ -173,8 +176,7 @@ export async function middleware(request: NextRequest) {
   // Pending Foundational Verification screen.
   // Owner email (CEO_EMAIL env) and is_app_reviewer accounts bypass.
   // /pending-verification and /beta-pending are exempt to avoid loops.
-  const ownerEmail = process.env.CEO_EMAIL;
-  const isOwner = ownerEmail && user?.email?.toLowerCase() === ownerEmail.toLowerCase();
+  const isOwner = matchesOwnerEmail(user?.email);
   const isApprovalBypassRoute =
     pathname.startsWith("/pending-verification") ||
     pathname.startsWith("/beta-pending");
@@ -224,13 +226,22 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Redirect logged-in users away from /login and /signup
+  // Redirect logged-in users away from /login and /signup.
+  // Non-CEO accounts stay on /app (desktop middleware then forks to /dashboard).
+  // The CEO account lands on /operations-console. Deep-link query params are
+  // left as they were for non-CEO; the CEO bounce drops them so the console
+  // URL stays clean.
   if (
     user &&
     (pathname === "/login" || pathname === "/signup")
   ) {
     const url = request.nextUrl.clone();
-    url.pathname = "/app";
+    if (matchesOwnerEmail(user.email)) {
+      url.pathname = "/operations-console";
+      url.search = "";
+    } else {
+      url.pathname = "/app";
+    }
     return NextResponse.redirect(url);
   }
 

@@ -125,18 +125,11 @@ export const GET = (req: NextRequest) =>
             createdAt: entry.created_at,
             isOwnerAccount: email === "slate360ceo@gmail.com",
             staffId: staffGrant?.id ?? null,
-            accessScope: scopes,
-            hasMarketAccess: scopes.includes("market"),
-            hasAthlete360Access: scopes.includes("athlete360"),
+            accessScope: scopes.filter((scope) => scope !== "market" && scope !== "athlete360"),
           };
         })
         .filter((entry) => entry.email)
-        .sort((left, right) => {
-          if (left.hasMarketAccess !== right.hasMarketAccess) {
-            return left.hasMarketAccess ? -1 : 1;
-          }
-          return left.displayName.localeCompare(right.displayName);
-        });
+        .sort((left, right) => left.displayName.localeCompare(right.displayName));
 
       return ok({ subscribers });
     } catch (error) {

@@ -54,7 +54,7 @@ export default async function MorePage() {
   ];
 
   if (ctx.hasOperationsConsoleAccess) {
-    items.push({ label: "Operations Console", href: "/operations-console", detail: "Owner/staff release controls", badge: "Internal", icon: Wrench });
+    items.push({ label: "CEO Dashboard", href: "/operations-console", detail: "Approvals, revenue, and system health", icon: Wrench });
   }
 
   return (

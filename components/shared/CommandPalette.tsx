@@ -49,7 +49,7 @@ const ITEMS: PaletteItem[] = [
   { id: "nav-sitewalk", group: "Navigate", label: "Site Walk", icon: MapPin, action: "navigate", href: "/site-walk" },
   { id: "nav-coordination", group: "Navigate", label: "Coordination Inbox", icon: MessageSquare, action: "navigate", href: "/coordination/inbox" },
   { id: "nav-account", group: "Navigate", label: "Account Hub", icon: User, action: "navigate", href: "/more", shortcut: "G A" },
-  { id: "nav-ops", group: "Navigate", label: "Operations Console", icon: Shield, action: "navigate", href: "/operations-console", internalOnly: true },
+  { id: "nav-ops", group: "Navigate", label: "CEO Dashboard", icon: Shield, action: "navigate", href: "/operations-console", internalOnly: true },
   { id: "new-project", group: "Create", label: "New Project", icon: FolderPlus, action: "navigate", href: "/projects?new=1", shortcut: "C P" },
   { id: "acc-settings", group: "Account", label: "Account Settings", icon: Settings, action: "navigate", href: "/settings" },
   { id: "acc-signout", group: "Account", label: "Sign out", icon: LogOut, action: "signout" },

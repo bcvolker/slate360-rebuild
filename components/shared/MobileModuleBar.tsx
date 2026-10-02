@@ -37,7 +37,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Virtual",     href: "/virtual-studio", icon: Film,         gate: "canAccessVirtual", phase1Hidden: true },
   { label: "Analytics",   href: "/analytics",      icon: BarChart3,    gate: "canAccessAnalytics", phase1Hidden: true },
   { label: "Account",     href: "/more",           icon: User },
-  { label: "Ops Console", href: "/operations-console",            icon: Shield,       internalKey: "operationsConsole" },
+  { label: "CEO Dashboard", href: "/operations-console",            icon: Shield,       internalKey: "operationsConsole" },
 ];
 
 interface MobileModuleBarProps {
