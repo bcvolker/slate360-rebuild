@@ -91,7 +91,7 @@ export function SettingsTeamPanel({
         <p className="mb-4 text-xs font-medium text-[var(--graphite-muted)]">
           Need the full directory?{" "}
           <Link href="/operations-console" className="text-[var(--graphite-primary)] underline-offset-2 hover:underline">
-            Open Operations Console
+            Open CEO Dashboard
           </Link>
         </p>
       ) : null}

@@ -231,7 +231,7 @@ Sequence them **in parallel**, not serially.
   (the worker's own `_log_colmap_version` warns about this). Pin before ANY GPU spend.
   (b) **Do NOT rehabilitate ODM.** An uncommitted +27-line diff on `odm_runner.py`
   is re-investing in it; ODM is AGPL-3.0 (fatal for SaaS per
-  UNIFIED_SITE_MODEL_ARCHITECTURE §6b) AND technically failed on ASU (degenerate
+  UNIFIED_SITE_MODEL_ARCHITECTURE §6b) AND technically failed on an internal still-grid capture (degenerate
   36KB mesh, 37 CPU-hours). Park the diff; benchmark-only forever.
   (c) **TWIN-002 one-liner:** `src/trigger/twin-gaussian-splat.ts:80-81` uses
   `.find()` for `lidar_poses`/`ply_lidar` — first-match-only, silent data loss the

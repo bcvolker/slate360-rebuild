@@ -32,6 +32,11 @@ export interface TwinCaptureManifest {
   uploaded?: boolean;
   uploadError?: string;
   errorCode?: string;
+  /**
+   * Set when the native post-capture status screen already showed the outcome.
+   * The web layer must not open Review & Sources or the twin receipt for these.
+   */
+  nativeStatus?: "saved" | "uploading" | "failed" | "done";
   videoUri?: string | null;
   plyUri?: string | null;
   posesUri?: string | null;

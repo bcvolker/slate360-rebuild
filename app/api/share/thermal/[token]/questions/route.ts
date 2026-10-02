@@ -118,7 +118,7 @@ async function notifyOwner(
         subject: `New question on thermal share: ${sessionName}`,
         html: `<p><strong>${author}</strong> asked a question on <strong>${sessionName}</strong>:</p>
                <blockquote>${text.replace(/</g, "&lt;")}</blockquote>
-               <p>Reply in the Operations Console: <a href="${process.env.SITE_URL ?? ""}${link}">${link}</a></p>`,
+               <p>Reply in the CEO Dashboard: <a href="${process.env.SITE_URL ?? ""}${link}">${link}</a></p>`,
       });
     } catch {
       /* best-effort */

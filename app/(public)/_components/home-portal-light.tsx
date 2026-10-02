@@ -1,94 +1,40 @@
-import { MonitorPlay } from "lucide-react";
-import {
-  MKT_L_CONTAINER,
-  MKT_L_H2,
-  MKT_L_KICKER,
-  MKT_L_LEDE,
-} from "@/app/(public)/_components/marketing-styles-light";
+import { MKT_L_CONTAINER, MKT_L_H2, MKT_L_KICKER } from "@/app/(public)/_components/marketing-styles-light";
 
-const LAYERS = [
-  {
-    who: "You receive",
-    title: "The record",
-    items: ["Interactive records, per capture date", "Floor plans and exports", "Source capture archive, retained"],
-  },
-  {
-    who: "In your portal",
-    title: "Control",
-    items: [
-      "Every version in one timeline",
-      "Open, review, pin, and annotate",
-      "Download export packages",
-      "Compose share links — scoped, expiring, view-limited",
-    ],
-  },
-  {
-    who: "Your clients get",
-    title: "A link that just opens",
-    items: ["Your branding, not ours", "Opens in any browser — no app, no account", "Share your screen on any call and walk the site together"],
-  },
+const ROWS = [
+  { label: "Site walkthrough", meta: "Walk it in the browser" },
+  { label: "Open items", meta: "Punches and follow-ups on the spot" },
+  { label: "Documents", meta: "Sheets and reports with the work" },
+  { label: "Questions", meta: "Asked from the client link" },
 ] as const;
 
-/**
- * Client portal — co-focal with "What you get" per the locked hierarchy.
- * The preview slot below accepts either a still image or a short screen
- * recording once Brian has one — see docs/design/HOMEPAGE_LIGHT_REBUILD_PLAN.md.
- * Never fabricated; stays a clean placeholder frame until real content exists.
- */
 export function HomePortalLight() {
   return (
-    <section id="portal" className="py-16 sm:py-20 lg:py-24">
-      <div className={MKT_L_CONTAINER}>
-        <div className={MKT_L_KICKER}>Your client portal</div>
-        <h2 className={MKT_L_H2}>
-          Delivered to a portal. Shared under <em className="not-italic text-[var(--mkt-accent)]">your</em> brand.
-        </h2>
-        <p className={MKT_L_LEDE}>
-          Your project record lives in a portal built for handing off — open any version, download
-          exports, and pass deliverables to your own clients to keep them informed as the work moves.
-        </p>
-
-        <div className="mt-10 grid gap-8 sm:grid-cols-3 sm:gap-10">
-          {LAYERS.map((layer) => (
-            <div key={layer.title} className="border-t border-[var(--mkt-line)] pt-4">
-              <div className="text-[11px] font-semibold uppercase tracking-[0.06em] text-[var(--mkt-accent)]">
-                {layer.who}
-              </div>
-              <h3 className="mt-2 font-serif text-xl font-normal text-[var(--mkt-ink)]">{layer.title}</h3>
-              <ul className="mt-3 space-y-1.5">
-                {layer.items.map((item) => (
-                  <li key={item} className="relative pl-4 text-[14px] leading-relaxed text-[var(--mkt-ink-muted)]">
-                    <span className="absolute left-0 top-[0.65em] h-px w-2.5 bg-[var(--mkt-accent)]" aria-hidden />
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+    <section id="portal" className="py-10 sm:py-12">
+      <div className={`${MKT_L_CONTAINER} grid items-start gap-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-12`}>
+        <div>
+          <div className={MKT_L_KICKER}>Client portal</div>
+          <h2 className={MKT_L_H2}>Evidence, items, and questions in one place</h2>
+          <p className="mt-3 max-w-[48ch] text-[15.5px] leading-relaxed text-[var(--mkt-ink-muted)]">
+            The interactive walkthrough, the punch list, the documents, and the questions share one project.
+            Your crew works there. The link you send carries your logo and colors.
+          </p>
+          <p className="mt-4 max-w-[48ch] border-l-2 border-[var(--mkt-accent-line)] pl-4 text-[14.5px] leading-relaxed text-[var(--mkt-ink)]">
+            White-label is for that client link. This site stays Slate360.
+          </p>
         </div>
-
-        {/* Preview slot — replace with a real screenshot or a short screen
-            recording of a real project being managed once one exists. Dashed
-            outline + icon matches the hero viewer panel's "coming soon"
-            treatment (home-hero-viewer-panel.tsx) so both empty-content slots
-            on the page read as deliberate, not broken. */}
-        <div className="mt-12 overflow-hidden rounded-2xl border border-[var(--mkt-line)] bg-[var(--mkt-surface)] shadow-[0_20px_50px_-24px_rgba(26,36,51,0.18)]">
-          <div className="flex items-center gap-2 border-b border-[var(--mkt-line)] px-4 py-2.5">
-            <span className="h-2.5 w-2.5 rounded-full bg-[var(--mkt-line)]" />
-            <span className="h-2.5 w-2.5 rounded-full bg-[var(--mkt-line)]" />
-            <span className="h-2.5 w-2.5 rounded-full bg-[var(--mkt-line)]" />
-            <span className="ml-2 text-[11.5px] text-[var(--mkt-ink-muted)]">portal.slate360.ai</span>
+        <div className="rounded-2xl border border-[var(--mkt-line)] bg-[var(--mkt-surface)]">
+          <div className="border-b border-[var(--mkt-line)] px-4 py-3">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.06em] text-[var(--mkt-accent)]">Project record</p>
+            <p className="mt-0.5 text-[14px] text-[var(--mkt-ink)]">Your branding on the link</p>
           </div>
-          <div className="p-3">
-            <div className="flex aspect-video flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed border-[var(--mkt-accent-line)] bg-[var(--mkt-canvas-alt)] px-6 text-center">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--mkt-accent-soft)] ring-1 ring-[var(--mkt-accent-line)]">
-                <MonitorPlay className="h-4.5 w-4.5 text-[var(--mkt-accent)]" aria-hidden />
-              </div>
-              <p className="max-w-sm text-sm text-[var(--mkt-ink-muted)]">
-                A look at the portal — reviewing, pinning, and sharing a project.
-              </p>
-            </div>
-          </div>
+          <ul>
+            {ROWS.map((row) => (
+              <li key={row.label} className="flex items-baseline justify-between gap-4 border-b border-[var(--mkt-line)] px-4 py-3.5 last:border-b-0">
+                <span className="text-[15px] font-semibold text-[var(--mkt-ink)]">{row.label}</span>
+                <span className="text-right text-[13px] text-[var(--mkt-ink-muted)]">{row.meta}</span>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>

@@ -45,7 +45,7 @@ export function AccountDeletionPanel({ isSlateCeo = false }: { isSlateCeo?: bool
       </p>
       {isSlateCeo ? (
         <p className="mt-2 text-xs font-medium text-[var(--graphite-muted)]">
-          Transfer ownership first via the Operations Console before deleting the owner account.
+          Transfer ownership first via the CEO Dashboard before deleting the owner account.
         </p>
       ) : null}
 

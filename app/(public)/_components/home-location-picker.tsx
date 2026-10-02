@@ -36,7 +36,9 @@ export function HomeLocationPicker({ value, onChange }: { value: HomeLocationVal
           gestureHandling="cooperative"
           style={{ width: "100%", height: "100%" }}
         >
-          {value.lat !== null && value.lng !== null && <AdvancedMarker position={{ lat: value.lat, lng: value.lng }} />}
+          {value.lat !== null && value.lng !== null && (
+            <AdvancedMarker position={{ lat: value.lat, lng: value.lng }} clickable={false} />
+          )}
         </Map>
         <HomeLocationPickerChrome value={value} onChange={onChange} />
       </div>
@@ -51,7 +53,7 @@ function HomeLocationPickerChrome({ value, onChange }: { value: HomeLocationValu
   } = useHomeLocationPicker(value, onChange);
 
   const modeBtn = (active: boolean) =>
-    `h-11 min-w-[48px] rounded-lg px-3 text-[13px] font-semibold transition-colors ${
+    `inline-flex h-12 min-w-12 items-center justify-center gap-1.5 rounded-lg px-3 text-[13px] font-semibold transition-colors ${
       active ? "bg-[var(--mkt-accent)] text-white" : "bg-white/90 text-[var(--mkt-ink-muted)] hover:text-[var(--mkt-ink)]"
     }`;
 
@@ -63,7 +65,7 @@ function HomeLocationPickerChrome({ value, onChange }: { value: HomeLocationValu
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Search an address, or tap the map"
+            placeholder="Search an address"
             className="h-9 flex-1 bg-transparent text-[15px] text-[var(--mkt-ink)] outline-none placeholder:text-[var(--mkt-ink-muted)]"
           />
           {value.lat !== null || input ? (
@@ -97,7 +99,29 @@ function HomeLocationPickerChrome({ value, onChange }: { value: HomeLocationValu
         </div>
       </div>
 
-      <div className="pointer-events-auto absolute bottom-2 left-2 flex flex-wrap items-center gap-1.5">
+      <div className="pointer-events-auto absolute bottom-2 left-2 right-2 flex flex-wrap items-center gap-1.5">
+        <div className="flex gap-1 rounded-xl border border-[var(--mkt-line)] bg-white/95 p-1 shadow-md backdrop-blur-sm">
+          <button
+            type="button"
+            aria-pressed={tool === "marker"}
+            onClick={() => activateTool(tool === "marker" ? "select" : "marker")}
+            className={modeBtn(tool === "marker")}
+          >
+            <IconMapPin size={17} />
+            {tool === "marker" ? "Placing" : "Place pin"}
+          </button>
+          {value.lat !== null && value.lng !== null ? (
+            <button
+              type="button"
+              onClick={() => onChange({ ...value, address: "", lat: null, lng: null })}
+              aria-label="Remove pin"
+              className={modeBtn(false)}
+            >
+              <IconX size={17} />
+              Remove pin
+            </button>
+          ) : null}
+        </div>
         <div className="flex gap-1 rounded-xl border border-[var(--mkt-line)] bg-white/95 p-1 shadow-md backdrop-blur-sm">
           <button type="button" onClick={() => (isDrawingBoundary ? finishBoundary() : activateTool("polygondraw"))} className={modeBtn(tool === "polygondraw")} title="Outline the project area">
             <IconPentagon size={17} className="mx-auto" />
@@ -122,20 +146,19 @@ function HomeLocationPickerChrome({ value, onChange }: { value: HomeLocationValu
               : `${drawingVertices.length} points — tap the outline button again to finish`}
           </div>
         </div>
+      ) : tool === "marker" ? (
+        <div className="pointer-events-none absolute left-2 right-2 top-16 flex justify-center">
+          <div className="rounded-lg bg-white/95 px-3 py-2 text-center text-[12.5px] font-medium text-[var(--mkt-ink)] shadow-md">
+            Tap the map to place or move the pin. Pan and pinch still move the map.
+          </div>
+        </div>
       ) : null}
 
-      {value.address ? (
-        <div className="pointer-events-auto absolute bottom-2 right-2 flex max-w-[70%] items-center gap-1.5 rounded-lg bg-white/95 py-1.5 pl-2.5 pr-1.5 text-[11.5px] text-[var(--mkt-ink)] shadow-md">
-          <span className="truncate">{value.address}</span>
-          <button
-            type="button"
-            onClick={clearLocation}
-            aria-label="Clear this location"
-            title="Clear this location"
-            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-[var(--mkt-ink-muted)] hover:bg-[var(--mkt-canvas-alt)] hover:text-[var(--mkt-ink)]"
-          >
-            <IconX size={13} />
-          </button>
+      {value.address && tool !== "marker" && !isDrawingBoundary && suggestions.length === 0 ? (
+        <div className="pointer-events-none absolute left-2 right-2 top-16 flex justify-center">
+          <div className="max-w-full truncate rounded-lg bg-white/95 px-3 py-2 text-[12.5px] font-medium text-[var(--mkt-ink)] shadow-md">
+            {value.address}
+          </div>
         </div>
       ) : null}
     </div>

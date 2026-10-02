@@ -14,8 +14,6 @@ export type CeoSubscriberDirectoryEntry = {
   isOwnerAccount: boolean;
   staffId: string | null;
   accessScope: string[];
-  hasMarketAccess: boolean;
-  hasAthlete360Access: boolean;
 };
 
 type UseCeoSubscriberDirectoryReturn = {

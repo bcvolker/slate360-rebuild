@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMap, useMapsLibrary } from "@vis.gl/react-google-maps";
+import { mapClickAction, pinToolFromPicker } from "@/lib/maps/pin-placement";
+import { useMapTapGate } from "@/lib/maps/use-map-tap-gate";
 
 export type LatLng = { lat: number; lng: number };
 export type HomeLocationValue = {
@@ -39,6 +41,7 @@ export function useHomeLocationPicker(value: HomeLocationValue, onChange: (v: Ho
   const [drawingVertices, setDrawingVertices] = useState<LatLng[]>([]);
 
   const toolRef = useRef<Tool>("select");
+  const tapGateRef = useMapTapGate(map);
   const verticesRef = useRef<LatLng[]>([]);
   verticesRef.current = drawingVertices;
   const valueRef = useRef(value);
@@ -62,7 +65,8 @@ export function useHomeLocationPicker(value: HomeLocationValue, onChange: (v: Ho
       return;
     }
     if (!pinMarkerRef.current) {
-      pinMarkerRef.current = new google.maps.Marker({ map, draggable: true, position: { lat: value.lat, lng: value.lng } });
+      const placing = toolRef.current === "marker";
+      pinMarkerRef.current = new google.maps.Marker({ map, draggable: placing, clickable: placing, position: { lat: value.lat, lng: value.lng } });
       pinMarkerRef.current.addListener("dragend", (e: google.maps.MapMouseEvent) => {
         if (!e.latLng) return;
         const lat = e.latLng.lat();
@@ -76,8 +80,10 @@ export function useHomeLocationPicker(value: HomeLocationValue, onChange: (v: Ho
     } else {
       pinMarkerRef.current.setPosition({ lat: value.lat, lng: value.lng });
     }
+    pinMarkerRef.current.setDraggable(toolRef.current === "marker");
+    pinMarkerRef.current.setClickable(toolRef.current === "marker");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [map, value.lat, value.lng]);
+  }, [map, value.lat, value.lng, tool]);
 
   // Autocomplete — legacy AutocompleteService first (confirmed working);
   // Geocoder as a last-resort fallback only. skipNextSearchRef suppresses
@@ -119,14 +125,16 @@ export function useHomeLocationPicker(value: HomeLocationValue, onChange: (v: Ho
     setDrawingVertices([]);
   }, []);
 
-  // Click handling: drop/move pin, or add a boundary vertex.
+  // Clicks add a boundary vertex, or place a pin only while Place pin is on.
   useEffect(() => {
     if (!map) return;
     const listener = map.addListener("click", (e: google.maps.MapMouseEvent) => {
       if (!e.latLng) return;
+      const action = mapClickAction(pinToolFromPicker(toolRef.current), tapGateRef.current?.consumeClick() ?? false);
+      if (action === "ignore") return;
       const lat = e.latLng.lat();
       const lng = e.latLng.lng();
-      if (toolRef.current === "polygondraw") {
+      if (action === "boundary-vertex") {
         const next = [...verticesRef.current, { lat, lng }];
         setDrawingVertices(next);
         if (previewLineRef.current) previewLineRef.current.setPath(next);

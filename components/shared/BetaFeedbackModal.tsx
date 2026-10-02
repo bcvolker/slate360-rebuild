@@ -129,7 +129,7 @@ export function BetaFeedbackModal({ open, onOpenChange }: BetaFeedbackModalProps
           <X className="h-4 w-4" />
         </button>
         <h2 className="mb-1 text-lg font-black text-white">Submit Version 1 Feedback</h2>
-        <p className="mb-4 text-xs font-bold text-white/50">Bugs and suggestions go straight to the owner Operations Console.</p>
+        <p className="mb-4 text-xs font-bold text-white/50">Bugs and suggestions go straight to the CEO Dashboard.</p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex gap-3">

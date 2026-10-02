@@ -161,7 +161,7 @@ const DASHBOARD_DESKTOP_NAV_ALL: DashboardNavItem[] = [
     ceoOnly: true,
   },
   {
-    label: "Operations Console",
+    label: "CEO Dashboard",
     href: "/operations-console",
     icon: Wrench,
     matchPrefixes: ["/operations-console"],

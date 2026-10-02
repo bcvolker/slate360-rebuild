@@ -164,6 +164,9 @@ export default function CreateProjectWizard({
               <div className="h-[360px] w-full overflow-hidden rounded-xl border border-white/10 bg-white/5">
                 <WizardLocationPicker value={location} onChange={setLocation} />
               </div>
+              <p className="text-[11px] text-[var(--graphite-muted)]">
+                Pan and zoom to find the site. Turn on Place pin, then tap the map. Remove pin clears it.
+              </p>
               {location.address && (
                 <p className="text-[11px] text-[var(--graphite-muted)] flex items-center gap-1.5">
                   <MapPin size={11} className="text-[var(--graphite-primary)] shrink-0" />

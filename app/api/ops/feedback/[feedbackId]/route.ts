@@ -21,7 +21,7 @@ type RouteContext = { params: Promise<{ feedbackId: string }> };
 export const PATCH = (req: NextRequest, ctx: RouteContext) =>
   withAuth(req, async ({ admin }) => {
     const { canAccessOperationsConsole } = await resolveServerOrgContext();
-    if (!canAccessOperationsConsole) return forbidden("Operations Console access required");
+    if (!canAccessOperationsConsole) return forbidden("CEO Dashboard access required");
 
     const { feedbackId } = await ctx.params;
     if (!feedbackId) return badRequest("feedbackId is required");

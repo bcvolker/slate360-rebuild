@@ -1,16 +1,19 @@
 "use client";
 
 import { useEffect } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 import {
-  Shield,
   BarChart3,
-  DollarSign,
-  Users,
-  Settings,
+  ClipboardList,
+  FolderOpen,
+  Inbox,
+  Link2,
   MessageSquare,
-  MessagesSquare,
-  FileText,
   Activity,
+  Receipt,
+  Users,
   type LucideIcon,
 } from "lucide-react";
 import { useOpsConsoleStore } from "@/lib/stores/useOpsConsoleStore";
@@ -18,56 +21,66 @@ import { opsConsoleTokens as t } from "@/components/ops/console/ops-console-toke
 import { cn } from "@/lib/utils";
 import type { OpsConsoleInitialData, OpsConsoleTab } from "@/lib/ops-console/types";
 import { OverviewTab } from "./tabs/OverviewTab";
-import { RevenueTab } from "./tabs/RevenueTab";
-import { UsersTab } from "./tabs/UsersTab";
-import { PlansTab } from "./tabs/PlansTab";
 import { FeedbackTab } from "./tabs/FeedbackTab";
-import { CommunicationsTab } from "./tabs/CommunicationsTab";
-import { StaffTab } from "./tabs/StaffTab";
-import { ContentTab } from "./tabs/ContentTab";
 import { HealthTab } from "./tabs/HealthTab";
+import {
+  CommercialTab,
+  ContactsTab,
+  DeliverablesTab,
+  JobsTab,
+  LeadsTab,
+  PortalsTab,
+} from "./tabs/OwnerWorkTabs";
 
 type TabDef = { id: OpsConsoleTab; label: string; icon: LucideIcon; ceoOnly: boolean };
 
 const TABS: TabDef[] = [
-  { id: "overview", label: "Overview", icon: BarChart3, ceoOnly: true },
-  { id: "revenue", label: "Revenue & Finance", icon: DollarSign, ceoOnly: true },
-  { id: "users", label: "Users & Orgs", icon: Users, ceoOnly: true },
-  { id: "plans", label: "Plans & Pricing", icon: Settings, ceoOnly: true },
-  { id: "feedback", label: "Feedback & Approvals", icon: MessageSquare, ceoOnly: false },
-  { id: "communications", label: "Communications", icon: MessagesSquare, ceoOnly: true },
-  { id: "staff", label: "Staff & Access", icon: Shield, ceoOnly: true },
-  { id: "content", label: "Content & Marketing", icon: FileText, ceoOnly: true },
-  { id: "health", label: "System Health", icon: Activity, ceoOnly: true },
+  { id: "overview", label: "Home", icon: BarChart3, ceoOnly: true },
+  { id: "leads", label: "Leads", icon: Inbox, ceoOnly: true },
+  { id: "portals", label: "Portals", icon: Link2, ceoOnly: true },
+  { id: "jobs", label: "Jobs", icon: FolderOpen, ceoOnly: true },
+  { id: "deliverables", label: "Deliverables", icon: ClipboardList, ceoOnly: true },
+  { id: "commercial", label: "Quotes", icon: Receipt, ceoOnly: true },
+  { id: "contacts", label: "Contacts", icon: Users, ceoOnly: true },
+  { id: "feedback", label: "Feedback", icon: MessageSquare, ceoOnly: false },
+  { id: "health", label: "Health", icon: Activity, ceoOnly: true },
 ];
 
-function TabContent({ tab }: { tab: OpsConsoleTab }) {
+function TabContent({ tab, work }: { tab: OpsConsoleTab; work: OpsConsoleInitialData["work"] }) {
   switch (tab) {
     case "overview":
       return <OverviewTab />;
-    case "revenue":
-      return <RevenueTab />;
-    case "users":
-      return <UsersTab />;
-    case "plans":
-      return <PlansTab />;
+    case "leads":
+      return <LeadsTab work={work} />;
+    case "portals":
+      return <PortalsTab work={work} />;
+    case "jobs":
+      return <JobsTab work={work} />;
+    case "deliverables":
+      return <DeliverablesTab work={work} />;
+    case "commercial":
+      return <CommercialTab work={work} />;
+    case "contacts":
+      return <ContactsTab work={work} />;
     case "feedback":
       return <FeedbackTab />;
-    case "communications":
-      return <CommunicationsTab />;
-    case "staff":
-      return <StaffTab />;
-    case "content":
-      return <ContentTab />;
     case "health":
       return <HealthTab />;
     default:
-      return null;
+      return <OverviewTab />;
   }
 }
 
 export function OperationsConsoleClient({ initial }: { initial: OpsConsoleInitialData }) {
+  const router = useRouter();
   const { activeTab, setActiveTab, hydrate, error } = useOpsConsoleStore();
+
+  async function signOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+    router.refresh();
+  }
 
   useEffect(() => {
     hydrate(initial);
@@ -81,16 +94,20 @@ export function OperationsConsoleClient({ initial }: { initial: OpsConsoleInitia
   return (
     <div className={t.page} data-mobile-route="platform">
       <header className={t.header}>
-        <div>
-          <p className={t.eyebrow}>Operations Console</p>
-          <h1 className={t.title}>Internal tools</h1>
-          <p className={t.subtitle}>
-            {initial.isCeo ? "Owner command center" : "Staff workspace"} — staff only
-          </p>
+        <h1 className={t.title}>CEO Dashboard</h1>
+        <div className={t.headerActions}>
+          {initial.isCeo ? (
+            <Link href="/digital-twin" className={t.secondaryButton}>
+              Twin 360
+            </Link>
+          ) : null}
+          <button type="button" onClick={() => void signOut()} className={t.quietAction}>
+            Sign out
+          </button>
         </div>
       </header>
 
-      <nav className={t.tabBar} aria-label="Operations Console sections">
+      <nav className={t.tabBar} aria-label="CEO Dashboard sections">
         {visibleTabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = effectiveTab === tab.id;
@@ -115,7 +132,7 @@ export function OperationsConsoleClient({ initial }: { initial: OpsConsoleInitia
             {error}
           </p>
         ) : null}
-        <TabContent tab={effectiveTab} />
+        <TabContent tab={effectiveTab} work={initial.work} />
       </div>
     </div>
   );

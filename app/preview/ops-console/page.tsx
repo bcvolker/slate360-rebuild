@@ -22,9 +22,10 @@ const MOCK: OpsConsoleInitialData = {
     { id: "u2", email: "architect@asu.edu", createdAt: new Date().toISOString() },
   ],
   staff: [
-    { id: "s1", email: "ops@slate360.ai", displayName: "Ops Lead", accessScope: ["market"], grantedAt: new Date().toISOString(), revokedAt: null },
+    { id: "s1", email: "ops@slate360.ai", displayName: "Ops Lead", accessScope: [], grantedAt: new Date().toISOString(), revokedAt: null },
   ],
   health: { stripe: true, stripeWebhook: false, supabase: true, supabaseService: true, appUrl: true },
+  work: null,
 };
 
 export default function OpsConsolePreviewPage() {

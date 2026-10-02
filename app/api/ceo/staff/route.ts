@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { sanitizeStaffAccessScope } from "@/lib/ops-console/staff-scopes";
 import { withAuth } from "@/lib/server/api-auth";
 import { ok, forbidden, serverError, badRequest } from "@/lib/server/api-response";
 
@@ -15,13 +16,6 @@ function isCeo(email: string | undefined): boolean {
   return email === "slate360ceo@gmail.com";
 }
 
-function sanitizeAccessScope(value: unknown): string[] {
-  const validScopes = new Set(["market", "athlete360"]);
-  if (!Array.isArray(value)) return ["market"];
-
-  const sanitized = value.filter((scope): scope is string => typeof scope === "string" && validScopes.has(scope));
-  return sanitized.length > 0 ? sanitized : ["market"];
-}
 
 export const GET = (req: NextRequest) =>
   withAuth(req, async ({ user, admin }) => {
@@ -43,7 +37,7 @@ export const POST = (req: NextRequest) =>
     const body = await req.json() as Record<string, unknown>;
     const email = typeof body.email === "string" ? body.email.trim().toLowerCase() : "";
     const displayName = typeof body.displayName === "string" ? body.displayName.trim() : null;
-    const accessScope = sanitizeAccessScope(body.accessScope);
+    const accessScope = sanitizeStaffAccessScope(body.accessScope);
     const notes = typeof body.notes === "string" ? body.notes.trim() : null;
 
     if (!email || !email.includes("@")) return badRequest("Valid email required");

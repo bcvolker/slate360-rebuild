@@ -17,6 +17,9 @@ const legacyConfig: CapacitorConfig = {
   server: {
     // Open on the app home, not the marketing site. Logged out, the middleware sends
     // this to /login?redirectTo=/app and straight back in afterwards.
+    // Stays /app for every native user. CEO web sign-in (login, OAuth callback,
+    // middleware bounce) lands on /operations-console; a cold start of this shell
+    // while already signed in still opens /app, because this URL is not session-aware.
     url: "https://www.slate360.ai/app",
     cleartext: false,
     androidScheme: "https",

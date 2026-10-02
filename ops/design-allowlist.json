@@ -36,7 +36,6 @@
     "components/marketing-launchpad/ProductFeatureRow.tsx",
     "components/marketing-launchpad/ProductMediaFrame.tsx",
     "components/marketing-launchpad/ProductPageShell.tsx",
-    "components/marketing/CookieBanner.tsx",
     "components/projects/WizardLocationPickerController.tsx",
     "components/projects/useWizardLocationPickerController.ts",
     "components/shared/ProjectLocationMap.tsx",
