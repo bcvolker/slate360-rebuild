@@ -99,8 +99,8 @@ export function HomeContactForm() {
           <div className="mt-5">
             <div className={labelClass}>Project location</div>
             <p className="mt-1 text-[13px] text-[var(--mkt-ink-muted)]">
-              Search an address, drop a pin, or outline the property — whatever&rsquo;s easiest.
-              You can clear it and start over anytime with the × next to it.
+              Search an address, turn on Place pin and tap the map, or outline the property.
+              Remove pin clears a pin. Pan and pinch stay available until you turn placement on.
             </p>
             <div className="mt-2.5">
               <HomeLocationPicker value={location} onChange={setLocation} />

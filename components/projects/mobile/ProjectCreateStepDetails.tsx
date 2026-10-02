@@ -85,7 +85,7 @@ export function ProjectCreateStepDetails({ form, onChange, onContinue }: Props) 
             <p className="mt-1 text-[11px] text-[var(--graphite-muted)]">
               {form.address
                 ? form.address
-                : "Type an address to pick from results, or drop a pin on the map. This seeds walk & twin geolocation."}
+                : "Search an address, or turn on Place pin and tap the map. This seeds walk and twin geolocation."}
             </p>
           </div>
         </ProjectCreateGlassCard>
