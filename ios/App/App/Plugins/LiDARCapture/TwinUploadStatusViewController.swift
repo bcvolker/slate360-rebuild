@@ -12,13 +12,18 @@ final class TwinUploadStatusViewController: UIViewController {
         case done
     }
 
-    /// True when capture was started with a project id. False means the uploader
-    /// creates one through the existing quick-scan space API.
+    /// True once a project id is known (selected, or created for this scan).
     var projectAttached = false
+    /// True only when this scan created the quick-scan project because none was selected.
+    var projectCreated = false
+    /// Relaunch screen for an upload that outlived the process. Close does not end a capture.
+    var isResume = false
     var onRetry: (() -> Void)?
     var onClose: (() -> Void)?
 
     private var phase: Phase = .savedLocally
+    private var lastPercent = 0
+    private var stepNote = ""
     private let titleLabel = UILabel()
     private let detailLabel = UILabel()
     private let percentLabel = UILabel()
@@ -63,7 +68,30 @@ final class TwinUploadStatusViewController: UIViewController {
     }
 
     func apply(_ phase: Phase) {
-        self.phase = phase
+        switch phase {
+        case let .uploading(percent):
+            lastPercent = max(0, min(100, percent))
+            self.phase = .uploading(percent: lastPercent)
+        default:
+            stepNote = ""
+            self.phase = phase
+        }
+        guard isViewLoaded else { return }
+        render()
+    }
+
+    /// Percent and step label update independently so a new file name does not reset the bar.
+    func updateUpload(percent: Int?, note: String?) {
+        if let percent { lastPercent = max(0, min(100, percent)) }
+        if let note, !note.isEmpty { stepNote = note }
+        phase = .uploading(percent: lastPercent)
+        guard isViewLoaded else { return }
+        render()
+    }
+
+    func noteDestination(attached: Bool, createdProject: Bool) {
+        projectAttached = attached
+        projectCreated = createdProject
         guard isViewLoaded else { return }
         render()
     }
@@ -80,32 +108,40 @@ final class TwinUploadStatusViewController: UIViewController {
             titleLabel.text = "Uploading"
             percentLabel.isHidden = false
             percentLabel.text = "\(max(0, min(100, percent)))%"
-            detailLabel.text = "You can lock the phone or put it in a pocket. This upload continues."
+            percentLabel.accessibilityLabel = "Uploading \(max(0, min(100, percent))) percent"
+            let pocket = "You can lock the phone or put it in a pocket. This upload continues."
+            detailLabel.text = stepNote.isEmpty ? pocket : "\(stepNote) \(pocket)"
             retryButton.isHidden = true
-            closeButton.isHidden = true
+            // A relaunch can sit here while parts are still on disk. Close leaves the
+            // background upload running. The live capture screen stays up until Done or Failed.
+            closeButton.isHidden = !isResume
         case let .failed(message):
             titleLabel.text = "Couldn't upload"
             percentLabel.isHidden = true
             detailLabel.text = message
             retryButton.isHidden = onRetry == nil
+            retryButton.isEnabled = true
             closeButton.isHidden = false
-            closeButton.setTitle("Close", for: .normal)
         case .done:
             titleLabel.text = "Done"
             percentLabel.isHidden = true
-            detailLabel.text = projectAttached
-                ? "The scan is in the selected project."
-                : "The scan is in a new project."
+            detailLabel.text = doneLine
             retryButton.isHidden = true
             closeButton.isHidden = false
-            closeButton.setTitle("Close", for: .normal)
         }
     }
 
     private var projectLine: String {
-        projectAttached
-            ? "Saving into the project you selected."
-            : "No project was selected, so one is created for this scan."
+        if projectAttached && !projectCreated {
+            return "Saving into the project you selected."
+        }
+        return "No project was selected, so one is created for this scan."
+    }
+
+    private var doneLine: String {
+        if isResume { return "The scan finished uploading." }
+        if projectAttached && !projectCreated { return "The scan is in the selected project." }
+        return "The scan is in a new project."
     }
 
     private func configure(_ button: UIButton, title: String, filled: Bool) {
@@ -121,7 +157,10 @@ final class TwinUploadStatusViewController: UIViewController {
         button.configuration = config
     }
 
-    @objc private func retryTapped() { onRetry?() }
+    @objc private func retryTapped() {
+        retryButton.isEnabled = false
+        onRetry?()
+    }
 
     @objc private func closeTapped() { onClose?() }
 }

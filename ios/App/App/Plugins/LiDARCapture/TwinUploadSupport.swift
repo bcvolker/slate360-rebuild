@@ -76,6 +76,36 @@ final class TwinUploadStore {
         }
     }
 
+    /// Byte progress across every on-disk manifest. Safe to call from the main thread.
+    /// Completed parts count as uploaded; a manifest still present is not finished yet
+    /// (the engine deletes it only after the server accepts `upload/complete`).
+    func byteProgress() -> (done: Int64, total: Int64, fileCount: Int) {
+        queue.sync {
+            guard let children = try? fm.contentsOfDirectory(at: rootDir, includingPropertiesForKeys: nil) else {
+                return (0, 0, 0)
+            }
+            var done: Int64 = 0
+            var total: Int64 = 0
+            var count = 0
+            for child in children {
+                guard let data = try? Data(contentsOf: child.appendingPathComponent("manifest.json")),
+                      let manifest = try? JSONDecoder().decode(TwinUploadManifest.self, from: data) else {
+                    continue
+                }
+                count += 1
+                total += Int64(max(0, manifest.fileSizeBytes))
+                if manifest.isFullyUploaded {
+                    done += Int64(max(0, manifest.fileSizeBytes))
+                } else {
+                    for part in manifest.etags.keys {
+                        done += Int64(manifest.sizeOfPart(part))
+                    }
+                }
+            }
+            return (done, total, count)
+        }
+    }
+
     func loadAll() -> [TwinUploadManifest] {
         queue.sync {
             guard let children = try? fm.contentsOfDirectory(at: rootDir, includingPropertiesForKeys: nil) else {

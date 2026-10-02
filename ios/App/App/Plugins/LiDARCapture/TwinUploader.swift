@@ -69,6 +69,10 @@ final class TwinUploader {
     /// "Uploading video…", "Finishing up…"). Drives the live web spinner copy.
     var onStep: ((String) -> Void)?
 
+    /// Fires once the upload knows which project it will use.
+    /// `createdProject` is true only for the quick-scan pool (no project was selected).
+    var onDestination: ((_ projectId: String, _ createdProject: Bool) -> Void)?
+
     /// Emits overall upload progress in [0, 1], byte-weighted across all files.
     var onProgress: ((Double) -> Void)?
 
@@ -112,14 +116,9 @@ final class TwinUploader {
     /// NOTHING could be uploaded (no captureId, or every file failed); a partial
     /// failure returns normally so one dead photo can't strand the whole walk.
     func upload(files: [FileEntry]) throws -> Outcome {
-        // Self-heal: if the web layer didn't pass a workspace (e.g. a stale cached web
-        // bundle), create a quick-scan space natively so the capture isn't lost.
-        if spaceId.isEmpty {
-            onStep?("Preparing workspace…")
-            let (sid, pid) = try createQuickScanSpace(title: title ?? "Quick scan")
-            spaceId = sid
-            projectId = pid
-        }
+        // A selected project is never replaced by the quick-scan pool. An empty
+        // project creates that pool. Init requires both ids and they must match.
+        try ensureUploadDestination()
 
         totalBytes = max(1, files.reduce(Int64(0)) { $0 + Int64(fileSize($1.url)) })
         uploadedBytes = 0
@@ -188,8 +187,47 @@ final class TwinUploader {
 
     // MARK: - Workspace fallback
 
+    /// Resolves the space + project pair `upload/init` requires.
+    /// - Both ids: upload into that project.
+    /// - Project only: create a space on that project (`project_id`, not quick_scan).
+    /// - Neither: quick-scan pool project + space.
+    /// - Space without a project: fail. The server matches space to project; inventing
+    ///   an id would 404 as "Twin space not found for project".
+    private func ensureUploadDestination() throws {
+        if !spaceId.isEmpty && !projectId.isEmpty {
+            onDestination?(projectId, false)
+            return
+        }
+        onStep?("Preparing workspace…")
+        if spaceId.isEmpty && !projectId.isEmpty {
+            spaceId = try createSpace(title: title ?? "Scan", projectId: projectId)
+            onDestination?(projectId, false)
+            return
+        }
+        guard spaceId.isEmpty else {
+            throw UploadError.missing("project for this scan")
+        }
+        let (sid, pid) = try createQuickScanSpace(title: title ?? "Quick scan")
+        spaceId = sid
+        projectId = pid
+        onDestination?(pid, !pid.isEmpty)
+    }
+
+    /// Creates a space on an existing project. POST /api/digital-twin/spaces { title, project_id }.
+    private func createSpace(title: String, projectId: String) throws -> String {
+        let res = try postJSON("/api/digital-twin/spaces", [
+            "title": title,
+            "project_id": projectId,
+        ])
+        guard let space = res["space"] as? [String: Any],
+              let sid = space["id"] as? String else {
+            throw UploadError.missing("space id")
+        }
+        return sid
+    }
+
     /// Creates a quick-scan workspace and returns (spaceId, projectId). Used only when the
-    /// web layer supplied no spaceId. POST /api/digital-twin/spaces { title, quick_scan }.
+    /// web layer supplied no spaceId and no projectId. POST /api/digital-twin/spaces { title, quick_scan }.
     private func createQuickScanSpace(title: String) throws -> (String, String) {
         let res = try postJSON("/api/digital-twin/spaces", [
             "title": title,
